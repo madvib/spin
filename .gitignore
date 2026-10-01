@@ -1,0 +1,15 @@
+# Operational docs (git-ignored, will go stale)
+.agents/specs/
+
+# Harness run state (regenerated, never tracked)
+.omo/
+
+# Deno
+deno.lock
+
+# npm (app toolchains via Deno)
+node_modules/
+
+# Build outputs
+dist/
+.output/

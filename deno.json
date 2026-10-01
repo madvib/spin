@@ -1,0 +1,62 @@
+{
+  "name": "@spin/workspace",
+  "version": "0.1.0",
+  "workspace": [
+    "./packages/theme",
+    "./packages/animation",
+    "./packages/preset",
+    "./packages/primitives",
+    "./packages/lint",
+    "./packages/api",
+    "./apps/studio"
+  ],
+  "exports": {
+    ".": "./packages/theme/src/index.ts"
+  },
+  "imports": {
+    "@spin/theme": "./packages/theme/src/index.ts",
+    "@spin/preset": "./packages/preset/src/index.ts",
+    "@spin/primitives": "./packages/primitives/src/index.ts",
+    "@spin/lint": "./packages/lint/src/index.ts",
+    "@spin/api": "./packages/api/src/index.ts",
+    "@unocss/core": "npm:@unocss/core@^66.10.5",
+    "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",
+    "@orpc/contract": "npm:@orpc/contract@^1.0.0",
+    "@orpc/server": "npm:@orpc/server@^1.0.0",
+    "valibot": "npm:valibot@^1.0.0",
+    "@orpc/client": "npm:@orpc/client@^1.0.0",
+    "@spin/theme/base": "./packages/theme/src/base/index.ts",
+    "@spin/animation": "./packages/animation/src/index.ts",
+    "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.0"
+  },
+  "tasks": {
+    "test": "deno test --allow-read --allow-net packages/",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
+    "check": "deno check packages/",
+    "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/"
+  },
+  "fmt": {
+    "exclude": [
+      "node_modules",
+      ".omo",
+      ".output"
+    ]
+  },
+  "lint": {
+    "exclude": [
+      "node_modules",
+      ".omo",
+      ".output"
+    ]
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "strict": true,
+    "lib": [
+      "deno.window",
+      "dom",
+      "dom.iterable"
+    ]
+  }
+}
