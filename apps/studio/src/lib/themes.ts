@@ -1,0 +1,43 @@
+/**
+ * The theme registry the studio edits.
+ *
+ * Themes are not bundled and they are not the studio's own: they are the
+ * project's, found on disk. The studio is a tool pointed at a project, so the
+ * list comes from the filesystem at request time — a theme added while the
+ * studio is running has to be visible without a rebuild.
+ *
+ * The chrome is deliberately not in this list. It is styled by the studio's own
+ * static theme so that editing a theme cannot restyle the tool you are editing
+ * it with.
+ */
+
+import { discoverThemes, readTheme } from "./discover.ts";
+
+/** A theme the studio found, with the state the editor needs to show it. */
+export interface StudioTheme {
+  /** File stem, and the name written back to disk. */
+  name: string;
+  /** The raw JSON text, which is what an author edits. */
+  text: string;
+  /** Path relative to the workspace, shown so the author knows what they are editing. */
+  file: string;
+}
+
+/**
+ * Every theme in the project's themes directory.
+ *
+ * Server-side: this reads the filesystem, which the browser cannot do. The
+ * result is serialised to the client, which is where the editing state lives.
+ */
+export async function listProjectThemes(): Promise<StudioTheme[]> {
+  "use server";
+  return discoverThemes();
+}
+
+/** Re-reads one theme from disk, discarding unsaved edits to it. */
+export async function loadProjectTheme(
+  name: string,
+): Promise<string | undefined> {
+  "use server";
+  return readTheme(name);
+}

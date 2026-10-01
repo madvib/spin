@@ -1,0 +1,334 @@
+{
+  "$extensions": {
+    "spin": {
+      "modes": [
+        "light"
+      ],
+      "description": "The studio chrome. Static on purpose: the tool must not restyle itself when the theme being edited changes."
+    }
+  },
+  "color": {
+    "$type": "color",
+    "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
+    "primary": {
+      "$value": "#3f3f46",
+      "$type": "color",
+      "$description": "Neutral on purpose. A brand color here would read as the theme being edited."
+    },
+    "secondary": {
+      "$value": "#6d28d9",
+      "$description": "Brand accent: secondary actions and highlights."
+    },
+    "accent": {
+      "$value": "#0f766e",
+      "$description": "Brand accent: supporting emphasis, distinct from primary."
+    },
+    "neutral": {
+      "50": {
+        "$value": "#f8fafc"
+      },
+      "100": {
+        "$value": "#f1f5f9"
+      },
+      "200": {
+        "$value": "#e2e8f0"
+      },
+      "300": {
+        "$value": "#cbd5e1"
+      },
+      "400": {
+        "$value": "#94a3b8"
+      },
+      "500": {
+        "$value": "#64748b"
+      },
+      "600": {
+        "$value": "#475569"
+      },
+      "700": {
+        "$value": "#334155"
+      },
+      "800": {
+        "$value": "#1e293b"
+      },
+      "900": {
+        "$value": "#0f172a"
+      },
+      "$description": "The grey ramp, 50 (lightest) through 900 (darkest)."
+    },
+    "semantic": {
+      "$description": "Status colors. Named by meaning, never by hue.",
+      "success": {
+        "$value": "#15803d"
+      },
+      "warning": {
+        "$value": "#a16207"
+      },
+      "error": {
+        "$value": "#b91c1c"
+      },
+      "info": {
+        "$value": "#0369a1"
+      }
+    },
+    "surface": {
+      "$value": "#f4f5f7",
+      "$type": "color",
+      "$description": "Tool chrome sits a step off the page so a preview surface reads as inset."
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$type": "color"
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Default body text."
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "Secondary text: captions, helper copy, placeholders."
+    },
+    "border": {
+      "$value": "{color.neutral.200}",
+      "$description": "Default hairline and divider."
+    },
+    "on-primary": {
+      "$value": "#ffffff"
+    },
+    "on-danger": {
+      "$value": "#ffffff",
+      "$type": "color"
+    },
+    "focus-ring": {
+      "$value": "#3f3f46"
+    },
+    "link": {
+      "$value": "{color.primary}",
+      "$description": "Links read against body text, so they follow the primary."
+    }
+  },
+  "spacing": {
+    "0": {
+      "$value": "0"
+    },
+    "1": {
+      "$value": "0.25rem"
+    },
+    "2": {
+      "$value": "0.5rem"
+    },
+    "4": {
+      "$value": "1rem"
+    },
+    "8": {
+      "$value": "2rem"
+    },
+    "16": {
+      "$value": "4rem"
+    },
+    "$type": "dimension",
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+  },
+  "font": {
+    "$description": "Typography: which face, how large, how heavy.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text."
+      },
+      "serif": {
+        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$description": "Long-form editorial text."
+      },
+      "mono": {
+        "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
+        "$description": "Code, identifiers, tabular figures."
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "xs": {
+        "$value": "0.75rem"
+      },
+      "sm": {
+        "$value": "0.875rem"
+      },
+      "md": {
+        "$value": "1rem"
+      },
+      "lg": {
+        "$value": "1.125rem"
+      },
+      "xl": {
+        "$value": "1.25rem"
+      },
+      "2xl": {
+        "$value": "1.5rem"
+      },
+      "3xl": {
+        "$value": "1.875rem"
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Corner rounding, from square to fully round.",
+    "none": {
+      "$value": "0"
+    },
+    "sm": {
+      "$value": "0.125rem"
+    },
+    "md": {
+      "$value": "0.25rem"
+    },
+    "lg": {
+      "$value": "0.5rem"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation, as CSS box-shadow values.",
+    "sm": {
+      "$value": "0 1px 2px 0 rgba(15, 23, 42, 0.06)"
+    },
+    "md": {
+      "$value": "0 4px 12px -2px rgba(15, 23, 42, 0.10)"
+    },
+    "lg": {
+      "$value": "0 12px 32px -8px rgba(15, 23, 42, 0.16)"
+    }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Viewport widths where layout steps change.",
+    "sm": {
+      "$value": "40rem"
+    },
+    "md": {
+      "$value": "48rem"
+    },
+    "lg": {
+      "$value": "64rem"
+    },
+    "xl": {
+      "$value": "80rem"
+    }
+  },
+  "z-index": {
+    "$type": "number",
+    "$description": "Stacking order. Layer, never a magic number at the call site.",
+    "base": {
+      "$value": 0
+    },
+    "dropdown": {
+      "$value": 1000
+    },
+    "modal": {
+      "$value": 2000
+    },
+    "toast": {
+      "$value": 3000
+    }
+  },
+  "motion": {
+    "$description": "How things move and how long it takes.",
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": "150ms"
+      },
+      "base": {
+        "$value": "250ms"
+      },
+      "slow": {
+        "$value": "400ms"
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "linear": {
+        "$value": "linear"
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.2, 0, 0, 1)"
+      },
+      "decelerate": {
+        "$value": "cubic-bezier(0, 0, 0, 1)"
+      },
+      "accelerate": {
+        "$value": "cubic-bezier(0.3, 0, 1, 1)"
+      }
+    }
+  },
+  "button": {
+    "$type": "dimension",
+    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "weight": {
+      "$value": "{font.weight.medium}"
+    },
+    "hover-lift-x": {
+      "$value": "0",
+      "$type": "dimension"
+    },
+    "hover-lift-y": {
+      "$value": "0",
+      "$type": "dimension"
+    },
+    "case": {
+      "$value": "none",
+      "$type": "textTransform"
+    },
+    "tracking": {
+      "$value": "0",
+      "$type": "dimension"
+    },
+    "border-width": {
+      "$value": "1px",
+      "$type": "dimension"
+    },
+    "shadow": {
+      "$value": "none",
+      "$type": "shadow"
+    },
+    "shadow-hover": {
+      "$value": "{shadow.sm}"
+    }
+  },
+  "border": {
+    "$type": "dimension",
+    "$description": "Stroke weight. Every control and surface reads this, so a theme changes its edge weight in one place.",
+    "width": {
+      "$value": "1px"
+    }
+  },
+  "focus": {
+    "$type": "dimension",
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs.",
+    "width": {
+      "$value": "1px"
+    },
+    "offset": {
+      "$value": "2px"
+    }
+  }
+}

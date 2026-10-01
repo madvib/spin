@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "screenshots": "deno run -A ./visual/shot.ts",
+    "check": "deno run -A ./visual/check.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "require-await"
+      ]
+    }
+  }
+}

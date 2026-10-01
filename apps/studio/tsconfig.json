@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "types": [
+      "vite/client",
+      "node",
+      "@solidjs/start/env"
+    ],
+    "paths": {
+      "~/*": [
+        "./src/*"
+      ],
+      "@spin/theme": [
+        "../../packages/theme/src/index.ts"
+      ],
+      "@spin/preset": [
+        "../../packages/preset/src/index.ts"
+      ],
+      "@unocss/core": [
+        "./node_modules/@unocss/core/dist/index.d.mts"
+      ],
+      "@spin/primitives": [
+        "../../packages/primitives/src/index.ts"
+      ],
+      "@spin/theme/base": [
+        "../../packages/theme/src/base/index.ts"
+      ],
+      "@spin/animation": [
+        "../../packages/animation/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "vite.config.ts"
+  ]
+}
