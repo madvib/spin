@@ -1,0 +1,322 @@
+/*
+ * Semantic button.
+ *
+ * The theme owns the *control*, not the `<button>` tag. A button is whatever
+ * the author says acts like one: the element, the three legacy `<input>`
+ * types that browsers still emit, or anything carrying `role="button"` —
+ * which is what a `<div>` or a styled link becomes once it starts behaving as a
+ * control. All of them get the same finished treatment: metrics, states, and a
+ * focus ring, all themed.
+
+ * Two kinds of value appear here, and the difference is the whole design:
+ *
+ *   spent bindings  The CSS names a scale step it consumes — `var(--radius-md)`,
+ *                   `var(--spacing-2)`. No token is minted, because the author of
+ *                   the CSS has no choice to express. A theme moves the button by
+ *                   moving the scale: neobrut's `radius.md` is 0, so every button
+ *                   bound to it goes square with no button token in sight.
+ *
+ *   character       A decision a theme genuinely owns and an author may want to
+ *                   override per component — the hover lift, the offset shadow,
+ *                   the uppercase transform. These are minted as `button.*` tokens
+ *                   because the choice is real and a studio should surface it.
+ *
+ * Markup contract:
+ *   <button>                       primary
+ *   <input type="submit">           also primary — a button by another name
+ *   <div role="button">             also primary, and now keyboard-usable
+ *   <button class="secondary">      filled with the surface, not the brand
+ *   <button class="contrast">       the loudest variant, for the main action
+ *   <button class="ghost">          no fill until hover
+ *   <button class="outline">        border only, on the brand color
+ *   <button class="danger">         destructive, uses on-danger
+ *   <button class="s-sm|s-lg">       size, default is md
+ *   <button class="icon">           square, for a lone glyph
+ *   <button aria-busy="true">       shows a spinner, suppresses the icon
+ *   <span role="group">             joins buttons into a segmented control
+ *
+ * A `<button type="reset">` is the one legacy type that reads as secondary with
+ * no class, matching what the browser means by it.
+ *
+ * `.button-icon` is a slot, not a style: it only reserves room and lets the
+ * glyph inherit `currentColor`, so an icon can never drift from the label's
+ * color the way a `fill="currentColor"` attribute would drift.
+ */
+
+/* ---------- base ---------- */
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]) {
+  /* Layout: a button is a flex row so an icon and a label can sit inside it
+     with one gap, whatever combination the author writes. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
+  text-decoration: none;
+
+  /* Spent bindings: the spacing scale, not a button-specific token. */
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-4);
+
+  /* Spent bindings: the type and radius scales. */
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  line-height: 1;
+  border-radius: var(--radius-md);
+
+  /* Height is derived, not stated. A button is as tall as its text plus its
+     padding plus its borders, so the three can never disagree. */
+  min-height: calc(
+    var(--font-size-md) + (2 * var(--spacing-2)) + (2 *
+    var(--button-border-width))
+  );
+
+  /* Character: the one thing about a button a theme owns outright. */
+  font-weight: var(--button-weight);
+  text-transform: var(--button-case);
+  letter-spacing: var(--button-tracking);
+
+  border: var(--button-border-width) solid var(--color-on-primary);
+
+  /* Colour, default variant. */
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+  box-shadow: var(--button-shadow);
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+/* ---------- states ---------- */
+
+/* Hover is theme-defined feedback: neobrut grows its offset shadow and lifts,
+   the default theme only softens. Both come from tokens, so a theme that wants
+   no feedback at all sets the lift and the shadow-hover to nothing. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):hover:not(:disabled):not([aria-busy="true"]) {
+  box-shadow: var(--button-shadow-hover);
+  transform: translate(var(--button-hover-lift-x), var(--button-hover-lift-y));
+}
+
+/* Active is the press. It cancels the hover lift so the control reads as
+   pushed *into* the page rather than pulled out of it. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):active:not(:disabled):not([aria-busy="true"]) {
+  transform: translate(0, 0);
+  box-shadow: var(--button-shadow);
+}
+
+/* Focus ring is drawn on the focus-visible ring so a mouse press never leaves
+   a ring behind, but keyboard focus always does. The offset keeps the ring
+   clear of the button's own border, which matters for themes with heavy
+   borders. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Remove the UA default focus ring only where :focus-visible is supported.
+   Without the @supports guard this would blind keyboard users on old engines. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+@supports not selector(:focus-visible) {
+  button:focus {
+    outline: var(--focus-width) solid var(--color-focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):disabled,
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--button-shadow);
+}
+
+/* ---------- loading ---------- */
+
+/* Busy buttons keep their width so a row of buttons does not reflow when one
+   of them starts working. The spinner is a border trick rather than an
+   animation keyframe set, so it inherits currentColor for free. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])[aria-busy="true"] {
+  cursor: progress;
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])[aria-busy="true"]::after {
+  content: "";
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  border: 2px solid currentColor;
+  border-block-start-color: transparent;
+  border-radius: 50%;
+  animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])[aria-busy="true"] > .button-icon {
+  display: none;
+}
+
+/* ---------- sizes ---------- */
+
+/* Sizes spend the same scales at different steps. Padding and type move
+   together, so a small button is proportionally the same control. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-sm {
+  padding-block: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  min-height: calc(
+    var(--font-size-sm) + (2 * var(--spacing-1)) + (2 *
+    var(--button-border-width))
+  );
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-lg {
+  padding-block: var(--spacing-4);
+  padding-inline: var(--spacing-8);
+  font-size: var(--font-size-lg);
+  min-height: calc(
+    var(--font-size-lg) + (2 * var(--spacing-4)) + (2 *
+    var(--button-border-width))
+  );
+}
+
+/* Square button for a lone glyph. Padding is dropped and the aspect ratio does
+   the rest, so the box stays perfectly round at every size. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).icon {
+  width: auto;
+  padding-inline: 0;
+  aspect-ratio: 1;
+}
+
+/* ---------- variants ---------- */
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).secondary {
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+  border-color: var(--color-border);
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost {
+  color: var(--color-text);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost:hover:not(:disabled):not([aria-busy="true"]) {
+  background-color: var(--color-surface-raised);
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
+  color: var(--color-on-danger);
+  background-color: var(--color-semantic-error);
+  border-color: var(--color-on-danger);
+}
+
+/* The loudest variant: brand fill on the page's own text color, so it is the
+   highest-contrast control available. Reserved for the one action a screen is
+   about, because two of these on one page is noise. */
+:is(button, [type="submit"], [type="button"], [role="button"]).contrast {
+  color: var(--color-surface);
+  background-color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+/* Border only, on the brand color. For a page that already has a filled
+   primary and needs a second action without competing with it. */
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
+  color: var(--color-primary);
+  background-color: transparent;
+  border-color: var(--color-primary);
+}
+
+:is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* A reset button is a secondary action by what the browser means by it, so it
+   reads as one without a class. Specific enough to beat the base rule. */
+[type="reset"] {
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+  border-color: var(--color-border);
+}
+
+[type="reset"].outline {
+  color: var(--color-primary);
+  background-color: transparent;
+  border-color: var(--color-primary);
+}
+
+[type="reset"].outline:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ---------- icon slot ---------- */
+
+/* 1em rather than a fixed size so the glyph tracks the button's font-size
+   across all three sizes with no extra tokens. */
+.button-icon {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+}
+
+/* ---------- groups ---------- */
+
+/* A joined control. Children lose their own radii and their adjacent borders
+   are collapsed, so the group reads as one object with dividers rather than as
+   several buttons that happen to touch. aria-pressed marks the active member
+   so the selection is announced, not just drawn. */
+span[role="group"] {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+span[role="group"] > button {
+  border-radius: 0;
+  margin-inline-start: calc(-1 * var(--button-border-width));
+}
+
+span[role="group"] > button:first-child {
+  margin-inline-start: 0;
+  border-start-start-radius: var(--radius-md);
+  border-end-start-radius: var(--radius-md);
+}
+
+span[role="group"] > button:last-child {
+  border-start-end-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+}
+
+/* Hover on one member must not swallow its neighbours' borders. */
+span[role="group"] > button:hover {
+  z-index: 1;
+}
+
+span[role="group"] > button[aria-pressed="true"] {
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+  border-color: var(--color-on-primary);
+  z-index: 1;
+}

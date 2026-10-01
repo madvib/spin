@@ -1,0 +1,437 @@
+/*
+ * Semantic form elements.
+ *
+ * The contract is the element and the ARIA attribute, not a class. `<input>` is
+ * a text field; `<input type="range">` is a slider; `<input type="search">` is a
+ * search box. Authoring a class per input type is how form systems end up
+ * fighting the markup.
+ *
+ * Markup contract:
+ *   <input>                         text field — the default
+ *   <input type="email">            email, with platform validation
+ *   <input type="password">         masked text
+ *   <input type="search">            search box, with platform clear button
+ *   <input type="tel">              telephone, no spinner
+ *   <input type="url">               URL, with platform validation
+ *   <input type="number">           numeric, with stepper
+ *   <input type="range">            slider — a value within a range
+ *   <input type="checkbox">         binary choice
+ *   <input type="radio">            one of a group
+ *   <input type="checkbox" role="switch">  toggle — a checkbox that looks like a switch
+ *   <input type="file">             file picker, with platform button
+ *   <input type="color">            color swatch
+ *   <input type="date">             date picker
+ *   <select>                        dropdown of options
+ *   <textarea>                      multi-line text
+ *   <fieldset> + <legend>          groups related fields
+ *   <label>                         names a field, clickable
+ *   <small>                         helper text, sibling to a field
+ *   aria-invalid="true"             failed validation — error color
+ *   aria-invalid="false"            passed validation — success color
+ *   aria-invalid                    unknown state — primary color
+ *   fieldset[disabled]              disables all fields within
+ *
+ * Two kinds of value appear here:
+ *
+ *   spent bindings  The CSS names a scale step it consumes — `var(--radius-md)`,
+ *                   `var(--spacing-2)`. No token is minted, because the author of
+ *                   the CSS has no choice to express. A theme moves the field by
+ *                   moving the scale.
+ *
+ *   character       A decision a theme genuinely owns — the disabled dim, the
+ *                   percentage padding that keeps the validation icon clear of
+ *                   the text. These are minted as `form.*` tokens because the
+ *                   choice is real.
+ *
+ * States:
+ *   :hover           file button and calendar indicator only — fields themselves
+ *                    do not change on hover
+ *   :active          not used — no pressed state for fields
+ *   :focus           focus ring on text-like fields
+ *   :focus-visible   focus ring on range, switch, and file button
+ *   :disabled        dimmed, cursor not-allowed
+ *   aria-invalid     moves the border to the matching semantic color
+ *   :checked         for checkbox/radio — the platform's own indicator
+ *
+ * Motion:
+ *   No transitions or keyframes. Form fields change state instantly — a focus
+ *   ring appears, a border changes color — and there is no travel to animate.
+ *   There is no reduced-motion block because there is no motion to reduce.
+ *
+ * ARIA + AT:
+ *   A screen reader announces the label, the field type, and the current
+ *   validity state. `aria-invalid` is the contract: it is what moves the border
+ *   to the semantic color, so the visual state and the announced state are one
+ *   thing. Helper text is announced as part of the field's description. A
+ *   fieldset's legend is announced as the group's name. The disabled state is
+ *   announced through the platform's own `:disabled` semantics — no ARIA needed.
+ */
+
+/* ---------- text-like fields ---------- */
+
+input,
+select,
+textarea {
+  /* Spent bindings: the spacing, radius and border scales. The scale steps
+     1, 2, 4 — there is no 3, and minting a token for one padding value would
+     be a per-theme cost for no decision. */
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+  border: var(--border-width) solid var(--color-border);
+
+  /* A text field is as wide as its container; only the box types opt out. */
+  width: 100%;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+/* The box types and the button-like inputs lay out their own contents and
+   must not be padded or stretched like a text field, so they are excluded
+   rather than restyled — a submit input is a button, and the button layer sizes
+   it. */
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+input[type="color"],
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  padding: 0;
+  width: auto;
+}
+
+textarea {
+  display: block;
+  resize: vertical;
+  min-height: calc(var(--spacing-16) + var(--spacing-4));
+}
+
+select {
+  cursor: pointer;
+}
+
+/* ---------- placeholder ---------- */
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+/* ---------- focus ---------- */
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 var(--focus-width) var(--color-focus-ring);
+}
+
+/* ---------- validity ---------- */
+
+/* An unknown state gets attention but not judgement: the primary border with a
+   soft ring says "this field is live", without claiming it is right or wrong. */
+input[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
+select[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
+textarea[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]) {
+  border-color: var(--color-primary);
+}
+
+input[aria-invalid="false"],
+select[aria-invalid="false"],
+textarea[aria-invalid="false"] {
+  border-color: var(--color-semantic-success);
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--color-semantic-error);
+}
+
+/* The ring follows the border so a valid or invalid field is distinguishable
+   at a glance and not only by hue. */
+input[aria-invalid="false"]:focus,
+select[aria-invalid="false"]:focus,
+textarea[aria-invalid="false"]:focus {
+  box-shadow: 0 0 0 var(--focus-width)
+    var(--color-semantic-success);
+}
+
+input[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-error);
+}
+
+/* ---------- helper text ---------- */
+
+/* A field and its note. The note is a sibling so the markup reads in order
+   without a wrapper, and it takes the field's validity color. */
+:is(input, select, textarea) + small {
+  display: block;
+  width: 100%;
+  margin-block: var(--spacing-1) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+:is(input, select, textarea)[aria-invalid="false"] + small {
+  color: var(--color-semantic-success);
+}
+
+:is(input, select, textarea)[aria-invalid="true"] + small {
+  color: var(--color-semantic-error);
+}
+
+/* ---------- disabled ---------- */
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  /* Not a role: every theme dims a disabled control by the same amount, and a
+     token here would only be restated identically in each one. */
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+:where(fieldset[disabled]) :is(input, select, textarea) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- labels and groups ---------- */
+
+label {
+  display: block;
+  margin-block-end: var(--spacing-1);
+  font-weight: var(--font-weight-medium);
+}
+
+fieldset {
+  padding: 0;
+  border: none;
+  margin: 0;
+}
+
+legend {
+  padding: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A label wrapping its own field is one control, so the gap between them is
+   spacing rather than the two stacked rules above. */
+label > :is(input, select, textarea) {
+  margin-block-start: var(--spacing-1);
+}
+
+/* ---------- checkbox and radio ---------- */
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1em;
+  height: 1em;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  cursor: not-allowed;
+}
+
+/* ---------- range ---------- */
+
+input[type="range"] {
+  accent-color: var(--color-primary);
+  height: 1.5em;
+  cursor: pointer;
+}
+
+/* ---------- search and file ---------- */
+
+input[type="search"] {
+  appearance: none;
+}
+
+input[type="search"]::-webkit-search-decoration {
+  appearance: none;
+}
+
+/* ---------- color ---------- */
+
+input[type="color"] {
+  width: 2.5em;
+  height: 2.5em;
+  padding: var(--spacing-1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* ---------- range ---------- */
+
+/* The track and thumb are the platform's, tinted with the same accent the rest
+   of the form uses, so a slider matches the fields beside it without any
+   vendor-specific track painting. */
+input[type="range"] {
+  accent-color: var(--color-primary);
+  height: 1.5em;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+input[type="range"]:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+input[type="range"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- switch ---------- */
+
+/* A checkbox carrying `role="switch"` is a toggle, and a toggle wants to look
+   like one: a track with a thumb that travels. The geometry is relative to the
+   control's own font-size, so it tracks the surrounding type the way the icon
+   slot does. */
+input[type="checkbox"][role="switch"] {
+  --switch-travel: calc(1.25em - 2 * var(--border-width) - 0.5em);
+  appearance: none;
+  position: relative;
+  width: 2.25em;
+  height: 1.25em;
+  margin: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-raised);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+input[type="checkbox"][role="switch"]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(var(--border-width) + 0.125em);
+  width: 0.875em;
+  height: 0.875em;
+  border-radius: 50%;
+  background-color: var(--color-text-muted);
+  translate: 0 -50%;
+  transition:
+    translate var(--motion-duration-fast) var(--motion-easing-standard),
+    background-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+input[type="checkbox"][role="switch"]:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+input[type="checkbox"][role="switch"]:checked::after {
+  translate: var(--switch-travel) -50%;
+  background-color: var(--color-on-primary);
+}
+
+input[type="checkbox"][role="switch"]:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+input[type="checkbox"][role="switch"][aria-invalid="true"] {
+  border-color: var(--color-semantic-error);
+}
+
+input[type="checkbox"][role="switch"][aria-invalid="false"] {
+  border-color: var(--color-semantic-success);
+}
+
+/* ---------- file ---------- */
+
+/* A file field is a label wrapped around the platform's own button. The button
+   is styled as a secondary control and the filename is left in the muted
+   color, which is what separates the two without an extra element. */
+input[type="file"] {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+  margin-inline-end: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast)
+    var(--motion-easing-standard);
+}
+
+input[type="file"]::file-selector-button:hover {
+  background-color: var(--color-surface);
+}
+
+input[type="file"]:focus-visible::file-selector-button {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+input[type="file"]:disabled::file-selector-button {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- date ---------- */
+
+/* The calendar and clock affordances are the platform's. They are tinted with
+   the page's own colors so a date field does not arrive with a white picker in
+   a dark form. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"] {
+  accent-color: var(--color-primary);
+  color-scheme: light dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 1;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover,
+input[type="week"]::-webkit-calendar-picker-indicator:hover {
+  color: var(--color-text);
+}

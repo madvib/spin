@@ -1,0 +1,185 @@
+/*
+ * Semantic navigation, grouping and disclosure overlays.
+ *
+ * The contract is the ARIA role, because a role is what a screen reader
+ * navigates by. `role="group"` is a set of related controls; `role="search"` is
+ * the same shape with rounded ends; `[data-tooltip]` is a label for something
+ * that has no room for a visible one.
+ *
+ * A group is the one place where a component reaches into another: a joined
+ * control has to flatten its children's radii and lift a focused child above
+ * its siblings' borders. That is a relationship, and CSS has no other way to
+ * express one, so it lives here rather than being pushed into the button.
+ *
+ * Markup contract:
+ *   <div role="group">                a row of related controls that reads as one
+ *                                     object; children's corners flatten and
+ *                                     adjacent borders collapse into seams
+ *   <form role="search">               the same shape as a pill — the field is the
+ *                                     face, the submit button is chrome on the end
+ *   <button data-tooltip="…">          reveals a label on hover or focus
+ *   <button data-tooltip data-placement="top|bottom|left|right">
+ *                                     placement is the author's call; they know
+ *                                     where the room is
+ *
+ * Theming — spent, never character. The two kinds of value a primitive can hold
+ * are a spent binding (a scale step the CSS consumes; no token is minted, because
+ * the author has no choice to express) and character (a decision a theme owns,
+ * minted as a token because the choice is real). This file holds only spent
+ * bindings: `--border-width` for the seam between joined children, `--radius-full`
+ * for the search pill, `--spacing-*` and `--radius-sm` for the tooltip. No token
+ * is minted, because there is no decision here a theme would answer differently
+ * — a group is a relationship between controls, not a surface with its own look.
+ *
+ * States + ARIA equivalents:
+ *   :focus-visible on a child         lifts it above the seam so the focus ring is
+ *                                     never cut by a neighbour's border
+ *   :hover / :focus-visible            reveals the tooltip — the states that mean
+ *                                     "this has a description you want"
+ *   A group or search region has no disabled or pressed state of its own; the
+ *   controls inside them carry those.
+ *
+ * Motion + prefers-reduced-motion:
+ *   The tooltip fades in over `--motion-duration-fast`. `@media
+ *   (prefers-reduced-motion: reduce)` drops the transition, so the label appears
+ *   instantly — a transition on something that exists to be read is decoration,
+ *   not feedback.
+ *
+ * ARIA + AT announcements:
+ *   A group is announced as a unit — "group", with its children as controls.
+ *   `role="search"` is a landmark, so a screen reader can jump straight to it.
+ *   The tooltip is a pseudo-element, so it is read as the element's own
+ *   description: no live region, no extra node, nothing to keep in sync.
+ */
+
+/* ---------- group ---------- */
+
+/* A row of related controls that reads as one object. Children drop their own
+   corners and their adjacent borders collapse, so the dividers between them
+   read as seams rather than as four separate controls. */
+[role="group"],
+[role="search"] {
+  display: inline-flex;
+  position: relative;
+  width: 100%;
+  vertical-align: middle;
+  border-radius: var(--radius-md);
+}
+
+[role="group"] > *,
+[role="search"] > * {
+  position: relative;
+  flex: 1 1 auto;
+  border-radius: 0;
+}
+
+[role="group"] > :first-child,
+[role="search"] > :first-child {
+  border-start-start-radius: var(--radius-md);
+  border-end-start-radius: var(--radius-md);
+}
+
+[role="group"] > :last-child,
+[role="search"] > :last-child {
+  border-start-end-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+}
+
+/* The collapse is the group's own border width, so a theme that thickens its
+   borders thickens the seam by the same amount. */
+[role="group"] > * + *,
+[role="search"] > * + * {
+  margin-inline-start: calc(-1 * var(--border-width));
+}
+
+/* A focus ring has to sit above its neighbours or the seam cuts through it. */
+[role="group"] > *:focus-visible,
+[role="search"] > *:focus-visible {
+  z-index: 1;
+}
+
+/* A search region reads as one pill: the field is its face and the submit is
+   chrome on the end. The field loses its own border because the group's
+   provides it; the button keeps its own treatment, or a search pill would
+   have no visible way to submit. */
+[role="search"] {
+  border-radius: var(--radius-full);
+}
+
+[role="search"] > :not(:is(button, [type="submit"], [role="button"])) {
+  border: 0;
+  background-color: transparent;
+}
+
+[role="search"] > :not(:is(button, [type="submit"], [role="button"])):focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+
+/* ---------- tooltip ---------- */
+
+/* A tooltip is a label the element cannot show, declared with a data attribute
+   and revealed on hover or focus. It is a pseudo-element because there is no
+   second element in the markup, and it is positioned in the inline axis so it
+   never needs a measurement. */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  z-index: 1;
+  inset-block-end: calc(100% + var(--spacing-1));
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-text);
+  color: var(--color-surface);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+/* Shown on the states that mean "this has a description you want". */
+[data-tooltip]:is(:hover, :focus-visible)::after {
+  opacity: 1;
+}
+
+/* Placement is a data attribute because the author knows where the room is. */
+[data-tooltip][data-placement="top"]::after {
+  inset-block-end: auto;
+  inset-block-start: calc(100% + var(--spacing-1));
+}
+
+[data-tooltip][data-placement="bottom"]::after {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + var(--spacing-1));
+}
+
+[data-tooltip][data-placement="left"]::after {
+  inset-block-end: auto;
+  inset-block-start: 50%;
+  inset-inline-start: auto;
+  inset-inline-end: calc(100% + var(--spacing-1));
+  translate: 0 -50%;
+}
+
+[data-tooltip][data-placement="right"]::after {
+  inset-block-end: auto;
+  inset-block-start: 50%;
+  inset-inline-start: calc(100% + var(--spacing-1));
+  inset-inline-end: auto;
+  translate: 0 -50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tooltip]::after {
+    transition: none;
+  }
+}

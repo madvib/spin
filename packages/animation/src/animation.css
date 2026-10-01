@@ -1,0 +1,144 @@
+/*
+ * Motion — the one global namespace in CSS, given one home.
+ *
+ * Every keyframe in the system lives in this file, next to the class that
+ * names it. That adjacency is the point: `@keyframes` cannot be scoped or
+ * shaken, so a keyframe whose definition sits in a shakeable component file
+ * is a keyframe that can be shipped without its definition. Two files owning
+ * one name means the second silently wins.
+ *
+ * Keyframes are the library's to author — a rotation is a rotation regardless
+ * of theme. What a theme owns is timing: every utility below spends the motion
+ * scale rather than naming a duration, so a theme sets the motion feel once
+ * and every animation in the system inherits it.
+ *
+ * Markup contract:
+ *   .animate-spin           continuous rotation — spinners
+ *   .animate-ping           scale and fade outward — status dots
+ *   .animate-pulse          opacity fade — skeleton placeholders
+ *   .animate-fade-in        one-shot opacity entrance
+ *   .animate-slide-up       one-shot rise and fade
+ *   .animate-none           the escape hatch for overriding at a breakpoint
+ *
+ * Theming:
+ *   spent bindings  `--motion-duration-*` and `--motion-easing-*`. No token is
+ *                   minted: a theme moves every animation by moving the scale.
+ *   character       None. Motion is not a decision a theme gets to author per
+ *                   component — it is one feel, expressed once.
+ *
+ * States: none. These run, they do not respond.
+ *
+ * Motion:
+ *   Durations and easings come from the theme scale. `progress-indeterminate`
+ *   uses a literal because a sweep has no upper bound to scale against; it is
+ *   the single exception in the file and it is visible.
+ *
+ * ARIA + AT:
+ *   Motion is decoration. The global reduced-motion clamp in `@spin/theme/base`
+ *   stops all of it when a reader asks, so nothing here needs to re-check.
+ *   A spinner still needs an accessible name at its call site — the animation
+ *   conveys nothing to a screen reader.
+ */
+
+/* ---------- keyframes ---------- */
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance, 0.75rem));
+  }
+}
+
+@keyframes progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- utilities ---------- */
+
+.animate-spin {
+  animation: spin var(--motion-duration-slow) var(--motion-easing-linear)
+    infinite;
+}
+
+.animate-ping {
+  animation: ping var(--motion-duration-slow) var(--motion-easing-linear)
+    infinite;
+}
+
+.animate-pulse {
+  animation: pulse var(--motion-duration-slow) var(--motion-easing-standard)
+    infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--motion-duration-base) var(--motion-easing-decelerate)
+    backwards;
+}
+
+.animate-slide-up {
+  animation: slide-up var(--motion-duration-base)
+    var(--motion-easing-decelerate) backwards;
+}
+
+.animate-none {
+  animation: none;
+}
+
+/* ---------- component keyframes ---------- */
+
+/* Dialog and backdrop entrances. Shapes are the library's; a theme moves them
+   by moving the motion scale. */
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The indeterminate sweep. A literal duration because a sweep has no upper
+   bound to scale against — the single exception in this file. */
+@keyframes progress-indeterminate {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

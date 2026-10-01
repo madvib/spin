@@ -1,0 +1,28 @@
+/*
+ * Semantic card.
+ *
+ * A card is a raised surface with a border and some padding. There is nothing
+ * about it a theme would answer differently, so it spends the scales and mints
+ * no tokens: the theme restyles every card by moving `spacing`, `radius` and
+ * `shadow`.
+ *
+ * Markup contract:
+ *   <div class="card">                  the one row — a raised, bordered surface
+ *
+ * Theming — spent, never character: the six declarations read only scales
+ * (`--spacing-4`, `--radius-lg`, `--color-surface-raised`, `--border-width`,
+ * `--color-border`, `--shadow-sm`); no token is minted.
+ *
+ * States + ARIA equivalents: none — a card is a container, not a control.
+ * Motion + prefers-reduced-motion: none — nothing here animates.
+ * ARIA + AT announcements: none of its own — a card is announced through its
+ * contents and any role the author gives it.
+ */
+
+.card {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-raised);
+  border: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}

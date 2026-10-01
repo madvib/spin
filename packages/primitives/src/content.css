@@ -1,0 +1,376 @@
+/*
+ * Semantic content.
+ *
+ * Prose, tables and figures. The contract is the element: a `<table>` is a
+ * table, `<code>` is code, `<blockquote>` is a quotation. The only class here is
+ * `striped`, because a striped table is a real choice about density and there
+ * is no element that expresses it.
+ *
+ * Markup contract:
+ *   <h1>–<h6>                       headings, sized by the type scale
+ *   <p>                             paragraph
+ *   <ul>, <ol>, <li>                lists — unordered, ordered, item
+ *   <dl>, <dt>, <dd>                definition list — term, definition
+ *   <blockquote>, <footer>          quotation and its attribution
+ *   <pre>, <code>, <kbd>, <samp>    code — block, inline, keyboard input, output
+ *   <figure>, <figcaption>          media with a caption
+ *   <img>, <video>, <canvas>, <svg>  media — raster, video, canvas, vector
+ *   <table>, <caption>, <th>, <td>   table — with caption, header, cell
+ *   <tfoot>                         table footer
+ *   <hr>                            thematic break
+ *   <a>                             link — the one piece of prose that is also a control
+ *   <strong>, <b>                   bold
+ *   <small>                         side comment
+ *   <sub>, <sup>                    subscript, superscript
+ *   <abbr[title]>                   abbreviation with expansion
+ *   <mark>                          highlighted text
+ *   <ins>, <del>                     insertion, deletion
+ *   <iframe>, <embed>, <object>     embedded content
+ *   table.striped                  alternating row backgrounds
+ *
+ * Two kinds of value appear here:
+ *
+ *   spent bindings  The CSS names a scale step it consumes — `var(--spacing-2)`,
+ *                   `var(--radius-md)`, `var(--font-weight-bold)`. No token is
+ *                   minted, because the author of the CSS has no choice to
+ *                   express. A theme moves the prose by moving the scale.
+ *
+ *   character       None. Every value here is a scale step. A theme that wants
+ *                   denser prose changes `spacing`, and every block moves with
+ *                   it. Vertical rhythm is expressed in `em`, not `rem`, so it
+ *                   tracks the element's own size — an `h1` and a `p` sit on the
+ *                   same rhythm scaled to their type.
+ *
+ * States:
+ *   :hover           links only — thicker underline
+ *   :active          not used
+ *   :focus-visible   links only — focus ring
+ *   :disabled        not used — content is not interactive
+ *   aria-current     not used — no navigation state in content
+ *
+ * Motion:
+ *   No transitions or keyframes. Content is static — it does not move, so there
+ *   is nothing to animate and no reduced-motion block.
+ *
+ * ARIA + AT:
+ *   A screen reader navigates content by structure: headings are landmarks,
+ *   lists are announced with their item count, tables are announced with their
+ *   caption and header associations. The `abbr[title]` expansion is read in full.
+ *   `mark` is announced as highlighted. `ins` and `del` are announced as
+ *   insertions and deletions. Links are announced with their href. Images need
+ *   `alt` text to be in the a11y tree — the CSS does not create it, but the
+ *   radius and border treatment assume it is there.
+ */
+
+/* ---------- rhythm ---------- */
+
+/* Headings, lists and figures share one vertical beat. Proportional to the
+   element's type size, so the rhythm holds at every scale. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl,
+blockquote,
+pre,
+table,
+figure {
+  margin-block: 0 var(--spacing-2);
+}
+
+h1 {
+  font-family: var(--font-family-heading, var(--font-family-body,
+    var(--font-family-sans)));
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-family: var(--font-family-heading, var(--font-family-body,
+    var(--font-family-sans)));
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-family: var(--font-family-heading, var(--font-family-body,
+    var(--font-family-sans)));
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+}
+
+h4 {
+  font-family: var(--font-family-heading, var(--font-family-body,
+    var(--font-family-sans)));
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+}
+
+h5,
+h6 {
+  font-family: var(--font-family-heading, var(--font-family-body,
+    var(--font-family-sans)));
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.5;
+}
+
+/* The gap above a heading is what makes it read as a heading; the gap below is
+   what makes it read as attached to what follows. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-block-start: var(--spacing-4);
+}
+
+h1 {
+  margin-block-end: var(--spacing-4);
+}
+
+/* ---------- document ---------- */
+
+/* The page itself. A theme owns these four values and nothing else about the
+   document, which is why they are the base of the whole layer. */
+body {
+  font-family: var(--font-family-body, var(--font-family-sans));
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  margin: 0;
+}
+
+/* ---------- link ---------- */
+
+/* A link is the one piece of prose that is also a control, so it carries the
+   brand color and a visible underline by default. Underlining prose links is
+   the accessible default; the color alone is not enough to find one. */
+a {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: 2;
+}
+
+a:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- inline ---------- */
+
+strong,
+b {
+  font-weight: var(--font-weight-bold);
+}
+
+small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+sub,
+sup {
+  font-size: var(--font-size-xs);
+}
+
+abbr[title] {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+mark {
+  padding: 0 calc(var(--spacing-1) / 2);
+  background-color: var(--color-accent);
+  color: var(--color-surface);
+}
+
+ins {
+  text-decoration: underline;
+  color: var(--color-semantic-success);
+}
+
+del {
+  text-decoration: line-through;
+  color: var(--color-semantic-error);
+}
+
+/* ---------- lists ---------- */
+
+ul,
+ol {
+  padding-inline-start: var(--spacing-4);
+}
+
+li + li {
+  margin-block-start: var(--spacing-1);
+}
+
+dt {
+  font-weight: var(--font-weight-semibold);
+}
+
+dd {
+  margin-inline-start: var(--spacing-4);
+}
+
+/* ---------- quote ---------- */
+
+blockquote {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-inline-start: var(--border-width) solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+blockquote footer {
+  margin-block-start: var(--spacing-1);
+  font-size: var(--font-size-sm);
+}
+
+/* ---------- rule ---------- */
+
+hr {
+  height: 0;
+  margin-block: var(--spacing-4);
+  border: 0;
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+/* ---------- code ---------- */
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace);
+  font-size: var(--font-size-sm);
+}
+
+code {
+  padding: calc(var(--spacing-1) / 2) var(--spacing-1);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+pre {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* A code block is not a stack of inline chips. */
+pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
+kbd {
+  padding: calc(var(--spacing-1) / 2) var(--spacing-1);
+  border: var(--border-width) solid var(--color-border);
+  border-block-end-width: calc(var(--border-width) * 2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* ---------- figure ---------- */
+
+figure {
+  margin-inline: 0;
+}
+
+figcaption {
+  margin-block-start: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ---------- media ---------- */
+
+img,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+img,
+video {
+  border-radius: var(--radius-md);
+}
+
+/* ---------- table ---------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+caption {
+  padding-block-end: var(--spacing-1);
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+th,
+td {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: left;
+}
+
+th {
+  font-weight: var(--font-weight-semibold);
+}
+
+tfoot td {
+  border-block-start: var(--border-width) solid var(--color-border);
+  border-block-end: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Alternating rows. A density choice, so it is the one class here: no element
+   expresses "every other row". */
+table.striped tbody tr:nth-of-type(odd) {
+  background-color: var(--color-surface-raised);
+}
+
+/* ---------- embedded ---------- */
+
+iframe,
+embed,
+object {
+  display: block;
+  max-width: 100%;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+}

@@ -1,0 +1,205 @@
+/*
+ * Semantic feedback and accessibility.
+ *
+ * Three small surfaces that have one thing in common: they are all states
+ * rather than components, expressed through ARIA so the browser and assistive
+ * technology agree about what is happening without a class.
+ *
+ *   progress     the element, with the platform's own value semantics
+ *   loading      `[aria-busy="true"]` draws a spinner in the content box
+ *   a11y         cursor and hiding behaviour that follow state, not class
+ *
+ * Markup contract:
+ *   <progress>                         determinate, with a value the platform
+ *                                     announces; `:indeterminate` when the value
+ *                                     is not yet known
+ *   <div aria-busy="true">             draws a spinner in the content box and holds
+ *                                     its width so a list does not reflow as each
+ *                                     row resolves
+ *   <button aria-busy="true">          takes no input while busy — one declaration,
+ *                                     not a disabled class
+ *   <div aria-controls="…">            cursor follows operability
+ *   <div aria-disabled="true">         not-allowed cursor, the ARIA equivalent of
+ *                                     `[disabled]`
+ *   <div aria-hidden="false" hidden>   opts back into the accessibility tree
+ *   .visually-hidden                   the class for when there is no such element
+ *   <div dir="rtl">                    direction is content; the theme follows it
+ *
+ * Theming — spent, never character. The two kinds of value a primitive can hold
+ * are a spent binding (a scale step the CSS consumes; no token is minted, because
+ * the author has no choice to express) and character (a decision a theme owns,
+ * minted as a token because the choice is real). This file holds only spent
+ * bindings: `--spacing-2` for the spinner's gap, the motion scale for its speed.
+ * The one thing that might be worth a token is a spinner's speed, and even that
+ * is spent, so a theme with slow motion gets a slow spinner rather than a wrong
+ * one. The visually-hidden recipe is fixed at `1px` — a value a theme may not
+ * restate. No token is minted anywhere in this file.
+ *
+ * States + ARIA equivalents:
+ *   :indeterminate on `progress`       the value is not yet known; a gradient
+ *                                     slides across the track with no JS
+ *   `[aria-busy="true"]`              loading — spinner, held width, and
+ *                                     `pointer-events: none` on controls
+ *   `[aria-disabled="true"]`          not-allowed cursor, the ARIA equivalent of
+ *                                     `[disabled]`
+ *   `[aria-hidden="false"][hidden]`    visible again, and still keyboard-reachable
+ *
+ * Motion + prefers-reduced-motion:
+ *   Two animations live here — the indeterminate progress sweep and the busy
+ *   spinner. `@media (prefers-reduced-motion: reduce)` turns every animation
+ *   this layer owns off in a single block, so the preference covers all of them
+ *   rather than each being remembered separately.
+ *
+ * ARIA + AT announcements:
+ *   `progress` carries the platform's own value semantics, so its percentage is
+ *   announced without a live region. `aria-busy` tells assistive technology that
+ *   a region is updating and will announce when it settles. The spinner is a
+ *   `::before` pseudo-element, so it is read as part of the region itself — no
+ *   extra node, nothing to keep in sync.
+ */
+
+/* ---------- progress ---------- */
+
+progress {
+  display: block;
+  width: 100%;
+  height: var(--spacing-1);
+  margin-block-end: var(--spacing-2);
+  overflow: hidden;
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-raised);
+  /* The platform reads `color` for the filled portion, which is why a progress
+     bar needs both properties to render consistently across engines. */
+  color: var(--color-primary);
+}
+
+progress::-webkit-progress-bar {
+  border-radius: var(--radius-full);
+  background: none;
+}
+
+progress::-webkit-progress-value {
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  transition: inline-size var(--motion-duration-base)
+    var(--motion-easing-standard);
+}
+
+progress::-moz-progress-bar {
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+}
+
+/* Indeterminate: a value that is not yet known. The bar is a gradient sliding
+   across the track, which needs no JavaScript and no extra element. */
+progress:indeterminate {
+  background:
+    linear-gradient(
+    to right,
+    var(--color-primary) 30%,
+    var(--color-surface-raised) 30%
+  )
+    top left / 150% 150% no-repeat;
+  animation: progress-indeterminate 1.5s linear infinite;
+}
+
+progress:indeterminate::-webkit-progress-value,
+progress:indeterminate::-moz-progress-bar {
+  background-color: transparent;
+}
+
+/* ---------- loading ---------- */
+
+/* A busy region shows a spinner in place of whatever the content will be, and
+   holds its width so a list does not reflow as each row resolves. The spin is
+   the same border trick the button uses, so it inherits currentColor. */
+[aria-busy="true"]:not(:is(input, select, textarea, html, form)) {
+  white-space: nowrap;
+}
+
+[aria-busy="true"]:not(:is(input, select, textarea, html, form))::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  border: 2px solid currentColor;
+  border-block-start-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.125em;
+  animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
+}
+
+[aria-busy="true"]:not(:is(input, select, textarea, html, form)):not(:empty)::before {
+  margin-inline-end: var(--spacing-2);
+}
+
+[aria-busy="true"]:empty {
+  text-align: center;
+}
+
+/* A busy control takes no input. This is on the attribute rather than a class
+   so a disabled-while-loading button needs one declaration, not two. */
+:is(button, a, [type="submit"], [type="button"], [type="reset"], [role="button"])[aria-busy="true"] {
+  pointer-events: none;
+}
+
+/* ---------- accessibility ---------- */
+
+/* Cursor follows operability, which is state. */
+[aria-controls] {
+  cursor: pointer;
+}
+
+[aria-disabled="true"],
+[disabled] {
+  cursor: not-allowed;
+}
+
+/* Content hidden from sight but not from a screen reader. The recipe is fixed
+   rather than spent: a visually-hidden element has to collapse to a single
+   pixel to stay in the accessibility tree, so `1px` is load-bearing here and
+   is not a value a theme may restate. Two selectors share it because they
+   mean the same thing — an element that opts back into the tree, and the
+   class for when there is no such element. */
+:is([aria-hidden="false"][hidden], .visually-hidden) {
+  display: initial;
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* An element that opts back into the tree still has to be reachable by
+   keyboard, or `hidden` would have hidden it from a keyboard user too. */
+[aria-hidden="false"][hidden]:focus {
+  position: static;
+  clip-path: none;
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+
+/* Direction is content, and the theme follows it rather than overriding it. */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+/* ---------- reduced motion ---------- */
+
+/* Every animation this layer owns, in one place, so a preference to reduce
+   motion turns all of them off rather than each being remembered separately. */
+@media (prefers-reduced-motion: reduce) {
+  progress,
+  progress:indeterminate,
+  [aria-busy="true"]::before,
+  dialog[open],
+  dialog[open]::backdrop {
+    animation: none;
+    transition: none;
+  }
+}
