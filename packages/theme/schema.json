@@ -1,0 +1,1481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spin.dev/theme.schema.json",
+  "title": "Spin theme",
+  "additionalProperties": true,
+  "type": "object",
+  "required": [
+    "color",
+    "font",
+    "focus"
+  ],
+  "properties": {
+    "color": {
+      "additionalProperties": true,
+      "type": "object",
+      "required": [
+        "text",
+        "text-muted",
+        "surface",
+        "surface-raised",
+        "border",
+        "primary",
+        "secondary",
+        "accent",
+        "semantic",
+        "on-primary",
+        "on-danger",
+        "focus-ring",
+        "link"
+      ],
+      "properties": {
+        "text": {
+          "additionalProperties": true,
+          "description": "Default body text.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "text-muted": {
+          "additionalProperties": true,
+          "description": "Secondary text.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "surface": {
+          "additionalProperties": true,
+          "description": "Page background.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "surface-raised": {
+          "additionalProperties": true,
+          "description": "Raised surfaces.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "border": {
+          "additionalProperties": true,
+          "description": "Hairlines and dividers.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "primary": {
+          "additionalProperties": true,
+          "description": "Primary actions.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "secondary": {
+          "additionalProperties": true,
+          "description": "Secondary actions.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "accent": {
+          "additionalProperties": true,
+          "description": "Supporting emphasis.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "semantic": {
+          "additionalProperties": true,
+          "type": "object",
+          "required": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ],
+          "properties": {
+            "success": {
+              "additionalProperties": true,
+              "description": "Success status.",
+              "type": "object",
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "anyOf": [
+                    {
+                      "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dimension",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontFamily",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontWeight",
+                      "type": "string"
+                    },
+                    {
+                      "const": "duration",
+                      "type": "string"
+                    },
+                    {
+                      "const": "cubicBezier",
+                      "type": "string"
+                    },
+                    {
+                      "const": "number",
+                      "type": "string"
+                    },
+                    {
+                      "const": "strokeStyle",
+                      "type": "string"
+                    },
+                    {
+                      "const": "border",
+                      "type": "string"
+                    },
+                    {
+                      "const": "transition",
+                      "type": "string"
+                    },
+                    {
+                      "const": "shadow",
+                      "type": "string"
+                    },
+                    {
+                      "const": "gradient",
+                      "type": "string"
+                    },
+                    {
+                      "const": "typography",
+                      "type": "string"
+                    },
+                    {
+                      "const": "textTransform",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "warning": {
+              "additionalProperties": true,
+              "description": "Warning status.",
+              "type": "object",
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "anyOf": [
+                    {
+                      "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dimension",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontFamily",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontWeight",
+                      "type": "string"
+                    },
+                    {
+                      "const": "duration",
+                      "type": "string"
+                    },
+                    {
+                      "const": "cubicBezier",
+                      "type": "string"
+                    },
+                    {
+                      "const": "number",
+                      "type": "string"
+                    },
+                    {
+                      "const": "strokeStyle",
+                      "type": "string"
+                    },
+                    {
+                      "const": "border",
+                      "type": "string"
+                    },
+                    {
+                      "const": "transition",
+                      "type": "string"
+                    },
+                    {
+                      "const": "shadow",
+                      "type": "string"
+                    },
+                    {
+                      "const": "gradient",
+                      "type": "string"
+                    },
+                    {
+                      "const": "typography",
+                      "type": "string"
+                    },
+                    {
+                      "const": "textTransform",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "error": {
+              "additionalProperties": true,
+              "description": "Error status.",
+              "type": "object",
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "anyOf": [
+                    {
+                      "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dimension",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontFamily",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontWeight",
+                      "type": "string"
+                    },
+                    {
+                      "const": "duration",
+                      "type": "string"
+                    },
+                    {
+                      "const": "cubicBezier",
+                      "type": "string"
+                    },
+                    {
+                      "const": "number",
+                      "type": "string"
+                    },
+                    {
+                      "const": "strokeStyle",
+                      "type": "string"
+                    },
+                    {
+                      "const": "border",
+                      "type": "string"
+                    },
+                    {
+                      "const": "transition",
+                      "type": "string"
+                    },
+                    {
+                      "const": "shadow",
+                      "type": "string"
+                    },
+                    {
+                      "const": "gradient",
+                      "type": "string"
+                    },
+                    {
+                      "const": "typography",
+                      "type": "string"
+                    },
+                    {
+                      "const": "textTransform",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "info": {
+              "additionalProperties": true,
+              "description": "Info status.",
+              "type": "object",
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "anyOf": [
+                    {
+                      "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dimension",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontFamily",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontWeight",
+                      "type": "string"
+                    },
+                    {
+                      "const": "duration",
+                      "type": "string"
+                    },
+                    {
+                      "const": "cubicBezier",
+                      "type": "string"
+                    },
+                    {
+                      "const": "number",
+                      "type": "string"
+                    },
+                    {
+                      "const": "strokeStyle",
+                      "type": "string"
+                    },
+                    {
+                      "const": "border",
+                      "type": "string"
+                    },
+                    {
+                      "const": "transition",
+                      "type": "string"
+                    },
+                    {
+                      "const": "shadow",
+                      "type": "string"
+                    },
+                    {
+                      "const": "gradient",
+                      "type": "string"
+                    },
+                    {
+                      "const": "typography",
+                      "type": "string"
+                    },
+                    {
+                      "const": "textTransform",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "on-primary": {
+          "additionalProperties": true,
+          "description": "Text on a primary fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-danger": {
+          "additionalProperties": true,
+          "description": "Text on a danger fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "focus-ring": {
+          "additionalProperties": true,
+          "description": "Focus indicator.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "link": {
+          "additionalProperties": true,
+          "description": "Prose links.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "font": {
+      "additionalProperties": true,
+      "type": "object",
+      "required": [
+        "family"
+      ],
+      "properties": {
+        "family": {
+          "additionalProperties": true,
+          "type": "object",
+          "required": [
+            "sans"
+          ],
+          "properties": {
+            "sans": {
+              "additionalProperties": true,
+              "description": "Body and UI text.",
+              "type": "object",
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "anyOf": [
+                    {
+                      "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "dimension",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontFamily",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fontWeight",
+                      "type": "string"
+                    },
+                    {
+                      "const": "duration",
+                      "type": "string"
+                    },
+                    {
+                      "const": "cubicBezier",
+                      "type": "string"
+                    },
+                    {
+                      "const": "number",
+                      "type": "string"
+                    },
+                    {
+                      "const": "strokeStyle",
+                      "type": "string"
+                    },
+                    {
+                      "const": "border",
+                      "type": "string"
+                    },
+                    {
+                      "const": "transition",
+                      "type": "string"
+                    },
+                    {
+                      "const": "shadow",
+                      "type": "string"
+                    },
+                    {
+                      "const": "gradient",
+                      "type": "string"
+                    },
+                    {
+                      "const": "typography",
+                      "type": "string"
+                    },
+                    {
+                      "const": "textTransform",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "focus": {
+      "additionalProperties": true,
+      "type": "object",
+      "required": [
+        "width",
+        "offset"
+      ],
+      "properties": {
+        "width": {
+          "additionalProperties": true,
+          "description": "Focus ring width.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "offset": {
+          "additionalProperties": true,
+          "description": "Focus ring offset.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
