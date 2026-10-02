@@ -2,7 +2,6 @@ import type { Variant } from "@unocss/core";
 import { focusVariant } from "./focus.ts";
 import { hoverVariant } from "./hover.ts";
 import { breakpointVariant } from "./breakpoint.ts";
-import type { SpinSets } from "../sets.ts";
 
 /**
  * Interaction states and responsive edges — the axes a single element can
@@ -15,10 +14,10 @@ import type { SpinSets } from "../sets.ts";
  * the opposite case — they are a scale the theme already declares, so
  * `md:` is the same vocabulary as `p-4`, not a second way to say it.
  */
-export function spinVariants(sets: SpinSets): Variant[] {
+export function spinVariants(): Variant[] {
   return [
     hoverVariant,
     focusVariant,
-    breakpointVariant(sets),
+    breakpointVariant(),
   ];
 }

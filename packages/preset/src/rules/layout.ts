@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import type { SpinSets } from "../sets.ts";
 import {
   FLEX_UTILITIES,
   ORDER_UTILITIES,
@@ -8,7 +7,7 @@ import {
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 
-export function layoutRules(_sets: SpinSets): Rule[] {
+export function layoutRules(): Rule[] {
   return staticRules(
     [...STATIC_UTILITIES, ...FLEX_UTILITIES, ...ORDER_UTILITIES],
     STATIC_DECLS,

@@ -20,12 +20,11 @@ import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "@spin/primitives";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
 import type { TokenTree } from "@spin/theme";
-import { buildSets } from "./sets.ts";
-import type { SpinSets } from "./sets.ts";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
-import { buildTheme } from "./theme.ts";
+import { themeRef } from "@spin/theme";
 import { orGroup } from "./utils/factories.ts";
+import type { ThemeRef } from "@spin/theme";
 import { spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
@@ -98,31 +97,6 @@ function assertComplete(
   }
 }
 
-function unionSets(trees: TokenTree[]): SpinSets {
-  const merged: SpinSets = {
-    colors: new Map(),
-    spacing: new Map(),
-    fontSize: new Map(),
-    fontFamily: new Map(),
-    fontWeight: new Map(),
-    radius: new Map(),
-    shadow: new Map(),
-    breakpoint: new Map(),
-    zIndex: new Map(),
-    motionDuration: new Map(),
-    motionEasing: new Map(),
-  };
-  for (const tree of trees) {
-    const sets = buildSets(tree);
-    for (const key of Object.keys(merged) as Array<keyof SpinSets>) {
-      for (const [tokenName, path] of sets[key]) {
-        if (!merged[key].has(tokenName)) merged[key].set(tokenName, path);
-      }
-    }
-  }
-  return merged;
-}
-
 const factory = definePreset(
   (options: SpinPresetOptions = {}) => {
     const enabled: string[] | undefined = Array.isArray(options.primitives)
@@ -148,14 +122,17 @@ const factory = definePreset(
       );
       trees[name] = parsed.tree;
     }
-    const sets = unionSets(Object.values(trees));
-    const theme = buildTheme(Object.values(trees));
+    // The uno theme is the only name table. Values are references, so a rule
+    // reads one and returns it: no path to join, no variable to spell.
+    const theme = themeRef(
+      Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
+    );
 
     return {
       name: "spin",
       theme,
-      variants: spinVariants(sets),
-      rules: spinRules(sets),
+      variants: spinVariants(),
+      rules: spinRules(),
       preflights: buildPreflights(
         { trees, documents },
         { primitives: enabled },
@@ -186,17 +163,17 @@ const factory = definePreset(
           "shadow-$shadow",
         ],
         shorthands: {
-          colors: orGroup(sets.colors),
-          spacing: orGroup(sets.spacing),
-          breakpoint: orGroup(sets.breakpoint),
-          zIndex: orGroup(sets.zIndex),
-          motionDuration: orGroup(sets.motionDuration),
-          motionEasing: orGroup(sets.motionEasing),
-          fontSize: orGroup(sets.fontSize),
-          fontFamily: orGroup(sets.fontFamily),
-          fontWeight: orGroup(sets.fontWeight),
-          radius: orGroup(sets.radius),
-          shadow: orGroup(sets.shadow),
+          colors: orGroup(theme, "colors"),
+          spacing: orGroup(theme, "spacing"),
+          breakpoint: orGroup(theme, "breakpoint"),
+          zIndex: orGroup(theme, "zIndex"),
+          motionDuration: orGroup(theme, "motionDuration"),
+          motionEasing: orGroup(theme, "motionEasing"),
+          fontSize: orGroup(theme, "fontSize"),
+          fontFamily: orGroup(theme, "fontFamily"),
+          fontWeight: orGroup(theme, "fontWeight"),
+          radius: orGroup(theme, "radius"),
+          shadow: orGroup(theme, "shadow"),
         },
       },
     };

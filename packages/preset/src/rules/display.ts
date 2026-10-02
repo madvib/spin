@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import type { SpinSets } from "../sets.ts";
 import {
   DISPLAY_UTILITIES,
   STATIC_UTILITIES,
@@ -8,7 +7,7 @@ import {
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 
-export function displayRules(_sets: SpinSets): Rule[] {
+export function displayRules(): Rule[] {
   return staticRules(
     [
       ...DISPLAY_UTILITIES.filter((name) => !STATIC_UTILITIES.includes(name)),

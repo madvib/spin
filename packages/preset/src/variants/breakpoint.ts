@@ -1,6 +1,5 @@
 import type { Variant } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
-import type { SpinSets } from "../sets.ts";
+import { groupOf, type ThemeContext } from "../utils/lookup.ts";
 
 /**
  * Responsive prefixes, resolved against the theme's own breakpoint tokens.
@@ -14,21 +13,21 @@ import type { SpinSets } from "../sets.ts";
  * who writes `max-md:` is expressing the same token with an opposite edge, and
  * inventing `tablet-down:` for that would be a synonym the lint would have to
  * learn.
+ *
+ * A breakpoint the theme does not declare is not a prefix, so `md:` emits
+ * nothing rather than guessing an edge.
  */
-export function breakpointVariant(sets: SpinSets): Variant {
-  const names = new Set(sets.breakpoint.keys());
+export function breakpointVariant(): Variant {
   return {
     name: "spin-breakpoint",
-    match(matcher: string) {
+    match(matcher: string, ctx?: ThemeContext) {
       const max = matcher.startsWith("max-");
       const rest = max ? matcher.slice(4) : matcher;
       const colon = rest.indexOf(":");
       if (colon === -1) return matcher;
       const name = rest.slice(0, colon);
-      if (!names.has(name)) return matcher;
-      const path = sets.breakpoint.get(name);
-      if (path === undefined) return matcher;
-      const edge = `var(${cssVarName(path)})`;
+      const edge = groupOf(ctx, "breakpoint")[name];
+      if (edge === undefined) return matcher;
       return {
         matcher: rest.slice(colon + 1),
         handle: (input, next) => {

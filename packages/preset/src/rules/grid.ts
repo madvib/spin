@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import type { SpinSets } from "../sets.ts";
 import { staticRules } from "../utils/factories.ts";
 import { GRID_DECLS } from "../utils/declarations.ts";
 import { GRID_FLOW, GRID_SPANS, GRID_TRACKS } from "../utils/vocabulary.ts";
@@ -18,7 +17,7 @@ import { GRID_FLOW, GRID_SPANS, GRID_TRACKS } from "../utils/vocabulary.ts";
  * in `utils/declarations.ts` with every other static utility's, so a grid name
  * and what it emits are read from the same place as the rest.
  */
-export function gridRules(_sets: SpinSets): Rule[] {
+export function gridRules(): Rule[] {
   return staticRules(
     [
       ...GRID_TRACKS,

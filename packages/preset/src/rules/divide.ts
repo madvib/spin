@@ -1,12 +1,10 @@
 import { symbols } from "@unocss/core";
 import type { Rule } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
-import type { SpinSets } from "../sets.ts";
 import { DIVIDE_WIDTHS } from "../utils/vocabulary.ts";
 import { divideChildren } from "../utils/factories.ts";
-import { extendedTheme, type ThemeContext } from "../utils/lookup.ts";
+import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 
-export function divideRules(sets: SpinSets): Rule[] {
+export function divideRules(): Rule[] {
   return [
     [
       /^divide-([xy])(?:-(0|2|4|8))?$/,
@@ -21,10 +19,8 @@ export function divideRules(sets: SpinSets): Rule[] {
     [
       /^divide-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const path = sets.colors.get(name);
-        const ref = path
-          ? `var(${cssVarName(path)})`
-          : extendedTheme(ctx, ["colors"], name);
+        const path = themeOf(ctx)?.colors[name];
+        const ref = path ? path : extendedTheme(ctx, ["colors"], name);
         if (!ref) return undefined;
         return {
           [symbols.selector]: divideChildren,

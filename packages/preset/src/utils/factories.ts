@@ -1,11 +1,17 @@
 import type { Rule } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
-import type { NameMap, SpinSets } from "../sets.ts";
-import { extendedTheme, type ThemeContext } from "./lookup.ts";
+import type { ThemeRef, ThemeRefGroup } from "@spin/theme";
+import { extendedTheme, groupOf, type ThemeContext } from "./lookup.ts";
 
-export function orGroup(map: NameMap): string {
-  return `(${[...map.keys()].join("|")})`;
+/**
+ * An alternation of a group's names, for autocomplete templates.
+ *
+ * Read from the same theme object the rules resolve against, so a suggestion
+ * can never name something the theme does not carry.
+ */
+export function orGroup(theme: ThemeRef, group: string): string {
+  const entries = (theme[group] ?? {}) as ThemeRefGroup;
+  return "(" + Object.keys(entries).join("|") + ")";
 }
 
 export function staticRules(
@@ -18,7 +24,6 @@ export function staticRules(
 }
 
 export function spacingRule(
-  sets: SpinSets,
   pattern: RegExp,
   props: string[],
   autocomplete: string,
@@ -26,10 +31,8 @@ export function spacingRule(
   return [
     pattern,
     ([, name]: string[], ctx?: ThemeContext) => {
-      const path = sets.spacing.get(name);
-      const ref = path
-        ? `var(${cssVarName(path)})`
-        : extendedTheme(ctx, ["spacing"], name);
+      const path = groupOf(ctx, "spacing")[name];
+      const ref = path ? path : extendedTheme(ctx, ["spacing"], name);
       if (!ref) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },
@@ -38,7 +41,6 @@ export function spacingRule(
 }
 
 export function insetRule(
-  sets: SpinSets,
   pattern: RegExp,
   props: string[],
   autocomplete: string,
@@ -46,11 +48,9 @@ export function insetRule(
   return [
     pattern,
     ([, name]: string[], ctx?: ThemeContext) => {
-      const token = sets.spacing.get(name);
-      const ref = token
-        ? `var(${cssVarName(token)})`
-        : FRACTIONS[name] ?? INSET_KEYWORDS[name] ??
-          extendedTheme(ctx, ["spacing"], name);
+      const token = groupOf(ctx, "spacing")[name];
+      const ref = token ? token : FRACTIONS[name] ?? INSET_KEYWORDS[name] ??
+        extendedTheme(ctx, ["spacing"], name);
       if (!ref) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },

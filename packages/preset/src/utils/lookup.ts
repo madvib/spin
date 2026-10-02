@@ -1,5 +1,33 @@
+import type { ThemeRef, ThemeRefGroup } from "@spin/theme";
+
 export interface ThemeContext {
   theme?: unknown;
+}
+
+/**
+ * Our groups out of the theme, as `{name: reference}`.
+ *
+ * The values are already the references `themeRef` built, so a rule reads one
+ * and returns it — there is no path to join and no name to spell. A group the
+ * theme does not carry is simply absent, which is what makes an unknown token
+ * emit nothing rather than fall back.
+ */
+export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
+  const theme = ctx?.theme;
+  return typeof theme === "object" && theme !== null
+    ? theme as ThemeRef
+    : undefined;
+}
+
+/** One group's references, or an empty map so a rule needs no guard. */
+export function groupOf(
+  ctx: ThemeContext | undefined,
+  group: string,
+): ThemeRefGroup {
+  const section = themeOf(ctx)?.[group];
+  return typeof section === "object" && section !== null
+    ? section as ThemeRefGroup
+    : {};
 }
 
 const themeCache = new WeakMap<object, Map<string, Map<string, string>>>();

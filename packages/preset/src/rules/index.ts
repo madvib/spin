@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import type { SpinSets } from "../sets.ts";
 import { borderRules } from "./border.ts";
 import { colorRules } from "./color.ts";
 import { displayRules } from "./display.ts";
@@ -18,24 +17,24 @@ import { textRules } from "./text.ts";
 import { transitionRules } from "./transitions.ts";
 import { typographyRules } from "./typography.ts";
 
-export function spinRules(sets: SpinSets): Rule[] {
+export function spinRules(): Rule[] {
   return [
-    ...layoutRules(sets),
-    ...displayRules(sets),
-    ...gridRules(sets),
-    ...opacityRules(sets),
-    ...overflowRules(sets),
-    ...textRules(sets),
-    ...transitionRules(sets),
-    ...interactivityRules(sets),
-    ...divideRules(sets),
-    ...borderRules(sets),
-    ...positionRules(sets),
-    ...colorRules(sets),
-    ...spacingRules(sets),
-    ...sizingRules(sets),
-    ...typographyRules(sets),
-    ...radiusRules(sets),
-    ...shadowRules(sets),
+    ...layoutRules(),
+    ...displayRules(),
+    ...gridRules(),
+    ...opacityRules(),
+    ...overflowRules(),
+    ...textRules(),
+    ...transitionRules(),
+    ...interactivityRules(),
+    ...divideRules(),
+    ...borderRules(),
+    ...positionRules(),
+    ...colorRules(),
+    ...spacingRules(),
+    ...sizingRules(),
+    ...typographyRules(),
+    ...radiusRules(),
+    ...shadowRules(),
   ];
 }

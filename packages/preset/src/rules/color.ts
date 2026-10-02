@@ -1,7 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
-import type { SpinSets } from "../sets.ts";
-import { extendedTheme, type ThemeContext } from "../utils/lookup.ts";
+import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 import { COLOR_KEYWORDS } from "../utils/vocabulary.ts";
 
 /**
@@ -14,13 +12,12 @@ import { COLOR_KEYWORDS } from "../utils/vocabulary.ts";
  * whatever is behind it.
  */
 function colorOf(
-  sets: SpinSets,
   ctx: ThemeContext | undefined,
   name: string,
   property: "background-color" | "border-color" | "color",
 ): Record<string, string> | undefined {
-  const path = sets.colors.get(name);
-  if (path) return { [property]: `var(${cssVarName(path)})` };
+  const path = themeOf(ctx)?.colors[name];
+  if (path) return { [property]: path };
   if ((COLOR_KEYWORDS as readonly string[]).includes(name)) {
     return { [property]: name };
   }
@@ -29,25 +26,25 @@ function colorOf(
   return undefined;
 }
 
-export function colorRules(sets: SpinSets): Rule[] {
+export function colorRules(): Rule[] {
   return [
     [
       /^bg-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) =>
-        colorOf(sets, ctx, name, "background-color"),
+        colorOf(ctx, name, "background-color"),
       { autocomplete: "bg-$colors" },
     ],
     [
       /^border-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) =>
-        colorOf(sets, ctx, name, "border-color"),
+        colorOf(ctx, name, "border-color"),
       { autocomplete: "border-$colors" },
     ],
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
         // `text-lg` is a size; only a colour name reaches this branch.
-        const resolved = colorOf(sets, ctx, name, "color");
+        const resolved = colorOf(ctx, name, "color");
         return resolved;
       },
       { autocomplete: "text-$colors" },

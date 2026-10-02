@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import type { SpinSets } from "../sets.ts";
 import {
   BORDER_SIDES,
   BORDER_STYLES,
@@ -8,7 +7,7 @@ import {
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 
-export function borderRules(_sets: SpinSets): Rule[] {
+export function borderRules(): Rule[] {
   return [
     ...staticRules([...Object.keys(BORDER_STYLES)], STATIC_DECLS),
     [

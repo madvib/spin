@@ -1,20 +1,18 @@
 import type { Rule } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
-import type { SpinSets } from "../sets.ts";
 import { TRANSITION_PROPERTY } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
-import { extendedTheme, type ThemeContext } from "../utils/lookup.ts";
+import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 
-export function transitionRules(sets: SpinSets): Rule[] {
+export function transitionRules(): Rule[] {
   return [
     ...staticRules([...Object.keys(TRANSITION_PROPERTY)], STATIC_DECLS),
     [
       /^duration-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const path = sets.motionDuration.get(name);
+        const path = themeOf(ctx)?.motionDuration[name];
         if (path) {
-          return { "transition-duration": `var(${cssVarName(path)})` };
+          return { "transition-duration": path };
         }
         const extra = extendedTheme(ctx, ["transitionDuration"], name);
         if (extra) return { "transition-duration": extra };
@@ -25,10 +23,10 @@ export function transitionRules(sets: SpinSets): Rule[] {
     [
       /^ease-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const path = sets.motionEasing.get(name);
+        const path = themeOf(ctx)?.motionEasing[name];
         if (path) {
           return {
-            "transition-timing-function": `var(${cssVarName(path)})`,
+            "transition-timing-function": path,
           };
         }
         const extra = extendedTheme(ctx, ["transitionTimingFunction"], name);

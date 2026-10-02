@@ -586,12 +586,18 @@ Deno.test("extendTheme names resolve as closed utilities", async () => {
   assert(css.includes("#bada55"), `missing extended value in: ${css}`);
 });
 
-Deno.test("preset theme publishes resolved token values", () => {
-  const preset = spinPreset();
-  const theme = preset.theme as Record<string, Record<string, unknown>>;
+Deno.test("the preset theme publishes references, not literals", () => {
+  // The engine must resolve at the browser: a rule emits `var(--color-primary)`
+  // and the stylesheet supplies the value, so switching themes is a selector
+  // swap rather than a rebuild. Literals exist for tooling, and only there.
+  const theme = spinPreset().theme as Record<
+    string,
+    Record<string, unknown>
+  >;
   assert(
-    (theme.colors as Record<string, unknown>).primary === "#333333",
-    "theme.colors.primary carries the resolved value for tooling",
+    (theme.colors as Record<string, unknown>).primary ===
+      "var(--color-primary)",
+    "theme.colors.primary is the reference the stylesheet satisfies",
   );
 });
 

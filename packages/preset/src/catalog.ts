@@ -1,5 +1,5 @@
 import type { TokenTree } from "@spin/theme";
-import { buildSets } from "./sets.ts";
+import { themeRef } from "@spin/theme";
 import {
   BORDER_STYLES,
   DISPLAY_UTILITIES,
@@ -38,23 +38,23 @@ function prefixed(prefixes: string[], keys: Iterable<string>): string[] {
 }
 
 export function describeCatalog(tree: TokenTree): CatalogSection[] {
-  const sets = buildSets(tree);
+  const theme = themeRef(tree);
   return [
     {
       id: "background",
       title: "Background",
-      utilities: prefixed(["bg-"], sets.colors.keys()),
+      utilities: prefixed(["bg-"], Object.keys(theme.colors ?? {})),
     },
     {
       id: "text-color",
       title: "Text color",
-      utilities: prefixed(["text-"], sets.colors.keys()),
+      utilities: prefixed(["text-"], Object.keys(theme.colors ?? {})),
     },
     {
       id: "border",
       title: "Border",
       utilities: [
-        ...prefixed(["border-"], sets.colors.keys()),
+        ...prefixed(["border-"], Object.keys(theme.colors ?? {})),
         "border",
         "border-0",
         "border-2",
@@ -68,7 +68,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Padding",
       utilities: prefixed(
         ["p-", "px-", "py-", "pt-", "pr-", "pb-", "pl-"],
-        sets.spacing.keys(),
+        Object.keys(theme.spacing ?? {}),
       ),
     },
     {
@@ -76,36 +76,39 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Margin",
       utilities: prefixed(
         ["m-", "mx-", "my-", "mt-", "mr-", "mb-", "ml-"],
-        sets.spacing.keys(),
+        Object.keys(theme.spacing ?? {}),
       ),
     },
     {
       id: "gap",
       title: "Gap",
-      utilities: prefixed(["gap-", "gap-x-", "gap-y-"], sets.spacing.keys()),
+      utilities: prefixed(
+        ["gap-", "gap-x-", "gap-y-"],
+        Object.keys(theme.spacing ?? {}),
+      ),
     },
     {
       id: "type-size",
       title: "Type size",
-      utilities: prefixed(["text-"], sets.fontSize.keys()),
+      utilities: prefixed(["text-"], Object.keys(theme.fontSize ?? {})),
     },
     {
       id: "font",
       title: "Font family and weight",
       utilities: [
-        ...prefixed(["font-"], sets.fontFamily.keys()),
-        ...prefixed(["font-"], sets.fontWeight.keys()),
+        ...prefixed(["font-"], Object.keys(theme.fontFamily ?? {})),
+        ...prefixed(["font-"], Object.keys(theme.fontWeight ?? {})),
       ],
     },
     {
       id: "radius",
       title: "Radius",
-      utilities: prefixed(["rounded-"], sets.radius.keys()),
+      utilities: prefixed(["rounded-"], Object.keys(theme.radius ?? {})),
     },
     {
       id: "shadow",
       title: "Shadow",
-      utilities: prefixed(["shadow-"], sets.shadow.keys()),
+      utilities: prefixed(["shadow-"], Object.keys(theme.shadow ?? {})),
     },
     {
       id: "layout",
@@ -116,10 +119,10 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       id: "sizing",
       title: "Sizing",
       utilities: [
-        ...prefixed(["w-"], sets.spacing.keys()),
+        ...prefixed(["w-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["w-"], Object.keys(FRACTIONS)),
         ...prefixed(["w-"], Object.keys(WIDTH_KEYWORDS)),
-        ...prefixed(["h-"], sets.spacing.keys()),
+        ...prefixed(["h-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["h-"], Object.keys(FRACTIONS)),
         ...prefixed(["h-"], Object.keys(HEIGHT_KEYWORDS)),
         "min-w-0",
@@ -132,7 +135,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
         "max-w-min",
         "max-w-max",
         "max-w-fit",
-        ...prefixed(["max-w-screen-"], sets.breakpoint.keys()),
+        ...prefixed(["max-w-screen-"], Object.keys(theme.breakpoint ?? {})),
         "min-h-0",
         "min-h-full",
         "min-h-screen",
@@ -166,8 +169,8 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Transitions",
       utilities: [
         ...Object.keys(TRANSITION_PROPERTY),
-        ...prefixed(["duration-"], sets.motionDuration.keys()),
-        ...prefixed(["ease-"], sets.motionEasing.keys()),
+        ...prefixed(["duration-"], Object.keys(theme.motionDuration ?? {})),
+        ...prefixed(["ease-"], Object.keys(theme.motionEasing ?? {})),
       ],
     },
     { id: "opacity", title: "Opacity", utilities: [...OPACITY_UTILITIES] },
@@ -177,24 +180,24 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Position",
       utilities: [
         ...Object.keys(POSITION_UTILITIES),
-        ...prefixed(["inset-"], sets.spacing.keys()),
+        ...prefixed(["inset-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["inset-"], Object.keys(FRACTIONS)),
         ...prefixed(["inset-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["inset-x-"], sets.spacing.keys()),
+        ...prefixed(["inset-x-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["inset-x-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["inset-y-"], sets.spacing.keys()),
+        ...prefixed(["inset-y-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["inset-y-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["top-"], sets.spacing.keys()),
+        ...prefixed(["top-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["top-"], Object.keys(FRACTIONS)),
         ...prefixed(["top-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["right-"], sets.spacing.keys()),
+        ...prefixed(["right-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["right-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["bottom-"], sets.spacing.keys()),
+        ...prefixed(["bottom-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["bottom-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["left-"], sets.spacing.keys()),
+        ...prefixed(["left-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["left-"], Object.keys(FRACTIONS)),
         ...prefixed(["left-"], Object.keys(INSET_KEYWORDS)),
-        ...prefixed(["z-"], sets.zIndex.keys()),
+        ...prefixed(["z-"], Object.keys(theme.zIndex ?? {})),
       ],
     },
     {
@@ -221,7 +224,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
         "divide-y-2",
         "divide-y-4",
         "divide-y-8",
-        ...prefixed(["divide-"], sets.colors.keys()),
+        ...prefixed(["divide-"], Object.keys(theme.colors ?? {})),
       ],
     },
   ];

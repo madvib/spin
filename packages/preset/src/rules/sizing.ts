@@ -1,20 +1,18 @@
 import type { Rule } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
-import type { SpinSets } from "../sets.ts";
 import {
   FRACTIONS,
   HEIGHT_KEYWORDS,
   WIDTH_KEYWORDS,
 } from "../utils/vocabulary.ts";
-import { extendedTheme, type ThemeContext } from "../utils/lookup.ts";
+import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 
-export function sizingRules(sets: SpinSets): Rule[] {
+export function sizingRules(): Rule[] {
   return [
     [
       /^w-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const token = sets.spacing.get(name);
-        if (token) return { width: `var(${cssVarName(token)})` };
+        const token = themeOf(ctx)?.spacing[name];
+        if (token) return { width: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { width: fraction };
         const keyword = WIDTH_KEYWORDS[name];
@@ -28,8 +26,8 @@ export function sizingRules(sets: SpinSets): Rule[] {
     [
       /^h-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const token = sets.spacing.get(name);
-        if (token) return { height: `var(${cssVarName(token)})` };
+        const token = themeOf(ctx)?.spacing[name];
+        if (token) return { height: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { height: fraction };
         const keyword = HEIGHT_KEYWORDS[name];
@@ -50,8 +48,8 @@ export function sizingRules(sets: SpinSets): Rule[] {
         if (name === "screen" && axis === "w") return undefined;
         const screen = name.match(/^screen-(.+)$/)?.[1];
         if (screen && edge === "max" && axis === "w") {
-          const point = sets.breakpoint.get(screen);
-          if (point) return { [prop]: `var(${cssVarName(point)})` };
+          const point = themeOf(ctx)?.breakpoint[screen];
+          if (point) return { [prop]: point };
           const extra = extendedTheme(
             ctx,
             ["breakpoint", "breakpoints"],

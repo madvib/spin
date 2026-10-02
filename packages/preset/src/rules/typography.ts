@@ -1,17 +1,15 @@
 import type { Rule } from "@unocss/core";
-import { cssVarName } from "@spin/theme";
-import type { SpinSets } from "../sets.ts";
-import { extendedTheme, type ThemeContext } from "../utils/lookup.ts";
+import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 
-export function typographyRules(sets: SpinSets): Rule[] {
+export function typographyRules(): Rule[] {
   return [
     [
       /^font-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const family = sets.fontFamily.get(name);
-        if (family) return { "font-family": `var(${cssVarName(family)})` };
-        const weight = sets.fontWeight.get(name);
-        if (weight) return { "font-weight": `var(${cssVarName(weight)})` };
+        const family = themeOf(ctx)?.fontFamily[name];
+        if (family) return { "font-family": family };
+        const weight = themeOf(ctx)?.fontWeight[name];
+        if (weight) return { "font-weight": weight };
         const extraFamily = extendedTheme(ctx, ["fontFamily"], name);
         if (extraFamily) return { "font-family": extraFamily };
         const extraWeight = extendedTheme(ctx, ["fontWeight"], name);
@@ -23,10 +21,10 @@ export function typographyRules(sets: SpinSets): Rule[] {
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const size = sets.fontSize.get(name);
-        if (size) return { "font-size": `var(${cssVarName(size)})` };
-        const color = sets.colors.get(name);
-        if (color) return { color: `var(${cssVarName(color)})` };
+        const size = themeOf(ctx)?.fontSize[name];
+        if (size) return { "font-size": size };
+        const color = themeOf(ctx)?.colors[name];
+        if (color) return { color: color };
         const extraSize = extendedTheme(ctx, ["fontSize"], name);
         if (extraSize) return { "font-size": extraSize };
         const extraColor = extendedTheme(ctx, ["colors"], name);

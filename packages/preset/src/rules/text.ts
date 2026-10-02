@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import type { SpinSets } from "../sets.ts";
 import {
   TEXT_ALIGN,
   TEXT_DECORATION,
@@ -9,7 +8,7 @@ import {
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 
-export function textRules(_sets: SpinSets): Rule[] {
+export function textRules(): Rule[] {
   return staticRules(
     [
       ...Object.keys(TEXT_ALIGN),
