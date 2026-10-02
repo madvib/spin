@@ -48,9 +48,9 @@ export interface CharacterToken {
 }
 
 /** The contract per component, keyed by file stem. */
+
 export const primitiveContracts: Record<string, PrimitiveContract> = {
   button: {
-    // `span` is the icon slot `[aria-busy]> .button-icon` suppresses.
     tags: ["button", "span"],
     variants: [
       "button-icon",
@@ -294,8 +294,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     character: [],
   },
   feedback: {
-    // `a` is the busy-link subject; the form controls named in the `:not()`
-    // guard are exclusions, not owned elements, so they are not claimed.
     tags: ["a", "progress"],
     variants: ["visually-hidden"],
     reads: [

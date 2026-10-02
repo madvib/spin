@@ -9,6 +9,12 @@
  */
 
 /** Utilities with no token behind them, owned statically by the preset. */
+/**
+ * Colour vocabulary that is a value rather than a token. Resolved by
+ * `rules/color.ts`, which reads this before falling back to the theme.
+ */
+export const COLOR_KEYWORDS: string[] = ["transparent", "currentColor"];
+
 export const STATIC_UTILITIES: string[] = ["flex", "w-full", "top-1/2"];
 
 /** Display utilities. Flex only: grid is absent by design. */

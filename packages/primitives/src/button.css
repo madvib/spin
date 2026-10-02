@@ -48,26 +48,24 @@
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]) {
   /* Layout: a button is a flex row so an icon and a label can sit inside it
      with one gap, whatever combination the author writes. */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  white-space: nowrap;
-  vertical-align: middle;
-  text-align: center;
-  text-decoration: none;
+  --at-apply: inline-flex items-center justify-center whitespace-nowrap text-center
+    no-underline cursor-pointer select-none;
 
-  /* Spent bindings: the spacing scale, not a button-specific token. */
+  box-sizing: border-box;
+  vertical-align: middle;
+
+  /* Padding stays logical rather than `py-2 px-4`. The utilities write
+     physical sides, which is wrong for a control whose text direction the
+     author did not choose — a vertical writing mode would stack the padding
+     on the wrong axis. The spacing scale is still what is spent. */
   gap: var(--spacing-2);
   padding-block: var(--spacing-2);
   padding-inline: var(--spacing-4);
 
   /* Spent bindings: the type and radius scales. */
+  --at-apply: text-md rounded-md;
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-md);
   line-height: 1;
-  border-radius: var(--radius-md);
-
   /* Height is derived, not stated. A button is as tall as its text plus its
      padding plus its borders, so the three can never disagree. */
   min-height: calc(
@@ -83,12 +81,9 @@
   border: var(--button-border-width) solid var(--color-on-primary);
 
   /* Colour, default variant. */
-  color: var(--color-on-primary);
-  background-color: var(--color-primary);
+  --at-apply: bg-primary text-on-primary;
   box-shadow: var(--button-shadow);
 
-  cursor: pointer;
-  user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 
@@ -177,9 +172,9 @@
 /* Sizes spend the same scales at different steps. Padding and type move
    together, so a small button is proportionally the same control. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-sm {
+  --at-apply: text-sm;
   padding-block: var(--spacing-1);
   padding-inline: var(--spacing-2);
-  font-size: var(--font-size-sm);
   min-height: calc(
     var(--font-size-sm) + (2 * var(--spacing-1)) + (2 *
     var(--button-border-width))
@@ -187,9 +182,9 @@
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-lg {
+  --at-apply: text-lg;
   padding-block: var(--spacing-4);
   padding-inline: var(--spacing-8);
-  font-size: var(--font-size-lg);
   min-height: calc(
     var(--font-size-lg) + (2 * var(--spacing-4)) + (2 *
     var(--button-border-width))
@@ -207,67 +202,50 @@
 /* ---------- variants ---------- */
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).secondary {
-  color: var(--color-text);
-  background-color: var(--color-surface-raised);
-  border-color: var(--color-border);
+  --at-apply: text-text bg-surface-raised border-border;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost {
-  color: var(--color-text);
-  background-color: transparent;
-  border-color: transparent;
+  --at-apply: text-text bg-transparent border-transparent;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost:hover:not(:disabled):not([aria-busy="true"]) {
-  background-color: var(--color-surface-raised);
+  --at-apply: text-text bg-transparent border-transparent;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
-  color: var(--color-on-danger);
-  background-color: var(--color-semantic-error);
-  border-color: var(--color-on-danger);
+  --at-apply: text-on-danger bg-semantic-error border-on-danger;
 }
 
 /* The loudest variant: brand fill on the page's own text color, so it is the
    highest-contrast control available. Reserved for the one action a screen is
    about, because two of these on one page is noise. */
 :is(button, [type="submit"], [type="button"], [role="button"]).contrast {
-  color: var(--color-surface);
-  background-color: var(--color-text);
-  border-color: var(--color-text);
+  --at-apply: text-surface bg-text border-text;
 }
 
 /* Border only, on the brand color. For a page that already has a filled
    primary and needs a second action without competing with it. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
-  color: var(--color-primary);
-  background-color: transparent;
-  border-color: var(--color-primary);
+  --at-apply: text-primary bg-transparent border-primary;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
-  background-color: var(--color-primary);
-  color: var(--color-on-primary);
-  border-color: var(--color-primary);
+  --at-apply: text-primary bg-transparent border-primary;
 }
 
 /* A reset button is a secondary action by what the browser means by it, so it
    reads as one without a class. Specific enough to beat the base rule. */
 [type="reset"] {
-  color: var(--color-text);
-  background-color: var(--color-surface-raised);
-  border-color: var(--color-border);
+  --at-apply: text-text bg-surface-raised border-border;
 }
 
 [type="reset"].outline {
-  color: var(--color-primary);
-  background-color: transparent;
-  border-color: var(--color-primary);
+  --at-apply: text-primary bg-transparent border-primary;
 }
 
 [type="reset"].outline:hover:not(:disabled) {
-  background-color: var(--color-primary);
-  color: var(--color-on-primary);
+  --at-apply: bg-primary text-on-primary;
 }
 
 /* ---------- icon slot ---------- */
@@ -315,8 +293,6 @@ span[role="group"] > button:hover {
 }
 
 span[role="group"] > button[aria-pressed="true"] {
-  color: var(--color-on-primary);
-  background-color: var(--color-primary);
-  border-color: var(--color-on-primary);
+  --at-apply: bg-primary text-on-primary border-on-primary;
   z-index: 1;
 }
