@@ -6,10 +6,11 @@
  * live in `@spin/primitives`, which consumes these trees; nothing here knows
  * components exist.
  *
- * CSS custom properties are the entire runtime API. Nothing here emits
- * JavaScript, and nothing here inlines a resolved value into a stylesheet: a
- * `{color.primary}` alias is emitted as `var(--color-primary)` so switching
- * themes is a selector swap rather than a rebuild.
+ * A token's name is derived from its path, once. `themeRef` builds the object
+ * uno resolves against, with `var(--color-primary)` as the value of
+ * `color.primary`, and `generateCss` emits that same name into the stylesheet.
+ * Nothing downstream spells a custom property by hand, so a rename cannot leave
+ * a rule pointing at nothing.
  */
 
 // Types — the closed vocabulary and the shapes every stage speaks.
@@ -43,11 +44,22 @@ export {
   resolveAliases,
   type TokenIndex,
 } from "./pipeline/resolve.ts";
+
 // Stage 3: validate.
 export {
   everyTokenTypeIsDecided,
   validateTokens,
 } from "./pipeline/validate.ts";
+export {
+  BASE_ROLES,
+  requiredPaths,
+  spinThemeJsonSchema,
+  themeSchema,
+  validateLegibility,
+} from "./contract/schema.ts";
+export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
+
+// Authoring: changing and creating themes.
 export { scaffoldTheme } from "./authoring/scaffold.ts";
 export {
   removeToken,
@@ -60,14 +72,6 @@ export type {
   MutationErrorCode,
   MutationResult,
 } from "./authoring/mutate.ts";
-export {
-  BASE_ROLES,
-  requiredPaths,
-  spinThemeJsonSchema,
-  themeSchema,
-  validateLegibility,
-} from "./contract/schema.ts";
-export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 
 // Stage 4: generate.
 export {
@@ -75,6 +79,10 @@ export {
   generateThemeCss,
   generateTypes,
 } from "./pipeline/generate.ts";
+
+// The uno theme: names derived from paths, values as references.
+export { refFamilies, themeRef } from "./uno-ref.ts";
+export type { ThemeRef, ThemeRefGroup } from "./uno-ref.ts";
 
 // Procedures: the typed interface, owned by the module that implements it.
 export { themeContract } from "./contract/contract.ts";
