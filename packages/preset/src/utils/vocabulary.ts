@@ -374,6 +374,64 @@ export const BORDER_SIDES: Record<string, string> = {
   "r": "border-right-width",
   "b": "border-bottom-width",
   "l": "border-left-width",
+  // Logical axes. `border-x` is the pair a writing mode treats as inline, so
+  // it follows the text rather than the viewport.
+  "x": "border-inline-width",
+  "y": "border-block-width",
+  "s": "border-inline-start-width",
+  "e": "border-inline-end-width",
+};
+
+/**
+ * Corner radii by logical corner.
+ *
+ * A joined group rounds only its outer corners, and which corners those are
+ * depends on writing mode — `border-start-start-radius` is top-left in
+ * horizontal text and top-right in vertical. The physical suffixes remain for
+ * the cases where the side really is fixed.
+ */
+export const CORNER_LOGICAL: Record<string, string> = {
+  "ss": "border-start-start-radius",
+  "se": "border-start-end-radius",
+  "es": "border-end-start-radius",
+  "ee": "border-end-end-radius",
+  "s": "border-start-start-radius",
+  "e": "border-start-end-radius",
+};
+
+/**
+ * Capitalisation, spelled as a utility rather than a component token.
+ *
+ * A theme that wanted to own this would be expressing a preference about its
+ * own prose, which is what the type scale already is — so it is vocabulary.
+ */
+export const TEXT_TRANSFORMS: Record<string, string> = {
+  uppercase: "uppercase",
+  lowercase: "lowercase",
+  capitalize: "capitalize",
+  "normal-case": "none",
+};
+
+/**
+ * Letter spacing. A theme may declare its own scale under `font.letter-spacing`
+ * and these are the conventional steps it falls back to, so a silent theme
+ * still gets a ramp rather than nothing.
+ */
+export const TRACKING: Record<string, string> = {
+  tighter: "-0.05em",
+  tight: "-0.025em",
+  normal: "0em",
+  wide: "0.025em",
+  wider: "0.05em",
+  widest: "0.1em",
+};
+
+/** Focus ring geometry, spent by every interactive component. */
+export const OUTLINE: Record<string, string> = {
+  "outline-none": "outline: 2px solid transparent; outline-offset: 2px",
+  "outline-solid": "outline-style: solid",
+  "outline-dashed": "outline-style: dashed",
+  "outline-dotted": "outline-style: dotted",
 };
 
 export const BORDER_STYLES: Record<string, string> = {

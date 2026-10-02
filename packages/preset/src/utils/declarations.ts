@@ -15,6 +15,7 @@ import {
   opacityValue,
   ORDER_STEPS,
   ORDER_VALUES,
+  OUTLINE,
   OVERFLOW_UTILITIES,
   OVERFLOW_VALUES,
   POINTER_EVENTS,
@@ -23,6 +24,8 @@ import {
   SCROLL_BEHAVIOR,
   TEXT_ALIGN,
   TEXT_DECORATION,
+  TEXT_TRANSFORMS,
+  TRACKING,
   TRANSITION_PROPERTY,
   USER_SELECT,
   VISIBILITY,
@@ -30,6 +33,16 @@ import {
   WORD_BREAK,
 } from "./vocabulary.ts";
 
+/** Parse a declaration list into the object a rule returns. */
+function cssDecl(css: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const part of css.split(";")) {
+    const colon = part.indexOf(":");
+    if (colon === -1) continue;
+    out[part.slice(0, colon).trim()] = part.slice(colon + 1).trim();
+  }
+  return out;
+}
 /**
  * Assembling the vocabulary into declarations.
  *
@@ -40,6 +53,21 @@ import {
  */
 
 export const STATIC_DECLS: Record<string, Record<string, string>> = {
+  ...Object.fromEntries(
+    Object.entries(TEXT_TRANSFORMS).map(([name, value]) => [
+      name,
+      { "text-transform": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(TRACKING).map(([name, value]) => [
+      `tracking-${name}`,
+      { "letter-spacing": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(OUTLINE).map(([name, value]) => [name, cssDecl(value)]),
+  ),
   ...Object.fromEntries(
     DISPLAY_UTILITIES.map((name) => [name, { display: DISPLAY_VALUES[name] }]),
   ),

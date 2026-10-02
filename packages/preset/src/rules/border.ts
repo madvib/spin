@@ -11,7 +11,7 @@ export function borderRules(): Rule[] {
   return [
     ...staticRules([...Object.keys(BORDER_STYLES)], STATIC_DECLS),
     [
-      /^border(?:-([trbl]))?(?:-(0|2|4|8))?$/,
+      /^border(?:-([xystrel]))?(?:-(0|2|4|8))?$/,
       ([, side, width]: string[]) => {
         if (side === undefined && width === undefined) {
           return { "border-width": BORDER_WIDTHS[""] };
@@ -21,7 +21,7 @@ export function borderRules(): Rule[] {
         if (!prop || !value) return undefined;
         return { [prop]: value };
       },
-      { autocomplete: "border-(t|r|b|l)-(0|2|4|8)" },
+      { autocomplete: "border-(t|r|b|l|x|y|s|e)-(0|2|4|8)" },
     ],
   ];
 }

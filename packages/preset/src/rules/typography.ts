@@ -1,8 +1,21 @@
 import type { Rule } from "@unocss/core";
 import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { staticRules } from "../utils/factories.ts";
+import { STATIC_DECLS } from "../utils/declarations.ts";
+import { OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
 
 export function typographyRules(): Rule[] {
   return [
+    // Capitalisation, tracking, and the focus ring: fixed steps a theme may
+    // override through `extendTheme`, but never has to name by hand.
+    ...staticRules(
+      [
+        ...Object.keys(TEXT_TRANSFORMS),
+        ...Object.keys(TRACKING).map((name) => `tracking-${name}`),
+        ...Object.keys(OUTLINE),
+      ],
+      STATIC_DECLS,
+    ),
     [
       /^font-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {

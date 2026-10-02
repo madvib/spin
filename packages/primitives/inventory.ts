@@ -70,7 +70,7 @@ async function coverage(): Promise<Map<string, string[]>> {
 }
 
 /** The tokens a stylesheet spends by hand, and where. */
-function spentDirectly(css: string): Map<string, Set<string>> {
+export function spentDirectly(css: string): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
   for (
     const m of css.matchAll(
@@ -112,5 +112,54 @@ async function main(): Promise<void> {
     for (const gap of gaps) console.log(gap);
   }
 }
+
+/**
+ * A hand-written `var()` is only justified where no utility could express the
+ * declaration: a composite, or a value that is itself a composite. Everything
+ * else is a vocabulary gap and belongs in the preset, where a consumer gets
+ * the utility too.
+ */
+const JUSTIFIED = new Set([
+  "border-width", // a component token that IS a width, not a scale
+  "box-shadow", // the button's own shadow, which is character
+  "min-height", // a composite of three scales
+  "outline-offset", // the focus ring's offset, a theme-wide decision
+  "outline-width", // the ring itself: one token governs every component
+  "text-transform", // character, until a theme declares a case scale
+  "letter-spacing", // character, same
+  "transform", // a composite of the hover-lift tokens
+  "margin-inline-start", // a group join, which no single utility expresses
+  "inset-inline-start", // a control inside a group, likewise
+  "border-block-end-width", // a table rule, likewise
+  "translate", // the switch travel, a composite of two scale steps
+  // A custom property declaration mints a component-local binding, exactly as
+  // `--grid-gutter` does. It spends a token; it is not one.
+  "--switch-travel",
+  "--grid-gutter",
+]);
+
+async function unjustified(): Promise<string[]> {
+  const covered = await coverage();
+  const out: string[] = [];
+  for (const name of COMPONENTS) {
+    const css = await Deno.readTextFile(
+      new URL(`./src/${name}.css`, import.meta.url),
+    );
+    for (const [token, properties] of spentDirectly(css)) {
+      if (covered.has(token)) continue;
+      for (const property of properties) {
+        if (!JUSTIFIED.has(property)) {
+          out.push(`${name}: ${token} as ${property}`);
+        }
+      }
+      // A minted binding is justified by being one, whatever property the
+      // scan attributes it to.
+      if (token.startsWith("--")) continue;
+    }
+  }
+  return out;
+}
+
+export { coverage, unjustified };
 
 if (import.meta.main) await main();
