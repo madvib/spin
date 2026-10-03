@@ -638,25 +638,14 @@ span[role="group"] > button[aria-pressed="true"] {
 
 /* ---------- text-like fields ---------- */
 
+/* Spent bindings: the spacing, radius and border scales. The scale steps
+   1, 2, 4 — there is no 3, and minting a token for one padding value would
+   be a per-theme cost for no decision. A text field is as wide as its
+   container; only the box types opt out. */
 input,
 select,
 textarea {
-  /* Spent bindings: the spacing, radius and border scales. The scale steps
-     1, 2, 4 — there is no 3, and minting a token for one padding value would
-     be a per-theme cost for no decision. */
-  padding: var(--spacing-1) var(--spacing-2);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-md);
-  color: var(--color-text);
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
-
-  /* A text field is as wide as its container; only the box types opt out. */
-  width: 100%;
-  transition:
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+  width:100%;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, translate, scale, rotate;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);padding-left:var(--spacing-2);padding-right:var(--spacing-2);padding-top:var(--spacing-1);padding-bottom:var(--spacing-1);font-family:var(--font-family-sans);font-size:var(--font-size-md);color:var(--color-text);border-radius:var(--radius-md);
 }
 
 /* The box types and the button-like inputs lay out their own contents and
@@ -670,26 +659,25 @@ input[type="color"],
 input[type="submit"],
 input[type="reset"],
 input[type="button"] {
-  padding: 0;
+  padding:var(--spacing-0);
   width: auto;
 }
 
 textarea {
-  display: block;
-  resize: vertical;
+  display:block;resize:vertical;
+  /* No utility expresses a derived min-height from two spacing steps. */
   min-height: calc(var(--spacing-16) + var(--spacing-4));
 }
 
 select {
-  cursor: pointer;
+  cursor:pointer;
 }
 
 /* ---------- placeholder ---------- */
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--color-text-muted);
-  opacity: 1;
+  opacity:1;color:var(--color-text-muted);
 }
 
 /* ---------- focus ---------- */
@@ -697,8 +685,8 @@ textarea::placeholder {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
+  border-color:var(--color-primary);outline:2px solid transparent;
+  /* No utility expresses a focus ring from --focus-width and a colour. */
   box-shadow: 0 0 0 var(--focus-width) var(--color-focus-ring);
 }
 
@@ -709,19 +697,19 @@ textarea:focus {
 input[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
 select[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
 textarea[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]) {
-  border-color: var(--color-primary);
+  border-color:var(--color-primary);
 }
 
 input[aria-invalid="false"],
 select[aria-invalid="false"],
 textarea[aria-invalid="false"] {
-  border-color: var(--color-semantic-success);
+  border-color:var(--color-semantic-success);
 }
 
 input[aria-invalid="true"],
 select[aria-invalid="true"],
 textarea[aria-invalid="true"] {
-  border-color: var(--color-semantic-error);
+  border-color:var(--color-semantic-error);
 }
 
 /* The ring follows the border so a valid or invalid field is distinguishable
@@ -729,13 +717,14 @@ textarea[aria-invalid="true"] {
 input[aria-invalid="false"]:focus,
 select[aria-invalid="false"]:focus,
 textarea[aria-invalid="false"]:focus {
-  box-shadow: 0 0 0 var(--focus-width)
-    var(--color-semantic-success);
+  /* No utility expresses a focus ring from --focus-width and a colour. */
+  box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-success);
 }
 
 input[aria-invalid="true"]:focus,
 select[aria-invalid="true"]:focus,
 textarea[aria-invalid="true"]:focus {
+  /* No utility expresses a focus ring from --focus-width and a colour. */
   box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-error);
 }
 
@@ -744,19 +733,15 @@ textarea[aria-invalid="true"]:focus {
 /* A field and its note. The note is a sibling so the markup reads in order
    without a wrapper, and it takes the field's validity color. */
 :is(input, select, textarea) + small {
-  display: block;
-  width: 100%;
-  margin-block: var(--spacing-1) 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  width:100%;display:block;margin-top:var(--spacing-1);color:var(--color-text-muted);font-size:var(--font-size-sm);
 }
 
 :is(input, select, textarea)[aria-invalid="false"] + small {
-  color: var(--color-semantic-success);
+  color:var(--color-semantic-success);
 }
 
 :is(input, select, textarea)[aria-invalid="true"] + small {
-  color: var(--color-semantic-error);
+  color:var(--color-semantic-error);
 }
 
 /* ---------- disabled ---------- */
@@ -766,62 +751,53 @@ select:disabled,
 textarea:disabled {
   /* Not a role: every theme dims a disabled control by the same amount, and a
      token here would only be restated identically in each one. */
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 :where(fieldset[disabled]) :is(input, select, textarea) {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 /* ---------- labels and groups ---------- */
 
 label {
-  display: block;
-  margin-block-end: var(--spacing-1);
-  font-weight: var(--font-weight-medium);
+  display:block;margin-bottom:var(--spacing-1);font-weight:var(--font-weight-medium);
 }
 
 fieldset {
-  padding: 0;
-  border: none;
-  margin: 0;
+  border-style:none;padding:var(--spacing-0);margin:var(--spacing-0);
 }
 
 legend {
-  padding: 0;
-  font-weight: var(--font-weight-semibold);
+  padding:var(--spacing-0);font-weight:var(--font-weight-semibold);
 }
 
 /* A label wrapping its own field is one control, so the gap between them is
    spacing rather than the two stacked rules above. */
 label > :is(input, select, textarea) {
-  margin-block-start: var(--spacing-1);
+  margin-top:var(--spacing-1);
 }
 
 /* ---------- checkbox and radio ---------- */
 
 input[type="checkbox"],
 input[type="radio"] {
+  cursor:pointer;accent-color:var(--color-primary);
   width: 1em;
   height: 1em;
-  accent-color: var(--color-primary);
-  cursor: pointer;
   vertical-align: middle;
 }
 
 input[type="checkbox"]:disabled,
 input[type="radio"]:disabled {
-  cursor: not-allowed;
+  cursor:not-allowed;
 }
 
 /* ---------- range ---------- */
 
 input[type="range"] {
-  accent-color: var(--color-primary);
+  cursor:pointer;accent-color:var(--color-primary);
   height: 1.5em;
-  cursor: pointer;
 }
 
 /* ---------- search and file ---------- */
@@ -837,11 +813,9 @@ input[type="search"]::-webkit-search-decoration {
 /* ---------- color ---------- */
 
 input[type="color"] {
+  cursor:pointer;padding:var(--spacing-1);border-radius:var(--radius-sm);
   width: 2.5em;
   height: 2.5em;
-  padding: var(--spacing-1);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
 }
 
 /* ---------- range ---------- */
@@ -850,21 +824,19 @@ input[type="color"] {
    of the form uses, so a slider matches the fields beside it without any
    vendor-specific track painting. */
 input[type="range"] {
-  accent-color: var(--color-primary);
+  cursor:pointer;border-width:0;background-color:transparent;accent-color:var(--color-primary);
   height: 1.5em;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
 }
 
 input[type="range"]:focus-visible {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="range"]:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 /* ---------- switch ---------- */
@@ -874,57 +846,51 @@ input[type="range"]:disabled {
    control's own font-size, so it tracks the surrounding type the way the icon
    slot does. */
 input[type="checkbox"][role="switch"] {
+  /* Component-owned binding: the thumb travel, derived from the track and
+     thumb sizes. */
   --switch-travel: calc(1.25em - 2 * var(--border-width) - 0.5em);
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);cursor:pointer;border-width:1px;position:relative;background-color:var(--color-surface-raised);border-color:var(--color-border);margin:var(--spacing-0);border-radius:var(--radius-full);
   appearance: none;
-  position: relative;
   width: 2.25em;
   height: 1.25em;
-  margin: 0;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface-raised);
-  cursor: pointer;
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 input[type="checkbox"][role="switch"]::after {
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, translate, scale, rotate;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);position:absolute;background-color:var(--color-text-muted);border-radius:var(--radius-full);
   content: "";
-  position: absolute;
+  /* No utility expresses inset-block-start. */
   inset-block-start: 50%;
+  /* No utility expresses a derived inset from --border-width. */
   inset-inline-start: calc(var(--border-width) + 0.125em);
   width: 0.875em;
   height: 0.875em;
-  border-radius: 50%;
-  background-color: var(--color-text-muted);
+  /* No utility expresses a translate. */
   translate: 0 -50%;
-  transition:
-    translate var(--motion-duration-fast) var(--motion-easing-standard),
-    background-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 input[type="checkbox"][role="switch"]:checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  background-color:var(--color-primary);border-color:var(--color-primary);
 }
 
 input[type="checkbox"][role="switch"]:checked::after {
+  /* Component-owned binding: the thumb travel. */
   translate: var(--switch-travel) -50%;
-  background-color: var(--color-on-primary);
+  background-color:var(--color-on-primary);
 }
 
 input[type="checkbox"][role="switch"]:focus-visible {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="checkbox"][role="switch"][aria-invalid="true"] {
-  border-color: var(--color-semantic-error);
+  border-color:var(--color-semantic-error);
 }
 
 input[type="checkbox"][role="switch"][aria-invalid="false"] {
-  border-color: var(--color-semantic-success);
+  border-color:var(--color-semantic-success);
 }
 
 /* ---------- file ---------- */
@@ -933,40 +899,28 @@ input[type="checkbox"][role="switch"][aria-invalid="false"] {
    is styled as a secondary control and the filename is left in the muted
    color, which is what separates the two without an extra element. */
 input[type="file"] {
-  padding: 0;
-  border: 0;
+  cursor:pointer;border-width:0;padding:var(--spacing-0);color:var(--color-text-muted);
   background: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
 }
 
 input[type="file"]::file-selector-button {
-  margin-inline-end: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);cursor:pointer;border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);margin-inline-end:var(--spacing-2);padding-left:var(--spacing-2);padding-right:var(--spacing-2);padding-top:var(--spacing-1);padding-bottom:var(--spacing-1);font-weight:var(--font-weight-medium);color:var(--color-text);font-size:var(--font-size-sm);border-radius:var(--radius-md);
   font-family: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-easing-standard);
 }
 
 input[type="file"]::file-selector-button:hover {
-  background-color: var(--color-surface);
+  background-color:var(--color-surface);
 }
 
 input[type="file"]:focus-visible::file-selector-button {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="file"]:disabled::file-selector-button {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 /* ---------- date ---------- */
@@ -979,7 +933,7 @@ input[type="time"],
 input[type="datetime-local"],
 input[type="month"],
 input[type="week"] {
-  accent-color: var(--color-primary);
+  accent-color:var(--color-primary);
   color-scheme: light dark;
 }
 
@@ -988,13 +942,7 @@ input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 input[type="month"]::-webkit-calendar-picker-indicator,
 input[type="week"]::-webkit-calendar-picker-indicator {
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background-color: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  opacity: 1;
+  opacity:1;cursor:pointer;border-width:0;background-color:transparent;padding:var(--spacing-0);color:var(--color-text-muted);border-radius:var(--radius-sm);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
@@ -1002,7 +950,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover,
 input[type="week"]::-webkit-calendar-picker-indicator:hover {
-  color: var(--color-text);
+  color:var(--color-text);
 }
 
 
@@ -1891,46 +1839,55 @@ nav[aria-label="breadcrumb"] li + li::before {
    second element in the markup, and it is positioned in the inline axis so it
    never needs a measurement. */
 [data-tooltip] {
-  position: relative;
+  position:relative;
 }
 
 [data-tooltip]::after {
   content: attr(data-tooltip);
-  position: absolute;
+  position:absolute;
+  /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
+     `toast`. */
   z-index: 1;
+  /* Logical insets and the translate have no utility — the inset rules write
+     physical sides — and the offset is derived from the spacing scale. */
   inset-block-end: calc(100% + var(--spacing-1));
   inset-inline-start: 50%;
   translate: -50% 0;
+  /* Padding stays logical, as it does in the button: `py-1 px-2` would write
+     physical sides for a surface whose placement follows the writing mode. */
   padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-text);
-  color: var(--color-surface);
-  font-size: var(--font-size-xs);
+  /* The edge width reads the shared `--border-width` token, which no utility
+     reads; the style and colour are utilities. */
+  border-width: var(--border-width);
+  border-style:solid;border-color:var(--color-border);border-radius:var(--radius-sm);
+  opacity:0;white-space:nowrap;pointer-events:none;background-color:var(--color-text);color:var(--color-surface);font-size:var(--font-size-xs);
+  transition-property:opacity;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);
   line-height: 1.4;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 /* Shown on the states that mean "this has a description you want". */
 [data-tooltip]:is(:hover, :focus-visible)::after {
-  opacity: 1;
+  opacity:1;
 }
 
 /* Placement is a data attribute because the author knows where the room is. */
 [data-tooltip][data-placement="top"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: calc(100% + var(--spacing-1));
 }
 
 [data-tooltip][data-placement="bottom"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-start: auto;
   inset-block-end: calc(100% + var(--spacing-1));
 }
 
 [data-tooltip][data-placement="left"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: 50%;
   inset-inline-start: auto;
@@ -1939,6 +1896,8 @@ nav[aria-label="breadcrumb"] li + li::before {
 }
 
 [data-tooltip][data-placement="right"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: 50%;
   inset-inline-start: calc(100% + var(--spacing-1));
@@ -1948,7 +1907,7 @@ nav[aria-label="breadcrumb"] li + li::before {
 
 @media (prefers-reduced-motion: reduce) {
   [data-tooltip]::after {
-    transition: none;
+    transition-property:none;
   }
 }
 
@@ -2016,40 +1975,35 @@ nav[aria-label="breadcrumb"] li + li::before {
 /* ---------- progress ---------- */
 
 progress {
-  display: block;
-  width: 100%;
-  height: var(--spacing-1);
-  margin-block-end: var(--spacing-2);
-  overflow: hidden;
-  appearance: none;
-  border: 0;
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface-raised);
   /* The platform reads `color` for the filled portion, which is why a progress
      bar needs both properties to render consistently across engines. */
-  color: var(--color-primary);
+  width:100%;display:block;overflow:hidden;border-width:0;background-color:var(--color-surface-raised);height:var(--spacing-1);color:var(--color-primary);border-radius:var(--radius-full);
+  /* Logical margin: no utility writes `margin-block-end`. */
+  margin-block-end: var(--spacing-2);
+  appearance: none;
 }
 
 progress::-webkit-progress-bar {
-  border-radius: var(--radius-full);
+  border-radius:var(--radius-full);
   background: none;
 }
 
 progress::-webkit-progress-value {
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary);
-  transition: inline-size var(--motion-duration-base)
-    var(--motion-easing-standard);
+  transition-duration:var(--motion-duration-base);transition-timing-function:var(--motion-easing-standard);background-color:var(--color-primary);border-radius:var(--radius-full);
+  /* `inline-size` is not in the transition-property vocabulary, so the
+     property stays a declaration. */
+  transition-property: inline-size;
 }
 
 progress::-moz-progress-bar {
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary);
+  background-color:var(--color-primary);border-radius:var(--radius-full);
 }
 
 /* Indeterminate: a value that is not yet known. The bar is a gradient sliding
    across the track, which needs no JavaScript and no extra element. */
 progress:indeterminate {
+  /* The sweep is a gradient positioned and sized by hand — no utility covers
+     `background-position` or `background-size` — so the declaration stays. */
   background:
     linear-gradient(
     to right,
@@ -2078,7 +2032,7 @@ progress:indeterminate::-moz-progress-bar {
    the bare `input` above already covers every type, and a replaced element
    renders no pseudo-elements anyway. */
 [aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])) {
-  white-space: nowrap;
+  white-space:nowrap;
 }
 
 [aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"]))::before {
@@ -2091,33 +2045,36 @@ progress:indeterminate::-moz-progress-bar {
   border-block-start-color: transparent;
   border-radius: 50%;
   vertical-align: -0.125em;
+  /* The spin duration is the fast step times four — a derived value — and
+     the preset has no `animate-*` utility at all. */
   animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
 }
 
 [aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])):not(:empty)::before {
+  /* Logical margin: no utility writes `margin-inline-end`. */
   margin-inline-end: var(--spacing-2);
 }
 
 [aria-busy="true"]:empty {
-  text-align: center;
+  text-align:center;
 }
 
 /* A busy control takes no input. This is on the attribute rather than a class
    so a disabled-while-loading button needs one declaration, not two. */
 :is(button, a, [type="submit"], [type="button"], [type="reset"], [role="button"])[aria-busy="true"] {
-  pointer-events: none;
+  pointer-events:none;
 }
 
 /* ---------- accessibility ---------- */
 
 /* Cursor follows operability, which is state. */
 [aria-controls] {
-  cursor: pointer;
+  cursor:pointer;
 }
 
 [aria-disabled="true"],
 [disabled] {
-  cursor: not-allowed;
+  cursor:not-allowed;
 }
 
 /* Content hidden from sight but not from a screen reader. The recipe is fixed
@@ -2127,23 +2084,20 @@ progress:indeterminate::-moz-progress-bar {
    mean the same thing — an element that opts back into the tree, and the
    class for when there is no such element. */
 :is([aria-hidden="false"][hidden], .visually-hidden) {
+  overflow:hidden;white-space:nowrap;position:absolute;
   display: initial;
-  position: absolute;
   clip-path: inset(50%);
   width: 1px;
   height: 1px;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 /* An element that opts back into the tree still has to be reachable by
    keyboard, or `hidden` would have hidden it from a keyboard user too. */
 [aria-hidden="false"][hidden]:focus {
-  position: static;
+  overflow:visible;position:static;
   clip-path: none;
   width: auto;
   height: auto;
-  overflow: visible;
 }
 
 /* Direction is content, and the theme follows it rather than overriding it. */
@@ -2161,8 +2115,9 @@ progress:indeterminate::-moz-progress-bar {
   [aria-busy="true"]::before,
   dialog[open],
   dialog[open]::backdrop {
+    transition-property:none;
+    /* The preset has no `animate-*` utility, so the animation reset stays. */
     animation: none;
-    transition: none;
   }
 }
 
@@ -2178,9 +2133,11 @@ progress:indeterminate::-moz-progress-bar {
  * Markup contract:
  *   <div class="card">                  the one row — a raised, bordered surface
  *
- * Theming — spent, never character: the six declarations read only scales
- * (`--spacing-4`, `--radius-lg`, `--color-surface-raised`, `--border-width`,
- * `--color-border`, `--shadow-sm`); no token is minted.
+ * Theming — spent, never character: the values are scale steps (`--spacing-4`,
+ * `--radius-lg`, `--color-surface-raised`, `--border-width`, `--color-border`,
+ * `--shadow-sm`), spent as utilities wherever one exists; only the edge width
+ * stays a declaration, because no utility reads `--border-width`. No token is
+ * minted.
  *
  * States + ARIA equivalents: none — a card is a container, not a control.
  * Motion + prefers-reduced-motion: none — nothing here animates.
@@ -2189,11 +2146,10 @@ progress:indeterminate::-moz-progress-bar {
  */
 
 .card {
-  padding: var(--spacing-4);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  border-style:solid;background-color:var(--color-surface-raised);border-color:var(--color-border);padding:var(--spacing-4);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);
+  /* The edge width reads the shared `--border-width` token, which no utility
+     reads (`border` would emit a literal 1px a theme could not move). */
+  border-width: var(--border-width);
 }
 /* layer: default */
 .flex{display:flex;}
@@ -2589,25 +2545,14 @@ span[role="group"] > button[aria-pressed="true"] {
 
 /* ---------- text-like fields ---------- */
 
+/* Spent bindings: the spacing, radius and border scales. The scale steps
+   1, 2, 4 — there is no 3, and minting a token for one padding value would
+   be a per-theme cost for no decision. A text field is as wide as its
+   container; only the box types opt out. */
 input,
 select,
 textarea {
-  /* Spent bindings: the spacing, radius and border scales. The scale steps
-     1, 2, 4 — there is no 3, and minting a token for one padding value would
-     be a per-theme cost for no decision. */
-  padding: var(--spacing-1) var(--spacing-2);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-md);
-  color: var(--color-text);
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
-
-  /* A text field is as wide as its container; only the box types opt out. */
-  width: 100%;
-  transition:
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+  width:100%;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, translate, scale, rotate;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);padding-left:var(--spacing-2);padding-right:var(--spacing-2);padding-top:var(--spacing-1);padding-bottom:var(--spacing-1);font-family:var(--font-family-sans);font-size:var(--font-size-md);color:var(--color-text);border-radius:var(--radius-md);
 }
 
 /* The box types and the button-like inputs lay out their own contents and
@@ -2621,26 +2566,25 @@ input[type="color"],
 input[type="submit"],
 input[type="reset"],
 input[type="button"] {
-  padding: 0;
+  padding:var(--spacing-0);
   width: auto;
 }
 
 textarea {
-  display: block;
-  resize: vertical;
+  display:block;resize:vertical;
+  /* No utility expresses a derived min-height from two spacing steps. */
   min-height: calc(var(--spacing-16) + var(--spacing-4));
 }
 
 select {
-  cursor: pointer;
+  cursor:pointer;
 }
 
 /* ---------- placeholder ---------- */
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--color-text-muted);
-  opacity: 1;
+  opacity:1;color:var(--color-text-muted);
 }
 
 /* ---------- focus ---------- */
@@ -2648,8 +2592,8 @@ textarea::placeholder {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
+  border-color:var(--color-primary);outline:2px solid transparent;
+  /* No utility expresses a focus ring from --focus-width and a colour. */
   box-shadow: 0 0 0 var(--focus-width) var(--color-focus-ring);
 }
 
@@ -2660,19 +2604,19 @@ textarea:focus {
 input[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
 select[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
 textarea[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]) {
-  border-color: var(--color-primary);
+  border-color:var(--color-primary);
 }
 
 input[aria-invalid="false"],
 select[aria-invalid="false"],
 textarea[aria-invalid="false"] {
-  border-color: var(--color-semantic-success);
+  border-color:var(--color-semantic-success);
 }
 
 input[aria-invalid="true"],
 select[aria-invalid="true"],
 textarea[aria-invalid="true"] {
-  border-color: var(--color-semantic-error);
+  border-color:var(--color-semantic-error);
 }
 
 /* The ring follows the border so a valid or invalid field is distinguishable
@@ -2680,13 +2624,14 @@ textarea[aria-invalid="true"] {
 input[aria-invalid="false"]:focus,
 select[aria-invalid="false"]:focus,
 textarea[aria-invalid="false"]:focus {
-  box-shadow: 0 0 0 var(--focus-width)
-    var(--color-semantic-success);
+  /* No utility expresses a focus ring from --focus-width and a colour. */
+  box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-success);
 }
 
 input[aria-invalid="true"]:focus,
 select[aria-invalid="true"]:focus,
 textarea[aria-invalid="true"]:focus {
+  /* No utility expresses a focus ring from --focus-width and a colour. */
   box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-error);
 }
 
@@ -2695,19 +2640,15 @@ textarea[aria-invalid="true"]:focus {
 /* A field and its note. The note is a sibling so the markup reads in order
    without a wrapper, and it takes the field's validity color. */
 :is(input, select, textarea) + small {
-  display: block;
-  width: 100%;
-  margin-block: var(--spacing-1) 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  width:100%;display:block;margin-top:var(--spacing-1);color:var(--color-text-muted);font-size:var(--font-size-sm);
 }
 
 :is(input, select, textarea)[aria-invalid="false"] + small {
-  color: var(--color-semantic-success);
+  color:var(--color-semantic-success);
 }
 
 :is(input, select, textarea)[aria-invalid="true"] + small {
-  color: var(--color-semantic-error);
+  color:var(--color-semantic-error);
 }
 
 /* ---------- disabled ---------- */
@@ -2717,62 +2658,53 @@ select:disabled,
 textarea:disabled {
   /* Not a role: every theme dims a disabled control by the same amount, and a
      token here would only be restated identically in each one. */
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 :where(fieldset[disabled]) :is(input, select, textarea) {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 /* ---------- labels and groups ---------- */
 
 label {
-  display: block;
-  margin-block-end: var(--spacing-1);
-  font-weight: var(--font-weight-medium);
+  display:block;margin-bottom:var(--spacing-1);font-weight:var(--font-weight-medium);
 }
 
 fieldset {
-  padding: 0;
-  border: none;
-  margin: 0;
+  border-style:none;padding:var(--spacing-0);margin:var(--spacing-0);
 }
 
 legend {
-  padding: 0;
-  font-weight: var(--font-weight-semibold);
+  padding:var(--spacing-0);font-weight:var(--font-weight-semibold);
 }
 
 /* A label wrapping its own field is one control, so the gap between them is
    spacing rather than the two stacked rules above. */
 label > :is(input, select, textarea) {
-  margin-block-start: var(--spacing-1);
+  margin-top:var(--spacing-1);
 }
 
 /* ---------- checkbox and radio ---------- */
 
 input[type="checkbox"],
 input[type="radio"] {
+  cursor:pointer;accent-color:var(--color-primary);
   width: 1em;
   height: 1em;
-  accent-color: var(--color-primary);
-  cursor: pointer;
   vertical-align: middle;
 }
 
 input[type="checkbox"]:disabled,
 input[type="radio"]:disabled {
-  cursor: not-allowed;
+  cursor:not-allowed;
 }
 
 /* ---------- range ---------- */
 
 input[type="range"] {
-  accent-color: var(--color-primary);
+  cursor:pointer;accent-color:var(--color-primary);
   height: 1.5em;
-  cursor: pointer;
 }
 
 /* ---------- search and file ---------- */
@@ -2788,11 +2720,9 @@ input[type="search"]::-webkit-search-decoration {
 /* ---------- color ---------- */
 
 input[type="color"] {
+  cursor:pointer;padding:var(--spacing-1);border-radius:var(--radius-sm);
   width: 2.5em;
   height: 2.5em;
-  padding: var(--spacing-1);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
 }
 
 /* ---------- range ---------- */
@@ -2801,21 +2731,19 @@ input[type="color"] {
    of the form uses, so a slider matches the fields beside it without any
    vendor-specific track painting. */
 input[type="range"] {
-  accent-color: var(--color-primary);
+  cursor:pointer;border-width:0;background-color:transparent;accent-color:var(--color-primary);
   height: 1.5em;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
 }
 
 input[type="range"]:focus-visible {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="range"]:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 /* ---------- switch ---------- */
@@ -2825,57 +2753,51 @@ input[type="range"]:disabled {
    control's own font-size, so it tracks the surrounding type the way the icon
    slot does. */
 input[type="checkbox"][role="switch"] {
+  /* Component-owned binding: the thumb travel, derived from the track and
+     thumb sizes. */
   --switch-travel: calc(1.25em - 2 * var(--border-width) - 0.5em);
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);cursor:pointer;border-width:1px;position:relative;background-color:var(--color-surface-raised);border-color:var(--color-border);margin:var(--spacing-0);border-radius:var(--radius-full);
   appearance: none;
-  position: relative;
   width: 2.25em;
   height: 1.25em;
-  margin: 0;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface-raised);
-  cursor: pointer;
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 input[type="checkbox"][role="switch"]::after {
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, translate, scale, rotate;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);position:absolute;background-color:var(--color-text-muted);border-radius:var(--radius-full);
   content: "";
-  position: absolute;
+  /* No utility expresses inset-block-start. */
   inset-block-start: 50%;
+  /* No utility expresses a derived inset from --border-width. */
   inset-inline-start: calc(var(--border-width) + 0.125em);
   width: 0.875em;
   height: 0.875em;
-  border-radius: 50%;
-  background-color: var(--color-text-muted);
+  /* No utility expresses a translate. */
   translate: 0 -50%;
-  transition:
-    translate var(--motion-duration-fast) var(--motion-easing-standard),
-    background-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 input[type="checkbox"][role="switch"]:checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  background-color:var(--color-primary);border-color:var(--color-primary);
 }
 
 input[type="checkbox"][role="switch"]:checked::after {
+  /* Component-owned binding: the thumb travel. */
   translate: var(--switch-travel) -50%;
-  background-color: var(--color-on-primary);
+  background-color:var(--color-on-primary);
 }
 
 input[type="checkbox"][role="switch"]:focus-visible {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="checkbox"][role="switch"][aria-invalid="true"] {
-  border-color: var(--color-semantic-error);
+  border-color:var(--color-semantic-error);
 }
 
 input[type="checkbox"][role="switch"][aria-invalid="false"] {
-  border-color: var(--color-semantic-success);
+  border-color:var(--color-semantic-success);
 }
 
 /* ---------- file ---------- */
@@ -2884,40 +2806,28 @@ input[type="checkbox"][role="switch"][aria-invalid="false"] {
    is styled as a secondary control and the filename is left in the muted
    color, which is what separates the two without an extra element. */
 input[type="file"] {
-  padding: 0;
-  border: 0;
+  cursor:pointer;border-width:0;padding:var(--spacing-0);color:var(--color-text-muted);
   background: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
 }
 
 input[type="file"]::file-selector-button {
-  margin-inline-end: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);cursor:pointer;border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);margin-inline-end:var(--spacing-2);padding-left:var(--spacing-2);padding-right:var(--spacing-2);padding-top:var(--spacing-1);padding-bottom:var(--spacing-1);font-weight:var(--font-weight-medium);color:var(--color-text);font-size:var(--font-size-sm);border-radius:var(--radius-md);
   font-family: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-easing-standard);
 }
 
 input[type="file"]::file-selector-button:hover {
-  background-color: var(--color-surface);
+  background-color:var(--color-surface);
 }
 
 input[type="file"]:focus-visible::file-selector-button {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="file"]:disabled::file-selector-button {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:0.55;cursor:not-allowed;
 }
 
 /* ---------- date ---------- */
@@ -2930,7 +2840,7 @@ input[type="time"],
 input[type="datetime-local"],
 input[type="month"],
 input[type="week"] {
-  accent-color: var(--color-primary);
+  accent-color:var(--color-primary);
   color-scheme: light dark;
 }
 
@@ -2939,13 +2849,7 @@ input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 input[type="month"]::-webkit-calendar-picker-indicator,
 input[type="week"]::-webkit-calendar-picker-indicator {
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background-color: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  opacity: 1;
+  opacity:1;cursor:pointer;border-width:0;background-color:transparent;padding:var(--spacing-0);color:var(--color-text-muted);border-radius:var(--radius-sm);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
@@ -2953,7 +2857,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover,
 input[type="week"]::-webkit-calendar-picker-indicator:hover {
-  color: var(--color-text);
+  color:var(--color-text);
 }
 
 
@@ -3842,46 +3746,55 @@ nav[aria-label="breadcrumb"] li + li::before {
    second element in the markup, and it is positioned in the inline axis so it
    never needs a measurement. */
 [data-tooltip] {
-  position: relative;
+  position:relative;
 }
 
 [data-tooltip]::after {
   content: attr(data-tooltip);
-  position: absolute;
+  position:absolute;
+  /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
+     `toast`. */
   z-index: 1;
+  /* Logical insets and the translate have no utility — the inset rules write
+     physical sides — and the offset is derived from the spacing scale. */
   inset-block-end: calc(100% + var(--spacing-1));
   inset-inline-start: 50%;
   translate: -50% 0;
+  /* Padding stays logical, as it does in the button: `py-1 px-2` would write
+     physical sides for a surface whose placement follows the writing mode. */
   padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-text);
-  color: var(--color-surface);
-  font-size: var(--font-size-xs);
+  /* The edge width reads the shared `--border-width` token, which no utility
+     reads; the style and colour are utilities. */
+  border-width: var(--border-width);
+  border-style:solid;border-color:var(--color-border);border-radius:var(--radius-sm);
+  opacity:0;white-space:nowrap;pointer-events:none;background-color:var(--color-text);color:var(--color-surface);font-size:var(--font-size-xs);
+  transition-property:opacity;transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);
   line-height: 1.4;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 /* Shown on the states that mean "this has a description you want". */
 [data-tooltip]:is(:hover, :focus-visible)::after {
-  opacity: 1;
+  opacity:1;
 }
 
 /* Placement is a data attribute because the author knows where the room is. */
 [data-tooltip][data-placement="top"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: calc(100% + var(--spacing-1));
 }
 
 [data-tooltip][data-placement="bottom"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-start: auto;
   inset-block-end: calc(100% + var(--spacing-1));
 }
 
 [data-tooltip][data-placement="left"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: 50%;
   inset-inline-start: auto;
@@ -3890,6 +3803,8 @@ nav[aria-label="breadcrumb"] li + li::before {
 }
 
 [data-tooltip][data-placement="right"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: 50%;
   inset-inline-start: calc(100% + var(--spacing-1));
@@ -3899,7 +3814,7 @@ nav[aria-label="breadcrumb"] li + li::before {
 
 @media (prefers-reduced-motion: reduce) {
   [data-tooltip]::after {
-    transition: none;
+    transition-property:none;
   }
 }
 
@@ -3967,40 +3882,35 @@ nav[aria-label="breadcrumb"] li + li::before {
 /* ---------- progress ---------- */
 
 progress {
-  display: block;
-  width: 100%;
-  height: var(--spacing-1);
-  margin-block-end: var(--spacing-2);
-  overflow: hidden;
-  appearance: none;
-  border: 0;
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface-raised);
   /* The platform reads `color` for the filled portion, which is why a progress
      bar needs both properties to render consistently across engines. */
-  color: var(--color-primary);
+  width:100%;display:block;overflow:hidden;border-width:0;background-color:var(--color-surface-raised);height:var(--spacing-1);color:var(--color-primary);border-radius:var(--radius-full);
+  /* Logical margin: no utility writes `margin-block-end`. */
+  margin-block-end: var(--spacing-2);
+  appearance: none;
 }
 
 progress::-webkit-progress-bar {
-  border-radius: var(--radius-full);
+  border-radius:var(--radius-full);
   background: none;
 }
 
 progress::-webkit-progress-value {
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary);
-  transition: inline-size var(--motion-duration-base)
-    var(--motion-easing-standard);
+  transition-duration:var(--motion-duration-base);transition-timing-function:var(--motion-easing-standard);background-color:var(--color-primary);border-radius:var(--radius-full);
+  /* `inline-size` is not in the transition-property vocabulary, so the
+     property stays a declaration. */
+  transition-property: inline-size;
 }
 
 progress::-moz-progress-bar {
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary);
+  background-color:var(--color-primary);border-radius:var(--radius-full);
 }
 
 /* Indeterminate: a value that is not yet known. The bar is a gradient sliding
    across the track, which needs no JavaScript and no extra element. */
 progress:indeterminate {
+  /* The sweep is a gradient positioned and sized by hand — no utility covers
+     `background-position` or `background-size` — so the declaration stays. */
   background:
     linear-gradient(
     to right,
@@ -4029,7 +3939,7 @@ progress:indeterminate::-moz-progress-bar {
    the bare `input` above already covers every type, and a replaced element
    renders no pseudo-elements anyway. */
 [aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])) {
-  white-space: nowrap;
+  white-space:nowrap;
 }
 
 [aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"]))::before {
@@ -4042,33 +3952,36 @@ progress:indeterminate::-moz-progress-bar {
   border-block-start-color: transparent;
   border-radius: 50%;
   vertical-align: -0.125em;
+  /* The spin duration is the fast step times four — a derived value — and
+     the preset has no `animate-*` utility at all. */
   animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
 }
 
 [aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])):not(:empty)::before {
+  /* Logical margin: no utility writes `margin-inline-end`. */
   margin-inline-end: var(--spacing-2);
 }
 
 [aria-busy="true"]:empty {
-  text-align: center;
+  text-align:center;
 }
 
 /* A busy control takes no input. This is on the attribute rather than a class
    so a disabled-while-loading button needs one declaration, not two. */
 :is(button, a, [type="submit"], [type="button"], [type="reset"], [role="button"])[aria-busy="true"] {
-  pointer-events: none;
+  pointer-events:none;
 }
 
 /* ---------- accessibility ---------- */
 
 /* Cursor follows operability, which is state. */
 [aria-controls] {
-  cursor: pointer;
+  cursor:pointer;
 }
 
 [aria-disabled="true"],
 [disabled] {
-  cursor: not-allowed;
+  cursor:not-allowed;
 }
 
 /* Content hidden from sight but not from a screen reader. The recipe is fixed
@@ -4078,23 +3991,20 @@ progress:indeterminate::-moz-progress-bar {
    mean the same thing — an element that opts back into the tree, and the
    class for when there is no such element. */
 :is([aria-hidden="false"][hidden], .visually-hidden) {
+  overflow:hidden;white-space:nowrap;position:absolute;
   display: initial;
-  position: absolute;
   clip-path: inset(50%);
   width: 1px;
   height: 1px;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 /* An element that opts back into the tree still has to be reachable by
    keyboard, or `hidden` would have hidden it from a keyboard user too. */
 [aria-hidden="false"][hidden]:focus {
-  position: static;
+  overflow:visible;position:static;
   clip-path: none;
   width: auto;
   height: auto;
-  overflow: visible;
 }
 
 /* Direction is content, and the theme follows it rather than overriding it. */
@@ -4112,8 +4022,9 @@ progress:indeterminate::-moz-progress-bar {
   [aria-busy="true"]::before,
   dialog[open],
   dialog[open]::backdrop {
+    transition-property:none;
+    /* The preset has no `animate-*` utility, so the animation reset stays. */
     animation: none;
-    transition: none;
   }
 }
 
@@ -4129,9 +4040,11 @@ progress:indeterminate::-moz-progress-bar {
  * Markup contract:
  *   <div class="card">                  the one row — a raised, bordered surface
  *
- * Theming — spent, never character: the six declarations read only scales
- * (`--spacing-4`, `--radius-lg`, `--color-surface-raised`, `--border-width`,
- * `--color-border`, `--shadow-sm`); no token is minted.
+ * Theming — spent, never character: the values are scale steps (`--spacing-4`,
+ * `--radius-lg`, `--color-surface-raised`, `--border-width`, `--color-border`,
+ * `--shadow-sm`), spent as utilities wherever one exists; only the edge width
+ * stays a declaration, because no utility reads `--border-width`. No token is
+ * minted.
  *
  * States + ARIA equivalents: none — a card is a container, not a control.
  * Motion + prefers-reduced-motion: none — nothing here animates.
@@ -4140,11 +4053,10 @@ progress:indeterminate::-moz-progress-bar {
  */
 
 .card {
-  padding: var(--spacing-4);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  border-style:solid;background-color:var(--color-surface-raised);border-color:var(--color-border);padding:var(--spacing-4);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);
+  /* The edge width reads the shared `--border-width` token, which no utility
+     reads (`border` would emit a literal 1px a theme could not move). */
+  border-width: var(--border-width);
 }
 </style>
 <style>

@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { walk } from "jsr:@std/fs@^1.0.0/walk";
+import { walk } from "@std/fs/walk";
 
 /**
  * No custom property is spelled by hand.

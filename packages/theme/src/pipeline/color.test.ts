@@ -1,30 +1,7 @@
 import { assert, assertEquals, assertThrows } from "@std/assert";
 import { isTokenType } from "./parse.ts";
-import { contrastRatio, formatHex, isColor, parseColor } from "./color.ts";
+import { contrastRatio, isColor, parseColor } from "./color.ts";
 
-const HEX = /^#[0-9a-f]{6}$/;
-function channels(hex: string): [number, number, number] {
-  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(hex);
-  if (!match) {
-    throw new Error(`expected a #rrggbb colour, got: ${hex}`);
-  }
-  return [
-    parseInt(match[1], 16),
-    parseInt(match[2], 16),
-    parseInt(match[3], 16),
-  ];
-}
-/**
- * Independent WCAG relative-luminance oracle, used to judge a scale without
- * trusting the implementation that produced it.
- */
-function relativeLuminance(hex: string): number {
-  const linear = channels(hex).map((channel) => {
-    const c = channel / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
-}
 Deno.test("contrastRatio reports no contrast between a colour and itself", () => {
   for (const hex of ["#000000", "#ffffff", "#3a7bd5", "#808080"]) {
     assertEquals(contrastRatio(hex, hex), 1);

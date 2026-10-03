@@ -24,7 +24,6 @@ import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { themeRef } from "@spin/theme";
 import { orGroup } from "./utils/factories.ts";
-import type { ThemeRef } from "@spin/theme";
 import { spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";

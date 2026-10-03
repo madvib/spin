@@ -26,6 +26,11 @@ export function positionRules(): Rule[] {
     insetRule(/^right-(.+)$/, ["right"], "inset-$spacing"),
     insetRule(/^bottom-(.+)$/, ["bottom"], "inset-$spacing"),
     insetRule(/^left-(.+)$/, ["left"], "inset-$spacing"),
+    // Logical inline insets: `start`/`end` are the inline-start and inline-end
+    // offsets, so a positioned control flips with the writing mode rather than
+    // against it.
+    insetRule(/^start-(.+)$/, ["inset-inline-start"], "inset-$spacing"),
+    insetRule(/^end-(.+)$/, ["inset-inline-end"], "inset-$spacing"),
     [
       /^z-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {

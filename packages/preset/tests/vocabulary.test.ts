@@ -1,4 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
+import { createGenerator } from "@unocss/core";
+import { parseTokens, treeToJson } from "@spin/theme";
+import { scaffold, spinPreset } from "../src/index.ts";
 import { GRID_DECLS, STATIC_DECLS } from "../src/utils/declarations.ts";
 import {
   DISPLAY_UTILITIES,
@@ -85,5 +88,56 @@ Deno.test("grid tracks are fixed counts, spans mirror them", () => {
 Deno.test("the display table covers flex and grid", () => {
   for (const name of ["block", "inline", "flex", "hidden"]) {
     assert(STATIC_DECLS[name]?.display, `${name} emits no display`);
+  }
+});
+
+/**
+ * A theme with one step per scale the cases below spend, so a token-driven
+ * rule has something to resolve against. The scaffold supplies the colours and
+ * fonts; the scales are the ones the cases read.
+ */
+function themeDocument() {
+  const parsed = parseTokens({
+    spacing: {
+      $type: "dimension",
+      2: { $value: "0.5rem" },
+      4: { $value: "1rem" },
+    },
+    radius: { $type: "dimension", lg: { $value: "0.5rem" } },
+  });
+  if (!parsed.ok) throw new Error(parsed.error);
+  return JSON.parse(treeToJson([...scaffold(), ...parsed.tree]));
+}
+
+async function cssFor(classes: string): Promise<string> {
+  const uno = await createGenerator({
+    presets: [spinPreset({ theme: themeDocument() })],
+  });
+  const { css } = await uno.generate(classes);
+  return css;
+}
+
+Deno.test("the utilities a component spends emit the declaration it needs", async () => {
+  // One case per family a component reaches for, each mirroring a real
+  // declaration in the primitives: a colour, a logical spacing edge, a radius,
+  // a transform, and a capitalisation. The assertion is the behaviour — a
+  // utility goes in, the declaration comes out — not a list of names.
+  const cases: [string, string, string][] = [
+    ["bg-surface-raised", "background-color", "var(--color-surface-raised)"],
+    ["ps-4", "padding-inline-start", "var(--spacing-4)"],
+    ["rounded-lg", "border-radius", "var(--radius-lg)"],
+    ["translate-x-2", "transform", "translateX(var(--spacing-2))"],
+    ["uppercase", "text-transform", "uppercase"],
+  ];
+  for (const [utility, property, value] of cases) {
+    const css = await cssFor(utility);
+    assert(
+      css.includes(property),
+      `${utility} emits no ${property} in: ${css}`,
+    );
+    assert(
+      css.includes(value),
+      `${utility} emits no ${value} in: ${css}`,
+    );
   }
 });

@@ -125,46 +125,56 @@
    second element in the markup, and it is positioned in the inline axis so it
    never needs a measurement. */
 [data-tooltip] {
-  position: relative;
+  --at-apply: relative;
 }
 
 [data-tooltip]::after {
   content: attr(data-tooltip);
-  position: absolute;
+  --at-apply: absolute;
+  /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
+     `toast`. */
   z-index: 1;
+  /* Logical insets and the translate have no utility — the inset rules write
+     physical sides — and the offset is derived from the spacing scale. */
   inset-block-end: calc(100% + var(--spacing-1));
   inset-inline-start: 50%;
   translate: -50% 0;
+  /* Padding stays logical, as it does in the button: `py-1 px-2` would write
+     physical sides for a surface whose placement follows the writing mode. */
   padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-text);
-  color: var(--color-surface);
-  font-size: var(--font-size-xs);
+  /* The edge width reads the shared `--border-width` token, which no utility
+     reads; the style and colour are utilities. */
+  border-width: var(--border-width);
+  --at-apply: border-solid border-border rounded-sm;
+  --at-apply: bg-text text-surface text-xs whitespace-nowrap pointer-events-none
+    opacity-0;
+  --at-apply: transition-opacity duration-fast ease-standard;
   line-height: 1.4;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 /* Shown on the states that mean "this has a description you want". */
 [data-tooltip]:is(:hover, :focus-visible)::after {
-  opacity: 1;
+  --at-apply: opacity-100;
 }
 
 /* Placement is a data attribute because the author knows where the room is. */
 [data-tooltip][data-placement="top"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: calc(100% + var(--spacing-1));
 }
 
 [data-tooltip][data-placement="bottom"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-start: auto;
   inset-block-end: calc(100% + var(--spacing-1));
 }
 
 [data-tooltip][data-placement="left"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: 50%;
   inset-inline-start: auto;
@@ -173,6 +183,8 @@
 }
 
 [data-tooltip][data-placement="right"]::after {
+  /* Placement is logical and derived from the spacing scale; no utility
+     writes a logical inset. */
   inset-block-end: auto;
   inset-block-start: 50%;
   inset-inline-start: calc(100% + var(--spacing-1));
@@ -182,6 +194,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   [data-tooltip]::after {
-    transition: none;
+    --at-apply: transition-none;
   }
 }

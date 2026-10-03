@@ -179,12 +179,12 @@ function parseAuthored(text: string): Map<string, Authored> {
   );
   if (!block) return out;
   const body = block[1] as string;
-  const parts = body.split(/\n(?=  \w+: \{)/).slice(1);
+  const parts = body.split(/\n(?= {2}\w+: \{)/).slice(1);
   for (const part of parts) {
-    const name = /^  (\w+): \{/.exec(part)?.[1];
+    const name = /^ {2}(\w+): \{/.exec(part)?.[1];
     if (!name) continue;
-    const header = /\/\*[\s\S]*?\*\/\n(?=  \w+: \{)/.exec(part)?.[0] ?? "";
-    const comment = /  \/\*[\s\S]*?\*\/\n(?=  \w+:)/.exec(part)?.[0] ?? "";
+    const header = /\/\*[\s\S]*?\*\/\n(?= {2}\w+: \{)/.exec(part)?.[0] ?? "";
+    const comment = / {2}\/\*[\s\S]*?\*\/\n(?= {2}\w+:)/.exec(part)?.[0] ?? "";
     out.set(name, {
       header: header.replace(/\n+$/, ""),
       tags: renderArray(

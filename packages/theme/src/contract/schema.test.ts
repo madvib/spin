@@ -2,7 +2,6 @@ import { assert, assertEquals } from "@std/assert";
 import { parseTokens } from "../pipeline/parse.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import { TOKEN_TYPES } from "../pipeline/types.ts";
-import type { TokenTree } from "../pipeline/types.ts";
 import { CSS_WIDE_COLORS } from "../pipeline/color.ts";
 import {
   BASE_ROLES,

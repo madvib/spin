@@ -69,25 +69,15 @@
 
 /* ---------- text-like fields ---------- */
 
+/* Spent bindings: the spacing, radius and border scales. The scale steps
+   1, 2, 4 — there is no 3, and minting a token for one padding value would
+   be a per-theme cost for no decision. A text field is as wide as its
+   container; only the box types opt out. */
 input,
 select,
 textarea {
-  /* Spent bindings: the spacing, radius and border scales. The scale steps
-     1, 2, 4 — there is no 3, and minting a token for one padding value would
-     be a per-theme cost for no decision. */
-  padding: var(--spacing-1) var(--spacing-2);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-md);
-  color: var(--color-text);
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
-
-  /* A text field is as wide as its container; only the box types opt out. */
-  width: 100%;
-  transition:
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+  --at-apply: py-1 px-2 rounded-md font-sans text-md text-text bg-surface-raised
+    border border-border w-full transition duration-fast ease-standard;
 }
 
 /* The box types and the button-like inputs lay out their own contents and
@@ -101,26 +91,25 @@ input[type="color"],
 input[type="submit"],
 input[type="reset"],
 input[type="button"] {
-  padding: 0;
+  --at-apply: p-0;
   width: auto;
 }
 
 textarea {
-  display: block;
-  resize: vertical;
+  --at-apply: block resize-y;
+  /* No utility expresses a derived min-height from two spacing steps. */
   min-height: calc(var(--spacing-16) + var(--spacing-4));
 }
 
 select {
-  cursor: pointer;
+  --at-apply: cursor-pointer;
 }
 
 /* ---------- placeholder ---------- */
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--color-text-muted);
-  opacity: 1;
+  --at-apply: text-text-muted opacity-100;
 }
 
 /* ---------- focus ---------- */
@@ -128,8 +117,8 @@ textarea::placeholder {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
+  --at-apply: outline-none border-primary;
+  /* No utility expresses a focus ring from --focus-width and a colour. */
   box-shadow: 0 0 0 var(--focus-width) var(--color-focus-ring);
 }
 
@@ -140,19 +129,19 @@ textarea:focus {
 input[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
 select[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]),
 textarea[aria-invalid]:not([aria-invalid="true"]):not([aria-invalid="false"]) {
-  border-color: var(--color-primary);
+  --at-apply: border-primary;
 }
 
 input[aria-invalid="false"],
 select[aria-invalid="false"],
 textarea[aria-invalid="false"] {
-  border-color: var(--color-semantic-success);
+  --at-apply: border-semantic-success;
 }
 
 input[aria-invalid="true"],
 select[aria-invalid="true"],
 textarea[aria-invalid="true"] {
-  border-color: var(--color-semantic-error);
+  --at-apply: border-semantic-error;
 }
 
 /* The ring follows the border so a valid or invalid field is distinguishable
@@ -160,13 +149,14 @@ textarea[aria-invalid="true"] {
 input[aria-invalid="false"]:focus,
 select[aria-invalid="false"]:focus,
 textarea[aria-invalid="false"]:focus {
-  box-shadow: 0 0 0 var(--focus-width)
-    var(--color-semantic-success);
+  /* No utility expresses a focus ring from --focus-width and a colour. */
+  box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-success);
 }
 
 input[aria-invalid="true"]:focus,
 select[aria-invalid="true"]:focus,
 textarea[aria-invalid="true"]:focus {
+  /* No utility expresses a focus ring from --focus-width and a colour. */
   box-shadow: 0 0 0 var(--focus-width) var(--color-semantic-error);
 }
 
@@ -175,19 +165,15 @@ textarea[aria-invalid="true"]:focus {
 /* A field and its note. The note is a sibling so the markup reads in order
    without a wrapper, and it takes the field's validity color. */
 :is(input, select, textarea) + small {
-  display: block;
-  width: 100%;
-  margin-block: var(--spacing-1) 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  --at-apply: block w-full mt-1 text-text-muted text-sm;
 }
 
 :is(input, select, textarea)[aria-invalid="false"] + small {
-  color: var(--color-semantic-success);
+  --at-apply: text-semantic-success;
 }
 
 :is(input, select, textarea)[aria-invalid="true"] + small {
-  color: var(--color-semantic-error);
+  --at-apply: text-semantic-error;
 }
 
 /* ---------- disabled ---------- */
@@ -197,62 +183,53 @@ select:disabled,
 textarea:disabled {
   /* Not a role: every theme dims a disabled control by the same amount, and a
      token here would only be restated identically in each one. */
-  opacity: 0.55;
-  cursor: not-allowed;
+  --at-apply: opacity-55 cursor-not-allowed;
 }
 
 :where(fieldset[disabled]) :is(input, select, textarea) {
-  opacity: 0.55;
-  cursor: not-allowed;
+  --at-apply: opacity-55 cursor-not-allowed;
 }
 
 /* ---------- labels and groups ---------- */
 
 label {
-  display: block;
-  margin-block-end: var(--spacing-1);
-  font-weight: var(--font-weight-medium);
+  --at-apply: block mb-1 font-medium;
 }
 
 fieldset {
-  padding: 0;
-  border: none;
-  margin: 0;
+  --at-apply: p-0 border-none m-0;
 }
 
 legend {
-  padding: 0;
-  font-weight: var(--font-weight-semibold);
+  --at-apply: p-0 font-semibold;
 }
 
 /* A label wrapping its own field is one control, so the gap between them is
    spacing rather than the two stacked rules above. */
 label > :is(input, select, textarea) {
-  margin-block-start: var(--spacing-1);
+  --at-apply: mt-1;
 }
 
 /* ---------- checkbox and radio ---------- */
 
 input[type="checkbox"],
 input[type="radio"] {
+  --at-apply: accent-primary cursor-pointer;
   width: 1em;
   height: 1em;
-  accent-color: var(--color-primary);
-  cursor: pointer;
   vertical-align: middle;
 }
 
 input[type="checkbox"]:disabled,
 input[type="radio"]:disabled {
-  cursor: not-allowed;
+  --at-apply: cursor-not-allowed;
 }
 
 /* ---------- range ---------- */
 
 input[type="range"] {
-  accent-color: var(--color-primary);
+  --at-apply: accent-primary cursor-pointer;
   height: 1.5em;
-  cursor: pointer;
 }
 
 /* ---------- search and file ---------- */
@@ -268,11 +245,9 @@ input[type="search"]::-webkit-search-decoration {
 /* ---------- color ---------- */
 
 input[type="color"] {
+  --at-apply: p-1 rounded-sm cursor-pointer;
   width: 2.5em;
   height: 2.5em;
-  padding: var(--spacing-1);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
 }
 
 /* ---------- range ---------- */
@@ -281,21 +256,19 @@ input[type="color"] {
    of the form uses, so a slider matches the fields beside it without any
    vendor-specific track painting. */
 input[type="range"] {
-  accent-color: var(--color-primary);
+  --at-apply: accent-primary cursor-pointer bg-transparent border-0;
   height: 1.5em;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
 }
 
 input[type="range"]:focus-visible {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="range"]:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  --at-apply: opacity-55 cursor-not-allowed;
 }
 
 /* ---------- switch ---------- */
@@ -305,57 +278,53 @@ input[type="range"]:disabled {
    control's own font-size, so it tracks the surrounding type the way the icon
    slot does. */
 input[type="checkbox"][role="switch"] {
+  /* Component-owned binding: the thumb travel, derived from the track and
+     thumb sizes. */
   --switch-travel: calc(1.25em - 2 * var(--border-width) - 0.5em);
+  --at-apply: relative m-0 border border-border rounded-full bg-surface-raised
+    cursor-pointer transition-colors duration-fast ease-standard;
   appearance: none;
-  position: relative;
   width: 2.25em;
   height: 1.25em;
-  margin: 0;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface-raised);
-  cursor: pointer;
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 input[type="checkbox"][role="switch"]::after {
+  --at-apply: absolute rounded-full bg-text-muted transition duration-fast
+    ease-standard;
   content: "";
-  position: absolute;
+  /* No utility expresses inset-block-start. */
   inset-block-start: 50%;
+  /* No utility expresses a derived inset from --border-width. */
   inset-inline-start: calc(var(--border-width) + 0.125em);
   width: 0.875em;
   height: 0.875em;
-  border-radius: 50%;
-  background-color: var(--color-text-muted);
+  /* No utility expresses a translate. */
   translate: 0 -50%;
-  transition:
-    translate var(--motion-duration-fast) var(--motion-easing-standard),
-    background-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 input[type="checkbox"][role="switch"]:checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  --at-apply: bg-primary border-primary;
 }
 
 input[type="checkbox"][role="switch"]:checked::after {
+  /* Component-owned binding: the thumb travel. */
   translate: var(--switch-travel) -50%;
-  background-color: var(--color-on-primary);
+  --at-apply: bg-on-primary;
 }
 
 input[type="checkbox"][role="switch"]:focus-visible {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="checkbox"][role="switch"][aria-invalid="true"] {
-  border-color: var(--color-semantic-error);
+  --at-apply: border-semantic-error;
 }
 
 input[type="checkbox"][role="switch"][aria-invalid="false"] {
-  border-color: var(--color-semantic-success);
+  --at-apply: border-semantic-success;
 }
 
 /* ---------- file ---------- */
@@ -364,40 +333,30 @@ input[type="checkbox"][role="switch"][aria-invalid="false"] {
    is styled as a secondary control and the filename is left in the muted
    color, which is what separates the two without an extra element. */
 input[type="file"] {
-  padding: 0;
-  border: 0;
+  --at-apply: p-0 border-0 text-text-muted cursor-pointer;
   background: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
 }
 
 input[type="file"]::file-selector-button {
-  margin-inline-end: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
+  --at-apply: me-2 py-1 px-2 border border-border rounded-md bg-surface-raised
+    text-text text-sm font-medium cursor-pointer transition-colors duration-fast
+    ease-standard;
   font-family: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-easing-standard);
 }
 
 input[type="file"]::file-selector-button:hover {
-  background-color: var(--color-surface);
+  --at-apply: bg-surface;
 }
 
 input[type="file"]:focus-visible::file-selector-button {
+  /* No utility expresses an outline from --focus-width and a colour, nor an
+     outline-offset from --focus-offset. */
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
 
 input[type="file"]:disabled::file-selector-button {
-  opacity: 0.55;
-  cursor: not-allowed;
+  --at-apply: opacity-55 cursor-not-allowed;
 }
 
 /* ---------- date ---------- */
@@ -410,7 +369,7 @@ input[type="time"],
 input[type="datetime-local"],
 input[type="month"],
 input[type="week"] {
-  accent-color: var(--color-primary);
+  --at-apply: accent-primary;
   color-scheme: light dark;
 }
 
@@ -419,13 +378,8 @@ input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 input[type="month"]::-webkit-calendar-picker-indicator,
 input[type="week"]::-webkit-calendar-picker-indicator {
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background-color: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  opacity: 1;
+  --at-apply: p-0 border-0 rounded-sm bg-transparent text-text-muted cursor-pointer
+    opacity-100;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
@@ -433,5 +387,5 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover,
 input[type="week"]::-webkit-calendar-picker-indicator:hover {
-  color: var(--color-text);
+  --at-apply: text-text;
 }

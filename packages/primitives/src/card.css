@@ -9,9 +9,11 @@
  * Markup contract:
  *   <div class="card">                  the one row — a raised, bordered surface
  *
- * Theming — spent, never character: the six declarations read only scales
- * (`--spacing-4`, `--radius-lg`, `--color-surface-raised`, `--border-width`,
- * `--color-border`, `--shadow-sm`); no token is minted.
+ * Theming — spent, never character: the values are scale steps (`--spacing-4`,
+ * `--radius-lg`, `--color-surface-raised`, `--border-width`, `--color-border`,
+ * `--shadow-sm`), spent as utilities wherever one exists; only the edge width
+ * stays a declaration, because no utility reads `--border-width`. No token is
+ * minted.
  *
  * States + ARIA equivalents: none — a card is a container, not a control.
  * Motion + prefers-reduced-motion: none — nothing here animates.
@@ -20,9 +22,9 @@
  */
 
 .card {
-  padding: var(--spacing-4);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  --at-apply: p-4 rounded-lg bg-surface-raised border-solid border-border
+    shadow-sm;
+  /* The edge width reads the shared `--border-width` token, which no utility
+     reads (`border` would emit a literal 1px a theme could not move). */
+  border-width: var(--border-width);
 }

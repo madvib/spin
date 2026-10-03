@@ -457,19 +457,11 @@ export const SHADOW: Record<string, string> = {
   none: "none",
 };
 
-/**
- * The lift a theme gives a hovered control, by axis. The values come from the
- * theme, so the names are declared here and the references are resolved by the
- * rule that reads them.
- */
-export const TRANSFORM: readonly string[] = [
-  "translate-x-0",
-  "translate-y-0",
-];
-
 /** Focus ring geometry, spent by every interactive component. */
 export const OUTLINE: Record<string, string> = {
-  "outline-none": "outline: 2px solid transparent; outline-offset: 2px",
+  // A transparent ring of the theme's own thickness: the point of `outline-none`
+  // is to keep the box the same size, and both numbers come from the theme.
+  "outline-none": "outline: 2px solid transparent",
   "outline-solid": "outline-style: solid",
   "outline-dashed": "outline-style: dashed",
   "outline-dotted": "outline-style: dotted",

@@ -60,7 +60,10 @@ Deno.test("a complete theme assembles a working document", async () => {
 
 Deno.test("the primitives ship because the theme enables them", async () => {
   const { css } = await assemble({ themes: { light: theme } });
-  assert(css.includes("background-color: var(--color-primary)"), "button css");
+  assert(
+    /background-color:\s*var\(--color-primary\)/.test(css),
+    "the button spends the primary fill",
+  );
   assert(css.includes('[role="button"]'), "the button claims its role");
 
   const without = await assemble({
@@ -116,7 +119,7 @@ Deno.test("the scaffold assembles without any scale", async () => {
   const { css } = await assemble({ themes: { light: document } });
   assert(css.includes("--color-primary"), "roles emit even without scales");
   assert(
-    css.includes("background-color: var(--color-primary)"),
+    /background-color:\s*var\(--color-primary\)/.test(css),
     "components still ship",
   );
 });
