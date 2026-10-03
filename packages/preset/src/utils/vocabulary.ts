@@ -426,6 +426,28 @@ export const TRACKING: Record<string, string> = {
   widest: "0.1em",
 };
 
+/**
+ * The flat shadow, and the lift steps a component spends.
+ *
+ * `shadow-none` is a look a theme reaches for most: a control with no shadow
+ * is a deliberate decision, not the absence of one. It is here rather than in
+ * the shadow scale because a theme's own shadow steps are named by the theme —
+ * `shadow-sm` reads whatever `shadow.sm` is.
+ */
+export const SHADOW: Record<string, string> = {
+  none: "none",
+};
+
+/**
+ * The lift a theme gives a hovered control, by axis. The values come from the
+ * theme, so the names are declared here and the references are resolved by the
+ * rule that reads them.
+ */
+export const TRANSFORM: readonly string[] = [
+  "translate-x-0",
+  "translate-y-0",
+];
+
 /** Focus ring geometry, spent by every interactive component. */
 export const OUTLINE: Record<string, string> = {
   "outline-none": "outline: 2px solid transparent; outline-offset: 2px",

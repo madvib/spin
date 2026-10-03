@@ -16,6 +16,8 @@ import {
   ORDER_STEPS,
   ORDER_VALUES,
   OUTLINE,
+  SHADOW,
+  TRANSFORM,
   OVERFLOW_UTILITIES,
   OVERFLOW_VALUES,
   POINTER_EVENTS,
@@ -67,6 +69,12 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
   ),
   ...Object.fromEntries(
     Object.entries(OUTLINE).map(([name, value]) => [name, cssDecl(value)]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(SHADOW).map(([name, value]) => [
+      `shadow-${name}`,
+      { "box-shadow": value },
+    ]),
   ),
   ...Object.fromEntries(
     DISPLAY_UTILITIES.map((name) => [name, { display: DISPLAY_VALUES[name] }]),

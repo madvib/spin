@@ -57,9 +57,7 @@
   /* Gap and type are utilities. Padding stays logical: `py-2 px-4` write
      physical sides, which is wrong for a control whose text direction the
      author did not choose. */
-  --at-apply: gap-2;
-  --at-apply: text-md;
-  --at-apply: font-sans;
+  --at-apply: gap-2 text-md font-sans rounded-md;
   padding-block: var(--spacing-2);
   padding-inline: var(--spacing-4);
 
@@ -205,21 +203,15 @@
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost {
-  --at-apply: text-text;
-  --at-apply: bg-transparent;
-  --at-apply: border-transparent;
+  --at-apply: text-text bg-transparent border-transparent;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost:hover:not(:disabled):not([aria-busy="true"]) {
-  --at-apply: text-text;
-  --at-apply: bg-transparent;
-  --at-apply: border-transparent;
+  --at-apply: text-text bg-transparent border-transparent;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
-  --at-apply: text-on-danger;
-  --at-apply: bg-semantic-error;
-  --at-apply: border-on-danger;
+  --at-apply: text-on-danger bg-semantic-error border-on-danger;
 }
 
 /* The loudest variant: brand fill on the page's own text color, so it is the
@@ -232,15 +224,11 @@
 /* Border only, on the brand color. For a page that already has a filled
    primary and needs a second action without competing with it. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
-  --at-apply: text-primary;
-  --at-apply: bg-transparent;
-  --at-apply: border-primary;
+  --at-apply: text-primary bg-transparent border-primary;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
-  --at-apply: text-primary;
-  --at-apply: bg-transparent;
-  --at-apply: border-primary;
+  --at-apply: text-primary bg-transparent border-primary;
 }
 
 /* A reset button is a secondary action by what the browser means by it, so it
@@ -250,9 +238,7 @@
 }
 
 [type="reset"].outline {
-  --at-apply: text-primary;
-  --at-apply: bg-transparent;
-  --at-apply: border-primary;
+  --at-apply: text-primary bg-transparent border-primary;
 }
 
 [type="reset"].outline:hover:not(:disabled) {
@@ -290,13 +276,11 @@ span[role="group"] > button {
 
 span[role="group"] > button:first-child {
   margin-inline-start: 0;
-  --at-apply: rounded-ss-md;
-  --at-apply: rounded-es-md;
+  --at-apply: rounded-ss-md rounded-es-md;
 }
 
 span[role="group"] > button:last-child {
-  --at-apply: rounded-se-md;
-  --at-apply: rounded-ee-md;
+  --at-apply: rounded-se-md rounded-ee-md;
 }
 
 /* Hover on one member must not swallow its neighbours' borders. */
