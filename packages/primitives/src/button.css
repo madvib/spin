@@ -8,18 +8,23 @@
  * control. All of them get the same finished treatment: metrics, states, and a
  * focus ring, all themed.
 
- * Two kinds of value appear here, and the difference is the whole design:
+ * Three kinds of value appear here, and the difference is the whole design:
  *
- *   spent bindings  The CSS names a scale step it consumes — `var(--radius-md)`,
- *                   `var(--spacing-2)`. No token is minted, because the author of
- *                   the CSS has no choice to express. A theme moves the button by
- *                   moving the scale: neobrut's `radius.md` is 0, so every button
- *                   bound to it goes square with no button token in sight.
+ *   utilities      Everything a utility expresses is one — the gap, the type,
+ *                   the radius, the padding. No token is minted, because the
+ *                   author of the CSS has no choice to express: a theme moves
+ *                   the button by moving the scale, and neobrut's square radius
+ *                   reaches every button with no button token in sight.
  *
  *   character       A decision a theme genuinely owns and an author may want to
- *                   override per component — the hover lift, the offset shadow,
- *                   the uppercase transform. These are minted as `button.*` tokens
+ *                   override per component — the weight, the case, the tracking,
+ *                   the two elevations. These are minted as `button.*` tokens
  *                   because the choice is real and a studio should surface it.
+ *
+ *   composites      What no utility expresses: the derived min-height, the
+ *                   themed border and outline, the spinner's timing. Each
+ *                   carries a one-line comment saying why it cannot be a
+ *                   utility.
  *
  * Markup contract:
  *   <button>                       primary
@@ -54,19 +59,17 @@
   box-sizing: border-box;
   vertical-align: middle;
 
-  /* Gap and type are utilities. Padding stays logical: `py-2 px-4` write
-     physical sides, which is wrong for a control whose text direction the
-     author did not choose. */
-  --at-apply: gap-2 text-md font-sans rounded-md;
-  padding-block: var(--spacing-2);
-  padding-inline: var(--spacing-4);
+  /* Gap, type and padding are utilities. The inline pair `ps-4 pe-4` flips
+     with the writing direction; block padding is `py-2` because the preset
+     has no logical block utility — the one gap worth naming. */
+  --at-apply: gap-2 text-md font-sans rounded-md py-2 ps-4 pe-4;
 
   line-height: 1;
   /* Height is derived, not stated: a button is as tall as its text plus its
      padding plus its borders, so the three can never disagree. */
   min-height: calc(
     var(--font-size-md) + (2 * var(--spacing-2)) + (2 *
-    var(--button-border-width))
+    var(--border-width))
   );
 
   /* Character: what a theme owns outright, with no scale behind it. */
@@ -74,7 +77,11 @@
   text-transform: var(--button-case);
   letter-spacing: var(--button-tracking);
 
-  border: var(--button-border-width) solid var(--color-on-primary);
+  /* The edge stays one declaration: no utility expresses a themed border
+     shorthand (`border` would emit a literal width a theme could not move),
+     and the colour cannot be a `border-on-primary` utility here because the
+     label's `text-on-primary` swallows it — see `.outline` for why. */
+  border: var(--border-width) solid var(--color-on-primary);
 
   /* Colour, default variant. */
   --at-apply: bg-primary;
@@ -96,11 +103,13 @@
 /* ---------- states ---------- */
 
 /* Hover is theme-defined feedback: neobrut grows its offset shadow and lifts,
-   the default theme only softens. Both come from tokens, so a theme that wants
-   no feedback at all sets the lift and the shadow-hover to nothing. */
+   the default theme only softens. The shadow is a character token; the lift is
+   opt-in — a theme that wants one states button.hover-lift-x/y and the
+   preflight emits it, and the fallback is the no-movement default. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):hover:not(:disabled):not([aria-busy="true"]) {
   box-shadow: var(--button-shadow-hover);
-  transform: translate(var(--button-hover-lift-x), var(--button-hover-lift-y));
+  transform: translate(var(--button-hover-lift-x, 0px),
+    var(--button-hover-lift-y, 0px));
 }
 
 /* Active is the press. It cancels the hover lift so the control reads as
@@ -113,7 +122,8 @@
 /* Focus ring is drawn on the focus-visible ring so a mouse press never leaves
    a ring behind, but keyboard focus always does. The offset keeps the ring
    clear of the button's own border, which matters for themes with heavy
-   borders. */
+   borders. No utility expresses an outline from --focus-width and a colour,
+   nor an outline-offset from --focus-offset, so both stay declarations. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]):focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
@@ -125,6 +135,7 @@
   outline: none;
 }
 
+/* The same ring for engines without :focus-visible — no utility expresses it. */
 @supports not selector(:focus-visible) {
   button:focus {
     outline: var(--focus-width) solid var(--color-focus-ring);
@@ -144,7 +155,9 @@
 
 /* Busy buttons keep their width so a row of buttons does not reflow when one
    of them starts working. The spinner is a border trick rather than an
-   animation keyframe set, so it inherits currentColor for free. */
+   animation keyframe set, so it inherits currentColor for free; its duration
+   is the theme's fast step times four, so a theme that quickens its motion
+   quickens the spinner — no utility expresses a calc. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])[aria-busy="true"] {
   cursor: progress;
 }
@@ -170,22 +183,18 @@
 /* Sizes spend the same scales at different steps. Padding and type move
    together, so a small button is proportionally the same control. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-sm {
-  --at-apply: text-sm;
-  padding-block: var(--spacing-1);
-  padding-inline: var(--spacing-2);
+  --at-apply: text-sm py-1 ps-2 pe-2;
   min-height: calc(
     var(--font-size-sm) + (2 * var(--spacing-1)) + (2 *
-    var(--button-border-width))
+    var(--border-width))
   );
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-lg {
-  --at-apply: text-lg;
-  padding-block: var(--spacing-4);
-  padding-inline: var(--spacing-8);
+  --at-apply: text-lg py-4 ps-8 pe-8;
   min-height: calc(
     var(--font-size-lg) + (2 * var(--spacing-4)) + (2 *
-    var(--button-border-width))
+    var(--border-width))
   );
 }
 
@@ -232,10 +241,10 @@
 
    The border spends `accent`, not `primary`: the directive transformer
    merges a whole `--at-apply` into one body and drops any declaration whose
-   text is already a substring of it — and `border-color:var(--color-primary)`
-   contains `color:var(--color-primary)`, so a primary border silently
-   deletes the primary label's colour. `accent` is the theme's brand colour
-   that is distinct from primary by design, which is what an outline is. */
+   text is already a substring of it — a border colour declaration contains
+   the label's colour declaration as a substring, so a primary border would
+   silently delete the primary label's colour. `accent` is the theme's brand
+   colour that is distinct from primary by design, which is what an outline is. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
   --at-apply: text-primary bg-transparent border-accent;
 }
@@ -288,7 +297,9 @@ span[role="group"] {
 
 span[role="group"] > button {
   border-radius: 0;
-  margin-inline-start: calc(-1 * var(--button-border-width));
+  /* The seam collapses against the shared edge width every control reads —
+     no utility expresses a calc. */
+  margin-inline-start: calc(-1 * var(--border-width));
 }
 
 span[role="group"] > button:first-child {

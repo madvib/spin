@@ -298,7 +298,8 @@
     "$type": "dimension",
     "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
-      "$value": "{font.weight.bold}"
+      "$value": 700,
+      "$type": "fontWeight"
     },
     "hover-lift-x": {
       "$value": "-2px",
@@ -314,10 +315,6 @@
     },
     "tracking": {
       "$value": "0.05em",
-      "$type": "dimension"
-    },
-    "border-width": {
-      "$value": "2px",
       "$type": "dimension"
     },
     "shadow": {

@@ -284,15 +284,8 @@
     "$type": "dimension",
     "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
-      "$value": "{font.weight.medium}"
-    },
-    "hover-lift-x": {
-      "$value": "0",
-      "$type": "dimension"
-    },
-    "hover-lift-y": {
-      "$value": "0",
-      "$type": "dimension"
+      "$value": 500,
+      "$type": "fontWeight"
     },
     "case": {
       "$value": "none",
@@ -302,16 +295,13 @@
       "$value": "0",
       "$type": "dimension"
     },
-    "border-width": {
-      "$value": "1px",
-      "$type": "dimension"
-    },
     "shadow": {
       "$value": "none",
       "$type": "shadow"
     },
     "shadow-hover": {
-      "$value": "{shadow.sm}"
+      "$value": "0 1px 2px 0 rgba(15, 23, 42, 0.06)",
+      "$type": "shadow"
     }
   },
   "border": {

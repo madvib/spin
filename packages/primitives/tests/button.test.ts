@@ -37,19 +37,17 @@ const EXAMPLES = new URL("../../theme/examples/", import.meta.url);
 const THEMES = ["default/light.json", "neobrut.json", "console.json"] as const;
 
 /**
- * The character tokens a button owns. Everything else it reads is a scale step
- * the CSS spends directly, so a button token appearing here means a theme owns
- * a decision rather than merely consuming one.
+ * The character tokens a button owns: the decisions a theme makes for its
+ * buttons, as opposed to the scale steps it spends. `hover-lift-x`/`y` are
+ * deliberately absent — the lift is opt-in motion a theme states in its
+ * document, not a token the button requires.
  */
 const CHARACTER = [
   "button.weight",
   "button.case",
   "button.tracking",
-  "button.border-width",
   "button.shadow",
   "button.shadow-hover",
-  "button.hover-lift-x",
-  "button.hover-lift-y",
 ] as const;
 
 /** The focus ring is shared, so every component states the same two steps. */
@@ -258,8 +256,8 @@ Deno.test("a theme that differentiates only by color is not a differentiated but
     [
       "button.case",
       "button.tracking",
-      "button.border-width",
-      "button.hover-lift-x",
+      "button.shadow",
+      "button.shadow-hover",
     ]
       .map((p) => resolved(parse(name), p))
       .join("|");
@@ -274,9 +272,9 @@ Deno.test("a theme that differentiates only by color is not a differentiated but
   );
 });
 
-Deno.test("a theme missing a character token is reported, not half-rendered", () => {
-  // Without a declared case or lift the declaration is dropped and the button
-  // silently falls back to the browser default.
+Deno.test("a theme missing a character token is not reported", () => {
+  // Character tokens are optional: the stylesheet's reads fall back to the
+  // cascade, so a theme that skips one is complete, not broken.
   const doc = JSON.parse(
     Deno.readTextFileSync(new URL("default/light.json", EXAMPLES)),
   ) as Record<string, Record<string, unknown>>;
@@ -287,9 +285,10 @@ Deno.test("a theme missing a character token is reported, not half-rendered", ()
   const report = validateTokens(parsed.tree, {
     required: [...allRequiredRoles()],
   });
-  assert(
-    report.issues.some((issue) => issue.path === "button.case"),
-    "a theme missing button.case should be reported",
+  assertEquals(
+    report.issues.filter((issue) => issue.path === "button.case"),
+    [],
+    "a theme missing button.case is still a complete theme",
   );
 });
 
@@ -313,23 +312,17 @@ Deno.test("a theme missing a spent scale step is reported, not silently unstyled
   );
 });
 
-Deno.test("every character token the button reads is a length or a keyword the engine accepts", () => {
+Deno.test("every character token the button reads is a length the engine accepts", () => {
   for (const name of THEMES) {
     const tree = parse(name);
-    // Sizes, lifts and the ring are lengths; the case is a keyword.
-    for (
-      const path of [
-        "button.border-width",
-        "button.hover-lift-x",
-        "button.hover-lift-y",
-        "focus.width",
-        "focus.offset",
-      ]
-    ) {
+    // Tracking and the ring are lengths; the weight is a number and the case
+    // a keyword, checked by their own tests above.
+    for (const path of ["button.tracking", "focus.width", "focus.offset"]) {
       const value = resolved(tree, path);
       assert(value !== undefined, `${name} has no ${path}`);
-      // A bare `0` is a valid CSS length and is what a theme that wants no lift
-      // states; anything else needs a unit or the declaration is dropped.
+      // A bare `0` is a valid CSS length and is what a theme that wants no
+      // tracking states; anything else needs a unit or the declaration is
+      // dropped.
       assert(
         value === "0" || /^-?[\d.]+(rem|px|em)$/.test(value),
         `${name}: ${path} is ${JSON.stringify(value)}, which is not a length`,

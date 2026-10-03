@@ -114,11 +114,7 @@ const factory = definePreset(
           `spinPreset: theme "${name}" is invalid: ${parsed.error}`,
         );
       }
-      assertComplete(
-        name,
-        parsed.tree,
-        requiredRolesFor(enabled ?? Object.keys(primitiveContracts)),
-      );
+      assertComplete(name, parsed.tree, requiredRolesFor());
       trees[name] = parsed.tree;
     }
     // The uno theme is the only name table. Values are references, so a rule

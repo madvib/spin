@@ -124,18 +124,13 @@ Deno.test("the scaffold assembles without any scale", async () => {
   );
 });
 
-Deno.test("enabling a subset narrows the required roles", () => {
-  const withoutButton = requiredRolesFor(["card"]);
-  const withButton = requiredRolesFor(["button"]);
-  assertEquals(withButton.length - withoutButton.length, 8);
+Deno.test("character tokens are optional, so requiring them narrows nothing", () => {
+  const roles = requiredRolesFor();
   assert(
-    withButton.includes("button.weight"),
-    "the button declares its own roles",
+    !roles.some((role) => role.startsWith("button.")),
+    "a component's character is a customisation, not a requirement",
   );
-  assert(
-    !withoutButton.includes("button.weight"),
-    "card does not require them",
-  );
+  assert(roles.includes("color.primary"), "the base roles are still required");
 });
 
 Deno.test("a theme's tokens and extensions come from one parse", () => {
