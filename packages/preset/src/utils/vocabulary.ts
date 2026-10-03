@@ -235,6 +235,10 @@ export const TEXT_DECORATION: Record<string, string> = {
   "no-underline": "none",
 };
 
+export const LIST_STYLE: Record<string, string> = {
+  "list-none": "none",
+};
+
 export const TEXT_ALIGN: Record<string, string> = {
   "text-left": "left",
   "text-center": "center",
@@ -344,12 +348,27 @@ export const SCROLL_BEHAVIOR: Record<string, string> = {
   "scroll-smooth": "smooth",
 };
 
+export const OVERSCROLL_BEHAVIOR: Record<string, string> = {
+  contain: "contain",
+};
+
+export const BOX_SIZING: Record<string, string> = {
+  border: "border-box",
+};
+
+export const ANIMATION: Record<string, string> = {
+  none: "none",
+};
+
 export const INTERACTIVITY_UTILITIES: string[] = [
   ...Object.keys(CURSOR),
   ...Object.keys(POINTER_EVENTS),
   ...Object.keys(USER_SELECT),
   ...Object.keys(RESIZE),
   ...Object.keys(SCROLL_BEHAVIOR),
+  ...Object.keys(OVERSCROLL_BEHAVIOR).map((name) => `overscroll-${name}`),
+  ...Object.keys(BOX_SIZING).map((name) => `box-${name}`),
+  ...Object.keys(ANIMATION).map((name) => `animation-${name}`),
 ];
 
 export const DIVIDE_WIDTHS: Record<string, string> = {

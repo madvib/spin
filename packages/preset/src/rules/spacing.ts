@@ -6,6 +6,10 @@ export function spacingRules(): Rule[] {
   return [
     spacingRule(/^p-(.+)$/, ["padding"], "p-$spacing"),
     spacingRule(/^m-(.+)$/, ["margin"], "m-$spacing"),
+    // `mx-auto` is the one mx that is not a scale step: `auto` is a keyword,
+    // not a token, so it is declared rather than resolved.
+    ...staticRules(["mx-auto"], MX_AUTO_DECLS),
+
     spacingRule(
       /^mx-(.+)$/,
       ["margin-left", "margin-right"],
@@ -20,6 +24,14 @@ export function spacingRules(): Rule[] {
     spacingRule(/^mr-(.+)$/, ["margin-right"], "m-$spacing"),
     spacingRule(/^mb-(.+)$/, ["margin-bottom"], "m-$spacing"),
     spacingRule(/^ml-(.+)$/, ["margin-left"], "m-$spacing"),
+
+    // Logical insets: `me`/`ms` are the inline-end and inline-start margins,
+    // `ps`/`pe` the inline-start and inline-end padding, so a component
+    // flips with the writing mode instead of against it.
+    spacingRule(/^me-(.+)$/, ["margin-inline-end"], "m-$spacing"),
+    spacingRule(/^ms-(.+)$/, ["margin-inline-start"], "m-$spacing"),
+    spacingRule(/^ps-(.+)$/, ["padding-inline-start"], "p-$spacing"),
+    spacingRule(/^pe-(.+)$/, ["padding-inline-end"], "p-$spacing"),
     spacingRule(
       /^px-(.+)$/,
       ["padding-left", "padding-right"],
@@ -51,4 +63,8 @@ const GUTTER_DECLS: Record<string, Record<string, string>> = {
   "gap-gutter": { gap: "var(--grid-gutter)" },
   "gap-x-gutter": { "column-gap": "var(--grid-gutter)" },
   "gap-y-gutter": { "row-gap": "var(--grid-gutter)" },
+};
+
+const MX_AUTO_DECLS: Record<string, Record<string, string>> = {
+  "mx-auto": { "margin-left": "auto", "margin-right": "auto" },
 };

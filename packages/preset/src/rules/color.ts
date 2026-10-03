@@ -14,7 +14,7 @@ import { COLOR_KEYWORDS } from "../utils/vocabulary.ts";
 function colorOf(
   ctx: ThemeContext | undefined,
   name: string,
-  property: "background-color" | "border-color" | "color",
+  property: "background-color" | "border-color" | "color" | "accent-color",
 ): Record<string, string> | undefined {
   const path = themeOf(ctx)?.colors[name];
   if (path) return { [property]: path };
@@ -43,11 +43,21 @@ export function colorRules(): Rule[] {
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        // `text-lg` is a size; only a colour name reaches this branch.
-        const resolved = colorOf(ctx, name, "color");
+        // `text-lg` is a size; only a colour name reaches this branch. A theme
+        // may name a colour after the utility itself — the default theme's
+        // `text-muted` is `color.text-muted` — so the prefixed name is tried
+        // alongside the bare one.
+        const resolved = colorOf(ctx, name, "color") ??
+          colorOf(ctx, `text-${name}`, "color");
         return resolved;
       },
       { autocomplete: "text-$colors" },
+    ],
+    [
+      /^accent-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) =>
+        colorOf(ctx, name, "accent-color"),
+      { autocomplete: "accent-$colors" },
     ],
   ];
 }

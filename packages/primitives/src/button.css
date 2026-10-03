@@ -84,12 +84,13 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    color var(--motion-duration-fast) var(--motion-easing-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
-    transform var(--motion-duration-fast) var(--motion-easing-standard);
+  /* Five properties, so five utilities. A `transition` shorthand would name
+     each property and repeat the timing by hand. */
+  --at-apply: transition-colors;
+  --at-apply: transition-shadow;
+  --at-apply: transition-transform;
+  --at-apply: duration-fast;
+  --at-apply: ease-standard;
 }
 
 /* ---------- states ---------- */
@@ -210,8 +211,13 @@
   --at-apply: text-text bg-transparent border-transparent;
 }
 
+/* Destructive. No border utility on purpose: the theme has no `danger` colour
+   to spend on one — only `on-danger` for the label and `semantic-error` for
+   the fill, and reusing the fill's token would name one token twice in a
+   single `--at-apply`. The border falls through to the base rule's
+   `--color-on-primary`, the same colour this variant renders today. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
-  --at-apply: text-on-danger bg-semantic-error border-on-danger;
+  --at-apply: text-on-danger bg-semantic-error;
 }
 
 /* The loudest variant: brand fill on the page's own text color, so it is the
@@ -222,13 +228,22 @@
 }
 
 /* Border only, on the brand color. For a page that already has a filled
-   primary and needs a second action without competing with it. */
+   primary and needs a second action without competing with it.
+
+   The border spends `accent`, not `primary`: the directive transformer
+   merges a whole `--at-apply` into one body and drops any declaration whose
+   text is already a substring of it — and `border-color:var(--color-primary)`
+   contains `color:var(--color-primary)`, so a primary border silently
+   deletes the primary label's colour. `accent` is the theme's brand colour
+   that is distinct from primary by design, which is what an outline is. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
-  --at-apply: text-primary bg-transparent border-primary;
+  --at-apply: text-primary bg-transparent border-accent;
 }
 
+/* Hover holds the outline's tokens, so the border stays `accent` for the
+   reason `.outline` gives — a primary border would delete the label's colour. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
-  --at-apply: text-primary bg-transparent border-primary;
+  --at-apply: text-primary bg-transparent border-accent;
 }
 
 /* A reset button is a secondary action by what the browser means by it, so it
@@ -237,8 +252,10 @@
   --at-apply: text-text bg-surface-raised border-border;
 }
 
+/* The reset button's outline spends `.outline`'s tokens — see it for why the
+   border must not repeat the label's. */
 [type="reset"].outline {
-  --at-apply: text-primary bg-transparent border-primary;
+  --at-apply: text-primary bg-transparent border-accent;
 }
 
 [type="reset"].outline:hover:not(:disabled) {

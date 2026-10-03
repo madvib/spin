@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>spin · button</title>
+<title>spin · primitives</title>
 <style>/* layer: theme */
 body {
   font-family: var(--font-family-body, var(--font-family-sans));
@@ -311,9 +311,7 @@ input, textarea, select, button {
   /* Gap and type are utilities. Padding stays logical: `py-2 px-4` write
      physical sides, which is wrong for a control whose text direction the
      author did not choose. */
-  gap:var(--spacing-2);
-  font-size:var(--font-size-md);
-  font-family:var(--font-family-sans);
+  gap:var(--spacing-2);font-family:var(--font-family-sans);font-size:var(--font-size-md);border-radius:var(--radius-md);
   padding-block: var(--spacing-2);
   padding-inline: var(--spacing-4);
 
@@ -340,12 +338,13 @@ input, textarea, select, button {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    color var(--motion-duration-fast) var(--motion-easing-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
-    transform var(--motion-duration-fast) var(--motion-easing-standard);
+  /* Five properties, so five utilities. A `transition` shorthand would name
+     each property and repeat the timing by hand. */
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-property:box-shadow;
+  transition-property:transform, translate, scale, rotate;
+  transition-duration:var(--motion-duration-fast);
+  transition-timing-function:var(--motion-easing-standard);
 }
 
 /* ---------- states ---------- */
@@ -459,21 +458,20 @@ input, textarea, select, button {
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost {
-  color:var(--color-text);
-  background-color:transparent;
-  border-color:transparent;
+  background-color:transparent;border-color:transparent;color:var(--color-text);
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost:hover:not(:disabled):not([aria-busy="true"]) {
-  color:var(--color-text);
-  background-color:transparent;
-  border-color:transparent;
+  background-color:transparent;border-color:transparent;color:var(--color-text);
 }
 
+/* Destructive. No border utility on purpose: the theme has no `danger` colour
+   to spend on one — only `on-danger` for the label and `semantic-error` for
+   the fill, and reusing the fill's token would name one token twice in a
+   single `--at-apply`. The border falls through to the base rule's
+   `--color-on-primary`, the same colour this variant renders today. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
-  color:var(--color-on-danger);
-  background-color:var(--color-semantic-error);
-  border-color:var(--color-on-danger);
+  background-color:var(--color-semantic-error);color:var(--color-on-danger);
 }
 
 /* The loudest variant: brand fill on the page's own text color, so it is the
@@ -484,17 +482,22 @@ input, textarea, select, button {
 }
 
 /* Border only, on the brand color. For a page that already has a filled
-   primary and needs a second action without competing with it. */
+   primary and needs a second action without competing with it.
+
+   The border spends `accent`, not `primary`: the directive transformer
+   merges a whole `--at-apply` into one body and drops any declaration whose
+   text is already a substring of it — and `border-color:var(--color-primary)`
+   contains `color:var(--color-primary)`, so a primary border silently
+   deletes the primary label's colour. `accent` is the theme's brand colour
+   that is distinct from primary by design, which is what an outline is. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
-  color:var(--color-primary);
-  background-color:transparent;
-  border-color:var(--color-primary);
+  background-color:transparent;border-color:var(--color-accent);color:var(--color-primary);
 }
 
+/* Hover holds the outline's tokens, so the border stays `accent` for the
+   reason `.outline` gives — a primary border would delete the label's colour. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
-  color:var(--color-primary);
-  background-color:transparent;
-  border-color:var(--color-primary);
+  background-color:transparent;border-color:var(--color-accent);color:var(--color-primary);
 }
 
 /* A reset button is a secondary action by what the browser means by it, so it
@@ -503,10 +506,10 @@ input, textarea, select, button {
   background-color:var(--color-surface-raised);border-color:var(--color-border);color:var(--color-text);
 }
 
+/* The reset button's outline spends `.outline`'s tokens — see it for why the
+   border must not repeat the label's. */
 [type="reset"].outline {
-  color:var(--color-primary);
-  background-color:transparent;
-  border-color:var(--color-primary);
+  background-color:transparent;border-color:var(--color-accent);color:var(--color-primary);
 }
 
 [type="reset"].outline:hover:not(:disabled) {
@@ -544,13 +547,11 @@ span[role="group"] > button {
 
 span[role="group"] > button:first-child {
   margin-inline-start: 0;
-  border-start-start-radius:var(--radius-md);
-  border-end-start-radius:var(--radius-md);
+  border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
 span[role="group"] > button:last-child {
-  border-start-end-radius:var(--radius-md);
-  border-end-end-radius:var(--radius-md);
+  border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* Hover on one member must not swallow its neighbours' borders. */
@@ -1091,45 +1092,45 @@ figure {
 }
 
 h1 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
+  font-weight:var(--font-weight-bold);font-size:var(--font-size-3xl);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 h2 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-2xl);
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
 h3 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-xl);
   line-height: 1.4;
 }
 
 h4 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-lg);
   line-height: 1.4;
 }
 
 h5,
 h6 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-md);
   line-height: 1.5;
 }
 
@@ -1153,11 +1154,11 @@ h1 {
 /* The page itself. A theme owns these four values and nothing else about the
    document, which is why they are the base of the whole layer. */
 body {
+  /* font-family: body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-body, var(--font-family-sans));
-  font-size: var(--font-size-md);
+  font-size:var(--font-size-md);
   line-height: 1.5;
-  color: var(--color-text);
-  background-color: var(--color-surface);
+  background-color:var(--color-surface);color:var(--color-text);
   margin: 0;
 }
 
@@ -1167,7 +1168,7 @@ body {
    brand color and a visible underline by default. Underlining prose links is
    the accessible default; the color alone is not enough to find one. */
 a {
-  color: var(--color-link);
+  color:var(--color-link);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -1179,24 +1180,23 @@ a:hover {
 a:focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
-  border-radius: var(--radius-sm);
+  border-radius:var(--radius-sm);
 }
 
 /* ---------- inline ---------- */
 
 strong,
 b {
-  font-weight: var(--font-weight-bold);
+  font-weight:var(--font-weight-bold);
 }
 
 small {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  font-size:var(--font-size-xs);color:var(--color-text-muted);
 }
 
 sub,
 sup {
-  font-size: var(--font-size-xs);
+  font-size:var(--font-size-xs);
 }
 
 abbr[title] {
@@ -1206,18 +1206,17 @@ abbr[title] {
 
 mark {
   padding: 0 calc(var(--spacing-1) / 2);
-  background-color: var(--color-accent);
-  color: var(--color-surface);
+  background-color:var(--color-accent);color:var(--color-surface);
 }
 
 ins {
   text-decoration: underline;
-  color: var(--color-semantic-success);
+  color:var(--color-semantic-success);
 }
 
 del {
   text-decoration: line-through;
-  color: var(--color-semantic-error);
+  color:var(--color-semantic-error);
 }
 
 /* ---------- lists ---------- */
@@ -1232,7 +1231,7 @@ li + li {
 }
 
 dt {
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);
 }
 
 dd {
@@ -1244,12 +1243,12 @@ dd {
 blockquote {
   padding: var(--spacing-2) var(--spacing-4);
   border-inline-start: var(--border-width) solid var(--color-border);
-  color: var(--color-text-muted);
+  color:var(--color-text-muted);
 }
 
 blockquote footer {
   margin-block-start: var(--spacing-1);
-  font-size: var(--font-size-sm);
+  font-size:var(--font-size-sm);
 }
 
 /* ---------- rule ---------- */
@@ -1267,23 +1266,20 @@ code,
 kbd,
 samp,
 pre {
+  /* font-family: mono → system fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo,
     Consolas, monospace);
-  font-size: var(--font-size-sm);
+  font-size:var(--font-size-sm);
 }
 
 code {
   padding: calc(var(--spacing-1) / 2) var(--spacing-1);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color:var(--color-surface);color:var(--color-text);border-radius:var(--radius-sm);
 }
 
 pre {
   padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color:var(--color-surface);color:var(--color-text);border-radius:var(--radius-md);
   line-height: 1.5;
   overflow-x: auto;
 }
@@ -1298,10 +1294,7 @@ kbd {
   padding: calc(var(--spacing-1) / 2) var(--spacing-1);
   border: var(--border-width) solid var(--color-border);
   border-block-end-width: calc(var(--border-width) * 2);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  font-size: var(--font-size-xs);
+  background-color:var(--color-surface-raised);color:var(--color-text);font-size:var(--font-size-xs);border-radius:var(--radius-sm);
   white-space: nowrap;
 }
 
@@ -1313,9 +1306,7 @@ figure {
 
 figcaption {
   margin-block-start: var(--spacing-1);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  text-align: center;
+  text-align:center;font-size:var(--font-size-sm);color:var(--color-text-muted);
 }
 
 /* ---------- media ---------- */
@@ -1331,7 +1322,7 @@ svg {
 
 img,
 video {
-  border-radius: var(--radius-md);
+  border-radius:var(--radius-md);
 }
 
 /* ---------- table ---------- */
@@ -1339,13 +1330,12 @@ video {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
+  font-size:var(--font-size-sm);
 }
 
 caption {
   padding-block-end: var(--spacing-1);
-  color: var(--color-text-muted);
-  text-align: left;
+  text-align:left;color:var(--color-text-muted);
 }
 
 th,
@@ -1356,19 +1346,19 @@ td {
 }
 
 th {
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);
 }
 
 tfoot td {
   border-block-start: var(--border-width) solid var(--color-border);
   border-block-end: 0;
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);
 }
 
 /* Alternating rows. A density choice, so it is the one class here: no element
    expresses "every other row". */
 table.striped tbody tr:nth-of-type(odd) {
-  background-color: var(--color-surface-raised);
+  background-color:var(--color-surface-raised);
 }
 
 /* ---------- embedded ---------- */
@@ -1379,7 +1369,7 @@ object {
   display: block;
   max-width: 100%;
   border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius:var(--radius-md);
 }
 
 
@@ -1438,10 +1428,7 @@ object {
 /* ---------- disclosure ---------- */
 
 details {
-  margin-block: var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
+  border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);margin-top:var(--spacing-2);margin-bottom:var(--spacing-2);border-radius:var(--radius-md);
 }
 
 details > summary {
@@ -1449,15 +1436,9 @@ details > summary {
      single gap however long the label is. */
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
   cursor: pointer;
-  border-radius: var(--radius-md);
   list-style: none;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-easing-standard);
+  transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);padding-left:var(--spacing-4);padding-right:var(--spacing-4);padding-top:var(--spacing-2);padding-bottom:var(--spacing-2);gap:var(--spacing-2);font-weight:var(--font-weight-semibold);color:var(--color-text);border-radius:var(--radius-md);
 }
 
 /* The disclosure triangle is the browser's, and it cannot be styled into a
@@ -1482,8 +1463,7 @@ details > summary::after {
   border-block-end: 2px solid currentColor;
   border-inline-end: 2px solid currentColor;
   transform: rotate(-45deg);
-  transition: transform var(--motion-duration-fast)
-    var(--motion-easing-standard);
+  transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);
 }
 
 details[open] > summary::after {
@@ -1491,7 +1471,7 @@ details[open] > summary::after {
 }
 
 details > summary:hover {
-  background-color: var(--color-surface);
+  background-color:var(--color-surface);
 }
 
 details > summary:focus-visible {
@@ -1500,7 +1480,7 @@ details > summary:focus-visible {
 }
 
 details > *:not(summary) {
-  padding: 0 var(--spacing-4) var(--spacing-2);
+  padding-left:var(--spacing-4);padding-right:var(--spacing-4);padding-bottom:var(--spacing-2);
 }
 
 /* ---------- dialog ---------- */
@@ -1510,13 +1490,8 @@ dialog {
      backdrop is the platform's, so there is no wrapper element to invent. */
   max-width: min(32rem, calc(100vw - 2 * var(--spacing-4)));
   max-height: calc(100vh - 2 * var(--spacing-4));
-  padding: var(--spacing-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
   overflow: auto;
+  border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);padding:var(--spacing-4);color:var(--color-text);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
 }
 
 /* The backdrop is a pseudo-element because the platform gives the dialog
@@ -1532,7 +1507,8 @@ dialog:not([open]) {
 
 /* The entrance is a scale-and-fade from just below full size, which reads as
    the dialog arriving rather than appearing. `allow-discrete` lets the
-   transition run on the way out too, which a dialog otherwise skips. */
+   transition run on the way out too, which a dialog otherwise skips. The
+   `dialog-in` and `backdrop-in` keyframes are owned by `@spin/animation`. */
 dialog[open] {
   animation: dialog-in var(--motion-duration-base)
     var(--motion-easing-decelerate);
@@ -1545,12 +1521,12 @@ dialog[open]::backdrop {
 
 @starting-style {
   dialog[open] {
-    opacity: 0;
     transform: translateY(0.5rem) scale(0.98);
+    opacity:0;
   }
 
   dialog[open]::backdrop {
-    opacity: 0;
+    opacity:0;
   }
 }
 
@@ -1571,8 +1547,7 @@ dialog h3 {
   details > summary::after,
   dialog[open],
   dialog[open]::backdrop {
-    animation: none;
-    transition: none;
+    transition-property:none;animation:none;
   }
 }
 
@@ -1656,9 +1631,7 @@ aside {
    changes `spacing`, not the container. */
 .container,
 .container-fluid {
-  margin-inline: auto;
-  padding-inline: var(--spacing-4);
-  width: 100%;
+  width:100%;margin-left:auto;margin-right:auto;padding-left:var(--spacing-4);padding-right:var(--spacing-4);
 }
 
 .container {
@@ -1671,7 +1644,7 @@ aside {
    decision rather than a margin on every section. */
 section + section,
 article + article {
-  margin-block-start: var(--spacing-4);
+  margin-top:var(--spacing-4);
 }
 
 /* ---------- overflow ---------- */
@@ -1757,10 +1730,8 @@ nav {
 nav ul {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-1) var(--spacing-4);
-  margin-block: 0;
-  padding-inline-start: 0;
   list-style: none;
+  margin-top:var(--spacing-0);margin-bottom:var(--spacing-0);padding-inline-start:var(--spacing-0);column-gap:var(--spacing-4);row-gap:var(--spacing-1);
 }
 
 /* A nav item is a link, so it inherits link treatment and gets the focus ring
@@ -1776,25 +1747,20 @@ nav a:hover {
 /* The current page. `aria-current` is the state, and it is the one a screen
    reader announces, so the styling keys off it too. */
 nav [aria-current]:not([aria-current="false"]) {
-  color: var(--color-text);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: underline;
+  text-decoration:underline;font-weight:var(--font-weight-semibold);color:var(--color-text);
 }
 
 /* A breadcrumb is a nav whose items are separated rather than listed. */
 nav[aria-label="breadcrumb"] ol {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-1) var(--spacing-2);
-  margin-block: 0;
-  padding-inline-start: 0;
   list-style: none;
+  margin-top:var(--spacing-0);margin-bottom:var(--spacing-0);padding-inline-start:var(--spacing-0);column-gap:var(--spacing-2);row-gap:var(--spacing-1);
 }
 
 nav[aria-label="breadcrumb"] li + li::before {
   content: "/";
-  margin-inline-end: var(--spacing-2);
-  color: var(--color-text-muted);
+  color:var(--color-text-muted);margin-inline-end:var(--spacing-2);
 }
 
 
@@ -1826,10 +1792,12 @@ nav[aria-label="breadcrumb"] li + li::before {
  * are a spent binding (a scale step the CSS consumes; no token is minted, because
  * the author has no choice to express) and character (a decision a theme owns,
  * minted as a token because the choice is real). This file holds only spent
- * bindings: `--border-width` for the seam between joined children, `--radius-full`
- * for the search pill, `--spacing-*` and `--radius-sm` for the tooltip. No token
- * is minted, because there is no decision here a theme would answer differently
- * — a group is a relationship between controls, not a surface with its own look.
+ * bindings: `--border-width` for the seam between joined children and the
+ * tooltip's edge, `--spacing-*` for the tooltip's padding and offsets. The
+ * radii are scale steps, so they are spent as `rounded-*` utilities rather
+ * than declarations. No token is minted, because there is no decision here a
+ * theme would answer differently — a group is a relationship between controls,
+ * not a surface with its own look.
  *
  * States + ARIA equivalents:
  *   :focus-visible on a child         lifts it above the seam so the focus ring is
@@ -1859,42 +1827,39 @@ nav[aria-label="breadcrumb"] li + li::before {
    read as seams rather than as four separate controls. */
 [role="group"],
 [role="search"] {
-  display: inline-flex;
-  position: relative;
-  width: 100%;
+  width:100%;display:inline-flex;position:relative;border-radius:var(--radius-md);
   vertical-align: middle;
-  border-radius: var(--radius-md);
 }
 
 [role="group"] > *,
 [role="search"] > * {
-  position: relative;
-  flex: 1 1 auto;
-  border-radius: 0;
+  flex:1 1 auto;position:relative;border-radius:var(--radius-none);
 }
 
 [role="group"] > :first-child,
 [role="search"] > :first-child {
-  border-start-start-radius: var(--radius-md);
-  border-end-start-radius: var(--radius-md);
+  border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
 [role="group"] > :last-child,
 [role="search"] > :last-child {
-  border-start-end-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
+  border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
 [role="group"] > * + *,
 [role="search"] > * + * {
+  /* The seam reads the `--border-width` a joined control collapses against
+     (button geometry), and no utility emits a logical margin or that token. */
   margin-inline-start: calc(-1 * var(--border-width));
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
 [role="group"] > *:focus-visible,
 [role="search"] > *:focus-visible {
+  /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
+     `toast`. */
   z-index: 1;
 }
 
@@ -1903,16 +1868,19 @@ nav[aria-label="breadcrumb"] li + li::before {
    provides it; the button keeps its own treatment, or a search pill would
    have no visible way to submit. */
 [role="search"] {
-  border-radius: var(--radius-full);
+  border-radius:var(--radius-full);
 }
 
 [role="search"] > :not(:is(button, [type="submit"], [role="button"])) {
-  border: 0;
-  background-color: transparent;
+  border-width:0;background-color:transparent;
 }
 
 [role="search"] > :not(:is(button, [type="submit"], [role="button"])):focus-visible {
+  /* The ring's width is the shared `--focus-width` token, which the outline
+     utilities do not carry. */
   outline: var(--focus-width) solid var(--color-focus-ring);
+  /* The offset is derived from that same width, so it cannot be a scale
+     step. */
   outline-offset: calc(-1 * var(--focus-width));
 }
 
@@ -2101,12 +2069,19 @@ progress:indeterminate::-moz-progress-bar {
 
 /* A busy region shows a spinner in place of whatever the content will be, and
    holds its width so a list does not reflow as each row resolves. The spin is
-   the same border trick the button uses, so it inherits currentColor. */
-[aria-busy="true"]:not(:is(input, select, textarea, html, form)) {
+   the same border trick the button uses, so it inherits currentColor.
+
+   What the exclusion list owns: button.css draws its own `::after` spinner
+   for everything it claims as a control — the `button` element and anything
+   with `role="button"]` — so a busy control must get one spinner, not one
+   from each layer. The three legacy input types need no entry of their own:
+   the bare `input` above already covers every type, and a replaced element
+   renders no pseudo-elements anyway. */
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])) {
   white-space: nowrap;
 }
 
-[aria-busy="true"]:not(:is(input, select, textarea, html, form))::before {
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"]))::before {
   content: "";
   display: inline-block;
   width: 1em;
@@ -2119,7 +2094,7 @@ progress:indeterminate::-moz-progress-bar {
   animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
 }
 
-[aria-busy="true"]:not(:is(input, select, textarea, html, form)):not(:empty)::before {
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])):not(:empty)::before {
   margin-inline-end: var(--spacing-2);
 }
 
@@ -2287,9 +2262,7 @@ progress:indeterminate::-moz-progress-bar {
   /* Gap and type are utilities. Padding stays logical: `py-2 px-4` write
      physical sides, which is wrong for a control whose text direction the
      author did not choose. */
-  gap:var(--spacing-2);
-  font-size:var(--font-size-md);
-  font-family:var(--font-family-sans);
+  gap:var(--spacing-2);font-family:var(--font-family-sans);font-size:var(--font-size-md);border-radius:var(--radius-md);
   padding-block: var(--spacing-2);
   padding-inline: var(--spacing-4);
 
@@ -2316,12 +2289,13 @@ progress:indeterminate::-moz-progress-bar {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 
-  transition:
-    background-color var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard),
-    color var(--motion-duration-fast) var(--motion-easing-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
-    transform var(--motion-duration-fast) var(--motion-easing-standard);
+  /* Five properties, so five utilities. A `transition` shorthand would name
+     each property and repeat the timing by hand. */
+  transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-property:box-shadow;
+  transition-property:transform, translate, scale, rotate;
+  transition-duration:var(--motion-duration-fast);
+  transition-timing-function:var(--motion-easing-standard);
 }
 
 /* ---------- states ---------- */
@@ -2435,21 +2409,20 @@ progress:indeterminate::-moz-progress-bar {
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost {
-  color:var(--color-text);
-  background-color:transparent;
-  border-color:transparent;
+  background-color:transparent;border-color:transparent;color:var(--color-text);
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost:hover:not(:disabled):not([aria-busy="true"]) {
-  color:var(--color-text);
-  background-color:transparent;
-  border-color:transparent;
+  background-color:transparent;border-color:transparent;color:var(--color-text);
 }
 
+/* Destructive. No border utility on purpose: the theme has no `danger` colour
+   to spend on one — only `on-danger` for the label and `semantic-error` for
+   the fill, and reusing the fill's token would name one token twice in a
+   single `--at-apply`. The border falls through to the base rule's
+   `--color-on-primary`, the same colour this variant renders today. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
-  color:var(--color-on-danger);
-  background-color:var(--color-semantic-error);
-  border-color:var(--color-on-danger);
+  background-color:var(--color-semantic-error);color:var(--color-on-danger);
 }
 
 /* The loudest variant: brand fill on the page's own text color, so it is the
@@ -2460,17 +2433,22 @@ progress:indeterminate::-moz-progress-bar {
 }
 
 /* Border only, on the brand color. For a page that already has a filled
-   primary and needs a second action without competing with it. */
+   primary and needs a second action without competing with it.
+
+   The border spends `accent`, not `primary`: the directive transformer
+   merges a whole `--at-apply` into one body and drops any declaration whose
+   text is already a substring of it — and `border-color:var(--color-primary)`
+   contains `color:var(--color-primary)`, so a primary border silently
+   deletes the primary label's colour. `accent` is the theme's brand colour
+   that is distinct from primary by design, which is what an outline is. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
-  color:var(--color-primary);
-  background-color:transparent;
-  border-color:var(--color-primary);
+  background-color:transparent;border-color:var(--color-accent);color:var(--color-primary);
 }
 
+/* Hover holds the outline's tokens, so the border stays `accent` for the
+   reason `.outline` gives — a primary border would delete the label's colour. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
-  color:var(--color-primary);
-  background-color:transparent;
-  border-color:var(--color-primary);
+  background-color:transparent;border-color:var(--color-accent);color:var(--color-primary);
 }
 
 /* A reset button is a secondary action by what the browser means by it, so it
@@ -2479,10 +2457,10 @@ progress:indeterminate::-moz-progress-bar {
   background-color:var(--color-surface-raised);border-color:var(--color-border);color:var(--color-text);
 }
 
+/* The reset button's outline spends `.outline`'s tokens — see it for why the
+   border must not repeat the label's. */
 [type="reset"].outline {
-  color:var(--color-primary);
-  background-color:transparent;
-  border-color:var(--color-primary);
+  background-color:transparent;border-color:var(--color-accent);color:var(--color-primary);
 }
 
 [type="reset"].outline:hover:not(:disabled) {
@@ -2520,13 +2498,11 @@ span[role="group"] > button {
 
 span[role="group"] > button:first-child {
   margin-inline-start: 0;
-  border-start-start-radius:var(--radius-md);
-  border-end-start-radius:var(--radius-md);
+  border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
 span[role="group"] > button:last-child {
-  border-start-end-radius:var(--radius-md);
-  border-end-end-radius:var(--radius-md);
+  border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* Hover on one member must not swallow its neighbours' borders. */
@@ -3067,45 +3043,45 @@ figure {
 }
 
 h1 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
+  font-weight:var(--font-weight-bold);font-size:var(--font-size-3xl);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 h2 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-2xl);
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
 h3 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-xl);
   line-height: 1.4;
 }
 
 h4 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-lg);
   line-height: 1.4;
 }
 
 h5,
 h6 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-md);
   line-height: 1.5;
 }
 
@@ -3129,11 +3105,11 @@ h1 {
 /* The page itself. A theme owns these four values and nothing else about the
    document, which is why they are the base of the whole layer. */
 body {
+  /* font-family: body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-body, var(--font-family-sans));
-  font-size: var(--font-size-md);
+  font-size:var(--font-size-md);
   line-height: 1.5;
-  color: var(--color-text);
-  background-color: var(--color-surface);
+  background-color:var(--color-surface);color:var(--color-text);
   margin: 0;
 }
 
@@ -3143,7 +3119,7 @@ body {
    brand color and a visible underline by default. Underlining prose links is
    the accessible default; the color alone is not enough to find one. */
 a {
-  color: var(--color-link);
+  color:var(--color-link);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -3155,24 +3131,23 @@ a:hover {
 a:focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
-  border-radius: var(--radius-sm);
+  border-radius:var(--radius-sm);
 }
 
 /* ---------- inline ---------- */
 
 strong,
 b {
-  font-weight: var(--font-weight-bold);
+  font-weight:var(--font-weight-bold);
 }
 
 small {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  font-size:var(--font-size-xs);color:var(--color-text-muted);
 }
 
 sub,
 sup {
-  font-size: var(--font-size-xs);
+  font-size:var(--font-size-xs);
 }
 
 abbr[title] {
@@ -3182,18 +3157,17 @@ abbr[title] {
 
 mark {
   padding: 0 calc(var(--spacing-1) / 2);
-  background-color: var(--color-accent);
-  color: var(--color-surface);
+  background-color:var(--color-accent);color:var(--color-surface);
 }
 
 ins {
   text-decoration: underline;
-  color: var(--color-semantic-success);
+  color:var(--color-semantic-success);
 }
 
 del {
   text-decoration: line-through;
-  color: var(--color-semantic-error);
+  color:var(--color-semantic-error);
 }
 
 /* ---------- lists ---------- */
@@ -3208,7 +3182,7 @@ li + li {
 }
 
 dt {
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);
 }
 
 dd {
@@ -3220,12 +3194,12 @@ dd {
 blockquote {
   padding: var(--spacing-2) var(--spacing-4);
   border-inline-start: var(--border-width) solid var(--color-border);
-  color: var(--color-text-muted);
+  color:var(--color-text-muted);
 }
 
 blockquote footer {
   margin-block-start: var(--spacing-1);
-  font-size: var(--font-size-sm);
+  font-size:var(--font-size-sm);
 }
 
 /* ---------- rule ---------- */
@@ -3243,23 +3217,20 @@ code,
 kbd,
 samp,
 pre {
+  /* font-family: mono → system fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo,
     Consolas, monospace);
-  font-size: var(--font-size-sm);
+  font-size:var(--font-size-sm);
 }
 
 code {
   padding: calc(var(--spacing-1) / 2) var(--spacing-1);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color:var(--color-surface);color:var(--color-text);border-radius:var(--radius-sm);
 }
 
 pre {
   padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color:var(--color-surface);color:var(--color-text);border-radius:var(--radius-md);
   line-height: 1.5;
   overflow-x: auto;
 }
@@ -3274,10 +3245,7 @@ kbd {
   padding: calc(var(--spacing-1) / 2) var(--spacing-1);
   border: var(--border-width) solid var(--color-border);
   border-block-end-width: calc(var(--border-width) * 2);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  font-size: var(--font-size-xs);
+  background-color:var(--color-surface-raised);color:var(--color-text);font-size:var(--font-size-xs);border-radius:var(--radius-sm);
   white-space: nowrap;
 }
 
@@ -3289,9 +3257,7 @@ figure {
 
 figcaption {
   margin-block-start: var(--spacing-1);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  text-align: center;
+  text-align:center;font-size:var(--font-size-sm);color:var(--color-text-muted);
 }
 
 /* ---------- media ---------- */
@@ -3307,7 +3273,7 @@ svg {
 
 img,
 video {
-  border-radius: var(--radius-md);
+  border-radius:var(--radius-md);
 }
 
 /* ---------- table ---------- */
@@ -3315,13 +3281,12 @@ video {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
+  font-size:var(--font-size-sm);
 }
 
 caption {
   padding-block-end: var(--spacing-1);
-  color: var(--color-text-muted);
-  text-align: left;
+  text-align:left;color:var(--color-text-muted);
 }
 
 th,
@@ -3332,19 +3297,19 @@ td {
 }
 
 th {
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);
 }
 
 tfoot td {
   border-block-start: var(--border-width) solid var(--color-border);
   border-block-end: 0;
-  font-weight: var(--font-weight-semibold);
+  font-weight:var(--font-weight-semibold);
 }
 
 /* Alternating rows. A density choice, so it is the one class here: no element
    expresses "every other row". */
 table.striped tbody tr:nth-of-type(odd) {
-  background-color: var(--color-surface-raised);
+  background-color:var(--color-surface-raised);
 }
 
 /* ---------- embedded ---------- */
@@ -3355,7 +3320,7 @@ object {
   display: block;
   max-width: 100%;
   border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius:var(--radius-md);
 }
 
 
@@ -3414,10 +3379,7 @@ object {
 /* ---------- disclosure ---------- */
 
 details {
-  margin-block: var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
+  border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);margin-top:var(--spacing-2);margin-bottom:var(--spacing-2);border-radius:var(--radius-md);
 }
 
 details > summary {
@@ -3425,15 +3387,9 @@ details > summary {
      single gap however long the label is. */
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
   cursor: pointer;
-  border-radius: var(--radius-md);
   list-style: none;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-easing-standard);
+  transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);padding-left:var(--spacing-4);padding-right:var(--spacing-4);padding-top:var(--spacing-2);padding-bottom:var(--spacing-2);gap:var(--spacing-2);font-weight:var(--font-weight-semibold);color:var(--color-text);border-radius:var(--radius-md);
 }
 
 /* The disclosure triangle is the browser's, and it cannot be styled into a
@@ -3458,8 +3414,7 @@ details > summary::after {
   border-block-end: 2px solid currentColor;
   border-inline-end: 2px solid currentColor;
   transform: rotate(-45deg);
-  transition: transform var(--motion-duration-fast)
-    var(--motion-easing-standard);
+  transition-duration:var(--motion-duration-fast);transition-timing-function:var(--motion-easing-standard);
 }
 
 details[open] > summary::after {
@@ -3467,7 +3422,7 @@ details[open] > summary::after {
 }
 
 details > summary:hover {
-  background-color: var(--color-surface);
+  background-color:var(--color-surface);
 }
 
 details > summary:focus-visible {
@@ -3476,7 +3431,7 @@ details > summary:focus-visible {
 }
 
 details > *:not(summary) {
-  padding: 0 var(--spacing-4) var(--spacing-2);
+  padding-left:var(--spacing-4);padding-right:var(--spacing-4);padding-bottom:var(--spacing-2);
 }
 
 /* ---------- dialog ---------- */
@@ -3486,13 +3441,8 @@ dialog {
      backdrop is the platform's, so there is no wrapper element to invent. */
   max-width: min(32rem, calc(100vw - 2 * var(--spacing-4)));
   max-height: calc(100vh - 2 * var(--spacing-4));
-  padding: var(--spacing-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
   overflow: auto;
+  border-width:1px;background-color:var(--color-surface-raised);border-color:var(--color-border);padding:var(--spacing-4);color:var(--color-text);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
 }
 
 /* The backdrop is a pseudo-element because the platform gives the dialog
@@ -3508,7 +3458,8 @@ dialog:not([open]) {
 
 /* The entrance is a scale-and-fade from just below full size, which reads as
    the dialog arriving rather than appearing. `allow-discrete` lets the
-   transition run on the way out too, which a dialog otherwise skips. */
+   transition run on the way out too, which a dialog otherwise skips. The
+   `dialog-in` and `backdrop-in` keyframes are owned by `@spin/animation`. */
 dialog[open] {
   animation: dialog-in var(--motion-duration-base)
     var(--motion-easing-decelerate);
@@ -3521,12 +3472,12 @@ dialog[open]::backdrop {
 
 @starting-style {
   dialog[open] {
-    opacity: 0;
     transform: translateY(0.5rem) scale(0.98);
+    opacity:0;
   }
 
   dialog[open]::backdrop {
-    opacity: 0;
+    opacity:0;
   }
 }
 
@@ -3547,8 +3498,7 @@ dialog h3 {
   details > summary::after,
   dialog[open],
   dialog[open]::backdrop {
-    animation: none;
-    transition: none;
+    transition-property:none;animation:none;
   }
 }
 
@@ -3632,9 +3582,7 @@ aside {
    changes `spacing`, not the container. */
 .container,
 .container-fluid {
-  margin-inline: auto;
-  padding-inline: var(--spacing-4);
-  width: 100%;
+  width:100%;margin-left:auto;margin-right:auto;padding-left:var(--spacing-4);padding-right:var(--spacing-4);
 }
 
 .container {
@@ -3647,7 +3595,7 @@ aside {
    decision rather than a margin on every section. */
 section + section,
 article + article {
-  margin-block-start: var(--spacing-4);
+  margin-top:var(--spacing-4);
 }
 
 /* ---------- overflow ---------- */
@@ -3733,10 +3681,8 @@ nav {
 nav ul {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-1) var(--spacing-4);
-  margin-block: 0;
-  padding-inline-start: 0;
   list-style: none;
+  margin-top:var(--spacing-0);margin-bottom:var(--spacing-0);padding-inline-start:var(--spacing-0);column-gap:var(--spacing-4);row-gap:var(--spacing-1);
 }
 
 /* A nav item is a link, so it inherits link treatment and gets the focus ring
@@ -3752,25 +3698,20 @@ nav a:hover {
 /* The current page. `aria-current` is the state, and it is the one a screen
    reader announces, so the styling keys off it too. */
 nav [aria-current]:not([aria-current="false"]) {
-  color: var(--color-text);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: underline;
+  text-decoration:underline;font-weight:var(--font-weight-semibold);color:var(--color-text);
 }
 
 /* A breadcrumb is a nav whose items are separated rather than listed. */
 nav[aria-label="breadcrumb"] ol {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-1) var(--spacing-2);
-  margin-block: 0;
-  padding-inline-start: 0;
   list-style: none;
+  margin-top:var(--spacing-0);margin-bottom:var(--spacing-0);padding-inline-start:var(--spacing-0);column-gap:var(--spacing-2);row-gap:var(--spacing-1);
 }
 
 nav[aria-label="breadcrumb"] li + li::before {
   content: "/";
-  margin-inline-end: var(--spacing-2);
-  color: var(--color-text-muted);
+  color:var(--color-text-muted);margin-inline-end:var(--spacing-2);
 }
 
 
@@ -3802,10 +3743,12 @@ nav[aria-label="breadcrumb"] li + li::before {
  * are a spent binding (a scale step the CSS consumes; no token is minted, because
  * the author has no choice to express) and character (a decision a theme owns,
  * minted as a token because the choice is real). This file holds only spent
- * bindings: `--border-width` for the seam between joined children, `--radius-full`
- * for the search pill, `--spacing-*` and `--radius-sm` for the tooltip. No token
- * is minted, because there is no decision here a theme would answer differently
- * — a group is a relationship between controls, not a surface with its own look.
+ * bindings: `--border-width` for the seam between joined children and the
+ * tooltip's edge, `--spacing-*` for the tooltip's padding and offsets. The
+ * radii are scale steps, so they are spent as `rounded-*` utilities rather
+ * than declarations. No token is minted, because there is no decision here a
+ * theme would answer differently — a group is a relationship between controls,
+ * not a surface with its own look.
  *
  * States + ARIA equivalents:
  *   :focus-visible on a child         lifts it above the seam so the focus ring is
@@ -3835,42 +3778,39 @@ nav[aria-label="breadcrumb"] li + li::before {
    read as seams rather than as four separate controls. */
 [role="group"],
 [role="search"] {
-  display: inline-flex;
-  position: relative;
-  width: 100%;
+  width:100%;display:inline-flex;position:relative;border-radius:var(--radius-md);
   vertical-align: middle;
-  border-radius: var(--radius-md);
 }
 
 [role="group"] > *,
 [role="search"] > * {
-  position: relative;
-  flex: 1 1 auto;
-  border-radius: 0;
+  flex:1 1 auto;position:relative;border-radius:var(--radius-none);
 }
 
 [role="group"] > :first-child,
 [role="search"] > :first-child {
-  border-start-start-radius: var(--radius-md);
-  border-end-start-radius: var(--radius-md);
+  border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
 [role="group"] > :last-child,
 [role="search"] > :last-child {
-  border-start-end-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
+  border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
 [role="group"] > * + *,
 [role="search"] > * + * {
+  /* The seam reads the `--border-width` a joined control collapses against
+     (button geometry), and no utility emits a logical margin or that token. */
   margin-inline-start: calc(-1 * var(--border-width));
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
 [role="group"] > *:focus-visible,
 [role="search"] > *:focus-visible {
+  /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
+     `toast`. */
   z-index: 1;
 }
 
@@ -3879,16 +3819,19 @@ nav[aria-label="breadcrumb"] li + li::before {
    provides it; the button keeps its own treatment, or a search pill would
    have no visible way to submit. */
 [role="search"] {
-  border-radius: var(--radius-full);
+  border-radius:var(--radius-full);
 }
 
 [role="search"] > :not(:is(button, [type="submit"], [role="button"])) {
-  border: 0;
-  background-color: transparent;
+  border-width:0;background-color:transparent;
 }
 
 [role="search"] > :not(:is(button, [type="submit"], [role="button"])):focus-visible {
+  /* The ring's width is the shared `--focus-width` token, which the outline
+     utilities do not carry. */
   outline: var(--focus-width) solid var(--color-focus-ring);
+  /* The offset is derived from that same width, so it cannot be a scale
+     step. */
   outline-offset: calc(-1 * var(--focus-width));
 }
 
@@ -4077,12 +4020,19 @@ progress:indeterminate::-moz-progress-bar {
 
 /* A busy region shows a spinner in place of whatever the content will be, and
    holds its width so a list does not reflow as each row resolves. The spin is
-   the same border trick the button uses, so it inherits currentColor. */
-[aria-busy="true"]:not(:is(input, select, textarea, html, form)) {
+   the same border trick the button uses, so it inherits currentColor.
+
+   What the exclusion list owns: button.css draws its own `::after` spinner
+   for everything it claims as a control — the `button` element and anything
+   with `role="button"]` — so a busy control must get one spinner, not one
+   from each layer. The three legacy input types need no entry of their own:
+   the bare `input` above already covers every type, and a replaced element
+   renders no pseudo-elements anyway. */
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])) {
   white-space: nowrap;
 }
 
-[aria-busy="true"]:not(:is(input, select, textarea, html, form))::before {
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"]))::before {
   content: "";
   display: inline-block;
   width: 1em;
@@ -4095,7 +4045,7 @@ progress:indeterminate::-moz-progress-bar {
   animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
 }
 
-[aria-busy="true"]:not(:is(input, select, textarea, html, form)):not(:empty)::before {
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])):not(:empty)::before {
   margin-inline-end: var(--spacing-2);
 }
 
@@ -4213,6 +4163,8 @@ progress:indeterminate::-moz-progress-bar {
         font-family: var(--font-family-mono); font-size: .8125rem;
         border: 1px solid var(--color-border); }
   .states { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+  .fields { display: flex; flex-direction: column; gap: .75rem; max-width: 24rem; }
+  .box { border: 1px dashed var(--color-border); border-radius: var(--radius-md); padding: var(--spacing-2); }
 </style>
 </head>
 <body>
@@ -4263,6 +4215,199 @@ progress:indeterminate::-moz-progress-bar {
     <h2>Utilities still win</h2>
     <div class="states">
       <button class="btn secondary" style="background:var(--color-secondary)">bg-secondary</button>
+    </div>
+  </section>
+  <section>
+    <h2>Form</h2>
+    <div class="fields">
+      <label>Name <input></label>
+      <label>Email <input type="email"></label>
+      <label>Password <input type="password"></label>
+      <label>Search <input type="search"></label>
+      <label>Phone <input type="tel"></label>
+      <label>Website <input type="url"></label>
+      <label>Quantity <input type="number"></label>
+      <label>Volume <input type="range"></label>
+      <label>Color <input type="color"></label>
+      <label>Date <input type="date"></label>
+      <label>File <input type="file"></label>
+      <label>Disabled <input disabled></label>
+      <label>Invalid <input aria-invalid="true"> <small>Fix this field</small></label>
+      <label>Valid <input aria-invalid="false"> <small>Looks good</small></label>
+      <fieldset>
+        <legend>Pick one</legend>
+        <label><input type="radio" name="pick"> First</label>
+        <label><input type="radio" name="pick"> Second</label>
+      </fieldset>
+      <fieldset disabled>
+        <legend>Disabled group</legend>
+        <label><input type="checkbox"> Cannot touch this</label>
+      </fieldset>
+      <label><input type="checkbox" role="switch"> Notifications</label>
+      <label>Choice <select><option>One</option><option>Two</option><option>Three</option></select></label>
+      <label>Notes <textarea rows="3"></textarea></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Content</h2>
+
+    <h3>Prose</h3>
+    <p>A paragraph with a <a href="#">link</a>, <strong>strong</strong>, <code>code</code>,
+      <kbd>Ctrl</kbd> + <kbd>S</kbd>, <mark>mark</mark>,
+      <abbr title="asynchronous JavaScript and XML">AJAX</abbr>, <small>small</small>,
+      H<sub>2</sub>O, x<sup>2</sup>, <ins>inserted</ins> and <del>deleted</del> text.</p>
+
+    <h3>Lists</h3>
+    <ul>
+      <li>Unordered item</li>
+      <li>Another item</li>
+    </ul>
+    <ol>
+      <li>Ordered item</li>
+      <li>Another item</li>
+    </ol>
+    <dl>
+      <dt>Term</dt>
+      <dd>Definition</dd>
+    </dl>
+
+    <h3>Quote</h3>
+    <blockquote>
+      <p>A quotation with an attribution.</p>
+      <footer>— The author</footer>
+    </blockquote>
+
+    <h3>Code</h3>
+    <pre><code>const theme = "light";
+document.documentElement.dataset.theme = theme;</code></pre>
+
+    <h3>Table</h3>
+    <table>
+      <caption>Plain table</caption>
+      <tr><th>Name</th><th>Value</th></tr>
+      <tr><td>Alpha</td><td>1</td></tr>
+      <tr><td>Beta</td><td>2</td></tr>
+    </table>
+    <table class="striped">
+      <caption>Striped table</caption>
+      <tbody>
+        <tr><th>Name</th><th>Value</th></tr>
+        <tr><td>Alpha</td><td>1</td></tr>
+        <tr><td>Beta</td><td>2</td></tr>
+        <tr><td>Gamma</td><td>3</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td>Total</td><td>6</td></tr>
+      </tfoot>
+    </table>
+
+    <h3>Figure</h3>
+    <figure>
+      <svg width="120" height="80" viewBox="0 0 120 80" role="img" aria-label="Demo image">
+        <rect width="120" height="80" rx="8" fill="var(--color-surface-raised)" stroke="var(--color-border)"></rect>
+        <circle cx="60" cy="40" r="16" fill="var(--color-primary)"></circle>
+      </svg>
+      <figcaption>A figure with a caption.</figcaption>
+    </figure>
+
+    <h3>Rule</h3>
+    <hr>
+  </section>
+
+  <section>
+    <h2>Disclosure</h2>
+    <details>
+      <summary>Closed by default</summary>
+      <p>The body stays hidden until the summary is activated.</p>
+    </details>
+    <details open>
+      <summary>Open</summary>
+      <p>The body is visible because the widget carries <code>open</code>.</p>
+    </details>
+    <dialog open>
+      <h3>Dialog</h3>
+      <p>A modal, rendered visible with <code>open</code> and a backdrop.</p>
+    </dialog>
+  </section>
+
+  <section>
+    <h2>Layout</h2>
+    <header class="box"><p>header — introductory content</p></header>
+    <main class="box">
+      <p>main — the main content region</p>
+      <article class="box"><p>article — a self-contained composition</p></article>
+    </main>
+    <footer class="box"><p>footer — closing content</p></footer>
+    <div class="box">
+      <div class="container" style="background:var(--color-surface-raised)">
+        <p>.container caps the column at 80ch and pads the gutters.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Nav</h2>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#" aria-current="page">Current</a></li>
+        <li><a href="#">Sibling</a></li>
+        <li><a href="#">Another</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="breadcrumb" style="margin-top:.75rem">
+      <ol>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Section</a></li>
+        <li>Current</li>
+      </ol>
+    </nav>
+  </section>
+
+  <section>
+    <h2>Group</h2>
+    <div class="states">
+      <div role="group" style="display:flex">
+        <button class="btn secondary" >left</button>
+        <button class="btn secondary" >middle</button>
+        <button class="btn secondary" >right</button>
+      </div>
+      <form role="search" style="display:flex">
+        <input type="search" placeholder="Search…">
+        <button class="btn secondary">Go</button>
+      </form>
+      <button data-tooltip="Reveals on hover or focus" data-placement="top">tooltip top</button>
+      <button data-tooltip="Placement is the author's call" data-placement="bottom">tooltip bottom</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Feedback</h2>
+    <div class="states">
+      <div aria-busy="true">Loading region</div>
+      <button class="btn" aria-busy="true">busy button</button>
+    </div>
+    <div class="states" style="margin-top:.75rem">
+      <progress max="100" value="60"></progress>
+      <progress></progress>
+    </div>
+    <p style="margin-top:.75rem">Save <span class="visually-hidden">— changes cannot be undone</span></p>
+  </section>
+
+  <section>
+    <h2>Card</h2>
+    <div class="card">
+      <h3>Card title</h3>
+      <p>A raised, bordered surface with padding.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Animation</h2>
+    <div class="states">
+      <span class="animate-spin" style="display:inline-block;width:1.25rem;height:1.25rem;border:2px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%"></span>
+      <span class="animate-pulse" style="display:inline-block;width:1.25rem;height:1.25rem;background:var(--color-primary);border-radius:50%"></span>
+      <span class="animate-fade-in" style="display:inline-block;padding:.375rem .75rem;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:var(--radius-md)">fade-in</span>
     </div>
   </section>
 

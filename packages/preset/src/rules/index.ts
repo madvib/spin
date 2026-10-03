@@ -1,6 +1,7 @@
 import type { Rule } from "@unocss/core";
 import { borderRules } from "./border.ts";
 import { colorRules } from "./color.ts";
+import { componentRules } from "./component.ts";
 import { displayRules } from "./display.ts";
 import { divideRules } from "./divide.ts";
 import { gridRules } from "./grid.ts";
@@ -17,7 +18,7 @@ import { textRules } from "./text.ts";
 import { transitionRules } from "./transitions.ts";
 import { typographyRules } from "./typography.ts";
 
-export function spinRules(): Rule[] {
+export function spinRules(roots: readonly string[]): Rule[] {
   return [
     ...layoutRules(),
     ...displayRules(),
@@ -36,5 +37,6 @@ export function spinRules(): Rule[] {
     ...typographyRules(),
     ...radiusRules(),
     ...shadowRules(),
+    ...componentRules(roots),
   ];
 }

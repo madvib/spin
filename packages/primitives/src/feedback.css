@@ -114,12 +114,19 @@ progress:indeterminate::-moz-progress-bar {
 
 /* A busy region shows a spinner in place of whatever the content will be, and
    holds its width so a list does not reflow as each row resolves. The spin is
-   the same border trick the button uses, so it inherits currentColor. */
-[aria-busy="true"]:not(:is(input, select, textarea, html, form)) {
+   the same border trick the button uses, so it inherits currentColor.
+
+   What the exclusion list owns: button.css draws its own `::after` spinner
+   for everything it claims as a control — the `button` element and anything
+   with `role="button"]` — so a busy control must get one spinner, not one
+   from each layer. The three legacy input types need no entry of their own:
+   the bare `input` above already covers every type, and a replaced element
+   renders no pseudo-elements anyway. */
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])) {
   white-space: nowrap;
 }
 
-[aria-busy="true"]:not(:is(input, select, textarea, html, form))::before {
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"]))::before {
   content: "";
   display: inline-block;
   width: 1em;
@@ -132,7 +139,7 @@ progress:indeterminate::-moz-progress-bar {
   animation: spin calc(var(--motion-duration-fast) * 4) linear infinite;
 }
 
-[aria-busy="true"]:not(:is(input, select, textarea, html, form)):not(:empty)::before {
+[aria-busy="true"]:not(:is(input, select, textarea, html, form, button, [role="button"])):not(:empty)::before {
   margin-inline-end: var(--spacing-2);
 }
 

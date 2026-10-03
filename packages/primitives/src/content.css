@@ -84,45 +84,45 @@ figure {
 }
 
 h1 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
+  --at-apply: text-3xl font-bold;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 h2 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
+  --at-apply: text-2xl font-semibold;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
 h3 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  --at-apply: text-xl font-semibold;
   line-height: 1.4;
 }
 
 h4 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  --at-apply: text-lg font-semibold;
   line-height: 1.4;
 }
 
 h5,
 h6 {
+  /* font-family: heading → body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-heading, var(--font-family-body,
     var(--font-family-sans)));
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  --at-apply: text-md font-semibold;
   line-height: 1.5;
 }
 
@@ -146,11 +146,11 @@ h1 {
 /* The page itself. A theme owns these four values and nothing else about the
    document, which is why they are the base of the whole layer. */
 body {
+  /* font-family: body → sans fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-body, var(--font-family-sans));
-  font-size: var(--font-size-md);
+  --at-apply: text-md;
   line-height: 1.5;
-  color: var(--color-text);
-  background-color: var(--color-surface);
+  --at-apply: text-text bg-surface;
   margin: 0;
 }
 
@@ -160,7 +160,7 @@ body {
    brand color and a visible underline by default. Underlining prose links is
    the accessible default; the color alone is not enough to find one. */
 a {
-  color: var(--color-link);
+  --at-apply: text-link;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -172,24 +172,23 @@ a:hover {
 a:focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
-  border-radius: var(--radius-sm);
+  --at-apply: rounded-sm;
 }
 
 /* ---------- inline ---------- */
 
 strong,
 b {
-  font-weight: var(--font-weight-bold);
+  --at-apply: font-bold;
 }
 
 small {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  --at-apply: text-xs text-text-muted;
 }
 
 sub,
 sup {
-  font-size: var(--font-size-xs);
+  --at-apply: text-xs;
 }
 
 abbr[title] {
@@ -199,18 +198,17 @@ abbr[title] {
 
 mark {
   padding: 0 calc(var(--spacing-1) / 2);
-  background-color: var(--color-accent);
-  color: var(--color-surface);
+  --at-apply: bg-accent text-surface;
 }
 
 ins {
   text-decoration: underline;
-  color: var(--color-semantic-success);
+  --at-apply: text-semantic-success;
 }
 
 del {
   text-decoration: line-through;
-  color: var(--color-semantic-error);
+  --at-apply: text-semantic-error;
 }
 
 /* ---------- lists ---------- */
@@ -225,7 +223,7 @@ li + li {
 }
 
 dt {
-  font-weight: var(--font-weight-semibold);
+  --at-apply: font-semibold;
 }
 
 dd {
@@ -237,12 +235,12 @@ dd {
 blockquote {
   padding: var(--spacing-2) var(--spacing-4);
   border-inline-start: var(--border-width) solid var(--color-border);
-  color: var(--color-text-muted);
+  --at-apply: text-text-muted;
 }
 
 blockquote footer {
   margin-block-start: var(--spacing-1);
-  font-size: var(--font-size-sm);
+  --at-apply: text-sm;
 }
 
 /* ---------- rule ---------- */
@@ -260,23 +258,20 @@ code,
 kbd,
 samp,
 pre {
+  /* font-family: mono → system fallback chain is composite, not a single scale step. */
   font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo,
     Consolas, monospace);
-  font-size: var(--font-size-sm);
+  --at-apply: text-sm;
 }
 
 code {
   padding: calc(var(--spacing-1) / 2) var(--spacing-1);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  --at-apply: rounded-sm bg-surface text-text;
 }
 
 pre {
   padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  --at-apply: rounded-md bg-surface text-text;
   line-height: 1.5;
   overflow-x: auto;
 }
@@ -291,10 +286,7 @@ kbd {
   padding: calc(var(--spacing-1) / 2) var(--spacing-1);
   border: var(--border-width) solid var(--color-border);
   border-block-end-width: calc(var(--border-width) * 2);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  font-size: var(--font-size-xs);
+  --at-apply: rounded-sm bg-surface-raised text-text text-xs;
   white-space: nowrap;
 }
 
@@ -306,9 +298,7 @@ figure {
 
 figcaption {
   margin-block-start: var(--spacing-1);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  text-align: center;
+  --at-apply: text-sm text-text-muted text-center;
 }
 
 /* ---------- media ---------- */
@@ -324,7 +314,7 @@ svg {
 
 img,
 video {
-  border-radius: var(--radius-md);
+  --at-apply: rounded-md;
 }
 
 /* ---------- table ---------- */
@@ -332,13 +322,12 @@ video {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
+  --at-apply: text-sm;
 }
 
 caption {
   padding-block-end: var(--spacing-1);
-  color: var(--color-text-muted);
-  text-align: left;
+  --at-apply: text-text-muted text-left;
 }
 
 th,
@@ -349,19 +338,19 @@ td {
 }
 
 th {
-  font-weight: var(--font-weight-semibold);
+  --at-apply: font-semibold;
 }
 
 tfoot td {
   border-block-start: var(--border-width) solid var(--color-border);
   border-block-end: 0;
-  font-weight: var(--font-weight-semibold);
+  --at-apply: font-semibold;
 }
 
 /* Alternating rows. A density choice, so it is the one class here: no element
    expresses "every other row". */
 table.striped tbody tr:nth-of-type(odd) {
-  background-color: var(--color-surface-raised);
+  --at-apply: bg-surface-raised;
 }
 
 /* ---------- embedded ---------- */
@@ -372,5 +361,5 @@ object {
   display: block;
   max-width: 100%;
   border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
+  --at-apply: rounded-md;
 }

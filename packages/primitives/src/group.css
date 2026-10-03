@@ -26,10 +26,12 @@
  * are a spent binding (a scale step the CSS consumes; no token is minted, because
  * the author has no choice to express) and character (a decision a theme owns,
  * minted as a token because the choice is real). This file holds only spent
- * bindings: `--border-width` for the seam between joined children, `--radius-full`
- * for the search pill, `--spacing-*` and `--radius-sm` for the tooltip. No token
- * is minted, because there is no decision here a theme would answer differently
- * — a group is a relationship between controls, not a surface with its own look.
+ * bindings: `--border-width` for the seam between joined children and the
+ * tooltip's edge, `--spacing-*` for the tooltip's padding and offsets. The
+ * radii are scale steps, so they are spent as `rounded-*` utilities rather
+ * than declarations. No token is minted, because there is no decision here a
+ * theme would answer differently — a group is a relationship between controls,
+ * not a surface with its own look.
  *
  * States + ARIA equivalents:
  *   :focus-visible on a child         lifts it above the seam so the focus ring is
@@ -59,42 +61,39 @@
    read as seams rather than as four separate controls. */
 [role="group"],
 [role="search"] {
-  display: inline-flex;
-  position: relative;
-  width: 100%;
+  --at-apply: inline-flex relative w-full rounded-md;
   vertical-align: middle;
-  border-radius: var(--radius-md);
 }
 
 [role="group"] > *,
 [role="search"] > * {
-  position: relative;
-  flex: 1 1 auto;
-  border-radius: 0;
+  --at-apply: relative flex-auto rounded-none;
 }
 
 [role="group"] > :first-child,
 [role="search"] > :first-child {
-  border-start-start-radius: var(--radius-md);
-  border-end-start-radius: var(--radius-md);
+  --at-apply: rounded-ss-md rounded-es-md;
 }
 
 [role="group"] > :last-child,
 [role="search"] > :last-child {
-  border-start-end-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
+  --at-apply: rounded-se-md rounded-ee-md;
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
 [role="group"] > * + *,
 [role="search"] > * + * {
+  /* The seam reads the `--border-width` a joined control collapses against
+     (button geometry), and no utility emits a logical margin or that token. */
   margin-inline-start: calc(-1 * var(--border-width));
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
 [role="group"] > *:focus-visible,
 [role="search"] > *:focus-visible {
+  /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
+     `toast`. */
   z-index: 1;
 }
 
@@ -103,16 +102,19 @@
    provides it; the button keeps its own treatment, or a search pill would
    have no visible way to submit. */
 [role="search"] {
-  border-radius: var(--radius-full);
+  --at-apply: rounded-full;
 }
 
 [role="search"] > :not(:is(button, [type="submit"], [role="button"])) {
-  border: 0;
-  background-color: transparent;
+  --at-apply: border-0 bg-transparent;
 }
 
 [role="search"] > :not(:is(button, [type="submit"], [role="button"])):focus-visible {
+  /* The ring's width is the shared `--focus-width` token, which the outline
+     utilities do not carry. */
   outline: var(--focus-width) solid var(--color-focus-ring);
+  /* The offset is derived from that same width, so it cannot be a scale
+     step. */
   outline-offset: calc(-1 * var(--focus-width));
 }
 

@@ -124,15 +124,20 @@ const factory = definePreset(
     }
     // The uno theme is the only name table. Values are references, so a rule
     // reads one and returns it: no path to join, no variable to spell.
+    // Component roots come from the manifest, so a component's character
+    // tokens are reachable as `theme[root][step]` — the same change that
+    // enables a component makes its tokens spendable.
+    const componentRoots = enabled ?? Object.keys(primitiveContracts);
     const theme = themeRef(
       Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
+      componentRoots,
     );
 
     return {
       name: "spin",
       theme,
       variants: spinVariants(),
-      rules: spinRules(),
+      rules: spinRules(componentRoots),
       preflights: buildPreflights(
         { trees, documents },
         { primitives: enabled },

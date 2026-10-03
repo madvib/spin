@@ -2,7 +2,9 @@ import {
   ALIGN_CONTENT,
   ALIGN_ITEMS,
   ALIGN_SELF,
+  ANIMATION,
   BORDER_STYLES,
+  BOX_SIZING,
   COLOR_KEYWORDS,
   CURSOR,
   DISPLAY_UTILITIES,
@@ -11,19 +13,20 @@ import {
   FLEX_FACTORS,
   FLEX_WRAPS,
   JUSTIFY_CONTENT,
+  LIST_STYLE,
   OPACITY_UTILITIES,
   opacityValue,
   ORDER_STEPS,
   ORDER_VALUES,
   OUTLINE,
-  SHADOW,
-  TRANSFORM,
   OVERFLOW_UTILITIES,
   OVERFLOW_VALUES,
+  OVERSCROLL_BEHAVIOR,
   POINTER_EVENTS,
   POSITION_UTILITIES,
   RESIZE,
   SCROLL_BEHAVIOR,
+  SHADOW,
   TEXT_ALIGN,
   TEXT_DECORATION,
   TEXT_TRANSFORMS,
@@ -151,6 +154,13 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
       { "text-decoration": value },
     ]),
   ),
+
+  ...Object.fromEntries(
+    Object.entries(LIST_STYLE).map(([name, value]) => [
+      name,
+      { "list-style-type": value },
+    ]),
+  ),
   ...Object.fromEntries(
     Object.entries(BORDER_STYLES).map(([name, value]) => [
       name,
@@ -218,6 +228,25 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
     Object.entries(SCROLL_BEHAVIOR).map(([name, value]) => [
       name,
       { "scroll-behavior": value },
+    ]),
+  ),
+
+  ...Object.fromEntries(
+    Object.entries(OVERSCROLL_BEHAVIOR).map(([name, value]) => [
+      `overscroll-${name}`,
+      { "overscroll-behavior": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(BOX_SIZING).map(([name, value]) => [
+      `box-${name}`,
+      { "box-sizing": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(ANIMATION).map(([name, value]) => [
+      `animation-${name}`,
+      { animation: value },
     ]),
   ),
   "w-full": { width: "100%" },

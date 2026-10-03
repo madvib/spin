@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import {
+  LIST_STYLE,
   TEXT_ALIGN,
   TEXT_DECORATION,
   WHITESPACE,
@@ -15,6 +16,7 @@ export function textRules(): Rule[] {
       ...Object.keys(TEXT_DECORATION),
       ...Object.keys(WHITESPACE),
       ...Object.keys(WORD_BREAK),
+      ...Object.keys(LIST_STYLE),
     ],
     STATIC_DECLS,
   );

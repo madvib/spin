@@ -11,7 +11,8 @@ export function interactivityRules(): Rule[] {
     ...TRANSFORM.map((name): Rule => [
       new RegExp(`^${name}$`),
       ([, token]: string[], ctx?: ThemeContext) => {
-        const group = name.startsWith("translate-x") ? "button-hover-lift-x"
+        const group = name.startsWith("translate-x")
+          ? "button-hover-lift-x"
           : "button-hover-lift-y";
         const value = groupOf(ctx, "button")[token] ??
           groupOf(ctx, group)[token] ??

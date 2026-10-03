@@ -71,12 +71,21 @@ function specFor(path: readonly string[]): RefSpec | null {
  * A token in no group contributes nothing, which is how a token stays out of
  * the utility layer: component character tokens are spent by the primitives
  * rather than given a class.
+ *
+ * `componentRoots` adds one group per component root — the keys a caller
+ * declares, typically the primitives manifest — so a component's character
+ * tokens are reachable as `theme[root][step]`. A root's tokens are addressed
+ * by the root plus the step below it, the same shape the scale groups have.
  */
-export function themeRef(tree: TokenTree): ThemeRef {
+export function themeRef(
+  tree: TokenTree,
+  componentRoots?: readonly string[],
+): ThemeRef {
   const out: ThemeRef = {};
   for (const spec of REF_SPECS) out[spec.key] = {};
 
-  for (const leaf of Object.values(indexTree(tree).leaves)) {
+  const leaves = Object.values(indexTree(tree).leaves);
+  for (const leaf of leaves) {
     const spec = specFor(leaf.path);
     if (spec === null) continue;
     const rest = leaf.path.slice(spec.prefix.length);
@@ -85,6 +94,21 @@ export function themeRef(tree: TokenTree): ThemeRef {
     (out[spec.key] as ThemeRefGroup)[name.toLowerCase()] = `var(${
       cssVarName(leaf.path)
     })`;
+  }
+
+  // Component character tokens: one group per declared root, keyed by the
+  // root. A root's tokens are addressed by the root plus the step below it,
+  // so `button.weight` becomes `theme.button.weight` — the same shape the
+  // scale groups have, and the only place a component's tokens are reachable.
+  for (const root of componentRoots ?? []) {
+    if (out[root] === undefined) out[root] = {};
+    const group = out[root] as ThemeRefGroup;
+    for (const leaf of leaves) {
+      if (leaf.path[0] !== root || leaf.path.length < 2) continue;
+      group[leaf.path.slice(1).join("-").toLowerCase()] = `var(${
+        cssVarName(leaf.path)
+      })`;
+    }
   }
   return out;
 }

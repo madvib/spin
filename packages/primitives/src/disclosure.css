@@ -53,10 +53,7 @@
 /* ---------- disclosure ---------- */
 
 details {
-  margin-block: var(--spacing-2);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
+  --at-apply: my-2 border border-border rounded-md bg-surface-raised;
 }
 
 details > summary {
@@ -64,15 +61,10 @@ details > summary {
      single gap however long the label is. */
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
   cursor: pointer;
-  border-radius: var(--radius-md);
   list-style: none;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-easing-standard);
+  --at-apply: gap-2 px-4 py-2 font-semibold text-text rounded-md duration-fast
+    ease-standard;
 }
 
 /* The disclosure triangle is the browser's, and it cannot be styled into a
@@ -97,8 +89,7 @@ details > summary::after {
   border-block-end: 2px solid currentColor;
   border-inline-end: 2px solid currentColor;
   transform: rotate(-45deg);
-  transition: transform var(--motion-duration-fast)
-    var(--motion-easing-standard);
+  --at-apply: duration-fast ease-standard;
 }
 
 details[open] > summary::after {
@@ -106,7 +97,7 @@ details[open] > summary::after {
 }
 
 details > summary:hover {
-  background-color: var(--color-surface);
+  --at-apply: bg-surface;
 }
 
 details > summary:focus-visible {
@@ -115,7 +106,7 @@ details > summary:focus-visible {
 }
 
 details > *:not(summary) {
-  padding: 0 var(--spacing-4) var(--spacing-2);
+  --at-apply: px-4 pb-2;
 }
 
 /* ---------- dialog ---------- */
@@ -125,13 +116,9 @@ dialog {
      backdrop is the platform's, so there is no wrapper element to invent. */
   max-width: min(32rem, calc(100vw - 2 * var(--spacing-4)));
   max-height: calc(100vh - 2 * var(--spacing-4));
-  padding: var(--spacing-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
   overflow: auto;
+  --at-apply: p-4 border border-border rounded-lg bg-surface-raised text-text
+    shadow-lg;
 }
 
 /* The backdrop is a pseudo-element because the platform gives the dialog
@@ -147,7 +134,8 @@ dialog:not([open]) {
 
 /* The entrance is a scale-and-fade from just below full size, which reads as
    the dialog arriving rather than appearing. `allow-discrete` lets the
-   transition run on the way out too, which a dialog otherwise skips. */
+   transition run on the way out too, which a dialog otherwise skips. The
+   `dialog-in` and `backdrop-in` keyframes are owned by `@spin/animation`. */
 dialog[open] {
   animation: dialog-in var(--motion-duration-base)
     var(--motion-easing-decelerate);
@@ -160,12 +148,12 @@ dialog[open]::backdrop {
 
 @starting-style {
   dialog[open] {
-    opacity: 0;
     transform: translateY(0.5rem) scale(0.98);
+    --at-apply: opacity-0;
   }
 
   dialog[open]::backdrop {
-    opacity: 0;
+    --at-apply: opacity-0;
   }
 }
 
@@ -186,7 +174,6 @@ dialog h3 {
   details > summary::after,
   dialog[open],
   dialog[open]::backdrop {
-    animation: none;
-    transition: none;
+    --at-apply: animation-none transition-none;
   }
 }
