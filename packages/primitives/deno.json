@@ -18,8 +18,7 @@
     "test": "deno test --allow-read src/ tests/",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "codegen": "deno run -A ./codegen.ts",
-    "inventory": "deno run -A inventory.ts"
+    "codegen": "deno run -A ./codegen.ts"
   },
   "compilerOptions": {
     "strict": true,

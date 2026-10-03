@@ -34,7 +34,8 @@
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno check packages/",
-    "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/"
+    "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
+    "demo": "deno run -A demo/build.ts"
   },
   "fmt": {
     "exclude": [

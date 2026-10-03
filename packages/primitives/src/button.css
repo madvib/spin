@@ -54,26 +54,24 @@
   box-sizing: border-box;
   vertical-align: middle;
 
-  /* Padding stays logical rather than `py-2 px-4`. The utilities write
+  /* Gap and type are utilities. Padding stays logical: `py-2 px-4` write
      physical sides, which is wrong for a control whose text direction the
-     author did not choose — a vertical writing mode would stack the padding
-     on the wrong axis. The spacing scale is still what is spent. */
-  gap: var(--spacing-2);
+     author did not choose. */
+  --at-apply: gap-2;
+  --at-apply: text-md;
+  --at-apply: font-sans;
   padding-block: var(--spacing-2);
   padding-inline: var(--spacing-4);
 
-  /* Spent bindings: the type and radius scales. */
-  --at-apply: text-md rounded-md;
-  font-family: var(--font-family-sans);
   line-height: 1;
-  /* Height is derived, not stated. A button is as tall as its text plus its
+  /* Height is derived, not stated: a button is as tall as its text plus its
      padding plus its borders, so the three can never disagree. */
   min-height: calc(
     var(--font-size-md) + (2 * var(--spacing-2)) + (2 *
     var(--button-border-width))
   );
 
-  /* Character: the one thing about a button a theme owns outright. */
+  /* Character: what a theme owns outright, with no scale behind it. */
   font-weight: var(--button-weight);
   text-transform: var(--button-case);
   letter-spacing: var(--button-tracking);
@@ -81,7 +79,8 @@
   border: var(--button-border-width) solid var(--color-on-primary);
 
   /* Colour, default variant. */
-  --at-apply: bg-primary text-on-primary;
+  --at-apply: bg-primary;
+  --at-apply: text-on-primary;
   box-shadow: var(--button-shadow);
 
   -webkit-tap-highlight-color: transparent;
@@ -206,15 +205,21 @@
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost {
-  --at-apply: text-text bg-transparent border-transparent;
+  --at-apply: text-text;
+  --at-apply: bg-transparent;
+  --at-apply: border-transparent;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).ghost:hover:not(:disabled):not([aria-busy="true"]) {
-  --at-apply: text-text bg-transparent border-transparent;
+  --at-apply: text-text;
+  --at-apply: bg-transparent;
+  --at-apply: border-transparent;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).danger {
-  --at-apply: text-on-danger bg-semantic-error border-on-danger;
+  --at-apply: text-on-danger;
+  --at-apply: bg-semantic-error;
+  --at-apply: border-on-danger;
 }
 
 /* The loudest variant: brand fill on the page's own text color, so it is the
@@ -227,11 +232,15 @@
 /* Border only, on the brand color. For a page that already has a filled
    primary and needs a second action without competing with it. */
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline {
-  --at-apply: text-primary bg-transparent border-primary;
+  --at-apply: text-primary;
+  --at-apply: bg-transparent;
+  --at-apply: border-primary;
 }
 
 :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).outline:hover:not(:disabled):not([aria-busy="true"]) {
-  --at-apply: text-primary bg-transparent border-primary;
+  --at-apply: text-primary;
+  --at-apply: bg-transparent;
+  --at-apply: border-primary;
 }
 
 /* A reset button is a secondary action by what the browser means by it, so it
@@ -241,11 +250,14 @@
 }
 
 [type="reset"].outline {
-  --at-apply: text-primary bg-transparent border-primary;
+  --at-apply: text-primary;
+  --at-apply: bg-transparent;
+  --at-apply: border-primary;
 }
 
 [type="reset"].outline:hover:not(:disabled) {
-  --at-apply: bg-primary text-on-primary;
+  --at-apply: bg-primary;
+  --at-apply: text-on-primary;
 }
 
 /* ---------- icon slot ---------- */
@@ -278,13 +290,13 @@ span[role="group"] > button {
 
 span[role="group"] > button:first-child {
   margin-inline-start: 0;
-  border-start-start-radius: var(--radius-md);
-  border-end-start-radius: var(--radius-md);
+  --at-apply: rounded-ss-md;
+  --at-apply: rounded-es-md;
 }
 
 span[role="group"] > button:last-child {
-  border-start-end-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
+  --at-apply: rounded-se-md;
+  --at-apply: rounded-ee-md;
 }
 
 /* Hover on one member must not swallow its neighbours' borders. */
@@ -293,6 +305,8 @@ span[role="group"] > button:hover {
 }
 
 span[role="group"] > button[aria-pressed="true"] {
-  --at-apply: bg-primary text-on-primary border-on-primary;
+  --at-apply: bg-primary;
+  --at-apply: text-on-primary;
+  --at-apply: border-on-primary;
   z-index: 1;
 }
