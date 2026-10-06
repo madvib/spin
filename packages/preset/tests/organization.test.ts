@@ -142,7 +142,8 @@ Deno.test("the showcase's CSS comments carry no backticks", () => {
   // comment inside it ends the string and the file stops parsing. That has
   // happened eight times in one session, always as a comment about a CSS
   // property — so it is checked rather than remembered.
-  const src = readFileSync(new URL("../../../serve.ts", import.meta.url), "utf8");
+  // Lives in server/chrome.ts since the serve.ts split; the literal is the same.
+  const src = readFileSync(new URL("../../../server/chrome.ts", import.meta.url), "utf8");
   const start = src.indexOf("const STYLE = `");
   assertEquals(start !== -1, true, "the showcase stylesheet literal was renamed");
   const body = src.slice(start + "const STYLE = `".length);

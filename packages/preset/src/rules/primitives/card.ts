@@ -46,6 +46,12 @@ export function cardRules(roots: readonly string[], mode: Mode): Rule[] {
  * a card at the page's measure, and a card spanning a grid — and each is a
  * maximum rather than a fixed width, so a card in a narrower parent still
  * shrinks instead of overflowing.
+ *
+ * The values are literals, not theme tokens: the theme has no measure or
+ * component-width scale, and its breakpoint scale is for viewport widths, not
+ * for the boxes inside them. A card's width is a layout decision — how much
+ * of the page a surface may occupy — not a theme decision like colour or
+ * spacing. Inventing a token for it would be a scale nothing else reads.
  */
 const CARD_SIZES: ReadonlyArray<readonly [name: string, max: string]> = [
   ["card-narrow", "24rem"],
@@ -79,7 +85,8 @@ type Tokens = {
   readonly sizeLg: string | undefined;
   readonly sizeSm: string | undefined;
   readonly weightSemibold: string | undefined;
-  readonly weightMedium: string | undefined;
+
+  readonly shadow: string | undefined;
 };
 
 function cardTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
@@ -95,16 +102,26 @@ function cardTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
     sizeLg: t?.fontSize["lg"],
     sizeSm: t?.fontSize["sm"],
     weightSemibold: t?.fontWeight["semibold"],
-    weightMedium: t?.fontWeight["medium"],
+
+    shadow: t?.shadow?.["lg"],
   };
 }
 
-/** The surface: a column with a gap, raised, rounded, and bordered. */
+/**
+ * The surface: a column with a gap, raised, rounded, bordered, and elevated.
+ *
+ * The shadow is the theme's own elevation scale (`shadow.lg`), spent on the
+ * surface and dropped when the theme states none — a card that sits on the
+ * page rather than above it is a theme decision, not a default. No transition
+ * is stated: the card is a static surface with no state change of its own, so
+ * nothing moves. A hover step is deliberately absent — a card is a container,
+ * not a control, and the card-action child carries its own hover feedback.
+ */
 function cardSurface(card: string): Rule {
   return [
     /^card$/,
     function* (_m, ctx) {
-      const { spacing, radius, borderWidth, border, raised } = cardTokens(ctx);
+      const { spacing, radius, borderWidth, border, raised, shadow } = cardTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => card,
         display: "flex",
@@ -115,6 +132,7 @@ function cardSurface(card: string): Rule {
         ...(borderWidth !== undefined && border !== undefined
           ? { border: `${borderWidth} solid ${border}` }
           : {}),
+        ...(shadow !== undefined ? { "box-shadow": shadow } : {}),
       };
     },
     { layer: "primitives", autocomplete: "card" },
