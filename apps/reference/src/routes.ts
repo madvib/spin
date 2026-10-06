@@ -7,9 +7,15 @@ const handler: Connect.NextHandleFunction = (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
     const id = url.pathname.replace(/^\/|\/$/g, "") || rendered[0]?.id;
 
+    // A components sub-route names ONE fixture; the surface itself lists them
+    // all. Anything else under /components/ is unknown.
     const isSurface = id === "utilities" || id === "components" ||
       id.startsWith("utilities/");
-    if (!isSurface && !rendered.find((r) => r.id === id)) {
+    const isComponent = id.startsWith("components/");
+    const known = isComponent
+      ? rendered.some((r) => r.id === id.slice("components/".length))
+      : isSurface || rendered.some((r) => r.id === id);
+    if (!known) {
       res.statusCode = 404;
       res.end("Not found");
       return;
@@ -17,13 +23,11 @@ const handler: Connect.NextHandleFunction = (req, res) => {
 
     const theme = "default";
     const mode = "base";
-    const surface = id.startsWith("utilities") || id === "utilities"
-      ? "utilities"
-      : "components";
-    const route = id === "components" ? (rendered[0]?.id ?? "button") : id;
+    const surface = id.startsWith("utilities") ? "utilities" : "components";
     const group = id.startsWith("utilities/")
       ? id.slice("utilities/".length)
       : "";
+    const route = isComponent ? id.slice("components/".length) : id;
 
     res.statusCode = 200;
     res.setHeader("content-type", "text/html; charset=utf-8");

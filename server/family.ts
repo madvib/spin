@@ -1,6 +1,6 @@
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { buildScale, type BuiltScale, EDGE_AXES, scaleClass } from "@spin/preset/reference/build.ts";
-import { type Demo, DEMO_SAMPLE, demoClass, demoFor, honestAboutIt } from "./demos.ts";
+import { type Demo, DEMO_SAMPLE, demoClass, demoFor, noteFor } from "./demos.ts";
 import { escapeHtml } from "./uno.ts";
 import { CHROME } from "./chrome.ts";
 import { mechanismOf, MECHANISMS, CAP } from "./mechanisms.ts";
@@ -97,7 +97,7 @@ function scaleFor(
  * A section is a set of FAMILIES, and a family is a group of utilities with
  * one mechanism between them. Each family gets: what it is, why this sample,
  * a working before-and-after of the idea, and then every one of its names
- * rendered live. Nothing is summarised away and nothing is listed without
+ * shown. Nothing is summarised away and nothing is listed without
  * being demonstrated.
  * ────────────────────────────────────────────────────────────────────────── */
 
@@ -142,9 +142,9 @@ function pageHead(title: string, sub: string, badge: string): string {
  * result tells a reader nothing they could not get from the source — they
  * cannot tell which part of what they see is the utility.
  */
-function beforeAfter(demo: Demo, cls: string): string {
-  const before = sampleElement("", demo);
-  const after = sampleElement(cls, demo);
+function beforeAfter(group: string, demo: Demo, cls: string): string {
+  const before = sampleElement("", demo, group);
+  const after = sampleElement(cls, demo, group);
   // For the clipped demo, the frame must not clip the inner element's overflow —
   // that would demonstrate the opposite of the utility. overflow-x-auto lets the
   // content scroll within the frame instead.
@@ -169,6 +169,7 @@ function beforeAfter(demo: Demo, cls: string): string {
  * hundred and eleven small elements instead of a page of furniture.
  */
 async function nameRail(
+  groupId: string,
   demo: Demo,
   names: readonly string[],
 ): Promise<string> {
@@ -180,7 +181,7 @@ async function nameRail(
   });
   const declared = await declarationsFor(shown);
   const cells = names.map((name, i) =>
-    cell(sampleElement(shown[i], demo), name, demo) +
+    cell(sampleElement(shown[i], demo, groupId), name, demo) +
     (declared.get(shown[i]) === null
       ? `<code class="${CHROME.dead}">no CSS</code>`
       : "")
@@ -197,11 +198,8 @@ async function nameRail(
  * `cursor-not-allowed` would be a picture of a box, which proves nothing and
  * looks like a feature.
  */
-function honestSentence(group: string): string {
-  return honestAboutIt(group) ??
-    "This family has no sample declared, because the honest preview is the " +
-      "list of names below. A picture of it would be a picture of the absence " +
-      "of the utility.";
+function noSampleLead(group: string): string {
+  return noteFor(group) ?? "This family has no sample declared.";
 }
 
 /**
@@ -326,11 +324,11 @@ async function family(
 
   if (scale !== undefined) return scaleBody(scale, group);
 
-  const honest = honestAboutIt(group.id);
+  const note = noteFor(group.id);
   const headline = demoClass(HEADLINE[group.id] ?? group.utilities[0] ?? "");
-  const lead = demo === undefined ? honestSentence(group.id) : captionFor(demo);
-  const extra = honest !== undefined
-    ? `<p class="${CHROME.noteBox}">${escapeHtml(honest)}</p>`
+  const lead = demo === undefined ? noSampleLead(group.id) : captionFor(demo);
+  const extra = note !== undefined
+    ? `<p class="${CHROME.noteBox}">${escapeHtml(note)}</p>`
     : "";
   const bench = group.id === "variants"
     ? variantsBench()
@@ -343,7 +341,7 @@ async function family(
   // demonstrates nothing: the bench above is the demonstration.
   const stage = demo === undefined || group.id === "transitions"
     ? ""
-    : beforeAfter(demo, headline);
+    : beforeAfter(group.id, demo, headline);
   const rail = demo === undefined
     ? `<ul class="${CHROME.nameList}">${
       group.utilities.map((n) =>
@@ -352,14 +350,13 @@ async function family(
         }</code></li>`
       ).join("")
     }</ul>`
-    : await nameRail(demo, group.utilities);
+    : await nameRail(group.id, demo, group.utilities);
 
   return `<section class="${CHROME.section}">` +
     `<h3 class="${CHROME.subhead}">${escapeHtml(group.title)}` +
     `<span class="${CHROME.railCount} ml-2">${group.utilities.length}</span></h3>` +
     `<p class="${CHROME.prose}">${escapeHtml(lead)}</p>` +
     stage + extra + bench +
-    `<h4 class="${CHROME.label}">every name, rendered live</h4>` +
     rail +
     `</section>`;
 }
@@ -380,7 +377,7 @@ async function scaleBody(
   const shown = demoClass(cls);
 
   // The names a scale cannot show as steps: `gap-x-4` beside `gap-4`, or
-  // `me-auto` on an edge list that has no `me`. They are rendered live rather
+  // `me-auto` on an edge list that has no `me`. They appear in the rail rather
   // than dropped, because a catalogue that hides names is a catalogue that
   // cannot be trusted to be complete.
   const claimed = new Set(
@@ -392,7 +389,7 @@ async function scaleBody(
   const restRail = rest.length === 0
     ? ""
     : `<h4 class="${CHROME.label}">and the names a step cannot reach</h4>` +
-      await nameRail(demo, rest);
+      await nameRail(group.id, demo, rest);
 
   // The pressed button is ALSO the aria-current one, because the selected
   // state is drawn by the theme's own text-on-surface pair through the
@@ -418,7 +415,7 @@ async function scaleBody(
     `<span class="${CHROME.railCount} ml-2">${group.utilities.length}</span></h3>` +
     `<p class="${CHROME.prose}">${escapeHtml(scale.blurb)}</p>` +
     `<p class="${CHROME.prose}">${escapeHtml(captionFor(demo))}</p>` +
-    `<div class="${CHROME.scaleStage}">${sampleElement(shown, demo)}</div>` +
+    `<div class="${CHROME.scaleStage}">${sampleElement(shown, demo, group.id)}</div>` +
     `<div class="${CHROME.scaleControls}">` +
     `<div class="${CHROME.scaleGroup}">` +
     `<h4 class="${CHROME.label}">step <span class="${CHROME.railCount}">${scale.steps.length}</span></h4>` +
@@ -463,8 +460,7 @@ export async function layoutSurface(
         (sample === ""
           ? ""
           : `<div class="${CHROME.familyDemo}">${sample}</div>`) +
-        `<h4 class="${CHROME.label}">every name, rendered live</h4>` +
-        await nameRail(mechanism.demo, mine) +
+        await nameRail(mechanism.title, mechanism.demo, mine) +
         `</section>`,
     );
   }

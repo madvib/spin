@@ -12,7 +12,7 @@ import { escapeHtml } from "./uno.ts";
  * section is cut by MECHANISM: what an element can be told to do, in the order
  * a reader meets the problems. Each mechanism says what it is, demonstrates it
  * once with three adjacent items, and then lists every name it owns — each one
- * still rendered live, so nothing can be catalogued and quietly left
+ * still shown, so nothing can be catalogued and quietly left
  * undemonstrated.
  * ────────────────────────────────────────────────────────────────────────── */
 
@@ -39,7 +39,7 @@ import { escapeHtml } from "./uno.ts";
  *      `flex-wrap` is wrapping, `flex-1` is a basis, and only the segment after
  *      the prefix says which.
  *   3. Whatever no mechanism claims falls to the LAST mechanism, which owns no
- *      vocabulary at all. Its names are rendered live rather than listed, so a
+ *      vocabulary at all. Its names appear in the rail rather than listed, so a
  *      utility can never be dropped for want of a row above — and if that
  *      section is ever empty, a mechanism has claimed a group it should not
  *      have.
@@ -713,7 +713,7 @@ export const MECHANISMS: readonly Mechanism[] = [
     title: "Everything else these families declare",
     blurb:
       "Any name in the layout, display, position, grid or overflow groups that " +
-      "no mechanism above claimed. It is rendered live rather than listed, so a " +
+      "no mechanism above claimed. It appears in the rail rather than listed, so a " +
       "utility can never be catalogued and quietly go undemonstrated — and if " +
       "this section is ever empty, a mechanism has taken a group it should not " +
       "have.",

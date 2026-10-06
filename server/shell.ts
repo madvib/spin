@@ -97,6 +97,31 @@ async function referencePages(): Promise<ReadonlyMap<string, string>> {
   return pages;
 }
 
+/** One fixture's page: its header and every example, alone or in the list. */
+function fixturePage(f: (typeof rendered)[number]): string {
+  return `    <header class="${CHROME.pageHead}">
+      <div>
+        <h2 class="${CHROME.title}">${esc(f.title)}</h2>
+        <div class="${CHROME.kind}">${esc(f.kind)}</div>
+        <p class="${CHROME.note}">${esc(f.note)}</p>
+      </div>
+      <span class="${CHROME.badge}">${f.bytes} bytes</span>
+    </header>
+${
+      f.examples.map((e) =>
+        `    <section class="${CHROME.example}">
+      <h3 class="${CHROME.subhead}">${esc(e.name)}</h3>
+      <div class="${CHROME.rendered}">${e.html}</div>
+      <button class="${CHROME.reveal}" type="button" aria-expanded="false"
+              data-markup="${
+            esc(e.html.trim())
+          }">markup <span data-caret>&#9656;</span></button>
+      <pre hidden class="${CHROME.decl}">${esc(e.html.trim())}</pre>
+    </section>`
+      ).join("\n")
+    }`;
+}
+
 export async function shell(
   active: string,
   theme: string,
@@ -105,6 +130,11 @@ export async function shell(
   group: string,
 ): Promise<string> {
   const f = active === "utilities" ? undefined : find(active);
+  // The components surface itself is the full list; a sub-route is one fixture.
+  const listAll = surface === "components" && active === "components";
+  const onloads = listAll
+    ? rendered.map((r) => r.onLoad ?? "").join("\n")
+    : f?.onLoad ?? "";
   const all = await referencePages();
   const body = surface === "utilities"
     ? all.get(group) ?? all.get(SECTIONS[0].id)
@@ -114,7 +144,7 @@ export async function shell(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>spin · ${esc(body ? "Utilities" : (f?.title ?? "not found"))}</title>
+<title>spin · ${esc(body ? "Utilities" : (listAll ? "Primitives" : (f?.title ?? "not found")))}</title>
 <link rel="stylesheet" href="/__uno.css">
 <style>${STYLE}</style>
 </head>
@@ -157,7 +187,7 @@ ${
         }</span></a>`
       )
       : rendered.map((r) =>
-        `    <a class="${CHROME.railLink}" href="/${r.id}"${
+        `    <a class="${CHROME.railLink}" href="/components/${r.id}"${
           r.id === active ? ' aria-current="page"' : ""
         }>` +
         `<span>${esc(r.title)}</span><span class="${CHROME.railCount}">${
@@ -168,29 +198,11 @@ ${
   </nav>
   <main class="${CHROME.main}">
 ${
-    body ?? (!f
-      ? `    <header class="${CHROME.pageHead}"><h2 class="${CHROME.title}">Not found</h2></header>`
-      : `    <header class="${CHROME.pageHead}">
-      <div>
-        <h2 class="${CHROME.title}">${esc(f.title)}</h2>
-        <div class="${CHROME.kind}">${esc(f.kind)}</div>
-        <p class="${CHROME.note}">${esc(f.note)}</p>
-      </div>
-      <span class="${CHROME.badge}">${f.bytes} bytes</span>
-    </header>
-${
-        f.examples.map((e) =>
-          `    <section class="${CHROME.example}">
-      <h3 class="${CHROME.subhead}">${esc(e.name)}</h3>
-      <div class="${CHROME.rendered}">${e.html}</div>
-      <button class="${CHROME.reveal}" type="button" aria-expanded="false"
-              data-markup="${
-            esc(e.html.trim())
-          }">markup <span data-caret>&#9656;</span></button>
-      <pre hidden class="${CHROME.decl}">${esc(e.html.trim())}</pre>
-    </section>`
-        ).join("\n")
-      }`)
+    body ?? (listAll
+      ? rendered.map(fixturePage).join("\n")
+      : !f
+        ? `    <header class="${CHROME.pageHead}"><h2 class="${CHROME.title}">Not found</h2></header>`
+        : fixturePage(f))
   }
 <script>
 // A scale is ONE preview with controls on it. The two controls are
@@ -295,7 +307,7 @@ for (const b of document.querySelectorAll("[data-mode-set]")) {
     apply(next.theme, next.mode);
   });
 }
-${f?.onLoad ?? ""}
+        ${onloads}
 for (const b of document.querySelectorAll(".reveal")) {
   b.addEventListener("click", () => {
     const pre = b.nextElementSibling;

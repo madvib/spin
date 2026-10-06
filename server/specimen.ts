@@ -130,7 +130,7 @@ export const PREFIX_TARGET: Record<string, string> = {
  * utility acts on, so the family decides the sample and the sample is why the
  * entry is legible.
  */
-export function sampleElement(name: string, demo: Demo): string {
+export function sampleElement(name: string, demo: Demo, group?: string): string {
   const cls = escapeHtml(name);
   switch (demo) {
     /* A mark inside a bordered panel: the space has something to move away
@@ -198,15 +198,22 @@ export function sampleElement(name: string, demo: Demo): string {
         `</span>`;
 
     /* A run of prose. Type is read, not seen, and a token in a box says
-       nothing about how a paragraph will look. */
-    case "prose":
+       nothing about how a paragraph will look. The text-color group drops
+       the base `text-text`: both set `color`, and the sheet orders the
+       base's rule after the utility's, so the base would win on equal
+       specificity and every row would render the same ink. */
+    case "prose": {
+      const base = group === "text-color"
+        ? "m-0 block w-1/2 text-md"
+        : "m-0 block w-1/2 text-md text-text";
       return underTest(
-        "m-0 block w-1/2 text-md text-text",
+        base,
         cls,
         "p",
         "Handgloves &amp; 0123 — the quick brown fox jumps over the lazy dog, " +
           "and the measure is what type is for.",
       );
+    }
 
     /* The filled element itself. Its label takes the `on-*` foreground the
        theme pairs with that fill, and only when the theme declares one: an
@@ -299,7 +306,7 @@ export function sampleElement(name: string, demo: Demo): string {
           `This paragraph is deliberately larger than the box around it.</b>`,
       );
 
-    /* Text saying what it is — for what a picture cannot honestly fake. */
+    /* Text saying what it is. */
     case "said":
       return underTest(
         "inline-flex w-full min-w-0 items-start gap-2 rounded-sm border border-solid border-border p-2 text-xs text-text-muted",
