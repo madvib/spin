@@ -41,27 +41,24 @@ export function useTree(
       },
     } as never);
 
-    const publish = (): void => {
-      const api = bridge.api as unknown as {
-        getVisibleNodes(): TreeRoot["getVisibleNodes"];
-        expandedValue: string[];
-        expand(value: string): void;
-        collapse(value: string): void;
-        select(value: string): void;
-      };
-      type Visible = ReturnType<TreeRoot["getVisibleNodes"]>;
-      const shaped: TreeRoot = {
-        getVisibleNodes: () => (bridge.api as unknown as { getVisibleNodes(): Visible }).getVisibleNodes(),
-        get expandedValue() {
-          return (bridge.api as unknown as { expandedValue: string[] }).expandedValue;
-        },
-        expand: (value) => api.expand(value),
-        collapse: (value) => api.collapse(value),
-        select: (value) => api.select(value),
-      };
-      root(shaped);
+    type Visible = ReturnType<TreeRoot["getVisibleNodes"]>;
+    const api = bridge.api as unknown as {
+      getVisibleNodes(): Visible;
+      expandedValue: string[];
+      expand(value: string): void;
+      collapse(value: string): void;
+      select(value: string): void;
     };
-    publish();
+    const shaped: TreeRoot = {
+      getVisibleNodes: () => api.getVisibleNodes(),
+      get expandedValue() {
+        return api.expandedValue;
+      },
+      expand: (value) => api.expand(value),
+      collapse: (value) => api.collapse(value),
+      select: (value) => api.select(value),
+    };
+    root(shaped);
 
     return (_node: Element, _param?: TreeOptions) => {
       own(() => {

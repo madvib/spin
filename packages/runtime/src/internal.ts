@@ -2,33 +2,33 @@
  * The compiler's ABI. Not the language.
  *
  * Everything here is written into generated code by the emitter, or by the zag
- * bridge. No human types `spreadProps` or `bindFor`.
+ * adapter. No human types `bindFor` or `runAction`.
  *
- * Curated, never `export * from "./index"`: a missing ABI export must be a
- * compile error in the emitter, not a silent re-export of whatever the root
- * happens to carry. Adding a symbol means adding it here and keeping it off the
- * root.
+ * These are imports of the modules, not re-exports of the root: the ABI is the
+ * same functions the author surface carries, reached by their own paths. A
+ * missing entry here is a compile error in the emitter, never a silent
+ * re-export of whatever the root happens to carry. Adding a symbol means
+ * adding its module path here and deciding separately whether it belongs on
+ * the root.
  */
 
-// The adapter, which is both an emitter target and a public entry.
+export { runAction, type ElementAction, type SlotLookup } from "./use.ts";
+export { on } from "./use.ts";
 export {
-  createMachine,
-  createBindable,
-  normalizeProps,
-  spreadProps,
-  toStyleString,
-} from "./adapter/index.ts";
-export type {
-  MachineBridge,
-  MachineOptions,
-  Normalize,
-  Props,
-} from "./adapter/index.ts";
-
-// Element registration and the reactive core are emitted against as well as
-// authored against.
-export { define } from "./element.ts";
-export type { AttributeParser, BuildContext, ElementSpec } from "./element.ts";
+  bindAttr,
+  bindChecked,
+  bindDynamic,
+  bindProp,
+  bindText,
+  bindValue,
+  type Binding,
+  type Writable,
+} from "./bind.ts";
+export { bindFor, type BindForOptions, type RenderedItem } from "./for.ts";
+export { bindIf, type BindIfOptions, type BranchRender } from "./if.ts";
+export { text, tpl, view, type ReactiveText, type Rendered } from "./tpl.ts";
+export { useMachine, type MachineApi, type MachineService } from "./machine.ts";
+export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./element.ts";
 export {
   batch,
   computed,
@@ -38,5 +38,17 @@ export {
   signal,
   trigger,
   untrack,
+  type OwnerScope,
 } from "./signal.ts";
-export type { OwnerScope } from "./signal.ts";
+export {
+  createMachine,
+  createBindable,
+  normalizeProps,
+  toStyleString,
+} from "./adapter/index.ts";
+export type {
+  MachineBridge,
+  MachineOptions,
+  Normalize,
+  Props,
+} from "./adapter/index.ts";
