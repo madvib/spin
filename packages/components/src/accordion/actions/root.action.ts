@@ -1,15 +1,6 @@
 import { createAction } from "@spin/runtime";
 import { createMachine, normalizeProps } from "@spin/runtime/zag";
-import { provide } from "@spin/runtime/load";
 import { connect, machine } from "@zag-js/accordion";
-import type { ElementAction } from "@spin/runtime";
-
-export interface AccordionOptions {
-  multiple?: boolean;
-  collapsible?: boolean;
-  defaultValue?: string[];
-  value?: string[];
-}
 
 const asArray = (v: unknown): string[] | undefined => {
   if (v === undefined || v === null) return undefined;
@@ -27,29 +18,23 @@ const asBool = (v: unknown, fallback: boolean): boolean => {
   return fallback;
 };
 
-export const root: ElementAction<AccordionOptions> = createAction<AccordionOptions>((el, param) => {
-  const fromAttr = (name: string): string | undefined => el.getAttribute(name) ?? undefined;
-  const raw = (param ?? {}) as Record<string, unknown>;
-  const multiple = raw["multiple"] ?? fromAttr("multiple");
-  const collapsible = raw["collapsible"] ?? fromAttr("collapsible") ?? fromAttr("non-collapsible") === null;
-  const defaultValue = raw["defaultValue"] ?? raw["default-value"] ?? fromAttr("default-value");
-  const value = raw["value"] ?? fromAttr("value");
+export const root = createAction((el) => {
   const bridge = createMachine(machine as never, {
     connect: connect as never,
     normalize: normalizeProps,
     props: {
-      multiple: asBool(multiple, false),
-      collapsible: asBool(collapsible, true),
-      defaultValue: asArray(defaultValue),
-      value: asArray(value),
+      multiple: asBool(el.getAttribute("multiple"), false),
+      collapsible: asBool(el.getAttribute("collapsible") ?? el.getAttribute("non-collapsible") === null, true),
+      defaultValue: asArray(el.getAttribute("default-value")),
+      value: asArray(el.getAttribute("value")),
       id: el.id || undefined,
     },
   } as never);
-  provide("accordion:api", bridge.api);
-
-  provide(el, "accordion:api", bridge.api);
-
+  (el as unknown as Record<string, unknown>).__accordion = bridge.api;
   return {
-    destroy: () => bridge.dispose(),
+    destroy: () => {
+      delete (el as unknown as Record<string, unknown>).__accordion;
+      bridge.dispose();
+    },
   };
 });

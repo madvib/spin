@@ -64,3 +64,40 @@ export function bindZag(
     last = props;
   });
 }
+
+
+/**
+ * Reactive prop application from a live reader.
+ *
+ * Loader-owned effect: called from emitted code in build scope. The reader
+ * is re-invoked on every machine move (via machineTick) and on insertion.
+ * Handlers (on*) are skipped — actions own those.
+ */
+export function bindActionProps(
+  el: Element,
+  read: () => Record<string, unknown>,
+): void {
+  let last: Record<string, unknown> = {};
+  effect(() => {
+    inserted();
+    machineTick();
+    const props = read();
+    for (const name of Object.keys(last)) {
+      if (!(name in props) && !name.startsWith("on")) el.removeAttribute(name);
+    }
+    for (const [name, value] of Object.entries(props)) {
+      if (name.startsWith("on")) continue;
+      if (Object.is(value, last[name])) continue;
+      if (ASSIGNABLE.has(name)) {
+        (el as unknown as Record<string, unknown>)[name] = value;
+      } else if (value === undefined || value === null || value === false) {
+        el.removeAttribute(name);
+      } else if (value === true) {
+        el.setAttribute(name, "");
+      } else {
+        el.setAttribute(name, String(value));
+      }
+    }
+    last = props;
+  });
+}

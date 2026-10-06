@@ -43,7 +43,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const ir = parse(code);
       const { js } = emit(ir);
       const body = js
-        .replace(/^import .*$/m, 'import { runAction, on, bindAttr, bindText, bindFor, text, bindZag } from "@spin/runtime";')
+        .replace(/^import .*$/m, 'import { runAction, on, bindAttr, bindText, bindFor, text, bindZag, bindActionProps } from "@spin/runtime";')
         .replace(/^void _bt;$/m, "")
         .replace(/export function create\(ctx, actions\) \{/, "export function create(actions, values) {")
         .replace(/void ctx;\n/, "");

@@ -1,25 +1,34 @@
-import { createZagAction } from "@spin/runtime";
-import { consume } from "@spin/runtime/load";
+import { createAction } from "@spin/runtime";
+import { normalizeProps } from "@spin/runtime/zag";
+import { itemOf, machineOf } from "./shared.ts";
 
-export interface ItemParam {
-  value: string;
-  disabled?: boolean;
-}
+export const item = createAction((el) => {
+  const api = machineOf(el);
+  if (!api) return;
+  const props = api.getItemProps(itemOf(el));
+  const stops: Array<() => void> = [];
+  for (const [name, value] of Object.entries(props)) {
+    if (name.startsWith("on") && typeof value === "function") {
+      const type = name.slice(2).toLowerCase();
+      const listener = value as EventListener;
+      el.addEventListener(type, listener);
+      stops.push(() => el.removeEventListener(type, listener));
+    }
+  }
+  return { destroy: () => stops.forEach((stop) => stop()) };
+});
 
-const apiOf = (el: Element) => consume(el, "accordion:api") as Record<string, unknown> | undefined;
-
-const itemOf = (el: Element): ItemParam => {
-  const host = el.closest("[value]") ?? el;
-  return {
-    value: host.getAttribute("value") ?? "",
-    disabled: host.hasAttribute("disabled") ? true : undefined,
-  };
+const normalize = (
+  props: Record<string, unknown>,
+): Record<string, unknown> => {
+  const element = normalizeProps.element as (
+    props: Record<string, unknown>,
+  ) => Record<string, unknown>;
+  return element(props);
 };
 
-const withItem = (getter: string) =>
-  createZagAction(getter, (el: Element) => apiOf(el), (el: Element) => itemOf(el) as unknown as Record<string, unknown>);
-
-export const item = withItem("getItemProps");
-export const trigger = withItem("getItemTriggerProps");
-export const content = withItem("getItemContentProps");
-export const indicator = withItem("getItemIndicatorProps");
+export const itemProps = (el: Element): Record<string, unknown> => {
+  const api = machineOf(el);
+  if (!api) return {};
+  return normalize(api.getItemProps(itemOf(el)));
+};

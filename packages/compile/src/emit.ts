@@ -118,20 +118,12 @@ export function emit(ir: ComponentIr): EmitOutput {
         const param = use.param !== undefined ? `() => (${scopeExpr(use.param, bound)})` : `undefined`;
         out.push(`${pad(depth + 1)}runAction(${el}, actions[${JSON.stringify(use.name)}], ${param});`);
         out.push(
-          `${pad(depth + 1)}if ((actions[${JSON.stringify(
-            use.name,
-          )}]).getter) {`,
+          `${pad(depth + 1)}if (typeof actions[${JSON.stringify(
+            use.name + "Props",
+          )}] === "function") bindActionProps(${el}, () => actions[${JSON.stringify(
+            use.name + "Props",
+          )}](${el}));`,
         );
-        out.push(
-          `${pad(depth + 1)}  bindZag(${el}, () => { const a = actions[${JSON.stringify(
-            use.name,
-          )}]; return a.resolve ? (a.resolve(${el}, ${use.param !== undefined ? scopeExpr(use.param, bound) : "undefined"})) : undefined; }, (actions[${JSON.stringify(
-            use.name,
-          )}]).getter, () => { const a = actions[${JSON.stringify(
-            use.name,
-          )}]; const n = a.nodeOf ? a.nodeOf(${el}, ${use.param !== undefined ? scopeExpr(use.param, bound) : "undefined"}) : (${use.param !== undefined ? scopeExpr(use.param, bound) : "undefined"}); return (n ?? {}); });`,
-        );
-        out.push(`${pad(depth + 1)}}`);
 
       }
       for (const line of emitNodes(node.children, depth + 1, el, parts, bound)) out.push(line);
@@ -143,7 +135,7 @@ export function emit(ir: ComponentIr): EmitOutput {
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText as _bt, bindFor, text, bindZag } from "@spin/runtime";`,
+    `import { runAction, on, bindAttr, bindText as _bt, bindFor, text, bindActionProps } from "@spin/runtime";`,
     `void _bt;`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,

@@ -53,5 +53,5 @@ export {
 } from "./machine/adapter/index.ts";
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
 export { component, type ComponentSpec } from "./scope/component.ts";
-export { bindZag } from "./directives/zag-bind.ts";
+export { bindActionProps, bindZag } from "./directives/zag-bind.ts";
 export { machineTick } from "./machine/adapter/machine.ts";
