@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "exports": {
     ".": "./src/index.ts",
-    "./zag": "./src/adapter/index.ts",
+    "./zag": "./src/machine/adapter/index.ts",
     "./element": "./src/element.ts",
     "./testing": "./src/testing.ts",
-    "./adapter": "./src/adapter/index.ts"
+    "./adapter": "./src/machine/adapter/index.ts",
+    "./load": "./src/directives/load.ts"
   },
   "imports": {
     "@spin/runtime": "./src/index.ts",
@@ -20,7 +21,8 @@
     "@spin/runtime/testing": "./src/testing.ts",
     "linkedom": "npm:linkedom@^0.18.0",
     "@spin/runtime/adapter": "./src/adapter/index.ts",
-    "@zag-js/types": "npm:@zag-js/types@~1.44.0"
+    "@zag-js/types": "npm:@zag-js/types@~1.44.0",
+    "@spin/runtime/load": "./src/directives/load.ts"
   },
   "tasks": {
     "test": "deno test --config deno.test.json --allow-read --allow-import src/",

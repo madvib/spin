@@ -6,6 +6,32 @@ import { runAction as act, type ElementAction } from "./use.ts";
 import { parse } from "./parse.ts";
 import type { ComponentIr, Node } from "./ir.ts";
 
+/**
+ * Ancestor-provided values, available during wiring only.
+ *
+ * A `use:` action provides by returning `{ provide: { key: value } }`;
+ * a descendant action consumes via `consume(el, key)`. Lookup walks up
+ * the element's own ancestor chain — never sideways, never global.
+ * After wiring completes the map is dropped; there is nothing to read.
+ */
+const provided = new WeakMap<Element, Map<string, unknown>>();
+
+export function provide(el: Element, key: string, value: unknown): void {
+  let map = provided.get(el);
+  if (!map) provided.set(el, (map = new Map()));
+  map.set(key, value);
+}
+
+export function consume(el: Element, key: string): unknown {
+  let current = el.parentElement;
+  while (current) {
+    const value = provided.get(current)?.get(key);
+    if (value !== undefined) return value;
+    current = current.parentElement;
+  }
+  return undefined;
+}
+
 export interface LoaderActions {
   readonly [name: string]: ElementAction<unknown>;
 }

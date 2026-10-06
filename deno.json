@@ -24,7 +24,7 @@
     "@spin/lint": "./packages/lint/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
     "@spin/components": "./packages/components/src/index.ts",
-    "@spin/runtime/zag": "./packages/runtime/src/adapter/index.ts",
+    "@spin/runtime/zag": "./packages/runtime/src/machine/adapter/index.ts",
     "@zag-js/core": "npm:@zag-js/core@1.44.0",
     "@zag-js/tree-view": "npm:@zag-js/tree-view@1.44.0",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
@@ -40,8 +40,9 @@
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",
     "@zag-js/types": "npm:@zag-js/types@1.44.0",
-    "@spin/runtime/adapter": "./packages/runtime/src/adapter/index.ts",
-    "@spin/compile": "./packages/compile/src/index.ts"
+    "@spin/runtime/adapter": "./packages/runtime/src/machine/adapter/index.ts",
+    "@spin/compile": "./packages/compile/src/index.ts",
+    "@spin/runtime/load": "./packages/runtime/src/directives/load.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-net packages/",

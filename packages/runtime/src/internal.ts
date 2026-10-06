@@ -29,7 +29,7 @@ export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.t
 export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
 export { parse } from "./directives/parse.ts";
 export { useMachine, type MachineApi, type MachineService } from "./machine/machine.ts";
-export { zag, type ZagApi, type ZagGetter } from "./machine/zag-action.ts";
+export { createZagAction, type ZagApi, type ZagGetter } from "./machine/zag-action.ts";
 export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export {
   batch,
@@ -54,3 +54,4 @@ export type {
   Normalize,
   Props,
 } from "./machine/adapter/index.ts";
+export { load } from "./directives/load.ts";

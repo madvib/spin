@@ -7,15 +7,16 @@
   "imports": {
     "@spin/components": "./src/index.ts",
     "@spin/runtime": "../runtime/src/index.ts",
-    "@spin/runtime/zag": "../runtime/src/adapter/index.ts",
+    "@spin/runtime/zag": "../runtime/src/machine/adapter/index.ts",
     "@spin/preset": "../preset/src/index.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@spin/theme/themes": "../theme/src/themes/index.ts",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
     "@zag-js/tree-view": "npm:@zag-js/tree-view@~1.44.0",
     "@std/assert": "jsr:@std/assert@^1.0.0",
-    "@spin/runtime/adapter": "../runtime/src/adapter/index.ts",
-    "@zag-js/collection": "npm:@zag-js/collection@~1.44.0"
+    "@spin/runtime/adapter": "../runtime/src/machine/adapter/index.ts",
+    "@zag-js/collection": "npm:@zag-js/collection@~1.44.0",
+    "@spin/runtime/load": "../runtime/src/directives/load.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-import src/",

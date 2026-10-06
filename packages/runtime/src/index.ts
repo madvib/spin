@@ -42,7 +42,7 @@ export type {
 } from "./directives/ir.ts";
 export { ParseError } from "./directives/ir.ts";
 export { useMachine, type MachineApi, type MachineService } from "./machine/machine.ts";
-export { zag, type ZagApi, type ZagGetter } from "./machine/zag-action.ts";
+export { createZagAction, type ZagApi, type ZagGetter } from "./machine/zag-action.ts";
 
 export {
   createMachine,
@@ -51,3 +51,4 @@ export {
   type MachineOptions,
   type Props as MachineProps,
 } from "./machine/adapter/index.ts";
+export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";

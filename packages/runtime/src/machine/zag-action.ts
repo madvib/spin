@@ -1,7 +1,6 @@
-import { bindAttr, bindProp } from "../directives/bind.ts";
-import { on } from "../directives/use.ts";
-import { normalizeProps } from "./adapter/index.ts";
+import { createAction } from "../directives/use.ts";
 import type { ElementAction } from "../directives/use.ts";
+import { normalizeProps } from "./adapter/index.ts";
 
 export type ZagGetter = (props?: Record<string, unknown>) => Record<string, unknown>;
 export type ZagApi = { [getter: string]: ZagGetter };
@@ -15,48 +14,26 @@ const normalize = (
   return element(props);
 };
 
-const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
-
-export function zag(
-  api: () => ZagApi,
+export function createZagAction(
   getter: string,
-  node: () => Record<string, unknown> | undefined,
+  resolve: (param: unknown) => Record<string, unknown> | undefined,
 ): ElementAction<unknown> {
-  return (el: Element) => {
-    const props = (): Record<string, unknown> =>
-      normalize(api()[getter]!(node()) as Record<string, unknown>);
-    const attr = (name: string) => bindAttr(el, name, () => props()[name]);
-    const prop = (name: string) => bindProp(el, name, () => props()[name]);
-    (globalThis as unknown as Record<string, unknown>).__zagFired = false;
-    for (const name of Object.keys(props())) {
-      if (name.startsWith("on")) {
+  return createAction<unknown>((el, param) => {
+    const api = resolve(param);
+    if (api === undefined) return;
+    const fn = api[getter];
+    if (typeof fn !== "function") return;
+    const node = (param as { row?: unknown })?.row ?? param;
+    const props = normalize(fn(node as never) as Record<string, unknown>);
+    const stops: Array<() => void> = [];
+    for (const [name, value] of Object.entries(props)) {
+      if (name.startsWith("on") && typeof value === "function") {
         const type = name.slice(2).toLowerCase();
-        on(el, type, (e: Event) => {
-          const fn = props()[name] as ((e: Event) => void) | undefined;
-          fn?.(e);
-        });
-      } else if (ASSIGNABLE.has(name)) {
-        prop(name);
-      } else {
-        attr(name);
-      }
-      if (name === "data-state") {
-        const { effect: eff } = { effect: undefined as never };
-        void eff;
+        const listener = value as EventListener;
+        el.addEventListener(type, listener);
+        stops.push(() => el.removeEventListener(type, listener));
       }
     }
-  };
-}
-
-
-// Single-effect variant: one effect re-applies all members per change.
-export function zagAll(
-  api: () => ZagApi,
-  getter: string,
-  node: () => Record<string, unknown> | undefined,
-): ElementAction<unknown> {
-  return (el: Element) => {
-    const { effect } = { effect: undefined as never };
-    void effect;
-  };
+    return { destroy: () => stops.forEach((stop) => stop()) };
+  });
 }

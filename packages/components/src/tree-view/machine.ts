@@ -21,6 +21,11 @@ export interface TreeOptions {
 
 export type NodeProps = { node: { value: string }; indexPath: number[] };
 
+export interface TreeRow {
+  node: { value: string; label?: string; children?: { value: string }[] };
+  indexPath: number[];
+}
+
 export interface TreeApi {
   getRootProps(): Record<string, unknown>;
   getLabelProps(): Record<string, unknown>;
@@ -58,7 +63,6 @@ export function useTree(
     } as never);
 
     root(bridge.api as unknown as TreeApi);
-    (globalThis as unknown as Record<string, unknown>).__bridge = bridge;
 
 
 
