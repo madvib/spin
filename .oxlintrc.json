@@ -69,6 +69,48 @@
           }
         ]
       }
+    },
+    {
+      "files": [
+        "**/*.action.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@spin/runtime",
+                "importNames": [
+                  "signal",
+                  "computed",
+                  "effect",
+                  "batch",
+                  "untrack",
+                  "trigger",
+                  "scope",
+                  "own",
+                  "bindAttr",
+                  "bindProp",
+                  "bindText",
+                  "bindValue",
+                  "bindChecked",
+                  "bindDynamic",
+                  "bindFor",
+                  "bindIf",
+                  "runAction",
+                  "on",
+                  "text",
+                  "tpl",
+                  "view",
+                  "useMachine"
+                ],
+                "message": "action bodies run untracked: reactivity reaches actions through params and update, never through imports"
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "ignorePatterns": [
