@@ -7,22 +7,49 @@ import { parse } from "./parse.ts";
 import type { ComponentIr, Node } from "./ir.ts";
 
 /**
- * Ancestor-provided values, available during wiring only.
+ * Ancestor-provided values, available during wiring and through effects.
  *
- * A `use:` action provides by returning `{ provide: { key: value } }`;
- * a descendant action consumes via `consume(el, key)`. Lookup walks up
- * the element's own ancestor chain — never sideways, never global.
- * After wiring completes the map is dropped; there is nothing to read.
+ * A `use:` action provides by calling `provide(key, value)`; a descendant
+ * resolves via `consume(el, key)`. Two channels, in order:
+ *
+ * 1. The wiring scope: `provide` records on the loader's current scope,
+ *    which descendants inherit as they are walked. Works before insertion,
+ *    when DOM parents are still fragments.
+ * 2. The DOM: `provide(el, ...)` form records on the element; `consume`
+ *    falls back to walking `parentElement`. Works after insertion, when
+ *    effects re-run.
+ *
+ * Lookup never goes sideways or global. Sibling subtrees are isolated by
+ * save/restore around each element's children.
  */
-const provided = new WeakMap<Element, Map<string, unknown>>();
+const wiringScope: Array<Map<string, unknown>> = [];
 
-export function provide(el: Element, key: string, value: unknown): void {
+export function provide(key: string, value: unknown): void;
+export function provide(el: Element, key: string, value: unknown): void;
+export function provide(
+  elOrKey: Element | string,
+  keyOrValue: string | unknown,
+  value?: unknown,
+): void {
+  if (typeof elOrKey === "string") {
+    const top = wiringScope[wiringScope.length - 1];
+    if (top) top.set(elOrKey, keyOrValue);
+    return;
+  }
+  const el = elOrKey;
+  const key = keyOrValue as string;
   let map = provided.get(el);
   if (!map) provided.set(el, (map = new Map()));
   map.set(key, value);
 }
 
+const provided = new WeakMap<Element, Map<string, unknown>>();
+
 export function consume(el: Element, key: string): unknown {
+  for (let i = wiringScope.length - 1; i >= 0; i--) {
+    const value = wiringScope[i]!.get(key);
+    if (value !== undefined) return value;
+  }
   let current = el.parentElement;
   while (current) {
     const value = provided.get(current)?.get(key);
@@ -151,7 +178,12 @@ function wire(
         }
       }
       mount.appendChild(el);
-      walk(node.children, el, [], active);
+      wiringScope.push(new Map());
+      try {
+        walk(node.children, el, [], active);
+      } finally {
+        wiringScope.pop();
+      }
     }
   };
   walk(ir.nodes, root as unknown as ParentNode & Element, _parts);

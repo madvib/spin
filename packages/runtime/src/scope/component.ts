@@ -1,4 +1,5 @@
 import { define } from "./element.ts";
+import { inserted } from "../core/signal.ts";
 import { runAction } from "../directives/use.ts";
 import { bindAttr, bindProp } from "../directives/bind.ts";
 import { load, type LoaderActions, type LoaderScope } from "../directives/load.ts";
@@ -38,6 +39,7 @@ export function component(spec: ComponentSpec): void {
       }
       const { nodes, dispose } = load(spec.markup, spec.actions, values);
       for (const node of nodes) el.appendChild(node as unknown as Node);
+      inserted(inserted() + 1);
       void dispose;
     },
   });

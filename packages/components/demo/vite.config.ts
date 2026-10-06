@@ -6,21 +6,10 @@ import { starterThemes } from "../../theme/src/themes/index.ts";
 
 const at = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
-const rawHtml = (): Plugin => ({
-  name: "spin/raw-html",
-  enforce: "pre",
-  async load(id) {
-    if (id.endsWith(".html?raw")) {
-      const path = id.slice(0, -4);
-      const source = await (await import("node:fs/promises")).readFile(path, "utf8");
-      return `export default ${JSON.stringify(source)};`;
-    }
-    return undefined;
-  },
-});
+import { spinElements } from "@spin/compile/elements";
 
 export default defineConfig({
-  plugins: [rawHtml(), UnoCSS({ presets: [spinPreset({ themes: { default: starterThemes.default } })] })],
+  plugins: [spinElements({}), UnoCSS({ presets: [spinPreset({ themes: { default: starterThemes.default } })] })],
   build: {
     rollupOptions: {
       input: {

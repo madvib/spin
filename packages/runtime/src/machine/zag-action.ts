@@ -14,16 +14,23 @@ const normalize = (
   return element(props);
 };
 
+export interface ZagAction extends ElementAction<unknown> {
+  readonly getter: string;
+  readonly resolve: (el: Element, param: unknown) => Record<string, unknown> | undefined;
+  readonly nodeOf?: (el: Element, param: unknown) => Record<string, unknown> | undefined;
+}
+
 export function createZagAction(
   getter: string,
   resolve: (el: Element, param: unknown) => Record<string, unknown> | undefined,
-): ElementAction<unknown> {
-  return createAction<unknown>((el, param) => {
+  nodeOf?: (el: Element, param: unknown) => Record<string, unknown> | undefined,
+): ZagAction {
+  const action = createAction<unknown>((el, param) => {
     const api = resolve(el, param);
     if (api === undefined) return;
     const fn = api[getter];
     if (typeof fn !== "function") return;
-    const node = (param as { row?: unknown })?.row ?? param;
+    const node = nodeOf?.(el, param) ?? (param as { row?: unknown })?.row ?? param;
     const props = normalize(fn(node as never) as Record<string, unknown>);
     const stops: Array<() => void> = [];
     for (const [name, value] of Object.entries(props)) {
@@ -36,4 +43,5 @@ export function createZagAction(
     }
     return { destroy: () => stops.forEach((stop) => stop()) };
   });
+  return Object.assign(action, { getter, resolve, nodeOf });
 }

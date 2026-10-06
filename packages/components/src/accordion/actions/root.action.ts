@@ -11,19 +11,44 @@ export interface AccordionOptions {
   value?: string[];
 }
 
+const asArray = (v: unknown): string[] | undefined => {
+  if (v === undefined || v === null) return undefined;
+  if (Array.isArray(v)) return v as string[];
+  const s = String(v);
+  return s.length > 0 ? s.split(",") : undefined;
+};
+
+const asBool = (v: unknown, fallback: boolean): boolean => {
+  if (v === undefined || v === null) return fallback;
+  if (typeof v === "boolean") return v;
+  const s = String(v).toLowerCase();
+  if (s === "" || s === "true") return true;
+  if (s === "false") return false;
+  return fallback;
+};
+
 export const root: ElementAction<AccordionOptions> = createAction<AccordionOptions>((el, param) => {
+  const fromAttr = (name: string): string | undefined => el.getAttribute(name) ?? undefined;
+  const raw = (param ?? {}) as Record<string, unknown>;
+  const multiple = raw["multiple"] ?? fromAttr("multiple");
+  const collapsible = raw["collapsible"] ?? fromAttr("collapsible") ?? fromAttr("non-collapsible") === null;
+  const defaultValue = raw["defaultValue"] ?? raw["default-value"] ?? fromAttr("default-value");
+  const value = raw["value"] ?? fromAttr("value");
   const bridge = createMachine(machine as never, {
     connect: connect as never,
     normalize: normalizeProps,
     props: {
-      multiple: param?.multiple ?? false,
-      collapsible: param?.collapsible ?? true,
-      defaultValue: param?.defaultValue,
-      value: param?.value,
+      multiple: asBool(multiple, false),
+      collapsible: asBool(collapsible, true),
+      defaultValue: asArray(defaultValue),
+      value: asArray(value),
       id: el.id || undefined,
     },
   } as never);
+  provide("accordion:api", bridge.api);
+
   provide(el, "accordion:api", bridge.api);
+
   return {
     destroy: () => bridge.dispose(),
   };

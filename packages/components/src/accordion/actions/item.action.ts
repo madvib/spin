@@ -8,7 +8,16 @@ export interface ItemParam {
 
 const apiOf = (el: Element) => consume(el, "accordion:api") as Record<string, unknown> | undefined;
 
-const withItem = (getter: string) => createZagAction(getter, (el: Element) => apiOf(el));
+const itemOf = (el: Element): ItemParam => {
+  const host = el.closest("[value]") ?? el;
+  return {
+    value: host.getAttribute("value") ?? "",
+    disabled: host.hasAttribute("disabled") ? true : undefined,
+  };
+};
+
+const withItem = (getter: string) =>
+  createZagAction(getter, (el: Element) => apiOf(el), (el: Element) => itemOf(el) as unknown as Record<string, unknown>);
 
 export const item = withItem("getItemProps");
 export const trigger = withItem("getItemTriggerProps");

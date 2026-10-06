@@ -44,6 +44,12 @@ import type {
 import { callAll, compact, ensure, isEqual, isFunction, isString, toArray, warn } from "@zag-js/utils";
 import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../../core/signal.ts";
 import { createBindable } from "./bindable.ts";
+
+/** Bumped after every processed machine event. Bindings that read machine
+ * state through paths that do not themselves track (plain-mutated context,
+ * snapshot getters) subscribe to this instead. Coarse today: every binding
+ * re-evaluates on every machine move. Per-machine scoping when it hurts. */
+export const machineTick = signal(0);
 import { normalizeProps } from "./normalize-props.ts";
 
 /** Props as a plain record, or as a getter so an element can drive them. */
@@ -383,15 +389,22 @@ function startMachine(
     // whose scope is gone swallows the event rather than reaching into DOM it
     // no longer owns.
     queueMicrotask(() => {
+
       if (key && token && replaceTracker.isReplaced(key, token)) return;
-      if (status !== MachineStatus.Started) return;
+      if (status !== MachineStatus.Started) {
+
+        return;
+      }
       batch(() => {
         previousEventRef.current = eventRef.current;
         eventRef.current = event;
         const current = state.get();
         const { transitions, source } = findTransition(machine, current, event.type);
         const transition = choose(transitions);
-        if (!transition) return;
+        if (!transition) {
+
+          return;
+        }
         transitionRef.current = transition;
         const target = resolveStateValue(machine, transition.target ?? current, source);
         debug("transition", event.type, transition.target || current, `(${transition.actions})`);
@@ -402,6 +415,8 @@ function startMachine(
         } else {
           action(transition.actions);
         }
+        machineTick(machineTick() + 1);
+
       });
     });
   };

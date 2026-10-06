@@ -31,6 +31,7 @@
     "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",
     "@orpc/server": "npm:@orpc/server@^1.0.0",
+    "unplugin": "npm:unplugin@^3.4.0",
     "valibot": "npm:valibot@^1.0.0",
     "@orpc/client": "npm:@orpc/client@^1.0.0",
     "@spin/theme/base": "./packages/theme/src/base/index.ts",

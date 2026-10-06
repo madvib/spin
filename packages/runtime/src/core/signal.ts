@@ -19,6 +19,11 @@ import {
 
 export { computed, effect, signal, trigger };
 
+/** Bumped after every component build appends. Lets cross-element context
+ * resolve once insertion makes DOM parents real: wiring-time reads happen
+ * detached in fragments and would otherwise miss forever. */
+export const inserted = signal(0);
+
 /**
  * Run `fn` with writes deferred, then flush once.
  *

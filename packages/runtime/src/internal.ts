@@ -56,3 +56,4 @@ export type {
 } from "./machine/adapter/index.ts";
 export { load } from "./directives/load.ts";
 export { component } from "./scope/component.ts";
+export { bindZag } from "./directives/zag-bind.ts";
