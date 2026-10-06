@@ -1,4 +1,4 @@
-import type { ComponentIr, Node } from "./ir.ts";
+import type { ComponentIr, Node } from "@spin/runtime";
 
 export interface EmitOutput {
   readonly js: string;
