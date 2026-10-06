@@ -34,3 +34,20 @@ export function view(
   rendered.update();
   return rendered;
 }
+
+export interface ReactiveText {
+  readonly node: Text;
+  set(value: string): void;
+}
+
+export function text(initial = ""): ReactiveText {
+  const node = document.createTextNode(initial);
+  return {
+    node,
+    set(value: string) {
+      const next = String(value);
+      if (node.data === next) return;
+      node.data = next;
+    },
+  };
+}

@@ -28,7 +28,7 @@ export {
 } from "./bind.ts";
 export { bindFor, type BindForOptions, type RenderedItem } from "./for.ts";
 export { bindIf, type BindIfOptions, type BranchRender } from "./if.ts";
-export { tpl, view, type Rendered } from "./tpl.ts";
+export { text, tpl, view, type ReactiveText, type Rendered } from "./tpl.ts";
 export { useMachine, type MachineApi, type MachineService } from "./machine.ts";
 
 // Import from `@spin/runtime/zag` where the machine is optional: `@zag-js/core`

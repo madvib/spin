@@ -1,137 +1,109 @@
-/** Zag tree-view as semantic tags the preset already styles. */
-import { collection, connect, machine } from "@zag-js/tree-view";
-import { define, effect } from "@spin/runtime";
-import { createMachine, spreadProps } from "@spin/runtime/zag";
+import { bindFor, bindText, define, on, runAction, signal, text } from "@spin/runtime";
+import { useTree, type TreeNodes, type TreeRoot } from "./tree.ts";
 
-/** The tree, in the shape zag's collection reads. */
-interface TreeNode {
-  value: string;
-  label: string;
-  children?: TreeNode[];
+const NODES: TreeNodes[] = [
+  {
+    value: "packages",
+    children: [{ value: "packages/runtime" }, { value: "packages/components" }],
+  },
+  {
+    value: "demo",
+    children: [{ value: "demo/src" }],
+  },
+  { value: "PLAN.md" },
+];
+
+interface Row {
+  node: { value: string };
+  indexPath: number[];
 }
 
-const DATA: TreeNode = {
-  value: "spin-runtime",
-  label: "spin-runtime",
-  children: [
-    {
-      value: "packages",
-      label: "packages",
-      children: [
-        { value: "runtime", label: "runtime" },
-        { value: "preset", label: "preset" },
-        { value: "primitives", label: "primitives" },
-      ],
-    },
-    {
-      value: "demo",
-      label: "demo",
-      children: [
-        { value: "build.ts", label: "build.ts" },
-        { value: "index.html", label: "index.html" },
-      ],
-    },
-    { value: "PLAN.md", label: "PLAN.md" },
-  ],
-};
-
-
+const hasKids = (value: string): boolean =>
+  NODES.some((n) => n.value === value && (n.children?.length ?? 0) > 0);
 
 export const treeView = define("tree-view", {
-  build({ el, scope }) {
-    const tree = createMachine(machine, {
-      connect,
-      scope,
-      id: "spin-tree",
-      // Zag resolves ids against this node, not the document.
-      getRootNode: () => el,
-      props: {
-        collection: collection({ rootNode: DATA }),
-        expandOnClick: true,
+  build({ el }) {
+    const root = signal<TreeRoot | undefined>(undefined);
+    const publish = useTree(() => ({ nodes: NODES }))(root);
+    const host = document.createElement("div");
+    runAction(host, publish as never, undefined);
+
+    const section = document.createElement("section");
+    const label = document.createElement("p");
+    label.textContent = "Repository";
+    section.append(label);
+
+    const list = document.createElement("ul");
+    list.setAttribute("role", "tree");
+    list.setAttribute("aria-label", "Repository");
+    section.append(list);
+
+    const count = document.createElement("p");
+    const total = text("");
+    count.append(total.node);
+    bindText(total.node as unknown as Text, () => {
+      const api = root();
+      if (api === undefined) return "";
+      return `${api.expandedValue.length} expanded`;
+    });
+    section.append(count);
+
+    const mark = document.createComment("rows");
+    list.append(mark);
+
+    const rows = (): readonly Row[] => {
+      const api = root();
+      if (api === undefined) return [];
+      return api.getVisibleNodes() as Row[];
+    };
+
+    bindFor<Row>({
+      anchor: mark,
+      items: rows,
+      key: (row) => row.node.value,
+      render: (row) => {
+        const li = document.createElement("li");
+        li.setAttribute("role", "treeitem");
+        const depth = row.indexPath.length - 1;
+        li.setAttribute("aria-level", String(depth + 1));
+        li.style.setProperty("padding-inline-start", `${depth * 16}px`);
+
+        const control = document.createElement("button");
+        control.type = "button";
+        const chevron = document.createElement("span");
+        chevron.setAttribute("aria-hidden", "true");
+        const text = document.createElement("span");
+        text.textContent = row.node.value;
+        control.append(chevron, text);
+        li.append(control);
+
+        const paint = (current: Row): void => {
+          const api = root();
+          const open = api?.expandedValue.includes(current.node.value) ?? false;
+          const branch = current.indexPath.length === 1 && hasKids(current.node.value);
+          li.setAttribute("aria-expanded", open && branch ? "true" : "false");
+          chevron.textContent = open && branch ? "▾" : branch ? "▸" : "•";
+        };
+        paint(row);
+
+        on(control, "click", () => {
+          const current = root();
+          if (current === undefined) return;
+          if (current.expandedValue.includes(row.node.value)) {
+            current.collapse(row.node.value);
+          } else {
+            current.expand(row.node.value);
+          }
+        });
+
+        return {
+          nodes: [li],
+          update: (next) => paint(next as Row),
+        };
       },
     });
 
-    const api = tree.api;
-
-    /**
-     * Elements paired with their props, built once and repainted in place.
-     *
-     * A rebuild on a state change replaces the control between `focus` (which
-     * zag emits on mousedown) and `click`, so the click lands on a detached
-     * node and is swallowed.
-     */
-    const parts: Array<{ el: HTMLElement; props: () => Record<string, unknown> }> = [];
-
-    /** Registers an element and how to ask for its props. Returns the element. */
-    function part<T extends HTMLElement>(element: T, props: () => Record<string, unknown>): T {
-      parts.push({ el: element, props });
-      return element;
-    }
-
-    const root = document.createElement("section");
-
-    const label = part(document.createElement("p"), () => api.getLabelProps());
-    label.textContent = "Repository";
-    root.append(label);
-
-    const list = part(document.createElement("ul"), () => api.getTreeProps());
-    for (const [index, child] of (DATA.children ?? []).entries()) {
-      list.append(row(child, [index]));
-    }
-    root.append(list);
-
-    el.replaceChildren(root);
-
-    /** One node: a branch carries a nested list, a leaf does not. */
-    function row(data: TreeNode, indexPath: number[]): HTMLLIElement {
-      const li = document.createElement("li");
-      const node = api.collection.at(indexPath);
-
-      if (!data.children) {
-        const text = part(document.createElement("span"), () => api.getItemTextProps({ node, indexPath }));
-        text.textContent = data.label;
-        li.append(text);
-        part(li, () => api.getItemProps({ node, indexPath }));
-        return li;
-      }
-
-      // The control is a real <button>: a whole-row target, focusable by the
-      // browser, and already a button to spin because the TAG is claimed. The
-      // chevron is a span inside it, which the same primitive claims.
-      const control = document.createElement("button");
-      control.type = "button";
-      const chevron = document.createElement("span");
-      chevron.setAttribute("aria-hidden", "true");
-      const text = part(document.createElement("span"), () => api.getBranchTextProps({ node, indexPath }));
-      text.textContent = data.label;
-      control.append(chevron, text);
-      li.append(control);
-
-      part(li, () => api.getBranchProps({ node, indexPath }));
-      part(control, () => api.getBranchControlProps({ node, indexPath }));
-      part(chevron, () => api.getBranchIndicatorProps({ node, indexPath }));
-
-      const group = part(document.createElement("ul"), () => api.getBranchContentProps({ node, indexPath }));
-      for (const [index, child] of data.children.entries()) {
-        group.append(row(child, [...indexPath, index]));
-      }
-      li.append(group);
-      return li;
-    }
-
-    /**
-     * Writes every part's current props. Each thunk reads `machine.api` at the
-     * moment it runs, and `api` is a Proxy over a computed, so a paint inside
-     * an `effect` subscribes to exactly the state the DOM depends on — and a
-     * captured field, which would be stale forever, cannot be written here.
-     */
-    const paint = (): void => {
-      for (const { el: element, props } of parts) spreadProps(element, props());
-    };
-
-    // First paint is synchronous and unconditional: an element that renders
-    // only when an effect happens to flush is an element that renders late.
-    paint();
-    effect(paint);
+    el.replaceChildren(section);
+    void host;
   },
 });
