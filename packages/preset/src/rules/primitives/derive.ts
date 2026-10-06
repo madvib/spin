@@ -25,6 +25,7 @@ import { buttonRules } from "./button.ts";
 import { cardRules } from "./card.ts";
 import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
+import { accordionRules } from "./accordion.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
 import { groupRules } from "./group.ts";
@@ -357,6 +358,7 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   checkbox: () => controlRules(["checkbox"]),
   switch: () => controlRules(["switch"]),
   dialog: () => dialogRules(["dialog"], { classless: true }),
+  accordion: () => accordionRules(["accordion"], { classless: true }),
   details: () => disclosureRules(["details"], { classless: true }),
   progress: () => progressRules(["progress"], { classless: true }),
   table: () => tableRules(["table"], { classless: true }),

@@ -249,6 +249,26 @@ character: [
       { path: "checkbox.depth", type: "number", value: "1" },
     ],
   },
+  accordion: {
+  tags: [
+    "accordion-content",
+    "accordion-item",
+    "accordion-root",
+    "accordion-trigger",
+    "span",
+  ],
+  variants: [],
+  reads: [
+    "--color-border",
+    "--color-surface-raised",
+    "--color-text",
+    "--color-text-muted",
+    "--radius-md",
+    "--spacing-2",
+    "--spacing-4",
+  ],
+  character: [],
+  },
   details: {
   tags: ["details", "summary"],
 variants: [],
