@@ -9,7 +9,8 @@
     "./packages/preset",
     "./packages/lint",
     "./packages/api",
-    "./apps/studio"
+    "./apps/studio",
+    "./packages/compile"
   ],
   "exports": {
     ".": "./packages/theme/src/index.ts",
@@ -39,7 +40,8 @@
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",
     "@zag-js/types": "npm:@zag-js/types@1.44.0",
-    "@spin/runtime/adapter": "./packages/runtime/src/adapter/index.ts"
+    "@spin/runtime/adapter": "./packages/runtime/src/adapter/index.ts",
+    "@spin/compile": "./packages/compile/src/index.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-net packages/",
