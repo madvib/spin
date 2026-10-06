@@ -184,6 +184,9 @@
     },
     "size": {
       "$type": "dimension",
+      "2xs": {
+        "$value": "0.625rem"
+      },
       "xs": {
         "$value": "0.75rem"
       },

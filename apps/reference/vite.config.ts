@@ -6,6 +6,9 @@ import { spinPreset } from "../../packages/preset/src/index.ts";
 import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import handler from "./src/routes.ts";
+import { referenceHmr } from "./hmr.ts";
+
+const here = import.meta.dirname!;
 
 // The reference renders its content at REQUEST time (string renderers behind
 // a middleware), so the scanner never sees a class it demonstrates in the
@@ -38,53 +41,54 @@ export default defineConfig({
             next();
             return;
           }
-          handler(req, res);
+          handler(req, res, next);
         });
       },
     },
+    referenceHmr,
   ],
   resolve: {
     alias: [
       {
         find: "@spin/theme/base",
         replacement: resolve(
-          import.meta.dirname,
+          here,
           "../../packages/theme/src/base/index.ts",
         ),
       },
       {
         find: /^@spin\/theme\/(.+)$/,
-        replacement: resolve(import.meta.dirname, "../../packages/theme/src/$1"),
+        replacement: resolve(here, "../../packages/theme/src/$1"),
       },
       {
         find: "@spin/theme",
         replacement: resolve(
-          import.meta.dirname,
+          here,
           "../../packages/theme/src/index.ts",
         ),
       },
       {
         find: "@spin/animation",
         replacement: resolve(
-          import.meta.dirname,
+          here,
           "../../packages/animation/src/index.ts",
         ),
       },
       {
         find: "@spin/primitives-procedures",
         replacement: resolve(
-          import.meta.dirname,
+          here,
           "../../packages/preset/src/primitives-procedures.ts",
         ),
       },
       {
         find: /^@spin\/preset\/(.+)$/,
-        replacement: resolve(import.meta.dirname, "../../packages/preset/src/$1"),
+        replacement: resolve(here, "../../packages/preset/src/$1"),
       },
       {
         find: "@spin/preset",
         replacement: resolve(
-          import.meta.dirname,
+          here,
           "../../packages/preset/src/index.ts",
         ),
       },
@@ -92,7 +96,7 @@ export default defineConfig({
       {
         find: "@unocss/core",
         replacement: resolve(
-          import.meta.dirname,
+          here,
           "../../node_modules/@unocss/core/dist/index.mjs",
         ),
       },

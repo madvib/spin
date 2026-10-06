@@ -17,6 +17,7 @@
  * tasks depend on it.
  */
 import { SECTIONS } from "@spin/preset/organization.ts";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { demoFor } from "../../server/demos.ts";
 import {
   catalogSections,
@@ -88,18 +89,20 @@ function specimenIndex(): string {
   return cells.join("");
 }
 
-// A stale page keeps generating CSS for markup that no longer exists, so the
-// directory is rebuilt rather than overwritten in place.
-try {
-  await Deno.remove(OUT, { recursive: true });
-} catch (error) {
-  if (!(error instanceof Deno.errors.NotFound)) throw error;
+export async function buildContent(): Promise<void> {
+  // A stale page keeps generating CSS for markup that no longer exists, so the
+  // directory is rebuilt rather than overwritten in place.
+  await rm(OUT, { recursive: true, force: true });
+
+  const all = [...pages(), { path: "specimens", html: specimenIndex() }];
+  for (const { path, html } of all) {
+    const file = new URL(`${path}.html`, OUT);
+    await mkdir(new URL("./", file), { recursive: true });
+    await writeFile(file, html);
+  }
+  console.log(`build-content: wrote ${all.length} pages to ${OUT.pathname}`);
 }
 
-const all = [...pages(), { path: "specimens", html: specimenIndex() }];
-for (const { path, html } of all) {
-  const file = new URL(`${path}.html`, OUT);
-  await Deno.mkdir(new URL("./", file), { recursive: true });
-  await Deno.writeTextFile(file, html);
-}
-console.log(`build-content: wrote ${all.length} pages to ${OUT.pathname}`);
+// Run only when executed directly (`deno run -A build-content.ts`); the dev
+// server's HMR plugin imports `buildContent` and calls it per change.
+if (import.meta.main) await buildContent();

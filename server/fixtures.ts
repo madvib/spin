@@ -157,6 +157,23 @@ export const FIXTURES: readonly Fixture[] = [
           <badge class="badge-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>
         </div>`,
       },
+      {
+        name: "With an icon",
+        html: `<div class="flex flex-wrap gap-2">
+          <badge><i class="i-lucide-bell"></i>Notifications</badge>
+          <badge class="badge-accent"><i class="i-lucide-check"></i>Done</badge>
+        </div>`,
+      },
+      {
+        name: "In text",
+        html:
+          `<p>Press the <badge class="badge-primary">New</badge> button to continue.</p>`,
+      },
+      {
+        name: "In a button",
+        html:
+          `<button class="btn">Inbox <badge class="badge-accent">3</badge></button>`,
+      },
     ],
   },
   {

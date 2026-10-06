@@ -16,6 +16,36 @@ const REFERENCE_PAGES: ReadonlyMap<string, string> = new Map(
   SECTIONS.map((s) => [s.id, utilityGroupPage(s.id)] as const),
 );
 
+const VOID: Record<string, true> = { area: true, base: true, br: true, col: true, embed: true, hr: true, img: true, input: true, link: true, meta: true, param: true, source: true, track: true, wbr: true };
+
+/** Format raw HTML for readability: one tag per line, 2-space indent per depth. */
+function formatMarkup(html: string): string {
+  const out: string[] = [];
+  let depth = 0;
+  let i = 0;
+  while (i < html.length) {
+    const lt = html.indexOf("<", i);
+    if (lt === -1) {
+      const rest = html.slice(i).trim();
+      if (rest) out.push("  ".repeat(depth) + rest);
+      break;
+    }
+    const text = html.slice(i, lt).trim();
+    if (text) out.push("  ".repeat(depth) + text);
+    const gt = html.indexOf(">", lt);
+    if (gt === -1) { out.push(html.slice(lt)); break; }
+    const tag = html.slice(lt, gt + 1);
+    const name = (tag.match(/<\/?([a-zA-Z][a-zA-Z0-9-]*)/) || [])[1]?.toLowerCase() ?? "";
+    const closing = tag.startsWith("</");
+  const selfClosing = tag.endsWith("/>") || VOID[name] === true;
+    if (closing) depth = Math.max(0, depth - 1);
+    out.push("  ".repeat(depth) + tag);
+    if (!closing && !selfClosing) depth++;
+    i = gt + 1;
+  }
+  return out.join("\n");
+}
+
 /** One fixture's page: its header and every example, alone or in the list. */
 function fixturePage(f: (typeof rendered)[number]): string {
   return `    <header class="${CHROME.pageHead}">
@@ -32,13 +62,13 @@ ${
       <div class="${CHROME.rendered}">${e.html}</div>
       <button class="${CHROME.reveal}" type="button" aria-expanded="false"
               data-markup="${
-            esc(e.html.trim())
+            esc(formatMarkup(e.html.trim()))
           }">markup <span data-caret>&#9656;</span></button>
       <button class="${CHROME.copy}" type="button" data-copy
               data-markup="${
-            esc(e.html.trim())
+            esc(formatMarkup(e.html.trim()))
           }">copy</button>
-      <pre hidden class="${CHROME.decl}">${esc(e.html.trim())}</pre>
+      <pre hidden class="${CHROME.decl}">${esc(formatMarkup(e.html.trim()))}</pre>
     </section>`
       ).join("\n")
     }`;

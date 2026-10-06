@@ -165,7 +165,7 @@ function badgeSizes(mode: Mode): Rule[] {
     spacingInline: string;
     spacingBlock: string;
   }> = [
-    { name: "badge-sm", short: "sm", fontSize: "xs", spacingInline: "1", spacingBlock: "1" },
+    { name: "badge-sm", short: "sm", fontSize: "2xs", spacingInline: "1", spacingBlock: "1" },
     { name: "badge-lg", short: "lg", fontSize: "sm", spacingInline: "4", spacingBlock: "2" },
   ];
   return SIZES.map((size) => [
@@ -213,6 +213,9 @@ function badgeClose(mode: Mode): Rule[] {
           border: 0,
           padding: 0,
           color: "inherit",
+          // The button base sets font-size md; the closer matches the badge
+          // text instead, or the glyph stretches the pill.
+          "font-size": "inherit",
           cursor: "pointer",
           "line-height": 1,
           ...(radiusSm !== undefined ? { "border-radius": radiusSm } : {}),
