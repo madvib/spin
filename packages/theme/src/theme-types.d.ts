@@ -116,7 +116,7 @@ export interface ThemeTokens {
 
 /**
  * These same tokens are re-declared for dark mode under
- * `[data-theme="dark"]`; the path and custom property are unchanged, only
+ * `[data-mode="dark"]`; the path and custom property are unchanged, only
  * the resolved value differs.
  */
 

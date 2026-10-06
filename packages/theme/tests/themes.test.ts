@@ -81,7 +81,7 @@ function varsInMode(
   if (mode === "light") return { ...base };
   return {
     ...base,
-    ...blockWithSelector(css, ':root[data-theme="dark"]').declarations,
+    ...blockWithSelector(css, ':root[data-mode="dark"]').declarations,
   };
 }
 
@@ -359,7 +359,7 @@ Deno.test("every dark declaration lands on a property the light theme declares",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
-  const darkBlock = blockWithSelector(css, ':root[data-theme="dark"]');
+  const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
 
   const names = Object.keys(darkBlock.declarations);
   assert(names.length > 0);
@@ -377,7 +377,7 @@ Deno.test("the dark block emits every token the dark document declares", async (
     "default.json",
   );
   const css = generateCss(tree);
-  const darkBlock = blockWithSelector(css, ':root[data-theme="dark"]');
+  const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
   const declared = Object.values(indexTree(darkGroup()).leaves).map((leaf) =>
     // The leaf paths arrive prefixed with `dark`, which is the mode's own
     // namespace rather than part of the property name.
