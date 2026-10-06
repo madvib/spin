@@ -10,8 +10,7 @@
  * spin and Zag would be disagreeing about what an element IS — and the proof
  * would be over.
  *
- * Two decisions carry the behaviour, and both come from the machine rather
- * than from here:
+ * Three decisions carry the behaviour:
  *
  * 1. The toggle lives on the branch CONTROL, which is the whole row rather
  *    than a 12px chevron. Zag routes that click to `BRANCH_NODE.CLICK`, whose
@@ -22,6 +21,10 @@
  *    the DOM, never captured. `connect` closes over a snapshot, so a captured
  *    `expandedValue` is stale forever; the bridge's `api` is a Proxy over a
  *    computed, so a read re-reads and a render inside an `effect` re-runs.
+ * 3. The DOM is built ONCE and re-painted, never rebuilt — see the note on
+ *    `parts` below. It reads like an optimisation and is not one: rebuilding
+ *    on a state change destroys elements between the events that are acting
+ *    on them, and the first click on a branch was swallowed because of it.
  */
 import { collection, connect, machine } from "@zag-js/tree-view";
 import { define, effect } from "@spin/runtime";
@@ -63,8 +66,10 @@ const DATA: TreeNode = {
  * Writes a zag prop bag onto an element.
  *
  * Zag emits attribute names, `on*` handlers, and occasionally a style object.
- * The subtle case is a boolean, because there are two incompatible conventions
- * and one loop cannot treat them alike:
+ * Two cases carry the whole subtlety.
+ *
+ * **Booleans**, because there are two incompatible conventions and one loop
+ * cannot treat them alike:
  *
  * - HTML boolean attributes (`disabled`, `hidden`) are PRESENCE. `false` means
  *   remove the attribute; writing `hidden="false"` leaves the element hidden.
@@ -72,10 +77,22 @@ const DATA: TreeNode = {
  *   required value — a collapsed branch that omits it tells a screen reader
  *   nothing, and `getBranchProps` emits exactly `false` for a closed branch.
  *
- * So `aria-*` is decided by whether the key starts with `aria-`, and the
- * distinction is the whole reason this is not a three-line helper.
+ * So `aria-*` is decided by whether the key starts with `aria-`.
+ *
+ * **Handlers**, because this is called repeatedly on the same element rather
+ * than once at creation. Zag hands out a fresh closure on every `connect`, so
+ * a paint that only ever adds leaves one stale handler per state change. The
+ * element still works, which is what makes it hard to notice — until a single
+ * click fires three of them.
  */
+const bound = new WeakMap<EventTarget, Map<string, EventListener>>();
+
 function apply(el: HTMLElement, props: Record<string, unknown>): void {
+  let handlers = bound.get(el);
+  if (!handlers) {
+    handlers = new Map();
+    bound.set(el, handlers);
+  }
   for (const [key, value] of Object.entries(props)) {
     if (key === "style" && value !== null && typeof value === "object") {
       for (const [name, v] of Object.entries(value as Record<string, unknown>)) {
@@ -85,7 +102,11 @@ function apply(el: HTMLElement, props: Record<string, unknown>): void {
       continue;
     }
     if (key.startsWith("on") && typeof value === "function") {
-      el.addEventListener(key.slice(2).toLowerCase(), value as EventListener);
+      const type = key.slice(2).toLowerCase();
+      const previous = handlers.get(key);
+      if (previous) el.removeEventListener(type, previous);
+      el.addEventListener(type, value as EventListener);
+      handlers.set(key, value as EventListener);
       continue;
     }
     // An absent value removes the attribute in every convention.
@@ -118,24 +139,39 @@ export const treeView = define("tree-view", {
 
     const api = tree.api;
 
-    /** Renders the tree once, reading every machine field as it writes. */
-    const render = (): void => {
-      const root = document.createElement("section");
+    /**
+     * Every element paired with the props it wants, in the order it was built.
+     *
+     * The tree is constructed ONCE and re-painted, never rebuilt. That is not
+     * an optimisation — it is the difference between working and not. Zag's
+     * `getBranchControlProps` emits `onFocus` as well as `onClick`, and focus
+     * fires on mousedown, before click. A rebuild on the focus-driven state
+     * change replaces the button between those two events, so the click lands
+     * on a detached node and is swallowed: the first click on any branch did
+     * nothing, and the second worked, because by then the node was focused and
+     * `NODE.FOCUS` was a no-op. Stable elements, updated props.
+     */
+    const parts: Array<{ el: HTMLElement; props: () => Record<string, unknown> }> = [];
 
-      const label = document.createElement("p");
-      label.textContent = "Repository";
-      apply(label, api.getLabelProps());
-      root.append(label);
+    /** Registers an element and how to ask for its props. Returns the element. */
+    function part<T extends HTMLElement>(element: T, props: () => Record<string, unknown>): T {
+      parts.push({ el: element, props });
+      return element;
+    }
 
-      const list = document.createElement("ul");
-      for (const [index, child] of (DATA.children ?? []).entries()) {
-        list.append(row(child, [index]));
-      }
-      apply(list, api.getTreeProps());
-      root.append(list);
+    const root = document.createElement("section");
 
-      el.replaceChildren(root);
-    };
+    const label = part(document.createElement("p"), () => api.getLabelProps());
+    label.textContent = "Repository";
+    root.append(label);
+
+    const list = part(document.createElement("ul"), () => api.getTreeProps());
+    for (const [index, child] of (DATA.children ?? []).entries()) {
+      list.append(row(child, [index]));
+    }
+    root.append(list);
+
+    el.replaceChildren(root);
 
     /** One node: a branch carries a nested list, a leaf does not. */
     function row(data: TreeNode, indexPath: number[]): HTMLLIElement {
@@ -143,11 +179,10 @@ export const treeView = define("tree-view", {
       const node = api.collection.at(indexPath);
 
       if (!data.children) {
-        const text = document.createElement("span");
+        const text = part(document.createElement("span"), () => api.getItemTextProps({ node, indexPath }));
         text.textContent = data.label;
         li.append(text);
-        apply(li, api.getItemProps({ node, indexPath }));
-        apply(text, api.getItemTextProps({ node, indexPath }));
+        part(li, () => api.getItemProps({ node, indexPath }));
         return li;
       }
 
@@ -158,35 +193,36 @@ export const treeView = define("tree-view", {
       control.type = "button";
       const chevron = document.createElement("span");
       chevron.setAttribute("aria-hidden", "true");
-      const text = document.createElement("span");
+      const text = part(document.createElement("span"), () => api.getBranchTextProps({ node, indexPath }));
       text.textContent = data.label;
       control.append(chevron, text);
       li.append(control);
 
-      apply(li, api.getBranchProps({ node, indexPath }));
-      apply(control, api.getBranchControlProps({ node, indexPath }));
-      apply(chevron, api.getBranchIndicatorProps({ node, indexPath }));
-      apply(text, api.getBranchTextProps({ node, indexPath }));
+      part(li, () => api.getBranchProps({ node, indexPath }));
+      part(control, () => api.getBranchControlProps({ node, indexPath }));
+      part(chevron, () => api.getBranchIndicatorProps({ node, indexPath }));
 
-      const group = document.createElement("ul");
+      const group = part(document.createElement("ul"), () => api.getBranchContentProps({ node, indexPath }));
       for (const [index, child] of data.children.entries()) {
         group.append(row(child, [...indexPath, index]));
       }
       li.append(group);
-      // `hidden` rides on this one attribute, and it is the only thing standing
-      // between a collapsed branch and a fully expanded-looking tree.
-      apply(group, api.getBranchContentProps({ node, indexPath }));
       return li;
     }
 
+    /**
+     * Writes every part's current props. Each thunk reads `machine.api` at the
+     * moment it runs, and `api` is a Proxy over a computed, so a paint inside
+     * an `effect` subscribes to exactly the state the DOM depends on — and a
+     * captured field, which would be stale forever, cannot be written here.
+     */
+    const paint = (): void => {
+      for (const { el: element, props } of parts) apply(element, props());
+    };
+
     // First paint is synchronous and unconditional: an element that renders
     // only when an effect happens to flush is an element that renders late.
-    render();
-
-    // Re-render on every state change. `render` reads `api.expandedValue`
-    // through the live view on each pass, so the effect subscribes to exactly
-    // the machine state the DOM depends on. Capturing that field into a local
-    // before the effect is the bug this arrangement exists to prevent.
-    effect(render);
+    paint();
+    effect(paint);
   },
 });

@@ -1724,9 +1724,15 @@ nav[aria-label="breadcrumb"] li + li::before {
  * Semantic navigation, grouping and disclosure overlays.
  *
  * The contract is the ARIA role, because a role is what a screen reader
- * navigates by. `role="group"` is a set of related controls; `role="search"` is
+ * navigates by. `role="group"` is a set of related CONTROLS; `role="search"` is
  * the same shape with rounded ends; `[data-tooltip]` is a label for something
  * that has no room for a visible one.
+ *
+ * Both halves of that sentence are load-bearing. The role alone is not the
+ * contract, because `role="group"` is generic ARIA — a tree's branch content,
+ * a listbox's option group and a menu section carry it for a set of ITEMS. The
+ * rules below therefore require the group to hold a control, which is what
+ * this primitive means by a group; see the note above them.
  *
  * A group is the one place where a component reaches into another: a joined
  * control has to flatten its children's radii and lift a focused child above
@@ -1778,33 +1784,42 @@ nav[aria-label="breadcrumb"] li + li::before {
 
 /* ---------- group ---------- */
 
-/* A row of related controls that reads as one object. Children drop their own
+/* A row of related CONTROLS that reads as one object. Children drop their own
    corners and their adjacent borders collapse, so the dividers between them
-   read as seams rather than as four separate controls. */
-[role="group"],
+   read as seams rather than as four separate controls.
+
+   The `:has()` guard is load-bearing rather than decorative. `role="group"` is
+   generic ARIA: a tree's branch content, a listbox's option group and a menu
+   section all carry it for a set of ITEMS, and none of them is a row of
+   controls. Keying on the bare role made every one of them a horizontal
+   segmented control — a Zag tree's children laid out in a line rather than a
+   column, which is how this was found. The primitive means a group of
+   controls, so the selector says so and the role keeps meaning what ARIA says
+   it means. */
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])),
 [role="search"] {
   width:100%;display:inline-flex;position:relative;border-radius:var(--radius-md);
   vertical-align: middle;
 }
 
-[role="group"] > *,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *,
 [role="search"] > * {
   flex:1 1 auto;position:relative;border-radius:var(--radius-none);
 }
 
-[role="group"] > :first-child,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :first-child,
 [role="search"] > :first-child {
   border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
-[role="group"] > :last-child,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :last-child,
 [role="search"] > :last-child {
   border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
-[role="group"] > * + *,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > * + *,
 [role="search"] > * + * {
   /* The seam reads the `--border-width` a joined control collapses against
      (button geometry), and no utility emits a logical margin or that token. */
@@ -1812,7 +1827,7 @@ nav[aria-label="breadcrumb"] li + li::before {
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
-[role="group"] > *:focus-visible,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *:focus-visible,
 [role="search"] > *:focus-visible {
   /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
      `toast`. */
@@ -2167,7 +2182,10 @@ progress:indeterminate::-moz-progress-bar {
 .font-sans{font-family:var(--font-family-sans);}
 .text-text{color:var(--color-text);}
 /* layer: reset */
-*, ::before, ::after { box-sizing: border-box; border: 0 solid; }</style>
+*, ::before, ::after { box-sizing: border-box; border: 0 solid; }
+[hidden]:where(:not([aria-hidden="false"])):where(:not([hidden="until-found"])) {
+  display: none !important;
+}</style>
 <style>/*
  * Semantic button.
  *
@@ -3642,9 +3660,15 @@ nav[aria-label="breadcrumb"] li + li::before {
  * Semantic navigation, grouping and disclosure overlays.
  *
  * The contract is the ARIA role, because a role is what a screen reader
- * navigates by. `role="group"` is a set of related controls; `role="search"` is
+ * navigates by. `role="group"` is a set of related CONTROLS; `role="search"` is
  * the same shape with rounded ends; `[data-tooltip]` is a label for something
  * that has no room for a visible one.
+ *
+ * Both halves of that sentence are load-bearing. The role alone is not the
+ * contract, because `role="group"` is generic ARIA — a tree's branch content,
+ * a listbox's option group and a menu section carry it for a set of ITEMS. The
+ * rules below therefore require the group to hold a control, which is what
+ * this primitive means by a group; see the note above them.
  *
  * A group is the one place where a component reaches into another: a joined
  * control has to flatten its children's radii and lift a focused child above
@@ -3696,33 +3720,42 @@ nav[aria-label="breadcrumb"] li + li::before {
 
 /* ---------- group ---------- */
 
-/* A row of related controls that reads as one object. Children drop their own
+/* A row of related CONTROLS that reads as one object. Children drop their own
    corners and their adjacent borders collapse, so the dividers between them
-   read as seams rather than as four separate controls. */
-[role="group"],
+   read as seams rather than as four separate controls.
+
+   The `:has()` guard is load-bearing rather than decorative. `role="group"` is
+   generic ARIA: a tree's branch content, a listbox's option group and a menu
+   section all carry it for a set of ITEMS, and none of them is a row of
+   controls. Keying on the bare role made every one of them a horizontal
+   segmented control — a Zag tree's children laid out in a line rather than a
+   column, which is how this was found. The primitive means a group of
+   controls, so the selector says so and the role keeps meaning what ARIA says
+   it means. */
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])),
 [role="search"] {
   width:100%;display:inline-flex;position:relative;border-radius:var(--radius-md);
   vertical-align: middle;
 }
 
-[role="group"] > *,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *,
 [role="search"] > * {
   flex:1 1 auto;position:relative;border-radius:var(--radius-none);
 }
 
-[role="group"] > :first-child,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :first-child,
 [role="search"] > :first-child {
   border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
-[role="group"] > :last-child,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :last-child,
 [role="search"] > :last-child {
   border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
-[role="group"] > * + *,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > * + *,
 [role="search"] > * + * {
   /* The seam reads the `--border-width` a joined control collapses against
      (button geometry), and no utility emits a logical margin or that token. */
@@ -3730,7 +3763,7 @@ nav[aria-label="breadcrumb"] li + li::before {
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
-[role="group"] > *:focus-visible,
+[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *:focus-visible,
 [role="search"] > *:focus-visible {
   /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
      `toast`. */
@@ -8072,7 +8105,13 @@ var DATA = {
     }
   ]
 };
+var bound = /* @__PURE__ */ new WeakMap();
 function apply(el, props) {
+  let handlers = bound.get(el);
+  if (!handlers) {
+    handlers = /* @__PURE__ */ new Map();
+    bound.set(el, handlers);
+  }
   for (const [key, value] of Object.entries(props)) {
     if (key === "style" && value !== null && typeof value === "object") {
       for (const [name, v] of Object.entries(value)) {
@@ -8082,7 +8121,11 @@ function apply(el, props) {
       continue;
     }
     if (key.startsWith("on") && typeof value === "function") {
-      el.addEventListener(key.slice(2).toLowerCase(), value);
+      const type = key.slice(2).toLowerCase();
+      const previous = handlers.get(key);
+      if (previous) el.removeEventListener(type, previous);
+      el.addEventListener(type, value);
+      handlers.set(key, value);
       continue;
     }
     if (value === void 0 || value === null) {
@@ -8113,34 +8156,37 @@ var treeView = define("tree-view", {
       }
     });
     const api = tree.api;
-    const render = () => {
-      const root = document.createElement("section");
-      const label = document.createElement("p");
-      label.textContent = "Repository";
-      apply(label, api.getLabelProps());
-      root.append(label);
-      const list = document.createElement("ul");
-      for (const [index, child] of (DATA.children ?? []).entries()) {
-        list.append(row(child, [
-          index
-        ]));
-      }
-      apply(list, api.getTreeProps());
-      root.append(list);
-      el.replaceChildren(root);
-    };
+    const parts2 = [];
+    function part(element, props) {
+      parts2.push({
+        el: element,
+        props
+      });
+      return element;
+    }
+    const root = document.createElement("section");
+    const label = part(document.createElement("p"), () => api.getLabelProps());
+    label.textContent = "Repository";
+    root.append(label);
+    const list = part(document.createElement("ul"), () => api.getTreeProps());
+    for (const [index, child] of (DATA.children ?? []).entries()) {
+      list.append(row(child, [
+        index
+      ]));
+    }
+    root.append(list);
+    el.replaceChildren(root);
     function row(data, indexPath) {
       const li = document.createElement("li");
       const node = api.collection.at(indexPath);
       if (!data.children) {
-        const text2 = document.createElement("span");
-        text2.textContent = data.label;
-        li.append(text2);
-        apply(li, api.getItemProps({
+        const text2 = part(document.createElement("span"), () => api.getItemTextProps({
           node,
           indexPath
         }));
-        apply(text2, api.getItemTextProps({
+        text2.textContent = data.label;
+        li.append(text2);
+        part(li, () => api.getItemProps({
           node,
           indexPath
         }));
@@ -8150,27 +8196,29 @@ var treeView = define("tree-view", {
       control.type = "button";
       const chevron = document.createElement("span");
       chevron.setAttribute("aria-hidden", "true");
-      const text = document.createElement("span");
+      const text = part(document.createElement("span"), () => api.getBranchTextProps({
+        node,
+        indexPath
+      }));
       text.textContent = data.label;
       control.append(chevron, text);
       li.append(control);
-      apply(li, api.getBranchProps({
+      part(li, () => api.getBranchProps({
         node,
         indexPath
       }));
-      apply(control, api.getBranchControlProps({
+      part(control, () => api.getBranchControlProps({
         node,
         indexPath
       }));
-      apply(chevron, api.getBranchIndicatorProps({
+      part(chevron, () => api.getBranchIndicatorProps({
         node,
         indexPath
       }));
-      apply(text, api.getBranchTextProps({
+      const group = part(document.createElement("ul"), () => api.getBranchContentProps({
         node,
         indexPath
       }));
-      const group = document.createElement("ul");
       for (const [index, child] of data.children.entries()) {
         group.append(row(child, [
           ...indexPath,
@@ -8178,14 +8226,13 @@ var treeView = define("tree-view", {
         ]));
       }
       li.append(group);
-      apply(group, api.getBranchContentProps({
-        node,
-        indexPath
-      }));
       return li;
     }
-    render();
-    effect(render);
+    const paint = () => {
+      for (const { el: element, props } of parts2) apply(element, props());
+    };
+    paint();
+    effect(paint);
   }
 });
 </script>

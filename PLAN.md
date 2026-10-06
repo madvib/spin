@@ -232,3 +232,46 @@ and ARIA attributes are incompatible conventions: `hidden="false"` leaves the
 element hidden, while `aria-expanded="false"` is a required enumerated value. A
 loop that treats them alike gets one of them wrong silently, and the wrong one
 is the a11y-critical one. That is a real trap for every component we write.
+
+---
+
+## Appendix II: the demo was broken, and two bugs were behind it
+
+Re-verified the Phase 4 gate in a browser rather than trusting the earlier
+screenshot. It rendered and did not work. Two independent bugs, both of which
+the earlier pass had mis-verified:
+
+**1. The first click on any branch was swallowed.** Zag's
+`getBranchControlProps` emits `onFocus` as well as `onClick`, and focus fires on
+mousedown — before click. Our `render()` called `el.replaceChildren(root)` on
+every state change, so the focus-driven re-render replaced the button between
+those two events and the click landed on a detached node. The second click
+worked, because by then the node was focused and `NODE.FOCUS` was a no-op —
+which is exactly why a single-click test passed.
+
+The fix is the rule ark follows and we did not: **build once, update props in
+place, never rebuild.** `apply()` also had to become idempotent for listeners,
+since re-painting an element must replace its handler rather than stack a new
+one per state change.
+
+**2. Collapsed branches were still visible.** `ul[data-part="branch-content"]`
+computed to `display: inline-flex` with `hidden` set. Two causes:
+
+- `role="group"` is generic ARIA. A tree's branch content carries it for a set
+  of *items*; our `[role="group"]` rule claimed it for a *row of controls* and
+  applied `inline-flex`. The tree's children laid out in a line — measured at
+  x = 64, 304, 531 — not a column. Fixed by requiring the group to hold a
+  control, which is what the primitive's own contract always said.
+- An author `display` rule beats the UA `[hidden] { display: none }` rule
+  regardless of specificity, so any of our primitives could resurrect a hidden
+  element. The preset's reset now enforces `[hidden]` with `!important`, with
+  the visually-hidden recipe and `hidden="until-found"` excluded.
+
+Neither bug was a runtime bug. Both were integration bugs that only a real
+browser driving a real machine could surface — which is the argument for the
+demo existing at all.
+
+Verified after both fixes: first click opens, children stack vertically,
+collapse hides, **0 class attributes in the component**, no page errors.
+Primitives 201 pass, runtime 38 pass. The group primitive still resolves a
+segmented control and a search region to `inline-flex`.
