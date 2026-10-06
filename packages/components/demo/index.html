@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>spin · tree-view</title>
+<style>
+  [data-chevron] { position: relative; }
+  [data-chevron]::before {
+    content: ""; position: absolute; inset: 0; margin: auto;
+    width: 6px; height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translate(-1px, -1px) rotate(-45deg);
+    transition: transform 120ms ease;
+  }
+  [data-state="open"] > [data-chevron]::before,
+  [data-chevron][data-state="open"]::before {
+    transform: translate(-1px, -1px) rotate(45deg);
+  }
+</style>
 </head>
 <body class="font-sans text-text bg-surface">
 <main class="max-w-2xl mx-auto p-8">
