@@ -16,32 +16,33 @@
  */
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "@spin/preset";
-import { generatePrimitivesCss } from "@spin/primitives";
+import { starterThemes } from "@spin/theme/themes";
 import { execFile } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 
 const ROOT = new URL("../../", import.meta.url);
 const OUT = new URL("./", import.meta.url);
 
-const THEME = JSON.parse(
-  await readFile(new URL("packages/theme/examples/default/light.json", ROOT), "utf8"),
-);
+// The theme is a document the theme package exports, not a JSON file this demo
+// reads by path. The path was a second source of truth that had to agree with
+// the export, and it stopped agreeing the moment the examples moved.
+const THEMES = { default: starterThemes.default };
 
+// The primitives are the preset's now, not a package beside it: they arrive as
+// preflights on this generator, so the page emits them by asking for a preset
+// rather than by reaching for a second API that had to agree with the first.
+//
 // The page's own chrome is not the component under test, so it asks for the
 // handful of utilities it needs and nothing more. The component below asks for
 // none, because it writes none.
 const uno = await createGenerator({
-  presets: [spinPreset({ themes: { light: THEME } })],
+  presets: [spinPreset({ themes: THEMES })],
 });
 
 const PAGE_CHROME =
   "max-w-2xl mx-auto p-8 font-sans text-text bg-surface min-h-screen";
 
 const { css } = await uno.generate(PAGE_CHROME);
-
-// The primitives ship as CSS and are preflights in the preset too; emitting
-// them directly keeps the page honest about which half of spin styled what.
-const primitives = generatePrimitivesCss();
 
 // The machine ships as a bundle because the browser cannot run a Deno import
 // map. `deno bundle` is the built-in subcommand for that; the source next to
@@ -71,13 +72,12 @@ await new Promise<void>((resolve, reject) => {
 const bundle = await readFile(dist, "utf8");
 
 const html = `<!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="default">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>spin · zag tree-view</title>
 <style>${css}</style>
-<style>${primitives}</style>
 </head>
 <body>
 <main class="${PAGE_CHROME}">
