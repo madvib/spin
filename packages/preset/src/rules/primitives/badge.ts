@@ -12,15 +12,17 @@ import { claim, type Mode } from "./shared.ts";
  *
  * A badge's tones are its own variants — compound selectors on the badge,
  * `badge.badge-tone-primary` — not shared utilities. The palette pair (fill + on)
- * comes from the theme; the quiet form copies the colorimetry of tones.ts
- * quietRule: a border in the tone and an 8% tint of it on the surface.
+ * comes from the theme; the muted form copies the colorimetry of tones.ts
+ * quietRule: a border in the tone and an 8% tint of it on the surface. Badge
+ * says `muted`; the global tones.ts still says `quiet` — alert migrates in
+ * its own pass.
  */
 export function badgeRules(
   roots: readonly string[],
   mode: Mode,
 ): Rule[] {
   if (!roots.includes("badge")) return [];
-  return [badgeBase(mode), ...badgeTones(mode), ...badgeSizes(mode)];
+  return [badgeBase(mode), ...badgeTones(mode), ...badgeSizes(mode), ...badgeClose(mode)];
 }
 
 /** The shared shape every tone keeps: a small inline pill. */
@@ -73,9 +75,9 @@ function badgeBase(mode: Mode): Rule {
  *
  * Each tone is a compound selector on the badge — `badge.badge-tone-primary` —
  * so the tone is the badge's own, not a shared utility. The palette pair
- * (fill + on) comes from the theme; the quiet form copies the colorimetry
+ * (fill + on) comes from the theme; the muted form copies the colorimetry
  * of tones.ts quietRule: a border in the tone and an 8% tint of it on the
- * surface.
+ * surface. Badge says `muted`; the global tones.ts still says `quiet`.
  */
 const TONES: ReadonlyArray<{
   name: string;
@@ -120,9 +122,9 @@ function badgeTones(mode: Mode): Rule[] {
         },
         { layer: "primitives", autocomplete: `badge-tone-${name}` },
       ],
-      // Quiet form
+      // Muted form
       [
-        new RegExp(`^badge-tone-${name}-quiet$`),
+        new RegExp(`^badge-tone-${name}-muted$`),
         function* (_m, ctx) {
           const colors = themeOf(ctx)?.colors;
           const surface = colors?.["surface-raised"] ?? colors?.["surface"];
@@ -132,14 +134,14 @@ function badgeTones(mode: Mode): Rule[] {
             ? colors?.[edge]
             : colors?.[fill];
           yield {
-            [ctx.symbols.selector]: () => `${badge}.badge-tone-${name}-quiet`,
+            [ctx.symbols.selector]: () => `${badge}.badge-tone-${name}-muted`,
             ...(toneColour !== undefined ? { "border-color": toneColour } : {}),
             ...(surface !== undefined
               ? { "background-color": `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})` }
               : {}),
           };
         },
-        { layer: "primitives", autocomplete: `badge-tone-${name}-quiet` },
+        { layer: "primitives", autocomplete: `badge-tone-${name}-muted` },
       ],
     ];
   });
@@ -185,4 +187,33 @@ function badgeSizes(mode: Mode): Rule[] {
     },
     { layer: "primitives", autocomplete: size.name },
   ]) as Rule[];
+}
+
+/**
+ * The badge's close control — a class on a CHILD of the badge, not a variant
+ * on it. An unstyled button that inherits the badge's foreground: no tone
+ * awareness needed, because the tone is already on the badge and this only
+ * carries the glyph.
+ */
+function badgeClose(mode: Mode): Rule[] {
+  const badge = claim(mode, "badge");
+  return [
+    [
+      /^badge-close$/,
+      function* (_m, ctx) {
+        const radiusSm = themeOf(ctx)?.radius?.["sm"];
+        yield {
+          [ctx.symbols.selector]: () => `${badge} .badge-close`,
+          "background-color": "transparent",
+          border: 0,
+          padding: 0,
+          color: "inherit",
+          cursor: "pointer",
+          "line-height": 1,
+          ...(radiusSm !== undefined ? { "border-radius": radiusSm } : {}),
+        };
+      },
+      { layer: "primitives", autocomplete: "badge-close" },
+    ],
+  ];
 }

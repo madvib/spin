@@ -118,14 +118,14 @@ export const FIXTURES: readonly Fixture[] = [
         </div>`,
       },
       {
-        name: "Quiet",
+        name: "Muted",
         html: `<div class="flex flex-wrap gap-2">
-          ${badge("neutral", "badge-tone-neutral-quiet")}
-          ${badge("secondary", "badge-tone-secondary-quiet")}
-          ${badge("accent", "badge-tone-accent-quiet")}
-          ${badge("success", "badge-tone-success-quiet")}
-          ${badge("warning", "badge-tone-warning-quiet")}
-          ${badge("danger", "badge-tone-danger-quiet")}
+          ${badge("neutral", "badge-tone-neutral-muted")}
+          ${badge("secondary", "badge-tone-secondary-muted")}
+          ${badge("accent", "badge-tone-accent-muted")}
+          ${badge("success", "badge-tone-success-muted")}
+          ${badge("warning", "badge-tone-warning-muted")}
+          ${badge("danger", "badge-tone-danger-muted")}
         </div>`,
       },
       {
@@ -137,8 +137,8 @@ export const FIXTURES: readonly Fixture[] = [
       {
         name: "With a remove action",
         html: `<div class="flex flex-wrap gap-2">
-          <badge>Item <button type="button" aria-label="remove">×</button></badge>
-          <badge class="badge-tone-accent">Tag <button type="button" aria-label="remove">×</button></badge>
+          <badge>Item <button class="badge-close" aria-label="remove">×</button></badge>
+          <badge class="badge-tone-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>
         </div>`,
       },
     ],

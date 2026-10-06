@@ -47,3 +47,37 @@ export const typeExtractor: Extractor = {
       .map((match) => match[1] as string);
   },
 };
+
+/**
+ * `variant="…"` values as tokens, paired with their element.
+ *
+ * The element extractor turns `<badge variant="primary">` into `badge`, but
+ * the variant value itself is invisible — no rule can key on it. This
+ * extractor pairs each `variant` value with its element, emitting both the
+ * compound `badge-primary` and the bare `primary`.
+ *
+ * The bare form hits rules that already key on bare values — button's
+ * `s-sm`/`s-lg` sizes, the `tone-*` utilities — so `<button variant="s-sm">`
+ * and `<button class="s-sm">` are the same thing to the generator. The
+ * compound form is available for component-scoped rules that want to key on
+ * the element without colliding with a bare utility of the same name.
+ *
+ * Collision caveat: when a bare value and a compound value both match
+ * different rules, uno keeps the FIRST rule that matches a token. The bare
+ * form is emitted first, so a bare key wins over a compound key when both
+ * exist. This is the right default — a shared utility should win over a
+ * component-scoped rule — but it means a component cannot override a shared
+ * utility by emitting a compound with the same suffix.
+ */
+export const variantExtractor: Extractor = {
+  name: "spin/variant",
+  order: 0,
+    extract({ code }) {
+      return [...code.matchAll(/<([a-z][a-z0-9-]*)[^>]*\svariant=["']([^"']*)["']/g)]
+      .flatMap((match) => {
+        const element = match[1] as string;
+        const values = (match[2] as string).split(/\s+/).filter(Boolean);
+        return values.flatMap((value) => [value, `${element}-${value}`]);
+      });
+    },
+  };

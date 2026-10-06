@@ -34,7 +34,7 @@ ${
               data-markup="${
             esc(e.html.trim())
           }">markup <span data-caret>&#9656;</span></button>
-      <button class="${CHROME.copy}" type="button"
+      <button class="${CHROME.copy}" type="button" data-copy
               data-markup="${
             esc(e.html.trim())
           }">copy</button>
@@ -248,12 +248,14 @@ for (const b of document.querySelectorAll("[data-mode-set]")) {
         ${onloads}
 for (const b of document.querySelectorAll(".reveal")) {
   b.addEventListener("click", () => {
-    const pre = b.nextElementSibling;
+    // The copy button sits between the toggle and the block, so the block
+    // is found in the section rather than as the next sibling.
+    const pre = b.closest("section")?.querySelector("pre");
     const caret = b.querySelector("[data-caret]");
     const open = b.getAttribute("aria-expanded") === "true";
     b.setAttribute("aria-expanded", String(!open));
     if (caret) caret.textContent = open ? "▸" : "▾";
-    pre.hidden = open;
+    if (pre) pre.hidden = open;
   });
 }
 for (const b of document.querySelectorAll("[data-copy]")) {

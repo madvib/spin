@@ -358,3 +358,31 @@ Deno.test("the motion clamp ships whenever an animated component does", async ()
     "the motion clamp must ship alongside it",
   );
 });
+
+Deno.test("a badge with no badge group in the theme renders from global tokens", async () => {
+  // Breaks if the badge rule stops falling back to global tokens when the
+  // theme has no badge group — the badge would emit no border-radius,
+  // font-size, or padding, rendering as an unstyled element.
+  const { badge: _omit, ...themeWithoutBadge } = theme;
+  const result = await generate("<badge>New</badge>", {
+    themes: { light: themeWithoutBadge },
+  });
+  const info = result.matched.get("badge");
+  assert(
+    info !== undefined && info.data.length > 0,
+    "the badge must still match and emit rules without a badge group",
+  );
+  const decls = declarations(bodyFor(result, "badge"));
+  assert(
+    "border-radius" in decls,
+    "border-radius must come from the global radius token",
+  );
+  assert(
+    "font-size" in decls,
+    "font-size must come from the global font-size token",
+  );
+  assert(
+    "padding-inline-start" in decls || "padding-block-start" in decls,
+    "padding must come from the global spacing token",
+  );
+});

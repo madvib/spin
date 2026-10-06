@@ -31,7 +31,7 @@ import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { spinShortcuts } from "./shortcuts.ts";
-import { elementExtractor, typeExtractor } from "./extractors.ts";
+import { elementExtractor, typeExtractor, variantExtractor } from "./extractors.ts";
 import { themeRef } from "@spin/theme";
 import { wind4Layers, type Wind4Options } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
@@ -205,7 +205,7 @@ const factory = definePreset(
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.
-      extractors: [elementExtractor, typeExtractor],
+      extractors: [elementExtractor, typeExtractor, variantExtractor],
       // Ours first. Uno keeps the first rule that MATCHES a token, and dynamic
       // rules are `unshift`ed onto the match list as they register — so
       // among dynamic rules the LAST registered is tried first. Ours first

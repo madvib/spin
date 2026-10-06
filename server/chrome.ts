@@ -82,7 +82,7 @@ export const CHROME = {
   rendered:
     "rounded-md border border-dashed border-solid border-border bg-surface-raised p-4",
   reveal:
-    "mt-2 inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text",
+    "reveal mt-2 inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text",
   copy:
     "inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text",
   panel: "mb-8 rounded-lg border border-solid border-border bg-surface p-4",
