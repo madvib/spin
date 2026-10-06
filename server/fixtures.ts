@@ -111,34 +111,50 @@ export const FIXTURES: readonly Fixture[] = [
       {
         name: "Variants",
         html: `<div class="flex flex-wrap gap-2">
-          ${badge("default")}${badge("primary", "badge-tone-primary")}
-          ${badge("neutral", "badge-tone-neutral")}${badge("secondary", "badge-tone-secondary")}
-          ${badge("accent", "badge-tone-accent")}${badge("success", "badge-tone-success")}
-          ${badge("warning", "badge-tone-warning")}${badge("danger", "badge-tone-danger")}
+          ${badge("default")}${badge("primary", "badge-primary")}
+          ${badge("neutral", "badge-neutral")}${badge("secondary", "badge-secondary")}
+          ${badge("accent", "badge-accent")}${badge("success", "badge-success")}
+          ${badge("warning", "badge-warning")}${badge("danger", "badge-danger")}
         </div>`,
       },
       {
         name: "Muted",
         html: `<div class="flex flex-wrap gap-2">
-          ${badge("neutral", "badge-tone-neutral-muted")}
-          ${badge("secondary", "badge-tone-secondary-muted")}
-          ${badge("accent", "badge-tone-accent-muted")}
-          ${badge("success", "badge-tone-success-muted")}
-          ${badge("warning", "badge-tone-warning-muted")}
-          ${badge("danger", "badge-tone-danger-muted")}
+          ${badge("neutral", "badge-neutral-muted")}
+          ${badge("secondary", "badge-secondary-muted")}
+          ${badge("accent", "badge-accent-muted")}
+          ${badge("success", "badge-success-muted")}
+          ${badge("warning", "badge-warning-muted")}
+          ${badge("danger", "badge-danger-muted")}
+        </div>`,
+      },
+      {
+        name: "Sizes",
+        html: `<div class="flex flex-wrap gap-2">
+          <badge class="badge-sm">small</badge>
+          <badge>medium</badge>
+          <badge class="badge-lg">large</badge>
+        </div>`,
+      },
+      {
+        name: "By variant attribute",
+        html: `<div class="flex flex-wrap gap-2">
+          <badge variant="primary">primary</badge>
+          <badge variant="danger-muted">danger muted</badge>
+          <badge variant="sm">small</badge>
         </div>`,
       },
       {
         name: "With content",
         html: `<div>
-          ${badge("New")}${badge("3 items", "badge-tone-accent")}
+          ${badge("New")}${badge("3 items", "badge-accent")}
         </div>`,
       },
       {
         name: "With a remove action",
         html: `<div class="flex flex-wrap gap-2">
           <badge>Item <button class="badge-close" aria-label="remove">×</button></badge>
-          <badge class="badge-tone-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>
+          <badge class="badge-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>
         </div>`,
       },
     ],

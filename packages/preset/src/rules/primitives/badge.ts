@@ -11,7 +11,7 @@ import { claim, type Mode } from "./shared.ts";
  * base.
  *
  * A badge's tones are its own variants — compound selectors on the badge,
- * `badge.badge-tone-primary` — not shared utilities. The palette pair (fill + on)
+ * `badge.badge-primary` — not shared utilities. The palette pair (fill + on)
  * comes from the theme; the muted form copies the colorimetry of tones.ts
  * quietRule: a border in the tone and an 8% tint of it on the surface. Badge
  * says `muted`; the global tones.ts still says `quiet` — alert migrates in
@@ -73,7 +73,7 @@ function badgeBase(mode: Mode): Rule {
 /**
  * The tones a badge carries, as its own variants.
  *
- * Each tone is a compound selector on the badge — `badge.badge-tone-primary` —
+ * Each tone is a compound selector on the badge — `badge.badge-primary` —
  * so the tone is the badge's own, not a shared utility. The palette pair
  * (fill + on) comes from the theme; the muted form copies the colorimetry
  * of tones.ts quietRule: a border in the tone and an 8% tint of it on the
@@ -99,18 +99,22 @@ function badgeTones(mode: Mode): Rule[] {
   return TONES.flatMap((tone) => {
     const { name, fill, on, edge } = tone;
     return [
-      // Fill form. Keyed `badge-tone-*`: bare `tone-*` keys belong to the
+      // Fill form. Keyed `badge-*`: bare `tone-*` keys belong to the
       // shared utilities, and uno keeps only the first rule matching a
       // token — a bare key here would shadow (or lose to) the utility.
       [
-        new RegExp(`^badge-tone-${name}$`),
+        new RegExp(`^badge-${name}$`),
         function* (_m, ctx) {
           const colors = themeOf(ctx)?.colors;
           const bg = colors?.[fill];
           const fg = colors?.[on];
           const edgeColor = edge !== undefined ? colors?.[edge] : undefined;
+          // Both syntaxes: `class="badge-primary"` and `variant="primary"`.
+          // The variant extractor emits the compound token so the rule
+          // fires; the attribute selector matches the element that carries
+          // no class. Either authoring produces this declaration block.
           yield {
-            [ctx.symbols.selector]: () => `${badge}.badge-tone-${name}`,
+            [ctx.symbols.selector]: () => `${badge}.badge-${name}, ${badge}[variant~="${name}"]`,
             ...(bg !== undefined ? { "background-color": bg } : {}),
             ...(fg !== undefined ? { color: fg } : {}),
             // Neutral's edge IS the tone — same surface, a border the
@@ -120,11 +124,11 @@ function badgeTones(mode: Mode): Rule[] {
               : {}),
           };
         },
-        { layer: "primitives", autocomplete: `badge-tone-${name}` },
+        { layer: "primitives", autocomplete: `badge-${name}` },
       ],
       // Muted form
       [
-        new RegExp(`^badge-tone-${name}-muted$`),
+        new RegExp(`^badge-${name}-muted$`),
         function* (_m, ctx) {
           const colors = themeOf(ctx)?.colors;
           const surface = colors?.["surface-raised"] ?? colors?.["surface"];
@@ -134,14 +138,14 @@ function badgeTones(mode: Mode): Rule[] {
             ? colors?.[edge]
             : colors?.[fill];
           yield {
-            [ctx.symbols.selector]: () => `${badge}.badge-tone-${name}-muted`,
+            [ctx.symbols.selector]: () => `${badge}.badge-${name}-muted, ${badge}[variant~="${name}-muted"]`,
             ...(toneColour !== undefined ? { "border-color": toneColour } : {}),
             ...(surface !== undefined
               ? { "background-color": `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})` }
               : {}),
           };
         },
-        { layer: "primitives", autocomplete: `badge-tone-${name}-muted` },
+        { layer: "primitives", autocomplete: `badge-${name}-muted` },
       ],
     ];
   });
@@ -156,12 +160,13 @@ function badgeSizes(mode: Mode): Rule[] {
   const badge = claim(mode, "badge");
   const SIZES: ReadonlyArray<{
     name: string;
+    short: string;
     fontSize: string;
     spacingInline: string;
     spacingBlock: string;
   }> = [
-    { name: "s-sm", fontSize: "xs", spacingInline: "1", spacingBlock: "1" },
-    { name: "s-lg", fontSize: "sm", spacingInline: "4", spacingBlock: "2" },
+    { name: "badge-sm", short: "sm", fontSize: "xs", spacingInline: "1", spacingBlock: "1" },
+    { name: "badge-lg", short: "lg", fontSize: "sm", spacingInline: "4", spacingBlock: "2" },
   ];
   return SIZES.map((size) => [
     new RegExp(`^${size.name}$`),
@@ -172,7 +177,7 @@ function badgeSizes(mode: Mode): Rule[] {
       const spacingBlock = t?.spacing[size.spacingBlock];
       const borderWidth = t?.borderWidth?.["width"];
       yield {
-        [ctx.symbols.selector]: () => `${badge}.${size.name}`,
+        [ctx.symbols.selector]: () => `${badge}.${size.name}, ${badge}[variant~="${size.short}"]`,
         ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
         ...(spacingInline !== undefined
           ? { "padding-inline-start": spacingInline, "padding-inline-end": spacingInline }
