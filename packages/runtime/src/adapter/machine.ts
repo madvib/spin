@@ -42,27 +42,30 @@ import type {
   ValueOrFn,
 } from "@zag-js/core";
 import { callAll, compact, ensure, isEqual, isFunction, isString, toArray, warn } from "@zag-js/utils";
-import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "./signal.ts";
+import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../signal.ts";
+import { createBindable } from "./bindable.ts";
+import { normalizeProps } from "./normalize-props.ts";
+
+/** Props as a plain record, or as a getter so an element can drive them. */
+export { normalizeProps };
 
 /** Props as a plain record, or as a getter so an element can drive them. */
 export type Props = Record<string, unknown> | (() => Record<string, unknown>);
 
-/**
- * What a component's `connect` does with the props zag hands it.
- *
- * Zag's bindings get this from their framework package. The default answers
- * for every key a component reaches for — `element`, `style`, `button`,
- * `label` — which is the same trick zag's own `createNormalizer` plays, and for
- * a DOM target passthrough is the correct answer.
- */
-export type Normalize = Record<string, (props: Record<string, unknown>) => Record<string, unknown>>;
+/** What `connect` takes. Zag's React-shaped names are mapped to DOM names. */
+export type Normalize = typeof normalizeProps;
 
-const passthrough = (props: Record<string, unknown>): Record<string, unknown> => props;
+/** A function, or the value it produces. Zag reads both shapes. */
+type Accessor = () => unknown;
 
-/** The default normalizer: every key returns the props it was handed. */
-export const domNormalize: Normalize = new Proxy({} as Normalize, {
-  get: () => passthrough,
-});
+function isAccessor(value: unknown): value is Accessor {
+  return typeof value === "function";
+}
+
+function readProps(props: Props | undefined): Record<string, unknown> {
+  if (props === undefined) return {};
+  return (isAccessor(props) ? props() : props) as Record<string, unknown>;
+}
 
 /**
  * The schema the interpreter runs against.
@@ -104,7 +107,7 @@ export interface MachineOptions<T extends MachineSchema, TApi extends object> {
   connect: (service: Service<T>, normalize: never) => TApi;
   /** Props for the machine. A getter makes them live. */
   props?: Props;
-  /** Overrides {@link domNormalize}, for a component that needs a real one. */
+  /** Overrides the default normalizer. */
   normalize?: Normalize;
   /** Owns the machine. Defaults to a fresh scope the caller then disposes. */
   scope?: OwnerScope;
@@ -131,66 +134,6 @@ export interface MachineBridge<T extends MachineSchema, TApi extends object> {
   readonly scope: OwnerScope;
   /** Tears down everything the machine created. Idempotent. */
   dispose(): void;
-}
-
-/** A function, or the value it produces. Zag reads both shapes. */
-type Accessor = () => unknown;
-
-function isAccessor(value: unknown): value is Accessor {
-  return typeof value === "function";
-}
-
-function readProps(props: Props | undefined): Record<string, unknown> {
-  if (props === undefined) return {};
-  return (isAccessor(props) ? props() : props) as Record<string, unknown>;
-}
-
-/**
- * A bindable over one alien signal.
- *
- * `params` is a getter, not a value, because a controlled prop can change
- * mid-flight: `get` re-reads it on every access, so a machine under a
- * controlled `value` follows its owner without being told anything.
- */
-function createBindable<TValue>(
-  params: () => BindableParams<TValue>,
-  register: (dispose: VoidFunction) => void,
-): Bindable<TValue> {
-  const first = params();
-  const initial = (first.value ?? first.defaultValue) as TValue;
-  const inner = signal<TValue>(initial);
-  const ref = { current: initial };
-
-  function controlled(): boolean {
-    return params().value !== undefined;
-  }
-
-  function get(): TValue {
-    const value = controlled() ? params().value : inner();
-    return (isFunction(value) ? value() : value) as TValue;
-  }
-
-  function set(value: ValueOrFn<TValue>): void {
-    const previous = get();
-    const next = isFunction(value) ? value(previous) : value;
-    if (!controlled()) inner(next);
-    const equal = params().isEqual ?? Object.is;
-    if (!equal(next, previous)) params().onChange?.(next, previous);
-    ref.current = next;
-  }
-
-  return {
-    initial,
-    ref,
-    get,
-    set,
-    invoke(next, previous) {
-      params().onChange?.(next, previous);
-    },
-    hash(value) {
-      return params().hash?.(value) ?? String(value);
-    },
-  };
 }
 
 /**
@@ -539,7 +482,7 @@ export function createMachine<T extends MachineSchema, TApi extends object>(
     ),
   ) as unknown as Service<T>;
 
-  const normalize = options.normalize ?? domNormalize;
+  const normalize = options.normalize ?? normalizeProps;
   // The one cast in this file that is not about Zag's schema widening: each
   // component declares its own normalizer type and `connect` takes it as
   // `never`. What we hand it is a passthrough unless the component overrode it.

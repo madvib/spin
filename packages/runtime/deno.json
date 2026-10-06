@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "exports": {
     ".": "./src/index.ts",
-    "./zag": "./src/zag.ts",
+    "./zag": "./src/adapter/index.ts",
     "./element": "./src/element.ts",
-    "./testing": "./src/testing.ts"
+    "./testing": "./src/testing.ts",
+    "./adapter": "./src/adapter/index.ts"
   },
   "imports": {
     "@spin/runtime": "./src/index.ts",
-    "@spin/runtime/zag": "./src/zag.ts",
+    "@spin/runtime/zag": "./src/adapter/index.ts",
     "@spin/runtime/element": "./src/element.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "alien-signals": "npm:alien-signals@^3.2.1",
@@ -17,7 +18,9 @@
     "@zag-js/utils": "npm:@zag-js/utils@~1.44.0",
     "@zag-js/accordion": "npm:@zag-js/accordion@~1.44.0",
     "@spin/runtime/testing": "./src/testing.ts",
-    "linkedom": "npm:linkedom@^0.18.0"
+    "linkedom": "npm:linkedom@^0.18.0",
+    "@spin/runtime/adapter": "./src/adapter/index.ts",
+    "@zag-js/types": "npm:@zag-js/types@~1.44.0"
   },
   "tasks": {
     "test": "deno test --config deno.test.json --allow-read --allow-import src/",

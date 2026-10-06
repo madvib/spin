@@ -1,7 +1,7 @@
 /** Zag tree-view as semantic tags the preset already styles. */
 import { collection, connect, machine } from "@zag-js/tree-view";
 import { define, effect } from "@spin/runtime";
-import { createMachine } from "@spin/runtime/zag";
+import { createMachine, spreadProps } from "@spin/runtime/zag";
 
 /** The tree, in the shape zag's collection reads. */
 interface TreeNode {
@@ -35,49 +35,7 @@ const DATA: TreeNode = {
   ],
 };
 
-/**
- * Writes a zag prop bag onto an element.
- *
- * `aria-*` booleans are enumerated strings, not presence: `aria-expanded="false"`
- * is a required value. Every other boolean is presence. Handlers replace rather
- * than stack, because this runs on every paint.
- */
-const bound = new WeakMap<EventTarget, Map<string, EventListener>>();
 
-function apply(el: HTMLElement, props: Record<string, unknown>): void {
-  let handlers = bound.get(el);
-  if (!handlers) {
-    handlers = new Map();
-    bound.set(el, handlers);
-  }
-  for (const [key, value] of Object.entries(props)) {
-    if (key === "style" && value !== null && typeof value === "object") {
-      for (const [name, v] of Object.entries(value as Record<string, unknown>)) {
-        if (v === undefined || v === null) el.style.removeProperty(name);
-        else el.style.setProperty(name, String(v));
-      }
-      continue;
-    }
-    if (key.startsWith("on") && typeof value === "function") {
-      const type = key.slice(2).toLowerCase();
-      const previous = handlers.get(key);
-      if (previous) el.removeEventListener(type, previous);
-      el.addEventListener(type, value as EventListener);
-      handlers.set(key, value as EventListener);
-      continue;
-    }
-    // An absent value removes the attribute in every convention.
-    if (value === undefined || value === null) {
-      el.removeAttribute(key);
-    } else if (typeof value === "boolean") {
-      if (key.startsWith("aria-")) el.setAttribute(key, String(value));
-      else if (value) el.setAttribute(key, "");
-      else el.removeAttribute(key);
-    } else {
-      el.setAttribute(key, String(value));
-    }
-  }
-}
 
 export const treeView = define("tree-view", {
   build({ el, scope }) {
@@ -168,7 +126,7 @@ export const treeView = define("tree-view", {
      * captured field, which would be stale forever, cannot be written here.
      */
     const paint = (): void => {
-      for (const { el: element, props } of parts) apply(element, props());
+      for (const { el: element, props } of parts) spreadProps(element, props());
     };
 
     // First paint is synchronous and unconditional: an element that renders

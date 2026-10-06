@@ -1,0 +1,16 @@
+{
+  "name": "@spin/components-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@unocss/core": "66.10.5",
+    "@unocss/vite": "66.10.5",
+    "vite": "^8.0.0"
+  }
+}

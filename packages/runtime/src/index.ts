@@ -18,9 +18,8 @@ export { define, type AttributeParser, type BuildContext, type ElementSpec } fro
 // ships no runner, so this module carries an interpreter.
 export {
   createMachine,
-  domNormalize,
+  normalizeProps,
   type MachineBridge,
   type MachineOptions,
-  type Normalize,
   type Props as MachineProps,
-} from "./zag.ts";
+} from "./adapter/index.ts";
