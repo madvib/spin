@@ -103,23 +103,69 @@ enrolled on the surrounding scope, so the action tears down with the component.
 ## `on:` — events
 
 ```ts
-type Modifier =
-  | { kind: "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
-      | "self" | "trusted" | "key" | "debounce" | "throttle"; arg?: string }
-interface OnOptions {
-  modifiers?: Modifier[]
-  capture?: boolean
-  passive?: boolean
-  once?: boolean
-}
-function on(el: EventTarget, event: string, handler: (e: Event) => unknown, opts?: OnOptions): Disposer
+function on<E extends Event = Event>(
+  el: EventTarget,
+  event: string,
+  handler: (e: E) => void,
+): () => void
 ```
 
-`on()` attaches a real listener immediately and returns a `Disposer` that
-removes it and cancels pending debounce/throttle timers. It does **not**
-self-enroll — the caller pushes the disposer onto the scope. That asymmetry
-with `runAction` is deliberate: an event handler is often registered and
-removed by something that is not an effect.
+**No modifiers.** `on:click|preventDefault` was in an earlier draft of this
+document, lifted from a different Sail. The runtime we are actually built
+from removed modifiers on purpose:
+
+> An author who needs to stop propagation writes `e.stopPropagation()`, which
+> says what it means and composes with whatever else they do there. A modifier
+> is the framework guessing, in a fixed vocabulary, what you would have
+> written — and the vocabulary is always one short.
+
+That reasoning holds here. A modifier list is a second language for things the
+event object already expresses, and it is always missing the case somebody
+needs.
+
+The handler is attached directly and the returned function removes it. A
+handler that throws is caught and reported to the boundary that was rendering
+when it was attached — captured then, not at fire time, because by the time
+the user clicks the component has finished rendering and the stack it
+registered on is empty.
+
+## A machine is an action
+
+```ts
+function useMachine<S, C>(
+  create: (options: C) => MachineService<S>,
+  connect: (service: MachineService<S>) => MachineApi<S>,
+  options: () => C,
+): (state: Signal<S>) => ElementAction<C>
+```
+
+A component writes `use:tree` and learns nothing else. Whether the thing
+behind it is a Zag machine, a hand-written reducer, or nothing at all is the
+action's business, and it can change without a component changing.
+
+That is why the machine is **not** spread into the DOM by the component. A
+component that calls `getPartProps()` and applies the result has made the
+machine the centre of the component; the action boundary puts it back where
+it belongs, as one thing an element uses.
+
+The bridge is one line and it is the whole trick: **a machine's state is not
+a signal, so the machine pushes into one.** Everything downstream — bindings,
+control flow, the parts a template registered — then behaves exactly as it
+does for any other state, and no part of the runtime needs to know a machine
+exists.
+
+Two constraints that are not obvious until they bite:
+
+- **The API is built in the action's factory, not its body.** A template
+  renders before any action runs, so an action that publishes on attach
+  leaves the first render reading `undefined` and the component fails on load.
+  The action still owns the machine's lifetime; the construction just moves.
+- **Zag's `connect` reads the context once and closes over it**, so its
+  top-level fields are snapshots. Zag's *methods* are already live, because
+  they are `computed(...)` and re-evaluate. So the connect is re-made per
+  read, a field becomes a reader, and a method is applied to a fresh connect
+  rather than handed back from a captured one — which is the same defect one
+  level down.
 
 ## `bind:` — data
 

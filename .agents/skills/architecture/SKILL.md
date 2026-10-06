@@ -46,17 +46,23 @@ runtime is what those directives compile to.
 | directive | ABI call | owns |
 |---|---|---|
 | `use:action` | `runAction(node, action, paramThunk?)` | element → behaviour |
-| `on:event\|modifier={fn}` | `on(el, event, handler, opts)` | event + modifiers |
+| `on:event={fn}` | `on(el, event, handler)` — no modifiers | event |
 | `bind:name={expr}` | `bindValue` / `bindChecked` / `bindAttr` | two-way state |
 | `{expr}` | `bindText(node, () => expr)` | interpolation |
 | `<if cond={}>` | `bindIf({ anchor, test, branches })` | branch swap |
 | `<for as of key={}>` | `bindFor({ anchor, items, key, render })` | keyed list |
-| props | `defineComponent(tag, schema, factory)` | host boundary |
+| props | `define(tag, spec)` — a host sets properties | host boundary |
+
+**A machine is an action.** `use:tree` — the element learns a name, and
+whether a Zag machine is behind it is the action's business. The bridge is
+that the machine pushes its state into a signal, so nothing downstream knows
+a machine exists. A component that spreads a prop bag has made the machine
+the centre of the component; the action boundary puts it back.
 
 The runtime is a **compilation target**, so this table is an **ABI**: curated,
 frozen, and shaped by what is convenient to emit rather than by what is
-pleasant to call. It has two producers — the template compiler, and the Zag
-bridge, whose prop bags are already a binding program. See
+pleasant to call. Its two producers are the template compiler and the Zag
+adapter, and both go through the same actions and bindings. See
 [runtime.md](runtime.md).
 
 ## The components package
