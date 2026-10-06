@@ -1724,15 +1724,9 @@ nav[aria-label="breadcrumb"] li + li::before {
  * Semantic navigation, grouping and disclosure overlays.
  *
  * The contract is the ARIA role, because a role is what a screen reader
- * navigates by. `role="group"` is a set of related CONTROLS; `role="search"` is
+ * navigates by. `role="group"` is a set of related controls; `role="search"` is
  * the same shape with rounded ends; `[data-tooltip]` is a label for something
  * that has no room for a visible one.
- *
- * Both halves of that sentence are load-bearing. The role alone is not the
- * contract, because `role="group"` is generic ARIA — a tree's branch content,
- * a listbox's option group and a menu section carry it for a set of ITEMS. The
- * rules below therefore require the group to hold a control, which is what
- * this primitive means by a group; see the note above them.
  *
  * A group is the one place where a component reaches into another: a joined
  * control has to flatten its children's radii and lift a focused child above
@@ -1784,42 +1778,33 @@ nav[aria-label="breadcrumb"] li + li::before {
 
 /* ---------- group ---------- */
 
-/* A row of related CONTROLS that reads as one object. Children drop their own
+/* A row of related controls that reads as one object. Children drop their own
    corners and their adjacent borders collapse, so the dividers between them
-   read as seams rather than as four separate controls.
-
-   The `:has()` guard is load-bearing rather than decorative. `role="group"` is
-   generic ARIA: a tree's branch content, a listbox's option group and a menu
-   section all carry it for a set of ITEMS, and none of them is a row of
-   controls. Keying on the bare role made every one of them a horizontal
-   segmented control — a Zag tree's children laid out in a line rather than a
-   column, which is how this was found. The primitive means a group of
-   controls, so the selector says so and the role keeps meaning what ARIA says
-   it means. */
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])),
+   read as seams rather than as four separate controls. */
+[role="group"],
 [role="search"] {
   width:100%;display:inline-flex;position:relative;border-radius:var(--radius-md);
   vertical-align: middle;
 }
 
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *,
+[role="group"] > *,
 [role="search"] > * {
   flex:1 1 auto;position:relative;border-radius:var(--radius-none);
 }
 
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :first-child,
+[role="group"] > :first-child,
 [role="search"] > :first-child {
   border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :last-child,
+[role="group"] > :last-child,
 [role="search"] > :last-child {
   border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > * + *,
+[role="group"] > * + *,
 [role="search"] > * + * {
   /* The seam reads the `--border-width` a joined control collapses against
      (button geometry), and no utility emits a logical margin or that token. */
@@ -1827,7 +1812,7 @@ nav[aria-label="breadcrumb"] li + li::before {
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *:focus-visible,
+[role="group"] > *:focus-visible,
 [role="search"] > *:focus-visible {
   /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
      `toast`. */
@@ -2182,10 +2167,7 @@ progress:indeterminate::-moz-progress-bar {
 .font-sans{font-family:var(--font-family-sans);}
 .text-text{color:var(--color-text);}
 /* layer: reset */
-*, ::before, ::after { box-sizing: border-box; border: 0 solid; }
-[hidden]:where(:not([aria-hidden="false"])):where(:not([hidden="until-found"])) {
-  display: none !important;
-}</style>
+*, ::before, ::after { box-sizing: border-box; border: 0 solid; }</style>
 <style>/*
  * Semantic button.
  *
@@ -3660,15 +3642,9 @@ nav[aria-label="breadcrumb"] li + li::before {
  * Semantic navigation, grouping and disclosure overlays.
  *
  * The contract is the ARIA role, because a role is what a screen reader
- * navigates by. `role="group"` is a set of related CONTROLS; `role="search"` is
+ * navigates by. `role="group"` is a set of related controls; `role="search"` is
  * the same shape with rounded ends; `[data-tooltip]` is a label for something
  * that has no room for a visible one.
- *
- * Both halves of that sentence are load-bearing. The role alone is not the
- * contract, because `role="group"` is generic ARIA — a tree's branch content,
- * a listbox's option group and a menu section carry it for a set of ITEMS. The
- * rules below therefore require the group to hold a control, which is what
- * this primitive means by a group; see the note above them.
  *
  * A group is the one place where a component reaches into another: a joined
  * control has to flatten its children's radii and lift a focused child above
@@ -3720,42 +3696,33 @@ nav[aria-label="breadcrumb"] li + li::before {
 
 /* ---------- group ---------- */
 
-/* A row of related CONTROLS that reads as one object. Children drop their own
+/* A row of related controls that reads as one object. Children drop their own
    corners and their adjacent borders collapse, so the dividers between them
-   read as seams rather than as four separate controls.
-
-   The `:has()` guard is load-bearing rather than decorative. `role="group"` is
-   generic ARIA: a tree's branch content, a listbox's option group and a menu
-   section all carry it for a set of ITEMS, and none of them is a row of
-   controls. Keying on the bare role made every one of them a horizontal
-   segmented control — a Zag tree's children laid out in a line rather than a
-   column, which is how this was found. The primitive means a group of
-   controls, so the selector says so and the role keeps meaning what ARIA says
-   it means. */
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])),
+   read as seams rather than as four separate controls. */
+[role="group"],
 [role="search"] {
   width:100%;display:inline-flex;position:relative;border-radius:var(--radius-md);
   vertical-align: middle;
 }
 
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *,
+[role="group"] > *,
 [role="search"] > * {
   flex:1 1 auto;position:relative;border-radius:var(--radius-none);
 }
 
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :first-child,
+[role="group"] > :first-child,
 [role="search"] > :first-child {
   border-start-start-radius:var(--radius-md);border-end-start-radius:var(--radius-md);
 }
 
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > :last-child,
+[role="group"] > :last-child,
 [role="search"] > :last-child {
   border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md);
 }
 
 /* The collapse is the group's own border width, so a theme that thickens its
    borders thickens the seam by the same amount. */
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > * + *,
+[role="group"] > * + *,
 [role="search"] > * + * {
   /* The seam reads the `--border-width` a joined control collapses against
      (button geometry), and no utility emits a logical margin or that token. */
@@ -3763,7 +3730,7 @@ nav[aria-label="breadcrumb"] li + li::before {
 }
 
 /* A focus ring has to sit above its neighbours or the seam cuts through it. */
-[role="group"]:has(> :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"], input, select, textarea, a[href])) > *:focus-visible,
+[role="group"] > *:focus-visible,
 [role="search"] > *:focus-visible {
   /* No `z-*` utility for 1: the scale steps are `base`, `dropdown`, `modal`,
      `toast`. */
