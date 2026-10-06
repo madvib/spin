@@ -40,6 +40,32 @@ ${
     }`;
 }
 
+/**
+ * The BODY of a route's page — everything inside `<main>`, no chrome.
+ *
+ * Rendered at BUILD time by `build-content.ts`; the middleware serves the
+ * result from `src/content/` and never composes a page per request.
+ */
+function bodyFor(
+  active: string,
+  surface: "components" | "utilities",
+  group: string,
+): string | undefined {
+  if (surface === "utilities") {
+    return REFERENCE_PAGES.get(group) ?? REFERENCE_PAGES.get(SECTIONS[0].id);
+  }
+  // The components surface itself is the full list; a sub-route is one fixture.
+  if (active === "components") return rendered.map(fixturePage).join("\n");
+  const f = find(active);
+  return f
+    ? fixturePage(f)
+    : `    <header class="${CHROME.pageHead}"><h2 class="${CHROME.title}">Not found</h2></header>`;
+}
+
+/**
+ * A route's full document: the chrome (rail, head, theme script) around the
+ * route's body. Composed at build time; the request path serves the file.
+ */
 export function shell(
   active: string,
   theme: string,
@@ -48,20 +74,17 @@ export function shell(
   group: string,
 ): string {
   const f = active === "utilities" ? undefined : find(active);
-  // The components surface itself is the full list; a sub-route is one fixture.
   const listAll = surface === "components" && active === "components";
   const onloads = listAll
     ? rendered.map((r) => r.onLoad ?? "").join("\n")
     : f?.onLoad ?? "";
-  const body = surface === "utilities"
-    ? REFERENCE_PAGES.get(group) ?? REFERENCE_PAGES.get(SECTIONS[0].id)
-    : undefined;
+  const body = bodyFor(active, surface, group);
   return `<!doctype html>
 <html lang="en" data-theme="${theme}" data-mode="${mode}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>spin · ${esc(body ? "Utilities" : (listAll ? "Primitives" : (f?.title ?? "not found")))}</title>
+<title>spin · ${esc(surface === "utilities" ? "Utilities" : (listAll ? "Primitives" : (f?.title ?? "not found")))}</title>
 <link rel="stylesheet" href="/__uno.css">
 <style>${STYLE}</style>
 </head>
@@ -114,13 +137,7 @@ ${
   }
   </nav>
   <main class="${CHROME.main}">
-${
-    body ?? (listAll
-      ? rendered.map(fixturePage).join("\n")
-      : !f
-        ? `    <header class="${CHROME.pageHead}"><h2 class="${CHROME.title}">Not found</h2></header>`
-        : fixturePage(f))
-  }
+${body}
 <script>
 // A scale is ONE preview with controls on it. The two controls are
 // INDEPENDENT coordinates of one class: pressing an edge must not reset the

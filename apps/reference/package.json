@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
+    "content": "deno run -A build-content.ts",
+    "dev": "deno run -A build-content.ts && vite dev",
+    "build": "deno run -A build-content.ts && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

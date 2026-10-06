@@ -13,3 +13,6 @@ node_modules/
 # Build outputs
 dist/
 .output/
+
+# Generated reference content (Uno scanner input, rebuilt by build-content.ts)
+apps/reference/src/content/
