@@ -1,19 +1,9 @@
 import { describeCatalog } from "@spin/preset";
 import type { Demo } from "./demos.ts";
-import type { Fixture } from "./fixtures.ts";
 import { FIXTURES } from "./fixtures.ts";
-import { ALL_THEMES, COST_ROOT, cost, escapeHtml, themeTreeOrParse } from "./uno.ts";
+import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
 
-export const rendered = await Promise.all(
-  FIXTURES.map(async (f) => ({
-    ...f,
-    bytes: await cost(COST_ROOT[f.id] ?? f.id, markupOf(f)),
-  })),
-);
-
-function markupOf(f: Fixture): string {
-  return f.examples.map((e) => e.html).join("\n");
-}
+export const rendered = FIXTURES;
 
 export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

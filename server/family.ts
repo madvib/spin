@@ -4,7 +4,6 @@ import { type Demo, DEMO_SAMPLE, demoClass, demoFor, noteFor } from "./demos.ts"
 import { escapeHtml } from "./uno.ts";
 import { CHROME } from "./chrome.ts";
 import { mechanismOf, MECHANISMS, CAP } from "./mechanisms.ts";
-import { declarationsFor } from "./shell.ts";
 import { catalogSections, cell, PREFIX_TARGET, sampleElement } from "./specimen.ts";
 
 /**
@@ -168,23 +167,19 @@ function beforeAfter(group: string, demo: Demo, cls: string): string {
  * and nothing else, so a hundred and eleven position utilities cost a
  * hundred and eleven small elements instead of a page of furniture.
  */
-async function nameRail(
+function nameRail(
   groupId: string,
   demo: Demo,
   names: readonly string[],
-): Promise<string> {
+): string {
   const shown = names.map((n) => {
     const promoted = demoClass(n);
     return promoted.endsWith(":")
       ? PREFIX_TARGET[promoted] ?? promoted
       : promoted;
   });
-  const declared = await declarationsFor(shown);
   const cells = names.map((name, i) =>
-    cell(sampleElement(shown[i], demo, groupId), name, demo) +
-    (declared.get(shown[i]) === null
-      ? `<code class="${CHROME.dead}">no CSS</code>`
-      : "")
+    cell(sampleElement(shown[i], demo, groupId), name, demo)
   );
   return `<div class="${CHROME.railWrap}">${cells.join("")}</div>`;
 }
@@ -316,9 +311,9 @@ function captionFor(demo: Demo): string {
  * One family: a scale (steps as controls on one preview) or a prose block with
  * a working demonstration and a live rail.
  */
-async function family(
+function family(
   group: { id: string; title: string; utilities: readonly string[] },
-): Promise<string> {
+): string {
   const demo = demoFor(group.id);
   const scale = scaleFor(group.id, group);
 
@@ -350,7 +345,7 @@ async function family(
         }</code></li>`
       ).join("")
     }</ul>`
-    : await nameRail(group.id, demo, group.utilities);
+    : nameRail(group.id, demo, group.utilities);
 
   return `<section class="${CHROME.section}">` +
     `<h3 class="${CHROME.subhead}">${escapeHtml(group.title)}` +
@@ -362,10 +357,10 @@ async function family(
 }
 
 /** A scale: one preview, with the steps and the axes as controls on it. */
-async function scaleBody(
+function scaleBody(
   scale: BuiltScale,
   group: { id: string; utilities: readonly string[] },
-): Promise<string> {
+): string {
   const step = scale.steps[0]?.key ?? "";
   const axis = scale.axes[0]?.key ?? "";
   // The PREFIX, not the group id: the padding scale is spelled `p-4`, and
@@ -389,7 +384,7 @@ async function scaleBody(
   const restRail = rest.length === 0
     ? ""
     : `<h4 class="${CHROME.label}">and the names a step cannot reach</h4>` +
-      await nameRail(group.id, demo, rest);
+      nameRail(group.id, demo, rest);
 
   // The pressed button is ALSO the aria-current one, because the selected
   // state is drawn by the theme's own text-on-surface pair through the
@@ -438,13 +433,13 @@ async function scaleBody(
 }
 
 /** The layout surface, cut by mechanism rather than by catalog group. */
-export async function layoutSurface(
+export function layoutSurface(
   groups: readonly {
     id: string;
     title: string;
     utilities: readonly string[];
   }[],
-): Promise<string> {
+): string {
   const names = [...new Set(groups.flatMap((g) => g.utilities))];
   const blocks: string[] = [];
 
@@ -460,7 +455,7 @@ export async function layoutSurface(
         (sample === ""
           ? ""
           : `<div class="${CHROME.familyDemo}">${sample}</div>`) +
-        await nameRail(mechanism.title, mechanism.demo, mine) +
+        nameRail(mechanism.title, mechanism.demo, mine) +
         `</section>`,
     );
   }
@@ -469,7 +464,7 @@ export async function layoutSurface(
 }
 
 /** One section of the reference, rendered. */
-export async function utilityGroupPage(sectionId: string): Promise<string> {
+export function utilityGroupPage(sectionId: string): string {
   const catalog = catalogSections();
   const section = SECTIONS.find((x) => x.id === sectionId);
   if (!section) {
@@ -486,6 +481,6 @@ export async function utilityGroupPage(sectionId: string): Promise<string> {
     `${utilitiesFor(section, catalog).length} names`,
   );
 
-  if (section.id === "layout") return head + await layoutSurface(groups);
-  return head + (await Promise.all(groups.map((g) => family(g)))).join("");
+  if (section.id === "layout") return head + layoutSurface(groups);
+  return head + groups.map((g) => family(g)).join("");
 }

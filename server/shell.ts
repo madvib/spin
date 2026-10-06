@@ -5,97 +5,16 @@ import { catalogSections, esc, find, rendered } from "./specimen.ts";
 import { utilityGroupPage, SCALE_PREFIX } from "./family.ts";
 
 
-/**
- * The Vite-generated stylesheet, fetched per request batch and cached.
- *
- * The rail's "no CSS" labels read from this sheet: a utility with no rule
- * here has no rule, period. Fetched from the Vite dev server's `/__uno.css`
- * endpoint — the same sheet the browser applies — so the labels and the
- * rendering can never disagree. Cached for 5s; a label slightly stale beats
- * a fetch per row.
- */
-let showcaseCss = "";
-let fetchedAt = 0;
-const SHEET_TTL = 5000;
-const UNO_URL = "http://localhost:8001/__uno.css";
-
-async function sheet(): Promise<string> {
-  const now = Date.now();
-  if (showcaseCss && now - fetchedAt < SHEET_TTL) return showcaseCss;
-  try {
-    const res = await fetch(UNO_URL);
-    if (res.ok) {
-      // `/__uno.css` is a JS module (HMR wrapper), not raw CSS: the rules
-      // live inside the `__vite__css` string assignment. Extract rather than
-      // parse — the alternative is a second UnoCSS instance, which is the
-      // generate-and-inline pipeline with extra steps.
-      const js = await res.text();
-      const m = /__vite__css = "((?:[^"\\]|\\.)*)"/s.exec(js);
-      if (m) {
-        showcaseCss = m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-        fetchedAt = now;
-      }
-    }
-  } catch {
-    // Dev server unreachable — keep the last sheet (or empty on boot).
-  }
-  return showcaseCss;
-}
 
 /**
- * The declaration each utility produced, resolved once.
+ * Every reference page, rendered once.
  *
- * Sourced from the Vite-generated sheet rather than generated on demand: the
- * sheet already contains every rule, so asking the generator again per row
- * was 757 calls to learn what one string already said. A prefix utility —
- * `hover:` — has no rule of its own, so the one it prefixes is looked up
- * instead.
+ * Pure functions of the catalog. Dead utilities are caught by the suite's
+ * catalog-coverage property, not by labels scraped from a stylesheet.
  */
-export async function declarationsFor(
-  names: readonly string[],
-): Promise<Map<string, string | null>> {
-  const flat = (await sheet()).replace(/\s+/g, " ");
-  const out = new Map<string, string | null>();
-  for (const name of names) {
-    out.set(name, ruleFor(flat, name.endsWith(":") ? `${name}p-4` : name));
-  }
-  return out;
-}
-
-/** The rule a class produced, matched on the class rather than the first. */
-function ruleFor(css: string, name: string): string | null {
-  // Vite's sheet double-escapes the slash (`w-1\\/2`); the old generate()
-  // output used a single escape. Match either.
-  const escaped = name.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&").replace(/\//g, "\\?/");
-  const body = new RegExp(`\\.${escaped}[^{}]*\\{([^}]*)\\}`).exec(css)?.[1];
-  if (!body) return null;
-  const trimmed = body.split(";").map((d) => d.trim()).filter(Boolean).join(
-    ";\n  ",
-  );
-  return trimmed || null;
-}
-
-/**
- * Every reference page, rendered lazily on first request.
- *
- * They are pure functions of the catalog, so rebuilding per request is
- * waste — but rendering at IMPORT time bakes the "no CSS" labels against an
- * empty sheet (Vite hasn't generated `/__uno.css` yet when the middleware
- * module loads). First request warms the sheet, then renders; after that the
- * map is the cache. A second render only happens if something clears it.
- */
-let pages: ReadonlyMap<string, string> | undefined;
-async function referencePages(): Promise<ReadonlyMap<string, string>> {
-  if (pages === undefined) {
-    await sheet();
-    pages = new Map(
-      await Promise.all(
-        SECTIONS.map(async (s) => [s.id, await utilityGroupPage(s.id)] as const),
-      ),
-    );
-  }
-  return pages;
-}
+const REFERENCE_PAGES: ReadonlyMap<string, string> = new Map(
+  SECTIONS.map((s) => [s.id, utilityGroupPage(s.id)] as const),
+);
 
 /** One fixture's page: its header and every example, alone or in the list. */
 function fixturePage(f: (typeof rendered)[number]): string {
@@ -105,7 +24,6 @@ function fixturePage(f: (typeof rendered)[number]): string {
         <div class="${CHROME.kind}">${esc(f.kind)}</div>
         <p class="${CHROME.note}">${esc(f.note)}</p>
       </div>
-      <span class="${CHROME.badge}">${f.bytes} bytes</span>
     </header>
 ${
       f.examples.map((e) =>
@@ -122,22 +40,21 @@ ${
     }`;
 }
 
-export async function shell(
+export function shell(
   active: string,
   theme: string,
   mode: string,
   surface: "components" | "utilities",
   group: string,
-): Promise<string> {
+): string {
   const f = active === "utilities" ? undefined : find(active);
   // The components surface itself is the full list; a sub-route is one fixture.
   const listAll = surface === "components" && active === "components";
   const onloads = listAll
     ? rendered.map((r) => r.onLoad ?? "").join("\n")
     : f?.onLoad ?? "";
-  const all = await referencePages();
   const body = surface === "utilities"
-    ? all.get(group) ?? all.get(SECTIONS[0].id)
+    ? REFERENCE_PAGES.get(group) ?? REFERENCE_PAGES.get(SECTIONS[0].id)
     : undefined;
   return `<!doctype html>
 <html lang="en" data-theme="${theme}" data-mode="${mode}">

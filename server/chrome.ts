@@ -84,7 +84,6 @@ export const CHROME = {
   reveal:
     "mt-2 inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text",
   panel: "mb-8 rounded-lg border border-solid border-border bg-surface p-4",
-  dead: "text-semantic-error line-through",
 } as const;
 
 export const chromeClasses = Object.values(CHROME).join(" ");
