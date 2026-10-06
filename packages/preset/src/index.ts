@@ -3,8 +3,16 @@
  *
  * Allowlist by construction: only utilities defined here exist. Anything else
  * generates no CSS. Token-driven rules resolve their names against the token
- * tree and emit `var(--…)` references, so values flow from the theme and are
+ * tree and emit token references, so values flow from the theme and are
  * never hardcoded here. Finite Uno theme extensions resolve verbatim.
+ *
+ * Icons are not part of this preset. `@unocss/preset-icons` is an optional
+ * peer — a consumer composes it alongside, `presets: [presetIcons(),
+ * spinPreset()]`, which is the idiomatic arrangement — and this preset's
+ * own icon rules only size and place the glyph (`icon-sm`, `icon-md`,
+ * `icon-lg`, and the button's `.button-icon` slot), spending the theme's
+ * `icon` group. The dependency is never imported here, so a consumer that
+ * uses no icon class pays nothing for it.
  *
  * Rules live in `rules/`, one family per file, concatenated in priority order
  * by `rules/index.ts`. Variants live in `variants/`, preflights in
@@ -17,12 +25,15 @@ import { definePreset } from "@unocss/core";
 import type { Preset } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
-import { primitiveContracts } from "@spin/primitives";
+import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
-import type { TokenTree } from "@spin/theme";
+import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
+import { spinShortcuts } from "./shortcuts.ts";
+import { elementExtractor, typeExtractor } from "./extractors.ts";
 import { themeRef } from "@spin/theme";
+import { wind4Layers, type Wind4Options } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
 import { spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
@@ -35,18 +46,31 @@ export {
   scaffoldDocument,
 } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
+export {
+  wind4Exclusions,
+  wind4Layers,
+  type Wind4Exclusion,
+  type Wind4Layers,
+  type Wind4Options,
+} from "./wind4.ts";
 
-/**
- * A theme document, as authored.
- *
- * `Record<string, unknown>` rather than `unknown` because it rejects the one
- * mistake a caller can actually make: passing a parsed `TokenTree`, which is
- * an array. That compiles cleanly under `unknown` and fails at build time
- * inside a consumer's bundler, which is the worst place to find out. The
- * structural type also accepts anything `JSON.parse` produces, so a theme
- * file costs no cast.
- */
-export type ThemeDocument = Record<string, unknown>;
+export type { ThemeDocument } from "@spin/theme";
+
+// The component contract and the views over it. They live beside the rules,
+// because a description of a rule belongs next to the rule — and the manifest
+// they read is DERIVED from those rules, so it cannot disagree with them.
+export type {
+  CharacterToken,
+  PrimitiveComponent,
+  PrimitiveContract,
+} from "./rules/primitives/manifest.ts";
+export {
+  claimedElements,
+  primitiveComponents,
+  primitiveContracts,
+  primitiveReadsByGroup,
+  primitiveVariants,
+} from "./rules/primitives/manifest.ts";
 
 /** Options for {@link spinPreset}. */
 export interface SpinPresetOptions {
@@ -75,6 +99,51 @@ export interface SpinPresetOptions {
    * Pass `false` for a utility-only build, or a list to opt in per component.
    */
   primitives?: string[] | boolean;
+  /**
+   * Whether a primitive may claim a bare element, or only a classed one.
+   *
+   * The primitives are classless by default: `<button>` is a button, and a
+   * `<table>` is styled without a class. That is the whole premise, and it is
+   * what makes the surface pleasant to write.
+   *
+   * It is also a strong claim on someone else's markup. A consumer with a
+   * document they do not control — a CMS, a third-party embed, a codebase
+   * mid-migration — cannot afford every `<table>` in the page being restyled
+   * by their build tool. Setting `classless: false` makes each primitive claim
+   * only its own class: `class="button"`, `class="table"`. The components are
+   * still available and still shaken; they simply ask to be named.
+   *
+   * This is the escape hatch for a primitive's opinions, and it is one option
+   * rather than a class per component — a consumer opts out of the classless
+   * claim once, not once per opinion they disagree with.
+   */
+  classless?: boolean;
+  /**
+   * Whether to layer `@unocss/preset-wind4` beneath our rules.
+   *
+   * Ours go first, so a token we define resolves against our theme and a token
+   * we do not define falls through to wind4. wind4 contributes rules and
+   * variants only — never a preflight.
+   *
+   * Pass `false` for a spin-only build, or an options object to configure the
+   * layer. `dark: false` also drops wind4's `dark:` variant, which would
+   * otherwise scope itself to a class a spin document never carries.
+   */
+  wind4?: boolean | Wind4Options;
+}
+
+/**
+ * wind4 as a layer beneath ours, when asked for.
+ *
+ * `undefined` and `true` both mean the composed state we want. The module
+ * takes wind4's RULES and VARIANTS and nothing else — in particular none of
+ * its preflights, whose theme block re-emits our token references as
+ * self-referential variables (`--spacing-2: var(--spacing-2)`) and so silently
+ * zeroes every component that spends the scale. See `wind4.ts`.
+ */
+function wind4Layer(option: boolean | Wind4Options | undefined) {
+  if (option === false) return { rules: [], variants: [] };
+  return wind4Layers(typeof option === "object" ? option : {});
 }
 
 function defaultDocument(): ThemeDocument {
@@ -127,12 +196,30 @@ const factory = definePreset(
       Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
       componentRoots,
     );
+    const wind4 = wind4Layer(options.wind4);
+
 
     return {
       name: "spin",
       theme,
-      variants: spinVariants(),
-      rules: spinRules(componentRoots),
+      variants: [...spinVariants(), ...wind4.variants],
+      // The element extractor turns `<button>` into the token `button`, so a
+      // classless primitive is styled by its tag. It ships with the preset
+      // because a classless primitive needs it; it never touches classes.
+      extractors: [elementExtractor, typeExtractor],
+      // Ours first. Uno keeps the first rule that MATCHES a token, and dynamic
+      // rules are `unshift`ed onto the match list as they register — so
+      // among dynamic rules the LAST registered is tried first. Ours first
+      // makes ours the fallback wind4 is tried behind, which is the point: a
+      // token we own resolves against our theme, and one we do not own falls
+      // through.
+      rules: [
+        ...spinRules(componentRoots, {
+          classless: options.classless !== false,
+        }),
+        ...wind4.rules,
+      ],
+      shortcuts: spinShortcuts,
       preflights: buildPreflights(
         { trees, documents },
         { primitives: enabled },

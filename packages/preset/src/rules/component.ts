@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { primitiveContracts } from "@spin/primitives";
+import { primitiveContracts } from "./primitives/manifest.ts";
 import { type ThemeContext, themeOf } from "../utils/lookup.ts";
 
 /**

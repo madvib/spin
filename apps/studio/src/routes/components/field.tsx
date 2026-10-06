@@ -1,5 +1,5 @@
 import { createSignal, Show } from "solid-js";
-import { primitiveComponents } from "@spin/primitives";
+import { primitiveComponents } from "@spin/preset/rules/primitives/manifest.ts";
 
 export default function FieldPage() {
   const [name, setName] = createSignal("");

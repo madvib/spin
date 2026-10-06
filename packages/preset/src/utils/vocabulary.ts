@@ -8,51 +8,21 @@
  * should have to change.
  */
 
-/** Utilities with no token behind them, owned statically by the preset. */
 /**
  * Colour vocabulary that is a value rather than a token. Resolved by
  * `rules/color.ts`, which reads this before falling back to the theme.
  */
-export const COLOR_KEYWORDS: string[] = ["transparent", "currentColor"];
+export const COLOR_KEYWORDS = ["transparent", "currentColor"] as const;
 
-export const STATIC_UTILITIES: string[] = ["flex", "w-full", "top-1/2"];
-
-/** Display utilities. Flex only: grid is absent by design. */
-export const DISPLAY_UTILITIES: string[] = [
-  "block",
-  "inline-block",
-  "inline",
-  "flex",
-  "inline-flex",
-  "grid",
-  "inline-grid",
-  "contents",
-  "hidden",
-];
-
-export const OPACITY_UTILITIES: string[] = [
-  "opacity-0",
-  "opacity-5",
-  "opacity-10",
-  "opacity-15",
-  "opacity-20",
-  "opacity-25",
-  "opacity-30",
-  "opacity-35",
-  "opacity-40",
-  "opacity-45",
-  "opacity-50",
-  "opacity-55",
-  "opacity-60",
-  "opacity-65",
-  "opacity-70",
-  "opacity-75",
-  "opacity-80",
-  "opacity-85",
-  "opacity-90",
-  "opacity-95",
-  "opacity-100",
-];
+/**
+ * Utilities with no token behind them, owned statically by the preset.
+ *
+ * Authored, not derived: `w-full` and `top-1/2` are literal declarations in
+ * `declarations.ts` with no scale step to derive from, and `flex` is claimed
+ * here so `layout.ts` owns the rule rather than `display.ts` (which also
+ * lists it). A typo is a compile error.
+ */
+export const STATIC_UTILITIES = ["flex", "w-full", "top-1/2"] as const;
 
 export const DISPLAY_VALUES: Record<string, string> = {
   "block": "block",
@@ -65,6 +35,18 @@ export const DISPLAY_VALUES: Record<string, string> = {
   "contents": "contents",
   "hidden": "none",
 };
+
+/** Display utilities. Derived from `DISPLAY_VALUES` so the two cannot disagree. */
+export const DISPLAY_UTILITIES: readonly string[] = Object.keys(DISPLAY_VALUES);
+
+export const OPACITY_STEPS = [
+  0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100,
+] as const;
+
+/** Opacity utilities. Derived from `OPACITY_STEPS`. */
+export const OPACITY_UTILITIES: readonly string[] = OPACITY_STEPS.map(
+  (step) => `opacity-${step}`,
+);
 
 /**
  * Track sizing.
@@ -95,12 +77,12 @@ export const GRID_SPANS: string[] = [
   "row-span-auto",
 ];
 
-export const GRID_FLOW: string[] = [
+export const GRID_FLOW = [
   "grid-flow-row",
   "grid-flow-col",
   "grid-flow-row-dense",
   "grid-flow-col-dense",
-];
+] as const;
 
 export function opacityValue(utility: string): string {
   return String(Number(utility.slice("opacity-".length)) / 100);
@@ -279,7 +261,7 @@ export const ORDER_VALUES: Record<string, string> = {
   "order-none": "0",
 };
 
-export const ORDER_STEPS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+export const ORDER_STEPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 export const ORDER_UTILITIES: string[] = [
   ...Object.keys(ORDER_VALUES),

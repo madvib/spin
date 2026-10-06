@@ -3,7 +3,7 @@
  *
  * The pipeline is parse, resolve, validate, and CSS variable emission — four
  * independent stages, and you can enter it at any of them. Finished elements
- * live in `@spin/primitives`, which consumes these trees; nothing here knows
+ * live in the preset's rules, which spend these trees; nothing here knows
  * components exist.
  *
  * A token's name is derived from its path, once. `themeRef` builds the object
@@ -28,6 +28,7 @@ export type {
   ValidationReport,
 } from "./pipeline/types.ts";
 export { TOKEN_TYPES } from "./pipeline/types.ts";
+export type { ThemeDocument } from "./pipeline/types.ts";
 
 // Stage 1: parse.
 export { isTokenType, parseDocument, parseTokens } from "./pipeline/parse.ts";
@@ -100,4 +101,9 @@ export {
 } from "./pipeline/color.ts";
 
 // Colour authoring — the toolbox for composing new colours.
-export { generateScale, invertColor, mixColors } from "./authoring/color.ts";
+export {
+  generateScale,
+  invertColor,
+  mixColors,
+  readableOn,
+} from "./authoring/color.ts";

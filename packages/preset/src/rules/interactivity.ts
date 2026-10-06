@@ -4,11 +4,11 @@ import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 import { extendedTheme, groupOf, type ThemeContext } from "../utils/lookup.ts";
 
+export const INTERACTIVITY_NAMES: readonly string[] = INTERACTIVITY_UTILITIES;
+
 export function interactivityRules(): Rule[] {
   return [
-    ...staticRules([...INTERACTIVITY_UTILITIES], STATIC_DECLS),
-    // The lift reads the spacing scale the way every other transform does. A
-    // component's own hover lift is a character token and stays in its CSS.
+    ...staticRules([...INTERACTIVITY_NAMES], STATIC_DECLS),
     [
       /^translate-([xy])-(.+)$/,
       ([, axis, name]: string[], ctx?: ThemeContext) => {

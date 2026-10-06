@@ -1,6 +1,6 @@
 import type { Variant } from "@unocss/core";
-import { focusVariant } from "./focus.ts";
-import { hoverVariant } from "./hover.ts";
+import { FOCUS_PREFIX, focusVariant } from "./focus.ts";
+import { HOVER_PREFIX, hoverVariant } from "./hover.ts";
 import { breakpointVariant } from "./breakpoint.ts";
 
 /**
@@ -20,4 +20,15 @@ export function spinVariants(): Variant[] {
     focusVariant,
     breakpointVariant(),
   ];
+}
+
+/**
+ * The fixed variant prefixes the preset defines.
+ *
+ * `hover:` and `focus:` are literal, so they can be listed. The breakpoint
+ * prefixes are the theme's own scale (`md:`, `lg:`, …), so they are not
+ * listed here — the catalog reads them from the theme.
+ */
+export function variantPrefixes(): string[] {
+  return [HOVER_PREFIX, FOCUS_PREFIX];
 }

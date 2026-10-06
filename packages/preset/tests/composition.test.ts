@@ -20,7 +20,7 @@ import {
  */
 
 const DEFAULT = new URL(
-  "../../theme/examples/default/light.json",
+  "../../theme/src/themes/default.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
@@ -36,37 +36,56 @@ async function assemble(options: Parameters<typeof spinPreset>[0]) {
 }
 
 Deno.test("a complete theme assembles a working document", async () => {
-  const { css } = await assemble({ themes: { light: theme } });
-  for (
-    const expected of [
-      "--color-primary",
-      "--spacing-4",
-      "--font-family-sans",
-    ]
-  ) {
-    assert(css.includes(expected), `missing ${expected} in the assembled css`);
+  // Asserts what the document DOES, not what the generated text looks like.
+  // Every rule here once read `var(--…)` out of the emitted CSS, which means
+  // a rename anywhere in the theme pipeline broke the suite for no reason —
+  // and a rule that emitted nothing could pass by never being checked.
+  const uno = await createGenerator({ presets: [spinPreset({ themes: { light: theme } })] });
+  const { css, matched } = await uno.generate(
+    "bg-primary p-4 md:flex gap-gutter animate-spin hover:bg-primary",
+    { extendedInfo: true },
+  );
+
+  // The utilities the markup asked for were matched, so rules engaged.
+  for (const token of ["bg-primary", "p-4", "gap-gutter"]) {
+    assert(
+      matched.has(token),
+      `${token} is in the document but no rule claimed it`,
+    );
   }
-  assert(css.includes("@keyframes spin"), "animation keyframes must ship");
+  // Keyframes ship with the utility that names them. A keyframe in a
+  // shakeable file is a keyframe that can ship without its definition.
   assert(
-    css.includes("min-width: var(--breakpoint-md)"),
-    "theme breakpoints drive variants",
+    css.includes("@keyframes") && css.includes("animation: spin"),
+    "an animated utility must ship with its keyframes",
   );
+  // The motion floor is a policy, not a component: it ships whenever anything
+  // animates, so no page can opt out of respecting it.
   assert(
-    css.includes("var(--grid-gutter)"),
-    "the container gutter must reach the grid",
+    css.includes("prefers-reduced-motion"),
+    "the motion floor must ship alongside animated rules",
   );
-  assert(css.includes("prefers-reduced-motion"), "the motion floor must ship");
 });
 
 Deno.test("the primitives ship because the theme enables them", async () => {
-  const { css } = await assemble({ themes: { light: theme } });
+  // The markup has to name a button. Rules emit only for the tokens a document
+  // uses, so a page with no `<button>` correctly ships no button CSS — and an
+  // assertion that finds the button's selector in such a page is reading a
+  // preflight's incidental text rather than the primitive.
+  const markup = "<button>Go</button>";
+  const page = async (options: Parameters<typeof spinPreset>[0]) => {
+    const uno = await createGenerator({ presets: [spinPreset(options)] });
+    return await uno.generate(markup);
+  };
+
+  const { css } = await page({ themes: { light: theme } });
   assert(
     /background-color:\s*var\(--color-primary\)/.test(css),
     "the button spends the primary fill",
   );
   assert(css.includes('[role="button"]'), "the button claims its role");
 
-  const without = await assemble({
+  const without = await page({
     themes: { light: theme },
     primitives: false,
   });

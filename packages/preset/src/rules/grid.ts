@@ -3,6 +3,20 @@ import { staticRules } from "../utils/factories.ts";
 import { GRID_DECLS } from "../utils/declarations.ts";
 import { GRID_FLOW, GRID_SPANS, GRID_TRACKS } from "../utils/vocabulary.ts";
 
+export const GRID_NAMES: readonly string[] = [
+  ...GRID_TRACKS,
+  ...GRID_SPANS,
+  ...GRID_FLOW,
+  "col-auto",
+  "col-span-min",
+  "row-auto",
+  "row-span-min",
+  "col-min",
+  "col-max",
+  "row-min",
+  "row-max",
+];
+
 /**
  * Track sizing: counts, spans, and flow.
  *
@@ -18,20 +32,5 @@ import { GRID_FLOW, GRID_SPANS, GRID_TRACKS } from "../utils/vocabulary.ts";
  * and what it emits are read from the same place as the rest.
  */
 export function gridRules(): Rule[] {
-  return staticRules(
-    [
-      ...GRID_TRACKS,
-      ...GRID_SPANS,
-      ...GRID_FLOW,
-      "col-auto",
-      "col-span-min",
-      "row-auto",
-      "row-span-min",
-      "col-min",
-      "col-max",
-      "row-min",
-      "row-max",
-    ],
-    GRID_DECLS,
-  );
+  return staticRules(GRID_NAMES, GRID_DECLS);
 }

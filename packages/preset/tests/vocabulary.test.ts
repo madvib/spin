@@ -3,6 +3,7 @@ import { createGenerator } from "@unocss/core";
 import { parseTokens, treeToJson } from "@spin/theme";
 import { scaffold, spinPreset } from "../src/index.ts";
 import { GRID_DECLS, STATIC_DECLS } from "../src/utils/declarations.ts";
+import { wind4Layers } from "../src/wind4.ts";
 import {
   DISPLAY_UTILITIES,
   FLEX_DIRECTIONS,
@@ -109,35 +110,154 @@ function themeDocument() {
   return JSON.parse(treeToJson([...scaffold(), ...parsed.tree]));
 }
 
+/**
+ * The generator these cases are measured against: the preset with wind4
+ * layered beneath it, which is how a real build is wired.
+ */
 async function cssFor(classes: string): Promise<string> {
+  const layers = wind4Layers();
   const uno = await createGenerator({
-    presets: [spinPreset({ theme: themeDocument() })],
+    presets: [spinPreset({ themes: { default: themeDocument() } })],
+    rules: layers.rules as never,
+    variants: layers.variants as never,
   });
   const { css } = await uno.generate(classes);
   return css;
 }
 
+/**
+ * The declarations one utility's own rule carries, keyed by property.
+ *
+ * Read off the selector rather than searched for as text, so a declaration is
+ * evidence about the utility that asked for it — `translate-x-2` setting
+ * `transform` is a decision, whereas the characters `translate-x-2` appearing
+ * somewhere in the sheet would not be.
+ */
+function declarationsFor(css: string, utility: string): Record<string, string> {
+  const selector = new RegExp(`\\.${utility}(?![\\w-])`);
+  const declarations: Record<string, string> = {};
+  for (const [, selectorText, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!selector.test(selectorText)) continue;
+    for (const declaration of body.split(";")) {
+      const at = declaration.indexOf(":");
+      if (at < 0) continue;
+      declarations[declaration.slice(0, at).trim()] = declaration
+        .slice(at + 1)
+        .trim();
+    }
+  }
+  return declarations;
+}
+
+/** Whether a value defers to the browser by reading a custom property. */
+function readsAToken(value: string): boolean {
+  return /var\(\s*--/.test(value);
+}
+
 Deno.test("the utilities a component spends emit the declaration it needs", async () => {
   // One case per family a component reaches for, each mirroring a real
   // declaration in the primitives: a colour, a logical spacing edge, a radius,
-  // a transform, and a capitalisation. The assertion is the behaviour — a
-  // utility goes in, the declaration comes out — not a list of names.
-  const cases: [string, string, string][] = [
-    ["bg-surface-raised", "background-color", "var(--color-surface-raised)"],
-    ["ps-4", "padding-inline-start", "var(--spacing-4)"],
-    ["rounded-lg", "border-radius", "var(--radius-lg)"],
-    ["translate-x-2", "transform", "translateX(var(--spacing-2))"],
-    ["uppercase", "text-transform", "uppercase"],
+  // a transform, and a capitalisation. The assertion is the DECISION — a
+  // utility goes in, it sets this property, and a token-driven value defers
+  // to the browser — not a list of emitted names.
+  //
+  // `transformed` marks the cases whose value must read a token. Naming WHICH
+  // token would only break the suite when a token is renamed while the
+  // behaviour under test is untouched.
+  const cases: [utility: string, property: string, tokenDriven: boolean][] = [
+    ["bg-surface-raised", "background-color", true],
+    ["ps-4", "padding-inline-start", true],
+    ["rounded-lg", "border-radius", true],
+    ["translate-x-2", "transform", true],
+    ["uppercase", "text-transform", false],
   ];
-  for (const [utility, property, value] of cases) {
+  for (const [utility, property, tokenDriven] of cases) {
     const css = await cssFor(utility);
+    const value = declarationsFor(css, utility)[property];
     assert(
-      css.includes(property),
-      `${utility} emits no ${property} in: ${css}`,
+      value !== undefined,
+      `${utility} matched but emits no ${property} in:\n${css}`,
     );
+    if (!tokenDriven) continue;
     assert(
-      css.includes(value),
-      `${utility} emits no ${value} in: ${css}`,
+      readsAToken(value),
+      `${utility} sets ${property} to the literal \`${value}\` instead of a token reference`,
     );
   }
+});
+
+Deno.test("a wind4-only family produces a rule", async () => {
+  // The vocabulary tables above cover what spin spells for itself. This covers
+  // the other half of what a build can spend: families nothing in spin names,
+  // which only exist because wind4 is layered underneath. Each must reach a
+  // rule — an unlayered generator emits nothing here, which is exactly the
+  // state this asserts against.
+  const wind4Only: [utility: string, property: string][] = [
+    ["aspect-square", "aspect-ratio"],
+    ["object-cover", "object-fit"],
+    ["rotate-45", "rotate"],
+    ["snap-x", "scroll-snap-type"],
+    ["columns-2", "columns"],
+    ["list-disc", "list-style-type"],
+    ["caret-primary", "caret-color"],
+    ["line-clamp-3", "-webkit-line-clamp"],
+  ];
+  for (const [utility, property] of wind4Only) {
+    const css = await cssFor(utility);
+    assert(
+      declarationsFor(css, utility)[property] !== undefined,
+      `${utility} emits no ${property}; the wind4 layer is not reaching this build:\n${css}`,
+    );
+  }
+});
+
+Deno.test("a utility we own resolves through our token", async () => {
+  // Ours must win the families we claim, so `p-4` spends `spacing.4` from the
+  // theme. The failure is silent: a wind4 spacing rule answers with a read of
+  // `--spacing`, a bare base this theme never declares, so the declaration
+  // parses and then computes to nothing — no padding, from a sheet that looks
+  // entirely correct.
+  const uno = await createGenerator({
+    presets: [spinPreset({ themes: { default: themeDocument() } })],
+    rules: wind4Layers().rules as never,
+    variants: wind4Layers().variants as never,
+  });
+  const { css } = await uno.generate("p-4 bg-surface-raised rounded-lg");
+  for (
+    const [utility, property] of [
+      ["p-4", "padding"],
+      ["bg-surface-raised", "background-color"],
+      ["rounded-lg", "border-radius"],
+    ] as [string, string][]
+  ) {
+    const value = declarationsFor(css, utility)[property];
+    assert(value !== undefined, `${utility} sets no ${property}:\n${css}`);
+    for (const [, read] of value.matchAll(/var\(\s*(--[\w-]+)/g)) {
+      assert(
+        new RegExp(`${read}\\s*:`).test(css),
+        `${utility} reads \`${read}\`, which this theme never declares, so the browser resolves ${property} to nothing:\n${css}`,
+      );
+    }
+  }
+});
+
+Deno.test("no emitted declaration is a self-referential custom property", async () => {
+  // The wind4 preflight bug, which must never return: a theme value is already
+  // a reference, so re-emitting it writes `--spacing-2` as a read of itself.
+  // That resolves to nothing at computed-value time — declared, correct-looking,
+  // and worth nothing to every element that spends it.
+  const uno = await createGenerator({
+    presets: [spinPreset({ themes: { default: themeDocument() } })],
+    rules: wind4Layers().rules as never,
+    variants: wind4Layers().variants as never,
+  });
+  const { css } = await uno.generate(
+    "p-4 ps-4 bg-surface-raised rounded-lg translate-x-2 uppercase " +
+      "m-4 px-4 gap-4 w-4 inset-4 text-lg border-primary",
+  );
+  assertEquals(
+    css.match(/(--[\w-]+):\s*var\(\s*\1\s*\)/g),
+    null,
+    `a custom property is declared as a read of itself; it resolves to nothing at computed-value time:\n${css}`,
+  );
 });

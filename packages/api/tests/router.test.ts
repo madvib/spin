@@ -57,7 +57,6 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     "primitives",
     [
       "primitives.contract",
-      "primitives.css",
       "primitives.list",
       "primitives.tokens",
     ],

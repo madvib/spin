@@ -2,71 +2,46 @@ import { assert, assertEquals } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { describeCatalog, scaffoldDocument, spinPreset } from "../src/index.ts";
 import { parseTokens } from "@spin/theme";
+import { claims, selectorFor } from "../src/utils/claimed.ts";
 
 /**
- * The catalog describes what a theme can produce, so the generator is its
- * oracle: every utility the catalog names must actually emit CSS from a
- * generator built with that same theme.
+ * The REAL default theme, not a fixture.
  *
- * There is no list here on purpose. A test that enumerated the sections would
- * fail every time one is added, which is the normal case, and would prove
- * nothing a round-trip does not. This one breaks only if the catalog starts
- * naming something that does not work — which is the defect a user of the
- * utility reference would actually hit.
+ * The catalog is built from a theme, so testing it against a hand-written one
+ * measures the fixture: every colour the catalog names has to exist in
+ * whatever it is compared against, and a partial theme turns "the reference
+ * names a utility that does not work" into a false alarm.
  */
-
-/** UnoCSS escapes `/` and `:` in class selectors; the catalog names them plain. */
-function selectorFor(utility: string): string {
-  return `.${utility.replace(/([:/])/g, "\\$1")}`;
-}
-
-const THEME = {
-  ...(scaffoldDocument() as Record<string, unknown>),
-  spacing: { $type: "dimension", 4: { $value: "1rem" } },
-  radius: { $type: "dimension", lg: { $value: "0.5rem" } },
-  shadow: { $type: "shadow", md: { $value: "0 1px 2px black" } },
-  breakpoint: { $type: "dimension", md: { $value: "48rem" } },
-  color: {
-    $type: "color",
-    text: { $value: "#111111" },
-    "text-muted": { $value: "#555555" },
-    surface: { $value: "#ffffff" },
-    "surface-raised": { $value: "#f0f0f0" },
-    border: { $value: "#999999" },
-    primary: { $value: "#333333" },
-    secondary: { $value: "#444444" },
-    accent: { $value: "#555555" },
-    semantic: {
-      success: { $value: "#1a7f37" },
-      warning: { $value: "#9a6700" },
-      error: { $value: "#b42318" },
-      info: { $value: "#175cd3" },
-    },
-    "on-primary": { $value: "#ffffff" },
-    "on-danger": { $value: "#ffffff" },
-    "focus-ring": { $value: "#333333" },
-    link: { $value: "#175cd3" },
-  },
-} as Record<string, unknown>;
-
-async function generated(utilities: string[]): Promise<string> {
-  const uno = await createGenerator({
-    presets: [spinPreset({ themes: { light: THEME } })],
-  });
-  const { css } = await uno.generate(utilities.join(" "));
-  return css;
-}
+const THEME = JSON.parse(
+  await Deno.readTextFile(
+    new URL("../../theme/src/themes/default.json", import.meta.url),
+  ),
+) as Record<string, unknown>;
 
 Deno.test("every utility the catalog names actually generates", async () => {
   const parsed = parseTokens(THEME);
   if (!parsed.ok) throw new Error(parsed.error);
-  const claimed = describeCatalog(parsed.tree).flatMap((s) => s.utilities);
+  // The variants section names prefixes (`hover:`), not utilities: a prefix on
+  // its own matches no rule, so the generator oracle does not apply to it.
+  const claimed = describeCatalog(parsed.tree)
+    .filter((section) => section.id !== "variants")
+    .flatMap((s) => s.utilities);
   assert(claimed.length > 0, "the catalog claims nothing");
 
-  const css = await generated(claimed);
-  const missing = claimed.filter((utility) =>
-    !css.includes(selectorFor(utility))
-  );
+  // ONE PER CALL. uno emits a bounded number of rules from a single
+  // generate and drops the remainder without saying so: 806 distinct `p-N`
+  // names come back as 41 rules. A batched assertion therefore does not test
+  // the catalog, it tests the truncation, and reports the survivors as
+  // failures — which is worse than no test, because it sends you looking for a
+  // broken utility that is fine.
+  const uno = await createGenerator({
+    presets: [spinPreset({ themes: { default: THEME } })],
+  });
+  const missing: string[] = [];
+  for (const utility of claimed) {
+    const { css } = await uno.generate(utility);
+    if (!claims(css, utility)) missing.push(utility);
+  }
   assertEquals(
     missing,
     [],

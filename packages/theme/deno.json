@@ -4,7 +4,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens": "./src/index.ts",
-    "./base": "./src/base/index.ts"
+    "./base": "./src/base/index.ts",
+    "./themes": "./src/themes/index.ts",
+    "./theme-types": "./src/theme-types.d.ts"
   },
   "imports": {
     "@spin/theme": "./src/index.ts",

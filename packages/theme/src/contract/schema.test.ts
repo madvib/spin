@@ -13,7 +13,7 @@ import {
 function example(name: string): unknown {
   return JSON.parse(
     Deno.readTextFileSync(
-      new URL(`../../examples/${name}`, import.meta.url),
+      new URL(`../../src/themes/${name}`, import.meta.url),
     ),
   );
 }
@@ -76,7 +76,7 @@ Deno.test("schema.json matches the derived builder output", async () => {
   assertEquals(artifact, derived);
 });
 for (
-  const name of ["default/light.json", "console.json", "neobrut.json"]
+  const name of ["default.json", "neobrut.json", "console.json"]
 ) {
   Deno.test(`${name} meets every legibility floor`, () => {
     const parsed = parseTokens(example(name));

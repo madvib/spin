@@ -7,9 +7,12 @@ import {
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 
+export const LAYOUT_NAMES: readonly string[] = [
+  ...STATIC_UTILITIES,
+  ...FLEX_UTILITIES,
+  ...ORDER_UTILITIES,
+];
+
 export function layoutRules(): Rule[] {
-  return staticRules(
-    [...STATIC_UTILITIES, ...FLEX_UTILITIES, ...ORDER_UTILITIES],
-    STATIC_DECLS,
-  );
+  return staticRules(LAYOUT_NAMES, STATIC_DECLS);
 }

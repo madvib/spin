@@ -8,14 +8,14 @@
  *
  * Runs under oxlint's JS plugin API, so the rules are plain ESLint-shaped
  * visitors. What each rule needs to know about the vocabulary is imported from
- * `@spin/theme`, `@spin/primitives` and `@spin/preset` rather than duplicated
+ * `@spin/theme` and `@spin/preset` rather than duplicated
  * here, so a rename cannot leave the gate enforcing a vocabulary that no
  * longer exists.
  */
 
 import { CSS_WIDE_COLORS, indexTree, scaffoldTheme } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
-import { claimedElements, primitiveVariants } from "@spin/primitives";
+import { claimedElements, primitiveVariants } from "@spin/preset";
 import {
   claimedElements as animationClaims,
   primitiveVariants as animationVariants,
@@ -240,6 +240,52 @@ const noRawColors: GateRule = {
     };
   },
 };
+/**
+ * Disallow a component naming a token by hand.
+ *
+ * A custom property is generated output, never an interface. When a component
+ * spends a token it reads the theme the generator already injected, so a
+ * renamed token cannot leave it pointing at nothing and a literal string
+ * cannot sit in the source where nothing checks it. `var(--x)` in authored
+ * source is the symptom; the fix is always the theme, never a wider
+ * exception.
+ */
+const noHandwrittenTokens: GateRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow `var(--token)` in source; spend the theme instead.",
+    },
+    schema: [],
+    messages: {
+      handwritten:
+        "`var(--{{token}})` is generated output, not an API. Read the theme: `groupOf(ctx, \"{{group}}\")[\"{{step}}\"]`.",
+    },
+  },
+  create(context) {
+    const literal = /var\(\s*--([a-z0-9-]+)\s*\)/g;
+    return {
+      // A string literal is where a hand-written reference lives; a template
+      // or a comment is not authored usage.
+      Literal(node) {
+        const value = node.value?.value;
+        if (typeof value !== "string") return;
+        literal.lastIndex = 0;
+        let match = literal.exec(value);
+        while (match !== null) {
+          const token = match[1] as string;
+          context.report({
+            node,
+            messageId: "handwritten",
+            data: { token, group: token.split("-")[0] ?? "", step: token },
+          });
+          match = literal.exec(value);
+        }
+      },
+    };
+  },
+};
 
 export default {
   meta: { name: "spin" },
@@ -247,5 +293,6 @@ export default {
     "no-utilities-on-semantic": semanticOwnership,
     "closed-vocabulary": closedVocabulary,
     "no-raw-colors": noRawColors,
+    "no-handwritten-tokens": noHandwrittenTokens,
   },
 };

@@ -4,9 +4,13 @@ import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 
+export const TRANSITION_NAMES: readonly string[] = Object.keys(
+  TRANSITION_PROPERTY,
+);
+
 export function transitionRules(): Rule[] {
   return [
-    ...staticRules([...Object.keys(TRANSITION_PROPERTY)], STATIC_DECLS),
+    ...staticRules([...TRANSITION_NAMES], STATIC_DECLS),
     [
       /^duration-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {

@@ -45,6 +45,18 @@ const REF_SPECS: readonly RefSpec[] = [
   { key: "zIndex", prefix: ["z-index"], depth: 1 },
   { key: "motionDuration", prefix: ["motion", "duration"], depth: 1 },
   { key: "motionEasing", prefix: ["motion", "easing"], depth: 1 },
+  // The component-edge tokens. `border.width` and `focus.*` are dimensions a
+  // component spends (a button's own border, the ring offset), and they are
+  // theme values like any other scale. Without a row here they were silently
+  // dropped from the uno theme, so button emitted no border and no focus
+  // ring at all.
+  { key: "borderWidth", prefix: ["border"], depth: 1 },
+  // `focus.width` and `focus.offset` are two dimensions, each its own group.
+  // A prefix that consumed the whole path (`["focus","offset"]`) would leave
+  // no segment to name the value by — the depth is what carries the last
+  // segment, so the prefix must stop before it.
+  { key: "focusWidth", prefix: ["focus", "width"], depth: 0 },
+  { key: "focusOffset", prefix: ["focus", "offset"], depth: 0 },
 ];
 
 /** A uno theme whose every value is the reference it came from. */
@@ -58,8 +70,7 @@ function specFor(path: readonly string[]): RefSpec | null {
     if (spec.prefix.length > path.length) continue;
     if (!spec.prefix.every((segment, i) => segment === path[i])) continue;
     const rest = path.length - spec.prefix.length;
-    if (rest === 0) continue;
-    if (spec.depth !== null && rest !== spec.depth) continue;
+    if (rest !== 0 && spec.depth !== null && rest !== spec.depth) continue;
     return spec;
   }
   return null;
@@ -89,7 +100,11 @@ export function themeRef(
     const spec = specFor(leaf.path);
     if (spec === null) continue;
     const rest = leaf.path.slice(spec.prefix.length);
-    const name = spec.depth === null ? rest.join("-") : rest[rest.length - 1];
+    // A spec with depth 0 addresses the path exactly, so there is no trailing
+    // segment left to name it by: the last segment of the prefix is the name.
+    const name = spec.depth === null
+      ? rest.join("-")
+      : rest[rest.length - 1] ?? spec.prefix[spec.prefix.length - 1] ?? "";
     if (name === undefined) continue;
     (out[spec.key] as ThemeRefGroup)[name.toLowerCase()] = `var(${
       cssVarName(leaf.path)

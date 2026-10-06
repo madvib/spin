@@ -8,7 +8,6 @@
     "@spin/lint": "./src/index.ts",
     "@spin/preset": "../preset/src/index.ts",
     "@spin/theme": "../theme/src/index.ts",
-    "@spin/primitives": "../primitives/src/index.ts",
     "@spin/animation": "../animation/src/index.ts"
   },
   "tasks": {

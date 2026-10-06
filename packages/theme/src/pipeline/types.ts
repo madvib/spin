@@ -123,3 +123,18 @@ export interface CssOptions {
   /** One indent level. Defaults to two spaces. */
   indent?: string;
 }
+
+/**
+ * A theme document, as authored.
+ *
+ * `Record<string, unknown>` rather than `unknown` because it rejects the one
+ * mistake a caller can actually make: passing a parsed token tree, which is an
+ * array. That compiles cleanly under `unknown` and fails inside a consumer's
+ * bundler, which is the worst place to find out. The structural type accepts
+ * anything `JSON.parse` produces, so a theme file costs no cast.
+ *
+ * It lives in the theme package rather than the preset because this is the
+ * package that defines what a theme is — a preset that re-declared it would be
+ * a second, unrelated definition of the same thing.
+ */
+export type ThemeDocument = Record<string, unknown>;

@@ -1,4 +1,4 @@
-import { primitiveComponents } from "@spin/primitives";
+import { primitiveComponents } from "@spin/preset/rules/primitives/manifest.ts";
 
 const TOKENS = primitiveComponents.button.reads;
 

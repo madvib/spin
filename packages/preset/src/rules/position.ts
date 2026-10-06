@@ -4,9 +4,15 @@ import { STATIC_DECLS } from "../utils/declarations.ts";
 import { insetRule, staticRules } from "../utils/factories.ts";
 import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
 
+export const POSITION_NAMES: readonly string[] = Object.keys(POSITION_UTILITIES);
+
 export function positionRules(): Rule[] {
+  // The inset family below takes an arbitrary value as well as a token:
+  // `top-[3px]`, `inset-x-[calc(100%_-_2rem)]`. That branch lives in
+  // `insetRule` with the grammar it accepts, since every axis here shares it;
+  // the reason a literal is correct at all is written there.
   return [
-    ...staticRules([...Object.keys(POSITION_UTILITIES)], STATIC_DECLS),
+    ...staticRules([...POSITION_NAMES], STATIC_DECLS),
     insetRule(
       /^inset-(.+)$/,
       ["top", "right", "bottom", "left"],

@@ -54,10 +54,10 @@ export default defineConfig({
         ),
       },
       {
-        find: "@spin/primitives",
+        find: "@spin/primitives-procedures",
         replacement: resolve(
           import.meta.dirname,
-          "../../packages/primitives/src/index.ts",
+          "../../packages/preset/src/primitives-procedures.ts",
         ),
       },
       {

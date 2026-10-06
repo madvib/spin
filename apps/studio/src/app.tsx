@@ -126,7 +126,7 @@ export default function App() {
             <div class="flex items-center gap-4 p-4 shrink-0 border-b border-border">
               <span>
                 Editing <code>{activeName()}</code>{" "}
-                in apps/docs/themes · previewing {activeMode()}
+                in packages/theme/src/themes · previewing {activeMode()}
               </span>
             </div>
             {

@@ -1,14 +1,48 @@
 import type { Rule } from "@unocss/core";
 import { staticRules } from "../utils/factories.ts";
 import { spacingRule } from "../utils/factories.ts";
+import { groupOf } from "../utils/lookup.ts";
+import type { ThemeContext } from "../utils/lookup.ts";
+
+/**
+ * The margin axes that accept `auto`, with the properties each one sets.
+ *
+ * `auto` is a keyword, not a scale step, so it is the one margin value that
+ * does not resolve from the theme. It is legal on margins and meaningless on
+ * padding or gap, which is why this table is its own list rather than a flag
+ * on the spacing axes: `p-auto` must not resolve.
+ */
+export const AUTO_AXES: ReadonlyArray<readonly [string, string]> = [
+  ["m-auto", "margin"],
+  ["mx-auto", "margin-left|margin-right"],
+  ["my-auto", "margin-top|margin-bottom"],
+  ["mt-auto", "margin-top"],
+  ["mr-auto", "margin-right"],
+  ["mb-auto", "margin-bottom"],
+  ["ml-auto", "margin-left"],
+  ["me-auto", "margin-inline-end"],
+  ["ms-auto", "margin-inline-start"],
+];
+
+/** The `auto` margin names, for the catalog. */
+export const MARGIN_AUTO_NAMES: readonly string[] = AUTO_AXES.map(([name]) =>
+  name
+);
 
 export function spacingRules(): Rule[] {
   return [
     spacingRule(/^p-(.+)$/, ["padding"], "p-$spacing"),
     spacingRule(/^m-(.+)$/, ["margin"], "m-$spacing"),
-    // `mx-auto` is the one mx that is not a scale step: `auto` is a keyword,
-    // not a token, so it is declared rather than resolved.
-    ...staticRules(["mx-auto"], MX_AUTO_DECLS),
+    // `auto` on every margin axis. Declared, not resolved: it is a keyword.
+    ...staticRules(
+      AUTO_AXES.map(([name]): string => name),
+      Object.fromEntries(
+        AUTO_AXES.map(([name, props]) => [
+          name,
+          Object.fromEntries(props.split("|").map((p) => [p, "auto"])),
+        ]),
+      ),
+    ),
 
     spacingRule(
       /^mx-(.+)$/,
@@ -49,22 +83,43 @@ export function spacingRules(): Rule[] {
     // `gap-gutter` is the one gap that is not a scale step: it reads the
     // container's own rhythm, so a page's grid and its container cannot drift
     // apart the way `gap-4` and `p-4` can.
-    ...staticRules(
-      ["gap-gutter", "gap-x-gutter", "gap-y-gutter"],
-      GUTTER_DECLS,
-    ),
+    //
+    // Static, because the name is a literal multi-word token that uno's
+    // extractor does not produce as a candidate — a regex rule for it never
+    // runs, however it is written. And the value is a custom property the
+    // CONSUMER sets on the container, not a theme token: a grid's gutter is a
+    // property of that grid, which is why `grid.ts` says the same thing.
+    ...gutterRules(),
     spacingRule(/^gap-(.+)$/, ["gap"], "gap-$spacing"),
     spacingRule(/^gap-x-(.+)$/, ["column-gap"], "gap-$spacing"),
     spacingRule(/^gap-y-(.+)$/, ["row-gap"], "gap-$spacing"),
   ];
 }
 
-const GUTTER_DECLS: Record<string, Record<string, string>> = {
-  "gap-gutter": { gap: "var(--grid-gutter)" },
-  "gap-x-gutter": { "column-gap": "var(--grid-gutter)" },
-  "gap-y-gutter": { "row-gap": "var(--grid-gutter)" },
-};
+/**
+ * The gutter.
+ *
+ * One per axis, all stating the same custom property. `--grid-gutter` is set
+ * by the consumer on the container rather than read from the theme, because a
+ * grid's gutter belongs to that grid: two grids on one page have different
+ * gaps, and a theme scale would force them to be the same.
+ */
+export const GUTTER_AXES: ReadonlyArray<
+  readonly [name: string, property: string]
+> = [
+  ["gap-gutter", "gap"],
+  ["gap-x-gutter", "column-gap"],
+  ["gap-y-gutter", "row-gap"],
+];
 
-const MX_AUTO_DECLS: Record<string, Record<string, string>> = {
-  "mx-auto": { "margin-left": "auto", "margin-right": "auto" },
-};
+/** The gutter names, for the catalog. */
+export const GUTTER_NAMES: readonly string[] = GUTTER_AXES.map(([name]) =>
+  name
+);
+
+function gutterRules(): Rule[] {
+  return GUTTER_AXES.map(([name, property]): Rule => [
+    name,
+    { [property]: "var(--grid-gutter)" },
+  ]);
+}

@@ -32,8 +32,8 @@
       "@unocss/core": [
         "./node_modules/@unocss/core/dist/index.d.mts"
       ],
-      "@spin/primitives": [
-        "../../packages/primitives/src/index.ts"
+      "@spin/primitives-procedures": [
+        "../../packages/preset/src/primitives-procedures.ts"
       ],
       "@spin/theme/base": [
         "../../packages/theme/src/base/index.ts"

@@ -20,11 +20,26 @@ import type { TokenTree } from "@spin/theme";
 import { basePreflights } from "@spin/theme/base";
 import type { PreflightProvider } from "@spin/theme/base";
 import { animationPreflights } from "@spin/animation";
-import { generatePrimitivesCss } from "@spin/primitives";
 import type { ThemeDocument } from "./index.ts";
 
+/**
+ * `border-width: 0`, not `border: 0 solid`.
+ *
+ * The shorthand also resets the style and colour, and a control whose border
+ * style is `none` cannot be styled into one: Chromium keys `<progress>`'s
+ * `appearance` to whether it has a border at all, so `appearance: none` on
+ * the element is silently ignored and the progress bar renders as a native
+ * widget — height and width honoured, everything else not. Reproduced in
+ * isolation: adding `border: 0 solid` back makes a rule that worked on a bare
+ * page stop working.
+ *
+ * `border-width: 0` removes every border without touching the style, so a
+ * rule that states `appearance: none` first and a border second still gets
+ * its border, and a rule that states neither keeps the platform's.
+ */
 const RESET_CSS =
-  "*, ::before, ::after { box-sizing: border-box; border: 0 solid; }";
+  "*, ::before, ::after { box-sizing: border-box; border-width: 0; }";
+
 
 /**
  * The motion floor, applied once rather than copied into every component that
@@ -123,14 +138,9 @@ function assemble(
       ...provider,
       layer: "primitives",
     })),
-    ...(enabled === undefined || enabled.length > 0
-      ? [{
-        name: "primitives",
-        layer: "primitives",
-        order: LAYER.components,
-        getCSS: () => generatePrimitivesCss(enabled),
-      }]
-      : []),
+    // No component stylesheets. Every primitive is a RULE, so a component
+    // ships its CSS by being matched — there is no file to concatenate, and
+    // nothing here can pull a component into a page that does not use it.
   ];
 
   return providers

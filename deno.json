@@ -5,18 +5,18 @@
     "./packages/theme",
     "./packages/animation",
     "./packages/preset",
-    "./packages/primitives",
     "./packages/lint",
     "./packages/api",
     "./apps/studio"
   ],
   "exports": {
-    ".": "./packages/theme/src/index.ts"
+    ".": "./packages/theme/src/index.ts",
+    "./preset/organization.ts": "./packages/preset/src/organization.ts",
+    "./preset/reference/build.ts": "./packages/preset/src/reference/build.ts"
   },
   "imports": {
     "@spin/theme": "./packages/theme/src/index.ts",
     "@spin/preset": "./packages/preset/src/index.ts",
-    "@spin/primitives": "./packages/primitives/src/index.ts",
     "@spin/lint": "./packages/lint/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
@@ -27,7 +27,10 @@
     "@orpc/client": "npm:@orpc/client@^1.0.0",
     "@spin/theme/base": "./packages/theme/src/base/index.ts",
     "@spin/animation": "./packages/animation/src/index.ts",
-    "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.0"
+    "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.0",
+    "@unocss/preset-tagify": "npm:@unocss/preset-tagify@66.10.5",
+    "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
+    "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-net packages/",
@@ -35,7 +38,7 @@
     "fmt": "deno fmt",
     "check": "deno check packages/",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
-    "demo": "deno run -A demo/build.ts"
+    "serve": "deno run -A serve.ts"
   },
   "fmt": {
     "exclude": [

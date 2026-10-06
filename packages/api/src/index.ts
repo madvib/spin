@@ -13,13 +13,13 @@ import type { RouterClient } from "@orpc/server";
 import { RPCLink } from "@orpc/client/fetch";
 import { createORPCClient } from "@orpc/client";
 import { themeRouter } from "@spin/theme";
-import { primitivesRouter } from "@spin/primitives";
+import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 import { presetRouter } from "@spin/preset";
 
 export { themeRouter } from "@spin/theme";
 export { themeContract } from "@spin/theme";
-export { primitivesRouter } from "@spin/primitives";
-export { primitivesContract } from "@spin/primitives";
+export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
+export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
 export { presetRouter } from "@spin/preset";
 export { presetContract } from "@spin/preset";
 

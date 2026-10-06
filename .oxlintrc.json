@@ -6,41 +6,68 @@
   "rules": {
     "spin/no-utilities-on-semantic": "error",
     "spin/closed-vocabulary": "error",
-    "spin/no-raw-colors": "error"
+    "spin/no-raw-colors": "error",
+    "spin/no-handwritten-tokens": "error"
   },
   "overrides": [
     {
-      "files": ["packages/theme/src/**/*.ts"],
+      "files": [
+        "packages/theme/src/**/*.ts"
+      ],
       "rules": {
-        "no-restricted-imports": ["error", {
-          "patterns": [
-            {
-              "group": ["@spin/primitives", "@spin/preset", "@spin/lint", "@spin/api", "@spin/animation"],
-              "message": "theme is the value layer: it knows nothing of components, utilities, or transport"
-            },
-            {
-              "group": ["node:*", "@unocss/*"],
-              "message": "theme ships to a browser: no Node built-ins, no bundler"
-            }
-          ]
-        }]
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@spin/preset",
+                  "@spin/lint",
+                  "@spin/api",
+                  "@spin/animation"
+                ],
+                "message": "theme is the value layer: it knows nothing of components, utilities, or transport"
+              },
+              {
+                "group": [
+                  "node:*",
+                  "@unocss/*"
+                ],
+                "message": "theme ships to a browser: no Node built-ins, no bundler"
+              }
+            ]
+          }
+        ]
       }
     },
     {
-      "files": ["packages/primitives/src/**/*.ts", "packages/animation/src/**/*.ts"],
+      "files": [
+        "packages/primitives/src/**/*.ts",
+        "packages/animation/src/**/*.ts"
+      ],
       "rules": {
-        "no-restricted-imports": ["error", {
-          "patterns": [
-            {
-              "group": ["@spin/preset", "@spin/lint", "@spin/api"],
-              "message": "components spend tokens; they do not know how tokens become utilities"
-            },
-            {
-              "group": ["node:*", "@unocss/*"],
-              "message": "shipped primitives must load in a browser: no Node built-ins, no bundler"
-            }
-          ]
-        }]
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@spin/preset",
+                  "@spin/lint",
+                  "@spin/api"
+                ],
+                "message": "components spend tokens; they do not know how tokens become utilities"
+              },
+              {
+                "group": [
+                  "node:*",
+                  "@unocss/*"
+                ],
+                "message": "shipped primitives must load in a browser: no Node built-ins, no bundler"
+              }
+            ]
+          }
+        ]
       }
     }
   ],

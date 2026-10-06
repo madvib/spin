@@ -1,26 +1,28 @@
 import type { TokenTree } from "@spin/theme";
 import { themeRef } from "@spin/theme";
+import { BORDER_NAMES } from "./rules/border.ts";
+import { DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
+import { divideNames } from "./rules/divide.ts";
+import { GRID_NAMES } from "./rules/grid.ts";
+import { INTERACTIVITY_NAMES } from "./rules/interactivity.ts";
+import { STACKING_NAMES } from "./rules/stacking.ts";
+import { LAYOUT_NAMES } from "./rules/layout.ts";
+import { OPACITY_NAMES } from "./rules/opacity.ts";
+import { OVERFLOW_NAMES } from "./rules/overflow.ts";
+import { POSITION_NAMES } from "./rules/position.ts";
+import { SIZING_NAMES } from "./rules/sizing.ts";
+import { GUTTER_NAMES, MARGIN_AUTO_NAMES } from "./rules/spacing.ts";
 import {
-  BORDER_STYLES,
-  DISPLAY_UTILITIES,
-  FLEX_UTILITIES,
-  FRACTIONS,
-  HEIGHT_KEYWORDS,
-  INSET_KEYWORDS,
-  INTERACTIVITY_UTILITIES,
-  OPACITY_UTILITIES,
-  ORDER_UTILITIES,
-  OVERFLOW_UTILITIES,
-  POSITION_UTILITIES,
-  STATIC_UTILITIES,
-  TEXT_ALIGN,
-  TEXT_DECORATION,
-  TRANSITION_PROPERTY,
-  VISIBILITY,
-  WHITESPACE,
-  WIDTH_KEYWORDS,
-  WORD_BREAK,
-} from "./utils/vocabulary.ts";
+  TEXT_ALIGN_NAMES,
+  TEXT_DECORATION_NAMES,
+  WHITESPACE_NAMES,
+  WORD_BREAK_NAMES,
+} from "./rules/text.ts";
+import { toneNames } from "./rules/tones.ts";
+import { TRANSITION_NAMES } from "./rules/transitions.ts";
+import { TYPOGRAPHY_NAMES } from "./rules/typography.ts";
+import { FRACTIONS, INSET_KEYWORDS } from "./utils/vocabulary.ts";
+import { variantPrefixes } from "./variants/index.ts";
 
 export interface CatalogSection {
   id: string;
@@ -37,6 +39,17 @@ function prefixed(prefixes: string[], keys: Iterable<string>): string[] {
   return out;
 }
 
+/**
+ * Every utility the preset can produce, grouped for display.
+ *
+ * The static names come from the RULES that own them — each rule exports the
+ * names it matches, so a utility added to a rule appears here without a second
+ * edit. The theme-driven names (`bg-primary`, `p-4`, `max-w-lg` …) are read
+ * from the theme, because they are the theme's scale rather than the rule's
+ * vocabulary. Neither list is hand-typed: the catalog cannot name a utility
+ * the preset does not produce, and a rule cannot produce one the catalog
+ * misses.
+ */
 export function describeCatalog(tree: TokenTree): CatalogSection[] {
   const theme = themeRef(tree);
   return [
@@ -55,12 +68,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Border",
       utilities: [
         ...prefixed(["border-"], Object.keys(theme.colors ?? {})),
-        "border",
-        "border-0",
-        "border-2",
-        "border-4",
-        "border-8",
-        ...Object.keys(BORDER_STYLES),
+        ...BORDER_NAMES,
       ],
     },
     {
@@ -74,18 +82,24 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
     {
       id: "margin",
       title: "Margin",
-      utilities: prefixed(
-        ["m-", "mx-", "my-", "mt-", "mr-", "mb-", "ml-"],
-        Object.keys(theme.spacing ?? {}),
-      ),
+      utilities: [
+        ...prefixed(
+          ["m-", "mx-", "my-", "mt-", "mr-", "mb-", "ml-"],
+          Object.keys(theme.spacing ?? {}),
+        ),
+        ...MARGIN_AUTO_NAMES,
+      ],
     },
     {
       id: "gap",
       title: "Gap",
-      utilities: prefixed(
-        ["gap-", "gap-x-", "gap-y-"],
-        Object.keys(theme.spacing ?? {}),
-      ),
+      utilities: [
+        ...prefixed(
+          ["gap-", "gap-x-", "gap-y-"],
+          Object.keys(theme.spacing ?? {}),
+        ),
+        ...GUTTER_NAMES,
+      ],
     },
     {
       id: "type-size",
@@ -113,73 +127,61 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
     {
       id: "layout",
       title: "Layout",
-      utilities: [...STATIC_UTILITIES, ...FLEX_UTILITIES, ...ORDER_UTILITIES],
+      utilities: [...LAYOUT_NAMES],
     },
     {
       id: "sizing",
       title: "Sizing",
       utilities: [
         ...prefixed(["w-"], Object.keys(theme.spacing ?? {})),
-        ...prefixed(["w-"], Object.keys(FRACTIONS)),
-        ...prefixed(["w-"], Object.keys(WIDTH_KEYWORDS)),
         ...prefixed(["h-"], Object.keys(theme.spacing ?? {})),
-        ...prefixed(["h-"], Object.keys(FRACTIONS)),
-        ...prefixed(["h-"], Object.keys(HEIGHT_KEYWORDS)),
-        "min-w-0",
-        "min-w-full",
-        "min-w-min",
-        "min-w-max",
-        "min-w-fit",
-        "max-w-0",
-        "max-w-full",
-        "max-w-min",
-        "max-w-max",
-        "max-w-fit",
+        ...SIZING_NAMES,
+        // `max-w-<bp>` is a measure; `max-w-screen-<bp>` is the viewport width
+        // AT that breakpoint. Both are real and the catalog names both.
+        ...prefixed(["max-w-"], Object.keys(theme.breakpoint ?? {})),
         ...prefixed(["max-w-screen-"], Object.keys(theme.breakpoint ?? {})),
-        "min-h-0",
-        "min-h-full",
-        "min-h-screen",
-        "min-h-min",
-        "min-h-max",
-        "min-h-fit",
-        "max-h-0",
-        "max-h-full",
-        "max-h-screen",
-        "max-h-min",
-        "max-h-max",
-        "max-h-fit",
       ],
+    },
+    {
+      id: "grid",
+      title: "Grid",
+      utilities: [...GRID_NAMES],
     },
     {
       id: "display",
       title: "Display",
-      utilities: [...DISPLAY_UTILITIES, ...Object.keys(VISIBILITY)],
+      utilities: [...DISPLAY_NAMES, ...VISIBILITY_NAMES],
     },
     {
       id: "text",
       title: "Text",
       utilities: [
-        ...Object.keys(TEXT_ALIGN),
-        ...Object.keys(WHITESPACE),
-        ...Object.keys(WORD_BREAK),
+        ...TEXT_ALIGN_NAMES,
+        ...WHITESPACE_NAMES,
+        ...WORD_BREAK_NAMES,
       ],
+    },
+    {
+      id: "typography",
+      title: "Typography",
+      utilities: [...TYPOGRAPHY_NAMES],
     },
     {
       id: "transitions",
       title: "Transitions",
       utilities: [
-        ...Object.keys(TRANSITION_PROPERTY),
+        ...TRANSITION_NAMES,
         ...prefixed(["duration-"], Object.keys(theme.motionDuration ?? {})),
         ...prefixed(["ease-"], Object.keys(theme.motionEasing ?? {})),
       ],
     },
-    { id: "opacity", title: "Opacity", utilities: [...OPACITY_UTILITIES] },
-    { id: "overflow", title: "Overflow", utilities: [...OVERFLOW_UTILITIES] },
+    { id: "opacity", title: "Opacity", utilities: [...OPACITY_NAMES] },
+    { id: "overflow", title: "Overflow", utilities: [...OVERFLOW_NAMES] },
     {
       id: "position",
       title: "Position",
       utilities: [
-        ...Object.keys(POSITION_UTILITIES),
+        ...POSITION_NAMES,
         ...prefixed(["inset-"], Object.keys(theme.spacing ?? {})),
         ...prefixed(["inset-"], Object.keys(FRACTIONS)),
         ...prefixed(["inset-"], Object.keys(INSET_KEYWORDS)),
@@ -203,29 +205,27 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
     {
       id: "text-decoration",
       title: "Text decoration",
-      utilities: [...Object.keys(TEXT_DECORATION)],
+      utilities: [...TEXT_DECORATION_NAMES],
     },
     {
       id: "interactivity",
       title: "Interactivity",
-      utilities: [...INTERACTIVITY_UTILITIES],
+      utilities: [...INTERACTIVITY_NAMES],
     },
     {
       id: "divide",
       title: "Divide",
-      utilities: [
-        "divide-x",
-        "divide-x-0",
-        "divide-x-2",
-        "divide-x-4",
-        "divide-x-8",
-        "divide-y",
-        "divide-y-0",
-        "divide-y-2",
-        "divide-y-4",
-        "divide-y-8",
-        ...prefixed(["divide-"], Object.keys(theme.colors ?? {})),
-      ],
+      utilities: [...divideNames(Object.keys(theme.colors ?? {}))],
+    },
+    {
+      id: "tones",
+      title: "Tones",
+      utilities: toneNames(),
+    },
+    {
+      id: "variants",
+      title: "Variants",
+      utilities: variantPrefixes(),
     },
   ];
 }

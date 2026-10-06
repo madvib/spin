@@ -4,13 +4,14 @@ import { SHADOW } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
 
+export const SHADOW_NAMES: readonly string[] = Object.keys(SHADOW).map(
+  (name) => `shadow-${name}`,
+);
+
 export function shadowRules(): Rule[] {
   return [
     // Steps no theme names: `shadow-none` is a look a theme asks for by name.
-    ...staticRules(
-      Object.keys(SHADOW).map((name) => `shadow-${name}`),
-      STATIC_DECLS,
-    ),
+    ...staticRules([...SHADOW_NAMES], STATIC_DECLS),
     [
       /^shadow-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {

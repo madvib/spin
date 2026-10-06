@@ -13,8 +13,15 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-/** Where project themes live, relative to the workspace root. */
-export const THEMES_DIR = "apps/docs/themes";
+/**
+ * Where themes live, relative to the workspace root.
+ *
+ * The shipped STARTERS, not a per-app directory: a theme a consumer starts from
+ * is product, and it belongs beside the code that reads it. A studio that
+ * edited a copy under its own app would be editing a fork, and the fork would
+ * drift the moment the starter moved.
+ */
+export const THEMES_DIR = "packages/theme/src/themes";
 
 /** A theme found on disk, named by its file stem. */
 export interface DiscoveredTheme {
