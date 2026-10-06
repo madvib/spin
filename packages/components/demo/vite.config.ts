@@ -1,13 +1,26 @@
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import UnoCSS from "@unocss/vite";
 import { spinPreset } from "../../preset/src/index.ts";
 import { starterThemes } from "../../theme/src/themes/index.ts";
 
 const at = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
+const rawHtml = (): Plugin => ({
+  name: "spin/raw-html",
+  enforce: "pre",
+  async load(id) {
+    if (id.endsWith(".html?raw")) {
+      const path = id.slice(0, -4);
+      const source = await (await import("node:fs/promises")).readFile(path, "utf8");
+      return `export default ${JSON.stringify(source)};`;
+    }
+    return undefined;
+  },
+});
+
 export default defineConfig({
-  plugins: [UnoCSS({ presets: [spinPreset({ themes: { default: starterThemes.default } })] })],
+  plugins: [rawHtml(), UnoCSS({ presets: [spinPreset({ themes: { default: starterThemes.default } })] })],
   resolve: {
     alias: {
       "@spin/components": at("../src/index.ts"),
