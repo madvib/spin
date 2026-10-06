@@ -1,19 +1,9 @@
 /**
- * Custom elements: a scope per connection, and a prop that survives both sides
- * of it.
+ * Custom elements: a scope per connection, and props that survive both sides.
  *
- * A component that outlives its element is the failure a runtime exists to
- * prevent. An effect that writes into a detached node throws nothing, so the
- * only defence is that `disconnectedCallback` reaches everything created during
- * `connectedCallback` — which is the cascade from `signal.ts`, and the reason
- * `build` runs inside `scope.run` rather than beside it.
- *
- * Props are properties, not attributes, because an attribute is a string and a
- * Zag component needs objects: an array of nodes, a function, a `Set` of ids. An
- * attribute would arrive as `"[object Object]"` and fail silently, which is the
- * worst way to fail. Attributes are still supported, for the primitives that
- * genuinely are strings — `disabled="true"` — and they land in the same live
- * prop a property write would, so a component reads one thing either way.
+ * Props are properties, not attributes — an attribute is a string and a machine
+ * needs objects. Attributes are supported for the primitives that are strings,
+ * and land in the same live prop a property write would.
  */
 
 import { scope, signal, type OwnerScope } from "./signal.ts";
@@ -57,33 +47,14 @@ type PropStore = Map<string, Signal>;
 /**
  * Registers `tag` as a custom element built by `spec`.
  *
- * ```ts
- * define("spin-accordion", {
- *   attributes: { disabled: (value) => value === "true" },
- *   build({ el, scope }) {
- *     el.innerHTML = `<div data-part="root"><button data-part="item-trigger"></button></div>`;
- *     const accordion = createMachine(accordionMachine, {
- *       connect: accordionConnect,
- *       scope,                          // so disconnect disposes the machine
- *       getRootNode: () => el,          // zag looks parts up from here
- *       props: { collapsible: true },
- *     });
- *     const trigger = el.querySelector("button")!;
- *     const bag = accordion.api.getItemTriggerProps({ value: "one" });
- *     trigger.addEventListener("click", bag.onClick);
- *     effect(() => {
- *       trigger.setAttribute("data-expanded", String(accordion.api.value.includes("one")));
- *     });
- *   },
- * });
- * ```
+ * `build` runs inside the element's scope on every connection, so every effect
+ * it creates dies with the element.
  */
 export function define(tag: string, spec: ElementSpec): void {
   const propNames = spec.props ?? [];
   const parsers = spec.attributes ?? {};
-  // A store per instance, created on first touch. A property write before the
-  // element is upgraded, or an attribute the parser already answered, is then
-  // still the value `build` reads — the store does not care when it was made.
+  // A store per instance, created on first touch, so a property written before
+  // upgrade is still the value `build` reads.
   const stores = new WeakMap<HTMLElement, PropStore>();
 
   function storeFor(el: HTMLElement): PropStore {

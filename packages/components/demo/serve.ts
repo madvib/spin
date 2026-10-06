@@ -1,40 +1,16 @@
-/**
- * The Phase 4 gate, as a page you can click.
- *
- *     deno task demo:tree          # writes demo/tree/index.html and serves it
- *
- * Everything on the page comes from spin's own pipeline: the preset emits the
- * theme variables and the primitive rules for the bare tags the component
- * renders, and the component contributes no class attributes at all. If a
- * Zag machine could not be expressed as semantic tags spin already styles,
- * this page would show it — unstyled `<div>`s with no role-specific rules —
- * which is exactly the failure this demo exists to catch.
- *
- * The machine ships as a bundle because the browser cannot run a Deno import
- * map. The bundle is a delivery detail; the source next to it is what the
- * claim rests on.
- */
+/** Serves the tree-view demo. The machine is bundled; the browser has no import map. */
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "@spin/preset";
 import { starterThemes } from "@spin/theme/themes";
 import { execFile } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 
-const ROOT = new URL("../../", import.meta.url);
+const ROOT = new URL("../../../", import.meta.url);
 const OUT = new URL("./", import.meta.url);
 
-// The theme is a document the theme package exports, not a JSON file this demo
-// reads by path. The path was a second source of truth that had to agree with
-// the export, and it stopped agreeing the moment the examples moved.
 const THEMES = { default: starterThemes.default };
 
-// The primitives are the preset's now, not a package beside it: they arrive as
-// preflights on this generator, so the page emits them by asking for a preset
-// rather than by reaching for a second API that had to agree with the first.
-//
-// The page's own chrome is not the component under test, so it asks for the
-// handful of utilities it needs and nothing more. The component below asks for
-// none, because it writes none.
+// Page chrome only. The component under test writes no utilities of its own.
 const uno = await createGenerator({
   presets: [spinPreset({ themes: THEMES })],
 });
@@ -44,9 +20,7 @@ const PAGE_CHROME =
 
 const { css } = await uno.generate(PAGE_CHROME);
 
-// The machine ships as a bundle because the browser cannot run a Deno import
-// map. `deno bundle` is the built-in subcommand for that; the source next to
-// it, not this artefact, is what the zero-classes claim rests on.
+// The browser cannot run a Deno import map, so the machine ships as a bundle.
 const dist = new URL("./dist/main.js", import.meta.url);
 await new Promise<void>((resolve, reject) => {
   execFile(

@@ -1,46 +1,15 @@
 /**
- * The Zag bridge: a machine, a scope, and a view of the machine's API that is
- * live instead of a photograph.
+ * The Zag bridge: a machine, a scope, and a live view of its API.
  *
- * The photograph is the whole problem. `connect(service, normalize)` reads the
- * machine's context once and closes over what it read, so `api.expandedValue`
- * is the value that was current when `connect` ran — forever. Every Zag
- * framework binding gets away with it because their renderers re-run the
- * enclosing computation on every state change and rebuild the template. We have
- * no template and no vdom, so the liveness has to be ours.
+ * `connect` runs inside a computed, so it re-runs once per state change and a
+ * read is a cached property access. `machine.api` is a Proxy over that computed
+ * rather than over its current value, so the bridge stays live when
+ * destructured. A function read off the api closes over the snapshot that
+ * produced it, so read fields and call functions through `api` at the point of
+ * use.
  *
- * Note what this module therefore is: `@zag-js/core` ships no runner. Its
- * `createMachine` is a no-op that indexes a config, and a `Service` is a type,
- * never a value. The interpreter — bindables, refs, transitions, exit/entry
- * effect bookkeeping, `track` — exists only inside the framework adapters, and
- * those are built on a framework's reactivity. So this file *is* the runner,
- * reimplemented over alien-signals, and then the live view on top of it. The
- * 0.8 kB in PLAN §3 is the connector, not the interpreter.
- *
- * Two rules make the API live, and they are the only rules:
- *
- * 1. `connect` runs inside a `computed`. The computed tracks whatever the
- *    machine reads while connecting, so it re-runs `connect` once per state
- *    change and caches the result between changes. A read is a property access
- *    on the cached object: no allocation, no re-entry into `connect`.
- * 2. `machine.api` is a `Proxy` over that computed rather than the computed's
- *    current value, so liveness survives destructuring the bridge. Hold on to
- *    `api` and it keeps up; capturing a field is what does not survive, and
- *    that is the failure mode this file exists to prevent.
- *
- * One thing no proxy can fix, and a component author has to know: a *function*
- * read off the api closes over the snapshot that produced it. `api.setValue`
- * taken before a transition still sends — it goes through the service, not a
- * snapshot — but `api.getItemState` taken before one reports the state as it
- * was. So read fields and call functions *through* `api` at the point of use,
- * never destructure one off it. The alternative, re-running `connect` per read,
- * allocates the whole API object on every property access to buy a guarantee
- * nobody needs.
- *
- * Everything the machine runs — `track` effects, computed values, entry and
- * exit effects, the machine's own teardown — is registered with the machine's
- * scope, which is nested inside the caller's. Disposing the caller's scope
- * reaches all of it, which is what makes `disconnectedCallback` safe.
+ * `@zag-js/core` ships no runner — its interpreter exists only inside the
+ * framework adapters — so this module is the interpreter.
  */
 
 import {

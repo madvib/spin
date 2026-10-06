@@ -1,18 +1,9 @@
 /**
- * The reactive core alien-signals does not ship.
+ * The reactive primitives alien-signals does not ship: `batch`, `untrack`, and
+ * a `scope` whose `dispose` reaches every effect created under its `run`.
  *
- * `signal`, `computed`, `effect` and `trigger` are alien-signals' own; the
- * rest is ours, because a component runtime needs three things a signal
- * library has no reason to provide. `batch` is a callable rather than a
- * start/end pair, so a call site cannot leak an unbalanced depth. `untrack`
- * hides alien's raw `setActiveSub` behind an argument and a `finally`.
- * `scope` is an object — `run`, `own`, `dispose` — because a custom element's
- * connection needs something to compose, and because tearing an element down
- * must take every effect created inside it with it.
- *
- * The cascade is the property we bought. A binding that outlives its element
- * writes into DOM that has already been detached, and nothing throws, so the
- * only defence is that `dispose` reaches everything created under `run`.
+ * The cascade is the point: a binding that outlives its element writes into
+ * detached DOM and throws nothing, so `dispose` has to be exhaustive.
  */
 
 import {

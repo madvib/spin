@@ -38,6 +38,21 @@ to build from, and oracles that mechanically verify the result.
   `.agents/specs/` (git-ignored). Code, tests, and `README.md` per package are
   the only authored files.
 
+## Comments
+
+Terse and professional. A comment describes the thing it annotates: a
+precondition, a consequence, a reason the code cannot state itself.
+
+It does not narrate a decision, ask a question, record a change, or refer to
+another module, a file, an application, or a conversation. It does not
+restate the path of the file it sits in.
+
+A file header says what the file is, in one line, and stops.
+
+Reasoning that does not become a rule does not get written down. If a decision
+needs a paragraph of justification it belongs in a commit message, which is
+where history lives.
+
 ## Packages
 
 | Package            | Role                                                                                                 |
