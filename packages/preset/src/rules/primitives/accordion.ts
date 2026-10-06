@@ -66,7 +66,7 @@ function tokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
 
 function rootRule(root: string): Rule {
   return [
-    /^accordion$/,
+    /^accordion-root$/,
     function* (_m, ctx) {
       const t = tokens(ctx);
       yield {
@@ -86,7 +86,7 @@ function rootRule(root: string): Rule {
 
 function itemRule(item: string): Rule {
   return [
-    /^accordion$/,
+    /^accordion-item$/,
     function* (_m, ctx) {
       const t = tokens(ctx);
       yield {
@@ -107,7 +107,7 @@ function itemRule(item: string): Rule {
 
 function triggerRule(trigger: string): Rule {
   return [
-    /^accordion$/,
+    /^accordion-trigger$/,
     function* (_m, ctx) {
       const t = tokens(ctx);
       yield {
@@ -151,7 +151,7 @@ function triggerRule(trigger: string): Rule {
 
 function contentRule(content: string): Rule {
   return [
-    /^accordion$/,
+    /^accordion-content$/,
     function* (_m, ctx) {
       const t = tokens(ctx);
       yield {
@@ -178,7 +178,7 @@ function contentRule(content: string): Rule {
 
 function indicatorRule(trigger: string): Rule {
   return [
-    /^accordion$/,
+    /^accordion-trigger$/,
     function* (_m, ctx) {
       const t = tokens(ctx);
       yield {
