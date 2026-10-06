@@ -1,7 +1,52 @@
 # The component runtime
 
-Sail's directive model, carried over. A component is markup with directives;
-the runtime is the set of primitives those directives resolve to.
+## What this is
+
+The runtime is a **compilation target**, not a library with an API. Sail names
+its emitted surface exactly that — *"THE COMPILER'S ABI. Not the language."*
+— and the distinction is load-bearing:
+
+- A **contract** is negotiated between two parties that both exist and can
+  change. Nobody "negotiates" with a compiler target.
+- An **ABI** is one-directional, curated and frozen. The emitter writes calls
+  into generated code; the runtime never learns the emitter exists. Changing
+  the ABI invalidates already-emitted artifacts, which is why it is curated
+  rather than a total re-export of the author surface.
+
+So the ABI's shape is decided by **what is convenient to emit**, not by what is
+pleasant to call. Positional arguments over options objects. One shape where
+there could be two. Closures the emitter can generate mechanically. No
+overloads, no optional-callback magic, no types a framework would supply.
+
+## Who emits
+
+Two producers, one ABI:
+
+| producer | emits | today |
+|---|---|---|
+| the template compiler | `bindText`, `bindFor`, `bindIf`, `on`, `runAction` | not built |
+| the Zag bridge | the same, from a prop bag | `zag.ts` |
+
+The second is the one to notice. `connect()` hands back a bag like
+`{ role, id, tabIndex, "data-state", onFocus, onClick }` — attributes, a
+property, and handlers. That is a binding program, written by Zag instead of by
+our compiler. It should flow through the same bindings as compiled markup
+rather than through an ad-hoc `apply()` beside them.
+
+## Division of labour
+
+**The emitter owns structure; the runtime owns lifetimes and the DOM.**
+
+The emitter decides what elements exist, where the anchor comment goes, and
+what a row's nodes are. It never calls `addEventListener`, never creates an
+effect, never disposes anything. Every call it emits returns a `Disposer`, and
+the runtime enrolls it on the enclosing scope.
+
+That is why `bindFor` takes `render: (item, i) => RenderedItem` rather than a
+template: the emitter knows the row's markup, the runtime knows when the row
+dies.
+
+## Modules
 
 ```
 src/
@@ -15,7 +60,7 @@ src/
   element.ts     custom-element registration
   component.ts   props: schema, decoders, accessors
   zag.ts         the machine bridge
-  internal.ts    the compiler ABI surface
+  internal.ts    the ABI
   index.ts       the author surface
 ```
 
@@ -172,15 +217,25 @@ disconnect: run the factory's cleanup and dispose the scope.
 A property-typed prop is not observed as an attribute; it gets a signal and an
 accessor on the element.
 
-## Two surfaces
+## The ABI boundary
 
 ```ts
-// internal.ts — the compiler ABI. Directives, binders, scopes, reconciliation.
+// internal.ts — the ABI. Directives, binders, scopes, reconciliation.
 // index.ts    — the author surface. signal, effect, scope, define, component.
 ```
 
-The compiler imports `/internal`. Authors import the root. A symbol on both is
-a symbol nobody decided the tier of.
+The emitter imports `/internal`. Humans import the root. **No human types
+`bindFor` or `runAction`** — they exist to be written into generated code.
+
+`internal.ts` is a curated list, never `export * from "./index"` alone. A
+missing ABI export must be a compile error in the emitter rather than a silent
+re-export of whatever the root happens to carry. Adding a symbol means adding
+it here **and keeping it off the root**.
+
+This boundary is the one place a guard is worth its keep: it is a real seam
+between two programs, and both sides can be pinned — every ABI symbol is
+reachable from `/internal`, and none of them leaks onto the root. That is a
+test over two lists the runtime already exports, not a script parsing files.
 
 ## What is not built
 

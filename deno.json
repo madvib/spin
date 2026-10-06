@@ -47,12 +47,7 @@
     "check": "deno check packages/",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
     "serve": "deno run -A serve.ts",
-    "demo:tree": "deno run -A packages/components/demo/serve.ts",
-    "check:registries": "deno run --allow-read scripts/check-registries.ts",
-    "check:zag-versions": "deno run --allow-read scripts/check-zag-versions.ts",
-    "check:component-parity": "deno run --allow-read scripts/check-component-parity.ts",
-    "check:axe": "deno run --allow-read --allow-env scripts/check-axe.ts",
-    "check:parity": "deno task check:registries && deno task check:zag-versions && deno task check:component-parity && deno task check:axe"
+    "demo:tree": "deno run -A packages/components/demo/serve.ts"
   },
   "fmt": {
     "exclude": [

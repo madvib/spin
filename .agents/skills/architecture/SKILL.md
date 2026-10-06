@@ -41,9 +41,9 @@ Dependencies point one way: `theme` → `preset` → `runtime` → `components`.
 
 The runtime carries Sail's lineage. A component is not a `build()` function
 that calls `document.createElement`; it is **markup with directives**, and the
-runtime is the set of primitives those directives compile to.
+runtime is what those directives compile to.
 
-| directive | runtime primitive | owns |
+| directive | ABI call | owns |
 |---|---|---|
 | `use:action` | `runAction(node, action, paramThunk?)` | element → behaviour |
 | `on:event\|modifier={fn}` | `on(el, event, handler, opts)` | event + modifiers |
@@ -53,7 +53,11 @@ runtime is the set of primitives those directives compile to.
 | `<for as of key={}>` | `bindFor({ anchor, items, key, render })` | keyed list |
 | props | `defineComponent(tag, schema, factory)` | host boundary |
 
-See [runtime.md](runtime.md) for the contracts.
+The runtime is a **compilation target**, so this table is an **ABI**: curated,
+frozen, and shaped by what is convenient to emit rather than by what is
+pleasant to call. It has two producers — the template compiler, and the Zag
+bridge, whose prop bags are already a binding program. See
+[runtime.md](runtime.md).
 
 ## The components package
 
