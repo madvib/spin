@@ -1,5 +1,5 @@
-import { effect, own } from "./signal.ts";
-import { scope } from "./signal.ts";
+import { effect, own } from "../core/signal.ts";
+import { scope } from "../core/signal.ts";
 
 export interface BranchRender {
   nodes: Node[];

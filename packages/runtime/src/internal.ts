@@ -12,8 +12,8 @@
  * the root.
  */
 
-export { runAction, type ElementAction, type SlotLookup } from "./use.ts";
-export { on } from "./use.ts";
+export { runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";
+export { on } from "./directives/use.ts";
 export {
   bindAttr,
   bindChecked,
@@ -23,13 +23,13 @@ export {
   bindValue,
   type Binding,
   type Writable,
-} from "./bind.ts";
-export { bindFor, type BindForOptions, type RenderedItem } from "./for.ts";
-export { bindIf, type BindIfOptions, type BranchRender } from "./if.ts";
-export { text, tpl, view, type ReactiveText, type Rendered } from "./tpl.ts";
-export { useMachine, type MachineApi, type MachineService } from "./machine.ts";
-export { zag, type ZagApi, type ZagGetter } from "./zag-action.ts";
-export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./element.ts";
+} from "./directives/bind.ts";
+export { bindFor, type BindForOptions, type RenderedItem } from "./directives/for.ts";
+export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
+export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
+export { useMachine, type MachineApi, type MachineService } from "./machine/machine.ts";
+export { zag, type ZagApi, type ZagGetter } from "./machine/zag-action.ts";
+export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export {
   batch,
   computed,
@@ -40,16 +40,16 @@ export {
   trigger,
   untrack,
   type OwnerScope,
-} from "./signal.ts";
+} from "./core/signal.ts";
 export {
   createMachine,
   createBindable,
   normalizeProps,
   toStyleString,
-} from "./adapter/index.ts";
+} from "./machine/adapter/index.ts";
 export type {
   MachineBridge,
   MachineOptions,
   Normalize,
   Props,
-} from "./adapter/index.ts";
+} from "./machine/adapter/index.ts";

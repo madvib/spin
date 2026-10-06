@@ -1,4 +1,4 @@
-import { effect, own } from "./signal.ts";
+import { effect, own, untrack } from "../core/signal.ts";
 export type Signal<T> = { (): T; (value: T): void };
 
 export interface ActionResult<P = unknown> {
@@ -10,6 +10,12 @@ export type ElementAction<P = unknown> = (
   node: Element,
   param: P,
 ) => ActionResult<P> | void;
+
+export function createAction<P>(
+  fn: ElementAction<P>,
+): ElementAction<P> {
+  return (node: Element, param: P) => untrack(() => fn(node, param) ?? undefined);
+}
 
 export function runAction<P>(
   node: Element,

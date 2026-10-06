@@ -7,7 +7,7 @@
 
 import { type Bindable, type BindableParams, type ValueOrFn } from "@zag-js/core";
 import { isFunction } from "@zag-js/utils";
-import { signal } from "../signal.ts";
+import { signal } from "../../core/signal.ts";
 
 /**
  * A bindable over one alien signal.

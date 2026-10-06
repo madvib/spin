@@ -1,7 +1,7 @@
-import { bindAttr, bindProp } from "./bind.ts";
-import { on } from "./use.ts";
+import { bindAttr, bindProp } from "../directives/bind.ts";
+import { on } from "../directives/use.ts";
 import { normalizeProps } from "./adapter/index.ts";
-import type { ElementAction } from "./use.ts";
+import type { ElementAction } from "../directives/use.ts";
 
 export type ZagGetter = (props?: Record<string, unknown>) => Record<string, unknown>;
 export type ZagApi = { [getter: string]: ZagGetter };

@@ -42,7 +42,7 @@ import type {
   ValueOrFn,
 } from "@zag-js/core";
 import { callAll, compact, ensure, isEqual, isFunction, isString, toArray, warn } from "@zag-js/utils";
-import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../signal.ts";
+import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../../core/signal.ts";
 import { createBindable } from "./bindable.ts";
 import { normalizeProps } from "./normalize-props.ts";
 

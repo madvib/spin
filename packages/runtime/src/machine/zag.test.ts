@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { connect as accordionConnect, machine as accordionMachine } from "@zag-js/accordion";
 import { createMachine } from "./adapter/index.ts";
-import { effect, scope, signal } from "./signal.ts";
+import { effect, scope, signal } from "../core/signal.ts";
 
 /**
  * These tests exist for one reason.

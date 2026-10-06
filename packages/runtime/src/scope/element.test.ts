@@ -4,7 +4,7 @@ import { parseHTML } from "@spin/runtime/testing";
 // The shim installs its own globals. Declaring them here, rather than in the
 // package, is what keeps linkedom's `Window` out of the shared program.
 import { define } from "./element.ts";
-import { effect, signal } from "./signal.ts";
+import { effect, signal } from "../core/signal.ts";
 
 /**
  * The element's tests are about lifetime, not rendering.

@@ -1,4 +1,4 @@
-import { effect, own, scope } from "./signal.ts";
+import { effect, own, scope } from "../core/signal.ts";
 export type Signal<T> = { (): T; (value: T): void };
 
 export function bindText(node: Text, get: () => unknown): void {

@@ -6,7 +6,7 @@
  * and land in the same live prop a property write would.
  */
 
-import { scope, signal, type OwnerScope } from "./signal.ts";
+import { scope, signal, type OwnerScope } from "../core/signal.ts";
 
 /** Turns an attribute's string into the value the component reads. */
 export type AttributeParser = (value: string | null) => unknown;
