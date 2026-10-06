@@ -34,6 +34,10 @@ ${
               data-markup="${
             esc(e.html.trim())
           }">markup <span data-caret>&#9656;</span></button>
+      <button class="${CHROME.copy}" type="button"
+              data-markup="${
+            esc(e.html.trim())
+          }">copy</button>
       <pre hidden class="${CHROME.decl}">${esc(e.html.trim())}</pre>
     </section>`
       ).join("\n")
@@ -250,6 +254,20 @@ for (const b of document.querySelectorAll(".reveal")) {
     b.setAttribute("aria-expanded", String(!open));
     if (caret) caret.textContent = open ? "▸" : "▾";
     pre.hidden = open;
+  });
+}
+for (const b of document.querySelectorAll("[data-copy]")) {
+  b.addEventListener("click", async () => {
+    const markup = b.getAttribute("data-markup") ?? "";
+    if (!navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(markup);
+      b.textContent = "copied";
+      setTimeout(() => { b.textContent = "copy"; }, 1500);
+    } catch {
+      // Clipboard unavailable (non-secure context, permission denied) —
+      // the button is a no-op rather than an error.
+    }
   });
 }
 </script>

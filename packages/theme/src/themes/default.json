@@ -120,7 +120,7 @@
     },
     "on-semantic-warning": {
       "$type": "color",
-      "$value": "#1a1a1a"
+      "$value": "#ffffff"
     },
     "field": {
       "$type": "color",
@@ -223,7 +223,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -433,7 +433,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -463,6 +463,19 @@
     "lg": {
       "$type": "dimension",
       "$value": "1.25em"
+    }
+  },
+  "badge": {
+    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "edge": {
+      "$type": "dimension",
+      "$value": "{border.width}",
+      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
+    },
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.full}",
+      "$description": "Corner rounding for the badge. Fully round reads as a pill; zero squares it into a tag."
     }
   },
   "checkbox": {
@@ -567,6 +580,18 @@
         "$value": "#0b1120",
         "$type": "color"
       },
+      "on-secondary": {
+        "$value": "#0b1120",
+        "$type": "color"
+      },
+      "on-accent": {
+        "$value": "#0b1120",
+        "$type": "color"
+      },
+      "on-semantic-success": {
+        "$value": "#0b1120",
+        "$type": "color"
+      },
       "focus-ring": {
         "$value": "#60a5fa",
         "$description": "Ring matches the lifted dark primary."
@@ -574,6 +599,10 @@
       "link": {
         "$value": "#7dd3fc",
         "$description": "Lifted link color; the dark accent is not restated in this group."
+      },
+      "on-semantic-warning": {
+        "$value": "#0b1120",
+        "$description": "Ink on the dark warning fill. The dark warning background is amber, so the foreground stays dark where the light-mode one is white."
       }
     },
     "focus": {

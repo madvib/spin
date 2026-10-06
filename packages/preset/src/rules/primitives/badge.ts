@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { groupOf, themeOf } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -10,19 +10,17 @@ import { claim, type Mode } from "./shared.ts";
  * tone are separate tokens, so a page using none of them pays only for the
  * base.
  *
- * Badge does not group its tones with anything. A badge and a button do not
- * share a role — a button is pressable and a badge is not, and the tokens they
- * spend differ because of that. What they share is a *palette*, and a palette
- * is not a component concern: it belongs to the theme and is offered as a
- * utility a component may spend, not as variants each component reinvents.
- * See `tones.ts`.
+ * A badge's tones are its own variants — compound selectors on the badge,
+ * `badge.badge-tone-primary` — not shared utilities. The palette pair (fill + on)
+ * comes from the theme; the quiet form copies the colorimetry of tones.ts
+ * quietRule: a border in the tone and an 8% tint of it on the surface.
  */
 export function badgeRules(
   roots: readonly string[],
   mode: Mode,
 ): Rule[] {
   if (!roots.includes("badge")) return [];
-  return [badgeBase(mode), ...badgeTones(mode)];
+  return [badgeBase(mode), ...badgeTones(mode), ...badgeSizes(mode)];
 }
 
 /** The shared shape every tone keeps: a small inline pill. */
@@ -34,20 +32,19 @@ function badgeBase(mode: Mode): Rule {
       const t = themeOf(ctx);
       const spacing2 = t?.spacing["2"];
       const spacing1 = t?.spacing["1"];
-      const radiusFull = t?.radius["full"];
+      const borderWidth = t?.borderWidth?.["width"];
+      const borderColor = t?.colors?.["border"];
       const sizeXs = t?.fontSize["xs"];
       const weightMedium = t?.fontWeight["medium"];
+      const badgeGroup = groupOf(ctx, "badge");
+      const edge = badgeGroup?.["edge"] ?? borderWidth;
+      const radius = badgeGroup?.["radius"] ?? t?.radius?.["full"];
       yield {
         [ctx.symbols.selector]: () => badge,
         display: "inline-flex",
         "align-items": "center",
-        // A pill is centred on its glyphs, not on a line box. Inherited
-        // line-height adds leading above the text, and a flex item centres
-        // that leading too — so the label reads a pixel high in a 26px pill
-        // even though the box and the line box agree.
-        "line-height": "1",
         ...(spacing1 !== undefined ? { gap: spacing1 } : {}),
-        ...(radiusFull !== undefined ? { "border-radius": radiusFull } : {}),
+        ...(radius !== undefined ? { "border-radius": radius } : {}),
         ...(sizeXs !== undefined ? { "font-size": sizeXs } : {}),
         ...(weightMedium !== undefined ? { "font-weight": weightMedium } : {}),
         ...(spacing2 !== undefined
@@ -56,11 +53,14 @@ function badgeBase(mode: Mode): Rule {
             "padding-inline-end": spacing2,
           }
           : {}),
-        // Block padding is a smaller step than the inline. A pill's height is
-        // its line box plus this, and matching the inline step would make it
-        // taller than it is wide.
         ...(spacing1 !== undefined
           ? { "padding-block-start": spacing1, "padding-block-end": spacing1 }
+          : {}),
+        // A border so neutral's edge renders: the base states width+style
+        // from the border token, and the colour the theme's border role
+        // carries. Tones override the colour; the width and style stay.
+        ...(edge !== undefined && borderColor !== undefined
+          ? { border: `${edge} solid ${borderColor}` }
           : {}),
       };
     },
@@ -69,41 +69,120 @@ function badgeBase(mode: Mode): Rule {
 }
 
 /**
- * The tones a badge carries, as its own tokens.
+ * The tones a badge carries, as its own variants.
  *
- * `badge-accent` rather than a bare `accent`, because a bare tone name is a
- * palette entry — the same word every component would claim, and uno keeps only
- * the first rule matching a token, so a badge and a button both answering to
- * `accent` means one of them silently ships nothing. Prefixing by component is
- * what keeps each component's tones its own while the palette stays shared.
- *
- * A badge can only be filled. An outlined pill is not a quieter badge, it is a
- * different object, so there is no outline tone here.
+ * Each tone is a compound selector on the badge — `badge.badge-tone-primary` —
+ * so the tone is the badge's own, not a shared utility. The palette pair
+ * (fill + on) comes from the theme; the quiet form copies the colorimetry
+ * of tones.ts quietRule: a border in the tone and an 8% tint of it on the
+ * surface.
  */
+const TONES: ReadonlyArray<{
+  name: string;
+  fill: string;
+  on: string;
+  edge?: string;
+}> = [
+  { name: "primary", fill: "primary", on: "on-primary" },
+  { name: "secondary", fill: "secondary", on: "on-secondary" },
+  { name: "neutral", fill: "surface-raised", on: "text", edge: "border" },
+  { name: "accent", fill: "accent", on: "on-accent" },
+  { name: "success", fill: "semantic-success", on: "on-semantic-success" },
+  { name: "warning", fill: "semantic-warning", on: "on-semantic-warning" },
+  { name: "danger", fill: "semantic-error", on: "on-danger" },
+];
+
 function badgeTones(mode: Mode): Rule[] {
   const badge = claim(mode, "badge");
-  const TONES: ReadonlyArray<
-    readonly [token: string, background: string, foreground: string]
-  > = [
-    ["badge-accent", "accent", "on-accent"],
-    ["badge-success", "semantic-success", "on-semantic-success"],
-    ["badge-warning", "semantic-warning", "on-semantic-warning"],
-    ["badge-danger", "semantic-error", "on-danger"],
+  return TONES.flatMap((tone) => {
+    const { name, fill, on, edge } = tone;
+    return [
+      // Fill form. Keyed `badge-tone-*`: bare `tone-*` keys belong to the
+      // shared utilities, and uno keeps only the first rule matching a
+      // token — a bare key here would shadow (or lose to) the utility.
+      [
+        new RegExp(`^badge-tone-${name}$`),
+        function* (_m, ctx) {
+          const colors = themeOf(ctx)?.colors;
+          const bg = colors?.[fill];
+          const fg = colors?.[on];
+          const edgeColor = edge !== undefined ? colors?.[edge] : undefined;
+          yield {
+            [ctx.symbols.selector]: () => `${badge}.badge-tone-${name}`,
+            ...(bg !== undefined ? { "background-color": bg } : {}),
+            ...(fg !== undefined ? { color: fg } : {}),
+            // Neutral's edge IS the tone — same surface, a border the
+            // default does not have.
+            ...(edge !== undefined && edgeColor !== undefined
+              ? { "border-color": edgeColor }
+              : {}),
+          };
+        },
+        { layer: "primitives", autocomplete: `badge-tone-${name}` },
+      ],
+      // Quiet form
+      [
+        new RegExp(`^badge-tone-${name}-quiet$`),
+        function* (_m, ctx) {
+          const colors = themeOf(ctx)?.colors;
+          const surface = colors?.["surface-raised"] ?? colors?.["surface"];
+          // The tone's colour: the edge for neutral (its identity is the
+          // border), the fill for the chromatic tones.
+          const toneColour = edge !== undefined
+            ? colors?.[edge]
+            : colors?.[fill];
+          yield {
+            [ctx.symbols.selector]: () => `${badge}.badge-tone-${name}-quiet`,
+            ...(toneColour !== undefined ? { "border-color": toneColour } : {}),
+            ...(surface !== undefined
+              ? { "background-color": `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})` }
+              : {}),
+          };
+        },
+        { layer: "primitives", autocomplete: `badge-tone-${name}-quiet` },
+      ],
+    ];
+  });
+}
+
+/**
+ * The badge's sizes, per button's pattern: each states a font-size step
+ * and the padding steps that go with it, plus a min-height that accounts
+ * for the border so the pill's height is its content plus its edge.
+ */
+function badgeSizes(mode: Mode): Rule[] {
+  const badge = claim(mode, "badge");
+  const SIZES: ReadonlyArray<{
+    name: string;
+    fontSize: string;
+    spacingInline: string;
+    spacingBlock: string;
+  }> = [
+    { name: "s-sm", fontSize: "xs", spacingInline: "1", spacingBlock: "1" },
+    { name: "s-lg", fontSize: "sm", spacingInline: "4", spacingBlock: "2" },
   ];
-  return TONES.map(([token, background, foreground]) => [
-    new RegExp(`^${token}$`),
+  return SIZES.map((size) => [
+    new RegExp(`^${size.name}$`),
     function* (_m, ctx) {
-      const colors = themeOf(ctx)?.colors;
+      const t = themeOf(ctx);
+      const fontSize = t?.fontSize[size.fontSize];
+      const spacingInline = t?.spacing[size.spacingInline];
+      const spacingBlock = t?.spacing[size.spacingBlock];
+      const borderWidth = t?.borderWidth?.["width"];
       yield {
-        [ctx.symbols.selector]: () => `${badge}.${token}`,
-        ...(colors?.[background] !== undefined
-          ? { "background-color": colors[background] }
+        [ctx.symbols.selector]: () => `${badge}.${size.name}`,
+        ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        ...(spacingInline !== undefined
+          ? { "padding-inline-start": spacingInline, "padding-inline-end": spacingInline }
           : {}),
-        ...(colors?.[foreground] !== undefined
-          ? { color: colors[foreground] }
+        ...(spacingBlock !== undefined
+          ? { "padding-block-start": spacingBlock, "padding-block-end": spacingBlock }
+          : {}),
+        ...(fontSize !== undefined && spacingBlock !== undefined && borderWidth !== undefined
+          ? { "min-height": `calc(${fontSize} + (2 * ${spacingBlock}) + (2 * ${borderWidth}))` }
           : {}),
       };
     },
-    { layer: "primitives", autocomplete: token },
+    { layer: "primitives", autocomplete: size.name },
   ]) as Rule[];
 }

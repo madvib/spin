@@ -110,17 +110,35 @@ export const FIXTURES: readonly Fixture[] = [
     examples: [
       {
         name: "Variants",
-        html: `<div>
-          ${badge("default")}${badge("neutral", "tone-neutral")}
-          ${badge("secondary", "tone-secondary")}${badge("accent", "tone-accent")}
-          ${badge("success", "tone-success")}${badge("warning", "tone-warning")}
-          ${badge("danger", "tone-danger")}
+        html: `<div class="flex flex-wrap gap-2">
+          ${badge("default")}${badge("primary", "badge-tone-primary")}
+          ${badge("neutral", "badge-tone-neutral")}${badge("secondary", "badge-tone-secondary")}
+          ${badge("accent", "badge-tone-accent")}${badge("success", "badge-tone-success")}
+          ${badge("warning", "badge-tone-warning")}${badge("danger", "badge-tone-danger")}
+        </div>`,
+      },
+      {
+        name: "Quiet",
+        html: `<div class="flex flex-wrap gap-2">
+          ${badge("neutral", "badge-tone-neutral-quiet")}
+          ${badge("secondary", "badge-tone-secondary-quiet")}
+          ${badge("accent", "badge-tone-accent-quiet")}
+          ${badge("success", "badge-tone-success-quiet")}
+          ${badge("warning", "badge-tone-warning-quiet")}
+          ${badge("danger", "badge-tone-danger-quiet")}
         </div>`,
       },
       {
         name: "With content",
         html: `<div>
-          ${badge("New")}${badge("3 items", "tone-accent")}
+          ${badge("New")}${badge("3 items", "badge-tone-accent")}
+        </div>`,
+      },
+      {
+        name: "With a remove action",
+        html: `<div class="flex flex-wrap gap-2">
+          <badge>Item <button type="button" aria-label="remove">×</button></badge>
+          <badge class="badge-tone-accent">Tag <button type="button" aria-label="remove">×</button></badge>
         </div>`,
       },
     ],

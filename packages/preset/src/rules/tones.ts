@@ -33,6 +33,13 @@ import { themeOf } from "../utils/lookup.ts";
  * surfaces. A filled button wants the fill; a card wants an edge, because a
  * card is a surface and filling it red would be shouting; a heading wants the
  * colour as text. One palette, three readings, and the caller picks.
+ *
+ * Direction: tones are migrating component-ward. Badge has already moved —
+ * its tones are `badge-tone-*`, claimed by the component rather than offered
+ * as bare palette words. Alert still composes `tone-*-quiet` directly. The
+ * global `tone-*` utilities stay until every component that uses them has
+ * migrated; removing them now would break alert and the behaviour tests
+ * that exercise them.
  */
 
 /** The tone names the theme is expected to declare, in the order offered. */
