@@ -8,7 +8,7 @@ import {
   demoClass,
   demoFor,
   honestAboutIt,
-} from "./showcase/demos.ts";
+} from "./server/demos.ts";
 import {
   buildScale,
   type BuiltScale,
@@ -37,7 +37,7 @@ import {
 // from the preset that owns it.
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
-import { type Fixture, FIXTURES } from "./showcase/fixtures.ts";
+import { type Fixture, FIXTURES } from "./server/fixtures.ts";
 
 /**
  * The showcase — every tag, one route each.
