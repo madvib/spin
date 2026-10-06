@@ -49,15 +49,19 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
         owner.run(() => {
           rendered = render(item, i);
         });
-        const nodes = rendered.nodes;
-        const frag = document.createDocumentFragment();
-        for (const n of nodes) frag.appendChild(n);
-        const cell: Cell = { key: k, item, rendered, nodes: [...nodes], owner };
-        void frag;
+        const nodes = [...rendered.nodes];
+        // New nodes enter before the anchor, not at the host's end: the
+        // anchor marks where this list lives among its siblings.
+        for (const n of nodes) host.insertBefore(n, anchor);
+        const cell: Cell = { key: k, item, rendered, nodes, owner };
         next[i] = cell;
       }
     }
 
+    // Dead cells are collected first and removed after placement: the
+    // placement loop moves every node it knows, so removing here would drag
+    // the dead nodes back into the list on the next pass.
+    const dead: Cell[] = [];
     const keep = new Set<Node>();
     for (const cell of next) for (const n of cell.nodes) keep.add(n);
     for (const cell of cells) {
@@ -68,10 +72,7 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
           break;
         }
       }
-      if (!alive) {
-        cell.rendered.cleanup?.();
-        cell.owner.dispose();
-      }
+      if (!alive) dead.push(cell);
     }
 
     let cursor = host.firstChild;
@@ -93,6 +94,13 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
       cell.rendered.update?.(cell.item, i);
     }
 
+    for (const cell of dead) {
+      for (const n of cell.nodes) {
+        if (n.parentNode === host) host.removeChild(n);
+      }
+      cell.rendered.cleanup?.();
+      cell.owner.dispose();
+    }
     cells = next;
     const rebuilt = new Map<unknown, { cells: Cell[]; at: number }>();
     for (const cell of next) {
