@@ -16,10 +16,10 @@ const normalize = (
 
 export function createZagAction(
   getter: string,
-  resolve: (param: unknown) => Record<string, unknown> | undefined,
+  resolve: (el: Element, param: unknown) => Record<string, unknown> | undefined,
 ): ElementAction<unknown> {
   return createAction<unknown>((el, param) => {
-    const api = resolve(param);
+    const api = resolve(el, param);
     if (api === undefined) return;
     const fn = api[getter];
     if (typeof fn !== "function") return;

@@ -52,3 +52,4 @@ export {
   type Props as MachineProps,
 } from "./machine/adapter/index.ts";
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
+export { component, type ComponentSpec } from "./scope/component.ts";

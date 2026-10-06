@@ -1,0 +1,8 @@
+<div>
+  <template for={items} as={item} key={item.value}>
+    <div use:item={item}>
+      <h3><button type="button" use:trigger={item}><span use:indicator={item}></span><span>{item.label}</span></button></h3>
+      <div use:content={item}></div>
+    </div>
+  </template>
+</div>

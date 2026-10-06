@@ -2,7 +2,8 @@
   "name": "@spin/components",
   "version": "0.1.0",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./accordion": "./src/accordion/index.ts"
   },
   "imports": {
     "@spin/components": "./src/index.ts",
@@ -16,7 +17,8 @@
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "@spin/runtime/adapter": "../runtime/src/machine/adapter/index.ts",
     "@zag-js/collection": "npm:@zag-js/collection@~1.44.0",
-    "@spin/runtime/load": "../runtime/src/directives/load.ts"
+    "@spin/runtime/load": "../runtime/src/directives/load.ts",
+    "@zag-js/accordion": "npm:@zag-js/accordion@~1.44.0"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-import src/",

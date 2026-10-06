@@ -21,10 +21,20 @@ const rawHtml = (): Plugin => ({
 
 export default defineConfig({
   plugins: [rawHtml(), UnoCSS({ presets: [spinPreset({ themes: { default: starterThemes.default } })] })],
+  build: {
+    rollupOptions: {
+      input: {
+        main: at("./index.html"),
+        accordion: at("./accordion.html"),
+      },
+    },
+  },
   resolve: {
     alias: {
       "@spin/components": at("../src/index.ts"),
-      "@spin/runtime/zag": at("../../runtime/src/adapter/index.ts"),
+      "@spin/components/accordion": at("../src/accordion/index.ts"),
+      "@spin/runtime/zag": at("../../runtime/src/machine/adapter/index.ts"),
+      "@spin/runtime/load": at("../../runtime/src/directives/load.ts"),
       "@spin/runtime": at("../../runtime/src/index.ts"),
       "@spin/preset": at("../../preset/src/index.ts"),
       "@spin/theme/themes": at("../../theme/src/themes/index.ts"),

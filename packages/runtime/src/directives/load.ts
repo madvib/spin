@@ -33,6 +33,11 @@ export function consume(el: Element, key: string): unknown {
 }
 
 export interface LoaderActions {
+  // Contravariant by necessity: actions accept specific params, the loader
+  // passes unknowns. ElementAction<P> takes P, so ElementAction<Specific>
+  // is not assignable to ElementAction<unknown> — hence `never`.
+  // Callers cast at the boundary; the alternative is typing every use:
+  // site, which is the compiler's job, not the loader's.
   readonly [name: string]: ElementAction<unknown>;
 }
 

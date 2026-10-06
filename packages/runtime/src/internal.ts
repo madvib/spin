@@ -55,3 +55,4 @@ export type {
   Props,
 } from "./machine/adapter/index.ts";
 export { load } from "./directives/load.ts";
+export { component } from "./scope/component.ts";
