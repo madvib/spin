@@ -59,7 +59,6 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
     radius: t?.radius?.["full"],
     track: t?.colors?.["surface-raised"],
     primary: t?.colors?.["primary"],
-    success: t?.colors?.["semantic-success"],
     warning: t?.colors?.["semantic-warning"],
     error: t?.colors?.["semantic-error"],
     duration: t?.motionDuration?.["fast"],

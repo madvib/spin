@@ -94,7 +94,7 @@ Deno.test("variants a component defines reach the lint's vocabulary", () => {
 
 Deno.test("no component reads another component's tokens", () => {
   // A component reaching into another's group couples two surfaces that are
-  // meant to change independently, and the coupling is invisible in the CSS.
+  // meant to change independently, and the coupling is invisible in the rules.
   for (const [name, component] of Object.entries(primitiveComponents)) {
     for (const token of component.reads) {
       const owner = Object.keys(primitiveContracts).find((other) =>

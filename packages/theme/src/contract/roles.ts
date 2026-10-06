@@ -1,16 +1,11 @@
 /**
  * What a theme must declare, declared once.
  *
- * Previously this contract was written four times — a flat list of role paths,
- * a hand-built JSON Schema with its own `required` arrays, a parallel table of
- * contrast pairs, and a scaffold placeholder table. Nothing connected them, so
- * renaming a role in one silently desynchronised the others.
- *
- * Each entry below carries everything the other three expressed: the path that
- * names it, the type it must have, the value a scaffold writes for it, the
- * documentation an editor shows, and the contrast floor it owes. Everything
- * else derives: `requiredPaths()` for validation, `themeSchema()` for the JSON
- * Schema, and `scaffoldTheme()` for a minimal document.
+ * Each entry below carries everything a role is: the path that names it, the
+ * type it must have, the value a scaffold writes for it, the documentation an
+ * editor shows, and the contrast floor it owes. Everything else derives:
+ * `requiredPaths()` for validation, `themeSchema()` for the JSON Schema, and
+ * `scaffoldTheme()` for a minimal document.
  */
 
 import { Type } from "@sinclair/typebox";
@@ -228,9 +223,10 @@ function leafSchema(role: RoleDeclaration) {
  * The theme document schema.
  *
  * A TypeBox type is already JSON Schema — that is the shape of the library, so
- * there is no conversion step and no generator script. Declared roles are
- * non-optional and therefore land in `required` automatically; everything else
- * a theme may add is permitted by `additionalProperties`.
+ * `deno task schema` writes `schema.json` straight from the builder with no
+ * conversion step. Declared roles are non-optional and therefore land in
+ * `required` automatically; everything else a theme may add is permitted by
+ * `additionalProperties`.
  */
 export function themeSchema(): Record<string, unknown> {
   const properties: Record<string, TSchema> = {};

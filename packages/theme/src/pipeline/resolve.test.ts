@@ -88,7 +88,7 @@ Deno.test("detectCycles names each cycle by its DTCG path", () => {
   assertEquals(detectCycles(acyclic.tree), []);
 });
 
-Deno.test("resolveAliases inlines a reference and reports cycles", () => {
+Deno.test("resolveAliases inlines a reference and reports no cycles or unresolved references", () => {
   const parsed = parseTokens({
     base: { $type: "color", $value: "#333333" },
     primary: { $type: "color", $value: "{base}" },
@@ -98,6 +98,7 @@ Deno.test("resolveAliases inlines a reference and reports cycles", () => {
   const index = indexTree(resolved.tree);
   assertEquals(index.leaves["primary"]?.value, "#333333");
   assertEquals(resolved.unresolved, []);
+  assertEquals(resolved.cycles, [], "an acyclic document has no cycles");
 });
 
 Deno.test("an unresolvable reference is reported, not silently dropped", () => {

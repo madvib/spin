@@ -39,8 +39,8 @@ import { type Entry, spend, spentEntries } from "./shared.ts";
 /**
  * The elements a button can be. The manifest's `tags` claims `button` and
  * `span`; `button` is the control, `span` is the group container. The
- * attribute selectors are the legacy input types and the ARIA role a styled
- * link or div becomes — the same group the stylesheet always selected.
+ * attribute selectors are the input types and the ARIA role a styled link or
+ * div becomes.
  */
 const BUTTON =
   ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])';
@@ -265,7 +265,7 @@ const VARIANT_HOVER: Record<string, {
 /**
  * The button's rules. `roots` decides whether the button is enabled at all —
  * the preset's `primitives` option is the only switch, and a component that
- * is not enabled ships no rules, matching the preflight it replaces.
+ * is not enabled ships no rules.
  */
 export function buttonRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("button")) return [];
@@ -290,10 +290,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const onPrimary = themeOf(ctx)?.colors["on-primary"];
         const duration = themeOf(ctx)?.motionDuration["fast"];
         const easing = themeOf(ctx)?.motionEasing["standard"];
-        // The base. An array body because the stylesheet states
-        // `transition-property` three times and the last one wins;
-        // reproducing it keeps the computed value (transform only) rather
-        // than "fixing" it into a colour transition.
+        // The base. An array body because the rule states `transition-property`
+        // three times and the last one wins; reproducing it keeps the computed
+        // value (transform only) rather than "fixing" it into a colour transition.
         yield [
           [ctx.symbols.selector, () => BUTTON],
           ["align-items", "center"],
@@ -471,8 +470,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               // stated here would be dead the moment an icon class is present;
               // the font-size is the one declaration that reaches the glyph. In
               // `em`, so the glyph tracks the button's font-size across all
-              // three of its sizes — the slot's sizing is a token now, not the
-              // hardcoded `1em` the stylesheet used to state.
+              // three of its sizes — the slot's sizing is a token now.
               const size = themeOf(ctx)?.icon?.["md"];
               return {
                 [ctx.symbols.selector]: () => ".button-icon",

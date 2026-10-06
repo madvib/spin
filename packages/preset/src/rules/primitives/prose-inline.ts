@@ -1,10 +1,8 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
 import {
   claim,
   proseTokens,
   type Mode,
-  type Tokens,
 } from "./shared.ts";
 
 /**

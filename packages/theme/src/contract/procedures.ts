@@ -20,7 +20,8 @@ import {
 } from "../authoring/mutate.ts";
 import type { MutationResult } from "../authoring/mutate.ts";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
-import { requiredPaths, validateLegibility } from "./schema.ts";
+import { requiredPaths } from "./roles.ts";
+import { validateLegibility } from "./schema.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import type { TokenTree } from "../pipeline/types.ts";
 import { themeContract } from "./contract.ts";

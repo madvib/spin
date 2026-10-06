@@ -20,7 +20,6 @@ export interface FieldTokens {
   readonly edge: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
-  readonly spacing4: string | undefined;
   readonly focusWidth: string | undefined;
   readonly focusRing: string | undefined;
   readonly duration: string | undefined;
@@ -43,7 +42,6 @@ export function fieldTokens(ctx: Parameters<typeof themeOf>[0]): FieldTokens {
     edge: t?.colors?.["border-strong"],
     border: t?.colors["border"],
     borderWidth: t?.borderWidth?.["width"],
-    spacing4: t?.spacing["4"],
     focusWidth: t?.focusWidth?.["width"],
     focusRing: t?.colors["focus-ring"],
     duration: t?.motionDuration["fast"],

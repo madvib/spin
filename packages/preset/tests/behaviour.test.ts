@@ -6,6 +6,7 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
+import { splitTopLevel } from "../src/rules/primitives/derive.ts";
 
 /**
  * The behavioural proof.
@@ -95,36 +96,6 @@ function fakeElement(
       );
     },
   };
-}
-
-/** Split a comma-separated selector list, ignoring commas in parens/brackets. */
-function splitTopLevel(text: string): string[] {
-  const parts: string[] = [];
-  let depth = 0;
-  let quote = "";
-  let current = "";
-  for (const char of text) {
-    if (quote !== "") {
-      current += char;
-      if (char === quote) quote = "";
-      continue;
-    }
-    if (char === '"' || char === "'") {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === "(" || char === "[") depth++;
-    else if (char === ")" || char === "]") depth--;
-    if (char === "," && depth === 0) {
-      parts.push(current);
-      current = "";
-      continue;
-    }
-    current += char;
-  }
-  parts.push(current);
-  return parts.map((part) => part.trim()).filter((part) => part.length > 0);
 }
 
 /** The compound a selector ultimately targets, past any combinators. */

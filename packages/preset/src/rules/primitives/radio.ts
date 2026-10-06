@@ -44,6 +44,9 @@ export function radioRules(roots: readonly string[]): Rule[] {
         const primary = t?.colors?.["primary"];
         const duration = t?.motionDuration?.["fast"];
         const easing = t?.motionEasing?.["standard"];
+        const focusWidth = t?.focusWidth?.["width"];
+        const focusRing = t?.colors?.["focus-ring"];
+        const focusOffset = t?.focusOffset?.["offset"];
 
         const shell: Record<string, string | undefined> = {
           appearance: "none",
@@ -133,8 +136,12 @@ export function radioRules(roots: readonly string[]): Rule[] {
         };
         yield {
           [ctx.symbols.selector]: () => `${RADIO}:focus-visible`,
-          ...(primary !== undefined ? { outline: `2px solid ${primary}` } : {}),
-          "outline-offset": "2px",
+          ...(focusWidth !== undefined && focusRing !== undefined
+            ? { outline: `${focusWidth} solid ${focusRing}` }
+            : {}),
+          ...(focusOffset !== undefined
+            ? { "outline-offset": focusOffset }
+            : {}),
         };
         yield {
           [ctx.symbols.selector]: () => `${RADIO}:disabled`,

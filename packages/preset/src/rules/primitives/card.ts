@@ -25,9 +25,9 @@ export function cardRules(roots: readonly string[], mode: Mode): Rule[] {
   const card = claim(mode, "card");
   return [
     cardSurface(card),
-    // Sizes are the card's own variants, not a layout attribute on the
-    // showcase: a card that is three-quarters of the measure is a decision
-    // about the card, and it belongs where a consumer would look for it.
+    // Sizes are the card's own variants, not a layout attribute: a card that
+    // is three-quarters of the measure is a decision about the card, and it
+    // belongs where a consumer would look for it.
     ...CARD_SIZES.map((size) => cardSize(card, size)),
     cardHeader(mode),
     cardTitle(mode),

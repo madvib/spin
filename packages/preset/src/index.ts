@@ -40,7 +40,6 @@ export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
 export {
-  allRequiredRoles,
   requiredRolesFor,
   scaffold,
   scaffoldDocument,
@@ -219,10 +218,8 @@ const factory = definePreset(
         }),
         ...wind4.rules,
       ],
-      shortcuts: spinShortcuts,
       preflights: buildPreflights(
         { trees, documents },
-        { primitives: enabled },
       ),
       transformers: [transformerDirectives()],
       // Declared order: reset (-100) → theme vars + body (-90) → primitives

@@ -12,7 +12,6 @@
  */
 
 import {
-  contrastRatio,
   formatHex,
   oklabToRgb,
   parseColor,
@@ -25,42 +24,6 @@ export function invertColor(input: string): string {
   const { r, g, b } = parseColor(input);
   return formatHex({ r: 255 - r, g: 255 - g, b: 255 - b, a: 1 });
 }
-
-/**
- * A foreground that reads on `fill`: whichever of near-black and white
- * contrasts more with it.
- *
- * A fill token is a decision; the text that sits on it is a CONSEQUENCE, and
- * authoring it by hand is how it goes wrong — neobrut's hot red wants ink on
- * it where a corporate theme wants white, and a theme that states one white
- * foreground for every fill gets one of them wrong. So the pair is derived
- * rather than declared, and a theme that wants a specific foreground still
- * states one: derivation fills gaps, it does not overwrite.
- *
- * Two candidates rather than a hue rotation, because legibility is a contrast
- * property and not a colour one: at 4.5:1 a mid-blue and a mid-red want the
- * same white, while a saturated yellow wants ink. The comparison is
- * `relativeLuminance` rather than a raw channel average, because WCAG
- * contrast is defined on relative luminance and a channel average would call
- # the same pair readable that the reader cannot read.
- *
- * Returns `undefined` when neither candidate reaches `floor` — a fill that dark
- * AND light has no answer, and returning one would be a claim nobody checked.
- * The caller is expected to report it rather than fall back to something.
- */
-export function readableOn(
-  fill: string,
-  floor = 4.5,
-): string | undefined {
-  const INK = "#0a0a0a";
-  const PAPER = "#ffffff";
-  const onInk = contrastRatio(fill, INK);
-  const onPaper = contrastRatio(fill, PAPER);
-  if (Math.max(onInk, onPaper) < floor) return undefined;
-  return onPaper >= onInk ? PAPER : INK;
-}
-
-
 
 /**
  * Mix `a` toward `b` by `amount` (0 keeps `a`, 1 gives `b`) in gamma-encoded

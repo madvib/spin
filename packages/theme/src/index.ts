@@ -51,13 +51,8 @@ export {
   everyTokenTypeIsDecided,
   validateTokens,
 } from "./pipeline/validate.ts";
-export {
-  BASE_ROLES,
-  requiredPaths,
-  spinThemeJsonSchema,
-  themeSchema,
-  validateLegibility,
-} from "./contract/schema.ts";
+export { BASE_ROLES, requiredPaths, themeSchema } from "./contract/roles.ts";
+export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 
 // Authoring: changing and creating themes.
@@ -82,7 +77,7 @@ export {
 } from "./pipeline/generate.ts";
 
 // The uno theme: names derived from paths, values as references.
-export { refFamilies, themeRef } from "./uno-ref.ts";
+export { REF_SPECS, refFamilies, themeRef } from "./uno-ref.ts";
 export type { ThemeRef, ThemeRefGroup } from "./uno-ref.ts";
 
 // Procedures: the typed interface, owned by the module that implements it.
@@ -101,9 +96,4 @@ export {
 } from "./pipeline/color.ts";
 
 // Colour authoring — the toolbox for composing new colours.
-export {
-  generateScale,
-  invertColor,
-  mixColors,
-  readableOn,
-} from "./authoring/color.ts";
+export { generateScale, invertColor, mixColors } from "./authoring/color.ts";

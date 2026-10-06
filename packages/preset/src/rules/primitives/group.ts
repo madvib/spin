@@ -42,7 +42,6 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
   const t = themeOf(ctx);
   return {
     radius: t?.radius?.["md"],
-    radiusFull: t?.radius?.["full"],
     borderWidth: t?.borderWidth?.["width"],
   };
 }

@@ -2,7 +2,7 @@ import { symbols } from "@unocss/core";
 import type { Rule } from "@unocss/core";
 import { DIVIDE_WIDTHS } from "../utils/vocabulary.ts";
 import { divideChildren } from "../utils/factories.ts";
-import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 
 /** Every width the divide rule accepts, as the class suffix it matches. */
 const WIDTHS = Object.keys(DIVIDE_WIDTHS).filter((w) => w !== "");
@@ -46,8 +46,7 @@ export function divideRules(): Rule[] {
     [
       /^divide-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const path = themeOf(ctx)?.colors[name];
-        const ref = path ? path : extendedTheme(ctx, ["colors"], name);
+        const ref = tokenOf(ctx, "colors", name);
         if (!ref) return undefined;
         return {
           [symbols.selector]: divideChildren,

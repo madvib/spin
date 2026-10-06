@@ -3,7 +3,7 @@
  * component or utility is written.
  *
  * Every declaration here spends a token the theme owns, which is what makes it
- * theme identity rather than house style: move `--font-family-body` and the
+ * theme identity rather than house style: move `--font-family-sans` and the
  * document reads differently. These apply whether or not any primitive is
  * selected, which is the only thing that separates them from components.
  *
@@ -20,7 +20,7 @@
 export function documentDefaults(): string {
   return [
     "body {",
-    "  font-family: var(--font-family-body, var(--font-family-sans));",
+    "  font-family: var(--font-family-sans);",
     "  color: var(--color-text);",
     "  background-color: var(--color-surface);",
     "}",

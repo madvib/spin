@@ -33,7 +33,7 @@ interface RefSpec {
   readonly depth: number | null;
 }
 
-const REF_SPECS: readonly RefSpec[] = [
+export const REF_SPECS: readonly RefSpec[] = [
   { key: "colors", prefix: ["color"], depth: null },
   { key: "spacing", prefix: ["spacing"], depth: 1 },
   { key: "fontSize", prefix: ["font", "size"], depth: 1 },
@@ -52,16 +52,15 @@ const REF_SPECS: readonly RefSpec[] = [
   // ring at all.
   { key: "borderWidth", prefix: ["border"], depth: 1 },
   // `focus.width` and `focus.offset` are two dimensions, each its own group.
-  // A prefix that consumed the whole path (`["focus","offset"]`) would leave
-  // no segment to name the value by — the depth is what carries the last
-  // segment, so the prefix must stop before it.
+  // Depth 0 addresses the path exactly: the prefix is the whole path, so
+  // the name is the prefix's own last segment — `focus.width` is `width`.
   { key: "focusWidth", prefix: ["focus", "width"], depth: 0 },
   { key: "focusOffset", prefix: ["focus", "offset"], depth: 0 },
 ];
 
 /** A uno theme whose every value is the reference it came from. */
 export interface ThemeRef {
-  [key: string]: ThemeRefGroup | Record<string, string>;
+  [key: string]: ThemeRefGroup;
 }
 
 /** The spec a token path matches, or null when it belongs to none. */
@@ -105,7 +104,6 @@ export function themeRef(
     const name = spec.depth === null
       ? rest.join("-")
       : rest[rest.length - 1] ?? spec.prefix[spec.prefix.length - 1] ?? "";
-    if (name === undefined) continue;
     (out[spec.key] as ThemeRefGroup)[name.toLowerCase()] = `var(${
       cssVarName(leaf.path)
     })`;

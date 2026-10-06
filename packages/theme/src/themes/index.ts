@@ -3,7 +3,7 @@
  *
  * A consumer picks one and customises it; nobody writes a theme from scratch,
  * so these are the product rather than fixtures. They live in `src/` beside the
- * code that reads them, not in `examples/`, which holds fixtures for the tests.
+ * code that reads them.
  *
  * **A theme is not a mode.** `light` and `dark` are not two themes — they are
  * two modes of one, and a theme supports either or both. So there is no theme

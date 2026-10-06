@@ -34,7 +34,6 @@ export type MutationErrorCode =
   | "group-not-token"
   | "missing-token"
   | "occupied-target"
-  | "unknown-role"
   | "type-mismatch"
   | "type-required";
 

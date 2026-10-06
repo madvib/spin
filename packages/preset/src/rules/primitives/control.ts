@@ -63,7 +63,9 @@ function checkboxRule(): Rule {
       const duration = t?.motionDuration["fast"];
       const easing = t?.motionEasing["standard"];
       const borderWidth = t?.borderWidth?.["width"];
-      const radiusMd = t?.radius["md"];
+      const focusWidth = t?.focusWidth?.["width"];
+      const focusRing = t?.colors["focus-ring"];
+      const focusOffset = t?.focusOffset?.["offset"];
 
       // Depth is three inset shadows driven by one scalar rather than a
       // single drop shadow. A dark inner line at the bottom edge is what makes
@@ -161,13 +163,16 @@ function checkboxRule(): Rule {
 
       yield {
         [ctx.symbols.selector]: () => `${CHECKBOX}:focus-visible`,
-        ...(primary !== undefined ? { outline: `${radiusMd ?? "2px"} solid ${primary}` } : {}),
-        "outline-offset": "2px",
+        ...(focusWidth !== undefined && focusRing !== undefined
+          ? { outline: `${focusWidth} solid ${focusRing}` }
+          : {}),
+        ...(focusOffset !== undefined
+          ? { "outline-offset": focusOffset }
+          : {}),
       };
 
       // Checked: the light top inset goes and the dark one compresses, so a
-      // filled box reads as pressed rather than as a painted one. Keeping the
-      // light line is what makes daisyUI's filled checkbox look flat.
+      // filled box reads as pressed rather than as a painted one.
       const on = {
         ...(primary !== undefined
           ? { "background-color": primary, "border-color": primary }

@@ -76,7 +76,7 @@ Deno.test("an invalid font-display is refused", () => {
 
 Deno.test("document defaults spend theme tokens and nothing else", () => {
   const css = documentDefaults();
-  assert(css.includes("var(--font-family-body, var(--font-family-sans))"), css);
+  assert(css.includes("var(--font-family-sans)"), css);
   assert(css.includes("var(--color-text)"), css);
   assert(css.includes("var(--color-surface)"), css);
   // A default that hardcoded a value would be a house style, not an identity.

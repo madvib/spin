@@ -241,8 +241,5 @@ export function generateTypes(tree: TokenTree): string {
     "/** CSS custom properties every token is readable through. */",
     `export type ThemeCssVar = ${vars}`,
     "",
-    "/** Back-compat alias: a token is named by its path. */",
-    "export type ThemeTokenName = ThemeTokenPath",
-    "",
   ].join("\n");
 }

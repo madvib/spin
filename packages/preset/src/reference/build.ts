@@ -1,4 +1,5 @@
-import { EDGES, type Axis, type Sample, type Scale } from "./scale.ts";
+import { EDGES, type Axis, type Scale } from "./scale.ts";
+import type { Sample } from "../organization.ts";
 
 /**
  * The scales, built from the catalog.

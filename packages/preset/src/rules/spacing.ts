@@ -1,8 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { staticRules } from "../utils/factories.ts";
 import { spacingRule } from "../utils/factories.ts";
-import { groupOf } from "../utils/lookup.ts";
-import type { ThemeContext } from "../utils/lookup.ts";
 
 /**
  * The margin axes that accept `auto`, with the properties each one sets.
