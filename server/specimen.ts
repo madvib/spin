@@ -1,11 +1,14 @@
 import { describeCatalog } from "@spin/preset";
 import { BUTTON_EXAMPLES, buttonFixtureNote } from "@spin/preset/rules/primitives/button.examples.ts";
+import { CONTROL_EXAMPLES, controlFixtureNote } from "@spin/preset/rules/primitives/control.examples.ts";
+import { FIELD_EXAMPLES, fieldFixtureNote } from "@spin/preset/rules/primitives/field.examples.ts";
+import { RADIO_EXAMPLES, radioFixtureNote } from "@spin/preset/rules/primitives/radio.examples.ts";
 import type { Demo } from "./demos.ts";
 import { FIXTURES, type Fixture } from "./fixtures.ts";
 import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
 
 /**
- * The button fixture sources from the preset package: examples live beside
+ * Migrated fixtures source from the preset package: examples live beside
  * the rule that styles them (Park UI shape). Remaining fixtures migrate one
  * primitive at a time; when FIXTURES empties, this adapter and fixtures.ts
  * delete with it.
@@ -18,7 +21,41 @@ const BUTTON_FIXTURE: Fixture = {
   examples: [...BUTTON_EXAMPLES],
 };
 
-export const rendered: readonly Fixture[] = [BUTTON_FIXTURE, ...FIXTURES];
+const CONTROL_FIXTURE: Fixture = {
+  id: "checkbox",
+  title: "Checkbox & switch",
+  kind: "rule",
+  note: controlFixtureNote,
+  // Indeterminate is IDL-only: no attribute sets it, so the page sets the
+  // property on load for elements marked data-mixed.
+  onLoad:
+    "document.querySelectorAll('[data-mixed]').forEach((e) => e.indeterminate = true);",
+  examples: [...CONTROL_EXAMPLES],
+};
+
+const RADIO_FIXTURE: Fixture = {
+  id: "radio",
+  title: "Radio",
+  kind: "rule",
+  note: radioFixtureNote,
+  examples: [...RADIO_EXAMPLES],
+};
+
+const FIELD_FIXTURE: Fixture = {
+  id: "input",
+  title: "Field",
+  kind: "rule",
+  note: fieldFixtureNote,
+  examples: [...FIELD_EXAMPLES],
+};
+
+export const rendered: readonly Fixture[] = [
+  BUTTON_FIXTURE,
+  CONTROL_FIXTURE,
+  RADIO_FIXTURE,
+  FIELD_FIXTURE,
+  ...FIXTURES,
+];
 
 export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
