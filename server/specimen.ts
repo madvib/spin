@@ -1,11 +1,15 @@
 import { describeCatalog } from "@spin/preset";
 import { ALERT_EXAMPLES, alertFixtureNote } from "@spin/preset/rules/primitives/alert.examples.ts";
+import { BADGE_EXAMPLES, badgeFixtureNote } from "@spin/preset/rules/primitives/badge.examples.ts";
 import { BUTTON_EXAMPLES, buttonFixtureNote } from "@spin/preset/rules/primitives/button.examples.ts";
+import { CARD_EXAMPLES, cardFixtureNote } from "@spin/preset/rules/primitives/card.examples.ts";
 import { CONTROL_EXAMPLES, controlFixtureNote } from "@spin/preset/rules/primitives/control.examples.ts";
 import { DIALOG_EXAMPLES, dialogFixtureNote } from "@spin/preset/rules/primitives/dialog.examples.ts";
 import { FIELD_EXAMPLES, fieldFixtureNote } from "@spin/preset/rules/primitives/field.examples.ts";
+import { GROUP_EXAMPLES, groupFixtureNote } from "@spin/preset/rules/primitives/group.examples.ts";
 import { POPOVER_EXAMPLES, popoverFixtureNote } from "@spin/preset/rules/primitives/popover.examples.ts";
 import { PROGRESS_EXAMPLES, progressFixtureNote } from "@spin/preset/rules/primitives/progress.examples.ts";
+import { PROSE_EXAMPLES, proseFixtureNote } from "@spin/preset/rules/primitives/prose.examples.ts";
 import { RADIO_EXAMPLES, radioFixtureNote } from "@spin/preset/rules/primitives/radio.examples.ts";
 import { TABLE_EXAMPLES, tableFixtureNote } from "@spin/preset/rules/primitives/table.examples.ts";
 import { TABS_EXAMPLES, tabsFixtureNote } from "@spin/preset/rules/primitives/tabs.examples.ts";
@@ -106,9 +110,43 @@ const PROGRESS_FIXTURE: Fixture = {
   examples: [...PROGRESS_EXAMPLES],
 };
 
+const BADGE_FIXTURE: Fixture = {
+  id: "badge",
+  title: "Badge",
+  kind: "rule",
+  note: badgeFixtureNote,
+  examples: [...BADGE_EXAMPLES],
+};
+
+const CARD_FIXTURE: Fixture = {
+  id: "card",
+  title: "Card",
+  kind: "rule",
+  note: cardFixtureNote,
+  examples: [...CARD_EXAMPLES],
+};
+
+const GROUP_FIXTURE: Fixture = {
+  id: "group",
+  title: "Group",
+  kind: "rule",
+  note: groupFixtureNote,
+  examples: [...GROUP_EXAMPLES],
+};
+
+const PROSE_FIXTURE: Fixture = {
+  id: "prose",
+  title: "Prose",
+  kind: "rule",
+  note: proseFixtureNote,
+  examples: [...PROSE_EXAMPLES],
+};
+
 export const rendered: readonly Fixture[] = [
   ALERT_FIXTURE,
+  BADGE_FIXTURE,
   BUTTON_FIXTURE,
+  CARD_FIXTURE,
   CONTROL_FIXTURE,
   RADIO_FIXTURE,
   FIELD_FIXTURE,
@@ -117,6 +155,8 @@ export const rendered: readonly Fixture[] = [
   DIALOG_FIXTURE,
   POPOVER_FIXTURE,
   PROGRESS_FIXTURE,
+  GROUP_FIXTURE,
+  PROSE_FIXTURE,
   ...FIXTURES,
 ];
 
