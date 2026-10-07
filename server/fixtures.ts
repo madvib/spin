@@ -110,7 +110,7 @@ export const FIXTURES: readonly Fixture[] = [
     examples: [
       {
         name: "Variants",
-        html: `<div class="flex flex-wrap gap-2">
+        html: `<div class="flex flex-wrap items-center gap-2">
           ${badge("default")}${badge("primary", "badge-primary")}
           ${badge("neutral", "badge-neutral")}${badge("secondary", "badge-secondary")}
           ${badge("accent", "badge-accent")}${badge("success", "badge-success")}
@@ -119,7 +119,7 @@ export const FIXTURES: readonly Fixture[] = [
       },
       {
         name: "Muted",
-        html: `<div class="flex flex-wrap gap-2">
+        html: `<div class="flex flex-wrap items-center gap-2">
           ${badge("neutral", "badge-neutral-muted")}
           ${badge("secondary", "badge-secondary-muted")}
           ${badge("accent", "badge-accent-muted")}
@@ -130,7 +130,7 @@ export const FIXTURES: readonly Fixture[] = [
       },
       {
         name: "Sizes",
-        html: `<div class="flex flex-wrap gap-2">
+        html: `<div class="flex flex-wrap items-center gap-2">
           <badge class="badge-sm">small</badge>
           <badge>medium</badge>
           <badge class="badge-lg">large</badge>
@@ -138,7 +138,7 @@ export const FIXTURES: readonly Fixture[] = [
       },
       {
         name: "By variant attribute",
-        html: `<div class="flex flex-wrap gap-2">
+        html: `<div class="flex flex-wrap items-center gap-2">
           <badge variant="primary">primary</badge>
           <badge variant="danger-muted">danger muted</badge>
           <badge variant="sm">small</badge>
@@ -152,14 +152,14 @@ export const FIXTURES: readonly Fixture[] = [
       },
       {
         name: "With a remove action",
-        html: `<div class="flex flex-wrap gap-2">
+        html: `<div class="flex flex-wrap items-center gap-2">
           <badge>Item <button class="badge-close" aria-label="remove">×</button></badge>
           <badge class="badge-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>
         </div>`,
       },
       {
         name: "With an icon",
-        html: `<div class="flex flex-wrap gap-2">
+        html: `<div class="flex flex-wrap items-center gap-2">
           <badge><i class="i-lucide-bell"></i>Notifications</badge>
           <badge class="badge-accent"><i class="i-lucide-check"></i>Done</badge>
         </div>`,

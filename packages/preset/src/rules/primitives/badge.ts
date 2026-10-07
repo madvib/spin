@@ -165,7 +165,7 @@ function badgeSizes(mode: Mode): Rule[] {
     spacingInline: string;
     spacingBlock: string;
   }> = [
-    { name: "badge-sm", short: "sm", fontSize: "2xs", spacingInline: "1", spacingBlock: "1" },
+    { name: "badge-sm", short: "sm", fontSize: "2xs", spacingInline: "1", spacingBlock: "0" },
     { name: "badge-lg", short: "lg", fontSize: "sm", spacingInline: "4", spacingBlock: "2" },
   ];
   return SIZES.map((size) => [
@@ -175,18 +175,18 @@ function badgeSizes(mode: Mode): Rule[] {
       const fontSize = t?.fontSize[size.fontSize];
       const spacingInline = t?.spacing[size.spacingInline];
       const spacingBlock = t?.spacing[size.spacingBlock];
-      const borderWidth = t?.borderWidth?.["width"];
       yield {
         [ctx.symbols.selector]: () => `${badge}.${size.name}, ${badge}[variant~="${size.short}"]`,
         ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        // Sizes own their line box: inherited body leading would swallow the
+        // 2px text step between sm and the base, leaving pills the same
+        // height with different type. Unitless 1 keeps glyphs centered.
+        "line-height": 1,
         ...(spacingInline !== undefined
           ? { "padding-inline-start": spacingInline, "padding-inline-end": spacingInline }
           : {}),
         ...(spacingBlock !== undefined
           ? { "padding-block-start": spacingBlock, "padding-block-end": spacingBlock }
-          : {}),
-        ...(fontSize !== undefined && spacingBlock !== undefined && borderWidth !== undefined
-          ? { "min-height": `calc(${fontSize} + (2 * ${spacingBlock}) + (2 * ${borderWidth}))` }
           : {}),
       };
     },
@@ -229,6 +229,9 @@ function badgeClose(mode: Mode): Rule[] {
           // The button base's min-height (content + padding + border) would
           // keep the UA-sized box; the closer is exactly its glyph box.
           "min-height": 0,
+          // Neobrut's button shadow would frame the × as its own object;
+          // the closer is glyph furniture, not a control.
+          "box-shadow": "none",
           cursor: "pointer",
         };
       },
