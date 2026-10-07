@@ -21,6 +21,16 @@
  * `utils/declarations.ts`, and rule factories in `utils/factories.ts`.
  */
 
+/**
+ * Cascade contract. The primitives layer sits beneath the utilities layer,
+ * so a class always beats a variant — `class="button"` wins over any variant
+ * that targets the same element. Variant vs variant is source-order: the
+ * last one in the cascade wins, and a conflict is an author error, silent.
+ * Utility vs utility is source-order: the last utility in the stylesheet
+ * wins, which is CSS-correct. No merge utility (twMerge/cn) is applied;
+ * layers decide.
+ */
+
 import { definePreset } from "@unocss/core";
 import type { Preset } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";

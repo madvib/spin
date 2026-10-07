@@ -1,4 +1,5 @@
 import { describeCatalog } from "@spin/preset";
+import { ALERT_EXAMPLES, alertFixtureNote } from "@spin/preset/rules/primitives/alert.examples.ts";
 import { BUTTON_EXAMPLES, buttonFixtureNote } from "@spin/preset/rules/primitives/button.examples.ts";
 import { CONTROL_EXAMPLES, controlFixtureNote } from "@spin/preset/rules/primitives/control.examples.ts";
 import { FIELD_EXAMPLES, fieldFixtureNote } from "@spin/preset/rules/primitives/field.examples.ts";
@@ -13,6 +14,14 @@ import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
  * primitive at a time; when FIXTURES empties, this adapter and fixtures.ts
  * delete with it.
  */
+const ALERT_FIXTURE: Fixture = {
+  id: "alert",
+  title: "Alert",
+  kind: "rule",
+  note: alertFixtureNote,
+  examples: [...ALERT_EXAMPLES],
+};
+
 const BUTTON_FIXTURE: Fixture = {
   id: "button",
   title: "Button",
@@ -50,6 +59,7 @@ const FIELD_FIXTURE: Fixture = {
 };
 
 export const rendered: readonly Fixture[] = [
+  ALERT_FIXTURE,
   BUTTON_FIXTURE,
   CONTROL_FIXTURE,
   RADIO_FIXTURE,

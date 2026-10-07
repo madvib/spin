@@ -22,7 +22,7 @@ import { themeOf } from "../utils/lookup.ts";
  * a different thing from listing its own variants:
  *
  *   tone-accent           bg + a readable foreground, as utilities
- *   tone-accent-quiet     an edge in the tone rather than a fill
+ *   tone-accent-muted     an edge in the tone rather than a fill
  *   tone-accent-plain     the tone as foreground only, for text
  *
  * A component's own class stays its own — `badge`, `badge-lg`, `outline` — and
@@ -36,7 +36,7 @@ import { themeOf } from "../utils/lookup.ts";
  *
  * Direction: tones are migrating component-ward. Badge has already moved —
  * its tones are `badge-tone-*`, claimed by the component rather than offered
- * as bare palette words. Alert still composes `tone-*-quiet` directly. The
+ * as bare palette words. Alert still composes `tone-*-muted` directly. The
  * global `tone-*` utilities stay until every component that uses them has
  * migrated; removing them now would break alert and the behaviour tests
  * that exercise them.
@@ -66,10 +66,10 @@ function toneTokens(tone: Tone) {
     case "secondary":
       return { fill: "secondary", on: "on-secondary", edge: "secondary" };
     case "accent":
-      // No `edge`: `accent` is a fill, and a quiet tone built from a fill
-      // fills with it — which is the opposite of quiet. The quiet form mixes
-      // the tone into the surface instead, which is what makes it read as a
-      // tint rather than a block.
+    // No `edge`: `accent` is a fill, and a muted tone built from a fill
+    // fills with it — which is the opposite of muted. The muted form mixes
+    // the tone into the surface instead, which is what makes it read as a
+    // tint rather than a block.
       return { fill: "accent", on: "on-accent" };
     case "success":
       return { fill: "semantic-success", on: "on-semantic-success" };
@@ -126,15 +126,15 @@ function fillRule(tone: Tone): Rule {
  * filled tone would replace the surface rather than mark it. States the border
  * in the tone and leaves the surface alone.
  */
-function quietRule(tone: Tone): Rule {
+function mutedRule(tone: Tone): Rule {
   const { fill, edge } = toneTokens(tone);
   return [
-    new RegExp(`^tone-${tone}-quiet$`),
+    new RegExp(`^tone-${tone}-muted$`),
     function* (_m, ctx) {
       const colors = themeOf(ctx)?.colors;
       // A tone with no edge token — a status colour, which is a fill and not a
       // surface — states only the border. Leaving the surface alone is the
-      // point of the quiet form, so nothing is invented to fill it with.
+      // point of the muted form, so nothing is invented to fill it with.
       // The surface is the page's own, tinted with the tone. `color-mix` is
       // the right tool because both operands are theme tokens: the tint is
       // then correct in every theme without a second token saying "a very
@@ -142,7 +142,7 @@ function quietRule(tone: Tone): Rule {
       const surface = colors?.["surface-raised"] ?? colors?.["surface"];
       const toneColour = colors?.[fill];
       yield {
-        [ctx.symbols.selector]: () => `.tone-${tone}-quiet`,
+        [ctx.symbols.selector]: () => `.tone-${tone}-muted`,
         ...(toneColour !== undefined ? { "border-color": toneColour } : {}),
         ...(surface !== undefined
           ? { "background-color": `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})` }
@@ -174,10 +174,10 @@ function plainRule(tone: Tone): Rule {
 }
 
 export function toneRules(): Rule[] {
-  return TONES.flatMap((tone) => [fillRule(tone), quietRule(tone), plainRule(tone)]);
+  return TONES.flatMap((tone) => [fillRule(tone), mutedRule(tone), plainRule(tone)]);
 }
 
 /** Every tone utility name, for autocomplete and the lint's vocabulary. */
 export function toneNames(): string[] {
-  return TONES.flatMap((t) => [`tone-${t}`, `tone-${t}-quiet`, `tone-${t}-plain`]);
+  return TONES.flatMap((t) => [`tone-${t}`, `tone-${t}-muted`, `tone-${t}-plain`]);
 }

@@ -7,16 +7,17 @@ import { claim, type Mode } from "./shared.ts";
  *
  * A message about something, not a fill. A filled red box shouts, and an
  * alert that shouts is one a reader learns to skip past; the opinion here is
- * a quiet surface carrying a strong edge in the tone. The tone marks the
+ * a muted surface carrying a strong edge in the tone. The tone marks the
  * alert, the surface stays the surface.
  *
- * The tone is the palette's rather than the component's. Each variant reads
- * the same colour `tone-{name}-quiet` states on its border, so a theme that
- * re-tints `semantic-error` re-tints every danger alert, and a component that
- * needs no fill/foreground pairing does not mint one. `tone-{name}-quiet` also
- * fits as a class a caller writes directly: `<alert class="tone-danger-quiet">`
- * states the same edge, and the variant is that reading with the component's
- * name on it.
+ * The tone is the palette's, read through the component's own tokens. Each
+ * variant reads the colour the theme states for its role — `semantic-error`
+ * for danger, `accent` for accent — so a theme that re-tints the palette
+ * re-tints every alert of that tone, and a component that needs no
+ * fill/foreground pairing does not mint one. The tone is the component's own
+ * variant: `variant="danger"`, or the class `alert-danger` for a caller
+ * writing it directly. The muted form (`alert-danger-muted`) tints the surface
+ * with the same colour.
  *
  * `role="alert"` is stated heavier than `role="status"` because the two roles
  * mean different things to the reader: an assertion interrupts, a status
@@ -80,9 +81,10 @@ function alertBase(mode: Mode): Rule {
         ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         ...(t.fontSize !== undefined ? { "font-size": t.fontSize } : {}),
-        // The quiet surface: a hairline on every side. The tone variants
-        // recolour only the inline-start edge, and the role states how heavy
-        // that edge is — so the colour and the weight are separate decisions.
+        // The surface stays the surface: a hairline on every side. The tone
+        // variants recolour only the inline-start edge, and the role states
+        // how heavy that edge is — so the colour and the weight are separate
+        // decisions.
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { border: `${t.borderWidth} solid ${t.border}` }
           : {}),
@@ -118,27 +120,73 @@ function alertBase(mode: Mode): Rule {
  * matching a token, and two components answering to `accent` means one of them
  * silently ships nothing.
  *
- * Each states only the inline-start edge. A tone that filled the surface would
- * be the shouting box this component exists to avoid, and a tone that coloured
- * the other three hairlines would read as an outline rather than as a mark.
+ * Each tone has a fill form and a muted form. The fill form states only the
+ * inline-start edge — a tone that filled the surface would be the shouting box
+ * this component exists to avoid. The muted form adds an 8% tint of the tone
+ * on the surface, copying badge's colorimetry. Both forms use dual selectors
+ * (`.alert-{name}` + `[variant~="{name}"]`) so the tone works as a class or
+ * as a variant attribute.
  */
+const ALERT_TONES: ReadonlyArray<{
+  name: string;
+  fill: string;
+  edge?: string;
+}> = [
+  { name: "accent", fill: "accent" },
+  { name: "success", fill: "semantic-success" },
+  { name: "warning", fill: "semantic-warning" },
+  { name: "danger", fill: "semantic-error" },
+  { name: "primary", fill: "primary" },
+  { name: "secondary", fill: "secondary" },
+  { name: "neutral", fill: "surface-raised", edge: "border" },
+];
+
 function alertTones(mode: Mode): Rule[] {
   const alert = claim(mode, "alert");
-  const TONES: ReadonlyArray<readonly [token: string, fill: string]> = [
-    ["alert-accent", "accent"],
-    ["alert-success", "semantic-success"],
-    ["alert-warning", "semantic-warning"],
-    ["alert-danger", "semantic-error"],
-  ];
-  return TONES.map(([token, fill]) => [
-    new RegExp(`^${token}$`),
-    function* (_m, ctx) {
-      const color = themeOf(ctx)?.colors[fill];
-      yield {
-        [ctx.symbols.selector]: () => `${alert}.${token}`,
-        ...(color !== undefined ? { "border-inline-start-color": color } : {}),
-      };
-    },
-    { layer: "primitives", autocomplete: token },
-  ]) as Rule[];
+  return ALERT_TONES.flatMap((tone) => {
+    const { name, fill, edge } = tone;
+    return [
+      // Fill form. Dual selectors: class and variant attribute.
+      [
+        new RegExp(`^alert-${name}$`),
+        function* (_m, ctx) {
+          const colors = themeOf(ctx)?.colors;
+          const color = edge !== undefined ? colors?.[edge] : colors?.[fill];
+          yield {
+            [ctx.symbols.selector]: () =>
+              `${alert}.alert-${name}, ${alert}[variant~="${name}"]`,
+            ...(color !== undefined
+              ? { "border-inline-start-color": color }
+              : {}),
+          };
+        },
+        { layer: "primitives", autocomplete: `alert-${name}` },
+      ],
+      // Muted form
+      [
+        new RegExp(`^alert-${name}-muted$`),
+        function* (_m, ctx) {
+          const colors = themeOf(ctx)?.colors;
+          const surface = colors?.["surface-raised"] ?? colors?.["surface"];
+          const toneColour = edge !== undefined
+            ? colors?.[edge]
+            : colors?.[fill];
+          yield {
+            [ctx.symbols.selector]: () =>
+              `${alert}.alert-${name}-muted, ${alert}[variant~="${name}-muted"]`,
+            ...(toneColour !== undefined
+              ? { "border-inline-start-color": toneColour }
+              : {}),
+            ...(surface !== undefined
+              ? {
+                "background-color":
+                  `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})`,
+              }
+              : {}),
+          };
+        },
+        { layer: "primitives", autocomplete: `alert-${name}-muted` },
+      ],
+    ];
+  }) as Rule[];
 }

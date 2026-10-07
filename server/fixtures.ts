@@ -398,28 +398,6 @@ export const FIXTURES: readonly Fixture[] = [
     ],
   },
   {
-    id: "alert",
-    title: "Alert",
-    kind: "rule",
-    note:
-      "A surface with a tone, not a fill. An alert is a message ABOUT " +
-      "something, so a filled red box shouts; the opinion is a quiet surface " +
-      "with a strong leading edge. role=alert gets a heavier edge than " +
-      "role=status because an assertion interrupts and a status does not.",
-    examples: [
-      {
-        name: "Tones",
-        html: `<div>
-          <alert role="status">Saved.</alert>
-          <alert role="status" class="tone-accent-quiet">Synced.</alert>
-          <alert role="status" class="tone-success-quiet">Connected.</alert>
-          <alert role="alert" class="tone-warning-quiet">Session expires soon.</alert>
-          <alert role="alert" class="tone-danger-quiet">Payment failed.</alert>
-        </div>`,
-      },
-    ],
-  },
-  {
     id: "tabs",
     title: "Tabs",
     kind: "rule",

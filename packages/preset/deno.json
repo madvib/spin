@@ -9,6 +9,7 @@
     "./reference/build.ts": "./src/reference/build.ts",
     "./reference/surface.ts": "./src/reference/surface.ts",
     "./reference/scale.ts": "./src/reference/scale.ts",
+    "./rules/primitives/alert.examples.ts": "./src/rules/primitives/alert.examples.ts",
     "./rules/primitives/button.examples.ts": "./src/rules/primitives/button.examples.ts",
     "./rules/primitives/control.examples.ts": "./src/rules/primitives/control.examples.ts",
     "./rules/primitives/field.examples.ts": "./src/rules/primitives/field.examples.ts",

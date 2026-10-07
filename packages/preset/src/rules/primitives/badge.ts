@@ -13,9 +13,8 @@ import { claim, type Mode } from "./shared.ts";
  * A badge's tones are its own variants — compound selectors on the badge,
  * `badge.badge-primary` — not shared utilities. The palette pair (fill + on)
  * comes from the theme; the muted form copies the colorimetry of tones.ts
- * quietRule: a border in the tone and an 8% tint of it on the surface. Badge
- * says `muted`; the global tones.ts still says `quiet` — alert migrates in
- * its own pass.
+ * mutedRule: a border in the tone and an 8% tint of it on the surface.
+ * composed: `variant="primary muted"` matches no muted rule).
  */
 export function badgeRules(
   roots: readonly string[],
@@ -76,8 +75,8 @@ function badgeBase(mode: Mode): Rule {
  * Each tone is a compound selector on the badge — `badge.badge-primary` —
  * so the tone is the badge's own, not a shared utility. The palette pair
  * (fill + on) comes from the theme; the muted form copies the colorimetry
- * of tones.ts quietRule: a border in the tone and an 8% tint of it on the
- * surface. Badge says `muted`; the global tones.ts still says `quiet`.
+ * of tones.ts mutedRule: a border in the tone and an 8% tint of it on the
+ * surface.
  */
 const TONES: ReadonlyArray<{
   name: string;
