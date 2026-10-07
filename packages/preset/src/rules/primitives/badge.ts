@@ -216,9 +216,20 @@ function badgeClose(mode: Mode): Rule[] {
           // The button base sets font-size md; the closer matches the badge
           // text instead, or the glyph stretches the pill.
           "font-size": "inherit",
+          // The × glyph's ink exceeds its em, so as a flex item its line box
+          // stretches the pill. Sized as a 1em box with the glyph clipped
+          // inside, it centers without contributing height.
+          display: "inline-flex",
+          "align-items": "center",
+          "justify-content": "center",
+          width: "1em",
+          height: "1em",
+          "line-height": 0,
+          overflow: "hidden",
+          // The button base's min-height (content + padding + border) would
+          // keep the UA-sized box; the closer is exactly its glyph box.
+          "min-height": 0,
           cursor: "pointer",
-          "line-height": 1,
-          ...(radiusSm !== undefined ? { "border-radius": radiusSm } : {}),
         };
       },
       { layer: "primitives", autocomplete: "badge-close" },
