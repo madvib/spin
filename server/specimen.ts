@@ -2,8 +2,13 @@ import { describeCatalog } from "@spin/preset";
 import { ALERT_EXAMPLES, alertFixtureNote } from "@spin/preset/rules/primitives/alert.examples.ts";
 import { BUTTON_EXAMPLES, buttonFixtureNote } from "@spin/preset/rules/primitives/button.examples.ts";
 import { CONTROL_EXAMPLES, controlFixtureNote } from "@spin/preset/rules/primitives/control.examples.ts";
+import { DIALOG_EXAMPLES, dialogFixtureNote } from "@spin/preset/rules/primitives/dialog.examples.ts";
 import { FIELD_EXAMPLES, fieldFixtureNote } from "@spin/preset/rules/primitives/field.examples.ts";
+import { POPOVER_EXAMPLES, popoverFixtureNote } from "@spin/preset/rules/primitives/popover.examples.ts";
+import { PROGRESS_EXAMPLES, progressFixtureNote } from "@spin/preset/rules/primitives/progress.examples.ts";
 import { RADIO_EXAMPLES, radioFixtureNote } from "@spin/preset/rules/primitives/radio.examples.ts";
+import { TABLE_EXAMPLES, tableFixtureNote } from "@spin/preset/rules/primitives/table.examples.ts";
+import { TABS_EXAMPLES, tabsFixtureNote } from "@spin/preset/rules/primitives/tabs.examples.ts";
 import type { Demo } from "./demos.ts";
 import { FIXTURES, type Fixture } from "./fixtures.ts";
 import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
@@ -58,12 +63,60 @@ const FIELD_FIXTURE: Fixture = {
   examples: [...FIELD_EXAMPLES],
 };
 
+const TABLE_FIXTURE: Fixture = {
+  id: "table",
+  title: "Table",
+  kind: "rule",
+  note: tableFixtureNote,
+  examples: [...TABLE_EXAMPLES],
+};
+
+const TABS_FIXTURE: Fixture = {
+  id: "tabs",
+  title: "Tabs",
+  kind: "rule",
+  note: tabsFixtureNote,
+  examples: [...TABS_EXAMPLES],
+};
+
+const DIALOG_FIXTURE: Fixture = {
+  id: "dialog",
+  title: "Dialog",
+  kind: "rule",
+  note: dialogFixtureNote,
+  // showModal is IDL-only: the page wires trigger buttons on load.
+  onLoad:
+    "document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.open)?.showModal()));",
+  examples: [...DIALOG_EXAMPLES],
+};
+
+const POPOVER_FIXTURE: Fixture = {
+  id: "popover",
+  title: "Popover & tooltip",
+  kind: "rule",
+  note: popoverFixtureNote,
+  examples: [...POPOVER_EXAMPLES],
+};
+
+const PROGRESS_FIXTURE: Fixture = {
+  id: "progress",
+  title: "Progress",
+  kind: "rule",
+  note: progressFixtureNote,
+  examples: [...PROGRESS_EXAMPLES],
+};
+
 export const rendered: readonly Fixture[] = [
   ALERT_FIXTURE,
   BUTTON_FIXTURE,
   CONTROL_FIXTURE,
   RADIO_FIXTURE,
   FIELD_FIXTURE,
+  TABLE_FIXTURE,
+  TABS_FIXTURE,
+  DIALOG_FIXTURE,
+  POPOVER_FIXTURE,
+  PROGRESS_FIXTURE,
   ...FIXTURES,
 ];
 

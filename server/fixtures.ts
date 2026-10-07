@@ -206,58 +206,6 @@ export const FIXTURES: readonly Fixture[] = [
     ],
   },
   {
-    id: "table",
-    title: "Table",
-    kind: "rule",
-    note:
-      "The first primitive with a strong opinion, and the three are the ones " +
-      "a consumer is better served by not having to make: figures line up on " +
-      "the digit, the header stays put when the table scrolls, and cells are " +
-      "separated by a rule rather than boxed. A table that disagrees with " +
-      "these takes one class and gets the element as the browser draws it.",
-    examples: [
-      {
-        name: "Figures align",
-        html: `<table>
-          <caption>Q3 by region</caption>
-          <thead>
-            <tr>
-              <th scope="col">Region</th>
-              <th scope="col">Units</th>
-              <th scope="col">Revenue</th>
-              <th scope="col">Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>North</td><td>1,204</td><td>18,400</td><td>+12%</td></tr>
-            <tr><td>South</td><td>987</td><td>14,910</td><td>+4%</td></tr>
-            <tr><td>East</td><td>2,310</td><td>35,120</td><td>-3%</td></tr>
-            <tr><td>West</td><td>744</td><td>10,880</td><td>+21%</td></tr>
-          </tbody>
-        </table>`,
-      },
-      {
-        name: "A sticky header in a scroller",
-        html: `<div data-scroller>
-          <table>
-            <thead>
-              <tr><th scope="col">Unit</th><th scope="col">ms</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>parse</td><td>2.1</td></tr>
-              <tr><td>resolve</td><td>0.8</td></tr>
-              <tr><td>generate</td><td>4.6</td></tr>
-              <tr><td>emit</td><td>1.2</td></tr>
-              <tr><td>link</td><td>9.3</td></tr>
-              <tr><td>minify</td><td>3.7</td></tr>
-              <tr><td>ship</td><td>0.4</td></tr>
-            </tbody>
-          </table>
-        </div>`,
-      },
-    ],
-  },
-  {
     id: "details",
     title: "Details",
     kind: "rule",
@@ -301,72 +249,6 @@ export const FIXTURES: readonly Fixture[] = [
     ],
   },
   {
-    id: "progress",
-    title: "Progress",
-    kind: "rule",
-    note:
-      "The one control with no cross-browser standard rendering, so each " +
-      "engine's pseudo-elements are stated separately and the duplication is " +
-      "the platform's cost rather than ours to tidy away. A theme with " +
-      "indeterminate state gets motion — a static bar with no fill reads as a " +
-      "bar that failed to load.",
-    examples: [
-      {
-        name: "Values",
-        html: `<div>
-          <label class="field"><span>Complete</span>
-            <progress value="100" max="100"></progress>
-          </label>
-          <label class="field"><span>Half</span>
-            <progress value="50" max="100"></progress>
-          </label>
-          <label class="field"><span>Working</span>
-            <progress></progress>
-          </label>
-        </div>`,
-      },
-      {
-        name: "A meter · a value in a known range",
-        html: `<div>
-          <label class="field"><span>Disk</span>
-            <meter value="0.4" min="0" max="1" low="0.3" high="0.8"></meter>
-          </label>
-        </div>`,
-      },
-    ],
-  },
-  {
-    id: "dialog",
-    title: "Dialog",
-    kind: "rule",
-    note:
-      "The native element brings the four things a modal has to have — focus " +
-      "trapped, Escape to close, the page inert, and a top-layer position — " +
-      "and none of them are ours. What is ours is a card that looks like every " +
-      "other card, centred and capped so it cannot outgrow the viewport.",
-    onLoad:
-      "document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.open)?.showModal()));",
-    examples: [
-      {
-        name: "Modal",
-        html: `<div>
-          <button data-open="confirm">Open a dialog</button>
-        </div>
-        <dialog id="confirm">
-          <header>
-            <h2>Delete this file?</h2>
-            <button class="ghost" onclick="this.closest('dialog').close()">Close</button>
-          </header>
-          <p>The file and its history will be removed. This cannot be undone.</p>
-          <footer>
-            <button class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
-            <button class="danger">Delete</button>
-          </footer>
-        </dialog>`,
-      },
-    ],
-  },
-  {
     id: "group",
     title: "Group",
     kind: "rule",
@@ -394,52 +276,6 @@ export const FIXTURES: readonly Fixture[] = [
           <button class="secondary">Four</button>
           <button class="secondary">Five</button>
         </div>`,
-      },
-    ],
-  },
-  {
-    id: "tabs",
-    title: "Tabs",
-    kind: "rule",
-    note:
-      "No JavaScript at all: radio inputs and :checked drive both the tab's " +
-      "appearance and its panel's visibility. The radios stay in the " +
-      "accessibility tree — collapsed to a pixel, not hidden — so the tabs " +
-      "are keyboard reachable and a screen reader announces them.",
-    examples: [
-      {
-        name: "Horizontal",
-        html: `<tabs>
-          <div><label><input type="radio" name="t1" checked> Overview</label><section>Panel one. Nothing here is script — the radio is checked and the panel is its sibling.</section></div>
-          <div><label><input type="radio" name="t1"> Details</label><section>Panel two.</section></div>
-          <div><label><input type="radio" name="t1"> Settings</label><section>Panel three.</section></div>
-        </tabs>`,
-      },
-      {
-        name: "Vertical · a structural variant",
-        html: `<tabs class="tabs-vertical">
-          <div><label><input type="radio" name="t2" checked> One</label><section>The rail runs down and the panel beside it.</section></div>
-          <div><label><input type="radio" name="t2"> Two</label><section>Second.</section></div>
-        </tabs>`,
-      },
-    ],
-  },
-  {
-    id: "popover",
-    title: "Popover & tooltip",
-    kind: "rule",
-    note:
-      "The native top layer: popovertarget puts the panel above everything " +
-      "without script, and light-dismiss is the platform's. A tooltip is the " +
-      "same surface revealed on hover or focus, so both spend one card's " +
-      "worth of CSS.",
-    examples: [
-      {
-        name: "Popover",
-        html: `<div>
-          <button popovertarget="menu">Open</button>
-        </div>
-        <popover id="menu">Menu content</popover>`,
       },
     ],
   },
