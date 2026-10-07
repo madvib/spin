@@ -60,14 +60,8 @@ ${
         `    <section class="${CHROME.example}">
       <h3 class="${CHROME.subhead}">${esc(e.name)}</h3>
       <div class="${CHROME.rendered}">${e.html}</div>
-      <button class="${CHROME.reveal}" type="button" aria-expanded="false"
-              data-markup="${
-            esc(formatMarkup(e.html.trim()))
-          }">markup <span data-caret>&#9656;</span></button>
-      <button class="${CHROME.copy}" type="button" data-copy
-              data-markup="${
-            esc(formatMarkup(e.html.trim()))
-          }">copy</button>
+      <button class="${CHROME.reveal}" type="button" aria-expanded="false">markup <span data-caret>&#9656;</span></button>
+      <button class="${CHROME.copy}" type="button" data-copy>copy</button>
       <pre hidden class="${CHROME.decl}">${esc(formatMarkup(e.html.trim()))}</pre>
     </section>`
       ).join("\n")
@@ -290,7 +284,10 @@ for (const b of document.querySelectorAll(".reveal")) {
 }
 for (const b of document.querySelectorAll("[data-copy]")) {
   b.addEventListener("click", async () => {
-    const markup = b.getAttribute("data-markup") ?? "";
+    // The source lives in the section's own <pre> as text — read the live
+    // DOM rather than a serialized shadow attribute (which turns every
+    // quote in the example into an escaping bug).
+    const markup = b.closest("section")?.querySelector("pre")?.textContent ?? "";
     if (!navigator.clipboard) return;
     try {
       await navigator.clipboard.writeText(markup);

@@ -1,9 +1,24 @@
 import { describeCatalog } from "@spin/preset";
+import { BUTTON_EXAMPLES, buttonFixtureNote } from "@spin/preset/rules/primitives/button.examples.ts";
 import type { Demo } from "./demos.ts";
-import { FIXTURES } from "./fixtures.ts";
+import { FIXTURES, type Fixture } from "./fixtures.ts";
 import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
 
-export const rendered = FIXTURES;
+/**
+ * The button fixture sources from the preset package: examples live beside
+ * the rule that styles them (Park UI shape). Remaining fixtures migrate one
+ * primitive at a time; when FIXTURES empties, this adapter and fixtures.ts
+ * delete with it.
+ */
+const BUTTON_FIXTURE: Fixture = {
+  id: "button",
+  title: "Button",
+  kind: "rule",
+  note: buttonFixtureNote,
+  examples: [...BUTTON_EXAMPLES],
+};
+
+export const rendered: readonly Fixture[] = [BUTTON_FIXTURE, ...FIXTURES];
 
 export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

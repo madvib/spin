@@ -38,9 +38,6 @@ export interface Fixture {
 const badge = (label: string, tone = "") =>
   `<badge${tone ? ` class="${tone}"` : ""}>${label}</badge>`;
 
-const button = (label: string, cls = "", extra = "") =>
-  `<button class="btn ${cls}" ${extra}>${label}</button>`;
-
 /** A label wrapping a control, which is how a consumer writes one. */
 const field = (label: string, control: string) =>
   `<label class="field">${control}<span>${label}</span></label>`;
@@ -49,56 +46,6 @@ const labelled = (control: string, text: string) =>
   `<label class="control">${control}<span>${text}</span></label>`;
 
 export const FIXTURES: readonly Fixture[] = [
-  {
-    id: "button",
-    title: "Button",
-    kind: "rule",
-    note:
-      "Ten states, so it is a rule. uno keeps only the first rule matching a " +
-      "token, so the base, its variants, its sizes and the reset fall-through " +
-      "are all yielded from one generator. A variant is a class on the tag; " +
-      "the tag alone carries the base, so <button> is a working button with no " +
-      "class at all.",
-    examples: [
-      {
-        name: "Variants",
-        html: `<div class="flex flex-wrap items-center gap-2">
-          ${button("default")}${button("secondary", "secondary")}
-          ${button("outline", "outline")}${button("contrast", "contrast")}
-          ${button("danger", "danger")}${button("ghost", "ghost")}
-        </div>`,
-      },
-      {
-        name: "Sizes",
-        html: `<div class="flex flex-wrap items-center gap-2">
-          ${button("small", "s-sm")}${button("medium")}${button("large", "s-lg")}
-        </div>`,
-      },
-      {
-        name: "States",
-        html: `<div class="flex flex-wrap items-center gap-2">
-          ${button("hover me")}${button("disabled", "", "disabled")}${button("aria-disabled", "", 'aria-disabled="true"')}
-          <button class="btn" aria-busy="true">busy</button>
-        </div>`,
-      },
-      {
-        name: "With an icon",
-        html: `<div class="flex flex-wrap items-center gap-2">
-          <button class="btn"><i class="i-lucide-plus button-icon"></i>Save</button>
-          <button class="btn s-sm"><i class="i-lucide-plus button-icon"></i>Save</button>
-          <button class="btn s-lg"><i class="i-lucide-plus button-icon"></i>Save</button>
-          <button class="btn icon"><i class="i-lucide-plus button-icon"></i></button>
-        </div>`,
-      },
-      {
-        name: "In a group · joined corners",
-        html: `<span class="flex flex-wrap items-center gap-2" role="group">
-          ${button("left", "secondary")}${button("middle", "secondary", 'aria-pressed="true"')}
-          ${button("right", "secondary")}
-        </span>`,
-      },
-    ],
-  },
   {
     id: "badge",
     title: "Badge",
@@ -199,7 +146,7 @@ export const FIXTURES: readonly Fixture[] = [
             <p>Card content. Seven parts, each its own tag.</p>
           </card-content>
           <card-footer>
-            ${button("Save")}${button("Cancel", "ghost")}
+            <button>Save</button><button class="ghost">Cancel</button>
           </card-footer>
         </card>`,
       },

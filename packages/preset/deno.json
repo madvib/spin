@@ -8,7 +8,8 @@
     "./organization.ts": "./src/organization.ts",
     "./reference/build.ts": "./src/reference/build.ts",
     "./reference/surface.ts": "./src/reference/surface.ts",
-    "./reference/scale.ts": "./src/reference/scale.ts"
+    "./reference/scale.ts": "./src/reference/scale.ts",
+    "./rules/primitives/button.examples.ts": "./src/rules/primitives/button.examples.ts"
   },
   "imports": {
     "@spin/preset": "./src/index.ts",
