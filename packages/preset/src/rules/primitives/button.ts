@@ -114,6 +114,7 @@ const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
  * another, which is the whole point of deriving rather than listing.
  */
 const VARIANT_NAMES = [
+  "bare",
   "secondary",
   "outline",
   "ghost",
@@ -141,8 +142,20 @@ const VARIANTS: Record<PaintedVariant, {
   selector: string;
   body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
 }> = {
+  bare: {
+    selector: `${BUTTON}.bare, ${BUTTON}[variant~="bare"]`,
+    body: () => ({
+      background: "none",
+      border: "none",
+      padding: "0",
+      "box-shadow": "none",
+      color: "inherit",
+      font: "inherit",
+      cursor: "pointer",
+    }),
+  },
   secondary: {
-    selector: `${BUTTON}.secondary`,
+    selector: `${BUTTON}.secondary, ${BUTTON}[variant~="secondary"]`,
     body: (ctx) => ({
       "background-color": themeOf(ctx)?.colors["surface-raised"],
       "border-color": themeOf(ctx)?.colors["border"],
@@ -150,7 +163,7 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   ghost: {
-    selector: `${BUTTON}.ghost`,
+    selector: `${BUTTON}.ghost, ${BUTTON}[variant~="ghost"]`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
@@ -158,14 +171,14 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   danger: {
-    selector: `${BUTTON}.danger`,
+    selector: `${BUTTON}.danger, ${BUTTON}[variant~="danger"]`,
     body: (ctx) => ({
       "background-color": themeOf(ctx)?.colors["semantic-error"],
       color: themeOf(ctx)?.colors["on-danger"],
     }),
   },
   contrast: {
-    selector: `${CONTRAST}.contrast`,
+    selector: `${CONTRAST}.contrast, ${CONTRAST}[variant~="contrast"]`,
     body: (ctx) => ({
       "background-color": themeOf(ctx)?.colors["text"],
       "border-color": themeOf(ctx)?.colors["text"],
@@ -173,7 +186,7 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   outline: {
-    selector: `${BUTTON}.outline`,
+    selector: `${BUTTON}.outline, ${BUTTON}[variant~="outline"]`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": themeOf(ctx)?.colors["accent"],
@@ -181,7 +194,7 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   "s-sm": {
-    selector: `${BUTTON}.s-sm`,
+    selector: `${BUTTON}.s-sm, ${BUTTON}[variant~="s-sm"]`,
     body: (ctx) => {
       const fontSize = themeOf(ctx)?.fontSize["sm"];
       const spacing1 = themeOf(ctx)?.spacing["1"];
@@ -204,7 +217,7 @@ const VARIANTS: Record<PaintedVariant, {
     },
   },
   "s-lg": {
-    selector: `${BUTTON}.s-lg`,
+    selector: `${BUTTON}.s-lg, ${BUTTON}[variant~="s-lg"]`,
     body: (ctx) => {
       const fontSize = themeOf(ctx)?.fontSize["lg"];
       const spacing4 = themeOf(ctx)?.spacing["4"];
@@ -227,7 +240,7 @@ const VARIANTS: Record<PaintedVariant, {
     },
   },
   icon: {
-    selector: `${BUTTON}.icon`,
+    selector: `${BUTTON}.icon, ${BUTTON}[variant~="icon"]`,
     body: () => ({
       width: "auto",
       "padding-inline": "0",

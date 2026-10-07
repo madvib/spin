@@ -62,7 +62,7 @@ export const FIXTURES: readonly Fixture[] = [
     examples: [
       {
         name: "Variants",
-        html: `<div>
+        html: `<div class="flex flex-wrap items-center gap-2">
           ${button("default")}${button("secondary", "secondary")}
           ${button("outline", "outline")}${button("contrast", "contrast")}
           ${button("danger", "danger")}${button("ghost", "ghost")}
@@ -70,30 +70,32 @@ export const FIXTURES: readonly Fixture[] = [
       },
       {
         name: "Sizes",
-        html: `<div>
+        html: `<div class="flex flex-wrap items-center gap-2">
           ${button("small", "s-sm")}${button("medium")}${button("large", "s-lg")}
         </div>`,
       },
       {
         name: "States",
-        html: `<div>
-          ${button("hover me")}${button("disabled", "", "disabled")}
+        html: `<div class="flex flex-wrap items-center gap-2">
+          ${button("hover me")}${button("disabled", "", "disabled")}${button("aria-disabled", "", 'aria-disabled="true"')}
           <button class="btn" aria-busy="true">busy</button>
         </div>`,
       },
       {
         name: "With an icon",
-        html: `<div>
+        html: `<div class="flex flex-wrap items-center gap-2">
           <button class="btn"><i class="i-lucide-plus button-icon"></i>Save</button>
+          <button class="btn s-sm"><i class="i-lucide-plus button-icon"></i>Save</button>
+          <button class="btn s-lg"><i class="i-lucide-plus button-icon"></i>Save</button>
           <button class="btn icon"><i class="i-lucide-plus button-icon"></i></button>
         </div>`,
       },
       {
         name: "In a group · joined corners",
-        html: `<div role="group">
-          ${button("left", "secondary")}${button("middle", "secondary")}
+        html: `<span class="flex flex-wrap items-center gap-2" role="group">
+          ${button("left", "secondary")}${button("middle", "secondary", 'aria-pressed="true"')}
           ${button("right", "secondary")}
-        </div>`,
+        </span>`,
       },
     ],
   },

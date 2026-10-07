@@ -146,6 +146,7 @@ character: [
   button: {
   tags: ["button", "span"],
   variants: [
+    "bare",
     "button-icon",
     "contrast",
     "danger",
