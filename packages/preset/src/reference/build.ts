@@ -119,13 +119,21 @@ export function buildScale(
   };
 }
 
-/** The class a step and axis produce together: `p-4`, or `px-4`. */
+/**
+ * The class a step and axis produce together: `p-4`, or `px-4`.
+ *
+ * An axis is the SUFFIX of the prefix, not a segment of it — `split` reads
+ * `px-4` as the axis `x` on the prefix `p`, so it is written back with no
+ * dash between them. Joining with a dash produced `p-x-4`, which no rule
+ * matches: the preview silently lost its styling the moment an edge other
+ * than `all` was chosen.
+ */
 export function scaleClass(
   prefix: string,
   axis: string,
   step: string,
 ): string {
-  return axis === "" ? `${prefix}-${step}` : `${prefix}-${axis}-${step}`;
+  return axis === "" ? `${prefix}-${step}` : `${prefix}${axis}-${step}`;
 }
 
 export { EDGES, EDGE_AXES };

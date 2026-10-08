@@ -3,15 +3,29 @@ import { defineConfig, searchForWorkspaceRoot } from "vite";
 import solid from "vite-plugin-solid";
 import UnoCSS from "@unocss/vite";
 import presetIcons from "@unocss/preset-icons";
-import { spinPreset } from "../../packages/preset/src/index.ts";
+import { describeCatalog, spinPreset } from "../../packages/preset/src/index.ts";
+import { parseTokens } from "../../packages/theme/src/index.ts";
 import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
 
-// The reference renders package examples directly in Solid: the module graph
-// sees every class and variant, so the scanner reads sources, not generated
-// files. Nothing is pre-rendered; nothing is hand-listed.
+// The reference renders package examples directly in Solid, so the module
+// graph carries every class a PRIMITIVE example wears. The UTILITIES pages
+// are different: a rail, a scale step and a swatch choose their class from
+// the catalog at RUNTIME, so the scanner never sees them — `pl-8` and
+// `bg-secondary` exist only as values, and without a rule the specimen
+// renders unstyled and looks like a broken utility. Safelisting the catalog
+// is the drift-free equivalent of the old content dir: the sheet is
+// generated from the same source the pages are, so a utility the catalog
+// names always has a rule to demonstrate it with.
+const parsed = parseTokens(
+  starterThemes.default as unknown as Parameters<typeof parseTokens>[0],
+);
+if (!parsed.ok) throw new Error(parsed.error);
+const utilitySafelist = describeCatalog(parsed.tree).flatMap((section) =>
+  section.utilities
+);
 
 export default defineConfig({
   plugins: [
@@ -21,6 +35,7 @@ export default defineConfig({
         presetIcons({ collections: { lucide } as never }),
         spinPreset({ themes: starterThemes }),
       ],
+      safelist: utilitySafelist,
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the
       // pipeline include admits plain .ts because examples are data

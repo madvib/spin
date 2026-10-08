@@ -4,7 +4,7 @@ import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 import { PRIMITIVES } from "./primitives.ts";
-import { utilityGroupPage } from "./lib/family.ts";
+import { UtilitiesPage } from "./utilities.tsx";
 
 import type { TokenTree } from "@spin/theme";
 
@@ -38,6 +38,21 @@ function useTheme() {
   return { theme, setTheme, mode, setMode };
 }
 
+const GHOST_BUTTON =
+  "bare inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text";
+
+const CHIP =
+  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
+
+const RAIL_LINK =
+  "flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm text-text-muted no-underline hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+
+const SURFACE_LINK =
+  "flex-1 justify-center rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted no-underline hover:border-border-strong hover:text-text aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
+
+const RAIL_HEAD =
+  "mb-4 text-xs font-semibold uppercase tracking-wide text-text-muted";
+
 function ExampleSection(props: {
   name: string;
   html: string;
@@ -59,17 +74,33 @@ function ExampleSection(props: {
     }
   };
   return (
-    <section>
-      <h3>{props.name}</h3>
-      <div innerHTML={props.html} />
-      <button type="button" onClick={() => setOpen(!open())}>
-        markup <span>{open() ? "▾" : "▸"}</span>
-      </button>
-      <button type="button" onClick={copy}>
-        {copied() ? "copied" : "copy"}
-      </button>
+    <section class="mb-8">
+      <h3 class="mb-2 mt-8 text-xs font-semibold uppercase tracking-wide text-text-muted">
+        {props.name}
+      </h3>
+      <div
+        class="rounded-md border border-dashed border-solid border-border bg-surface-raised p-4"
+        innerHTML={props.html}
+      />
+      <div class="mt-4 flex flex-wrap items-start gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(!open())}
+          class={GHOST_BUTTON}
+        >
+          markup <span>{open() ? "▾" : "▸"}</span>
+        </button>
+        <button type="button" onClick={copy} class={GHOST_BUTTON}>
+          {copied() ? "copied" : "copy"}
+        </button>
+      </div>
       <Show when={open()}>
-        <pre ref={pre}>{props.html.trim()}</pre>
+        <pre
+          ref={pre}
+          class="mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted"
+        >
+          {props.html.trim()}
+        </pre>
       </Show>
     </section>
   );
@@ -81,11 +112,16 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
     <Show when={fixture()} fallback={<p>Not found</p>}>
       {(f) => (
         <>
-          <header>
-            <h2>{f().title}</h2>
-            <div>{f().kind}</div>
-            <p>{f().note}</p>
+          <header class="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <h2 class="m-0 text-2xl font-bold tracking-tight">{f().title}</h2>
+              <div class="font-mono text-xs text-text-muted">{f().kind}</div>
+            </div>
+            <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+              {f().examples.length} examples
+            </span>
           </header>
+          <p class="mb-8 max-w-screen-md text-md text-text-muted">{f().note}</p>
           <For each={[...f().examples]}>
             {(e) => (
               <ExampleSection
@@ -101,14 +137,8 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
   );
 }
 
-function UtilitiesPage(props: { group: string }) {
-  // String-rendered utility specimens until JSX replacements land.
-  const html = createMemo(() => utilityGroupPage(props.group, themeTreeOrParse()));
-  return <div innerHTML={html()} />;
-}
-
 export default function App() {
-  const { theme, setTheme, mode: _mode, setMode } = useTheme();
+  const { theme, setTheme, mode, setMode } = useTheme();
   const [route, setRoute] = createSignal(location.hash.slice(1) || "/components");
   createEffect(() => {
     const onHash = () => setRoute(location.hash.slice(1) || "/components");
@@ -117,47 +147,91 @@ export default function App() {
   });
   const catalog = createMemo(() => describeCatalog(themeTreeOrParse()));
   return (
-    <div>
-      <nav>
-        <h1>spin</h1>
-        <div>
+    <div class="flex min-h-screen">
+      <nav class="sticky top-0 flex max-h-screen w-1/4 shrink-0 flex-col gap-1 self-start overflow-y-auto border-e border-solid border-border p-4">
+        <h1 class="m-0 text-2xl font-bold tracking-tight">spin</h1>
+        <div class="mb-4 flex flex-wrap items-center gap-1 rounded-md border border-solid border-border p-1">
           <For each={THEMES}>
             {(t) => (
-              <button type="button" onClick={() => setTheme(t)}>
+              <button
+                type="button"
+                onClick={() => setTheme(t)}
+                aria-current={theme() === t || undefined}
+                class={CHIP}
+              >
                 {t}
               </button>
             )}
           </For>
-          <button type="button" onClick={() => setMode("base")}>
+          <button
+            type="button"
+            onClick={() => setMode("base")}
+            aria-current={mode() === "base" || undefined}
+            class={CHIP}
+          >
             base
           </button>
-          <button type="button" onClick={() => setMode("dark")}>
+          <button
+            type="button"
+            onClick={() => setMode("dark")}
+            aria-current={mode() === "dark" || undefined}
+            class={CHIP}
+          >
             dark
           </button>
         </div>
-        <div>
-          <a href="#/utilities">utilities</a>
-          <a href="#/components">primitives</a>
+        <div class="mb-2 flex gap-1 border-b border-solid border-border pb-2 text-sm">
+          <a
+            href="#/utilities"
+            aria-current={route().startsWith("/utilities") || undefined}
+            class={SURFACE_LINK}
+          >
+            utilities
+          </a>
+          <a
+            href="#/components"
+            aria-current={route().startsWith("/components") || undefined}
+            class={SURFACE_LINK}
+          >
+            primitives
+          </a>
+        </div>
+        <div class={RAIL_HEAD}>
+          {route().startsWith("/utilities") ? "sections" : "components"}
         </div>
         <Show
           when={route().startsWith("/utilities")}
           fallback={
             <For each={PRIMITIVES}>
-              {(r) => <a href={`#/components/${r.id}`}>{r.title}</a>}
+              {(r) => (
+                <a
+                  href={`#/components/${r.id}`}
+                  aria-current={route() === `/components/${r.id}` || undefined}
+                  class={RAIL_LINK}
+                >
+                  {r.title}
+                </a>
+              )}
             </For>
           }
         >
           <For each={SECTIONS}>
             {(sec) => (
-              <a href={`#/utilities/${sec.id}`}>
+              <a
+                href={`#/utilities/${sec.id}`}
+                aria-current={route() === `/utilities/${sec.id}` || undefined}
+                class={RAIL_LINK}
+              >
                 <span>{sec.title}</span>
-                <span>{utilitiesFor(sec, catalog()).length}</span>
+                <span class="shrink-0 font-mono text-xs text-text-muted">
+                  {utilitiesFor(sec, catalog()).length}
+                </span>
               </a>
             )}
           </For>
         </Show>
       </nav>
-      <main>
+      <main class="min-w-0 flex-1 p-8 pb-16">
         <Show
           when={route().startsWith("/components/")}
           fallback={
