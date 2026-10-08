@@ -7,9 +7,11 @@
  * rebuild.
  *
  * A top-level group named `dark` is the dark override set. It is emitted as a
- * second block under `:root[data-theme="dark"]` with the leading `dark` segment
- * dropped, so `dark.color.brand` overrides `--color-brand` rather than defining
- * a second, dead variable. Its tokens are not repeated in the base block.
+ * second block under `<selector>[data-mode="dark"]` with the leading `dark`
+ * segment dropped, so `dark.color.brand` overrides `--color-brand` rather
+ * than defining a second, dead variable. Light/dark are modes on a theme, not
+ * themes: no `dark:` variant exists, and nothing sets `data-theme="dark"`.
+ * Its tokens are not repeated in the base block.
  */
 
 import {
@@ -19,9 +21,6 @@ import {
   type TokenIndex,
 } from "./resolve.ts";
 import type { CssOptions, TokenLeaf, TokenNode, TokenTree } from "./types.ts";
-
-/** Selector a top-level `dark` group's overrides are written under. */
-const DARK_SELECTOR = ':root[data-theme="dark"]';
 
 /** Name of the group that holds dark overrides. */
 const DARK_GROUP = "dark";
@@ -111,15 +110,16 @@ function renderBlock(block: Block, indent: string): string {
  *
  * Emits the base block under `opts.selector` (default `:root`) and, when the
  * tree has a top-level `dark` group, an override block under
- * `:root[data-theme="dark"]`. Empty blocks are omitted.
+ * `<selector>[data-mode="dark"]`. Empty blocks are omitted.
  */
 export function generateCss(tree: TokenTree, opts: CssOptions = {}): string {
   const indent = opts.indent ?? "  ";
+  const selector = opts.selector ?? ":root";
   const blocks = collectBlocks(
     tree,
-    opts.selector ?? ":root",
+    selector,
     opts.prefix,
-    DARK_SELECTOR,
+    `${selector}[data-mode="dark"]`,
   );
   const tokenCss = blocks
     .filter((block) => block.declarations.length > 0)
@@ -229,7 +229,7 @@ export function generateTypes(tree: TokenTree): string {
         "",
         "/**",
         " * These same tokens are re-declared for dark mode under",
-        ' * `[data-theme="dark"]`; the path and custom property are unchanged, only',
+        ' * `[data-mode="dark"]`; the path and custom property are unchanged, only',
         " * the resolved value differs.",
         " */",
       ]
@@ -240,9 +240,6 @@ export function generateTypes(tree: TokenTree): string {
     "",
     "/** CSS custom properties every token is readable through. */",
     `export type ThemeCssVar = ${vars}`,
-    "",
-    "/** Back-compat alias: a token is named by its path. */",
-    "export type ThemeTokenName = ThemeTokenPath",
     "",
   ].join("\n");
 }

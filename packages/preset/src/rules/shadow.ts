@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 import { SHADOW } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";
@@ -15,10 +15,8 @@ export function shadowRules(): Rule[] {
     [
       /^shadow-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const path = themeOf(ctx)?.shadow[name];
-        if (path) return { "box-shadow": path };
-        const extra = extendedTheme(ctx, ["shadow", "boxShadow"], name);
-        if (extra) return { "box-shadow": extra };
+        const token = tokenOf(ctx, "shadow", name, "boxShadow");
+        if (token) return { "box-shadow": token };
         return undefined;
       },
       { autocomplete: "shadow-$shadow" },

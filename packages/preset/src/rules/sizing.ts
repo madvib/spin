@@ -5,7 +5,7 @@ import {
   WIDTH_KEYWORDS,
 } from "../utils/vocabulary.ts";
 import { arbitraryValue } from "../utils/factories.ts";
-import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 
 /**
  * The sizing names that do not depend on the theme.
@@ -45,14 +45,12 @@ export function sizingRules(): Rule[] {
         // not pretend to be one. Emitted as written, or not at all.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { width: literal };
-        const token = themeOf(ctx)?.spacing[name];
+        const token = tokenOf(ctx, "spacing", name);
         if (token) return { width: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { width: fraction };
         const keyword = WIDTH_KEYWORDS[name];
         if (keyword) return { width: keyword };
-        const extra = extendedTheme(ctx, ["spacing"], name);
-        if (extra) return { width: extra };
         return undefined;
       },
       { autocomplete: "w-$spacing" },
@@ -63,14 +61,12 @@ export function sizingRules(): Rule[] {
         // As `w-`: the escape hatch, and the only height that is not a token.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { height: literal };
-        const token = themeOf(ctx)?.spacing[name];
+        const token = tokenOf(ctx, "spacing", name);
         if (token) return { height: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { height: fraction };
         const keyword = HEIGHT_KEYWORDS[name];
         if (keyword) return { height: keyword };
-        const extra = extendedTheme(ctx, ["spacing"], name);
-        if (extra) return { height: extra };
         return undefined;
       },
       { autocomplete: "h-$spacing" },
@@ -111,28 +107,22 @@ export function sizingRules(): Rule[] {
         if (name.startsWith("screen-")) {
           if (edge !== "max" || axis !== "w") return undefined;
           const at = name.slice("screen-".length);
-          const point = themeOf(ctx)?.breakpoint[at];
+          const point = tokenOf(ctx, "breakpoint", at, "breakpoints");
           if (point) return { [prop]: point };
-          const extra = extendedTheme(ctx, ["breakpoint", "breakpoints"], at);
-          if (extra) return { [prop]: extra };
           return undefined;
         }
 
         // A viewport breakpoint is a MEASURE, so it is a maximum and nothing
         // else. `min-w-lg` would mean a floor that moves as the window does.
         if (edge === "max" && axis === "w" && /^[a-z]+$/.test(name)) {
-          const point = themeOf(ctx)?.breakpoint[name];
+          const point = tokenOf(ctx, "breakpoint", name, "breakpoints");
           if (point) return { [prop]: point };
-          const extra = extendedTheme(ctx, ["breakpoint", "breakpoints"], name);
-          if (extra) return { [prop]: extra };
         }
 
         // And the spacing scale, so an exact measure is one step away rather
         // than an inline style.
-        const step = themeOf(ctx)?.spacing[name];
+        const step = tokenOf(ctx, "spacing", name);
         if (step) return { [prop]: step };
-        const extra = extendedTheme(ctx, ["spacing"], name);
-        if (extra) return { [prop]: extra };
 
         return undefined;
       },

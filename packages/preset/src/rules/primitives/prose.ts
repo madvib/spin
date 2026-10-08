@@ -1,5 +1,4 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
 import { claim, proseTokens, rhythm, type Mode, type Tokens } from "./shared.ts";
 import { codeRules } from "./prose-code.ts";
 import { inlineRules } from "./prose-inline.ts";
@@ -8,10 +7,8 @@ import { mediaRules } from "./prose-media.ts";
 /**
  * Prose — the bare content tags, and a `<prose>` container around them.
  *
- * This is the migration of `packages/primitives/reference/content.css` into
- * rules. The reference styled the element vocabulary of a document — headings,
- * paragraphs, lists, quotations, code, rules, media — and every one of those
- * decisions is preserved here; nothing is left in the legacy stylesheet.
+ * The element vocabulary of a document — headings, paragraphs, lists,
+ * quotations, code, rules, media — each styled by the rule keyed on its tag.
  *
  * Two decisions the reference could not state, because a stylesheet has no
  * switch:

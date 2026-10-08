@@ -14,7 +14,7 @@
  */
 
 import type { Rule } from "@unocss/core";
-import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
+import { indexTree, parseTokens, resolveAliases, REF_SPECS } from "@spin/theme";
 import type { ThemeCssVar } from "@spin/theme/theme-types";
 import type { State, Surface } from "../../reference/surface.ts";
 import type { ThemeDocument } from "@spin/theme";
@@ -39,34 +39,6 @@ import { selectRules } from "./select.ts";
 import { tableRules } from "./table.ts";
 import { tabsRules } from "./tabs.ts";
 import { textareaRules } from "./textarea.ts";
-
-/**
- * The theme-object key to token-path prefix mapping.
- *
- * Replicated from `packages/theme/src/uno-ref.ts` so the codegen can convert
- * a recorded theme-object path (e.g. `colors.primary`) to a CSS variable name
- * (e.g. `--color-primary`) without importing the theme package's internals.
- */
-const REF_SPECS: readonly {
-  readonly key: string;
-  readonly prefix: readonly string[];
-  readonly depth: number | null;
-}[] = [
-  { key: "colors", prefix: ["color"], depth: null },
-  { key: "spacing", prefix: ["spacing"], depth: 1 },
-  { key: "fontSize", prefix: ["font", "size"], depth: 1 },
-  { key: "fontFamily", prefix: ["font", "family"], depth: 1 },
-  { key: "fontWeight", prefix: ["font", "weight"], depth: 1 },
-  { key: "radius", prefix: ["radius"], depth: 1 },
-  { key: "shadow", prefix: ["shadow"], depth: 1 },
-  { key: "breakpoint", prefix: ["breakpoint"], depth: 1 },
-  { key: "zIndex", prefix: ["z-index"], depth: 1 },
-  { key: "motionDuration", prefix: ["motion", "duration"], depth: 1 },
-  { key: "motionEasing", prefix: ["motion", "easing"], depth: 1 },
-  { key: "borderWidth", prefix: ["border"], depth: 1 },
-  { key: "focusWidth", prefix: ["focus", "width"], depth: 0 },
-  { key: "focusOffset", prefix: ["focus", "offset"], depth: 0 },
-];
 
 /**
  * Convert a theme-object path to a CSS variable name.
@@ -223,15 +195,20 @@ function extractVariants(selectors: string[]): string[] {
  * tag list and claimed nothing. That is invisible until something asks what a
  * component styles, which is exactly the kind of wrong answer a derivation
  * exists to make impossible.
+ * Only the SUBJECT of a selector is styled: `fieldset[disabled] *` styles the
+ * descendant, not the fieldset. Claiming every compound made ancestors into
+ * tags — how `fieldset` came to be listed as an element the a11y component
+ * styles when its rule only ever styles what sits inside a disabled one.
  */
 function extractTags(selectors: string[]): string[] {
   const tags = new Set<string>();
   for (const selector of selectors) {
     for (const group of flattenIs(selector)) {
-      for (const compound of group.split(/[\s>+~]+/)) {
-        const m = /^([a-z][a-z0-9-]*)/i.exec(compound);
-        if (m !== null) tags.add((m[1] as string).toLowerCase());
-      }
+      const compounds = group.split(/[\s>+~]+/);
+      const subject = compounds[compounds.length - 1];
+      if (subject === undefined) continue;
+      const m = /^([a-z][a-z0-9-]*)/i.exec(subject);
+      if (m !== null) tags.add((m[1] as string).toLowerCase());
     }
   }
   return [...tags].sort();
@@ -290,7 +267,7 @@ function flattenIs(selector: string): string[] {
 }
 
 /** Split on commas that are not inside parentheses. */
-function splitTopLevel(text: string): string[] {
+export function splitTopLevel(text: string): string[] {
   const out: string[] = [];
   let depth = 0;
   let start = 0;
@@ -373,11 +350,8 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   textarea: () => [...textareaRules(["textarea"]), fieldBox()],
 };
 
-/**
- * Derive the contract for a rule component.
- */
-export /** The custom properties the default theme actually declares. */
-const declaredVars: ReadonlySet<string> = (() => {
+/** The custom properties the default theme actually declares. */
+export const declaredVars: ReadonlySet<string> = (() => {
   try {
     const doc = JSON.parse(
       Deno.readTextFileSync(
@@ -402,6 +376,9 @@ const declaredVars: ReadonlySet<string> = (() => {
   }
 })();
 
+/**
+ * Derive the contract for a rule component.
+ */
 export function deriveRuleContract(
   name: string,
 ): { variants: string[]; reads: ThemeCssVar[]; tags: string[] } {
@@ -519,22 +496,11 @@ const DECL =
 
 
 const DEFAULT_HEADER = `/**
- * Primitives manifest — the contract the CSS owns, written down.
- *
- * Tags and character tokens are hand knowledge: a stylesheet cannot say which
- * elements a component claims or which tokens a theme genuinely authors for
- * it. Variants and reads are derived from the CSS by \`deno task codegen\`, and
- * \`primitives.test.ts\` fails when the checked-in file goes stale.
- */
-
-export interface PrimitiveContract {
-  tags: readonly string[];
-  variants: readonly string[];
-  reads: readonly string[];
-  character: readonly string[];
-}
-
-`;
+ * Primitives manifest — each component's contract with the theme: \`tags\`,
+ * \`variants\` and \`reads\` are derived from its rules by probing rule
+ * execution (\`deno task codegen\`), \`character\` is authored, and
+ * \`tests/manifest.test.ts\` fails when the checked-in file goes stale.
+ */`;
 
 
 
@@ -551,8 +517,13 @@ export async function writeManifest(): Promise<void> {
     );
   }
 
-  const header = existing.slice(0, existing.indexOf(DECL)).trimEnd() ||
+  const headerEnd = existing.indexOf(DECL);
+  const header = existing.slice(0, headerEnd).trimEnd() ||
     DEFAULT_HEADER.trimEnd();
+  // Everything below the declaration is hand-maintained — the readers the
+  // studio and the lint join on — so it is carried over verbatim.
+  const close = existing.indexOf("\n};", headerEnd);
+  const tail = close === -1 ? "" : existing.slice(close + 3);
   // The names come from the rules themselves, so a component cannot exist in
   // the manifest without rules behind it, or be missing from it while having
   // them.
@@ -574,7 +545,7 @@ export async function writeManifest(): Promise<void> {
 
   await Deno.writeTextFile(
     MANIFEST_OUT,
-    [header, "", DECL, ...blocks, "};", ""].join("\n"),
+    [header, "", DECL, ...blocks, "};", tail].join("\n"),
   );
   console.log(`manifest.ts written (${names.length} components)`);
 }
@@ -693,16 +664,8 @@ export function deriveSurface(name: string): Surface {
     reads: contract.reads,
     // A component owns a token group when it declares character tokens under
     // it — which is the only place a component makes a decision of its own.
-    claims: characterOwns(name),
+    claims: (manifestAuthored()[name] ?? []).length > 0 ? [name] : [],
   };
-}
-
-/** The token groups a component's character tokens sit under. */
-function characterOwns(name: string): string[] {
-  const declared = (manifestAuthored()[name] ?? []).map((step) =>
-    step.split(".")[0] ?? ""
-  );
-  return declared.length > 0 ? [name] : declared;
 }
 
 /** The `character` steps the checked-in manifest records for a component. */

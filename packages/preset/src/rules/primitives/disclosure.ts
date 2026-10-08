@@ -45,6 +45,8 @@ interface Tokens {
   readonly raised: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
+  readonly weightSemibold: string | undefined;
+  readonly focusOffset: string | undefined;
   readonly duration: string | undefined;
   readonly easing: string | undefined;
 }
@@ -59,6 +61,8 @@ function tokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
     raised: t?.colors["surface-raised"],
     border: t?.colors["border"],
     borderWidth: t?.borderWidth?.["width"],
+    weightSemibold: t?.fontWeight?.["semibold"],
+    focusOffset: t?.focusOffset?.["offset"],
     duration: t?.motionDuration?.["fast"],
     easing: t?.motionEasing?.["standard"],
   };
@@ -127,7 +131,9 @@ function summaryRule(summary: string, details: string): Rule {
         // and leaving either in place is how a disclosure ends up with two
         // indicators in three browsers.
         "list-style": "none",
-        "font-weight": "600",
+        ...(t.weightSemibold !== undefined
+          ? { "font-weight": t.weightSemibold }
+          : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         ...(t.duration !== undefined ? { "transition-duration": t.duration } : {}),
         ...(t.easing !== undefined
@@ -144,7 +150,9 @@ function summaryRule(summary: string, details: string): Rule {
       // control is what shows focus.
       yield {
         [ctx.symbols.selector]: () => `${summary}:focus-visible`,
-        "outline-offset": "2px",
+        ...(t.focusOffset !== undefined
+          ? { "outline-offset": t.focusOffset }
+          : {}),
       };
 
       // The indicator is a chevron drawn from a square's corner — the same
@@ -169,7 +177,7 @@ function summaryRule(summary: string, details: string): Rule {
         height: "0.375em",
         "border-inline-end": "1.5px solid",
         "border-block-end": "1.5px solid",
-        "border-color": t.muted,
+        ...(t.muted !== undefined ? { "border-color": t.muted } : {}),
         rotate: "45deg",
       };
       if (t.duration !== undefined) {

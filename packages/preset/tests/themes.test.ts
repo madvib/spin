@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "@std/assert";
 import { indexTree, parseTokens, validateLegibility, validateTokens } from "@spin/theme";
-import { allRequiredRoles } from "../src/index.ts";
+import { requiredRolesFor } from "../src/index.ts";
 
 /**
  * The shipped example themes are the reference implementations of "a theme
@@ -23,7 +23,7 @@ for (const name of ["default.json", "neobrut.json", "console.json"]) {
     const parsed = parseTokens(example(name));
     if (!parsed.ok) throw new Error(parsed.error);
     const report = validateTokens(parsed.tree, {
-      required: [...allRequiredRoles()],
+      required: [...requiredRolesFor()],
     });
     assertEquals(
       report.issues.filter((issue) => issue.message.startsWith("missing")),

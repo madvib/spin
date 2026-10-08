@@ -1,22 +1,8 @@
 /**
- * Primitives manifest — the contract each component owns, written down.
- *
- * Previously derived at module scope by parsing the stylesheets with postcss.
- * That put a CSS parser in the shipped graph for what is really an authoring
- * fact: when someone writes a new selector they know whether it claims an
- * element or defines a variant. This file is that knowledge, beside the CSS
- * instead of extracted from it.
- *
- * `tags` and `character` are always authored. For a component codegen owns,
- * `variants` and `reads` are derived from its CSS by `codegen.ts`, and
- * `primitives.test.ts` fails the suite when the checked-in file disagrees with
- * a fresh derive. The button has no CSS — its behaviour is a preset rule set —
- * so its `variants` and `reads` are authored too, and codegen preserves them.
- *
- * `tags` are bare elements the component styles; a utility class on one is a
- * conflict, enforced by the lint plugin. `variants` are the classes an author
- * may write. `reads` are the custom properties the CSS consumes, without the
- * leading `--`; every entry must resolve against the theme contract.
+ * Primitives manifest — each component's contract with the theme: `tags`,
+ * `variants` and `reads` are derived from its rules by probing rule execution
+ * (`deno task codegen`), `character` is authored, and `tests/manifest.test.ts`
+ * fails when the checked-in file goes stale.
  */
 
 import type { ThemeCssVar } from "@spin/theme/theme-types";
@@ -69,7 +55,7 @@ export interface CharacterToken {
 
 export const primitiveContracts: Record<string, PrimitiveContract> = {
   a11y: {
-  tags: ["fieldset"],
+tags: [],
   variants: ["visually-hidden"],
   reads: ["--motion-duration-fast"],
 character: [],
@@ -78,14 +64,26 @@ character: [],
   tags: ["alert"],
   variants: [
     "alert-accent",
+    "alert-accent-muted",
     "alert-danger",
+    "alert-danger-muted",
+    "alert-neutral",
+    "alert-neutral-muted",
+    "alert-primary",
+    "alert-primary-muted",
+    "alert-secondary",
+    "alert-secondary-muted",
     "alert-success",
+    "alert-success-muted",
     "alert-warning",
+    "alert-warning-muted",
   ],
   reads: [
     "--border-width",
     "--color-accent",
     "--color-border",
+    "--color-primary",
+    "--color-secondary",
     "--color-semantic-error",
     "--color-semantic-success",
     "--color-semantic-warning",
@@ -103,30 +101,64 @@ character: [],
   tags: ["badge"],
   variants: [
     "badge-accent",
+    "badge-accent-muted",
+    "badge-close",
     "badge-danger",
+    "badge-danger-muted",
+    "badge-lg",
+    "badge-neutral",
+    "badge-neutral-muted",
+    "badge-primary",
+    "badge-primary-muted",
+    "badge-secondary",
+    "badge-secondary-muted",
+    "badge-sm",
     "badge-success",
+    "badge-success-muted",
     "badge-warning",
+    "badge-warning-muted",
   ],
   reads: [
+    "--badge-edge",
+    "--badge-radius",
+    "--border-width",
     "--color-accent",
+    "--color-border",
     "--color-on-accent",
     "--color-on-danger",
+    "--color-on-primary",
+    "--color-on-secondary",
     "--color-on-semantic-success",
     "--color-on-semantic-warning",
+    "--color-primary",
+    "--color-secondary",
     "--color-semantic-error",
     "--color-semantic-success",
     "--color-semantic-warning",
+    "--color-surface-raised",
+    "--color-text",
+    "--font-size-2xs",
+    "--font-size-sm",
     "--font-size-xs",
     "--font-weight-medium",
-    "--radius-full",
+    "--radius-sm",
+    "--spacing-0",
     "--spacing-1",
     "--spacing-2",
+    "--spacing-4",
   ],
-character: [],
+character: [
+      // How square the pill is and how present its edge is: the decisions a
+      // theme owns for its badges. Neobrut squares them off with a hard
+      // border; the default keeps the pill with a hairline.
+      { path: "badge.edge", type: "dimension", value: "{border.width}" },
+      { path: "badge.radius", type: "dimension", value: "{radius.full}" },
+  ],
   },
   button: {
   tags: ["button", "span"],
   variants: [
+    "bare",
     "button-icon",
     "contrast",
     "danger",
@@ -219,9 +251,9 @@ character: [
     "--color-text-muted",
     "--font-size-lg",
     "--font-size-sm",
-    "--font-weight-medium",
     "--font-weight-semibold",
     "--radius-lg",
+    "--shadow-lg",
     "--spacing-4",
   ],
 character: [],
@@ -233,12 +265,14 @@ variants: [],
     "--border-width",
     "--checkbox-depth",
     "--color-border",
+    "--color-focus-ring",
     "--color-on-primary",
     "--color-primary",
     "--color-text",
+    "--focus-offset",
+    "--focus-width",
     "--motion-duration-fast",
     "--motion-easing-standard",
-    "--radius-md",
     "--radius-sm",
     "--spacing-4",
   ],
@@ -278,6 +312,8 @@ variants: [],
     "--color-surface-raised",
     "--color-text",
     "--color-text-muted",
+    "--focus-offset",
+    "--font-weight-semibold",
     "--motion-duration-fast",
     "--motion-easing-standard",
     "--radius-md",
@@ -293,21 +329,19 @@ variants: [],
     "--color-border",
     "--color-surface-raised",
     "--color-text",
-    "--color-text-muted",
     "--motion-duration-fast",
     "--motion-easing-standard",
     "--radius-lg",
     "--shadow-lg",
     "--spacing-2",
     "--spacing-4",
-    "--spacing-8",
   ],
 character: [],
   },
   group: {
   tags: ["badge", "button", "input", "select", "textarea"],
 variants: [],
-  reads: ["--border-width", "--radius-full", "--radius-md"],
+  reads: ["--border-width", "--radius-md"],
 character: [],
   },
   icon: {
@@ -347,7 +381,6 @@ variants: [],
     "--motion-easing-standard",
     "--radius-md",
     "--spacing-2",
-    "--spacing-4",
   ],
 character: [],
   },
@@ -379,7 +412,6 @@ character: [],
   reads: [
     "--color-primary",
     "--color-semantic-error",
-    "--color-semantic-success",
     "--color-semantic-warning",
     "--color-surface-raised",
     "--motion-duration-fast",
@@ -472,7 +504,10 @@ variants: [],
     "--border-width",
     "--color-border",
     "--color-field",
+    "--color-focus-ring",
     "--color-primary",
+    "--focus-offset",
+    "--focus-width",
     "--motion-duration-fast",
     "--motion-easing-standard",
     "--spacing-4",
@@ -500,7 +535,6 @@ variants: [],
     "--motion-easing-standard",
     "--radius-md",
     "--spacing-2",
-    "--spacing-4",
   ],
 character: [],
   },
@@ -527,12 +561,11 @@ character: [
     ],
   },
   table: {
-  tags: ["caption", "table", "tbody", "td", "tfoot", "th", "thead", "tr"],
+  tags: ["caption", "table", "tbody", "td", "tfoot", "th", "thead"],
   variants: ["striped"],
   reads: [
     "--border-width",
     "--color-border",
-    "--color-surface",
     "--color-surface-raised",
     "--color-text",
     "--color-text-muted",
@@ -540,10 +573,8 @@ character: [
     "--font-size-md",
     "--font-size-sm",
     "--font-size-xs",
-    "--motion-duration-fast",
-    "--radius-md",
+    "--font-weight-semibold",
     "--spacing-2",
-    "--spacing-4",
   ],
 character: [],
   },
@@ -596,6 +627,7 @@ variants: [],
 character: [],
   },
 };
+
 
 /* --------------------------------------------------------------- readers --
 

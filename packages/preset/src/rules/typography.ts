@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { arbitraryValue, staticRules } from "../utils/factories.ts";
-import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
 
@@ -18,14 +18,10 @@ export function typographyRules(): Rule[] {
     [
       /^font-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const family = themeOf(ctx)?.fontFamily[name];
+        const family = tokenOf(ctx, "fontFamily", name);
         if (family) return { "font-family": family };
-        const weight = themeOf(ctx)?.fontWeight[name];
+        const weight = tokenOf(ctx, "fontWeight", name);
         if (weight) return { "font-weight": weight };
-        const extraFamily = extendedTheme(ctx, ["fontFamily"], name);
-        if (extraFamily) return { "font-family": extraFamily };
-        const extraWeight = extendedTheme(ctx, ["fontWeight"], name);
-        if (extraWeight) return { "font-weight": extraWeight };
         return undefined;
       },
       { autocomplete: "font-$fontFamily" },
@@ -52,14 +48,10 @@ export function typographyRules(): Rule[] {
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const size = themeOf(ctx)?.fontSize[name];
+        const size = tokenOf(ctx, "fontSize", name);
         if (size) return { "font-size": size };
-        const color = themeOf(ctx)?.colors[name];
+        const color = tokenOf(ctx, "colors", name);
         if (color) return { color: color };
-        const extraSize = extendedTheme(ctx, ["fontSize"], name);
-        if (extraSize) return { "font-size": extraSize };
-        const extraColor = extendedTheme(ctx, ["colors"], name);
-        if (extraColor) return { color: extraColor };
         return undefined;
       },
       { autocomplete: "text-$fontSize" },

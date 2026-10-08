@@ -146,16 +146,15 @@ Deno.test("parseTokens lets a group-level $type stand in for its tokens", () => 
 Deno.test("parseTokens reports a document that declares no tokens", () => {
   const error = errorOf(parseTokens({}));
 
-  assert(error.trim().length > 0, "the rejection must explain what went wrong");
+  assertEquals(error, "token document contains no tokens");
 });
 
 Deno.test("parseTokens reports malformed JSON with a non-blank message", () => {
   const error = errorOf(parseTokens('{"color": '));
 
-  assertEquals(typeof error, "string");
   assert(
-    error.trim().length > 0,
-    "a parse failure must explain what went wrong",
+    error.startsWith("invalid JSON"),
+    `a parse failure must explain what went wrong, got: ${error}`,
   );
 });
 

@@ -6,6 +6,7 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
+import { splitTopLevel } from "../src/rules/primitives/derive.ts";
 
 /**
  * The behavioural proof.
@@ -95,36 +96,6 @@ function fakeElement(
       );
     },
   };
-}
-
-/** Split a comma-separated selector list, ignoring commas in parens/brackets. */
-function splitTopLevel(text: string): string[] {
-  const parts: string[] = [];
-  let depth = 0;
-  let quote = "";
-  let current = "";
-  for (const char of text) {
-    if (quote !== "") {
-      current += char;
-      if (char === quote) quote = "";
-      continue;
-    }
-    if (char === '"' || char === "'") {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === "(" || char === "[") depth++;
-    else if (char === ")" || char === "]") depth--;
-    if (char === "," && depth === 0) {
-      parts.push(current);
-      current = "";
-      continue;
-    }
-    current += char;
-  }
-  parts.push(current);
-  return parts.map((part) => part.trim()).filter((part) => part.length > 0);
 }
 
 /** The compound a selector ultimately targets, past any combinators. */
@@ -385,5 +356,33 @@ Deno.test("the motion clamp ships whenever an animated component does", async ()
   assert(
     css.includes("prefers-reduced-motion"),
     "the motion clamp must ship alongside it",
+  );
+});
+
+Deno.test("a badge with no badge group in the theme renders from global tokens", async () => {
+  // Breaks if the badge rule stops falling back to global tokens when the
+  // theme has no badge group — the badge would emit no border-radius,
+  // font-size, or padding, rendering as an unstyled element.
+  const { badge: _omit, ...themeWithoutBadge } = theme;
+  const result = await generate("<badge>New</badge>", {
+    themes: { light: themeWithoutBadge },
+  });
+  const info = result.matched.get("badge");
+  assert(
+    info !== undefined && info.data.length > 0,
+    "the badge must still match and emit rules without a badge group",
+  );
+  const decls = declarations(bodyFor(result, "badge"));
+  assert(
+    "border-radius" in decls,
+    "border-radius must come from the global radius token",
+  );
+  assert(
+    "font-size" in decls,
+    "font-size must come from the global font-size token",
+  );
+  assert(
+    "padding-inline-start" in decls || "padding-block-start" in decls,
+    "padding must come from the global spacing token",
   );
 });

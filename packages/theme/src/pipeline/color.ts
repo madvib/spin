@@ -7,10 +7,9 @@
  * it — a validator reaching into an authoring toolbox would depend upward on
  * the wrong layer.
  *
- * Alpha is accepted on input (dropped on output, because a translucent token is
- * authored as `oklch(... / 50%)` in its own right) and kept in `parseColor` for
- * callers that care. Every public function returns lowercase `#rrggbb`, so a
- * token file always reads back the way it was authored.
+ * Alpha is accepted on input and kept in `parseColor` for callers that care.
+ * `formatHex` drops it by default — a translucent token is authored as
+ * `oklch(... / 50%)` in its own right — and emits `#rrggbbaa` only when asked.
  */
 
 /**

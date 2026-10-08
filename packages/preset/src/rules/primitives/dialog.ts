@@ -196,10 +196,8 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
   return {
     spacing2: t?.spacing["2"],
     spacing4: t?.spacing["4"],
-    spacing8: t?.spacing["8"],
     radius: t?.radius?.["lg"],
     text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
     raised: t?.colors["surface-raised"],
     border: t?.colors["border"],
     borderWidth: t?.borderWidth?.["width"],

@@ -81,7 +81,7 @@ function varsInMode(
   if (mode === "light") return { ...base };
   return {
     ...base,
-    ...blockWithSelector(css, ':root[data-theme="dark"]').declarations,
+    ...blockWithSelector(css, ':root[data-mode="dark"]').declarations,
   };
 }
 
@@ -359,7 +359,7 @@ Deno.test("every dark declaration lands on a property the light theme declares",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
-  const darkBlock = blockWithSelector(css, ':root[data-theme="dark"]');
+  const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
 
   const names = Object.keys(darkBlock.declarations);
   assert(names.length > 0);
@@ -377,7 +377,7 @@ Deno.test("the dark block emits every token the dark document declares", async (
     "default.json",
   );
   const css = generateCss(tree);
-  const darkBlock = blockWithSelector(css, ':root[data-theme="dark"]');
+  const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
   const declared = Object.values(indexTree(darkGroup()).leaves).map((leaf) =>
     // The leaf paths arrive prefixed with `dark`, which is the mode's own
     // namespace rather than part of the property name.
@@ -569,6 +569,50 @@ Deno.test("the example theme's status colors are legible in both modes", async (
           ratio.toFixed(2)
         }:1, below 4.5:1`,
       );
+    }
+  }
+});
+
+/**
+ * Every tone fill+on pair per shipped theme per mode meets 4.5:1.
+ *
+ * A fill with no legible foreground is a button you cannot read. Each
+ * tone-* variant is checked against its own on-* foreground in every
+ * mode the theme ships. Neutral/text pairs are skipped: their fill is a
+ * surface, and text-on-surface legibility is covered by the text floors
+ * test above.
+ */
+Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode", async () => {
+  const pairs = [
+    ["--color-primary", "--color-on-primary"],
+    ["--color-secondary", "--color-on-secondary"],
+    ["--color-accent", "--color-on-accent"],
+    ["--color-semantic-success", "--color-on-semantic-success"],
+    ["--color-semantic-warning", "--color-on-semantic-warning"],
+    ["--color-semantic-error", "--color-on-danger"],
+  ] as const;
+
+  for (const name of ["default", "neobrut", "console"] as const) {
+    const tree = treeOf(
+      parseTokens(await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR))),
+      `${name}.json`,
+    );
+    const css = generateCss(tree);
+    const hasDark = tree.find((node) => node.path.join(".") === "dark") !== undefined;
+    const modes = hasDark ? ["light", "dark"] as const : ["light"] as const;
+
+    for (const mode of modes) {
+      const vars = varsInMode(css, mode);
+      for (const [fill, fg] of pairs) {
+        const ratio = contrastRatio(
+          resolve(vars, fill),
+          resolve(vars, fg),
+        );
+        assert(
+          ratio >= 4.5,
+          `${name} ${mode} ${fill} on ${fg} is ${ratio.toFixed(2)}:1, below 4.5:1`,
+        );
+      }
     }
   }
 });

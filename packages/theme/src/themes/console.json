@@ -162,6 +162,9 @@
     },
     "size": {
       "$type": "dimension",
+      "2xs": {
+        "$value": "0.625rem"
+      },
       "xs": {
         "$value": "0.75rem"
       },
@@ -476,6 +479,19 @@
     "lg": {
       "$type": "dimension",
       "$value": "1.25em"
+    }
+  },
+  "badge": {
+    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "edge": {
+      "$type": "dimension",
+      "$value": "{border.width}",
+      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
+    },
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.full}",
+      "$description": "Corner rounding for the badge. Fully round reads as a pill; zero squares it into a tag."
     }
   },
   "checkbox": {

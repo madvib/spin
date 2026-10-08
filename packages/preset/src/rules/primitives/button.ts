@@ -39,8 +39,8 @@ import { type Entry, spend, spentEntries } from "./shared.ts";
 /**
  * The elements a button can be. The manifest's `tags` claims `button` and
  * `span`; `button` is the control, `span` is the group container. The
- * attribute selectors are the legacy input types and the ARIA role a styled
- * link or div becomes — the same group the stylesheet always selected.
+ * attribute selectors are the input types and the ARIA role a styled link or
+ * div becomes.
  */
 const BUTTON =
   ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])';
@@ -114,6 +114,7 @@ const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
  * another, which is the whole point of deriving rather than listing.
  */
 const VARIANT_NAMES = [
+  "bare",
   "secondary",
   "outline",
   "ghost",
@@ -141,8 +142,20 @@ const VARIANTS: Record<PaintedVariant, {
   selector: string;
   body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
 }> = {
+  bare: {
+    selector: `${BUTTON}.bare, ${BUTTON}[variant~="bare"]`,
+    body: () => ({
+      background: "none",
+      border: "none",
+      padding: "0",
+      "box-shadow": "none",
+      color: "inherit",
+      font: "inherit",
+      cursor: "pointer",
+    }),
+  },
   secondary: {
-    selector: `${BUTTON}.secondary`,
+    selector: `${BUTTON}.secondary, ${BUTTON}[variant~="secondary"]`,
     body: (ctx) => ({
       "background-color": themeOf(ctx)?.colors["surface-raised"],
       "border-color": themeOf(ctx)?.colors["border"],
@@ -150,7 +163,7 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   ghost: {
-    selector: `${BUTTON}.ghost`,
+    selector: `${BUTTON}.ghost, ${BUTTON}[variant~="ghost"]`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
@@ -158,14 +171,14 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   danger: {
-    selector: `${BUTTON}.danger`,
+    selector: `${BUTTON}.danger, ${BUTTON}[variant~="danger"]`,
     body: (ctx) => ({
       "background-color": themeOf(ctx)?.colors["semantic-error"],
       color: themeOf(ctx)?.colors["on-danger"],
     }),
   },
   contrast: {
-    selector: `${CONTRAST}.contrast`,
+    selector: `${CONTRAST}.contrast, ${CONTRAST}[variant~="contrast"]`,
     body: (ctx) => ({
       "background-color": themeOf(ctx)?.colors["text"],
       "border-color": themeOf(ctx)?.colors["text"],
@@ -173,7 +186,7 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   outline: {
-    selector: `${BUTTON}.outline`,
+    selector: `${BUTTON}.outline, ${BUTTON}[variant~="outline"]`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": themeOf(ctx)?.colors["accent"],
@@ -181,7 +194,7 @@ const VARIANTS: Record<PaintedVariant, {
     }),
   },
   "s-sm": {
-    selector: `${BUTTON}.s-sm`,
+    selector: `${BUTTON}.s-sm, ${BUTTON}[variant~="s-sm"]`,
     body: (ctx) => {
       const fontSize = themeOf(ctx)?.fontSize["sm"];
       const spacing1 = themeOf(ctx)?.spacing["1"];
@@ -204,7 +217,7 @@ const VARIANTS: Record<PaintedVariant, {
     },
   },
   "s-lg": {
-    selector: `${BUTTON}.s-lg`,
+    selector: `${BUTTON}.s-lg, ${BUTTON}[variant~="s-lg"]`,
     body: (ctx) => {
       const fontSize = themeOf(ctx)?.fontSize["lg"];
       const spacing4 = themeOf(ctx)?.spacing["4"];
@@ -227,7 +240,7 @@ const VARIANTS: Record<PaintedVariant, {
     },
   },
   icon: {
-    selector: `${BUTTON}.icon`,
+    selector: `${BUTTON}.icon, ${BUTTON}[variant~="icon"]`,
     body: () => ({
       width: "auto",
       "padding-inline": "0",
@@ -265,7 +278,7 @@ const VARIANT_HOVER: Record<string, {
 /**
  * The button's rules. `roots` decides whether the button is enabled at all —
  * the preset's `primitives` option is the only switch, and a component that
- * is not enabled ships no rules, matching the preflight it replaces.
+ * is not enabled ships no rules.
  */
 export function buttonRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("button")) return [];
@@ -290,10 +303,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const onPrimary = themeOf(ctx)?.colors["on-primary"];
         const duration = themeOf(ctx)?.motionDuration["fast"];
         const easing = themeOf(ctx)?.motionEasing["standard"];
-        // The base. An array body because the stylesheet states
-        // `transition-property` three times and the last one wins;
-        // reproducing it keeps the computed value (transform only) rather
-        // than "fixing" it into a colour transition.
+        // The base. An array body because the rule states `transition-property`
+        // three times and the last one wins; reproducing it keeps the computed
+        // value (transform only) rather than "fixing" it into a colour transition.
         yield [
           [ctx.symbols.selector, () => BUTTON],
           ["align-items", "center"],
@@ -471,8 +483,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               // stated here would be dead the moment an icon class is present;
               // the font-size is the one declaration that reaches the glyph. In
               // `em`, so the glyph tracks the button's font-size across all
-              // three of its sizes — the slot's sizing is a token now, not the
-              // hardcoded `1em` the stylesheet used to state.
+              // three of its sizes — the slot's sizing is a token now.
               const size = themeOf(ctx)?.icon?.["md"];
               return {
                 [ctx.symbols.selector]: () => ".button-icon",

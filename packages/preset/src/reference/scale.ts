@@ -13,6 +13,8 @@
  * to find out — and forty-two rows become one preview and a handful of buttons.
  */
 
+import type { Sample } from "../organization.ts";
+
 /** One step of a scale: the suffix and what it resolves to. */
 export interface Step {
   /** The suffix a consumer writes: `4` in `p-4`. */
@@ -61,14 +63,6 @@ export interface Scale {
   readonly continuum?: { min: number; max: number; step: number; name: (n: number) => string };
 }
 
-/**
- * How a sample is shown.
- *
- * The same four the organization uses, and for the same reason: one box cannot
- * demonstrate padding, a colour, a type size and a grid, and pretending
- * otherwise is why every row in the first version looked identical.
- */
-export type Sample = "box" | "swatch" | "text" | "stack" | "edge";
 
 /**
  * The axes every spacing scale shares.

@@ -29,9 +29,6 @@ export function claim(mode: Mode, tag: string): string {
  * A token the theme does not declare is omitted rather than emitted as an
  * invalid `var()` — the declaration falls through to the cascade either way,
  * and omitting it keeps the rule honest about what the theme actually said.
- *
- * Shared between the button and the card: both spend character tokens from
- * the theme, and the omission behaviour is identical.
  */
 export function spend(
   ctx: ThemeContext | undefined,

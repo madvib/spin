@@ -2,7 +2,7 @@ import type { Rule } from "@unocss/core";
 import { POSITION_UTILITIES } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { insetRule, staticRules } from "../utils/factories.ts";
-import { extendedTheme, type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 
 export const POSITION_NAMES: readonly string[] = Object.keys(POSITION_UTILITIES);
 
@@ -40,10 +40,8 @@ export function positionRules(): Rule[] {
     [
       /^z-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const path = themeOf(ctx)?.zIndex[name];
-        if (path) return { "z-index": path };
-        const extra = extendedTheme(ctx, ["zIndex"], name);
-        if (extra) return { "z-index": extra };
+        const token = tokenOf(ctx, "zIndex", name);
+        if (token) return { "z-index": token };
         return undefined;
       },
       { autocomplete: "z-$zIndex" },

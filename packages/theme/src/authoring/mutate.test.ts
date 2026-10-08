@@ -4,7 +4,7 @@ import { parseTokens } from "../pipeline/parse.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import { scaffoldTheme } from "./scaffold.ts";
 import { removeToken, renameToken, setToken, treeToJson } from "./mutate.ts";
-import { requiredPaths } from "../contract/schema.ts";
+import { requiredPaths } from "../contract/roles.ts";
 
 function treeOf(text: string) {
   const parsed = parseTokens(text);

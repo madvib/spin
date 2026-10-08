@@ -62,16 +62,8 @@ const REDUCED_MOTION_CSS = [
 export const LAYER = {
   reset: -100,
   theme: -90,
-  components: -50,
 } as const;
 
-export interface PreflightOptions {
-  /**
-   * Primitive components to include, by name. Omitted means all of them.
-   * `false` ships theme variables and utilities only.
-   */
-  primitives?: string[] | boolean;
-}
 
 export interface PreflightInput {
   /** Parsed token trees, keyed by theme name. */
@@ -98,14 +90,7 @@ interface Assembled extends PreflightProvider {
  */
 function assemble(
   input: PreflightInput,
-  opts: PreflightOptions,
 ): Assembled[] {
-  // `undefined` means every primitive; an empty list means none.
-  const enabled: string[] | undefined = Array.isArray(opts.primitives)
-    ? opts.primitives
-    : opts.primitives === false
-    ? []
-    : undefined;
 
   const base = basePreflights(input.documents.light ?? {}).map((provider) => ({
     ...provider,
@@ -150,9 +135,8 @@ function assemble(
 
 export function buildPreflights(
   input: PreflightInput,
-  opts: PreflightOptions = {},
 ) {
-  return assemble(input, opts).map((provider) => ({
+  return assemble(input).map((provider) => ({
     layer: provider.layer,
     getCSS: () => provider.getCSS().trim(),
   }));

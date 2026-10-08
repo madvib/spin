@@ -21,6 +21,16 @@
  * `utils/declarations.ts`, and rule factories in `utils/factories.ts`.
  */
 
+/**
+ * Cascade contract. The primitives layer sits beneath the utilities layer,
+ * so a class always beats a variant — `class="button"` wins over any variant
+ * that targets the same element. Variant vs variant is source-order: the
+ * last one in the cascade wins, and a conflict is an author error, silent.
+ * Utility vs utility is source-order: the last utility in the stylesheet
+ * wins, which is CSS-correct. No merge utility (twMerge/cn) is applied;
+ * layers decide.
+ */
+
 import { definePreset } from "@unocss/core";
 import type { Preset } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";
@@ -31,7 +41,7 @@ import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { spinShortcuts } from "./shortcuts.ts";
-import { elementExtractor, typeExtractor } from "./extractors.ts";
+import { elementExtractor, typeExtractor, variantExtractor } from "./extractors.ts";
 import { themeRef } from "@spin/theme";
 import { wind4Layers, type Wind4Options } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
@@ -40,7 +50,6 @@ export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
 export {
-  allRequiredRoles,
   requiredRolesFor,
   scaffold,
   scaffoldDocument,
@@ -206,7 +215,7 @@ const factory = definePreset(
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.
-      extractors: [elementExtractor, typeExtractor],
+      extractors: [elementExtractor, typeExtractor, variantExtractor],
       // Ours first. Uno keeps the first rule that MATCHES a token, and dynamic
       // rules are `unshift`ed onto the match list as they register — so
       // among dynamic rules the LAST registered is tried first. Ours first
@@ -219,10 +228,8 @@ const factory = definePreset(
         }),
         ...wind4.rules,
       ],
-      shortcuts: spinShortcuts,
       preflights: buildPreflights(
         { trees, documents },
-        { primitives: enabled },
       ),
       transformers: [transformerDirectives()],
       // Declared order: reset (-100) → theme vars + body (-90) → primitives

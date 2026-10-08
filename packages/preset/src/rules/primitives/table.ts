@@ -48,20 +48,16 @@ function tableTokens(ctx: Parameters<typeof themeOf>[0]) {
   const t = themeOf(ctx);
   return {
     spacing2: t?.spacing["2"],
-    spacing3: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
-    radius: t?.radius?.["md"],
     text: t?.colors["text"],
     muted: t?.colors["text-muted"],
     border: t?.colors["border"],
-    surface: t?.colors["surface"],
     raised: t?.colors["surface-raised"],
-    duration: t?.motionDuration?.["fast"],
     fontFamily: t?.fontFamily?.["sans"],
     fontSize: t?.fontSize?.["sm"],
     sizeMd: t?.fontSize?.["md"],
     sizeXs: t?.fontSize?.["xs"],
     borderWidth: t?.borderWidth?.["width"],
+    weightSemibold: t?.fontWeight?.["semibold"],
   };
 }
 
@@ -81,7 +77,7 @@ function tableRule(mode: Mode): Rule {
         [ctx.symbols.selector]: () => claim(mode, "table"),
         ...(t.fontFamily !== undefined ? { "font-family": t.fontFamily } : {}),
         ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
-        color: t.text,
+        ...(t.text !== undefined ? { color: t.text } : {}),
         width: "100%",
         "border-collapse": "collapse",
         "border-spacing": "0",
@@ -111,12 +107,12 @@ function cellRule(mode: Mode): Rule {
       const t = tableTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => cell,
-        ...(t.spacing3 !== undefined
+        ...(t.spacing2 !== undefined
           ? {
-            "padding-block-start": t.spacing3,
-            "padding-block-end": t.spacing3,
-            "padding-inline-start": t.spacing3,
-            "padding-inline-end": t.spacing3,
+            "padding-block-start": t.spacing2,
+            "padding-block-end": t.spacing2,
+            "padding-inline-start": t.spacing2,
+            "padding-inline-end": t.spacing2,
           }
           : {}),
         ...(t.borderWidth !== undefined && t.border !== undefined
@@ -143,11 +139,13 @@ function cellRule(mode: Mode): Rule {
       // says nothing.
       yield {
         [ctx.symbols.selector]: () => `tfoot > tr > ${cell}`,
-        ...(t.borderWidth !== undefined
-          ? { "border-top": `1px solid`, "border-top-color": t.border ?? "currentColor" }
+        ...(t.borderWidth !== undefined && t.border !== undefined
+          ? { "border-top": `${t.borderWidth} solid ${t.border}` }
           : {}),
         "border-bottom": "none",
-        "font-weight": "600",
+        ...(t.weightSemibold !== undefined
+          ? { "font-weight": t.weightSemibold }
+          : {}),
       };
     },
     { layer: "primitives", autocomplete: "td" },
@@ -168,8 +166,10 @@ function headerRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "th"),
         ...(t.fontSize !== undefined ? { "font-size": t.fontSize } : {}),
-        color: t.muted,
-        "font-weight": "600",
+        ...(t.muted !== undefined ? { color: t.muted } : {}),
+        ...(t.weightSemibold !== undefined
+          ? { "font-weight": t.weightSemibold }
+          : {}),
         "text-align": "start",
         // `collapse` clips a sticky cell's background, so the header needs its
         // own surface or rows show through it as they pass underneath.
@@ -216,7 +216,7 @@ function captionRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "caption"),
         ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
-        color: t.muted,
+        ...(t.muted !== undefined ? { color: t.muted } : {}),
         "text-align": "start",
         ...(t.spacing2 !== undefined ? { "padding-block-end": t.spacing2 } : {}),
       };

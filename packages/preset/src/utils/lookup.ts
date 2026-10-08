@@ -73,3 +73,22 @@ export function extendedTheme(
   }
   return undefined;
 }
+
+/**
+ * A token from the theme, by group and name.
+ *
+ * The direct lookup first — `themeOf(ctx)?.[group]?.[name]` — then the
+ * extended one, which reads the theme's `extend` block. The extra keys are
+ * the alternate group names the extended lookup tries, so a theme that
+ * declares its radii under `borderRadius` rather than `radius` is found.
+ */
+export function tokenOf(
+  ctx: ThemeContext | undefined,
+  group: string,
+  name: string,
+  ...extraKeys: string[]
+): string | undefined {
+  const direct = themeOf(ctx)?.[group]?.[name];
+  if (direct !== undefined) return direct;
+  return extendedTheme(ctx, [group, ...extraKeys], name);
+}

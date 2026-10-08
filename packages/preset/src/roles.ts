@@ -1,5 +1,4 @@
 import {
-  BASE_ROLES,
   requiredPaths,
   scaffoldTheme,
   treeToJson,
@@ -20,14 +19,6 @@ export function requiredRolesFor(): string[] {
 }
 
 /**
- * Every role in the full surface. Character tokens are optional, so the
- * full surface is the base roles whatever a consumer enables.
- */
-export function allRequiredRoles(): string[] {
-  return requiredRolesFor();
-}
-
-/**
  * The minimal valid theme: every required role, no scales. The full surface
  * a consumer gets by default.
  */
@@ -45,5 +36,3 @@ export function scaffoldDocument(): Record<string, unknown> {
   return JSON.parse(treeToJson(scaffold())) as Record<string, unknown>;
 }
 
-/** The base role declarations, re-exported so callers need one import. */
-export { BASE_ROLES };

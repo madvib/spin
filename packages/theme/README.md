@@ -5,22 +5,30 @@ runtime dependencies.
 
 ## Exports
 
-Two entries. `@spin/theme` is the value layer; `@spin/theme/base` is the
-document a theme makes before any component exists.
+`@spin/theme` is the value layer; `@spin/theme/base` is the document a theme
+makes before any component exists; `@spin/theme/themes` is the shipped starter
+set; `@spin/theme/theme-types` the generated token types.
 
 ```
 @spin/theme
   parse        parseTokens · parseDocument · isTokenType
-  resolve      resolveAliases · indexTree · lookupNode · cssVarName · detectCycles
-  validate     validateTokens · validateLegibility
+  resolve      resolveAliases · indexTree · lookupNode · cssVarName · detectCycles · aliasTarget
+  validate     validateTokens · validateLegibility · everyTokenTypeIsDecided
   author       setToken · removeToken · renameToken · treeToJson · scaffoldTheme
   emit         generateCss · generateThemeCss · generateTypes
   contract     BASE_ROLES · requiredPaths · themeSchema · spinThemeJsonSchema
-  colour       parseColor · formatHex · mixColors · generateScale · contrastRatio
+  colour       parseColor · formatHex · isColor · mixColors · generateScale · invertColor · contrastRatio · relativeLuminance · CSS_WIDE_COLORS
+  uno          refFamilies · themeRef · REF_SPECS
   procedures   themeContract · themeRouter
 
 @spin/theme/base
   basePreflights · PreflightProvider · documentDefaults · readFonts · fontFaces
+
+@spin/theme/themes
+  defaultTheme · neobrutTheme · consoleTheme · starterThemes · themeModes · supportsDark
+
+@spin/theme/theme-types
+  ThemeTokens · ThemeTokenPath · ThemeCssVar
 ```
 
 Every entry point is total. `parseTokens` returns `{ ok: false, error }` rather
@@ -49,6 +57,6 @@ themes is a selector swap.
 ## Development
 
 ```
-deno task test     # 384 passing
+deno task test     # 114 passing (count pending orchestrator refresh)
 deno task schema   # regenerate schema.json from the role declarations
 ```

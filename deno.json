@@ -10,7 +10,7 @@
     "./packages/lint",
     "./packages/api",
     "./apps/studio",
-    "./packages/compile"
+    "./apps/reference"
   ],
   "exports": {
     ".": "./packages/theme/src/index.ts",
@@ -19,19 +19,25 @@
   },
   "imports": {
     "@spin/runtime": "./packages/runtime/src/index.ts",
+    "@spin/components": "./packages/components/src/index.ts",
+    "@spin/runtime/zag": "./packages/runtime/src/machine/adapter/index.ts",
+    "@spin/runtime/plugin": "./packages/runtime/src/plugin/index.ts",
+    "@spin/runtime/plugin/elements": "./packages/runtime/src/plugin/elements.ts",
+    "@spin/runtime/load": "./packages/runtime/src/directives/load.ts",
+    "@zag-js/core": "npm:@zag-js/core@1.44.0",
+    "@zag-js/accordion": "npm:@zag-js/accordion@~1.44.0",
+    "@zag-js/collection": "npm:@zag-js/collection@~1.44.0",
+    "@zag-js/tree-view": "npm:@zag-js/tree-view@1.44.0",
+    "@zag-js/types": "npm:@zag-js/types@1.44.0",
+    "unplugin": "npm:unplugin@^3.4.0",
     "@spin/theme": "./packages/theme/src/index.ts",
     "@spin/preset": "./packages/preset/src/index.ts",
     "@spin/lint": "./packages/lint/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
-    "@spin/components": "./packages/components/src/index.ts",
-    "@spin/runtime/zag": "./packages/runtime/src/machine/adapter/index.ts",
-    "@zag-js/core": "npm:@zag-js/core@1.44.0",
-    "@zag-js/tree-view": "npm:@zag-js/tree-view@1.44.0",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
     "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",
     "@orpc/server": "npm:@orpc/server@^1.0.0",
-    "unplugin": "npm:unplugin@^3.4.0",
     "valibot": "npm:valibot@^1.0.0",
     "@orpc/client": "npm:@orpc/client@^1.0.0",
     "@spin/theme/base": "./packages/theme/src/base/index.ts",
@@ -39,11 +45,7 @@
     "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.0",
     "@unocss/preset-tagify": "npm:@unocss/preset-tagify@66.10.5",
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
-    "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",
-    "@zag-js/types": "npm:@zag-js/types@1.44.0",
-    "@spin/runtime/adapter": "./packages/runtime/src/machine/adapter/index.ts",
-    "@spin/compile": "./packages/compile/src/index.ts",
-    "@spin/runtime/load": "./packages/runtime/src/directives/load.ts"
+    "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-net packages/",
@@ -51,8 +53,7 @@
     "fmt": "deno fmt",
     "check": "deno check packages/",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
-    "serve": "deno run -A serve.ts",
-    "demo:tree": "node node_modules/vite/bin/vite.js packages/components/demo"
+    "serve": "cd apps/reference && deno task dev"
   },
   "fmt": {
     "exclude": [

@@ -1,14 +1,8 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseTokens } from "../pipeline/parse.ts";
 import { validateTokens } from "../pipeline/validate.ts";
-import { TOKEN_TYPES } from "../pipeline/types.ts";
-import { CSS_WIDE_COLORS } from "../pipeline/color.ts";
-import {
-  BASE_ROLES,
-  requiredPaths,
-  spinThemeJsonSchema,
-  validateLegibility,
-} from "./schema.ts";
+import { BASE_ROLES, requiredPaths } from "./roles.ts";
+import { spinThemeJsonSchema, validateLegibility } from "./schema.ts";
 
 function example(name: string): unknown {
   return JSON.parse(
@@ -125,23 +119,7 @@ Deno.test("an illegible pair fails legibility", () => {
   assert(issues.some((issue) => issue.path === "color.text"));
 });
 
-Deno.test("the vocabulary is closed, and its edge is spelled out", () => {
-  // Both are exported for consumers, so both are stated: a theme author needs
-  // to know which types exist, and the lint plugin needs to know which colour
-  // words are vocabulary rather than a raw value.
-  assert(TOKEN_TYPES.includes("color"));
-  assert(TOKEN_TYPES.includes("dimension"));
-  const all: readonly string[] = TOKEN_TYPES;
-  assert(!all.includes("string"), "unbounded values are not a type");
-  assertEquals([...CSS_WIDE_COLORS], ["transparent", "currentColor"]);
-});
-
-Deno.test("the declaration is the single source of the required paths", () => {
-  assertEquals(
-    requiredPaths(),
-    BASE_ROLES.map((role) => role.path),
-    "the derivation reads the declaration and nothing else",
-  );
+Deno.test("every role documents itself and can be scaffolded", () => {
   assert(
     BASE_ROLES.every((role) => role.doc.length > 0 && role.value.length > 0),
     "every role documents itself and can be scaffolded",

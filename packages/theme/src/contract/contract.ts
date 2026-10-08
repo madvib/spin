@@ -28,6 +28,7 @@
 import { oc } from "@orpc/contract";
 import * as v from "valibot";
 
+import { TOKEN_TYPES } from "../pipeline/types.ts";
 const ThemeText = v.pipe(
   v.string(),
   v.description("A DTCG theme document as JSON text."),
@@ -60,22 +61,8 @@ const MutationOutput = v.object({
   text: v.nullable(v.string()),
 });
 
-const TokenType = v.picklist([
-  "color",
-  "dimension",
-  "fontFamily",
-  "fontWeight",
-  "duration",
-  "cubicBezier",
-  "number",
-  "strokeStyle",
-  "border",
-  "transition",
-  "shadow",
-  "gradient",
-  "typography",
-  "textTransform",
-]);
+/** The closed `$type` vocabulary, derived from the pipeline's single list. */
+const TokenType = v.picklist(TOKEN_TYPES);
 
 /** Parse + validate + legibility in one round-trip. The studio overview page. */
 export const analyzeTheme = oc
@@ -168,15 +155,13 @@ export const renameToken = oc
   });
 
 /**
- * The minimal valid theme: every required role, no scales. `required` wins
- * when given; `components` is accepted so callers can name what they asked
- * for — theme keys off `required` only and never computes the list itself.
+ * The minimal valid theme: every required role, no scales. `required` names
+ * the roles to scaffold; absent it, the base surface (`BASE_ROLES`).
  */
 export const scaffold = oc
   .input(
     v.optional(
       v.object({
-        components: v.optional(v.array(v.string())),
         required: v.optional(v.array(v.string())),
       }),
     ),

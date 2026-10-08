@@ -5,7 +5,6 @@ import { DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
 import { divideNames } from "./rules/divide.ts";
 import { GRID_NAMES } from "./rules/grid.ts";
 import { INTERACTIVITY_NAMES } from "./rules/interactivity.ts";
-import { STACKING_NAMES } from "./rules/stacking.ts";
 import { LAYOUT_NAMES } from "./rules/layout.ts";
 import { OPACITY_NAMES } from "./rules/opacity.ts";
 import { OVERFLOW_NAMES } from "./rules/overflow.ts";

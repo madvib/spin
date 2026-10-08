@@ -46,7 +46,7 @@ export type Demo =
   | "ruled"
   /** Content larger than its own box, because the clipping is the demo. */
   | "clipped"
-  /** Text saying what it is — for what a picture cannot honestly fake. */
+  /** Text saying what it is. */
   | "said";
 
 /**
@@ -56,33 +56,33 @@ export type Demo =
  */
 export const DEMO_SAMPLE: Readonly<Record<Demo, string>> = {
   inset:
-    "A marked element inside a bordered panel: the space has something to move away from, and all four edges show at once.",
+    "A marked element inside a bordered panel, so the gap reads on all four sides.",
   sizes:
-    "Two panels of different declared sizes, side by side: one panel's size is a claim, two panels' sizes are a comparison.",
+    "Two panels of different declared sizes, side by side, so the sizes compare.",
   row:
-    "Three items, because a distribution cannot be demonstrated by one item — a single child centres, spreads and aligns identically.",
+    "Three items in a row, because a distribution needs more than one item to show.",
   cells:
-    "A grid of as many cells as the class declares columns for, so the column count is the thing you count.",
+    "A grid of as many cells as the class declares columns for, so the column count is visible.",
   stack:
-    "Three overlapping cards: an order is only legible when something competes for the same space. One card has no 'above'.",
+    "Three overlapping cards, so the order has something to order.",
   prose:
-    "A run of prose. Type is read, not seen, and a token in a box says nothing about how a paragraph will look.",
+    "A run of prose, because type is read rather than seen.",
   fill:
-    "The filled element itself. Its label takes the `on-*` foreground the theme pairs with that fill — `bg-primary` reads `--color-on-primary` — and only when the theme declares one, because inventing the rest produces an unreadable swatch that looks like a theming bug.",
+    "The filled element itself, with its label in the `on-*` foreground the theme pairs with that fill.",
   lifted:
-    "An elevated panel over a contrasting backdrop: a shadow with nothing behind it is a shadow on nothing.",
+    "An elevated panel over a contrasting backdrop, so the shadow has air.",
   faded:
-    "A fill at the class's own alpha over a striped backdrop, so a partial opacity reads as partial instead of as a bug.",
+    "A fill at the class's own alpha over a striped backdrop, so partial opacity reads as partial.",
   motion:
-    "Two elements, one of them animating. Nothing in a still picture can show the movement, which is why both are here: one is the control.",
+    "Two elements, one of them moving, so the movement is visible.",
   edge:
-    "A panel with a visible edge, beside a second panel, so a ring or an outline is read against what it is drawn outside of.",
+    "A panel with a visible edge beside a second panel, so the ring or outline reads against what it is drawn outside of.",
   ruled:
-    "A panel holding two marked rows: a divide lives BETWEEN siblings, so a sample with one child can never show one.",
+    "A panel holding two marked rows, so the rule between them is visible.",
   clipped:
-    "Content deliberately larger than its box. Overflow is a relationship between two sizes, and the small one has to lose.",
+    "Content larger than its box, so the clipping is visible.",
   said:
-    "The name of the utility, as words. What this family does is a property of the pointer, the selection or the scroller — a picture cannot show any of them, and a swatch that pretended to would be a lie.",
+    "The utility's name as words, because the family acts on the pointer, the selection, or the scroller.",
 };
 
 /**
@@ -96,8 +96,9 @@ export const DEMO_SAMPLE: Readonly<Record<Demo, string>> = {
 const GROUP_DEMO: Readonly<Record<string, Demo>> = {
   // Colour: the element IS the swatch, and its foreground comes from the theme.
   background: "fill",
-  "text-color": "fill",
   tones: "fill",
+  // Text colour is read, not seen: a swatch says nothing about a paragraph.
+  "text-color": "prose",
 
   // Spacing. `gap` is the space BETWEEN items, so it needs the three-item row;
   // padding and margin are read against a panel's edge on all four sides.
@@ -129,7 +130,7 @@ const GROUP_DEMO: Readonly<Record<string, Demo>> = {
   overflow: "clipped",
   transitions: "motion",
 
-  // Pointer behaviour and state prefixes: what a picture cannot honestly show.
+  // Pointer behaviour and state prefixes.
   interactivity: "said",
   variants: "said",
 };
@@ -187,18 +188,18 @@ export function demoClass(name: string): string {
  */
 const NOT_IN_A_PICTURE: Readonly<Record<string, string>> = {
   interactivity:
-    "A cursor, a selection, a pointer-event and a scroller are not visible in a picture — try the sample instead of looking at one.",
+    "A cursor, a selection, a pointer-event and a scroller each need an interaction to be seen.",
   variants:
-    "A variant is a prefix: `hover:` and `focus:` apply while the pointer is over the element or it holds focus, so a still picture shows neither state.",
+    "A variant applies only while its prefix matches, such as hover or focus.",
   transitions:
-    "A transition exists between two states, so a still picture shows neither — hover a box in the bench below and the movement you see is the class it wears.",
+    "A transition needs two states to move between.",
 };
 
 /**
  * The sentence a group owes the reader when its effect cannot be rendered, or
  * `undefined` when the sample already shows the truth.
  */
-export function honestAboutIt(group: string): string | undefined {
+export function noteFor(group: string): string | undefined {
   return NOT_IN_A_PICTURE[group];
 }
 

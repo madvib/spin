@@ -3,14 +3,6 @@ import { indexTree, resolveAliases } from "../pipeline/resolve.ts";
 import type { TokenTree, ValidationIssue } from "../pipeline/types.ts";
 import { legibilityFloors, themeSchema } from "./roles.ts";
 
-export {
-  BASE_ROLES,
-  legibilityFloors,
-  requiredPaths,
-  themeSchema,
-} from "./roles.ts";
-export type { LegibilityFloor, RoleDeclaration } from "./roles.ts";
-
 /**
  * The JSON Schema for a theme document.
  *

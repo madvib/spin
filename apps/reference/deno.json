@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "content": "deno run -A build-content.ts",
+    "dev": "deno task content && vite dev",
+    "build": "deno task content && vite build",
+    "preview": "vite preview"
+  }
+}
