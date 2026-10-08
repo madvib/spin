@@ -21,6 +21,10 @@
     "./rules/primitives/progress.examples.ts": "./src/rules/primitives/progress.examples.ts",
     "./rules/primitives/prose.examples.ts": "./src/rules/primitives/prose.examples.ts",
     "./rules/primitives/radio.examples.ts": "./src/rules/primitives/radio.examples.ts",
+    "./rules/primitives/details.examples.ts": "./src/rules/primitives/details.examples.ts",
+    "./rules/primitives/fieldset.examples.ts": "./src/rules/primitives/fieldset.examples.ts",
+    "./rules/primitives/icon.examples.ts": "./src/rules/primitives/icon.examples.ts",
+    "./rules/primitives/label.examples.ts": "./src/rules/primitives/label.examples.ts",
     "./rules/primitives/table.examples.ts": "./src/rules/primitives/table.examples.ts",
     "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts"
   },

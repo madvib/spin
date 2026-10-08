@@ -4,9 +4,12 @@ import { BADGE_EXAMPLES, badgeFixtureNote } from "@spin/preset/rules/primitives/
 import { BUTTON_EXAMPLES, buttonFixtureNote } from "@spin/preset/rules/primitives/button.examples.ts";
 import { CARD_EXAMPLES, cardFixtureNote } from "@spin/preset/rules/primitives/card.examples.ts";
 import { CONTROL_EXAMPLES, controlFixtureNote } from "@spin/preset/rules/primitives/control.examples.ts";
+import { DETAILS_EXAMPLES, detailsFixtureNote } from "@spin/preset/rules/primitives/details.examples.ts";
 import { DIALOG_EXAMPLES, dialogFixtureNote } from "@spin/preset/rules/primitives/dialog.examples.ts";
 import { FIELD_EXAMPLES, fieldFixtureNote } from "@spin/preset/rules/primitives/field.examples.ts";
+import { FIELDSET_EXAMPLES, fieldsetFixtureNote } from "@spin/preset/rules/primitives/fieldset.examples.ts";
 import { GROUP_EXAMPLES, groupFixtureNote } from "@spin/preset/rules/primitives/group.examples.ts";
+import { LABEL_EXAMPLES, labelFixtureNote } from "@spin/preset/rules/primitives/label.examples.ts";
 import { POPOVER_EXAMPLES, popoverFixtureNote } from "@spin/preset/rules/primitives/popover.examples.ts";
 import { PROGRESS_EXAMPLES, progressFixtureNote } from "@spin/preset/rules/primitives/progress.examples.ts";
 import { PROSE_EXAMPLES, proseFixtureNote } from "@spin/preset/rules/primitives/prose.examples.ts";
@@ -14,8 +17,27 @@ import { RADIO_EXAMPLES, radioFixtureNote } from "@spin/preset/rules/primitives/
 import { TABLE_EXAMPLES, tableFixtureNote } from "@spin/preset/rules/primitives/table.examples.ts";
 import { TABS_EXAMPLES, tabsFixtureNote } from "@spin/preset/rules/primitives/tabs.examples.ts";
 import type { Demo } from "./demos.ts";
-import { FIXTURES, type Fixture } from "./fixtures.ts";
 import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
+
+export interface Example {
+  /** What this example is showing. Rendered as the row's label. */
+  readonly name: string;
+  /** The markup, exactly as a consumer would write it. */
+  readonly html: string;
+}
+
+export interface Fixture {
+  /** The route. Also the tag the rules claim. */
+  readonly id: string;
+  readonly title: string;
+  /** Rule or shortcut — why it is authored that way. */
+  readonly kind: string;
+  readonly note: string;
+  /** The examples, each with its own heading. */
+  readonly examples: readonly Example[];
+  /** State that is a DOM property rather than an attribute. */
+  readonly onLoad?: string;
+}
 
 /**
  * Migrated fixtures source from the preset package: examples live beside
@@ -142,6 +164,30 @@ const PROSE_FIXTURE: Fixture = {
   examples: [...PROSE_EXAMPLES],
 };
 
+const LABEL_FIXTURE: Fixture = {
+  id: "label",
+  title: "Label",
+  kind: "alias",
+  note: labelFixtureNote,
+  examples: [...LABEL_EXAMPLES],
+};
+
+const FIELDSET_FIXTURE: Fixture = {
+  id: "fieldset",
+  title: "Fieldset & legend",
+  kind: "alias",
+  note: fieldsetFixtureNote,
+  examples: [...FIELDSET_EXAMPLES],
+};
+
+const DETAILS_FIXTURE: Fixture = {
+  id: "details",
+  title: "Details",
+  kind: "rule",
+  note: detailsFixtureNote,
+  examples: [...DETAILS_EXAMPLES],
+};
+
 export const rendered: readonly Fixture[] = [
   ALERT_FIXTURE,
   BADGE_FIXTURE,
@@ -157,7 +203,9 @@ export const rendered: readonly Fixture[] = [
   PROGRESS_FIXTURE,
   GROUP_FIXTURE,
   PROSE_FIXTURE,
-  ...FIXTURES,
+  LABEL_FIXTURE,
+  FIELDSET_FIXTURE,
+  DETAILS_FIXTURE,
 ];
 
 export const esc = (s: string) =>
