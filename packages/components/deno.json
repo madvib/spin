@@ -36,6 +36,7 @@
     "e2e": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/accordion.e2e.ts",
     "e2e:popover": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/popover.e2e.ts",
     "e2e:append": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/append.e2e.ts",
+    "bench:accordion": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 benches/accordion.bench.ts",
     "lint": "deno lint",
     "fmt": "deno fmt"
   },
