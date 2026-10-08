@@ -4,10 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "content": "deno run -A build-content.ts",
-    "dev": "deno run -A build-content.ts && vite dev",
-    "build": "deno run -A build-content.ts && vite build",
+    "dev": "vite dev",
+    "build": "vite build",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "solid-js": "^1.9.16",
+    "vite-plugin-solid": "^2.11.14"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",

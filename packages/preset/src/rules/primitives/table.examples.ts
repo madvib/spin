@@ -47,7 +47,7 @@ export const TABLE_EXAMPLES: readonly TableExample[] = [
   },
   {
     name: "A sticky header in a scroller",
-    html: `<div data-scroller>
+    html: `<div class="h-16 overflow-auto">
           <table>
             <thead>
               <tr><th scope="col">Unit</th><th scope="col">ms</th></tr>

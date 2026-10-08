@@ -45,9 +45,11 @@ export function controlRules(roots: readonly string[]): Rule[] {
  * tick's elbow. The percentages are the shape, not the state — animating them
  * is what makes the mark appear to be drawn.
  */
-const TICK_OFF = "polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 70% 80%, 70% 100%)";
+const TICK_OFF =
+  "polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 70% 80%, 70% 100%)";
 const TICK_ON = "polygon(20% 100%, 20% 80%, 50% 80%, 50% 0%, 70% 0%, 70% 100%)";
-const TICK_MIXED = "polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%)";
+const TICK_MIXED =
+  "polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%)";
 
 function checkboxRule(): Rule {
   return [
@@ -109,7 +111,9 @@ function checkboxRule(): Rule {
           `0 0 0 0 rgba(0, 0, 0, 0)`,
         ].join(", "),
         ...(duration !== undefined ? { "transition-duration": duration } : {}),
-        ...(easing !== undefined ? { "transition-timing-function": easing } : {}),
+        ...(easing !== undefined
+          ? { "transition-timing-function": easing }
+          : {}),
       };
       if (duration !== undefined) {
         Object.assign(shell, {
@@ -166,9 +170,7 @@ function checkboxRule(): Rule {
         ...(focusWidth !== undefined && focusRing !== undefined
           ? { outline: `${focusWidth} solid ${focusRing}` }
           : {}),
-        ...(focusOffset !== undefined
-          ? { "outline-offset": focusOffset }
-          : {}),
+        ...(focusOffset !== undefined ? { "outline-offset": focusOffset } : {}),
       };
 
       // Checked: the light top inset goes and the dark one compresses, so a
@@ -186,7 +188,18 @@ function checkboxRule(): Rule {
         ].join(", "),
       };
       yield { [ctx.symbols.selector]: () => `${CHECKBOX}:checked`, ...on };
-      yield { [ctx.symbols.selector]: () => `${CHECKBOX}:indeterminate`, ...on };
+      yield {
+        [ctx.symbols.selector]: () => `${CHECKBOX}:indeterminate`,
+        ...on,
+      };
+
+      // The custom tag spells state as an ATTRIBUTE, not a pseudo-class:
+      // `:checked` is platform-owned and never matches `<checkbox>`, so the
+      // author's spelling of the same state is the attribute form. Native
+      // inputs keep the pseudo-classes above — the platform owns their state —
+      // which is why every twin below names the bare tag and nothing else.
+      yield { [ctx.symbols.selector]: () => `checkbox[checked]`, ...on };
+      yield { [ctx.symbols.selector]: () => `checkbox[data-mixed]`, ...on };
 
       // A 45°-rotated square has its visual mass below its geometric centre,
       // so a tick drawn inside it reads as sitting low in the box unless the
@@ -201,9 +214,24 @@ function checkboxRule(): Rule {
           : {}),
         "clip-path": TICK_ON,
       };
+      yield {
+        [ctx.symbols.selector]: () => `checkbox[checked]::before`,
+        opacity: "1",
+        ...(borderWidth !== undefined
+          ? { translate: `0 -${borderWidth}` }
+          : {}),
+        "clip-path": TICK_ON,
+      };
       // The mixed mark is a bar, not a tick: no rotation, and it sits higher.
       yield {
         [ctx.symbols.selector]: () => `${CHECKBOX}:indeterminate::before`,
+        opacity: "1",
+        rotate: "0deg",
+        scale: "1 0.5",
+        "clip-path": TICK_MIXED,
+      };
+      yield {
+        [ctx.symbols.selector]: () => `checkbox[data-mixed]::before`,
         opacity: "1",
         rotate: "0deg",
         scale: "1 0.5",
@@ -215,6 +243,12 @@ function checkboxRule(): Rule {
         cursor: "not-allowed",
         // The depth goes with the interaction: a box you cannot press should
         // not have the shadows that say it can be.
+        "box-shadow": "none",
+        opacity: "0.4",
+      };
+      yield {
+        [ctx.symbols.selector]: () => `checkbox[disabled]`,
+        cursor: "not-allowed",
         "box-shadow": "none",
         opacity: "0.4",
       };
@@ -270,6 +304,9 @@ function switchRule(): Rule {
       const onPrimary = t?.colors["on-primary"];
       const duration = t?.motionDuration?.["fast"];
       const easing = t?.motionEasing?.["standard"];
+      const focusWidth = t?.focusWidth?.["width"];
+      const focusRing = t?.colors["focus-ring"];
+      const focusOffset = t?.focusOffset?.["offset"];
 
       const shell: Record<string, string | undefined> = {
         appearance: "none",
@@ -287,9 +324,7 @@ function switchRule(): Rule {
         // keeps it off the border, and the grid columns are what move it.
         "justify-items": "center",
         "align-items": "center",
-        ...(borderWidth !== undefined
-          ? { padding: borderWidth }
-          : {}),
+        ...(borderWidth !== undefined ? { padding: borderWidth } : {}),
         ...(borderWidth !== undefined && border !== undefined
           ? { border: `${borderWidth} solid ${border}` }
           : {}),
@@ -297,12 +332,16 @@ function switchRule(): Rule {
         // as wide as it is tall, which is the whole proportion of a switch.
         ...(size !== undefined && borderWidth !== undefined
           ? { width: `calc((${size} * 2) - ${borderWidth} * 2)`, height: size }
-          : size !== undefined ? { width: `calc(${size} * 2)`, height: size } : {}),
+          : size !== undefined
+          ? { width: `calc(${size} * 2)`, height: size }
+          : {}),
         // The track is as round as its thumb is wide, so the curve never
         // clips the thumb. Deriving it means a size change cannot desync them.
         ...(radiusFull !== undefined && radius !== undefined
           ? { "border-radius": `calc(${radiusFull} + ${radius})` }
-          : radiusFull !== undefined ? { "border-radius": radiusFull } : {}),
+          : radiusFull !== undefined
+          ? { "border-radius": radiusFull }
+          : {}),
         ...(raised !== undefined ? { "background-color": raised } : {}),
         "box-shadow": [
           `inset 0 1px 2px 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
@@ -314,7 +353,8 @@ function switchRule(): Rule {
       if (duration !== undefined) {
         Object.assign(shell, {
           // The grid is what moves, so the grid is what transitions.
-          "transition-property": "grid-template-columns, background-color, border-color",
+          "transition-property":
+            "grid-template-columns, background-color, border-color",
           "transition-duration": duration,
           "transition-timing-function": easing ?? "linear",
         });
@@ -375,8 +415,7 @@ function switchRule(): Rule {
       };
 
       // On: the grid swaps its columns and the track takes the primary.
-      yield {
-        [ctx.symbols.selector]: () => `${SWITCH}:checked`,
+      const onGrid: Record<string, string | undefined> = {
         "grid-template-columns": "1fr 1fr 0fr",
         ...(primary !== undefined
           ? { "background-color": primary, "border-color": primary }
@@ -392,17 +431,36 @@ function switchRule(): Rule {
         ...(onPrimary !== undefined ? { color: onPrimary } : {}),
       };
       yield {
+        [ctx.symbols.selector]: () => `${SWITCH}:checked`,
+        ...onGrid,
+      };
+      // The custom tag spells state as an ATTRIBUTE, not a pseudo-class, as
+      // on the checkbox: `:checked` never matches `<switch>`, so the author's
+      // spelling of the same state is `switch[checked]`, and native inputs
+      // keep the pseudo-class — the platform owns their state.
+      yield {
+        [ctx.symbols.selector]: () => `switch[checked]`,
+        ...onGrid,
+      };
+      yield {
         [ctx.symbols.selector]: () => `${SWITCH}:checked::before`,
         // Opaque on, because the track behind it is now the primary and the
         // thumb has to sit on it as a solid object rather than tint it.
         opacity: "1",
         ...(onPrimary !== undefined ? { "background-color": onPrimary } : {}),
       };
+      yield {
+        [ctx.symbols.selector]: () => `switch[checked]::before`,
+        opacity: "1",
+        ...(onPrimary !== undefined ? { "background-color": onPrimary } : {}),
+      };
 
       yield {
         [ctx.symbols.selector]: () => `${SWITCH}:focus-visible`,
-        ...(primary !== undefined ? { outline: `2px solid ${primary}` } : {}),
-        "outline-offset": "2px",
+        ...(focusWidth !== undefined && focusRing !== undefined
+          ? { outline: `${focusWidth} solid ${focusRing}` }
+          : {}),
+        ...(focusOffset !== undefined ? { "outline-offset": focusOffset } : {}),
       };
       yield {
         [ctx.symbols.selector]: () => `${SWITCH}:disabled`,
@@ -411,10 +469,20 @@ function switchRule(): Rule {
         "box-shadow": "none",
         opacity: "0.4",
       };
+      yield {
+        [ctx.symbols.selector]: () => `switch[disabled]`,
+        cursor: "not-allowed",
+        "box-shadow": "none",
+        opacity: "0.4",
+      };
       // An indeterminate switch has no middle position to sit at, so the grid
       // halves rather than choosing one for it.
       yield {
         [ctx.symbols.selector]: () => `${SWITCH}:indeterminate`,
+        "grid-template-columns": "0.5fr 1fr 0.5fr",
+      };
+      yield {
+        [ctx.symbols.selector]: () => `switch[data-mixed]`,
         "grid-template-columns": "0.5fr 1fr 0.5fr",
       };
       // Unset colours must not leave the thumb invisible against the track.

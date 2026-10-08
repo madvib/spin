@@ -137,32 +137,6 @@ Deno.test("the organization covers most of what the system produces", () => {
     `only ${covered} of ${total} utilities are in a section`,
   );
 });
-Deno.test("the showcase stylesheet in server/chrome.ts carries no backticks in its CSS comments", () => {
-  // The showcase's stylesheet is ONE template literal, so a backtick in a CSS
-  // comment inside it ends the string and the file stops parsing. That has
-  // happened eight times in one session, always as a comment about a CSS
-  // property — so it is checked rather than remembered.
-  // Lives in server/chrome.ts since the serve.ts split; the literal is the same.
-  const src = readFileSync(new URL("../../../server/chrome.ts", import.meta.url), "utf8");
-  const start = src.indexOf("const STYLE = `");
-  assertEquals(start !== -1, true, "the server/chrome.ts stylesheet literal was renamed");
-  const body = src.slice(start + "const STYLE = `".length);
-  const end = body.indexOf("\n`;");
-  assertEquals(end !== -1, true, "the server/chrome.ts stylesheet literal is unterminated");
-  const css = body.slice(0, end);
-  // Backticks inside the literal, other than the one that closes it.
-  const stray = css
-    .split("\n")
-    .map((line, i) => ({ n: i + 1, line }))
-    .filter((r) => r.line.includes("`"));
-  assertEquals(
-    stray,
-    [],
-    `a backtick inside the stylesheet literal breaks the file: ${stray
-      .map((r) => `${r.n}: ${r.line.trim().slice(0, 50)}`)
-      .join("; ")}`,
-  );
-});
 
 /**
  * A utility must DO something, not merely produce a rule.

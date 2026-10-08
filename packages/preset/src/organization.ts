@@ -68,7 +68,7 @@ export const SECTIONS: readonly Section[] = [
     id: "colors",
     title: "Colors",
     blurb: "The palette and the roles built on it. One fill, several properties.",
-    groups: ["background", "text-color", "tones"],
+    groups: ["background", "text-color"],
     sample: "swatch",
   },
   {

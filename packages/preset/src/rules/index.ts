@@ -20,7 +20,6 @@ import { spacingRules } from "./spacing.ts";
 import { stackingRules } from "./stacking.ts";
 import { textRules } from "./text.ts";
 import { transitionRules } from "./transitions.ts";
-import { toneRules } from "./tones.ts";
 import { typographyRules } from "./typography.ts";
 
 export function spinRules(roots: readonly string[], mode: Mode): Rule[] {
@@ -32,7 +31,6 @@ export function spinRules(roots: readonly string[], mode: Mode): Rule[] {
     ...overflowRules(),
     ...textRules(),
     ...stackingRules(),
-    ...toneRules(),
     ...transitionRules(),
     ...interactivityRules(),
     ...divideRules(),
