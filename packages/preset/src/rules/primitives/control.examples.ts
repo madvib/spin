@@ -2,12 +2,12 @@
  * Checkbox and switch examples — the markup a consumer writes, beside the
  * rules that style them.
  *
- * A bare `<checkbox>` or `<switch>` carries the base; there are no variant
- * classes. The library's tag and the platform's own spelling of the same
- * control — `<input type="checkbox">`, and `role="switch"` on one for a
- * toggle — reach the same rule. Both draw themselves rather than using the
- * platform's rendering, so the tag is the opt-in and the state is the
- * attribute.
+ * An `<input type="checkbox">` carries the base, and `role="switch"` on one
+ * is a toggle. There are no variant classes and no custom tags: the platform
+ * owns the control and its state, so the rule styles what the browser
+ * renders. Both draw themselves rather than using the platform's rendering,
+ * so a tick cannot be the platform's blue and a switch cannot be a tinted
+ * box.
  */
 
 export interface ControlExample {
@@ -22,13 +22,6 @@ const row = (inner: string): string =>
 ${inner}
         </div>`;
 
-const labelled = (
-  tag: "checkbox" | "switch",
-  attrs: string,
-  label: string,
-): string =>
-  `<label><${tag}${attrs ? ` ${attrs}` : ""}></${tag}> ${label}</label>`;
-
 const inputCheckbox = (attrs: string, label: string): string =>
   `<label><input type="checkbox"${attrs ? ` ${attrs}` : ""}> ${label}</label>`;
 
@@ -39,22 +32,13 @@ const inputSwitch = (attrs: string, label: string): string =>
 
 export const controlFixtureNote =
   "A checkbox and a switch are working controls with no class at all: the " +
-  "tag carries the base, and the library's tag and the platform's spelling " +
-  "reach the same rule. Both draw themselves rather than using the " +
-  "platform's rendering, so a tick cannot be the platform's blue and a " +
-  "switch cannot be a tinted box. The platform's states are real on the " +
-  "platform's spelling: `checked` and `disabled` are attributes, and " +
-  "indeterminate has none — the fixture marks it `data-mixed` and the page " +
-  "sets `.indeterminate`.";
+  "input carries the base and the platform owns its state. Both draw " +
+  "themselves rather than using the platform's rendering, so a tick cannot " +
+  "be the platform's blue and a switch cannot be a tinted box. `checked` " +
+  "and `disabled` are attributes, and indeterminate has none — the fixture " +
+  "marks it `data-mixed` and the page sets `.indeterminate`.";
 
 export const CONTROL_EXAMPLES: readonly ControlExample[] = [
-  {
-    name: "Checkbox · both spellings",
-    html: row(
-      `          ${labelled("checkbox", "", "tag")}
-          ${inputCheckbox("", "input")}`,
-    ),
-  },
   {
     name: "Checkbox · states",
     html: row(
@@ -63,13 +47,6 @@ export const CONTROL_EXAMPLES: readonly ControlExample[] = [
           ${inputCheckbox("data-mixed", "indeterminate")}
           ${inputCheckbox("disabled", "disabled")}
           ${inputCheckbox("checked disabled", "disabled, checked")}`,
-    ),
-  },
-  {
-    name: "Switch · both spellings",
-    html: row(
-      `          ${labelled("switch", "", "tag")}
-          ${inputSwitch("", "input")}`,
     ),
   },
   {

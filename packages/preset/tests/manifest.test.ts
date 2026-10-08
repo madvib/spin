@@ -44,6 +44,7 @@ Deno.test("the checked-in manifest matches what the rules do now", () => {
   // regenerating, or a rule changed without regenerating, fails here — which is
   // the whole reason the manifest is derived rather than maintained.
   const stale: string[] = [];
+  const patch: string[] = [];
   for (const name of Object.keys(primitiveContracts)) {
     const derived = deriveRuleContract(name);
     const checked = primitiveContracts[name];
@@ -54,13 +55,18 @@ Deno.test("the checked-in manifest matches what the rules do now", () => {
     for (const field of ["tags", "variants", "reads"] as const) {
       const a = [...derived[field]].sort().join(",");
       const b = [...checked[field]].sort().join(",");
-      if (a !== b) stale.push(`${name}.${field}`);
+      if (a !== b) {
+        stale.push(`${name}.${field}`);
+        patch.push(
+          `${name}.${field} = ${JSON.stringify([...derived[field]].sort())}`,
+        );
+      }
     }
   }
   assertEquals(
     stale,
     [],
-    `run \`deno task codegen\`; stale: ${stale.join(", ")}`,
+    `stale: ${stale.join(", ")}\ncopy into manifest.ts:\n${patch.join("\n")}`,
   );
 });
 

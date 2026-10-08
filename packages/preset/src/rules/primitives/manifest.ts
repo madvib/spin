@@ -259,7 +259,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     character: [],
   },
   checkbox: {
-    tags: ["checkbox", "input"],
+    tags: ["input"],
     variants: [],
     reads: [
       "--border-width",
@@ -478,7 +478,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     character: [],
   },
   radio: {
-    tags: ["input", "radio"],
+    tags: ["input"],
     variants: [],
     reads: [
       "--border-width",
@@ -519,7 +519,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     character: [],
   },
   switch: {
-    tags: ["input", "switch"],
+    tags: ["input"],
     variants: [],
     reads: [
       "--border-width",

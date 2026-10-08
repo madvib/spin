@@ -20,16 +20,6 @@ import { themeOf } from "../../utils/lookup.ts";
  * `radius.md`, because a 4px radius on a 20px circle is a squircle, and a
  * squircle is not a radio.
  */
-/**
- * What a radio IS.
- *
- * `<radio>` is the tag; `input[type="radio"]` is the same control written the
- * way the platform spells it. Both match, because a primitive that only
- * matched one of them would be a primitive that only works if you write it the
- * way the library prefers — which is the thing this surface exists to avoid.
- */
-const RADIO = ':is(radio, input[type="radio"])';
-
 export function radioRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("radio")) return [];
   return [
@@ -81,7 +71,7 @@ export function radioRules(roots: readonly string[]): Rule[] {
           });
         }
         yield {
-          [ctx.symbols.selector]: () => RADIO,
+          [ctx.symbols.selector]: () => 'input[type="radio"]',
           ...shell,
         };
 
@@ -95,7 +85,7 @@ export function radioRules(roots: readonly string[]): Rule[] {
         // the radio's `width: size` already beats the box's `width: 100%`
         // on specificity.
         yield {
-          [ctx.symbols.selector]: () => RADIO,
+          [ctx.symbols.selector]: () => 'input[type="radio"]',
           padding: "0",
           ...(size !== undefined
             ? { width: size, height: size, "border-radius": "50%" }
@@ -123,39 +113,25 @@ export function radioRules(roots: readonly string[]): Rule[] {
           Object.assign(dot, { "transition-property": "scale" });
         }
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}::after`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]::after',
           ...dot,
         };
 
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}:checked::after`,
-          scale: "1",
-        };
-        // The custom tag spells state as an ATTRIBUTE, not a pseudo-class, as
-        // on the checkbox: `:checked` never matches `<radio>`, so the author's
-        // spelling of the same state is `radio[checked]`, and native inputs
-        // keep the pseudo-class — the platform owns their state.
-        yield {
-          [ctx.symbols.selector]: () => `radio[checked]::after`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:checked::after',
           scale: "1",
         };
         // Checked fills the border too, so the ring disappears into the dot's
         // own colour and the control reads as one object rather than a dot
         // inside a ring.
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}:checked`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:checked',
           ...(primary !== undefined
             ? { "border-color": primary, "background-color": primary }
             : {}),
         };
         yield {
-          [ctx.symbols.selector]: () => `radio[checked]`,
-          ...(primary !== undefined
-            ? { "border-color": primary, "background-color": primary }
-            : {}),
-        };
-        yield {
-          [ctx.symbols.selector]: () => `${RADIO}:focus-visible`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:focus-visible',
           ...(focusWidth !== undefined && focusRing !== undefined
             ? { outline: `${focusWidth} solid ${focusRing}` }
             : {}),
@@ -164,16 +140,10 @@ export function radioRules(roots: readonly string[]): Rule[] {
             : {}),
         };
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}:disabled`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:disabled',
           cursor: "not-allowed",
           // Flatten with the checkbox: a control you cannot press should
           // not carry the shadows that say it can be.
-          "box-shadow": "none",
-          opacity: "0.4",
-        };
-        yield {
-          [ctx.symbols.selector]: () => `radio[disabled]`,
-          cursor: "not-allowed",
           "box-shadow": "none",
           opacity: "0.4",
         };
