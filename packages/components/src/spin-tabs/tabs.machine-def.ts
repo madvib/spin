@@ -11,8 +11,8 @@ export interface TabsValueChange {
 }
 
 export const tabs: MachineDef = {
-  machine: machine as unknown as object,
-  connect: connect as unknown as (...args: never[]) => object,
+  machine,
+  connect,
   events: {
     "value-change": {
       on: "onValueChange",

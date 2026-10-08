@@ -21,8 +21,8 @@ export interface AccordionValueChange {
   readonly value: readonly string[];
 }
 export const accordion: MachineDef = {
-  machine: machine as unknown as object,
-  connect: connect as unknown as (...args: never[]) => object,
+  machine,
+  connect,
   events: {
     "value-change": {
       on: "onValueChange",

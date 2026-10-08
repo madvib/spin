@@ -50,6 +50,21 @@ type Signal = {
 /** The declared props of one element instance, as live signals. */
 type PropStore = Map<string, Signal>;
 
+/** Per-tag counters for generated element ids. Page-load scoped: uniqueness
+ * is what Zag's part-id scoping needs, stability across loads is not. */
+const idCounters = new Map<string, number>();
+
+/**
+ * A unique id for a `tag` instance. Used when the author sets no `id`: Zag
+ * scopes part ids (and aria references) by machine id, so two id-less
+ * `<spin-accordion>` elements would otherwise share every part id.
+ */
+export function uniqueId(tag: string): string {
+  const next = (idCounters.get(tag) ?? 0) + 1;
+  idCounters.set(tag, next);
+  return `${tag}-${next}`;
+}
+
 /**
  * Registers `tag` as a custom element built by `spec`.
  *

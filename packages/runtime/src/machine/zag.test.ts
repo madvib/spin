@@ -150,7 +150,7 @@ Deno.test("the machine's state is a signal a template can read", async () => {
   assertEquals(states, ["idle", "focused"]);
 });
 
-Deno.test("a machine's computed value follows its context", async () => {
+Deno.test("a machine's computed value follows its context", () => {
   const owner = scope();
   const machine = owner.run(() =>
     createMachine(accordionMachine, {

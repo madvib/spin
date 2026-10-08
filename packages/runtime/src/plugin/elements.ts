@@ -69,7 +69,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       };
       const actionsPath = await findActions(dir);
       let actionImports = "";
-      let actionNames: string[] = [];
+      const actionNames: string[] = [];
       try {
         if (!actionsPath) throw new Error("no actions");
         const files = await fs.readdir(actionsPath);
@@ -122,7 +122,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
             `    normalize: normalizeProps,\n` +
             `    props: () => { const p = { ...values, ...${bridge}Events }; delete p.api; delete p["@@resolve"]; return p; },\n` +
             `    getRootNode: () => el.getRootNode(),\n` +
-            `    id: el.id || undefined,\n` +
+            `    id: el.id || uniqueId(${JSON.stringify(tag)}),\n` +
             `  }));\n` +
             `  values.api = ${bridge}.api;\n` +
             `  own(() => ${bridge}.dispose());`
@@ -135,7 +135,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
       const runtimeImport = hasConsume
-        ? `import { define, coerceProps, own } from "@spin/runtime";`
+        ? `import { define, coerceProps, own, uniqueId } from "@spin/runtime";`
         : `import { define, coerceProps } from "@spin/runtime";`;
       const zagImport = hasConsume
         ? `import { createMachine, normalizeProps } from "@spin/runtime/zag";`

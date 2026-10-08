@@ -18,7 +18,7 @@ function freeNames(expr: string, bound: Set<string>): string[] {
   const found: string[] = [];
   const re = /[A-Za-z_$][A-Za-z0-9_$]*/g;
   let m: RegExpExecArray | null;
-  let depth = 0;
+  const depth = 0;
   const stripped = expr.replace(/"[^"]*"|'[^']*'|`[^`]*`/g, '""');
   while ((m = re.exec(stripped)) !== null) {
     const name = m[0]!;

@@ -11,8 +11,8 @@ export interface DialogOpenChange {
 }
 
 export const dialog: MachineDef = {
-  machine: machine as unknown as object,
-  connect: connect as unknown as (...args: never[]) => object,
+  machine,
+  connect,
   events: {
     "open-change": {
       on: "onOpenChange",

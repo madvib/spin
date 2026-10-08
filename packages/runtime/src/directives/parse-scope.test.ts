@@ -7,9 +7,9 @@ Deno.test("parseScope parses object form with all prop types", () => {
   const block = parseScope(src);
   assertEquals(block.props.length, 5);
   assertEquals(block.props[0], { name: "count", type: "int", default: "0" });
-  assertEquals(block.props[1], { name: "name", type: "string", default: '"default"' });
+  assertEquals(block.props[1], { name: "name", type: "string", default: "default" });
   assertEquals(block.props[2], { name: "active", type: "bool", default: "true" });
-  assertEquals(block.props[3], { name: "tags", type: "string[]", default: '"a,b"' });
+  assertEquals(block.props[3], { name: "tags", type: "string[]", default: "a,b" });
   assertEquals(block.props[4], {
     name: "items",
     type: "object-array",
@@ -64,4 +64,13 @@ Deno.test("coerceProps field-fallback: int NaN becomes undefined but item is kep
   assertEquals(items.length, 1);
   assertEquals(items[0]!.id, undefined);
   assertEquals(items[0]!.label, "test");
+});
+
+Deno.test("string defaults arrive unquoted (orientation regression)", () => {
+  const src = `<scope>props={ orientation: string = "horizontal", role: string = "dialog", empty: string = "" }</scope>`;
+  const block = parseScope(src);
+  const result = coerceProps(block.props, {});
+  assertEquals(result.orientation, "horizontal");
+  assertEquals(result.role, "dialog");
+  assertEquals(result.empty, "");
 });

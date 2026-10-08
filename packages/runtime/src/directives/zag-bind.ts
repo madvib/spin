@@ -80,6 +80,11 @@ export function bindSpread(
       if (Object.is(value, last[name])) continue;
       if (ASSIGNABLE.has(name)) {
         (el as unknown as Record<string, unknown>)[name] = value;
+      } else if (name.startsWith("aria-") && typeof value === "boolean") {
+        // ARIA states are not HTML booleans: `aria-selected=""` parses as
+        // unset, not true, and a removed `aria-selected` reads as a third
+        // state rather than false. Render both explicitly, matching React.
+        el.setAttribute(name, String(value));
       } else if (value === undefined || value === null || value === false) {
         el.removeAttribute(name);
       } else if (value === true) {

@@ -1,5 +1,4 @@
 import { own } from "../core/signal.ts";
-import { signal } from "../core/signal.ts";
 
 export type Signal<T> = { (): T; (value: T): void };
 

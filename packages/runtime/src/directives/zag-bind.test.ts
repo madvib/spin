@@ -102,7 +102,7 @@ Deno.test("style object is serialized to cssText", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
-  let current: Record<string, unknown> = {
+  const current: Record<string, unknown> = {
     style: { position: "absolute", top: "10px", backgroundColor: "red" },
   };
   bindSpread(el, () => current);
@@ -111,4 +111,21 @@ Deno.test("style object is serialized to cssText", () => {
     el.getAttribute("style"),
     "position:absolute;top:10px;background-color:red;",
   );
+});
+
+Deno.test("aria booleans render as true/false strings, never empty or absent", () => {
+  const el = document.createElement("div");
+  document.body.appendChild(el);
+
+  let current: Record<string, unknown> = { "aria-selected": false, hidden: false };
+  bindSpread(el, () => current);
+  // false on an aria state is explicit, not absent; on a plain boolean it removes.
+  assertEquals(el.getAttribute("aria-selected"), "false");
+  assertEquals(el.hasAttribute("hidden"), false);
+
+  current = { "aria-selected": true, hidden: true };
+  machineTick(machineTick() + 1);
+  // true on an aria state is "true", not the empty string (which AT reads as unset).
+  assertEquals(el.getAttribute("aria-selected"), "true");
+  assertEquals(el.getAttribute("hidden"), "");
 });

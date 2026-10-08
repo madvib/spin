@@ -5,7 +5,7 @@
  * mid-flight is picked up on the next read.
  */
 
-import { type Bindable, type BindableParams, type ValueOrFn } from "@zag-js/core";
+import type { Bindable, BindableParams, ValueOrFn } from "@zag-js/core";
 import { isFunction } from "@zag-js/utils";
 import { signal } from "../../core/signal.ts";
 
@@ -18,7 +18,10 @@ import { signal } from "../../core/signal.ts";
  */
 export function createBindable<TValue>(
   params: () => BindableParams<TValue>,
-  register: (dispose: VoidFunction) => void,
+  // Vestigial: signals created here parent to the calling scope and die with
+  // it, so there is nothing to register. Kept positionally (public via
+  // internal.ts) rather than removed.
+  _register: (dispose: VoidFunction) => void,
 ): Bindable<TValue> {
   const first = params();
   const initial = (first.value ?? first.defaultValue) as TValue;

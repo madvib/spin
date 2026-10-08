@@ -481,6 +481,16 @@ function parseScopeEntry(p: Parser, entry: string, start: number, end: number, p
     def = typeStr.slice(eq + 1).trim();
     typeStr = typeStr.slice(0, eq).trim();
   }
+  // A string default is source text, quotes included (`= "horizontal"` parses
+  // as `"horizontal"` with the quotes). Attribute values arrive unquoted from
+  // the DOM, so this strips only here: stripping in coerceByType would eat a
+  // live value's literal quotes. bool/int defaults are bare by construction.
+  if ((typeStr === "string" || typeStr === "string[]") && def !== undefined) {
+    const q = def[0];
+    if (def.length >= 2 && (q === '"' || q === "'" || q === "`") && def[def.length - 1] === q) {
+      def = def.slice(1, -1);
+    }
+  }
   if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) {
     fail(p, "scope-name", `invalid scope prop name '${name}'`, start, end);
     return;

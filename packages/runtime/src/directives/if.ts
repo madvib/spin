@@ -14,7 +14,6 @@ export interface BindIfOptions {
 
 export function bindIf(opts: BindIfOptions): () => void {
   const { anchor, test, branches } = opts;
-  let active = -1;
   let nodes: Node[] = [];
   let cleanup: (() => void) | undefined;
   let owner: ReturnType<typeof scope> | undefined;
@@ -32,7 +31,6 @@ export function bindIf(opts: BindIfOptions): () => void {
       }
     }
     nodes = [];
-    active = -1;
   };
 
   effect(() => {

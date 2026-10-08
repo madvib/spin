@@ -25,7 +25,6 @@ import {
 } from "@zag-js/core";
 import type {
   ActionsOrFn,
-  Bindable,
   BindableContext,
   BindableParams,
   BindableRefs,
@@ -40,7 +39,6 @@ import type {
   Scope as ZagScope,
   Service,
   Transition,
-  ValueOrFn,
 } from "@zag-js/core";
 import { callAll, compact, ensure, isEqual, isFunction, isString, toArray, warn } from "@zag-js/utils";
 import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../../core/signal.ts";

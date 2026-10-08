@@ -10,7 +10,7 @@ export {
   type OwnerScope,
 } from "./core/signal.ts";
 
-export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
+export { define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 /**
  * The machine-def contract: what a `<name>.machine-def.ts` module provides.
  *
