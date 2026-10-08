@@ -75,15 +75,9 @@ export function radioRules(roots: readonly string[]): Rule[] {
           ...shell,
         };
 
-        // The field box pads every text-like input from
-        // `:is(input, select, textarea)` (specificity (0,0,1)), and the
-        // radio's own rule above never mentions padding — so the box's
-        // padding lands on the radio. This yield's `padding: 0` on
-        // `:is(radio, input[type="radio"])` (specificity (0,1,1)) beats it.
-        // The box's `width: auto` is not the fight: that yield lists only
-        // BOX_TYPES (submit, button, file, ...), which excludes radio, and
-        // the radio's `width: size` already beats the box's `width: 100%`
-        // on specificity.
+        // The field box pads every text-like input, and the radio's own rule
+        // above never mentions padding — so the box's padding lands on the
+        // radio. This yield's `padding: 0` beats it on specificity.
         yield {
           [ctx.symbols.selector]: () => 'input[type="radio"]',
           padding: "0",
@@ -92,14 +86,25 @@ export function radioRules(roots: readonly string[]): Rule[] {
             : {}),
         };
 
-        // The dot. Hidden by scaling to nothing rather than by opacity, so it
-        // animates the way the tick does — the mark appearing IS the state.
+        // The dot, daisy-style: a ring, a gap, then the dot. The box keeps a
+        // surface fill and takes the tone in its BORDER; the `::after` is a
+        // smaller circle in the same tone, centred by `inset: 0` + `margin:
+        // auto` with its size inset from the box so the gap reads. Our old
+        // form filled box and dot both primary — a solid disc with no
+        // separation, which reads as a blob rather than a selected radio.
+        // Hidden by scaling to nothing rather than by opacity, so it animates
+        // the way the tick does — the mark appearing IS the state.
         const dot: Record<string, string | undefined> = {
           content: '""',
           position: "absolute",
           inset: "0",
           margin: "auto",
           "border-radius": "50%",
+          // A fraction of the box, so a size change carries the dot with it
+          // and the gap survives in every theme including heavy borders.
+          ...(size !== undefined
+            ? { width: `calc(${size} / 2)`, height: `calc(${size} / 2)` }
+            : {}),
           ...(primary !== undefined ? { "background-color": primary } : {}),
           scale: "0",
           ...(duration !== undefined
@@ -121,14 +126,12 @@ export function radioRules(roots: readonly string[]): Rule[] {
           [ctx.symbols.selector]: () => 'input[type="radio"]:checked::after',
           scale: "1",
         };
-        // Checked fills the border too, so the ring disappears into the dot's
-        // own colour and the control reads as one object rather than a dot
-        // inside a ring.
+        // Checked takes the tone in the BORDER, not the fill: the box keeps
+        // its surface so the gap between ring and dot reads, and the control
+        // is a ring with a dot rather than a solid disc.
         yield {
           [ctx.symbols.selector]: () => 'input[type="radio"]:checked',
-          ...(primary !== undefined
-            ? { "border-color": primary, "background-color": primary }
-            : {}),
+          ...(primary !== undefined ? { "border-color": primary } : {}),
         };
         yield {
           [ctx.symbols.selector]: () => 'input[type="radio"]:focus-visible',
