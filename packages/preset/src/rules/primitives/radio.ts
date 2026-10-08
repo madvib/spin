@@ -100,9 +100,16 @@ export function radioRules(roots: readonly string[]): Rule[] {
           inset: "0",
           margin: "auto",
           "border-radius": "50%",
-          // A fraction of the box, so a size change carries the dot with it
-          // and the gap survives in every theme including heavy borders.
-          ...(size !== undefined
+          // Half the CONTENT box, not the border box: the abspos child
+          // resolves against the padding box inside the border, so sizing
+          // from the full size leaves the dot nearly touching a heavy ring
+          // (neobrut's 3px border left a 1px gap that reads as touching).
+          ...(size !== undefined && borderWidth !== undefined
+            ? {
+              width: `calc((${size} - ${borderWidth} * 2) / 2)`,
+              height: `calc((${size} - ${borderWidth} * 2) / 2)`,
+            }
+            : size !== undefined
             ? { width: `calc(${size} / 2)`, height: `calc(${size} / 2)` }
             : {}),
           ...(primary !== undefined ? { "background-color": primary } : {}),

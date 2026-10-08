@@ -16,7 +16,9 @@ import { RADIO_EXAMPLES } from "./radio.examples.ts";
 const STRUCTURAL = new Set([
   "flex",
   "flex-wrap",
+  "flex-col",
   "items-center",
+  "items-start",
   "gap-2",
 ]);
 

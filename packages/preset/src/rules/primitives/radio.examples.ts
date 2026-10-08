@@ -35,6 +35,22 @@ export const RADIO_EXAMPLES: readonly RadioExample[] = [
         </div>`,
   },
   {
+    name: "States",
+    html: row(
+      `          <label><input type="radio" name="s" checked> Checked</label>
+          <label><input type="radio" name="s"> Unchecked</label>
+          <label><input type="radio" name="s" disabled> Disabled</label>`,
+    ),
+  },
+  {
+    name: "Stacked",
+    html: `        <div role="radiogroup" aria-label="Stacked" class="flex flex-col items-start gap-2">
+          <label><input type="radio" name="stack" checked> First</label>
+          <label><input type="radio" name="stack"> Second</label>
+          <label><input type="radio" name="stack"> Third</label>
+        </div>`,
+  },
+  {
     name: "Disabled",
     html: row(
       `          <label><input type="radio" name="d" checked disabled> Disabled, checked</label>

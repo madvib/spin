@@ -50,6 +50,14 @@ export const CONTROL_EXAMPLES: readonly ControlExample[] = [
     ),
   },
   {
+    name: "Checkbox · stacked",
+    html: `        <div class="flex flex-col items-start gap-2">
+          ${inputCheckbox("checked", "First")}
+          ${inputCheckbox("", "Second")}
+          ${inputCheckbox("disabled", "Disabled")}
+        </div>`,
+  },
+  {
     name: "Switch · states",
     html: row(
       `          ${inputSwitch("", "off")}
@@ -57,6 +65,13 @@ export const CONTROL_EXAMPLES: readonly ControlExample[] = [
           ${inputSwitch("data-mixed", "indeterminate")}
           ${inputSwitch("disabled", "disabled")}
           ${inputSwitch("checked disabled", "disabled, on")}`,
+    ),
+  },
+  {
+    name: "Switch · with description",
+    html: row(
+      `          <label><input type="checkbox" role="switch" checked> <span>Notifications <span>— email me</span></span></label>
+          <label><input type="checkbox" role="switch"> <span>Digest <span>— weekly</span></span></label>`,
     ),
   },
 ];
