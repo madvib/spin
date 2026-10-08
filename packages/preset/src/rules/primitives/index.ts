@@ -10,7 +10,6 @@ import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
 import { groupRules } from "./group.ts";
-import { inputRules } from "./input.ts";
 import { popoverRules } from "./popover.ts";
 import { progressRules } from "./progress.ts";
 import { radioRules } from "./radio.ts";
@@ -42,14 +41,9 @@ export function primitiveRules(
   mode: Mode,
 ): Rule[] {
   return [
-    // The shared box is emitted by whichever of the three text-like fields is
-    // enabled, because they are one box: `<select>` renders the same field a
-    // `<textarea>` does. Gating it on `input` alone would leave a select with
-    // no border when only it was asked for.
-    ...(roots.includes("input") || roots.includes("select") ||
-        roots.includes("textarea")
-      ? [fieldBox()]
-      : []),
+    // The shared box is one component: `field` covers input, select and
+    // textarea, because they are one box with three contents.
+    ...(roots.includes("field") ? [fieldBox()] : []),
     ...a11yRules(roots),
     ...alertRules(roots, mode),
     ...badgeRules(roots, mode),
@@ -61,7 +55,6 @@ export function primitiveRules(
     ...progressRules(roots, mode),
     ...proseRules(roots, mode),
     ...groupRules(roots),
-    ...inputRules(roots),
     ...popoverRules(roots, mode),
     ...selectRules(roots),
     ...tableRules(roots, mode),

@@ -9,7 +9,7 @@ import type { Rule } from "@unocss/core";
  * the ring here would be a second place for them to drift.
  */
 export function selectRules(roots: readonly string[]): Rule[] {
-  if (!roots.includes("select")) return [];
+  if (!roots.includes("field")) return [];
   return [
     [
       /^select$/,

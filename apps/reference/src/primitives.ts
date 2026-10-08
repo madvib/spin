@@ -132,7 +132,7 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...RADIO_EXAMPLES],
   },
   {
-    id: "input",
+    id: "field",
     title: "Field",
     kind: "rule",
     note: fieldFixtureNote,

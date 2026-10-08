@@ -29,7 +29,6 @@ import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
 import { groupRules } from "./group.ts";
 import { iconRules } from "./icon.ts";
-import { inputRules } from "./input.ts";
 import { popoverRules } from "./popover.ts";
 import { progressRules } from "./progress.ts";
 import { proseRules } from "./prose.ts";
@@ -343,9 +342,7 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   group: () => groupRules(["group"]),
   radio: () => radioRules(["radio"]),
   icon: () => iconRules(["icon"]),
-  input: () => [...inputRules(["input"]), fieldBox()],
-  select: () => [...selectRules(["select"]), fieldBox()],
-  textarea: () => [...textareaRules(["textarea"]), fieldBox()],
+  field: () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
 };
 
 /** The custom properties the default theme actually declares. */

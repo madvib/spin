@@ -196,7 +196,7 @@ export function fieldBox(): Rule {
         ...(error !== undefined ? { "border-color": error } : {}),
       };
     },
-    { layer: "primitives", autocomplete: "input" },
+    { layer: "primitives", autocomplete: "field" },
   ];
   return rule;
 }
