@@ -238,11 +238,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "card-action",
       "card-content",
       "card-description",
+      "card-figure",
       "card-footer",
       "card-header",
       "card-title",
     ],
-    variants: ["card-default", "card-narrow", "card-wide"],
+    variants: ["card-default", "card-ghost", "card-narrow", "card-wide"],
     reads: [
       "--border-width",
       "--color-border",

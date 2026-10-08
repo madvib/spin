@@ -29,6 +29,8 @@ export function cardRules(roots: readonly string[], mode: Mode): Rule[] {
     // is three-quarters of the measure is a decision about the card, and it
     // belongs where a consumer would look for it.
     ...CARD_SIZES.map((size) => cardSize(card, size)),
+    cardGhost(card),
+    cardFigure(mode),
     cardHeader(mode),
     cardTitle(mode),
     cardDescription(mode),
@@ -262,5 +264,55 @@ function cardFooter(mode: Mode): Rule {
       };
     },
     { layer: "primitives", autocomplete: "card-footer" },
+  ];
+}
+
+/**
+ * The ghost: a card with no chrome. Transparent, borderless, flat — the
+ * parts keep their rhythm but the surface disappears, for content that needs
+ * grouping without a box. An author picks ghost OR a size, never both: a
+ * maximum width on an invisible surface is a constraint with nothing to
+ * constrain.
+ */
+function cardGhost(card: string): Rule {
+  return [
+    /^card-ghost$/,
+    function* (_m, ctx) {
+      yield {
+        [ctx.symbols.selector]: () => `${card}.card-ghost`,
+        "background-color": "transparent",
+        border: "none",
+        "box-shadow": "none",
+      };
+    },
+    { layer: "primitives", autocomplete: "card-ghost" },
+  ];
+}
+
+/**
+ * The figure: a media slot that bleeds to the surface edge. No padding of
+ * its own — the media fills it — with `overflow: hidden` so it keeps the
+ * surface's corners. The author sizes the media with utilities (`w-full
+ * block`); the figure owns only the bleed and the corners, so it claims no
+ * element it does not own.
+ */
+function cardFigure(mode: Mode): Rule {
+  return [
+    /^card-figure$/,
+    function* (_m, ctx) {
+      const { radius } = cardTokens(ctx);
+      yield {
+        [ctx.symbols.selector]: () => claim(mode, "card-figure"),
+        display: "block",
+        overflow: "hidden",
+        ...(radius !== undefined
+          ? {
+            "border-start-start-radius": radius,
+            "border-start-end-radius": radius,
+          }
+          : {}),
+      };
+    },
+    { layer: "primitives", autocomplete: "card-figure" },
   ];
 }

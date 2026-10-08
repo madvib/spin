@@ -23,9 +23,10 @@ ${inner}
         </div>`;
 
 export const cardFixtureNote =
-  "A card is a surface with seven parts, each its own tag: header, title, " +
-  "description, action, content, footer. Sizes are classes on the tag — " +
-  "card-default, card-narrow, card-wide. The footer holds classless buttons.";
+  "A card is a surface with eight parts, each its own tag: figure, header, " +
+  "title, description, action, content, footer. Sizes are classes on the " +
+  "tag — card-default, card-narrow, card-wide — and card-ghost drops the " +
+  "chrome. The footer holds classless buttons.";
 
 export const CARD_EXAMPLES: readonly CardExample[] = [
   {
@@ -90,6 +91,35 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
               <button class="ghost">Cancel</button>
               <button>Save</button>
             </card-footer>
+          </card>`,
+    ),
+  },
+  {
+    name: "Image on top",
+    html: row(
+      `          <card class="card-narrow">
+            <card-figure>
+              <img src="https://picsum.photos/400/200" alt="A placeholder photograph" class="block w-full">
+            </card-figure>
+            <card-header>
+              <card-title>Card Title</card-title>
+            </card-header>
+            <card-content>
+              <p>The figure bleeds to the surface edge; the corners hold.</p>
+            </card-content>
+          </card>`,
+    ),
+  },
+  {
+    name: "Ghost",
+    html: row(
+      `          <card class="card-ghost">
+            <card-header>
+              <card-title>Ungrouped</card-title>
+            </card-header>
+            <card-content>
+              <p>Grouping without a box: no border, no surface, no shadow.</p>
+            </card-content>
           </card>`,
     ),
   },

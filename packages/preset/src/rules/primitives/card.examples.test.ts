@@ -17,6 +17,8 @@ const STRUCTURAL: Record<string, true> = {
   "flex-wrap": true,
   "items-center": true,
   "gap-2": true,
+  block: true,
+  "w-full": true,
 };
 
 const isKnown = (cls: string, known: Set<string>): boolean =>
