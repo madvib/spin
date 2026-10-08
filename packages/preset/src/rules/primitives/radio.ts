@@ -28,7 +28,7 @@ import { themeOf } from "../../utils/lookup.ts";
  * matched one of them would be a primitive that only works if you write it the
  * way the library prefers — which is the thing this surface exists to avoid.
  */
-const RADIO = ":is(radio, input[type=\"radio\"])";
+const RADIO = ':is(radio, input[type="radio"])';
 
 export function radioRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("radio")) return [];
@@ -68,8 +68,12 @@ export function radioRules(roots: readonly string[]): Rule[] {
           ...(borderWidth !== undefined && border !== undefined
             ? { border: `${borderWidth} solid ${border}` }
             : {}),
-          ...(duration !== undefined ? { "transition-duration": duration } : {}),
-          ...(easing !== undefined ? { "transition-timing-function": easing } : {}),
+          ...(duration !== undefined
+            ? { "transition-duration": duration }
+            : {}),
+          ...(easing !== undefined
+            ? { "transition-timing-function": easing }
+            : {}),
         };
         if (duration !== undefined) {
           Object.assign(shell, {
@@ -81,19 +85,17 @@ export function radioRules(roots: readonly string[]): Rule[] {
           ...shell,
         };
 
-        // The field box states `width: auto` for every box-shaped input, at
-        // the same specificity as the rule above, and it lands later — so the
-        // radio's own width was being undone by the rule meant to opt it OUT
-        // of field styling. Restating the box on a selector that includes the
-        // radio's own state is what settles it: the size follows the control's
-        // state rather than fighting the box.
+        // The field box pads every text-like input from
+        // `:is(input, select, textarea)` (specificity (0,0,1)), and the
+        // radio's own rule above never mentions padding — so the box's
+        // padding lands on the radio. This yield's `padding: 0` on
+        // `:is(radio, input[type="radio"])` (specificity (0,1,1)) beats it.
+        // The box's `width: auto` is not the fight: that yield lists only
+        // BOX_TYPES (submit, button, file, ...), which excludes radio, and
+        // the radio's `width: size` already beats the box's `width: 100%`
+        // on specificity.
         yield {
-          [ctx.symbols.selector]: () =>
-            RADIO,
-          // The field box's `width: auto` and its padding are undone HERE,
-          // on this rule, rather than by being listed in a more specific
-          // exclusion selector — a drawn control knows its own size, and the
-          // box does not.
+          [ctx.symbols.selector]: () => RADIO,
           padding: "0",
           ...(size !== undefined
             ? { width: size, height: size, "border-radius": "50%" }
@@ -110,8 +112,12 @@ export function radioRules(roots: readonly string[]): Rule[] {
           "border-radius": "50%",
           ...(primary !== undefined ? { "background-color": primary } : {}),
           scale: "0",
-          ...(duration !== undefined ? { "transition-duration": duration } : {}),
-          ...(easing !== undefined ? { "transition-timing-function": easing } : {}),
+          ...(duration !== undefined
+            ? { "transition-duration": duration }
+            : {}),
+          ...(easing !== undefined
+            ? { "transition-timing-function": easing }
+            : {}),
         };
         if (duration !== undefined) {
           Object.assign(dot, { "transition-property": "scale" });
@@ -125,11 +131,25 @@ export function radioRules(roots: readonly string[]): Rule[] {
           [ctx.symbols.selector]: () => `${RADIO}:checked::after`,
           scale: "1",
         };
+        // The custom tag spells state as an ATTRIBUTE, not a pseudo-class, as
+        // on the checkbox: `:checked` never matches `<radio>`, so the author's
+        // spelling of the same state is `radio[checked]`, and native inputs
+        // keep the pseudo-class — the platform owns their state.
+        yield {
+          [ctx.symbols.selector]: () => `radio[checked]::after`,
+          scale: "1",
+        };
         // Checked fills the border too, so the ring disappears into the dot's
         // own colour and the control reads as one object rather than a dot
         // inside a ring.
         yield {
           [ctx.symbols.selector]: () => `${RADIO}:checked`,
+          ...(primary !== undefined
+            ? { "border-color": primary, "background-color": primary }
+            : {}),
+        };
+        yield {
+          [ctx.symbols.selector]: () => `radio[checked]`,
           ...(primary !== undefined
             ? { "border-color": primary, "background-color": primary }
             : {}),
@@ -146,6 +166,15 @@ export function radioRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () => `${RADIO}:disabled`,
           cursor: "not-allowed",
+          // Flatten with the checkbox: a control you cannot press should
+          // not carry the shadows that say it can be.
+          "box-shadow": "none",
+          opacity: "0.4",
+        };
+        yield {
+          [ctx.symbols.selector]: () => `radio[disabled]`,
+          cursor: "not-allowed",
+          "box-shadow": "none",
           opacity: "0.4",
         };
       },
