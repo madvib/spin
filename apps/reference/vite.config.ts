@@ -6,18 +6,12 @@ import presetIcons from "@unocss/preset-icons";
 import { spinPreset } from "../../packages/preset/src/index.ts";
 import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
-import handler from "./src/routes.ts";
-import { referenceHmr } from "./hmr.ts";
 
 const here = import.meta.dirname!;
 
-// The reference renders its content at REQUEST time (string renderers behind
-// a middleware), so the scanner never sees a class it demonstrates in the
-// sources. `build-content.ts` renders every route to a static page under
-// `src/content/` before the scanner runs, and the scanner reads those files:
-// utilities, primitives and chrome all reach the sheet from real markup.
-// Nothing is hand-listed here — a primitive token comes from the element
-// seeing `<button class="secondary">`, which no catalog could produce.
+// The reference renders package examples directly in Solid: the module graph
+// sees every class and variant, so the scanner reads sources, not generated
+// files. Nothing is pre-rendered; nothing is hand-listed.
 
 export default defineConfig({
   plugins: [
@@ -27,27 +21,20 @@ export default defineConfig({
         presetIcons({ collections: { lucide } as never }),
         spinPreset({ themes: starterThemes }),
       ],
+      // Example modules carry the tokens (App → primitives registry →
+      // package examples). Filesystem scanning reads them directly; the
+      // pipeline include admits plain .ts because examples are data
+      // modules, not components.
       content: {
-        // The rendered pages are imported by no module, so the module graph
-        // cannot find them: `filesystem` is what makes the scanner read the
-        // generated markup. The pipeline `include` default already admits
-        // `.html`.
-        filesystem: ["src/content/**/*.html"],
+        filesystem: [
+          resolve(here, "../../packages/preset/src/rules/primitives/*.examples.ts"),
+          resolve(here, "src/**/*.{tsx,ts}"),
+        ],
+        pipeline: {
+          include: [/\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/],
+        },
       },
     }),
-    {
-      name: "reference-server",
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          if (req.url?.startsWith("/__uno") || req.url?.startsWith("/@uno")) {
-            next();
-            return;
-          }
-          handler(req, res, next);
-        });
-      },
-    },
-    referenceHmr,
   ],
   resolve: {
     alias: [

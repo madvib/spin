@@ -463,8 +463,8 @@ export function layoutSurface(
 }
 
 /** One section of the reference, rendered. */
-export function utilityGroupPage(sectionId: string): string {
-  const catalog = catalogSections();
+export function utilityGroupPage(sectionId: string, tree: Parameters<typeof catalogSections>[0]): string {
+  const catalog = catalogSections(tree);
   const section = SECTIONS.find((x) => x.id === sectionId);
   if (!section) {
     return `<header class="${CHROME.pageHead}"><h2 class="${CHROME.title}">No such section</h2></header>`;
