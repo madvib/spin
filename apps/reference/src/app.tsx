@@ -137,6 +137,41 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
   );
 }
 
+function LandingPage() {
+  return (
+    <>
+      <header class="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 class="m-0 text-2xl font-bold tracking-tight">Primitives</h2>
+          <div class="font-mono text-xs text-text-muted">spin reference</div>
+        </div>
+        <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+          {PRIMITIVES.length} components
+        </span>
+      </header>
+      <p class="mb-8 max-w-screen-md text-md text-text-muted">
+        Every primitive, exercised. Bare tags carry the base; variant=""
+        is the API.
+      </p>
+      <div class="flex flex-col items-start gap-2">
+        <For each={PRIMITIVES}>
+          {(r) => (
+            <a
+              href={`#/components/${r.id}`}
+              class="flex w-full items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-sm text-text no-underline hover:border-border-strong"
+            >
+              <span>{r.title}</span>
+              <span class="shrink-0 font-mono text-xs text-text-muted">
+                {r.examples.length} examples
+              </span>
+            </a>
+          )}
+        </For>
+      </div>
+    </>
+  );
+}
+
 export default function App() {
   const { theme, setTheme, mode, setMode } = useTheme();
   const [route, setRoute] = createSignal(location.hash.slice(1) || "/components");
@@ -237,11 +272,7 @@ export default function App() {
           fallback={
             <Show
               when={route().startsWith("/utilities")}
-              fallback={
-                <For each={PRIMITIVES}>
-                  {(r) => <a href={`#/components/${r.id}`}>{r.title}</a>}
-                </For>
-              }
+              fallback={<LandingPage />}
             >
               <UtilitiesPage group={route().split("/")[2] ?? ""} />
             </Show>

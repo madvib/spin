@@ -52,7 +52,8 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-content>
-              <p>A card needs no header or footer to be a card.</p>
+              <p>A card needs no header or footer to be a card: a raised
+              surface with room to breathe is already grouping.</p>
             </card-content>
           </card>`,
     ),
@@ -60,14 +61,26 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
   {
     name: "Sizes",
     html: row(
-      `          <card class="card-default">
-            <card-content><p>Default</p></card-content>
+      `          <card class="card-narrow">
+            <card-header>
+              <card-title>Narrow</card-title>
+              <card-description>24rem — a column card</card-description>
+            </card-header>
+            <card-content><p>Sidebars, rails, tight grids.</p></card-content>
           </card>
-          <card class="card-narrow">
-            <card-content><p>Narrow</p></card-content>
+          <card class="card-default">
+            <card-header>
+              <card-title>Default</card-title>
+              <card-description>32rem — the page measure</card-description>
+            </card-header>
+            <card-content><p>Dialogs, settings panels, forms.</p></card-content>
           </card>
           <card class="card-wide">
-            <card-content><p>Wide</p></card-content>
+            <card-header>
+              <card-title>Wide</card-title>
+              <card-description>48rem — a spanning card</card-description>
+            </card-header>
+            <card-content><p>Dashboards, tables, galleries.</p></card-content>
           </card>`,
     ),
   },
