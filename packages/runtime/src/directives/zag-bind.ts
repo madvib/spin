@@ -1,69 +1,9 @@
-import { bindAttr, bindProp } from "./bind.ts";
 import { effect } from "../core/signal.ts";
 import { inserted } from "../core/signal.ts";
 import { machineTick } from "../machine/adapter/machine.ts";
-import { normalizeProps } from "../machine/adapter/index.ts";
-import type { ZagApi } from "../machine/zag-action.ts";
+import { toStyleString } from "../machine/adapter/normalize-props.ts";
 
 const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
-
-const normalize = (
-  props: Record<string, unknown>,
-): Record<string, unknown> => {
-  const element = normalizeProps.element as (
-    props: Record<string, unknown>,
-  ) => Record<string, unknown>;
-  return element(props);
-};
-
-const wired = new WeakSet<Element>();
-
-export function bindZag(
-  el: Element,
-  api: () => ZagApi | undefined,
-  getter: string,
-  node: () => Record<string, unknown> | undefined,
-): void {
-  if (!wired.has(el)) {
-    wired.add(el);
-    for (const name of ["click", "focusin", "focusout", "keydown", "keyup", "input", "pointerdown"]) {
-      el.addEventListener(name, (e: Event) => {
-        const current = api();
-            if (!current || typeof current[getter] !== "function") return;
-        const nv = node();
-        const props = normalize(current[getter]!(nv) as Record<string, unknown>);
-            const fn = props["on" + name] as ((e: Event) => void) | undefined;
-            fn?.(e);
-      });
-    }
-  }
-  let last: Record<string, unknown> = {};
-  effect(() => {
-    inserted();
-
-    const current = api();
-    const props = current && typeof current[getter] === "function"
-      ? normalize(current[getter]!(node()) as Record<string, unknown>)
-      : {};
-    for (const name of Object.keys(last)) {
-      if (!(name in props) && !name.startsWith("on")) el.removeAttribute(name);
-    }
-    for (const [name, value] of Object.entries(props)) {
-      if (name.startsWith("on")) continue;
-      if (Object.is(value, last[name])) continue;
-      if (ASSIGNABLE.has(name)) {
-        (el as unknown as Record<string, unknown>)[name] = value;
-      } else if (value === undefined || value === null || value === false) {
-        el.removeAttribute(name);
-      } else if (value === true) {
-        el.setAttribute(name, "");
-      } else {
-        el.setAttribute(name, String(value));
-      }
-    }
-    last = props;
-  });
-}
 
 
 /**
@@ -101,3 +41,63 @@ export function bindActionProps(
     last = props;
   });
 }
+
+/**
+ * Reactive spread application from a live reader.
+ *
+ * Same lifecycle as bindActionProps (inserted + machineTick), but `on*`
+ * function values attach as event listeners instead of being skipped —
+ * the bag owns its handlers. Listener names are the lowercased slice(2)
+ * of the key; zag-normalized names (onFocus) are already correct.
+ */
+export function bindSpread(
+  el: Element,
+  read: () => Record<string, unknown>,
+): () => void {
+  let last: Record<string, unknown> = {};
+  const attached = new Map<string, EventListener>();
+  effect(() => {
+    inserted();
+    machineTick();
+    const props = read();
+    for (const name of Object.keys(last)) {
+      if (!(name in props) && !name.startsWith("on")) el.removeAttribute(name);
+    }
+    const seen = new Set<string>();
+    for (const [name, value] of Object.entries(props)) {
+      if (name.startsWith("on") && typeof value === "function") {
+        const type = name.slice(2).toLowerCase();
+        const listener = value as EventListener;
+        seen.add(type);
+        if (attached.get(type) !== listener) {
+          const prev = attached.get(type);
+          if (prev !== undefined) el.removeEventListener(type, prev);
+          el.addEventListener(type, listener);
+          attached.set(type, listener);
+        }
+        continue;
+      }
+      if (Object.is(value, last[name])) continue;
+      if (ASSIGNABLE.has(name)) {
+        (el as unknown as Record<string, unknown>)[name] = value;
+      } else if (value === undefined || value === null || value === false) {
+        el.removeAttribute(name);
+      } else if (value === true) {
+        el.setAttribute(name, "");
+      } else if (name === "style" && typeof value === "object") {
+        el.setAttribute("style", toStyleString(value as Record<string, unknown>));
+      } else {
+        el.setAttribute(name, String(value));
+      }
+    }
+    for (const [type, fn] of attached) {
+      if (!seen.has(type)) {
+        el.removeEventListener(type, fn);
+        attached.delete(type);
+      }
+    }
+    last = props;
+  });
+  return () => {};
+}
+

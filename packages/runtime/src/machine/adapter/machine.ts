@@ -37,6 +37,7 @@ import type {
   MachineSchema,
   Params,
   PropFn,
+  Scope as ZagScope,
   Service,
   Transition,
   ValueOrFn,
@@ -154,13 +155,27 @@ function startMachine(
   ids: Record<string, unknown> | undefined,
   getRootNode: GetRootNode | undefined,
 ): Service<RuntimeSchema> {
-  // Zag falls back to `document` when a machine is given no root; an element
-  // passes itself, which is the whole reason this is an option.
+  // Zag's `scope.getById` calls `getRootNode().getElementById(id)`, which only
+  // exists on Document, DocumentFragment, and ShadowRoot — never on an element,
+  // which `GetRootNode` still permits. Resolve to the nearest node that can do
+  // the lookup so machines that query the DOM by id (menu, popover) work
+  // whatever root the caller hands in.
+  // Namespaced cast: Zag's own `createScope` return is unassignable to Zag's
+  // `Scope` in programs where `Window` resolves twice (unplugin's node types
+  // share this program via the plugin). The incompatibility is in Zag's type
+  // surface, not this logic — pin it here so the five consumers below stay clean.
   const zagScope = createScope({
     id,
     ids,
-    getRootNode: () => getRootNode?.() ?? document,
-  });
+    getRootNode: () => {
+      const node = getRootNode?.() ?? document;
+      if ("getElementById" in node) return node;
+      // The node may be detached, so its root can be the element itself or a
+      // detached fragment; the `in` check settles what it actually is.
+      const root = node.getRootNode() as Document | ShadowRoot | Element;
+      return "getElementById" in root ? root : document;
+    },
+  }) as unknown as ZagScope;
   const debug = (...args: unknown[]): void => {
     if (machine.debug) console.log(...args);
   };
@@ -389,10 +404,8 @@ function startMachine(
     // whose scope is gone swallows the event rather than reaching into DOM it
     // no longer owns.
     queueMicrotask(() => {
-
       if (key && token && replaceTracker.isReplaced(key, token)) return;
       if (status !== MachineStatus.Started) {
-
         return;
       }
       batch(() => {

@@ -12,7 +12,8 @@
     "@spin/runtime/testing": "./src/testing.ts",
     "linkedom": "npm:linkedom@^0.18.0",
     "@spin/runtime/adapter": "./src/adapter/index.ts",
-    "@zag-js/types": "npm:@zag-js/types@~1.44.0"
+    "@zag-js/types": "npm:@zag-js/types@~1.44.0",
+    "unplugin": "npm:unplugin@^3.4.0"
   },
   "tasks": {
     "test": "deno test --config deno.test.json --allow-read --allow-import src/",

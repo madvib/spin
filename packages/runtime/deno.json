@@ -7,11 +7,13 @@
     "./element": "./src/element.ts",
     "./testing": "./src/testing.ts",
     "./adapter": "./src/machine/adapter/index.ts",
-    "./load": "./src/directives/load.ts"
+    "./load": "./src/directives/load.ts",
+    "./plugin": "./src/plugin/index.ts",
+    "./plugin/elements": "./src/plugin/elements.ts",
   },
   "imports": {
     "@spin/runtime": "./src/index.ts",
-    "@spin/runtime/zag": "./src/adapter/index.ts",
+    "@spin/runtime/zag": "./src/machine/adapter/index.ts",
     "@spin/runtime/element": "./src/element.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "alien-signals": "npm:alien-signals@^3.2.1",
@@ -20,9 +22,12 @@
     "@zag-js/accordion": "npm:@zag-js/accordion@~1.44.0",
     "@spin/runtime/testing": "./src/testing.ts",
     "linkedom": "npm:linkedom@^0.18.0",
-    "@spin/runtime/adapter": "./src/adapter/index.ts",
+    "@spin/runtime/adapter": "./src/machine/adapter/index.ts",
     "@zag-js/types": "npm:@zag-js/types@~1.44.0",
-    "@spin/runtime/load": "./src/directives/load.ts"
+    "@spin/runtime/load": "./src/directives/load.ts",
+    "@spin/runtime/plugin": "./src/plugin/index.ts",
+    "@spin/runtime/plugin/elements": "./src/plugin/elements.ts",
+    "unplugin": "npm:unplugin@^3.4.0"
   },
   "tasks": {
     "test": "deno test --config deno.test.json --allow-read --allow-import src/",

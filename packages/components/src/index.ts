@@ -1,1 +1,1 @@
-export { treeView } from "./tree-view/index.ts";
+export { treeView } from "./tree-view-legacy/index.ts";

@@ -1,0 +1,16 @@
+<scope>props={ items: { value: string, label: string, content: string, disabled: bool }[] = [], defaultValue: string = "", orientation: string = "horizontal", activationMode: string = "automatic", loopFocus: bool = true, deselectable: bool = false } consume={ tabs }</scope>
+
+<div class="text-strong" {...api.getRootProps()}>
+<div class="flex gap-1 border-b border-border" {...api.getListProps()}>
+    <template for={items} as={row}>
+<button class="px-3 py-2 text-sm font-medium text-muted" {...api.getTriggerProps(row)}>
+        {row.label}
+      </button>
+    </template>
+  </div>
+  <template for={items} as={row}>
+<div class="p-4 text-sm" {...api.getContentProps(row)}>
+      {row.content}
+    </div>
+  </template>
+</div>

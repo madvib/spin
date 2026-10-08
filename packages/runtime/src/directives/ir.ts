@@ -39,12 +39,18 @@ export interface ActionUse {
   readonly span: Span;
 }
 
+export interface SpreadUse {
+  readonly expr: string;
+  readonly span: Span;
+}
+
 export interface ElementNode {
   readonly kind: "element";
   readonly tag: string;
   readonly attrs: readonly Attr[];
   readonly events: readonly EventBinding[];
   readonly actions: readonly ActionUse[];
+  readonly spreads: readonly SpreadUse[];
   readonly children: readonly Node[];
   readonly span: Span;
 }
@@ -70,6 +76,26 @@ export interface ForNode {
 
 export type Node = ElementNode | TextNode | ForNode;
 
+export type ScopePropType = "bool" | "string" | "string[]" | "int" | "object-array";
+
+export interface ObjectField {
+  readonly name: string;
+  readonly type: "string" | "int" | "bool";
+}
+
+export interface PropDecl {
+  readonly name: string;
+  readonly type: ScopePropType;
+  readonly default?: string;
+  readonly fields?: readonly ObjectField[];
+}
+
+export interface ScopeBlock {
+  readonly props: readonly PropDecl[];
+  readonly consume: readonly string[];
+}
+
 export interface ComponentIr {
   readonly nodes: readonly Node[];
+  readonly scope?: ScopeBlock;
 }

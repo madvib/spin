@@ -1,0 +1,10 @@
+<scope>props={ id: string = "tooltip", openDelay: int = 400, closeDelay: int = 150, interactive: bool = false, disabled: bool = false, defaultOpen: bool = false } consume={ tooltip }</scope>
+
+<div>
+<button class="px-4 py-2 rounded text-sm border border-border bg-surface text-text" {...api.getTriggerProps()}>Hover me</button>
+  <div {...api.getPositionerProps()}>
+<div class="px-3 py-2 rounded text-sm border border-border bg-surface-raised text-text shadow-md" {...api.getContentProps()}>
+      Tooltip content
+    </div>
+  </div>
+</div>

@@ -7,6 +7,7 @@
  */
 
 import { scope, signal, type OwnerScope } from "../core/signal.ts";
+import { createScopeTable, type Factory, type Handle, type ScopeTable } from "./table.ts";
 
 /** Turns an attribute's string into the value the component reads. */
 export type AttributeParser = (value: string | null) => unknown;
@@ -33,6 +34,11 @@ export interface BuildContext {
   readonly props: Readonly<Record<string, unknown>>;
   /** The scope for this connection. Pass it to `createMachine`. */
   readonly scope: OwnerScope;
+  /** Resolve a handle to its instance, walking up the scope chain. */
+  /** Resolve a handle to its instance, walking up the scope chain. */
+  resolve<T>(handle: Handle): T | undefined;
+  /** Instantiate (on first call) and register a handle in this scope. */
+  watch<T>(handle: Handle, factory: Factory<T>): T;
 }
 
 /** A readable-and-writable value; `signal()` gives one without a name here. */
@@ -81,20 +87,30 @@ export function define(tag: string, spec: ElementSpec): void {
 
   class Component extends HTMLElement {
     #scope: OwnerScope | undefined;
+    #table: ScopeTable | undefined;
 
     connectedCallback(): void {
       // A reconnect opens a fresh scope. The previous one is already disposed,
       // and `dispose` is idempotent, so ordering here is not load-bearing.
       const owner = scope();
       this.#scope = owner;
+      const table = createScopeTable(owner);
+      this.#table = table;
       owner.run(() => {
-        spec.build({ el: this, props: propsFor(this), scope: owner });
+        spec.build({
+          el: this,
+          props: propsFor(this),
+          scope: owner,
+          resolve: (handle) => table.resolve(handle),
+          watch: (handle, factory) => table.watch(handle, factory),
+        });
       });
     }
 
     disconnectedCallback(): void {
       this.#scope?.dispose();
       this.#scope = undefined;
+      this.#table = undefined;
     }
 
     attributeChangedCallback(

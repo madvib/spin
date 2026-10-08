@@ -62,6 +62,8 @@ export interface OwnerScope {
   own(dispose: () => void): void;
   /** Tears down everything created under `run`, plus everything `own`ed. */
   dispose(): void;
+  /** The scope this one was created within, if any. */
+  readonly parent: OwnerScope | undefined;
 }
 
 /** The scope whose `run` is currently executing, if any. */
@@ -77,11 +79,13 @@ let activeScope: OwnerScope | undefined;
  * write into a node the teardown has already removed.
  */
 export function scope(): OwnerScope {
+  const parent = activeScope;
   const groups: Array<() => void> = [];
   const teardowns: Array<() => void> = [];
   let disposed = false;
 
   const self: OwnerScope = {
+    parent,
     run<T>(fn: () => T): T {
       if (disposed) {
         throw new Error("scope.run: the scope is disposed");

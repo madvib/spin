@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spin · spin-accordion</title>
+</head>
+<body class="font-sans text-text bg-surface">
+<main class="max-w-2xl mx-auto p-8">
+  <h1 class="text-2xl font-bold">spin-accordion, prebuilt</h1>
+  <div class="flex items-center gap-3 mb-4">
+    <button id="append" type="button">Append item</button>
+  </div>
+  <spin-accordion items='[{"value":"a","label":"First","content":"First content."},{"value":"b","label":"Second","content":"Second content."}]'></spin-accordion>
+</main>
+<script type="module">
+  const el = document.querySelector("spin-accordion");
+  let n = 0;
+  const base = [{ value: "a", label: "First", content: "First content." }, { value: "b", label: "Second", content: "Second content." }];
+  document.getElementById("append").addEventListener("click", () => {
+    n++;
+    el.items = [...base, ...Array.from({ length: n }, (_, i) => ({ value: `appended-${i + 1}`, label: `Appended ${i + 1}`, content: "Appended content." }))];
+  });
+</script>
+<script type="module" src="/src/spin-accordion.ts"></script>
+</body>
+</html>

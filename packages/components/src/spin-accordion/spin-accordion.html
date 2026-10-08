@@ -1,0 +1,15 @@
+<scope>props={ collapsible: bool = true, items: { value: string, label: string, content: string }[] = [] } consume={ accordion }</scope>
+
+<div class="rounded-lg border border-border bg-surface-raised divide-y divide-border" {...api.getRootProps()}>
+  <template for={items} as={row}>
+    <div {...api.getItemProps(row)}>
+      <button class="w-full flex items-center justify-between py-2 px-4 text-left text-md font-medium text-text bg-transparent border-transparent transition-colors hover:bg-surface" {...api.getItemTriggerProps(row)}>
+        <span>{row.label}</span>
+        <span aria-hidden="true" class="text-xl text-muted" {...api.getItemIndicatorProps(row)}>›</span>
+      </button>
+      <div class="px-4 pb-4 text-sm text-muted" {...api.getItemContentProps(row)}>
+        {row.content}
+      </div>
+    </div>
+  </template>
+</div>

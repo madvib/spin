@@ -1,4 +1,4 @@
-import { effect, own } from "../core/signal.ts";
+import { effect, own, untrack } from "../core/signal.ts";
 import { scope } from "../core/signal.ts";
 
 export interface RenderedItem {
@@ -46,8 +46,15 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
       } else {
         const owner = scope();
         let rendered!: RenderedItem;
-        owner.run(() => {
-          rendered = render(item, i);
+        // Detached: effects created during render must not parent to the
+        // re-running sync effect, which would kill them on its next run
+        // (alien unlinks dead-parent children). They parent to the cell
+        // owner instead and die only on explicit dispose. Reads inside
+        // still subscribe normally: each effect tracks itself on first run.
+        untrack(() => {
+          owner.run(() => {
+            rendered = render(item, i);
+          });
         });
         const nodes = [...rendered.nodes];
         // New nodes enter before the anchor, not at the host's end: the

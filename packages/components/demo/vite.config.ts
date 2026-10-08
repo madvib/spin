@@ -6,7 +6,7 @@ import { starterThemes } from "../../theme/src/themes/index.ts";
 
 const at = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
-import { spinElements } from "@spin/compile/elements";
+import { spinElements } from "@spin/runtime/plugin/elements";
 
 export default defineConfig({
   plugins: [spinElements({}), UnoCSS({ presets: [spinPreset({ themes: { default: starterThemes.default } })] })],
@@ -14,14 +14,14 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: at("./index.html"),
-        accordion: at("./accordion.html"),
+        "spin-accordion": at("./spin-accordion.html"),
+        "spin-popover": at("./spin-popover.html")
       },
     },
   },
   resolve: {
     alias: {
       "@spin/components": at("../src/index.ts"),
-      "@spin/components/accordion": at("../src/accordion/index.ts"),
       "@spin/runtime/zag": at("../../runtime/src/machine/adapter/index.ts"),
       "@spin/runtime/load": at("../../runtime/src/directives/load.ts"),
       "@spin/runtime": at("../../runtime/src/index.ts"),

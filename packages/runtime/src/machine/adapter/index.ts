@@ -8,5 +8,3 @@
 
 export { createMachine, normalizeProps } from "./machine.ts";
 export type { MachineBridge, MachineOptions, Normalize, Props } from "./machine.ts";
-export { createBindable } from "./bindable.ts";
-export { toStyleString } from "./normalize-props.ts";
