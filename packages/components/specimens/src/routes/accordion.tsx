@@ -65,7 +65,7 @@ export default function AccordionSpecimen() {
       </p>
 
       <div class="flex items-center gap-3 mb-4">
-        <button type="button" onClick={append}>Append item</button>
+        <button type="button" class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface" onClick={append}>Append item</button>
         <span class="text-sm text-muted">
           last toggle: <span id="last-toggle">{last()}</span>
         </span>
