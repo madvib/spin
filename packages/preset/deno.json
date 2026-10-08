@@ -52,7 +52,8 @@
     "test": "deno test --allow-read src/ tests/",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "codegen": "deno run -A src/rules/primitives/derive.ts"
+    "codegen": "deno run -A src/rules/primitives/derive.ts",
+    "manifest": "deno run -A src/rules/primitives/derive.ts"
   },
   "lint": {
     "rules": {
