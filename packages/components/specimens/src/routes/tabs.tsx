@@ -1,6 +1,8 @@
-import { createSignal, For, Show } from "solid-js";
-import { SpinTabs } from "../components/SpinTabs.tsx";
+import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import type { TabsItem } from "../elements.ts";
+import type { TabsValueChange } from "../../src/spin-tabs/tabs.machine-def.ts";
+
+type TabsElement = HTMLElement & { items?: readonly TabsItem[] };
 
 const BASE_ITEMS: readonly TabsItem[] = [
   {
@@ -11,7 +13,7 @@ const BASE_ITEMS: readonly TabsItem[] = [
   {
     value: "events",
     label: "How does a selection get back out?",
-    content: "The trigger click bubbles out of the custom element; the wrapper maps it to the item it owns and calls onSelect.",
+    content: "The element emits a value-change CustomEvent; the route listens with addEventListener like any framework would.",
   },
 ];
 
@@ -19,6 +21,7 @@ export default function TabsSpecimen() {
   const [items, setItems] = createSignal<readonly TabsItem[]>(BASE_ITEMS);
   const [last, setLast] = createSignal("nothing selected yet");
   let appended = 0;
+  let el: TabsElement | undefined;
 
   const append = () => {
     appended += 1;
@@ -32,11 +35,24 @@ export default function TabsSpecimen() {
     ]);
   };
 
+  // Down: property writes. Up: the value-change CustomEvent. No wrapper.
+  createEffect(() => {
+    if (el) el.items = items();
+  });
+  createEffect(() => {
+    if (!el) return;
+    const onValueChange = (event: Event) => {
+      setLast((event as CustomEvent<TabsValueChange>).detail.value);
+    };
+    el.addEventListener("value-change", onValueChange);
+    onCleanup(() => el?.removeEventListener("value-change", onValueChange));
+  });
+
   return (
     <section>
       <h2 class="text-xl mb-1">Tabs</h2>
       <p class="text-muted mb-4">
-        Solid owns the items and passes them down; the element's selections bubble back up.
+        Solid owns the items and passes them down; the element's value-change event comes back up.
       </p>
 
       <div class="flex items-center gap-3 mb-4">
@@ -46,9 +62,11 @@ export default function TabsSpecimen() {
         </span>
       </div>
 
-      <SpinTabs
-        items={items()}
-        onSelect={(change) => setLast(change.value)}
+      <spin-tabs
+        ref={(node) => {
+          el = node as TabsElement;
+          el.items = items();
+        }}
       />
 
       <Show when={items().length > BASE_ITEMS.length}>

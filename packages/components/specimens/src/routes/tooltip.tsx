@@ -1,5 +1,3 @@
-import { SpinTooltip } from "../components/SpinTooltip.tsx";
-
 export default function TooltipSpecimen() {
   return (
     <section>
@@ -9,7 +7,7 @@ export default function TooltipSpecimen() {
       </p>
 
       <div class="flex items-center gap-3 mb-4">
-        <SpinTooltip openDelay={200} closeDelay={100} />
+        <spin-tooltip open-delay={200} close-delay={100} />
       </div>
     </section>
   );

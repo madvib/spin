@@ -11,6 +11,32 @@ export {
 } from "./core/signal.ts";
 
 export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
+/**
+ * The machine-def contract: what a `<name>.machine-def.ts` module provides.
+ *
+ * `machine` + `connect` are Zag's pair, opaque here — the runtime never
+ * imports Zag. `events` is the authored out-side: each CustomEvent name maps
+ * to the Zag callback prop that fires it and the detail mapper. The plugin
+ * codegen turns each entry into a machine prop that dispatches on `el`.
+ * A misspelled `on` never fires, so machine-defs annotate against this
+ * rather than widening to `unknown`.
+ */
+export interface MachineEventContract<TDetail = unknown> {
+  /** The Zag callback prop name, e.g. `onValueChange`. */
+  readonly on: string;
+  /**
+   * Maps Zag's callback payload to the event's `detail`. `any` in, typed
+   * out: Zag's payload shapes are per-machine and untyped at this seam,
+   * so the mapper narrows and the event carries the narrowed type.
+   */
+  // deno-lint-ignore no-explicit-any
+  readonly detail: (change: any) => TDetail;
+}
+export interface MachineDef {
+  readonly machine: object;
+  readonly connect: (...args: never[]) => object;
+  readonly events?: Readonly<Record<string, MachineEventContract>>;
+}
 export { createScopeTable, type Handle, type ScopeTable } from "./scope/table.ts";
 
 export { createAction, runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";

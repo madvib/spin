@@ -1,11 +1,14 @@
+import "../../src/elements.ts";
+
 /**
- * Registers the spin custom elements and teaches Solid's JSX about them.
+ * Solid's view of the spin elements: JSX tags, prop types, event payloads.
  *
- * Importing a component's `.html` is what runs its `define()`; the module
- * augmentation is what lets the routes render it as `<spin-accordion>`.
+ * Registration itself is the library's (`src/elements.ts` — one import
+ * defines every element). This module only teaches Solid's JSX the tag
+ * names and the shapes passed across the boundary.
  */
-import "../../src/spin-accordion/spin-accordion.html";
-import "../../src/spin-dialog/spin-dialog.html";
+
+
 
 export interface DialogOpenChange {
   readonly open: boolean;
@@ -21,7 +24,7 @@ declare module "solid-js" {
     }
   }
 }
-import "../../src/spin-popover/spin-popover.html";
+
 
 export interface PopoverProps {
   readonly title?: string;
@@ -51,7 +54,7 @@ declare module "solid-js" {
     }
   }
 }
-import "../../src/spin-menu/spin-menu.html";
+
 
 export interface MenuItem {
   readonly value: string;
@@ -70,7 +73,7 @@ declare module "solid-js" {
     }
   }
 }
-import "../../src/spin-tabs/spin-tabs.html";
+
 
 export interface TabsItem {
   readonly value: string;
@@ -95,9 +98,10 @@ declare module "solid-js" {
     }
   }
 }
-import "../../src/spin-tooltip/spin-tooltip.html";
 
 
+
+export type { AccordionValueChange } from "../../src/spin-accordion/accordion.machine-def.ts";
 export interface AccordionItem {
   readonly value: string;
   readonly label: string;

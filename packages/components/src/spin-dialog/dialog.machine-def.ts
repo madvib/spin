@@ -1,7 +1,24 @@
+import type { MachineDef } from "@spin/runtime";
 import { machine, connect } from "@zag-js/dialog";
 
 /**
- * Machine-def for spin-dialog. Plain `{ machine, connect }` pair —
- * the plugin codegen owns createMachine, props, dispose, values.api.
+ * The dialog's Zag wiring. `open-change` is faithful to Zag's
+ * `onOpenChange({ open })` — the open boolean, nothing derived.
  */
-export const dialog = { machine, connect };
+
+export interface DialogOpenChange {
+  readonly open: boolean;
+}
+
+export const dialog: MachineDef = {
+  machine: machine as unknown as object,
+  connect: connect as unknown as (...args: never[]) => object,
+  events: {
+    "open-change": {
+      on: "onOpenChange",
+      detail: (change: { open: boolean }): DialogOpenChange => ({
+        open: change.open,
+      }),
+    },
+  },
+};

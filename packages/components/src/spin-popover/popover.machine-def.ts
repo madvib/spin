@@ -1,7 +1,24 @@
+import type { MachineDef } from "@spin/runtime";
 import { machine, connect } from "@zag-js/popover";
 
 /**
- * Machine-def for spin-popover. Plain `{ machine, connect }` pair —
- * the plugin codegen owns createMachine, props, dispose, values.api.
+ * The popover's Zag wiring. `open-change` is faithful to Zag's
+ * `onOpenChange({ open })` — the open boolean, nothing derived.
  */
-export const popover = { machine, connect };
+
+export interface PopoverOpenChange {
+  readonly open: boolean;
+}
+
+export const popover: MachineDef = {
+  machine: machine as unknown as object,
+  connect: connect as unknown as (...args: never[]) => object,
+  events: {
+    "open-change": {
+      on: "onOpenChange",
+      detail: (change: { open: boolean }): PopoverOpenChange => ({
+        open: change.open,
+      }),
+    },
+  },
+};

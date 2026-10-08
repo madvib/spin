@@ -1,6 +1,7 @@
-import { createSignal, For, Show } from "solid-js";
-import { SpinAccordion } from "../components/SpinAccordion.tsx";
-import type { AccordionItem } from "../elements.ts";
+import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import type { AccordionItem, AccordionValueChange } from "../elements.ts";
+
+type AccordionElement = HTMLElement & { items?: readonly AccordionItem[] };
 
 const BASE_ITEMS: readonly AccordionItem[] = [
   {
@@ -11,7 +12,7 @@ const BASE_ITEMS: readonly AccordionItem[] = [
   {
     value: "events",
     label: "How does a toggle get back out?",
-    content: "The trigger click bubbles out of the custom element; the wrapper maps it to the item it owns and calls onToggle.",
+    content: "The element emits a value-change CustomEvent; the route listens with addEventListener like any framework would.",
   },
   {
     value: "state",
@@ -24,6 +25,7 @@ export default function AccordionSpecimen() {
   const [items, setItems] = createSignal<readonly AccordionItem[]>(BASE_ITEMS);
   const [last, setLast] = createSignal("nothing toggled yet");
   let appended = 0;
+  let el: AccordionElement | undefined;
 
   const append = () => {
     appended += 1;
@@ -37,11 +39,29 @@ export default function AccordionSpecimen() {
     ]);
   };
 
+  // Down: property writes. Up: the value-change CustomEvent. This is the
+  // whole interop story — no wrapper component, in Solid or anywhere else.
+  createEffect(() => {
+    if (el) el.items = items();
+  });
+  createEffect(() => {
+    if (!el) return;
+    const onValueChange = (event: Event) => {
+      const change = (event as CustomEvent<AccordionValueChange>).detail;
+      const labels = change.value.map(
+        (value) => items().find((item) => item.value === value)?.label ?? value,
+      );
+      setLast(labels.length > 0 ? `${labels.join(", ")} → open` : "all closed");
+    };
+    el.addEventListener("value-change", onValueChange);
+    onCleanup(() => el?.removeEventListener("value-change", onValueChange));
+  });
+
   return (
     <section>
       <h2 class="text-xl mb-1">Accordion</h2>
       <p class="text-muted mb-4">
-        Solid owns the items and passes them down; the element's toggles bubble back up.
+        Solid owns the items and passes them down; the element's value-change event bubbles back up.
       </p>
 
       <div class="flex items-center gap-3 mb-4">
@@ -51,10 +71,11 @@ export default function AccordionSpecimen() {
         </span>
       </div>
 
-      <SpinAccordion
-        items={items()}
-        onToggle={(change) =>
-          setLast(`${change.item.label} → ${change.open ? "open" : "closed"}`)}
+      <spin-accordion
+        ref={(node) => {
+          el = node as AccordionElement;
+          el.items = items();
+        }}
       />
 
       <Show when={items().length > BASE_ITEMS.length}>

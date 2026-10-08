@@ -100,6 +100,12 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // below), so a property write reaches the machine. Coercion stays at
       // build time (`values` starts as `coerceProps(...)`); a live read is
       // signal reads plus a shallow copy, never a per-read JSON.parse.
+      // Events: a machine-def may declare `events` mapping a CustomEvent name
+      // to the Zag callback prop that fires it plus a detail mapper. Each
+      // entry becomes a machine prop — `(details) => el.dispatchEvent(...)` —
+      // so Zag's own callback invocation is what emits. No effect-watching,
+      // no diffing; the mapper is authored in the machine-def beside the
+      // machine whose callback it translates.
       const consumeImports: string[] = [];
       const consumeCalls: string[] = [];
       for (const name of scopeDecls.consume) {
@@ -110,10 +116,11 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           consumeImports.push(`import { ${name} } from ${JSON.stringify(defMod)};`);
           const bridge = `${name}Bridge`;
           consumeCalls.push(
+            `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
             `  const ${bridge} = watch(${name}, () => createMachine(${name}.machine, {\n` +
             `    connect: ${name}.connect,\n` +
             `    normalize: normalizeProps,\n` +
-            `    props: () => { const p = { ...values }; delete p.api; delete p["@@resolve"]; return p; },\n` +
+            `    props: () => { const p = { ...values, ...${bridge}Events }; delete p.api; delete p["@@resolve"]; return p; },\n` +
             `    getRootNode: () => el.getRootNode(),\n` +
             `    id: el.id || undefined,\n` +
             `  }));\n` +
