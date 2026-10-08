@@ -88,7 +88,6 @@ export const CHROME = {
   panel: "mb-8 rounded-lg border border-solid border-border bg-surface p-4",
 } as const;
 
-export const chromeClasses = Object.values(CHROME).join(" ");
 
 /* ──────────────────────────────────────────────────────────────────────────
  * The page's own styles — everything our own utilities cannot say.

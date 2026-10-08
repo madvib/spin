@@ -17,7 +17,8 @@ import { RADIO_EXAMPLES, radioFixtureNote } from "@spin/preset/rules/primitives/
 import { TABLE_EXAMPLES, tableFixtureNote } from "@spin/preset/rules/primitives/table.examples.ts";
 import { TABS_EXAMPLES, tabsFixtureNote } from "@spin/preset/rules/primitives/tabs.examples.ts";
 import type { Demo } from "./demos.ts";
-import { ALL_THEMES, escapeHtml, themeTreeOrParse } from "./uno.ts";
+import { escapeHtml } from "@spin/preset/reference/surface.ts";
+import { ALL_THEMES, themeTreeOrParse } from "./uno.ts";
 
 export interface Example {
   /** What this example is showing. Rendered as the row's label. */
@@ -208,8 +209,6 @@ export const rendered: readonly Fixture[] = [
   DETAILS_FIXTURE,
 ];
 
-export const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 export const find = (id: string) => rendered.find((r) => r.id === id);
 
 /** The catalog's GROUPS, derived from a theme — never typed. */

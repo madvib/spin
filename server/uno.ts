@@ -21,12 +21,3 @@ export function themeTreeOrParse(): TokenTree {
   }
   return themeTree;
 }
-
-/** A label and a declaration are both authored text. */
-export function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}

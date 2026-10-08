@@ -1,7 +1,7 @@
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { buildScale, type BuiltScale, EDGE_AXES, scaleClass } from "@spin/preset/reference/build.ts";
 import { type Demo, DEMO_SAMPLE, demoClass, demoFor, noteFor } from "./demos.ts";
-import { escapeHtml } from "./uno.ts";
+import { escapeHtml } from "@spin/preset/reference/surface.ts";
 import { CHROME } from "./chrome.ts";
 import { mechanismOf, MECHANISMS, CAP } from "./mechanisms.ts";
 import { catalogSections, cell, PREFIX_TARGET, sampleElement } from "./specimen.ts";

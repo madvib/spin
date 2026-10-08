@@ -1,7 +1,8 @@
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
+import { escapeHtml } from "@spin/preset/reference/surface.ts";
 import { starterThemes, supportsDark as themeSupportsDark } from "@spin/theme/themes";
 import { CHROME, STYLE } from "./chrome.ts";
-import { catalogSections, esc, find, rendered } from "./specimen.ts";
+import { catalogSections, find, rendered } from "./specimen.ts";
 import { utilityGroupPage, SCALE_PREFIX } from "./family.ts";
 
 
@@ -50,19 +51,19 @@ function formatMarkup(html: string): string {
 function fixturePage(f: (typeof rendered)[number]): string {
   return `    <header class="${CHROME.pageHead}">
       <div>
-        <h2 class="${CHROME.title}">${esc(f.title)}</h2>
-        <div class="${CHROME.kind}">${esc(f.kind)}</div>
-        <p class="${CHROME.note}">${esc(f.note)}</p>
+        <h2 class="${CHROME.title}">${escapeHtml(f.title)}</h2>
+        <div class="${CHROME.kind}">${escapeHtml(f.kind)}</div>
+        <p class="${CHROME.note}">${escapeHtml(f.note)}</p>
       </div>
     </header>
 ${
       f.examples.map((e) =>
         `    <section class="${CHROME.example}">
-      <h3 class="${CHROME.subhead}">${esc(e.name)}</h3>
+      <h3 class="${CHROME.subhead}">${escapeHtml(e.name)}</h3>
       <div class="${CHROME.rendered}">${e.html}</div>
       <button class="${CHROME.reveal}" type="button" aria-expanded="false">markup <span data-caret>&#9656;</span></button>
       <button class="${CHROME.copy}" type="button" data-copy>copy</button>
-      <pre hidden class="${CHROME.decl}">${esc(formatMarkup(e.html.trim()))}</pre>
+      <pre hidden class="${CHROME.decl}">${escapeHtml(formatMarkup(e.html.trim()))}</pre>
     </section>`
       ).join("\n")
     }`;
@@ -112,7 +113,7 @@ export function shell(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>spin · ${esc(surface === "utilities" ? "Utilities" : (listAll ? "Primitives" : (f?.title ?? "not found")))}</title>
+<title>spin · ${escapeHtml(surface === "utilities" ? "Utilities" : (listAll ? "Primitives" : (f?.title ?? "not found")))}</title>
 <link rel="stylesheet" href="/__uno.css">
 <style>${STYLE}</style>
 </head>
@@ -149,7 +150,7 @@ ${
         `    <a class="${CHROME.railLink}" href="/utilities/${sec.id}"${
           sec.id === group ? ' aria-current="page"' : ""
         }>` +
-        `<span>${esc(sec.title)}</span>` +
+        `<span>${escapeHtml(sec.title)}</span>` +
         `<span class="${CHROME.railCount}">${
           utilitiesFor(sec, catalogSections()).length
         }</span></a>`
@@ -158,8 +159,8 @@ ${
         `    <a class="${CHROME.railLink}" href="/components/${r.id}"${
           r.id === active ? ' aria-current="page"' : ""
         }>` +
-        `<span>${esc(r.title)}</span><span class="${CHROME.railCount}">${
-          esc(r.kind)
+        `<span>${escapeHtml(r.title)}</span><span class="${CHROME.railCount}">${
+          escapeHtml(r.kind)
         }</span></a>`
       )).join("\n")
   }
@@ -315,7 +316,7 @@ for (const b of document.querySelectorAll("[data-copy]")) {
  * link should not carry the reader's choice, and a shared link should not
  * leak it.
  */
-const THEMES = ["default", "neobrut", "console"] as const;
+const THEMES = Object.keys(starterThemes);
 
 /** Whether a theme renders a second way, derived from whether it declares one. */
 function supportsDark(theme: string): boolean {

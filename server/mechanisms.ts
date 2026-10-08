@@ -1,5 +1,5 @@
 import type { Demo } from "./demos.ts";
-import { escapeHtml } from "./uno.ts";
+import { escapeHtml } from "@spin/preset/reference/surface.ts";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE LAYOUT SURFACE — mechanisms, not a matrix.

@@ -202,11 +202,3 @@ const NOT_IN_A_PICTURE: Readonly<Record<string, string>> = {
 export function noteFor(group: string): string | undefined {
   return NOT_IN_A_PICTURE[group];
 }
-
-/**
- * The classes every sample starts from, in our own utilities where they exist —
- * so the chrome around a demonstration is drawn by the surface being
- * demonstrated, and the difference between two samples is the class under test.
- */
-export const DEMO_BASE =
-  "rounded-sm border bg-surface-raised text-text flex items-center justify-center";
