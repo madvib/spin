@@ -111,7 +111,6 @@ function scaleFor(
 const HEADLINE: Record<string, string> = {
   background: "bg-primary",
   "text-color": "text-primary",
-  tones: "tone-accent",
   sizing: "w-1/2",
   divide: "divide-y divide-neutral-300",
   border: "border-4 border-dashed border-primary",

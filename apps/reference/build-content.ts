@@ -5,8 +5,7 @@
  * middleware), so the scanner never sees the markup a page demonstrates: the
  * classes exist only in memory while a response is built. The catalog
  * safelist used to compensate by enumerating utilities, but a catalog cannot
- * name a PRIMITIVE token — `button`, `secondary`, `tone-accent` — because
- * those are produced by the element extractor reading real markup, not by any
+ * name a PRIMITIVE token — `button`, `secondary`, `badge-primary` — because
  * utility list. So the pages are rendered HERE, ahead of the scanner, and the
  * scanner reads the content it would otherwise never see.
  *

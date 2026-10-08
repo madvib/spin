@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
+import solid from "vite-plugin-solid";
 import UnoCSS from "@unocss/vite";
 import presetIcons from "@unocss/preset-icons";
 import { spinPreset } from "../../packages/preset/src/index.ts";
@@ -20,6 +21,7 @@ const here = import.meta.dirname!;
 
 export default defineConfig({
   plugins: [
+    solid(),
     UnoCSS({
       presets: [
         presetIcons({ collections: { lucide } as never }),

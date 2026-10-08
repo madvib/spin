@@ -327,26 +327,6 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
   );
 });
 
-Deno.test("two tone utilities are each honoured in one document", async () => {
-  // Breaks if a tone utility is dropped or shadowed, or if two tone rules
-  // collapse into one — the collision that made a component's tones invisible.
-  const result = await generate(
-    '<button class="tone-accent">Go</button>' +
-      '<card class="tone-danger">Body</card>',
-  );
-  for (const tone of ["tone-accent", "tone-danger"]) {
-    const info = result.matched.get(tone);
-    assert(
-      info !== undefined && info.data.length > 0,
-      `${tone} must emit in a document that uses it`,
-    );
-    const shim = fakeElement("div", [tone]);
-    assert(
-      selectorsFor(result, tone).some((selector) => shim.matches(selector)),
-      `${tone} must claim its class`,
-    );
-  }
-});
 
 Deno.test("the motion clamp ships whenever an animated component does", async () => {
   // Breaks if the motion policy preflight is removed, or made conditional on

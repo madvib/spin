@@ -4,5 +4,12 @@
     "dev": "deno task content && vite dev",
     "build": "deno task content && vite build",
     "preview": "vite preview"
+  },
+  "imports": {
+    "solid-js": "npm:solid-js@^1.9.3"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "solid-js"
   }
 }

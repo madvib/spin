@@ -17,7 +17,7 @@ import {
   WHITESPACE_NAMES,
   WORD_BREAK_NAMES,
 } from "./rules/text.ts";
-import { toneNames } from "./rules/tones.ts";
+
 import { TRANSITION_NAMES } from "./rules/transitions.ts";
 import { TYPOGRAPHY_NAMES } from "./rules/typography.ts";
 import { FRACTIONS, INSET_KEYWORDS } from "./utils/vocabulary.ts";
@@ -215,11 +215,6 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       id: "divide",
       title: "Divide",
       utilities: [...divideNames(Object.keys(theme.colors ?? {}))],
-    },
-    {
-      id: "tones",
-      title: "Tones",
-      utilities: toneNames(),
     },
     {
       id: "variants",
