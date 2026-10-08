@@ -4,7 +4,7 @@
  * Run explicitly (not in default `deno task test`):
  *   cd packages/components && deno task e2e:popover
  *
- * Builds the demo, serves dist, drives real Chromium via Playwright.
+ * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * Requires the Playwright browser once: `bunx playwright install chromium`.
  * Fails loud naming the step; silent on success.
  */
@@ -15,9 +15,9 @@ import { strict as assert } from "node:assert";
 import { chromium, type Browser } from "npm:playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const DEMO = "packages/components/demo";
+const SPECIMENS = "packages/components/specimens";
 const PORT = 5200;
-const URL = `http://127.0.0.1:${PORT}/spin-popover.html`;
+const URL = `http://127.0.0.1:${PORT}/popover`;
 
 /** Runs a named step, rethrowing any failure prefixed with the step name. */
 async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -28,10 +28,10 @@ async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Builds the demo from a clean checkout — the stranger's first step. */
+/** Builds the specimens app from a clean checkout. */
 async function buildDemo(): Promise<void> {
   const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", DEMO],
+    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
     cwd: ROOT,
     stdout: "piped",
     stderr: "piped",
@@ -50,7 +50,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
     args: [
       join(ROOT, "node_modules/vite/bin/vite.js"),
       "preview",
-      DEMO,
+      SPECIMENS,
       "--port",
       String(PORT),
       "--strictPort",
@@ -97,11 +97,21 @@ Deno.test("spin-popover e2e", async () => {
       page.locator(`#${id} [data-part="content"]`).getAttribute("data-state");
 
     await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector('#controlled [data-part="content"]', {
-        state: "attached",
-        timeout: 5000,
-      });
+      // Try deep-link first; fall back to navigating home and clicking the link.
+      try {
+        await page.goto(URL, { waitUntil: "load" });
+        await page.waitForSelector('#controlled [data-part="content"]', {
+          state: "attached",
+          timeout: 3000,
+        });
+      } catch {
+        await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: "load" });
+        await page.click('a[href="/popover"]');
+        await page.waitForSelector('#controlled [data-part="content"]', {
+          state: "attached",
+          timeout: 5000,
+        });
+      }
     });
 
     await step("renders both popovers closed", async () => {

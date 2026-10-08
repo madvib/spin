@@ -4,7 +4,7 @@
  * Run explicitly (not in default `deno task test`):
  *   cd packages/components && deno task e2e
  *
- * Builds the demo, serves dist, drives real Chromium via Playwright.
+ * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * Requires the Playwright browser once: `bunx playwright install chromium`.
  * Fails loud naming the step; silent on success.
  */
@@ -15,9 +15,9 @@ import { strict as assert } from "node:assert";
 import { chromium, type Browser } from "npm:playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const DEMO = "packages/components/demo";
+const SPECIMENS = "packages/components/specimens";
 const PORT = 5199;
-const URL = `http://127.0.0.1:${PORT}/spin-accordion.html`;
+const URL = `http://127.0.0.1:${PORT}/accordion`;
 
 /** Runs a named step, rethrowing any failure prefixed with the step name. */
 async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -28,10 +28,10 @@ async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Builds the demo from a clean checkout — the stranger's first step. */
+/** Builds the specimens app from a clean checkout. */
 async function buildDemo(): Promise<void> {
   const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", DEMO],
+    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
     cwd: ROOT,
     stdout: "piped",
     stderr: "piped",
@@ -50,7 +50,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
     args: [
       join(ROOT, "node_modules/vite/bin/vite.js"),
       "preview",
-      DEMO,
+      SPECIMENS,
       "--port",
       String(PORT),
       "--strictPort",
@@ -93,36 +93,45 @@ Deno.test("spin-accordion e2e", async () => {
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
     await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector('spin-accordion [data-part="item"]', {
-        timeout: 5000,
-      });
+      // Try deep-link first; fall back to navigating home and clicking the link.
+      try {
+        await page.goto(URL, { waitUntil: "load" });
+        await page.waitForSelector('spin-accordion [data-part="item"]', {
+          timeout: 3000,
+        });
+      } catch {
+        await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: "load" });
+        await page.click('a[href="/accordion"]');
+        await page.waitForSelector('spin-accordion [data-part="item"]', {
+          timeout: 5000,
+        });
+      }
     });
 
     const items = page.locator('spin-accordion [data-part="item"]');
     const triggers = page.locator('spin-accordion [data-part="item-trigger"]');
 
-    await step("renders two labelled items", async () => {
-      assert.equal(await items.count(), 2, "expected 2 accordion items");
+    await step("renders three labelled items", async () => {
+      assert.equal(await items.count(), 3, "expected 3 accordion items");
       assert.equal(
         await triggers.nth(0).locator("span").first().textContent(),
-        "First",
-        "first item label should be 'First'",
+        "Who owns the data?",
+        "first item label should match the route",
       );
       assert.equal(
         await triggers.nth(1).locator("span").first().textContent(),
-        "Second",
-        "second item label should be 'Second'",
+        "How does a toggle get back out?",
+        "second item label should match the route",
       );
     });
 
-    await step("starts closed,closed", async () => {
+    await step("starts closed,closed,closed", async () => {
       assert.deepEqual(
         await items.evaluateAll((els) =>
           els.map((el) => el.getAttribute("data-state"))
         ),
-        ["closed", "closed"],
-        "initial data-state should be closed,closed",
+        ["closed", "closed", "closed"],
+        "initial data-state should be all closed",
       );
     });
 
@@ -130,13 +139,13 @@ Deno.test("spin-accordion e2e", async () => {
       await triggers.nth(1).click();
     });
 
-    await step("swaps to closed,open", async () => {
+    await step("swaps to closed,open,closed", async () => {
       assert.deepEqual(
         await items.evaluateAll((els) =>
           els.map((el) => el.getAttribute("data-state"))
         ),
-        ["closed", "open"],
-        "after click data-state should be closed,open",
+        ["closed", "open", "closed"],
+        "after click data-state should be closed,open,closed",
       );
     });
 

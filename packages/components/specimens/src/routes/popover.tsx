@@ -28,6 +28,22 @@ export default function PopoverSpecimen() {
           last: <span id="last-toggle">{last()}</span>
         </span>
       </div>
+
+      {/* E2E fixtures: raw elements with stable ids. `controlled` takes an
+          externally-written `open` property; `uncontrolled` runs on its
+          own trigger. See tests/popover.e2e.ts. */}
+      <div class="flex items-center gap-3">
+        <spin-popover
+          id="controlled"
+          title="Controlled title"
+          description="Controlled description."
+        />
+        <spin-popover
+          id="uncontrolled"
+          title="Uncontrolled title"
+          description="Uncontrolled description."
+        />
+      </div>
     </section>
   );
 }
