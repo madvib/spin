@@ -60,7 +60,11 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
     primary: t?.colors?.["primary"],
     warning: t?.colors?.["semantic-warning"],
     error: t?.colors?.["semantic-error"],
-    duration: t?.motionDuration?.["fast"],
+    // A sweep is watched for the length of a load, not clicked through:
+    // the motion ladder's steps are response times (150/250/400ms), and a
+    // 150ms sweep is a strobe. The period is stated, like the skeleton's
+    // dim floor, because no scale owns a loader's cycle.
+    sweep: "1.6s",
   };
 }
 
@@ -150,9 +154,9 @@ function barRule(progress: string): Rule {
           "background-size": "300% 100%",
           "background-repeat": "no-repeat",
         };
-        const motion = t.duration === undefined
-          ? {}
-          : { animation: `progress-indeterminate ${t.duration} linear infinite` };
+        const motion = {
+          animation: `progress-indeterminate ${t.sweep} linear infinite`,
+        };
 
         yield {
           [ctx.symbols.selector]: () => `${progress}:indeterminate::-webkit-progress-bar`,
@@ -220,9 +224,7 @@ function indeterminateRule(progress: string): Rule[] {
             "linear-gradient(90deg, var(--progress-sweep-from) 0 30%, var(--progress-sweep-to) 50% 70%, var(--progress-sweep-from) 90% 100%)",
           "background-size": "300% 100%",
           "background-repeat": "no-repeat",
-          ...(t.duration !== undefined
-            ? { animation: `progress-indeterminate ${t.duration} linear infinite` }
-            : {}),
+          animation: `progress-indeterminate ${t.sweep} linear infinite`,
         };
         const band = {};
         yield {
@@ -279,12 +281,10 @@ function ariaBusyRule(): Rule {
         ...(t.height !== undefined ? { height: t.height } : {}),
         ...(t.primary !== undefined ? { "background-color": t.primary } : {}),
       };
-      if (t.duration !== undefined) {
-        Object.assign(bar, {
-          transformOrigin: "left",
-          animation: `progress-indeterminate ${t.duration} linear infinite`,
-        });
-      }
+      Object.assign(bar, {
+        transformOrigin: "left",
+        animation: `progress-indeterminate ${t.sweep} linear infinite`,
+      });
       yield {
         [ctx.symbols.selector]: () => '[aria-busy="true"]::before',
         ...bar,

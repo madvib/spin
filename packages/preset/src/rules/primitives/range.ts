@@ -51,6 +51,7 @@ function rangeRule(): Rule {
       const border = t?.colors["border"];
       const borderWidth = t?.borderWidth?.["width"];
       const primary = t?.colors["primary"];
+      const shadowSm = t?.shadow?.["sm"];
       const full = t?.radius["full"];
       const focusWidth = t?.focusWidth?.["width"];
       const focusRing = t?.colors["focus-ring"];
@@ -111,16 +112,17 @@ function rangeRule(): Rule {
         "-moz-appearance": "none",
       };
 
-      // The thumb: the primary tone, one step above the track, fully round.
-      // Primary rather than the border-strong edge colour, because the thumb
-      // IS the value — the same tone a progress fill and a checked control
-      // spend, not a hairline's grey.
+      // The thumb: the primary tone, one step above the track, fully round,
+      // wearing the theme's own physical language — a soft lift, a hard
+      // offset edge or a phosphor ring — so the value's handle reads as an
+      // object the theme made rather than a decal on the page.
       const thumb = {
         appearance: "none",
         ...(thumbSize !== undefined
           ? { width: thumbSize, height: thumbSize }
           : {}),
         ...(primary !== undefined ? { "background-color": primary } : {}),
+        ...(shadowSm !== undefined ? { "box-shadow": shadowSm } : {}),
         ...(full !== undefined ? { "border-radius": full } : {}),
       };
       yield {
