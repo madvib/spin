@@ -139,3 +139,36 @@ export function bindChecked(el: HTMLInputElement, source: Writable<boolean>): Bi
 }
 
 
+
+/**
+ * Light-DOM transclusion. At build start the element's existing children are
+ * moved out and grouped by their `slot` attribute (`""` = default). A
+ * `<slot name="x">` in markup resolves to its group; unmatched groups are
+ * dropped (native slot behavior — unassigned nodes render nowhere).
+ *
+ * Why manual instead of shadow DOM: Zag measures light DOM, the preset
+ * styles light DOM, and every selector in the system assumes it. Shadow
+ * would isolate correctly and break everything else.
+ */
+export function projectSlots(el: HTMLElement): Map<string, Node[]> {
+  const groups = new Map<string, Node[]>();
+  for (const node of [...el.childNodes]) {
+    const name = node instanceof Element ? node.getAttribute("slot") ?? "" : "";
+    const group = groups.get(name);
+    if (group !== undefined) group.push(node);
+    else groups.set(name, [node]);
+    el.removeChild(node);
+  }
+  return groups;
+}
+
+/**
+ * Places assigned nodes (moved, never cloned — state and listeners travel)
+ * before `anchor`, or the fallback nodes when nothing was assigned.
+ */
+export function placeSlot(host: Node, anchor: Comment, assigned: Node[] | undefined, fallback: Node[]): void {
+  const nodes = assigned !== undefined && assigned.length > 0 ? assigned : fallback;
+  for (const n of nodes) {
+    if (n.parentNode !== host || n.nextSibling !== anchor) host.insertBefore(n, anchor);
+  }
+}

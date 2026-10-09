@@ -100,6 +100,25 @@ export function emit(ir: ComponentIr): EmitOutput {
         out.push(`${pad(depth)}}`);
         continue;
       }
+      if (node.tag === "slot") {
+        // A transclusion point. `name` selects the assigned group from the
+        // pre-projected `values["@@slots"]` map; the element's own children
+        // are fallback content when nothing was assigned. Assigned nodes are
+        // moved (never cloned) by placeSlot, which also owns re-placement on
+        // update — hence pushed, unlike bindAttr/on.
+        const nameAttr = node.attrs.find((a) => a.name === "name");
+        const name = nameAttr !== undefined && nameAttr.value.kind === "static" ? nameAttr.value.value : "";
+        const anchor = `s${seq++}`;
+        const fragId = `sf${seq++}`;
+        const fb = `f${seq++}`;
+        out.push(`${pad(depth)}{ const ${anchor} = document.createComment("slot"); ${host}.appendChild(${anchor});`);
+        out.push(`${pad(depth + 1)}const ${fragId} = document.createDocumentFragment();`);
+        for (const line of emitNodes(node.children, depth + 1, fragId, parts, bound)) out.push(line);
+        out.push(`${pad(depth + 1)}const ${fb} = [...${fragId}.childNodes];`);
+        out.push(`${pad(depth + 1)}${parts}.push(() => placeSlot(${host}, ${anchor}, (values["@@slots"] || new Map()).get(${JSON.stringify(name)}), ${fb}));`);
+        out.push(`${pad(depth)}}`);
+        continue;
+      }
       const el = `e${seq++}`;
       if (node.tag === "host") {
         out.push(`${pad(depth)}{ const ${el} = _host;`);
@@ -111,7 +130,6 @@ export function emit(ir: ComponentIr): EmitOutput {
           out.push(`${pad(depth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
         } else {
           bindings++;
-          // bindAttr owns its own effect and returns void: pushing it would
           // leave undefined in the update list and crash update() on sync.
           out.push(`${pad(depth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${scopeExpr(attr.value.expr, bound)}));`);
         }
@@ -141,7 +159,7 @@ export function emit(ir: ComponentIr): EmitOutput {
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText as _bt, bindFor, text, bindActionProps, bindSpread } from "@spin/runtime";`,
+    `import { runAction, on, bindAttr, bindText as _bt, bindFor, text, bindActionProps, bindSpread, placeSlot } from "@spin/runtime";`,
     `void _bt;`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,

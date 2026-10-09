@@ -44,7 +44,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const { js } = emit(ir);
       const scopeDecls = parseScope(code);
       const body = js
-        .replace(/^import .*$/m, 'import { runAction, on, bindAttr, bindText, bindFor, text, bindActionProps, bindSpread } from "@spin/runtime";')
+        .replace(/^import .*$/m, 'import { runAction, on, bindAttr, bindText, bindFor, text, bindActionProps, bindSpread, placeSlot } from "@spin/runtime";')
         .replace(/^void _bt;$/m, "")
         .replace(/export function create\(ctx, actions\) \{/, "export function create(actions, values) {")
         .replace(/void ctx;\n/, "");
@@ -125,8 +125,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
             `  const ${bridge} = watch(${name}, () => createMachine(${name}.machine, {\n` +
             `    collection: ${name}.collection,\n` +
             `    connect: ${name}.connect,\n` +
-            `    normalize: normalizeProps,\n` +
-            `    props: () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; return p; },\n` +
+            `    props: () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; return p; },\n` +
             `    getRootNode: () => el.getRootNode(),\n` +
             `    id: el.id || uniqueId(${JSON.stringify(tag)}),\n` +
             `  }));\n` +
@@ -141,8 +140,8 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
       const runtimeImport = hasConsume
-        ? `import { define, coerceProps, own, uniqueId } from "@spin/runtime";`
-        : `import { define, coerceProps } from "@spin/runtime";`;
+        ? `import { define, coerceProps, own, uniqueId, projectSlots } from "@spin/runtime";`
+        : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
       const zagImport = hasConsume
         ? `import { createMachine, normalizeProps } from "@spin/runtime/zag";`
         : "";
@@ -186,6 +185,10 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           `  const values = { ...initial };`,
           ...seedProps,
           ...consumeCalls,
+          // Light-DOM children are projected BEFORE create(): the markup's
+          // `<slot>` points resolve against this map. Reserved like
+          // `@@resolve` — never a machine prop (see the deletes above).
+          `  values["@@slots"] = projectSlots(el);`,
           `  const { nodes } = create(actions, values, el);`,
           `  for (const node of nodes) el.appendChild(node);`,
           `} });`,

@@ -66,6 +66,8 @@ export {
   bindProp,
   bindText,
   bindValue,
+  placeSlot,
+  projectSlots,
   type Binding,
   type Writable,
 } from "./directives/bind.ts";

@@ -14,6 +14,7 @@ import {
   define,
   on,
   own,
+  projectSlots,
   runAction,
   text,
 } from "@spin/runtime";
@@ -39,6 +40,7 @@ const RUNTIME = {
   text,
   bindActionProps,
   bindSpread,
+  projectSlots,
 };
 
 const SOURCE = `<scope>props={ items: { label: string }[] = [] }</scope>

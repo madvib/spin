@@ -76,7 +76,9 @@ export default function AccordionSpecimen() {
           el = node as AccordionElement;
           el.items = items();
         }}
-      />
+      >
+        <div slot="header" class="px-4 py-2 text-sm font-medium text-text">Slotted header from the consumer</div>
+      </spin-accordion>
 
       <Show when={items().length > BASE_ITEMS.length}>
         <ul class="mt-4 text-sm text-muted">
