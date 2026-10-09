@@ -62,8 +62,7 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     // hairline a row of parts sits at. A tight row reads as one ragged
     // strip with a seam in it, which is the opposite of what a comparison
     // of sizes is for.
-    html:
-      `<div class="flex flex-wrap items-center gap-8">
+    html: `<div class="flex flex-wrap items-center gap-8">
           <card class="card-narrow">
             <card-header>
               <card-title>Narrow</card-title>

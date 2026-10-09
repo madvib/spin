@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf, type ThemeContext } from "../../utils/lookup.ts";
+import { type ThemeContext, themeOf } from "../../utils/lookup.ts";
 import { type Entry, spend, spentEntries } from "./shared.ts";
 
 /**
@@ -97,10 +97,14 @@ const CHARACTER_STEPS: readonly CharacterStep[] = [
 ];
 
 /** The character step the base rule spends — all but the hover shadow. */
-const BASE_CHARACTER = CHARACTER_STEPS.filter((step) => step !== "shadow-hover");
+const BASE_CHARACTER = CHARACTER_STEPS.filter((step) =>
+  step !== "shadow-hover"
+);
 
 /** The character step the hover rule spends. */
-const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow-hover");
+const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) =>
+  step === "shadow-hover"
+);
 
 /** The resting shadow step, re-spent by the active and disabled rules. */
 const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
@@ -149,9 +153,14 @@ const VARIANTS: Record<PaintedVariant, {
       border: "none",
       padding: "0",
       "box-shadow": "none",
-      color: "inherit",
-      font: "inherit",
       cursor: "pointer",
+      // No `font: inherit`, no `color: inherit`: the selector is
+      // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
+      // single class utility — the opt-out would freeze the ink and the face
+      // of the very control that opts out to paint itself. Dropping them
+      // leaves the paint-free base (no fill, no edge, no shadow, no padding)
+      // and lets utilities decide the rest; an author who wants the page's
+      // ink spells `text-text`.
     }),
   },
   secondary: {

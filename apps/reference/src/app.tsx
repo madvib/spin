@@ -6,8 +6,8 @@ import { starterThemes } from "@spin/theme/themes";
 import {
   FAMILIES,
   FAMILY_ICONS,
-  PRIMITIVES,
   PRIMITIVE_ICONS,
+  PRIMITIVES,
 } from "./primitives.ts";
 import { UtilitiesPage } from "./utilities.tsx";
 
@@ -98,6 +98,13 @@ const SURFACE_LINK =
 const RAIL_FAMILY =
   "mt-3 mb-1 flex items-center gap-1 px-2 text-xs font-semibold uppercase tracking-wide text-text-muted";
 
+/**
+ * The glyph beside a page title: the small step in ink, so it supports the
+ * heading rather than competing with it. Sized in `em` by the theme, like
+ * every other glyph.
+ */
+const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
+
 const RAIL_HEAD = "mb-2 text-xs font-semibold text-text-muted";
 
 function ExampleSection(props: {
@@ -178,7 +185,7 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
           <header class="mb-8 flex items-start justify-between gap-4">
             <div class="flex items-start gap-2">
               <i
-                class={`${PRIMITIVE_ICONS[f().id] ?? ""} icon-md mt-1 shrink-0 text-text-muted`}
+                class={`${PRIMITIVE_ICONS[f().id]} ${TITLE_ICON}`}
               />
               <div>
                 <h2 class="m-0 text-2xl font-bold tracking-tight">
