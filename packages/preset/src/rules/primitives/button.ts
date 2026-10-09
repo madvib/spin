@@ -194,6 +194,10 @@ const VARIANTS: Record<PaintedVariant, {
     selector: `${BUTTON}.outline, ${BUTTON}[variant~="outline"]`,
     body: (ctx) => ({
       "background-color": "transparent",
+      // An outline is an edge and nothing else: no fill, so no shadow — the
+      // same reason ghost spends none. Without this the theme's shadow hangs
+      // off an empty box (a hard offset in neobrut).
+      "box-shadow": "none",
       "border-color": themeOf(ctx)?.colors["accent"],
       color: themeOf(ctx)?.colors["primary"],
     }),

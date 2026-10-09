@@ -17,6 +17,7 @@ const STRUCTURAL: Record<string, true> = {
   "flex-wrap": true,
   "items-center": true,
   "gap-2": true,
+  "gap-8": true,
   block: true,
   "w-full": true,
 };

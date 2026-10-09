@@ -57,8 +57,14 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
   },
   {
     name: "Sizes",
-    html: row(
-      `          <card class="card-narrow">
+    // The size variants are three objects, so they are spaced as three
+    // objects: the wrapper's step is the largest the scale owns, not the
+    // hairline a row of parts sits at. A tight row reads as one ragged
+    // strip with a seam in it, which is the opposite of what a comparison
+    // of sizes is for.
+    html:
+      `<div class="flex flex-wrap items-center gap-8">
+          <card class="card-narrow">
             <card-header>
               <card-title>Narrow</card-title>
               <card-description>24rem — a column card</card-description>
@@ -78,8 +84,8 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
               <card-description>48rem — a spanning card</card-description>
             </card-header>
             <card-content><p>Dashboards, tables, galleries.</p></card-content>
-          </card>`,
-    ),
+          </card>
+        </div>`,
   },
   {
     name: "Header only",

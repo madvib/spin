@@ -54,7 +54,7 @@ const MARKUP_TOGGLE =
 
 /** The copy, within the revealed block: it acts on the code beside it. */
 const COPY_BUTTON =
-  "absolute end-2 top-2 inline-flex items-center gap-1 rounded-md border border-solid border-border bg-surface px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "absolute end-2 top-2 inline-flex items-center gap-1 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /**
  * A theme or mode chip. Selected is a QUIET state — raised surface, strong
@@ -82,10 +82,21 @@ function Chip(props: { label: string; active: boolean; onPick: () => void }) {
 }
 
 const RAIL_LINK =
-  "flex items-center justify-between gap-2 rounded-md bg-transparent px-2 py-1 text-sm text-text-muted hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex items-center gap-2 rounded-md bg-transparent px-2 py-1 text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
 
+/**
+ * The utilities/primitives switch. Unselected is a hole — transparent edge,
+ * transparent fill, muted ink — so the selected one is the only thing drawn:
+ * raised surface, strong edge, full ink and a step of weight. A hover that
+ * painted the text token would put text on text in console, where that token
+ * is a mint slab rather than ink, so hover moves the edge only.
+ */
 const SURFACE_LINK =
-  "flex-1 justify-center rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted hover:border-border-strong hover:text-text aria-[current]:border-border-strong aria-[current]:text-text";
+  "flex-1 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+
+/** A family header in the rail: the glyph beside the name it heads. */
+const RAIL_FAMILY =
+  "mt-3 mb-1 flex items-center gap-1 px-2 text-xs font-semibold uppercase tracking-wide text-text-muted";
 
 const RAIL_HEAD = "mb-2 text-xs font-semibold text-text-muted";
 
@@ -136,7 +147,7 @@ function ExampleSection(props: {
           aria-expanded={open()}
           class={MARKUP_TOGGLE}
         >
-          <i class="i-lucide-code-xml icon-sm" />
+          <i class="i-lucide-code-xml icon-md" />
           markup
         </button>
       </div>
@@ -144,12 +155,12 @@ function ExampleSection(props: {
         <div class="relative mt-4">
           <pre
             ref={pre}
-            class="max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 pe-20 font-mono text-xs text-text-muted shadow-sm"
+            class="max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted shadow-sm"
           >
             {props.html.trim()}
           </pre>
           <button type="button" onClick={copy} class={COPY_BUTTON}>
-            <i class="i-lucide-copy icon-sm" />
+            <i class="i-lucide-copy icon-md" />
             {copied() ? "copied" : "copy"}
           </button>
         </div>
@@ -200,6 +211,16 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
 const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number]> = Object
   .fromEntries(PRIMITIVES.map((p) => [p.id, p]));
 
+/**
+ * The family's members, alphabetical by the title the rail spells: the
+ * grouping is the index's, and within a family a reader scans a sorted list.
+ */
+function membersOf(family: (typeof FAMILIES)[number]) {
+  return [...family.members].sort((a, b) =>
+    PAGE_BY_ID[a.id].title.localeCompare(PAGE_BY_ID[b.id].title)
+  );
+}
+
 function LandingPage() {
   return (
     <>
@@ -235,7 +256,7 @@ function LandingPage() {
                         type="button"
                         onClick={() => (location.hash =
                           `#/components/${member.id}`)}
-                        class="flex w-full items-center gap-4 rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-left hover:border-border-strong"
+                        class="flex w-full items-center gap-4 rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-left shadow-sm hover:border-border-strong"
                       >
                         <span class="w-32 shrink-0 text-sm text-text">
                           {page.title}
@@ -278,7 +299,7 @@ export default function App() {
     return parts[2] || SECTIONS[0]?.id || "";
   });
   return (
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen bg-surface">
       <nav class="sticky top-0 flex max-h-screen w-1/4 shrink-0 flex-col gap-1 self-start overflow-y-auto border-e border-solid border-border p-4">
         <h1 class="m-0 text-2xl font-bold tracking-tight">spin</h1>
         <div class="mb-4 flex flex-wrap items-center gap-1 rounded-md border border-solid border-border p-1">
@@ -326,16 +347,29 @@ export default function App() {
         <Show
           when={route().startsWith("/utilities")}
           fallback={
-            <For each={PRIMITIVES}>
-              {(r) => (
-                <button
-                  type="button"
-                  onClick={() => (location.hash = `#/components/${r.id}`)}
-                  aria-current={route() === `/components/${r.id}` || undefined}
-                  class={RAIL_LINK}
-                >
-                  {r.title}
-                </button>
+            <For each={FAMILIES}>
+              {(family) => (
+                <div>
+                  <div class={RAIL_FAMILY}>
+                    <i class={`${FAMILY_ICONS[family.title]} icon-md`} />
+                    {family.title}
+                  </div>
+                  <For each={membersOf(family)}>
+                    {(member) => (
+                      <button
+                        type="button"
+                        onClick={() => (location.hash =
+                          `#/components/${member.id}`)}
+                        aria-current={route() === `/components/${member.id}` ||
+                          undefined}
+                        class={RAIL_LINK}
+                      >
+                        <i class={`${PRIMITIVE_ICONS[member.id]} icon-md`} />
+                        {PAGE_BY_ID[member.id].title}
+                      </button>
+                    )}
+                  </For>
+                </div>
               )}
             </For>
           }
