@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import type { DialogOpenChange } from "../../src/spin-dialog/dialog.machine-def.ts";
+import type { DialogOpenChange } from "../../../src/spin-dialog/dialog.machine-def.ts";
 
 export default function DialogSpecimen() {
   const [open, setOpen] = createSignal(false);

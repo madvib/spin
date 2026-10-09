@@ -1,5 +1,5 @@
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
-import type { CarouselPageChange } from "../../src/spin-carousel/carousel.machine-def.ts";
+import type { CarouselPageChange } from "../../../src/spin-carousel/carousel.machine-def.ts";
 
 export interface CarouselItem {
   readonly value: string;

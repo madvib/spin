@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import type { SliderValueChange } from "../../src/spin-slider/slider.machine-def.ts";
+import type { SliderValueChange } from "../../../src/spin-slider/slider.machine-def.ts";
 
 type SliderElement = HTMLElement & {
   label?: string;
@@ -20,7 +20,8 @@ export default function SliderSpecimen() {
     if (!el) return;
     const onValueChange = (event: Event) => {
       const detail = (event as CustomEvent<SliderValueChange>).detail;
-      setValue(detail.value[0]);
+      const next = detail.value[0];
+      if (next !== undefined) setValue(next);
     };
     el.addEventListener("value-change", onValueChange);
     onCleanup(() => el?.removeEventListener("value-change", onValueChange));
@@ -40,7 +41,7 @@ export default function SliderSpecimen() {
       </div>
 
       <spin-slider
-        ref={(node) => {
+        ref={(node: HTMLElement) => {
           el = node as SliderElement;
           el.label = "Volume";
           el.defaultValue = 50;

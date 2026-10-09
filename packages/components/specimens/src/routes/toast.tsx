@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import type { ToastItem } from "../../src/spin-toast/toast.machine-def.ts";
+import type { ToastItem } from "../../../src/spin-toast/toast.machine-def.ts";
 
 type ToastElement = HTMLElement & { items?: ToastItem[] };
 

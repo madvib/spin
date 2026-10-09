@@ -38,6 +38,27 @@ to build from, and oracles that mechanically verify the result.
   `.agents/specs/` (git-ignored). Code, tests, and `README.md` per package are
   the only authored files.
 
+### Comment etiquette
+
+Comments carry **invariants the code cannot state**: why an ordering matters,
+what a workaround compensates for, the contract a caller must hold. Nothing
+else. Specifically **not in the repo**:
+
+- **Strategy and rationale** — why the architecture is shaped this way, what
+  was considered and rejected, how the pieces relate as a system. That lives
+  in the untracked design doc (`.local/PRINCIPLES.md`; `.agents/specs/` for
+  scratch work), never as a file-header essay.
+- **Changelogs and history** — "fixed the X bug", "previously this did Y",
+  issue numbers, dates. Git records what changed; a comment explaining that a
+  line used to be different is stale the moment it is written.
+- **Narration of the obvious** — restating what the next line does, section
+  banners over three lines of code, tutorial asides.
+- **Cross-file signposting** — "see other-file.ts for how this is used".
+  Links rot; the type system and tests carry the contract.
+
+Terse, attached to the code it constrains, and load-bearing. If deleting a
+comment would not mislead a reader, delete it.
+
 ## Comments
 
 Terse and professional. A comment describes the thing it annotates: a

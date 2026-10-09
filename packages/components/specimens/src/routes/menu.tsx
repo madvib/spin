@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
 import type { MenuItem } from "../elements.ts";
-import type { MenuSelect } from "../../src/spin-menu/menu.machine-def.ts";
+import type { MenuSelect } from "../../../src/spin-menu/menu.machine-def.ts";
 
 type MenuElement = HTMLElement & { items?: readonly MenuItem[] };
 

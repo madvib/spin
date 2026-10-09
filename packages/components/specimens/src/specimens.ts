@@ -1,5 +1,8 @@
 import type { JSX } from "solid-js";
 import Accordion from "./routes/accordion.tsx";
+import SideBySide from "./routes/side-by-side.tsx";
+import TreeViewFsm from "./routes/tree-view-fsm.tsx";
+import DialogFsm from "./routes/dialog-fsm.tsx";
 import Popover from "./routes/popover.tsx";
 import Menu from "./routes/menu.tsx";
 import Tabs from "./routes/tabs.tsx";
@@ -30,6 +33,27 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "Disclosure rows driven by the Zag accordion machine.",
     path: "/accordion",
     component: Accordion,
+  },
+  {
+    id: "side-by-side",
+    title: "Zag vs robot3",
+    blurb: "Same accordion markup and events, two interpreters, running together.",
+    path: "/side-by-side",
+    component: SideBySide,
+  },
+  {
+    id: "tree-view-fsm",
+    title: "Tree view (fsm)",
+    blurb: "The hard Zag machine, ported to the forked FSM: per-node state, 30 events, keyboard nav.",
+    path: "/tree-view-fsm",
+    component: TreeViewFsm,
+  },
+  {
+    id: "dialog-fsm",
+    title: "Dialog (fsm + actions)",
+    blurb: "Two-state machine; focus-trap, dismissable, and scroll-lock as stdlib actions.",
+    path: "/dialog-fsm",
+    component: DialogFsm,
   },
   {
     id: "popover",

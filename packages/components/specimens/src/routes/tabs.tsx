@@ -1,6 +1,6 @@
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import type { TabsItem } from "../elements.ts";
-import type { TabsValueChange } from "../../src/spin-tabs/tabs.machine-def.ts";
+import type { TabsValueChange } from "../../../src/spin-tabs/tabs.machine-def.ts";
 
 type TabsElement = HTMLElement & { items?: readonly TabsItem[] };
 

@@ -42,6 +42,9 @@ declare module "solid-js" {
     interface IntrinsicElements {
       "spin-popover": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        class?: string;
         title?: string;
         description?: string;
         defaultOpen?: boolean;
@@ -131,9 +134,38 @@ declare module "solid-js" {
     interface IntrinsicElements {
       "spin-accordion": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
         items?: readonly AccordionItem[];
         collapsible?: boolean;
         onClick?: (event: MouseEvent) => void;
+      };
+      "spin-accordion-robot": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        items?: readonly AccordionItem[];
+        collapsible?: boolean;
+        onClick?: (event: MouseEvent) => void;
+      };
+      "spin-tree-view-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        nodes?: string;
+        expandedValue?: readonly string[];
+        selectionMode?: string;
+      };
+      "spin-accordion-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        items?: readonly AccordionItem[];
+        collapsible?: boolean;
+        onClick?: (event: MouseEvent) => void;
+      };
+      "spin-dialog-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        role?: string;
+        defaultOpen?: boolean;
+        modal?: boolean;
       };
       "spin-tooltip": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
@@ -145,7 +177,7 @@ declare module "solid-js" {
       };
       "spin-tree-view": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
-        nodes?: readonly TreeNode[];
+        nodes?: string;
         defaultExpandedValue?: readonly string[];
         expandOnClick?: boolean;
         selectionMode?: string;

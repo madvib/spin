@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import type { TreeExpandedChange } from "../../src/spin-tree-view/treeView.machine-def.ts";
+import type { TreeExpandedChange } from "../../../src/spin-tree-view/treeView.machine-def.ts";
 
 export interface TreeNode {
   readonly value: string;

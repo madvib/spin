@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import type { PopoverOpenChange } from "../../src/spin-popover/popover.machine-def.ts";
+import type { PopoverOpenChange } from "../../../src/spin-popover/popover.machine-def.ts";
 
 type PopoverElement = HTMLElement & { title?: string; description?: string };
 
