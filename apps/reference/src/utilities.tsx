@@ -9,7 +9,7 @@ import {
   EDGE_AXES,
   scaleClass,
 } from "@spin/preset/reference/build.ts";
-import { parseTokens } from "@spin/theme";
+import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 
@@ -39,6 +39,29 @@ function themeTreeOrParse(): TokenTree {
   }
   return themeTree;
 }
+
+/**
+ * Each color token's value, by the name the catalog spells it.
+ *
+ * A swatch is a color a reader can identify, so its label carries the value it
+ * resolves to rather than the reference it is declared with: `bg-text` holds
+ * `var(--color-text)`, which is a name and not a color, while the value it
+ * lands on is the whole point of the row. Aliases are followed, so a role
+ * derived from the ramp shows the ramp's step. The theme's base value is the
+ * one named: a mode's override is the same token rendered another way.
+ */
+const COLOR_VALUES: Readonly<Record<string, string>> = (() => {
+  const out: Record<string, string> = {};
+  const leaves = Object.values(
+    indexTree(resolveAliases(themeTreeOrParse()).tree).leaves,
+  );
+  for (const leaf of leaves) {
+    if (leaf.path[0] !== "color") continue;
+    if (typeof leaf.value !== "string") continue;
+    out[leaf.path.slice(1).join("-")] = leaf.value;
+  }
+  return out;
+})();
 
 /* ──────────────────────────────────────────────────────────────────────────
  * SAMPLES — what a utility acts ON, decided per family.
@@ -85,13 +108,15 @@ const DEMO_SAMPLE: Readonly<Record<Demo, string>> = {
   prose: "A run of prose, because type is read rather than seen.",
   fill:
     "The filled element itself, with its label in the `on-*` foreground the theme pairs with that fill.",
-  lifted: "An elevated panel over a contrasting backdrop, so the shadow has air.",
+  lifted:
+    "An elevated panel over a contrasting backdrop, so the shadow has air.",
   faded:
     "A fill at the class's own alpha over a striped backdrop, so partial opacity reads as partial.",
   motion: "Two elements, one of them moving, so the movement is visible.",
   edge:
     "A panel with a visible edge beside a second panel, so the ring or outline reads against what it is drawn outside of.",
-  ruled: "A panel holding two marked rows, so the rule between them is visible.",
+  ruled:
+    "A panel holding two marked rows, so the rule between them is visible.",
   clipped: "Content larger than its box, so the clipping is visible.",
   said:
     "The utility's name as words, because the family acts on the pointer, the selection, or the scroller.",
@@ -193,7 +218,11 @@ function noteFor(group: string): string | undefined {
 
 const SCALE_SHAPES: Record<
   string,
-  { title: string; blurb: string; axes?: readonly { key: string; label: string }[] }
+  {
+    title: string;
+    blurb: string;
+    axes?: readonly { key: string; label: string }[];
+  }
 > = {
   padding: {
     title: "Padding",
@@ -393,9 +422,11 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
   return (
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
-        <b class={`block h-4 w-8 shrink-0 rounded-sm bg-neutral-200 text-center font-mono text-xs leading-4 text-text ${
-          props.cls?.[i] ?? ""
-        }`}>
+        <b
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-neutral-200 text-center font-mono text-xs leading-4 text-text ${
+            props.cls?.[i] ?? ""
+          }`}
+        >
           {"abc"[i]}
         </b>
       )}
@@ -418,7 +449,11 @@ function Mixed() {
   return (
     <For each={["h-2", "h-8", "h-16"]}>
       {(h, i) => (
-        <b class={`block w-8 shrink-0 rounded-sm bg-${FILL[i() % FILL.length]} ${h}`} />
+        <b
+          class={`block w-8 shrink-0 rounded-sm bg-${
+            FILL[i() % FILL.length]
+          } ${h}`}
+        />
       )}
     </For>
   );
@@ -433,9 +468,11 @@ function Figure(props: {
   children: JSX.Element;
 }) {
   return (
-    <figure class={`flex w-1/3 shrink-0 min-w-0 flex-col items-start gap-1 ${
-      props.overflow ?? "overflow-hidden"
-    }`}>
+    <figure
+      class={`flex w-1/3 shrink-0 min-w-0 flex-col items-start gap-1 ${
+        props.overflow ?? "overflow-hidden"
+      }`}
+    >
       <div class={`${props.box ?? BOX} ${props.cls}`}>{props.children}</div>
       <code class={CAP}>{props.label}</code>
     </figure>
@@ -458,7 +495,9 @@ function Cards(props: { extra: string; offsets: readonly string[] }) {
     <Frame>
       <For each={props.offsets}>
         {(o, i) => (
-          <b class={`${CARD} bg-${FILL[i() % FILL.length]} ${o} ${props.extra}`} />
+          <b
+            class={`${CARD} bg-${FILL[i() % FILL.length]} ${o} ${props.extra}`}
+          />
         )}
       </For>
     </Frame>
@@ -587,7 +626,11 @@ const MECHANISMS: readonly Mechanism[] = [
     demo: "row",
     sample: () => (
       <>
-        <Figure cls="flex-row items-center gap-2" label="flex-row" box={FLEXBOX}>
+        <Figure
+          cls="flex-row items-center gap-2"
+          label="flex-row"
+          box={FLEXBOX}
+        >
           <Tiles n={3} />
         </Figure>
         <Figure
@@ -597,7 +640,11 @@ const MECHANISMS: readonly Mechanism[] = [
         >
           <Spelled n={3} />
         </Figure>
-        <Figure cls="flex-col items-center gap-2" label="flex-col" box={TALLFLEX}>
+        <Figure
+          cls="flex-col items-center gap-2"
+          label="flex-col"
+          box={TALLFLEX}
+        >
           <Tiles n={3} />
         </Figure>
         <Figure
@@ -1302,13 +1349,18 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           <i class="absolute inset-0 flex">
             <For each={Array.from({ length: 8 }, (_, i) => i)}>
               {(i) => (
-                <b class={`block h-full grow rounded-none bg-${
-                  i % 2 === 0 ? "neutral-200" : "surface"
-                }`} />
+                <b
+                  class={`block h-full grow rounded-none bg-${
+                    i % 2 === 0 ? "neutral-200" : "surface"
+                  }`}
+                />
               )}
             </For>
           </i>
-          <UnderTest base="absolute inset-0 rounded-sm bg-primary" cls={cls()} />
+          <UnderTest
+            base="absolute inset-0 rounded-sm bg-primary"
+            cls={cls()}
+          />
         </span>
       );
 
@@ -1397,7 +1449,8 @@ const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
 const LEGEND = "mt-2 font-mono text-xs text-text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
-const LABEL = "mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted";
+const LABEL =
+  "mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
   "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border border-solid border-border bg-surface p-4";
@@ -1409,14 +1462,16 @@ const SCALE_BUTTONS = "flex flex-wrap gap-1";
 const DECL =
   "mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted";
 const DECL_NAME = "font-mono text-xs text-text";
-const NAME_LIST = "flex flex-wrap gap-2";
+const NAME_LIST = "grid grid-cols-4 gap-2";
+const SWATCH_GRID = "mt-4 grid grid-cols-4 gap-2";
 const NOTE_BOX =
   "mt-4 max-w-screen-md rounded-md border border-solid border-border bg-surface-raised p-4 text-sm text-text-muted";
-const PANEL = "mb-8 rounded-lg border border-solid border-border bg-surface p-4";
+const PANEL =
+  "mb-8 rounded-lg border border-solid border-border bg-surface p-4";
 const MONO_MUTED = "font-mono text-xs text-text-muted";
 const RAIL_COUNT = "shrink-0 font-mono text-xs text-text-muted";
 const CHIP =
-  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
+  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong aria-[current]:text-text";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1435,11 +1490,56 @@ function PageHead(props: { title: string; sub: string; badge: string }) {
   );
 }
 
+/**
+ * One swatch: the color, the name that spends it, and the value it resolves
+ * to. The name the catalog gives the utility is the row's subject, so it is
+ * spelled first and in full ink; the value is the answer a reader came for.
+ */
+function Swatch(props: { name: string }) {
+  const bare = props.name.startsWith("bg-")
+    ? props.name.slice(3)
+    : props.name.slice(5);
+  return (
+    <div class="flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2">
+      <i
+        class={`block h-8 w-8 shrink-0 rounded-sm border border-solid border-border bg-${bare}`}
+      />
+      <span class="min-w-0">
+        <code class="block truncate font-mono text-xs text-text">
+          {props.name}
+        </code>
+        <span class="block truncate font-mono text-xs text-text-muted">
+          {COLOR_VALUES[bare] ?? ""}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The palette as a grid rather than a rail of full-width fills.
+ *
+ * A color utility is a NAME and a VALUE; a box the width of the page showing
+ * one fill says the value and nothing else, and thirty-five of them is a wall.
+ * A swatch is both, and a grid of them is a palette a reader can scan.
+ */
+function SwatchGrid(props: { names: readonly string[] }) {
+  return (
+    <div class={SWATCH_GRID}>
+      <For each={props.names}>
+        {(name) => <Swatch name={name} />}
+      </For>
+    </div>
+  );
+}
+
 /** One cell of a specimen: the sample, and the name of the class on it. */
 function Cell(props: { name: string; demo?: Demo; children: JSX.Element }) {
   // overflow-hidden clips the overflow; overflow-x-auto for the clipped demo,
   // where clipping the frame would hide the very escape the utility shows.
-  const overflow = props.demo === "clipped" ? "overflow-x-auto" : "overflow-hidden";
+  const overflow = props.demo === "clipped"
+    ? "overflow-x-auto"
+    : "overflow-hidden";
   return (
     <figure
       class={`flex w-1/3 shrink-0 min-w-0 flex-col items-start gap-1 ${overflow}`}
@@ -1490,7 +1590,9 @@ function NameRail(props: {
 function BeforeAfter(props: { group: string; demo: Demo; cls: string }) {
   // For the clipped demo, the frame must not clip the inner element's
   // overflow — that would demonstrate the opposite of the utility.
-  const overflow = props.demo === "clipped" ? "overflow-x-auto" : "overflow-hidden";
+  const overflow = props.demo === "clipped"
+    ? "overflow-x-auto"
+    : "overflow-hidden";
   return (
     <div class={FAMILY_DEMO}>
       <figure class={PAIR}>
@@ -1592,7 +1694,7 @@ function TransitionsBench() {
   return (
     <div class={PANEL}>
       <div class={LABEL}>hover a box — the movement is the demonstration</div>
-      <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-8">
         <div>
           <div class={LABEL}>what moves</div>
           <div class={RAIL_WRAP}>
@@ -1673,14 +1775,22 @@ type Group = { id: string; title: string; utilities: readonly string[] };
 /** One family: a scale, or a prose block with a working demonstration. */
 function Family(props: { group: Group }) {
   const scale = scaleFor(props.group.id, props.group);
-  if (scale !== undefined) return <ScaleSection scale={scale} group={props.group} />;
+  if (scale !== undefined) {
+    return <ScaleSection scale={scale} group={props.group} />;
+  }
 
   const demo = demoFor(props.group.id);
   const note = noteFor(props.group.id);
   const headline = demoClass(
     HEADLINE[props.group.id] ?? props.group.utilities[0] ?? "",
   );
-  const lead = demo === undefined ? noSampleLead(props.group.id) : DEMO_SAMPLE[demo];
+  const lead = demo === undefined
+    ? noSampleLead(props.group.id)
+    : DEMO_SAMPLE[demo];
+  // The palette is one answer given twice: a fill and an ink over it. A swatch
+  // names both, where a rail of fills showed the color and spent a page on it.
+  const palette = props.group.id === "background" ||
+    props.group.id === "text-color";
   // The transitions stage was a before/after pair on a still box, which
   // demonstrates nothing: the bench is the demonstration.
   const stage = demo === undefined || props.group.id === "transitions"
@@ -1704,7 +1814,9 @@ function Family(props: { group: Group }) {
       {stage}
       {note !== undefined ? <p class={NOTE_BOX}>{note}</p> : null}
       {bench}
-      {demo === undefined
+      {palette
+        ? <SwatchGrid names={props.group.utilities} />
+        : demo === undefined
         ? (
           <ul class={NAME_LIST}>
             <For each={props.group.utilities}>
@@ -1716,7 +1828,13 @@ function Family(props: { group: Group }) {
             </For>
           </ul>
         )
-        : <NameRail groupId={props.group.id} demo={demo} names={props.group.utilities} />}
+        : (
+          <NameRail
+            groupId={props.group.id}
+            demo={demo}
+            names={props.group.utilities}
+          />
+        )}
     </section>
   );
 }
@@ -1894,9 +2012,7 @@ export function UtilitiesPage(props: { group: string }) {
           />
           <Show
             when={sec().id === "layout"}
-            fallback={
-              <For each={groups()}>{(g) => <Family group={g} />}</For>
-            }
+            fallback={<For each={groups()}>{(g) => <Family group={g} />}</For>}
           >
             <LayoutSurface groups={groups()} />
           </Show>

@@ -1,0 +1,20 @@
+{
+  "imports": {
+    "taffy-layout": "npm:taffy-layout@3.0.0",
+    "@unocss/core": "npm:@unocss/core@^66.10.5",
+    "@spin/theme": "../../packages/theme/src/index.ts",
+    "@spin/theme/themes": "../../packages/theme/src/themes/index.ts",
+    "@spin/preset": "../../packages/preset/src/index.ts",
+    "@spin/preset/rules/primitives/table.examples.ts": "../../packages/preset/src/rules/primitives/table.examples.ts",
+    "@spin/preset/rules/primitives/avatar.examples.ts": "../../packages/preset/src/rules/primitives/avatar.examples.ts",
+    "@spin/preset/rules/primitives/avatar-group.examples.ts": "../../packages/preset/src/rules/primitives/avatar-group.examples.ts",
+    "@spin/preset/rules/primitives/join.examples.ts": "../../packages/preset/src/rules/primitives/join.examples.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-slow-types"
+      ]
+    }
+  }
+}
