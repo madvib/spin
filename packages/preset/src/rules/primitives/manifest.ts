@@ -319,34 +319,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     character: [],
   },
-  group: {
-    tags: ["badge", "button", "input", "select", "textarea"],
-    variants: [],
-    reads: ["--border-width", "--radius-md"],
-    character: [],
-  },
-  icon: {
-    tags: [],
-    variants: ["icon-lg", "icon-md", "icon-sm"],
-    reads: ["--icon-lg", "--icon-md", "--icon-sm"],
-    character: [
-      // The glyph size, in `em` so it scales with the control it sits in: the
-      // icon class from preset-icons sizes itself `1em`, and a theme states
-      // the multiplier. `md` is the default the button's slot spends; `sm`
-      // and `lg` are the steps an author writes beside it. A theme that
-      // omits the group gets no declaration and the glyph falls back to the
-      // inherited size.
-      { path: "icon.sm", type: "dimension", value: "0.875em" },
-      { path: "icon.md", type: "dimension", value: "1em" },
-      { path: "icon.lg", type: "dimension", value: "1.25em" },
-    ],
-  },
-  label: {
-    tags: ["label"],
-    variants: [],
-    reads: ["--font-family-sans", "--spacing-2"],
-    character: [],
-  },
   field: {
     tags: ["input", "select", "textarea"],
     variants: [],
@@ -376,7 +348,43 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   fieldset: {
     tags: ["fieldset", "legend"],
     variants: [],
-    reads: ["--border-width", "--color-border", "--font-size-sm", "--font-weight-semibold", "--radius-md", "--spacing-2", "--spacing-4"],
+    reads: [
+      "--border-width",
+      "--color-border",
+      "--font-size-sm",
+      "--font-weight-semibold",
+      "--radius-md",
+      "--spacing-2",
+      "--spacing-4",
+    ],
+    character: [],
+  },
+  group: {
+    tags: ["badge", "button", "input", "select", "textarea"],
+    variants: [],
+    reads: ["--border-width", "--radius-md"],
+    character: [],
+  },
+  icon: {
+    tags: [],
+    variants: ["icon-lg", "icon-md", "icon-sm"],
+    reads: ["--icon-lg", "--icon-md", "--icon-sm"],
+    character: [
+      // The glyph size, in `em` so it scales with the control it sits in: the
+      // icon class from preset-icons sizes itself `1em`, and a theme states
+      // the multiplier. `md` is the default the button's slot spends; `sm`
+      // and `lg` are the steps an author writes beside it. A theme that
+      // omits the group gets no declaration and the glyph falls back to the
+      // inherited size.
+      { path: "icon.sm", type: "dimension", value: "0.875em" },
+      { path: "icon.md", type: "dimension", value: "1em" },
+      { path: "icon.lg", type: "dimension", value: "1.25em" },
+    ],
+  },
+  label: {
+    tags: ["label"],
+    variants: [],
+    reads: ["--font-family-sans", "--spacing-2"],
     character: [],
   },
   popover: {

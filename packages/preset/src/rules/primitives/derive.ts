@@ -561,73 +561,8 @@ async function readIfPresent(url: URL): Promise<string> {
 }
 
 if (import.meta.main) {
-  const names = Deno.args.filter((a) => a !== "--");
-  if (names.length > 0) await writeManifestEntries(names);
-  else await writeManifest();
+  await writeManifest();
 }
-
-/**
- * Scoped regen: `deno task manifest -- checkbox radio` rewrites only the
- * named entries' derived lines, in place.
- *
- * Only the three derived lines (`tags`, `variants`, `reads`) move; comments,
- * headers and `character` stay byte-identical, so a scoped run cannot
- * clobber a neighbour or drop hand knowledge. Unknown names and missing
- * blocks throw rather than append.
- */
-export async function writeManifestEntries(
-  names: readonly string[],
-): Promise<void> {
-  const unknown = names.filter((n) => !(n in RULE_SOURCES));
-  if (unknown.length > 0) {
-    throw new Error(`unknown component: ${unknown.join(", ")}`);
-  }
-  let text = await readIfPresent(MANIFEST_OUT);
-  for (const name of [...names].sort()) {
-    text = replaceDerived(text, name, deriveRuleContract(name));
-  }
-  await Deno.writeTextFile(MANIFEST_OUT, text);
-  console.log(`manifest.ts updated (${names.length} components)`);
-}
-
-/** One component's three derived lines, replaced in place. */
-function replaceDerived(
-  text: string,
-  name: string,
-  derived: { tags: readonly string[]; variants: readonly string[]; reads: readonly string[] },
-): string {
-  const open = text.indexOf(`  ${name}: {`);
-  if (open === -1) throw new Error(`${name}: no block in manifest.ts`);
-  let out = text;
-  for (
-    const [key, values] of [
-      ["tags", derived.tags],
-      ["variants", derived.variants],
-      ["reads", derived.reads],
-    ] as const
-  ) {
-    // renderArray emits `  key: ...` (two-space base); the manifest
-    // nests entries four deep, so re-indent every line by two.
-    const rendered = renderArray(key, [...values].sort())
-      .split("\n")
-      .map((line) => `  ${line}`)
-      .join("\n");
-    const start = out.indexOf(`\n    ${key}: `, open);
-    if (start === -1) throw new Error(`${name}: no ${key} line`);
-    const bodyStart = start + `\n    ${key}: `.length;
-    // Inline `[...],` or multiline `[\n...\n    ],` — whichever is there.
-    const inlineEnd = out.indexOf("],", bodyStart);
-    const multiEnd = out.indexOf("\n    ],", bodyStart);
-    const end = multiEnd !== -1 && multiEnd < inlineEnd
-      ? multiEnd + "\n    ],".length
-      : inlineEnd + "],".length;
-    // rendered is `    key: BODY`; bodyStart already sits past the key.
-    const renderedBody = rendered.slice(rendered.indexOf(": ") + ": ".length);
-    out = out.slice(0, bodyStart) + renderedBody + out.slice(end);
-  }
-  return out;
-}
-
 /* ------------------------------------------------------------------- states -- */
 
 /** A pseudo-element suffix, so it is not mistaken for a pseudo-CLASS. */
