@@ -110,8 +110,7 @@ function ExampleSection(props: {
             panel is the scroller for anything taller still. */
         }
         <div
-          class="max-w-md"
-          style={{ "--spacing-16": "12rem" }}
+          class="max-w-md [--spacing-16:12rem]"
           innerHTML={props.html}
         />
       </div>

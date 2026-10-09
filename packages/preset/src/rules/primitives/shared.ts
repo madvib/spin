@@ -93,6 +93,7 @@ export interface Tokens {
   readonly border: string | undefined;
   readonly link: string | undefined;
   readonly accent: string | undefined;
+  readonly onAccent: string | undefined;
   readonly success: string | undefined;
   readonly error: string | undefined;
   readonly focusRing: string | undefined;
@@ -129,6 +130,7 @@ export function proseTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
     border: t?.colors["border"],
     link: t?.colors["link"],
     accent: t?.colors["accent"],
+    onAccent: t?.colors["on-accent"],
     success: t?.colors["semantic-success"],
     error: t?.colors["semantic-error"],
     focusRing: t?.colors["focus-ring"],

@@ -44,10 +44,15 @@ function round(n: number): string {
   return (Math.round(n * 100) / 100).toString();
 }
 
-/** The sticky-table scrollers: an `overflow-auto` box that wraps a table. */
+/**
+ * The preview panels: the app's own `overflow-auto` panel (signature
+ * `min-h-16`), which is the scroller a reader uses. An example that brings
+ * its own inner scroller is a demo of one, not the reference's preview defect,
+ * so it is not what this measures.
+ */
 function scrollersOf(root: DomNode): DomNode[] {
   return descendants(root).filter((node) =>
-    hasClass(node, "overflow-auto") &&
+    hasClass(node, "overflow-auto") && hasClass(node, "min-h-16") &&
     descendants(node).some((d) => d.tag === "table")
   );
 }

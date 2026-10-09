@@ -256,6 +256,16 @@ function parseCompound(token: string): Compound | null {
   }
   while (rest !== "") {
     if (rest.startsWith(".")) {
+      // An arbitrary-value class — `.[--x:1rem]` — opens with a bracket right
+      // after the dot. The name keeps its brackets because the DOM's class
+      // token does: the fixture writes `class="… [--x:1rem]"` as one token.
+      if (rest.startsWith(".[")) {
+        const end = rest.indexOf("]");
+        if (end < 0) return null;
+        compound.classes.push(rest.slice(1, end + 1));
+        rest = rest.slice(end + 1);
+        continue;
+      }
       const m = rest.slice(1).match(/^[-a-zA-Z0-9_%/]+/);
       if (!m) return null;
       compound.classes.push(m[0]);
@@ -626,9 +636,13 @@ export function resolveStyles(
   const out = new Map<DomNode, Record<string, string>>();
   const visit = (node: DomNode, inherited: Record<string, string>): void => {
     const own = cascadeFor(node, sheet);
+    // A custom property an ancestor declared shadows the theme's for the
+    // whole subtree — that is how the reference's demo wrapper restates
+    // `--spacing-16` for one example's own `h-16` scroller.
+    const localVars = { ...vars, ...customProps(inherited) };
     const resolved: Record<string, string> = { ...inherited };
     for (const [prop, value] of Object.entries(own)) {
-      const substituted = substituteVars(value, vars);
+      const substituted = substituteVars(value, localVars);
       if (substituted !== null) resolved[prop] = substituted;
     }
     out.set(node, resolved);
@@ -690,6 +704,18 @@ function inheritOnly(styles: Record<string, string>): Record<string, string> {
   for (const prop of INHERITED_PROPS) {
     const value = styles[prop];
     if (value !== undefined) out[prop] = value;
+  }
+  // Custom properties inherit too, whatever they name.
+  for (const [prop, value] of Object.entries(styles)) {
+    if (prop.startsWith("--")) out[prop] = value;
+  }
+  return out;
+}
+
+function customProps(styles: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [prop, value] of Object.entries(styles)) {
+    if (prop.startsWith("--")) out[prop] = value;
   }
   return out;
 }

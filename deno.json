@@ -8,7 +8,8 @@
     "./packages/lint",
     "./packages/api",
     "./apps/studio",
-    "./apps/reference"
+    "./apps/reference",
+    "./oracles/layout"
   ],
   "exports": {
     ".": "./packages/theme/src/index.ts",

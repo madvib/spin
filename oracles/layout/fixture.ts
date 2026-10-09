@@ -23,9 +23,13 @@ export interface Route {
   readonly examples: readonly string[];
 }
 
-/** The preview panel every example renders in, class for class. */
+/**
+ * The preview panel every example renders in, class for class — copied from
+ * the reference's `ExampleSection`. When the reference changes its panel, this
+ * changes with it or the oracle measures a shell that no longer exists.
+ */
 const PANEL =
-  "rounded-md border border-dashed border-solid border-border bg-surface-raised p-4";
+  "min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface-raised p-4";
 
 export const ROUTES: readonly Route[] = [
   { id: "table", title: "Table", examples: TABLE_EXAMPLES.map((e) => e.html) },
@@ -59,7 +63,7 @@ export function fixtureHtml(routeId: string): string {
   const route = routeFor(routeId);
   const sections = route.examples
     .map((html) =>
-      `<section class="mb-10"><div class="${PANEL}">${html}</div></section>`
+      `<section class="mb-10"><div class="${PANEL}"><div class="max-w-md [--spacing-16:12rem]">${html}</div></div></section>`
     )
     .join("\n");
   return `<div class="flex min-h-screen">

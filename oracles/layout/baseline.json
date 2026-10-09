@@ -1,6 +1,6 @@
 {
  "origin": "http://127.0.0.1:5199",
- "measuredAt": "2026-10-09T19:14:57.784Z",
+ "measuredAt": "2026-10-09T19:28:13.799Z",
  "viewport": {
   "width": 1024,
   "height": 800
@@ -13,7 +13,32 @@
     "docClientWidth": 1009,
     "sticky": [
      {
-      "scrollerHeight": 64,
+      "scrollerHeight": 260,
+      "scrollHeight": 258,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 226,
+      "scrollHeight": 224,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 192,
       "scrollHeight": 323,
       "headerHeight": 37,
       "rowHeights": [
@@ -21,6 +46,17 @@
        41,
        41,
        41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 234,
+      "scrollHeight": 232,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
        41,
        41,
        40.5
@@ -39,7 +75,32 @@
     "docClientWidth": 1009,
     "sticky": [
      {
-      "scrollerHeight": 64,
+      "scrollerHeight": 266,
+      "scrollHeight": 264,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
+       43,
+       43,
+       41.5
+      ]
+     },
+     {
+      "scrollerHeight": 226,
+      "scrollHeight": 224,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
+       43,
+       43,
+       43,
+       43,
+       43,
+       41.5
+      ]
+     },
+     {
+      "scrollerHeight": 192,
       "scrollHeight": 335,
       "headerHeight": 37,
       "rowHeights": [
@@ -47,6 +108,17 @@
        43,
        43,
        43,
+       43,
+       43,
+       41.5
+      ]
+     },
+     {
+      "scrollerHeight": 240,
+      "scrollHeight": 238,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
        43,
        43,
        41.5
@@ -65,7 +137,32 @@
     "docClientWidth": 1009,
     "sticky": [
      {
-      "scrollerHeight": 64,
+      "scrollerHeight": 260,
+      "scrollHeight": 258,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 226,
+      "scrollHeight": 224,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 192,
       "scrollHeight": 323,
       "headerHeight": 37,
       "rowHeights": [
@@ -73,6 +170,17 @@
        41,
        41,
        41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 234,
+      "scrollHeight": 232,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
        41,
        41,
        40.5
@@ -202,8 +310,8 @@
   "avatar-group": {
    "default": {
     "theme": "default",
-    "docScrollWidth": 1024,
-    "docClientWidth": 1024,
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
     "sticky": [],
     "joins": [],
     "avatars": [
