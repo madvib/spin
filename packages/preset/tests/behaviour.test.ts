@@ -327,7 +327,6 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
   );
 });
 
-
 Deno.test("the motion clamp ships whenever an animated component does", async () => {
   // Breaks if the motion policy preflight is removed, or made conditional on
   // the component set rather than shipping with the animated component.
@@ -364,5 +363,172 @@ Deno.test("a badge with no badge group in the theme renders from global tokens",
   assert(
     "padding-inline-start" in decls || "padding-block-start" in decls,
     "padding must come from the global spacing token",
+  );
+});
+
+/** A rule's yields as selector -> declaration tables, in emission order. */
+function yieldsOf(
+  result: Result,
+  token: string,
+): { selector: string; body: Record<string, string> }[] {
+  const info = result.matched.get(token);
+  assert(info !== undefined, `${token} must be matched by a rule`);
+  return info.data
+    .filter((util) =>
+      typeof util[1] === "string" && typeof util[2] === "string"
+    )
+    .map((util) => ({
+      selector: util[1] as string,
+      body: declarations(util[2] as string),
+    }));
+}
+
+Deno.test("the disclosure reveals its content instead of popping", async () => {
+  // Breaks if the `::details-content` clamp and its transition are dropped:
+  // the content then appears in one frame, which is the layout jump the
+  // platform path exists to remove. Both states must ship, because the
+  // interpolable pair — clamped while closed, restated while open — is the
+  // whole animation.
+  const result = await generate(
+    "<details><summary>More</summary><p>Body</p></details>",
+  );
+  const yields = yieldsOf(result, "details").filter((yield_) =>
+    yield_.selector.includes("::details-content")
+  );
+  assert(
+    yields.length >= 2,
+    "the closed and open states of the content must each ship a rule",
+  );
+  const closed = yields.find((yield_) => !yield_.selector.includes("[open]"));
+  const open = yields.find((yield_) => yield_.selector.includes("[open]"));
+  assert(
+    closed !== undefined && open !== undefined,
+    "the open state is a separate rule from the closed one",
+  );
+  assert(
+    closed.body["block-size"] === "0",
+    "the content is clamped while the disclosure is closed",
+  );
+  assert(
+    "overflow" in closed.body,
+    "the collapse needs a clip, or the content spills while it shrinks",
+  );
+  assert(
+    closed.body["block-size"] !== open.body["block-size"],
+    "the open state must restate the size, and that pair is what interpolates",
+  );
+  assert(
+    closed.body["transition"]?.includes("block-size"),
+    "the size is the property that moves",
+  );
+  assert(
+    closed.body["transition"]?.includes("content-visibility"),
+    "the visibility moves too, and discretely",
+  );
+  assert(
+    closed.body["transition"]?.includes("allow-discrete"),
+    "allow-discrete is what lets the visibility change at all",
+  );
+});
+
+Deno.test("the divider turns on its side without carrying its horizontal edge", async () => {
+  // Breaks if the vertical variant states no length, no room beside it, or
+  // draws its line on the block edge — which is where the horizontal divider
+  // draws its own.
+  const result = await generate('<hr class="divider-vertical">');
+  const selector = selectorsFor(result, "divider-vertical")[0];
+  assert(selector !== undefined, "the vertical divider must ship its rule");
+  assert(
+    fakeElement("hr", ["divider-vertical"]).matches(selector),
+    "the variant must claim the element it is written on",
+  );
+  const body = declarations(bodyFor(result, "divider-vertical"));
+  assert(
+    "inline-size" in body,
+    "the zero inline size is what makes it a rule rather than a block",
+  );
+  assert("block-size" in body, "a rule needs a length");
+  assert("margin-inline" in body, "a rule between items needs room beside it");
+  assert(
+    "margin-block" in body,
+    "the base divider's block margin must be reset",
+  );
+  assert(
+    "border-inline-start" in body,
+    "the line is drawn on the inline edge, the one the base leaves bare",
+  );
+});
+
+Deno.test("the divider ships a dashed rule beside the solid one", async () => {
+  // Breaks if the dashed variant drops the border, or draws nothing the base
+  // rule does not — a second tone of separation is the whole point of it.
+  const body = declarations(
+    bodyFor(await generate('<hr class="divider-dashed">'), "divider-dashed"),
+  );
+  assert(
+    "border-block-start" in body,
+    "the dashed rule still draws the horizontal line the base draws",
+  );
+  assert(
+    body["border-block-start"]?.includes("dashed"),
+    "the rule is dashed rather than a restatement of the solid base",
+  );
+});
+
+Deno.test("an avatar is the containing block its status dot positions against", async () => {
+  // Breaks if the face stops being positioned: the dot then measures itself
+  // against the nearest positioned ancestor, which is not the face.
+  const body = declarations(
+    bodyFor(
+      await generate('<img class="avatar" src="a.svg" alt="">'),
+      "avatar",
+    ),
+  );
+  assert(
+    body["position"] === "relative",
+    "the face is the containing block the dot is placed against",
+  );
+});
+
+Deno.test("an avatar ring is painted outside the face", async () => {
+  // Breaks if the ring becomes a border: a face is fixed to the theme's edge
+  // in a border-box, so a border inside it shrinks the image the rule exists
+  // to frame.
+  const body = declarations(
+    bodyFor(
+      await generate('<img class="avatar avatar-ring" src="a.svg" alt="">'),
+      "avatar-ring",
+    ),
+  );
+  assert(
+    "box-shadow" in body,
+    "a shadow paints outside the border box, which leaves the edge intact",
+  );
+});
+
+Deno.test("an avatar's status dot is placed in the trailing corner", async () => {
+  // Breaks if the dot returns to flow — it would then push the face's box
+  // instead of sitting on it — or stops spending the success token.
+  const body = declarations(
+    bodyFor(
+      await generate('<span class="avatar-status"></span>'),
+      "avatar-status",
+    ),
+  );
+  assert(
+    body["position"] === "absolute",
+    "the dot is placed against the face rather than laid out beside it",
+  );
+  assert(
+    "inset-block-end" in body && "inset-inline-end" in body,
+    "the dot sits in the trailing corner, where a status reads at a glance",
+  );
+  assert(
+    "background-color" in body,
+    "the dot reads the semantic success token",
+  );
+  assert(
+    "aspect-ratio" in body,
+    "the dot scales with the face it sits on, and stays a dot",
   );
 });

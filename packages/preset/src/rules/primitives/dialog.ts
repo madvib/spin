@@ -41,6 +41,9 @@ import { claim, type Mode } from "./shared.ts";
  * leaves its position to the heading's width, which is how it lands mid-header
  * on a short title and hard right on a long one. The heading grows, the control
  * is absolute to the panel's corner, and neither depends on the other's width.
+ * The corner is where an x belongs, so the rule states a position and nothing
+ * about the control's contents — the shape is the consumer's, and a shape
+ * needs no width management.
  *
  * The rise is deliberately absent. The top layer and the display toggle give no
  * reliable transition hook, and faking one with `@starting-style` would delay
@@ -152,6 +155,9 @@ export function dialogRules(
         // scrolling box clips its own overflow — so the ring and the button's
         // border would be cut off on two sides. Insetting keeps the whole
         // control visible, which is the only thing a corner control is for.
+        //
+        // The control is an x, so it states no text: nothing here clips or
+        // truncates, and the row's layout does not depend on its width.
         yield {
           [ctx.symbols.selector]: () =>
             `${dialog} > header:first-of-type > :last-child`,
@@ -159,12 +165,6 @@ export function dialogRules(
           ...(pad !== undefined
             ? { "inset-block-start": pad, "inset-inline-end": pad }
             : { "inset-block-start": "0", "inset-inline-end": "0" }),
-          // The heading shares the row, so it stops short of the corner
-          // rather than running the control's text underneath it.
-          "max-width": "calc(100% - 4rem)",
-          overflow: "hidden",
-          "text-overflow": "ellipsis",
-          "white-space": "nowrap",
         };
 
         // The actions row, breaking out at the bottom.
