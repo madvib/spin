@@ -115,6 +115,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     character: [],
   },
+  "avatar-group": {
+    tags: [],
+    variants: ["avatar-group"],
+    reads: ["--avatar-md", "--border-width", "--color-surface"],
+    character: [],
+  },
   badge: {
     tags: ["badge"],
     variants: [
@@ -172,6 +178,18 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       { path: "badge.edge", type: "dimension", value: "{border.width}" },
       { path: "badge.radius", type: "dimension", value: "{radius.full}" },
     ],
+  },
+  breadcrumbs: {
+    tags: ["a", "li"],
+    variants: ["breadcrumbs", "breadcrumbs-list"],
+    reads: [
+      "--color-text",
+      "--color-text-muted",
+      "--font-size-sm",
+      "--spacing-1",
+      "--spacing-2",
+    ],
+    character: [],
   },
   button: {
     tags: ["button", "span"],
@@ -434,6 +452,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       { path: "icon.lg", type: "dimension", value: "1.25em" },
     ],
   },
+  join: {
+    tags: [],
+    variants: ["join", "join-item"],
+    reads: ["--border-width", "--radius-md"],
+    character: [],
+  },
   kbd: {
     tags: ["kbd"],
     variants: [],
@@ -644,6 +668,21 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--color-text-muted",
       "--icon-md",
       "--spacing-1",
+    ],
+    character: [],
+  },
+  skeleton: {
+    tags: [],
+    variants: ["skeleton", "skeleton-circle", "skeleton-text"],
+    reads: [
+      "--avatar-md",
+      "--color-field",
+      "--font-size-sm",
+      "--motion-duration-fast",
+      "--motion-easing-standard",
+      "--radius-full",
+      "--radius-sm",
+      "--spacing-2",
     ],
     character: [],
   },

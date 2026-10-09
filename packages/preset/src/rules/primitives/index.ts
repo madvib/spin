@@ -1,8 +1,10 @@
 import type { Rule } from "@unocss/core";
 import { a11yRules } from "./a11y.ts";
 import { alertRules } from "./alert.ts";
+import { avatarGroupRules } from "./avatar-group.ts";
 import { avatarRules } from "./avatar.ts";
 import { badgeRules } from "./badge.ts";
+import { breadcrumbsRules } from "./breadcrumbs.ts";
 import { buttonRules } from "./button.ts";
 import { cardRules } from "./card.ts";
 import type { Mode } from "./shared.ts";
@@ -12,6 +14,7 @@ import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
 import { fieldsetRules } from "./fieldset.ts";
 import { groupRules } from "./group.ts";
+import { joinRules } from "./join.ts";
 import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
@@ -23,6 +26,7 @@ import { progressRules } from "./progress.ts";
 import { radioRules } from "./radio.ts";
 import { proseRules } from "./prose.ts";
 import { selectRules } from "./select.ts";
+import { skeletonRules } from "./skeleton.ts";
 import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
 import { tabsRules } from "./tabs.ts";
@@ -54,9 +58,11 @@ export function primitiveRules(
     // textarea, because they are one box with three contents.
     ...(roots.includes("field") ? [fieldBox()] : []),
     ...a11yRules(roots),
+    ...avatarGroupRules(roots, mode),
     ...avatarRules(roots, mode),
     ...alertRules(roots, mode),
     ...badgeRules(roots, mode),
+    ...breadcrumbsRules(roots, mode),
     ...buttonRules(roots),
     ...cardRules(roots, mode),
     ...controlRules(roots),
@@ -66,6 +72,7 @@ export function primitiveRules(
     ...progressRules(roots, mode),
     ...proseRules(roots, mode),
     ...groupRules(roots),
+    ...joinRules(roots, mode),
     ...hrRules(roots, mode),
     ...kbdRules(roots, mode),
     ...labelRules(roots, mode),
@@ -74,6 +81,7 @@ export function primitiveRules(
     ...rangeRules(roots, mode),
     ...ratingRules(roots, mode),
     ...selectRules(roots),
+    ...skeletonRules(roots, mode),
     ...statRules(roots, mode),
     ...tableRules(roots, mode),
     ...tabsRules(roots, mode),

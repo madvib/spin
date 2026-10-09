@@ -21,11 +21,13 @@ import type { ThemeDocument } from "@spin/theme";
 import { a11yRules } from "./a11y.ts";
 import { alertRules } from "./alert.ts";
 import { badgeRules } from "./badge.ts";
+import { breadcrumbsRules } from "./breadcrumbs.ts";
 import { buttonRules } from "./button.ts";
 import { cardRules } from "./card.ts";
 import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
+import { avatarGroupRules } from "./avatar-group.ts";
 import { avatarRules } from "./avatar.ts";
 import { fieldBox } from "./field.ts";
 import { fieldsetRules } from "./fieldset.ts";
@@ -34,6 +36,7 @@ import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { iconRules } from "./icon.ts";
+import { joinRules } from "./join.ts";
 import { meterRules } from "./meter.ts";
 import { popoverRules } from "./popover.ts";
 import { rangeRules } from "./range.ts";
@@ -42,6 +45,7 @@ import { progressRules } from "./progress.ts";
 import { proseRules } from "./prose.ts";
 import { radioRules } from "./radio.ts";
 import { selectRules } from "./select.ts";
+import { skeletonRules } from "./skeleton.ts";
 import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
 import { tabsRules } from "./tabs.ts";
@@ -336,8 +340,12 @@ function runRule(rule: Rule, probe: { theme: unknown; paths: Set<string> }, labe
 const RULE_SOURCES: Record<string, () => Rule[]> = {
   a11y: () => a11yRules(["a11y"]),
   alert: () => alertRules(["alert"], { classless: true }),
+  "avatar-group": () => avatarGroupRules(["avatar-group"], { classless: false }),
   badge: () => badgeRules(["badge"], { classless: true }),
+  breadcrumbs: () => breadcrumbsRules(["breadcrumbs"], { classless: false }),
   button: () => buttonRules(["button"]),
+  join: () => joinRules(["join"], { classless: false }),
+  skeleton: () => skeletonRules(["skeleton"], { classless: false }),
   card: () => cardRules(["card"], { classless: true }),
   checkbox: () => controlRules(["checkbox"]),
   switch: () => controlRules(["switch"]),
@@ -456,6 +464,11 @@ interface Authored {
  * authored field.
  */
 
+/** A manifest key, quoted when the name carries a character JS cannot bare. */
+function quoted(name: string): string {
+  return /^\w+$/.test(name) ? name : JSON.stringify(name);
+}
+
 function renderArray(key: string, values: readonly string[]): string {
   if (values.length === 0) return `    ${key}: [],`;
   const inline = values.map((v) => JSON.stringify(v)).join(", ");
@@ -489,16 +502,16 @@ function parseAuthored(text: string): Map<string, Authored> {
   );
   if (!block) return out;
   const body = block[1] as string;
-  const parts = body.split(/\n(?= {2}\w+: \{)/).slice(1);
+  const parts = body.split(/\n(?= {2}[\w-]+: \{)/).slice(1);
   for (const part of parts) {
-    const name = /^ {2}(\w+): \{/.exec(part)?.[1];
+    const name = /^ {2}([\w-]+): \{/.exec(part)?.[1];
     if (!name) continue;
-    const header = /\/\*[\s\S]*?\*\/\n(?= {2}\w+: \{)/.exec(part)?.[0] ?? "";
-    const comment = / {2}\/\*[\s\S]*?\*\/\n(?= {2}\w+:)/.exec(part)?.[0] ?? "";
+    const header = /\/\*[\s\S]*?\*\/\n(?= {2}[\w-]+: \{)/.exec(part)?.[0] ?? "";
+    const comment = / {2}\/\*[\s\S]*?\*\/\n(?= {2}[\w-]+:)/.exec(part)?.[0] ?? "";
     out.set(name, {
       header: header.replace(/\n+$/, ""),
-
-      character: /character: \[[\s\S]*?\],/.exec(part)?.[0] ?? "character: [],",
+      character: /^ {4}character: \[[\s\S]*?\],/m.exec(part)?.[0] ??
+        "    character: [],",
       comment: comment.replace(/\n+$/, ""),
     });
   }
@@ -548,7 +561,7 @@ export async function writeManifest(): Promise<void> {
     const mine = authored.get(name) ?? NO_AUTHORED;
     return [
       mine.comment,
-      `  ${name}: {`,
+      `  ${quoted(name)}: {`,
       mine.header ? mine.header + "\n" : "",
       renderArray("tags", derived.tags),
       renderArray("variants", derived.variants),
@@ -688,7 +701,9 @@ export function deriveSurface(name: string): Surface {
 function manifestAuthored(): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   const src = Deno.readTextFileSync(new URL("./manifest.ts", import.meta.url));
-  for (const m of src.matchAll(/^  (\w+): \{[\s\S]*?character: \[([\s\S]*?)\],/gm)) {
+  for (
+    const m of src.matchAll(/^ {2}([\w-]+): \{[\s\S]*?character: \[([\s\S]*?)\],/gm)
+  ) {
     const name = m[1] as string;
     const body = m[2] ?? "";
     out[name] = [...body.matchAll(/"([\w-]+\.[\w-]+)"/g)].map((p) => p[1] as string);

@@ -3,6 +3,10 @@ import {
   alertFixtureNote,
 } from "@spin/preset/rules/primitives/alert.examples.ts";
 import {
+  AVATAR_GROUP_EXAMPLES,
+  avatarGroupFixtureNote,
+} from "@spin/preset/rules/primitives/avatar-group.examples.ts";
+import {
   AVATAR_EXAMPLES,
   avatarFixtureNote,
 } from "@spin/preset/rules/primitives/avatar.examples.ts";
@@ -10,6 +14,10 @@ import {
   BADGE_EXAMPLES,
   badgeFixtureNote,
 } from "@spin/preset/rules/primitives/badge.examples.ts";
+import {
+  BREADCRUMBS_EXAMPLES,
+  breadcrumbsFixtureNote,
+} from "@spin/preset/rules/primitives/breadcrumbs.examples.ts";
 import {
   BUTTON_EXAMPLES,
   buttonFixtureNote,
@@ -53,6 +61,10 @@ import {
   textareaFixtureNote,
 } from "@spin/preset/rules/primitives/field.examples.ts";
 import {
+  SKELETON_EXAMPLES,
+  skeletonFixtureNote,
+} from "@spin/preset/rules/primitives/skeleton.examples.ts";
+import {
   STAT_EXAMPLES,
   statFixtureNote,
 } from "@spin/preset/rules/primitives/stat.examples.ts";
@@ -64,6 +76,10 @@ import {
   GROUP_EXAMPLES,
   groupFixtureNote,
 } from "@spin/preset/rules/primitives/group.examples.ts";
+import {
+  JOIN_EXAMPLES,
+  joinFixtureNote,
+} from "@spin/preset/rules/primitives/join.examples.ts";
 import {
   LABEL_EXAMPLES,
   labelFixtureNote,
@@ -144,6 +160,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...BADGE_EXAMPLES],
   },
   {
+    id: "breadcrumbs",
+    title: "Breadcrumbs",
+    kind: "rule",
+    note: breadcrumbsFixtureNote,
+    examples: [...BREADCRUMBS_EXAMPLES],
+  },
+  {
     id: "button",
     title: "Button",
     kind: "rule",
@@ -156,6 +179,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "rule",
     note: cardFixtureNote,
     examples: [...CARD_EXAMPLES],
+  },
+  {
+    id: "avatar-group",
+    title: "Avatar group",
+    kind: "rule",
+    note: avatarGroupFixtureNote,
+    examples: [...AVATAR_GROUP_EXAMPLES],
   },
   {
     id: "avatar",
@@ -195,6 +225,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "rule",
     note: fieldFixtureNote,
     examples: [...INPUT_EXAMPLES],
+  },
+  {
+    id: "skeleton",
+    title: "Skeleton",
+    kind: "rule",
+    note: skeletonFixtureNote,
+    examples: [...SKELETON_EXAMPLES],
   },
   {
     id: "select",
@@ -316,6 +353,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "rule",
     note: proseFixtureNote,
     examples: [...PROSE_DOC_EXAMPLES],
+  },
+  {
+    id: "join",
+    title: "Join",
+    kind: "rule",
+    note: joinFixtureNote,
+    examples: [...JOIN_EXAMPLES],
   },
   {
     id: "label",
