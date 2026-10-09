@@ -1,0 +1,13 @@
+<scope>props={ modal: bool = true, trapFocus: bool = true, preventScroll: bool = true, closeOnEscape: bool = true, closeOnInteractOutside: bool = true, restoreFocus: bool = true, role: string = "dialog", defaultOpen: bool = false } consume={ dialogFsm }</scope>
+
+<button {...dialogFsm.getTriggerProps()} class="px-4 py-2 rounded-lg border border-border bg-surface-raised text-text text-sm font-medium shadow-sm transition-colors hover:bg-surface">Open dialog</button>
+
+<div {...dialogFsm.getBackdropProps()} class="fixed inset-0 bg-text opacity-50"></div>
+
+<div {...dialogFsm.getPositionerProps()} class="fixed inset-0 flex items-center justify-center pointer-events-none">
+  <div {...dialogFsm.getContentProps()} class="pointer-events-auto bg-surface-raised rounded-lg border border-border shadow-lg p-4 max-w-md relative">
+    <h2 {...dialogFsm.getTitleProps()} class="text-lg font-semibold text-text pr-8">Dialog title</h2>
+    <p {...dialogFsm.getDescriptionProps()} class="text-sm text-muted mt-1">Dialog description</p>
+    <button {...dialogFsm.getCloseTriggerProps()} class="absolute top-2 right-2 p-1 rounded-md text-xl text-muted bg-transparent border-transparent transition-colors hover:text-text hover:bg-surface">×</button>
+  </div>
+</div>
