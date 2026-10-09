@@ -3,7 +3,7 @@ import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
-import { PRIMITIVES } from "./primitives.ts";
+import { FAMILIES, PRIMITIVES } from "./primitives.ts";
 import { UtilitiesPage } from "./utilities.tsx";
 
 import type { TokenTree } from "@spin/theme";
@@ -39,18 +39,40 @@ function useTheme() {
 }
 
 const GHOST_BUTTON =
-  "bare inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text";
+  "inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text";
 
+/**
+ * A theme or mode chip. Selected is a QUIET state — raised surface, strong
+ * border, full ink and a filled dot — never a fill of the text token: the chip
+ * hover paints the text token, so a chip filled with it would put text on text
+ * in every theme, and in console the text token is a mint slab rather than ink.
+ */
 const CHIP =
-  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
+  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text aria-[current]:border-border-strong aria-[current]:text-text";
+
+/** One chip of the picker, with the selected state drawn rather than declared. */
+function Chip(props: { label: string; active: boolean; onPick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={props.onPick}
+      aria-current={props.active || undefined}
+      class={CHIP}
+    >
+      {props.active &&
+        <i class="block h-2 w-2 shrink-0 rounded-full bg-text" />}
+      {props.label}
+    </button>
+  );
+}
 
 const RAIL_LINK =
-  "flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm text-text-muted no-underline hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex items-center justify-between gap-2 rounded-md bg-transparent px-2 py-1 text-sm text-text-muted hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
 
 const SURFACE_LINK =
-  "flex-1 justify-center rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted no-underline hover:border-border-strong hover:text-text aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
+  "flex-1 justify-center rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted hover:border-border-strong hover:text-text aria-[current]:border-border-strong aria-[current]:text-text";
 
-const RAIL_HEAD = "mb-3 text-xs font-semibold text-text-muted";
+const RAIL_HEAD = "mb-2 text-xs font-semibold text-text-muted";
 
 function ExampleSection(props: {
   name: string;
@@ -73,14 +95,26 @@ function ExampleSection(props: {
     }
   };
   return (
-    <section class="mb-10">
-      <h3 class="mb-3 text-xs font-semibold text-text-muted">
+    <section class="mb-8">
+      <h3 class="mb-2 text-sm font-semibold text-text">
         {props.name}
       </h3>
-      <div
-        class="rounded-md border border-dashed border-solid border-border bg-surface-raised p-4"
-        innerHTML={props.html}
-      />
+      <div class="min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface-raised p-4">
+        {
+          /* The demo is the markup exactly as a consumer writes it; the panel
+            decides the room it gets. The demo area is the md measure — the
+            bound the page's own prose reads at — so a row of size variants
+            stacks into a column that compares them instead of a ragged wrap.
+            The largest spacing step is three steps tall so a demo's own
+            fixed-height scroller (`h-16`) has something to scroll, and the
+            panel is the scroller for anything taller still. */
+        }
+        <div
+          class="max-w-md"
+          style={{ "--spacing-16": "12rem" }}
+          innerHTML={props.html}
+        />
+      </div>
       <div class="mt-4 flex flex-wrap items-start gap-2">
         <button
           type="button"
@@ -136,6 +170,10 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
   );
 }
 
+/** Every primitive, by id, for the index rows. */
+const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number]> = Object
+  .fromEntries(PRIMITIVES.map((p) => [p.id, p]));
+
 function LandingPage() {
   return (
     <>
@@ -149,37 +187,70 @@ function LandingPage() {
         </span>
       </header>
       <p class="mb-8 max-w-screen-md text-md text-text-muted">
-        Every primitive, exercised. Bare tags carry the base; variant=""
-        is the API.
+        Every primitive, exercised. Bare tags carry the base; variant="" is the
+        API.
       </p>
-      <div class="flex flex-col items-start gap-2">
-        <For each={PRIMITIVES}>
-          {(r) => (
-            <a
-              href={`#/components/${r.id}`}
-              class="flex w-full items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-sm text-text no-underline hover:border-border-strong"
-            >
-              <span>{r.title}</span>
-              <span class="shrink-0 font-mono text-xs text-text-muted">
-                {r.examples.length} examples
-              </span>
-            </a>
-          )}
-        </For>
-      </div>
+      <For each={FAMILIES}>
+        {(family) => (
+          <section class="mb-8">
+            <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+              {family.title}
+            </h3>
+            <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+              {family.blurb}
+            </p>
+            <ul class="flex list-none flex-col gap-2 p-0">
+              <For each={family.members}>
+                {(member) => {
+                  const page = PAGE_BY_ID[member.id];
+                  return (
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => (location.hash =
+                          `#/components/${member.id}`)}
+                        class="flex w-full items-center gap-4 rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-left hover:border-border-strong"
+                      >
+                        <span class="w-32 shrink-0 text-sm text-text">
+                          {page.title}
+                        </span>
+                        <span class="min-w-0 flex-1 text-xs text-text-muted">
+                          {member.note}
+                        </span>
+                        <span class="shrink-0 font-mono text-xs text-text-muted">
+                          {page.examples.length} examples
+                        </span>
+                      </button>
+                    </li>
+                  );
+                }}
+              </For>
+            </ul>
+          </section>
+        )}
+      </For>
     </>
   );
 }
 
 export default function App() {
   const { theme, setTheme, mode, setMode } = useTheme();
-  const [route, setRoute] = createSignal(location.hash.slice(1) || "/components");
+  const [route, setRoute] = createSignal(
+    location.hash.slice(1) || "/components",
+  );
   createEffect(() => {
     const onHash = () => setRoute(location.hash.slice(1) || "/components");
     addEventListener("hashchange", onHash);
     return () => removeEventListener("hashchange", onHash);
   });
   const catalog = createMemo(() => describeCatalog(themeTreeOrParse()));
+  // A bare `#/utilities` names no section. The first one is the answer: an
+  // empty route is a question, and "No such section" is not an answer to it.
+  const section = createMemo(() => {
+    const parts = route().split("/");
+    if (parts[1] !== "utilities") return "";
+    return parts[2] || SECTIONS[0]?.id || "";
+  });
   return (
     <div class="flex min-h-screen">
       <nav class="sticky top-0 flex max-h-screen w-1/4 shrink-0 flex-col gap-1 self-start overflow-y-auto border-e border-solid border-border p-4">
@@ -187,48 +258,41 @@ export default function App() {
         <div class="mb-4 flex flex-wrap items-center gap-1 rounded-md border border-solid border-border p-1">
           <For each={THEMES}>
             {(t) => (
-              <button
-                type="button"
-                onClick={() => setTheme(t)}
-                aria-current={theme() === t || undefined}
-                class={CHIP}
-              >
-                {t}
-              </button>
+              <Chip
+                label={t}
+                active={theme() === t}
+                onPick={() => setTheme(t)}
+              />
             )}
           </For>
-          <button
-            type="button"
-            onClick={() => setMode("base")}
-            aria-current={mode() === "base" || undefined}
-            class={CHIP}
-          >
-            base
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("dark")}
-            aria-current={mode() === "dark" || undefined}
-            class={CHIP}
-          >
-            dark
-          </button>
+          <Chip
+            label="base"
+            active={mode() === "base"}
+            onPick={() => setMode("base")}
+          />
+          <Chip
+            label="dark"
+            active={mode() === "dark"}
+            onPick={() => setMode("dark")}
+          />
         </div>
         <div class="mb-2 flex gap-1 border-b border-solid border-border pb-2 text-sm">
-          <a
-            href="#/utilities"
+          <button
+            type="button"
+            onClick={() => (location.hash = "#/utilities")}
             aria-current={route().startsWith("/utilities") || undefined}
             class={SURFACE_LINK}
           >
             utilities
-          </a>
-          <a
-            href="#/components"
+          </button>
+          <button
+            type="button"
+            onClick={() => (location.hash = "#/components")}
             aria-current={route().startsWith("/components") || undefined}
             class={SURFACE_LINK}
           >
             primitives
-          </a>
+          </button>
         </div>
         <div class={RAIL_HEAD}>
           {route().startsWith("/utilities") ? "sections" : "components"}
@@ -238,29 +302,31 @@ export default function App() {
           fallback={
             <For each={PRIMITIVES}>
               {(r) => (
-                <a
-                  href={`#/components/${r.id}`}
+                <button
+                  type="button"
+                  onClick={() => (location.hash = `#/components/${r.id}`)}
                   aria-current={route() === `/components/${r.id}` || undefined}
                   class={RAIL_LINK}
                 >
                   {r.title}
-                </a>
+                </button>
               )}
             </For>
           }
         >
           <For each={SECTIONS}>
             {(sec) => (
-              <a
-                href={`#/utilities/${sec.id}`}
-                aria-current={route() === `/utilities/${sec.id}` || undefined}
+              <button
+                type="button"
+                onClick={() => (location.hash = `#/utilities/${sec.id}`)}
+                aria-current={section() === sec.id || undefined}
                 class={RAIL_LINK}
               >
                 <span>{sec.title}</span>
                 <span class="shrink-0 font-mono text-xs text-text-muted">
                   {utilitiesFor(sec, catalog()).length}
                 </span>
-              </a>
+              </button>
             )}
           </For>
         </Show>
@@ -273,7 +339,7 @@ export default function App() {
               when={route().startsWith("/utilities")}
               fallback={<LandingPage />}
             >
-              <UtilitiesPage group={route().split("/")[2] ?? ""} />
+              <UtilitiesPage group={section()} />
             </Show>
           }
         >
