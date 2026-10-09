@@ -61,6 +61,26 @@ export const TOOLTIP_EXAMPLES: readonly PopoverExample[] = [
           <tooltip>Tip text</tooltip>`,
     ),
   },
+  {
+    name: "Tooltip · focus reveals",
+    html: row(
+      `          <a href="#">A link</a>
+          <tooltip>Tab to the link: the tip appears on focus, not only hover.</tooltip>`,
+    ),
+  },
+  {
+    name: "Tooltip · inline in prose",
+    html: row(
+      `          <p>A lookup table maps coordinates — <span>LUT<tooltip>Lookup table.</tooltip></span> — to values.</p>`,
+    ),
+  },
+  {
+    name: "Tooltip · long text",
+    html: row(
+      `          <button>Hover me</button>
+          <tooltip>A tip too long for the trigger widens beside it — one line, because the surface never wraps.</tooltip>`,
+    ),
+  },
 ];
 
 export const POPOVER_EXAMPLES: readonly PopoverExample[] = [

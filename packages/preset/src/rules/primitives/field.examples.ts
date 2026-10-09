@@ -71,6 +71,32 @@ export const SELECT_EXAMPLES: readonly FieldExample[] = [
           <label><select disabled><option>Unavailable</option></select><span>Disabled</span></label>`,
     ),
   },
+  {
+    name: "Select · validity",
+    html: row(
+      `          <label><select><option>Unjudged</option></select><span>Unjudged</span></label>
+          <label><select aria-invalid="false"><option>Passed</option></select><span>Passed</span></label>
+          <label><select aria-invalid="true"><option>Failed</option></select><span>Failed</span></label>`,
+    ),
+  },
+  {
+    name: "Select · grouped options",
+    html: row(
+      `          <label><select>
+            <optgroup label="Fruit"><option>Apple</option><option>Pear</option></optgroup>
+            <optgroup label="Vegetable"><option>Beet</option></optgroup>
+          </select><span>Groups are the platform's</span></label>`,
+    ),
+  },
+  {
+    name: "Select · multiple",
+    html: row(
+      `          <label><select multiple size="4">
+            <option selected>Alpha</option><option>Bravo</option>
+            <option>Charlie</option><option>Delta</option>
+          </select><span>Size, not classes</span></label>`,
+    ),
+  },
 ];
 
 export const textareaFixtureNote =
@@ -85,6 +111,18 @@ export const TEXTAREA_EXAMPLES: readonly FieldExample[] = [
       `          <label><textarea rows="2" placeholder="Multi-line"></textarea><span>Default</span></label>
           <label><textarea aria-invalid="true" rows="2"></textarea><span>Invalid</span></label>
           <label><textarea rows="2" disabled>Cannot touch</textarea><span>Disabled</span></label>`,
+    ),
+  },
+  {
+    name: "Textarea · readonly",
+    html: row(
+      `          <label><textarea rows="2" readonly>Cannot touch</textarea><span>Read only, still selectable</span></label>`,
+    ),
+  },
+  {
+    name: "Textarea · one line at rest",
+    html: row(
+      `          <label><textarea rows="1" placeholder="Grows by the author's drag, never by content"></textarea><span>Min height keeps it a textarea</span></label>`,
     ),
   },
 ];
