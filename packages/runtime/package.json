@@ -7,6 +7,7 @@
     "./zag": "./src/machine/adapter/index.ts",
     "./internal": "./src/internal.ts",
     "./plugin": "./src/plugin/index.ts",
-    "./plugin/elements": "./src/plugin/elements.ts"
+    "./plugin/elements": "./src/plugin/elements.ts",
+    "./fsm": "./src/machine/fsm/fsm.ts"
   }
 }
