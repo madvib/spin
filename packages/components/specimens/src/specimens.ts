@@ -5,6 +5,11 @@ import Menu from "./routes/menu.tsx";
 import Tabs from "./routes/tabs.tsx";
 import Tooltip from "./routes/tooltip.tsx";
 import Dialog from "./routes/dialog.tsx";
+import TreeView from "./routes/tree-view.tsx";
+import Carousel from "./routes/carousel.tsx";
+import Checkbox from "./routes/checkbox.tsx";
+import RadioGroup from "./routes/radio-group.tsx";
+import Switch from "./routes/switch.tsx";
 
 
 /** One component under test, plus the route that shows it. */
@@ -63,4 +68,39 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/dialog",
     component: Dialog,
   },
- ];
+  {
+    id: "tree-view",
+    title: "TreeView",
+    blurb: "Expandable tree driven by the Zag tree-view machine.",
+    path: "/tree-view",
+    component: TreeView,
+  },
+  {
+    id: "carousel",
+    title: "Carousel",
+    blurb: "Paged slides driven by the Zag carousel machine.",
+    path: "/carousel",
+    component: Carousel,
+  },
+  {
+    id: "checkbox",
+    title: "Checkbox",
+    blurb: "A checkbox driven by the Zag checkbox machine.",
+    path: "/checkbox",
+    component: Checkbox,
+  },
+  {
+    id: "radio-group",
+    title: "RadioGroup",
+    blurb: "Single-select options driven by the Zag radio-group machine.",
+    path: "/radio-group",
+    component: RadioGroup,
+  },
+  {
+    id: "switch",
+    title: "Switch",
+    blurb: "An on/off switch driven by the Zag switch machine.",
+    path: "/switch",
+    component: Switch,
+  },
+];

@@ -1,0 +1,17 @@
+<scope>props={ nodes: { value: string, label: string }[] = [], defaultExpandedValue: string[] = "", expandOnClick: bool = true, selectionMode: string = "single" } consume={ treeView }</scope>
+
+<div class="rounded-lg border border-border bg-surface-raised p-2" {...api.getRootProps()}>
+  <div class="text-sm font-medium text-text px-2 py-2" {...api.getLabelProps()}>Repository</div>
+  <div {...api.getTreeProps()}>
+    <template for={api.getVisibleNodes()} as={row} key={row.node.value}>
+      <div {...api.getBranchProps(row)}>
+        <button class="w-full flex items-center justify-start gap-2 rounded-md px-2 py-2 text-sm text-left text-text bg-transparent border-transparent transition-colors hover:bg-surface" {...api.getBranchControlProps(row)}>
+          <span aria-hidden="true" class="text-muted text-sm transition-transform data-[state=open]:rotate-180" {...api.getBranchIndicatorProps(row)}>›</span>
+          <span class="font-medium" {...api.getBranchTextProps(row)}>{row.node.label}</span>
+        </button>
+        <div class="ml-4 border-l border-border pl-2" {...api.getBranchContentProps(row)}>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>

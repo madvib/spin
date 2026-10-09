@@ -1,0 +1,14 @@
+<scope>props={ items: { value: string, label: string, disabled: bool }[] = [], defaultValue: string = "", value: string, name: string = "" } consume={ radioGroup }</scope>
+
+<div {...api.getRootProps()}>
+  <div class="text-sm font-medium text-text px-2 py-2" {...api.getLabelProps()}>Options</div>
+  <template for={items} as={row} key={row.value}>
+    <label class="flex items-center gap-2 cursor-pointer text-sm text-text rounded-md px-2 py-2 transition-colors hover:bg-surface" {...api.getItemProps({ value: row.value, disabled: row.disabled })}>
+      <span class="flex items-center justify-center size-4 rounded-full border border-border bg-surface-raised shadow-sm transition-colors data-[state=checked]:bg-text data-[state=checked]:border-transparent" {...api.getItemControlProps({ value: row.value, disabled: row.disabled })}>
+        <span aria-hidden="true" class="block size-2 rounded-full bg-border"></span>
+      </span>
+      <span class="font-medium">{row.label}</span>
+      <input {...api.getItemHiddenInputProps({ value: row.value, disabled: row.disabled })} />
+    </label>
+  </template>
+</div>

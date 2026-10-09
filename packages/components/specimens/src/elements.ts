@@ -108,6 +108,24 @@ export interface AccordionItem {
   readonly content: string;
 }
 
+export interface TreeNode {
+  readonly value: string;
+  readonly label: string;
+  readonly children?: readonly TreeNode[];
+}
+
+export interface CarouselItem {
+  readonly value: string;
+  readonly label: string;
+  readonly content: string;
+}
+
+export interface RadioItem {
+  readonly value: string;
+  readonly label: string;
+  readonly disabled?: boolean;
+}
+
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
@@ -124,6 +142,41 @@ declare module "solid-js" {
         interactive?: boolean;
         disabled?: boolean;
         defaultOpen?: boolean;
+      };
+      "spin-tree-view": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        nodes?: readonly TreeNode[];
+        defaultExpandedValue?: readonly string[];
+        expandOnClick?: boolean;
+        selectionMode?: string;
+      };
+      "spin-carousel": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        items?: readonly CarouselItem[];
+        defaultPage?: number;
+        loop?: boolean;
+      };
+      "spin-checkbox": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        label?: string;
+        defaultChecked?: boolean;
+        checked?: boolean;
+        disabled?: boolean;
+        name?: string;
+      };
+      "spin-radio-group": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        items?: readonly RadioItem[];
+        defaultValue?: string;
+        value?: string;
+        name?: string;
+      };
+      "spin-switch": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        label?: string;
+        defaultChecked?: boolean;
+        checked?: boolean;
+        disabled?: boolean;
       };
     }
   }

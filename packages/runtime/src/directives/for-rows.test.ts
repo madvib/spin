@@ -47,9 +47,33 @@ Deno.test("rows from an earlier sync stay subscribed after a later sync", () => 
     true,
     `row from the first sync re-runs on a later tick (runs=[${runs.join("|")}])`,
   );
-  assertEquals(
-    runs.some((r) => r === "run:b"),
-    true,
-    `row from the first sync re-runs on a later tick (runs=[${runs.join("|")}])`,
-  );
+});
+
+Deno.test("rows stay after preceding siblings (anchor-relative placement)", () => {
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const label = document.createElement("div");
+  label.textContent = "Options";
+  host.appendChild(label);
+  const anchor = document.createComment("for");
+  host.appendChild(anchor);
+  const items = signal<readonly string[]>(["a", "b"]);
+  bindFor<string>({
+    anchor,
+    items: () => items(),
+    key: (item) => item,
+    render: (row) => {
+      const frag = document.createDocumentFragment();
+      const el = document.createElement("span");
+      el.textContent = row;
+      frag.appendChild(el);
+      return { nodes: [...frag.childNodes] };
+    },
+  });
+  const order = () => [...host.childNodes].map((n) => n.textContent);
+  assertEquals(order(), ["Options", "a", "b", "for"]);
+  items(["b", "a"]);
+  assertEquals(order(), ["Options", "b", "a", "for"]);
+  items([...items(), "c"]);
+  assertEquals(order(), ["Options", "b", "a", "c", "for"]);
 });

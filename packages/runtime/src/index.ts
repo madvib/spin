@@ -36,6 +36,14 @@ export interface MachineDef {
   readonly machine: object;
   readonly connect: (...args: never[]) => object;
   readonly events?: Readonly<Record<string, MachineEventContract>>;
+  /**
+   * Transforms scope-coerced values into machine props, merged over the
+   * values. For machines that need constructed props — tree-view's
+   * `collection: TreeCollection` built from raw `nodes`. Absent for
+   * machines whose props pass through untouched.
+   */
+  // deno-lint-ignore no-explicit-any
+  readonly toMachineProps?: (values: Record<string, any>) => Record<string, unknown>;
 }
 export { createScopeTable, type Handle, type ScopeTable } from "./scope/table.ts";
 

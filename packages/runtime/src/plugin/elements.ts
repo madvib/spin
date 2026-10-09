@@ -120,7 +120,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
             `  const ${bridge} = watch(${name}, () => createMachine(${name}.machine, {\n` +
             `    connect: ${name}.connect,\n` +
             `    normalize: normalizeProps,\n` +
-            `    props: () => { const p = { ...values, ...${bridge}Events }; delete p.api; delete p["@@resolve"]; return p; },\n` +
+            `    props: () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; delete p.api; delete p["@@resolve"]; return p; },\n` +
             `    getRootNode: () => el.getRootNode(),\n` +
             `    id: el.id || uniqueId(${JSON.stringify(tag)}),\n` +
             `  }));\n` +

@@ -163,9 +163,40 @@ function parseElement(p: Parser): Node {
     }
     const aStart = p.pos;
     let name = "";
-    while (p.pos < p.src.length && !/[\s=/>]/.test(p.src[p.pos]!)) {
-      name += p.src[p.pos];
-      p.pos++;
+    if (p.src[p.pos] === "{" && p.src.slice(p.pos, p.pos + 4) === "{...") {
+      // A spread owns its braces: `{...api.f({ index: i })}` nests `{}` and
+      // carries spaces, so the name runs to the BALANCED close, not to the
+      // first whitespace. Quotes inside are respected, not counted.
+      let depth = 0;
+      let quote: string | undefined;
+      while (p.pos < p.src.length) {
+        const c = p.src[p.pos]!;
+        if (quote !== undefined) {
+          name += c;
+          if (c === quote) quote = undefined;
+        } else if (c === '"' || c === "'") {
+          quote = c;
+          name += c;
+        } else if (c === "{") {
+          depth++;
+          name += c;
+        } else if (c === "}") {
+          depth--;
+          name += c;
+          if (depth === 0) {
+            p.pos++;
+            break;
+          }
+        } else {
+          name += c;
+        }
+        p.pos++;
+      }
+    } else {
+      while (p.pos < p.src.length && !/[\s=/>]/.test(p.src[p.pos]!)) {
+        name += p.src[p.pos];
+        p.pos++;
+      }
     }
     skipWs(p);
     let raw = "";

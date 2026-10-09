@@ -20,3 +20,8 @@ import "./spin-menu/spin-menu.html";
 import "./spin-popover/spin-popover.html";
 import "./spin-tabs/spin-tabs.html";
 import "./spin-tooltip/spin-tooltip.html";
+import "./spin-tree-view/spin-tree-view.html";
+import "./spin-carousel/spin-carousel.html";
+import "./spin-checkbox/spin-checkbox.html";
+import "./spin-radio-group/spin-radio-group.html";
+import "./spin-switch/spin-switch.html";

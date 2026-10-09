@@ -10,6 +10,16 @@
     "./menu": "./src/menu.ts",
     "./popover": "./src/popover.ts",
     "./tabs": "./src/tabs.ts",
-    "./tooltip": "./src/tooltip.ts"
+    "./tooltip": "./src/tooltip.ts",
+    "./tree-view": "./src/tree-view.ts",
+    "./carousel": "./src/carousel.ts",
+    "./checkbox": "./src/checkbox.ts",
+    "./radio-group": "./src/radio-group.ts",
+    "./switch": "./src/switch.ts"
+  },
+  "dependencies": {
+    "@zag-js/checkbox": "~1.44.0",
+    "@zag-js/radio-group": "~1.44.0",
+    "@zag-js/switch": "~1.44.0"
   }
 }

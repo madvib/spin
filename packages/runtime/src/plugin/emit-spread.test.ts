@@ -31,3 +31,11 @@ Deno.test("row binding avoids render-param shadow inside for-template", () => {
   assertStringIncludes(js, "row.name");
   assertEquals(js.includes("values.row.name"), false);
 });
+
+Deno.test("object-literal keys survive scopeExpr (carousel index)", () => {
+  const ir = parse(`<template for={items} as={row}><div {...api.getItemProps({ index: i })}></div></template>`);
+  const { js } = emit(ir);
+  // `index` stays a key, `i` stays the row position — neither becomes values.*
+  assertStringIncludes(js, "getItemProps({ index: i })");
+  assertEquals(js.includes("values.index"), false);
+});

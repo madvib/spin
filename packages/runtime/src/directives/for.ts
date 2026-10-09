@@ -82,18 +82,22 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
       if (!alive) dead.push(cell);
     }
 
-    let cursor = host.firstChild;
-    for (const cell of next) {
-      const first = cell.nodes[0];
-      if (first === undefined) continue;
-      const atCursor = cursor === first;
-      if (!atCursor) {
-        for (const n of cell.nodes) {
-          if (n.parentNode !== host) host.insertBefore(n, cursor);
-          else if (n !== cursor) host.insertBefore(n, cursor);
-        }
+    // Placement walks backward from the anchor: each cell's nodes land
+    // immediately before `cursor`, which starts at the anchor and retreats
+    // to each placed cell's first node. Siblings outside the list — before
+    // the first cell or after the anchor — are never touched. The old walk
+    // started at host.firstChild and dragged every row before any preceding
+    // sibling (radio group labels, tab strips ended up after their rows).
+    let cursor: Node | null = anchor;
+    for (let idx = next.length - 1; idx >= 0; idx--) {
+      const cell = next[idx]!;
+      if (cell.nodes.length === 0) continue;
+      for (let k = cell.nodes.length - 1; k >= 0; k--) {
+        const n = cell.nodes[k]!;
+        if (n.parentNode !== host) host.insertBefore(n, cursor);
+        else if (n.nextSibling !== cursor) host.insertBefore(n, cursor);
       }
-      cursor = cell.nodes[cell.nodes.length - 1]!.nextSibling;
+      cursor = cell.nodes[0]!;
     }
 
     for (let i = 0; i < next.length; i++) {

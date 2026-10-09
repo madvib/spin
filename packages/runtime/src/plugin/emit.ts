@@ -24,6 +24,13 @@ function freeNames(expr: string, bound: Set<string>): string[] {
     const name = m[0]!;
     const before = stripped.slice(Math.max(0, m.index - 1), m.index);
     if (before === ".") continue;
+    // An object-literal key (`{ index: i }`) is a name, not a scope read:
+    // `{` or `,` before (past whitespace) and `:` after means the name
+    // positions a value rather than reading one. Ternary consequents never
+    // match — they follow `?`, not `{`/`,`.
+    const behind = stripped.slice(0, m.index);
+    const ahead = stripped.slice(m.index + name.length);
+    if (/[{,]\s*$/.test(behind) && /^\s*:/.test(ahead)) continue;
     if (KEYWORDS.has(name)) continue;
     if (bound.has(name)) continue;
     if (!found.includes(name)) found.push(name);
@@ -74,7 +81,7 @@ export function emit(ir: ComponentIr): EmitOutput {
       if (node.kind === "for") {
         bindings++;
         const id = `l${seq++}`;
-        const keyScope = new Set([...bound, "item", "i"]);
+        const keyScope = new Set([...bound, node.binding, "item", "i"]);
         const withRow = new Set([...bound, node.binding, "item", "i"]);
         const key = node.key !== undefined
           ? `(item, i) => (${scopeExpr(node.key, keyScope).replace(new RegExp(`(?<![A-Za-z0-9_$."])${node.binding}(?![A-Za-z0-9_$])`, "g"), "item")})`
