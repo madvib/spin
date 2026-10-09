@@ -15,7 +15,10 @@ import { groupRules } from "./group.ts";
 import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
+import { meterRules } from "./meter.ts";
 import { popoverRules } from "./popover.ts";
+import { rangeRules } from "./range.ts";
+import { ratingRules } from "./rating.ts";
 import { progressRules } from "./progress.ts";
 import { radioRules } from "./radio.ts";
 import { proseRules } from "./prose.ts";
@@ -66,7 +69,10 @@ export function primitiveRules(
     ...hrRules(roots, mode),
     ...kbdRules(roots, mode),
     ...labelRules(roots, mode),
+    ...meterRules(roots, mode),
     ...popoverRules(roots, mode),
+    ...rangeRules(roots, mode),
+    ...ratingRules(roots, mode),
     ...selectRules(roots),
     ...statRules(roots, mode),
     ...tableRules(roots, mode),

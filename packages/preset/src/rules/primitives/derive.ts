@@ -34,7 +34,10 @@ import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { iconRules } from "./icon.ts";
+import { meterRules } from "./meter.ts";
 import { popoverRules } from "./popover.ts";
+import { rangeRules } from "./range.ts";
+import { ratingRules } from "./rating.ts";
 import { progressRules } from "./progress.ts";
 import { proseRules } from "./prose.ts";
 import { radioRules } from "./radio.ts";
@@ -348,7 +351,10 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   group: () => groupRules(["group"]),
   radio: () => radioRules(["radio"]),
   icon: () => iconRules(["icon"]),
+  meter: () => meterRules(["meter"], { classless: true }),
   field: () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
+  range: () => rangeRules(["range"], { classless: true }),
+  rating: () => ratingRules(["rating"], { classless: false }),
   avatar: () => avatarRules(["avatar"], { classless: false }),
   hr: () => hrRules(["hr"], { classless: true }),
   kbd: () => kbdRules(["kbd"], { classless: true }),
@@ -451,13 +457,15 @@ interface Authored {
  */
 
 function renderArray(key: string, values: readonly string[]): string {
-  if (values.length === 0) return `${key}: [],`;
+  if (values.length === 0) return `    ${key}: [],`;
   const inline = values.map((v) => JSON.stringify(v)).join(", ");
-  if (`    ${key}: [${inline}],`.length <= 80) return `  ${key}: [${inline}],`;
+  if (`    ${key}: [${inline}],`.length <= 80) {
+    return `    ${key}: [${inline}],`;
+  }
   return [
-    `  ${key}: [`,
-    ...values.map((v) => `    ${JSON.stringify(v)},`),
-    "  ],",
+    `    ${key}: [`,
+    ...values.map((v) => `      ${JSON.stringify(v)},`),
+    "    ],",
   ].join("\n");
 }
 
@@ -465,7 +473,7 @@ function renderArray(key: string, values: readonly string[]): string {
 
 const NO_AUTHORED: Authored = {
   header: "",
-  character: "[]",
+  character: "    character: [],",
   comment: "",
 };
 

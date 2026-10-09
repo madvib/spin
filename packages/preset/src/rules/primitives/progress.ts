@@ -3,7 +3,7 @@ import { themeOf } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
- * Progress — `<progress>` and `<meter>`.
+ * Progress — the `<progress>` element.
  *
  * A native element with a real value and a real indeterminate state, so no
  * JavaScript. What is hard about styling one is that it is the only control
@@ -44,9 +44,8 @@ export function progressRules(
 ): Rule[] {
   if (!roots.includes("progress")) return [];
   const progress = claim(mode, "progress");
-  const meter = claim(mode, "meter");
   return [
-    barRule(progress, meter),
+    barRule(progress),
     ...indeterminateRule(progress),
     ariaBusyRule(),
   ];
@@ -66,14 +65,13 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
 }
 
 /**
- * The bar: its groove, its fill, its indeterminate state, and a meter's three
- * ranges.
+ * The bar: its groove, its fill, and the indeterminate sweep.
  *
  * All of it yields from one rule because uno keeps only the first rule matching
  * a token, and a document only ever says `<progress>` — a `progress-value` rule
  * would never match, so the fill would never ship.
  */
-function barRule(progress: string, meter: string): Rule {
+function barRule(progress: string): Rule {
   return [
     /^progress$/,
     function* (_m, ctx) {
@@ -97,7 +95,7 @@ function barRule(progress: string, meter: string): Rule {
       // for them, and stating them here also keeps this body distinct from the
       // vendor rules' so they are never merged.
       yield {
-        [ctx.symbols.selector]: () => `${progress}, ${meter}`,
+        [ctx.symbols.selector]: () => progress,
         ...track,
         "-webkit-appearance": "none",
         "-moz-appearance": "none",
@@ -129,27 +127,6 @@ function barRule(progress: string, meter: string): Rule {
         [ctx.symbols.selector]: () => `${progress}::-moz-progress-value`,
         ...fill,
         "-moz-appearance": "none",
-      };
-
-      // A meter is not a progress bar: it reports a measurement inside a known
-      // range, so its fill carries the value's own colour, and it has no
-      // indeterminate state at all.
-      yield {
-        [ctx.symbols.selector]: () => `${meter}::-webkit-meter-optimum-value`,
-        ...fill,
-        "-webkit-appearance": "none",
-      };
-      yield {
-        [ctx.symbols.selector]: () =>
-          `${meter}::-webkit-meter-suboptimum-value`,
-        ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
-        ...(t.warning !== undefined ? { "background-color": t.warning } : {}),
-      };
-      yield {
-        [ctx.symbols.selector]: () =>
-          `${meter}::-webkit-meter-even-less-good-value`,
-        ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
-        ...(t.error !== undefined ? { "background-color": t.error } : {}),
       };
 
       // Indeterminate. The motion is the state: a bar with no fill and no

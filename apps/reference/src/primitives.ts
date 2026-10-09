@@ -29,6 +29,10 @@ import {
   detailsFixtureNote,
 } from "@spin/preset/rules/primitives/details.examples.ts";
 import {
+  METER_EXAMPLES,
+  meterFixtureNote,
+} from "@spin/preset/rules/primitives/meter.examples.ts";
+import {
   DIALOG_EXAMPLES,
   dialogFixtureNote,
 } from "@spin/preset/rules/primitives/dialog.examples.ts";
@@ -78,6 +82,14 @@ import {
   PROGRESS_EXAMPLES,
   progressFixtureNote,
 } from "@spin/preset/rules/primitives/progress.examples.ts";
+import {
+  RANGE_EXAMPLES,
+  rangeFixtureNote,
+} from "@spin/preset/rules/primitives/range.examples.ts";
+import {
+  RATING_EXAMPLES,
+  ratingFixtureNote,
+} from "@spin/preset/rules/primitives/rating.examples.ts";
 import {
   PROSE_DOC_EXAMPLES,
   proseFixtureNote,
@@ -234,6 +246,27 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "rule",
     note: tooltipFixtureNote,
     examples: [...TOOLTIP_EXAMPLES],
+  },
+  {
+    id: "meter",
+    title: "Meter",
+    kind: "rule",
+    note: meterFixtureNote,
+    examples: [...METER_EXAMPLES],
+  },
+  {
+    id: "range",
+    title: "Range",
+    kind: "rule",
+    note: rangeFixtureNote,
+    examples: [...RANGE_EXAMPLES],
+  },
+  {
+    id: "rating",
+    title: "Rating",
+    kind: "rule",
+    note: ratingFixtureNote,
+    examples: [...RATING_EXAMPLES],
   },
   {
     id: "progress",
