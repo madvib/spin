@@ -10,18 +10,6 @@
   "dark"
  ],
  "routes": 176,
- "findings": [
-  {
-   "route": "/components/textarea",
-   "theme": "default",
-   "mode": "dark",
-   "hovered": false,
-   "check": "contrast",
-   "subject": "div > label > textarea \"Cannot touch\"",
-   "detail": "1.05:1 — rgb(248, 250, 252) on rgb(255, 255, 255)"
-  }
- ],
- "counts": {
-  "contrast": 1
- }
+ "findings": [],
+ "counts": {}
 }
