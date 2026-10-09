@@ -42,9 +42,8 @@ import type {
 } from "@zag-js/core";
 import { callAll, compact, ensure, isEqual, isFunction, isString, toArray, warn } from "@zag-js/utils";
 import { ListCollection, TreeCollection } from "@zag-js/collection";
-import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../../core/signal.ts";
+import { batch, computed, effect, machineTick, scope as createOwnerScope, type OwnerScope } from "../../core/signal.ts";
 import { createBindable } from "./bindable.ts";
-
 /**
  * A constructed collection prop, declared — not built — by the component.
  * Machines like tree-view and select need `collection` objects scope props
@@ -68,8 +67,10 @@ function buildCollection(kind: CollectionDecl["kind"], source: unknown): unknown
 /** Bumped after every processed machine event. Bindings that read machine
  * state through paths that do not themselves track (plain-mutated context,
  * snapshot getters) subscribe to this instead. Coarse today: every binding
- * re-evaluates on every machine move. Per-machine scoping when it hurts. */
-export const machineTick = signal(0);
+ * re-evaluates on every machine move. Per-machine scoping when it hurts.
+ * Lives in core (not the adapter) so non-Zag bridges bump the same tick
+ * `bindSpread` subscribes to. */
+export { machineTick } from "../../core/signal.ts";
 import { normalizeProps } from "./normalize-props.ts";
 
 /** Props as a plain record, or as a getter so an element can drive them. */
@@ -254,11 +255,19 @@ function startMachine(
   }) ?? {};
 
   const ctx: BindableContext<RuntimeSchema> = {
-    get: (key) => contextValues[key].get(),
-    set: (key, value) => contextValues[key].set(value),
-    initial: (key) => contextValues[key].initial,
-    hash: (key) => contextValues[key].hash(contextValues[key].get()),
+    get: (key) => bindableFor(key).get(),
+    set: (key, value) => bindableFor(key).set(value),
+    initial: (key) => bindableFor(key).initial,
+    hash: (key) => bindableFor(key).hash(bindableFor(key).get()),
   };
+  // The context map is built from the machine's own declaration, so a miss
+  // is a machine-authoring error: fail loud naming the key rather than
+  // crashing on an undefined index deep in a transition.
+  function bindableFor(key: string): NonNullable<(typeof contextValues)[string]> {
+    const bindable = contextValues[key];
+    if (!bindable) throw new Error(`[spin] no context bindable "${key}" on this machine`);
+    return bindable;
+  }
 
   const refsMap = machine.refs?.({ prop, context: ctx }) ?? {};
   const refs: BindableRefs<RuntimeSchema> = {
@@ -270,7 +279,9 @@ function startMachine(
 
   const machineComputed: ComputedFn<RuntimeSchema> = (key) => {
     ensure(machine.computed, () => "[spin] No computed object found on machine");
-    return machine.computed[key]({
+    const compute = machine.computed[key];
+    if (!compute) throw new Error(`[spin] no computed "${key}" on this machine`);
+    return compute({
       context: ctx,
       event: eventRef.current,
       prop,

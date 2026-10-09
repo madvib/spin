@@ -24,6 +24,11 @@ export { computed, effect, signal, trigger };
  * detached in fragments and would otherwise miss forever. */
 export const inserted = signal(0);
 
+/** Bumped after every processed machine event. Bindings that read machine
+ * state through paths that do not themselves track (plain-mutated context,
+ * snapshot getters) subscribe to this instead. */
+export const machineTick = signal(0);
+
 /**
  * Run `fn` with writes deferred, then flush once.
  *
@@ -118,11 +123,11 @@ export function scope(): OwnerScope {
       }
       disposed = true;
       for (let i = groups.length - 1; i >= 0; i--) {
-        groups[i]();
+        groups[i]?.();
       }
       groups.length = 0;
       for (let i = teardowns.length - 1; i >= 0; i--) {
-        teardowns[i]();
+        teardowns[i]?.();
       }
       teardowns.length = 0;
     },
