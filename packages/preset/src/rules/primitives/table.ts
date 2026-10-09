@@ -52,6 +52,7 @@ function tableTokens(ctx: Parameters<typeof themeOf>[0]) {
     muted: t?.colors["text-muted"],
     border: t?.colors["border"],
     raised: t?.colors["surface-raised"],
+    sunken: t?.colors["surface-sunken"],
     fontFamily: t?.fontFamily?.["sans"],
     fontSize: t?.fontSize?.["sm"],
     sizeMd: t?.fontSize?.["md"],
@@ -232,6 +233,10 @@ function captionRule(mode: Mode): Rule {
  * other row" — it is a density choice about reading across a wide table, not a
  * thing a cell is. Zebra striping helps a reader hold their place; it is also
  * the most common table preference to disagree with, so it is opt-in.
+ *
+ * The stripe sits on `surface-sunken`, one step below the page: a theme's
+ * notion of depth under a surface, which a raised card or a field cannot
+ * supply.
  */
 function stripedRule(mode: Mode): Rule {
   return [
@@ -241,7 +246,7 @@ function stripedRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () =>
           `${claim(mode, "table")}.striped tbody > tr:nth-of-type(odd) > *`,
-        ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
+        ...(t.sunken !== undefined ? { "background-color": t.sunken } : {}),
       };
     },
     { layer: "primitives", autocomplete: "striped" },

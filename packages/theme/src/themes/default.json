@@ -75,6 +75,10 @@
       "$value": "{color.neutral.50}",
       "$description": "Page background."
     },
+    "surface-sunken": {
+      "$value": "{color.neutral.100}",
+      "$description": "Background of elements that sit below the page: table stripes, inset wells."
+    },
     "surface-raised": {
       "$value": "#ffffff",
       "$description": "Background of elements that sit above the page: cards, popovers, menus."

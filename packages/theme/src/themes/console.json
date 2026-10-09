@@ -13,6 +13,10 @@
       "$value": "oklch(16% 0.01 220)",
       "$type": "color"
     },
+    "surface-sunken": {
+      "$value": "oklch(12% 0.012 220)",
+      "$description": "A terminal suns its rows into the phosphor floor: one step below the page, still a surface."
+    },
     "surface-raised": {
       "$value": "oklch(16% 0.01 220)",
       "$type": "color"

@@ -549,6 +549,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--border-width",
       "--color-border",
       "--color-surface-raised",
+      "--color-surface-sunken",
       "--color-text",
       "--color-text-muted",
       "--font-family-sans",
