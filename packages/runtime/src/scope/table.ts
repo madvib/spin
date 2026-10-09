@@ -67,7 +67,7 @@ export function createScopeTable(owner: OwnerScope): ScopeTable {
     if (existing) return existing.value as T;
     const value = factory();
     const dispose = getDispose(value);
-    instances.set(handle, { value, dispose });
+    instances.set(handle, { value, dispose: dispose ?? (() => {}) });
     return value;
   }
 

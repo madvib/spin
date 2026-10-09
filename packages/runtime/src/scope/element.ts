@@ -39,6 +39,12 @@ export interface BuildContext {
   resolve<T>(handle: Handle): T | undefined;
   /** Instantiate (on first call) and register a handle in this scope. */
   watch<T>(handle: Handle, factory: Factory<T>): T;
+  /**
+   * Whether a prop was written by the host (property or attribute) as
+   * opposed to left at its coerced default. Machines use it to tell a
+   * controlled value from a seed.
+   */
+  authored(name: string): boolean;
 }
 
 /** A readable-and-writable value; `signal()` gives one without a name here. */
@@ -49,6 +55,23 @@ type Signal = {
 
 /** The declared props of one element instance, as live signals. */
 type PropStore = Map<string, Signal>;
+
+/**
+ * Props the host actually WROTE — as a property set or an attribute — as
+ * opposed to coerced defaults. This is the distinction controlled
+ * components live on: a `defaultOpen` seeds, an authored `open` alternates.
+ * Without it every declared prop reads as "set", because coercion
+ * materializes a default for all of them, and a machine can never tell the
+ * two apart. Zag's bindables do this at the prop layer (`value` vs
+ * `defaultValue`); the element is where it lands here.
+ */
+const authoredProps = new WeakMap<HTMLElement, Set<string>>();
+
+function authoredFor(el: HTMLElement): Set<string> {
+  let set = authoredProps.get(el);
+  if (!set) authoredProps.set(el, set = new Set());
+  return set;
+}
 
 /** Per-tag counters for generated element ids. Page-load scoped: uniqueness
  * is what Zag's part-id scoping needs, stability across loads is not. */
@@ -122,6 +145,7 @@ export function define(tag: string, spec: ElementSpec): void {
           scope: owner,
           resolve: (handle) => table.resolve(handle),
           watch: (handle, factory) => table.watch(handle, factory),
+          authored: (name) => authoredFor(this).has(name),
         });
       });
     }
@@ -137,7 +161,8 @@ export function define(tag: string, spec: ElementSpec): void {
       _previous: string | null,
       next: string | null,
     ): void {
-      propFor(this, name)(parsers[name](next));
+      authoredFor(this).add(name);
+      propFor(this, name)(parsers[name]?.(next));
     }
   }
 
@@ -147,6 +172,7 @@ export function define(tag: string, spec: ElementSpec): void {
         return propFor(this, name)();
       },
       set(this: HTMLElement, next: unknown) {
+        authoredFor(this).add(name);
         propFor(this, name)(next);
       },
       configurable: true,

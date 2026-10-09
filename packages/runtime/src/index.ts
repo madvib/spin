@@ -39,6 +39,25 @@ export interface MachineDef {
   readonly connect: (...args: never[]) => object;
   readonly events?: Readonly<Record<string, MachineEventContract>>;
   /**
+   * Alternative to the Zag pair: builds the bridge directly from scope
+   * props, the element root, and the machine id. A def that provides this
+   * never touches the Zag adapter — `machine`/`connect` are ignored and
+   * may be placeholders. The bridge shape (`{ api, dispose }`) is the
+   * same either way, so generated markup spreads identically.
+   */
+  readonly createBridge?: (
+    props: () => Record<string, unknown>,
+    root: () => Element,
+    id: string,
+  ) => { readonly api: object; dispose(): void };
+  /**
+   * Imperative commands the host (or a controller) may call on the element:
+   * `el[name](...args)` forwards to `api[name]`. Declared, not reflected, so
+   * the element's surface is authored — no machine method can accidentally
+   * shadow a DOM API by being copied over.
+   */
+  readonly commands?: readonly string[];
+  /**
    * A constructed collection prop, declared — not built. The adapter builds
    * the Zag `TreeCollection`/`ListCollection` from the named scope prop and
    * memoizes per source identity. Re-exported from the adapter; this is the
@@ -97,4 +116,4 @@ export { useMachine, type MachineApi, type MachineService } from "./machine/mach
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
 export { component, type ComponentSpec } from "./scope/component.ts";
 export { bindActionProps, bindSpread } from "./directives/zag-bind.ts";
-export { machineTick } from "./machine/adapter/machine.ts";
+export { machineTick } from "./core/signal.ts";

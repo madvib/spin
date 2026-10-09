@@ -122,14 +122,18 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const bridge = `${name}Bridge`;
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge} = watch(${name}, () => createMachine(${name}.machine, {\n` +
+            `  const ${bridge}Props = () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge} = watch(${name}, () => (${name}.createBridge\n` +
+            `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
+            `    : createMachine(${name}.machine, {\n` +
             `    collection: ${name}.collection,\n` +
             `    connect: ${name}.connect,\n` +
-            `    props: () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; return p; },\n` +
+            `    props: ${bridge}Props,\n` +
             `    getRootNode: () => el.getRootNode(),\n` +
             `    id: el.id || uniqueId(${JSON.stringify(tag)}),\n` +
-            `  }));\n` +
+            `  })));\n` +
             `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
+            `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
             `  own(() => ${bridge}.dispose());`
           );
         } catch {
@@ -145,7 +149,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const zagImport = hasConsume
         ? `import { createMachine, normalizeProps } from "@spin/runtime/zag";`
         : "";
-      const buildParams = [hasConsume ? "el, watch" : "el", hasProps ? "props" : ""]
+      const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)
         .join(", ");
       const defineHead = hasProps
