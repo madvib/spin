@@ -6,6 +6,7 @@
     ".": "./src/index.ts",
     "./elements": "./src/elements.ts",
     "./accordion": "./src/spin-accordion/spin-accordion.html",
+    "./accordion-robot": "./src/spin-accordion/spin-accordion-robot.html",
     "./dialog": "./src/spin-dialog/spin-dialog.html",
     "./menu": "./src/spin-menu/spin-menu.html",
     "./popover": "./src/spin-popover/spin-popover.html",
@@ -14,7 +15,10 @@
     "./tree-view": "./src/spin-tree-view/spin-tree-view.html",
     "./carousel": "./src/spin-carousel/spin-carousel.html",
     "./slider": "./src/spin-slider/spin-slider.html",
-    "./toast": "./src/spin-toast/spin-toast.html"
+    "./toast": "./src/spin-toast/spin-toast.html",
+    "./accordion-fsm": "./src/spin-accordion/spin-accordion-fsm.html",
+    "./tree-view-fsm": "./src/spin-tree-view/spin-tree-view-fsm.html",
+    "./dialog-fsm": "./src/spin-dialog/spin-dialog-fsm.html"
   },
   "dependencies": {
     "@zag-js/avatar": "~1.44.0",

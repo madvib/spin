@@ -1,0 +1,13 @@
+<scope>props={ nodes: string = "[]", defaultExpandedValue: string[] = [], expandedValue: string[] = [], selectedValue: string[] = [], selectionMode: string = "single", expandOnClick: bool = true, typeahead: bool = true } consume={ treeViewFsm }</scope>
+
+<div class="rounded-lg border border-border bg-surface-raised p-2" {...treeViewFsm.getRootProps()}>
+  <template for={treeViewFsm.getVisibleRows()} as={row} key={row.node.value}>
+    <button
+      class="group w-full flex items-center justify-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-text bg-transparent border-transparent transition-colors hover:bg-surface data-[selected]:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong"
+      {...treeViewFsm.getItemProps(row)}
+    >
+      <span aria-hidden="true" class="hidden shrink-0 text-muted text-xs transition-transform group-data-[branch]:inline-block data-[state=open]:rotate-90" {...treeViewFsm.getBranchIndicatorProps(row)}>›</span>
+      <span class="min-w-0 truncate" {...treeViewFsm.getBranchTextProps(row)}>{row.node.label}</span>
+    </button>
+  </template>
+</div>
