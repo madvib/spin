@@ -1,0 +1,17 @@
+<scope>props={ collapsible: bool = true, items: { value: string, label: string, content: string }[] = [] } consume={ fsmAccordion }</scope>
+
+<div class="rounded-lg border border-border bg-surface-raised divide-y divide-border" {...fsmAccordion.getRootProps()}>
+  <slot name="header"></slot>
+  <template for={items} as={row}>
+    <div {...fsmAccordion.getItemProps(row)}>
+      <button class="w-full flex items-center justify-between py-2 px-4 text-left text-md font-medium text-text bg-transparent border-transparent transition-colors hover:bg-surface" {...fsmAccordion.getItemTriggerProps(row)}>
+        <span>{row.label}</span>
+        <span aria-hidden="true" class="text-xl text-muted transition-transform data-[state=open]:rotate-180" {...fsmAccordion.getItemIndicatorProps(row)}>›</span>
+      </button>
+      <div class="px-4 pb-4 text-sm text-muted" {...fsmAccordion.getItemContentProps(row)}>
+        {row.content}
+      </div>
+    </div>
+  </template>
+  <slot><div class="px-4 py-2 text-sm text-muted">No further content.</div></slot>
+</div>
