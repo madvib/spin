@@ -41,6 +41,26 @@ const current = (label: string): string =>
 
 export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
   {
+    name: "Boxed",
+    html: `<nav class="breadcrumbs breadcrumbs-box" aria-label="Breadcrumb">
+  <ol class="breadcrumbs-list">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">Docs</a></li>
+    <li><a href="#" aria-current="page">Install</a></li>
+  </ol>
+</nav>`,
+  },
+  {
+    name: "Arrows",
+    html: `<nav class="breadcrumbs breadcrumbs-arrow" aria-label="Breadcrumb">
+  <ol class="breadcrumbs-list">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">Docs</a></li>
+    <li><a href="#" aria-current="page">Install</a></li>
+  </ol>
+</nav>`,
+  },
+  {
     name: "Breadcrumbs · three steps",
     html: trail(
       "        ",

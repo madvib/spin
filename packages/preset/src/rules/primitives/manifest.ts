@@ -181,11 +181,20 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   },
   breadcrumbs: {
     tags: ["a", "li"],
-    variants: ["breadcrumbs", "breadcrumbs-list"],
+    variants: [
+      "breadcrumbs",
+      "breadcrumbs-arrow",
+      "breadcrumbs-box",
+      "breadcrumbs-list",
+    ],
     reads: [
+      "--border-width",
+      "--color-border",
+      "--color-surface-raised",
       "--color-text",
       "--color-text-muted",
       "--font-size-sm",
+      "--radius-md",
       "--spacing-1",
       "--spacing-2",
     ],

@@ -21,7 +21,7 @@ export function breadcrumbsRules(
   mode: Mode,
 ): Rule[] {
   if (!roots.includes("breadcrumbs")) return [];
-  return [trailRule(), listRule()];
+  return [trailRule(), listRule(), boxRule(), arrowRule()];
 }
 
 /** The theme values breadcrumbs spends, resolved once per rule. */
@@ -33,6 +33,11 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
     muted: t?.colors["text-muted"],
     gap: t?.spacing["2"],
     separatorGap: t?.spacing["1"],
+    spacing2: t?.spacing["2"],
+    raised: t?.colors["surface-raised"],
+    border: t?.colors["border"],
+    borderWidth: t?.borderWidth?.["width"],
+    radiusMd: t?.radius["md"],
   };
 }
 
@@ -69,10 +74,13 @@ function trailRule(): Rule {
 
       // Underline on hover rather than a colour shift: it is the native
       // affordance, it reads at any contrast, and it leaves the trail's
-      // colour story binary — text is navigable, muted is not.
+      // colour story binary — text is navigable, muted is not. The line
+      // takes the trail's muted colour, not the ink, so a trail of links
+      // does not turn into a row of markers.
       yield {
         [ctx.symbols.selector]: () => ".breadcrumbs a:hover",
         "text-decoration": "underline",
+        ...(t.muted !== undefined ? { "text-decoration-color": t.muted } : {}),
       };
 
       // The current page is where the reader already is: it is not a link,
@@ -82,6 +90,16 @@ function trailRule(): Rule {
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
 
+      // Every item is a flex row so the separator — inline content the
+      // later items carry and the first does not — cannot change an item's
+      // line box. Without this the first step sits a couple of pixels high
+      // and the trail reads as broken.
+      yield {
+        [ctx.symbols.selector]: () => ".breadcrumbs li",
+        display: "inline-flex",
+        "align-items": "center",
+      };
+
       // The separator, between every item but the first. `::before` on a
       // later sibling means no separator is emitted for item one, and the
       // item itself stays empty of the tree.
@@ -89,6 +107,9 @@ function trailRule(): Rule {
         [ctx.symbols.selector]: () => ".breadcrumbs li + li::before",
         content: '"/"',
         ...(t.muted !== undefined ? { color: t.muted } : {}),
+        ...(t.separatorGap !== undefined
+          ? { "padding-inline-start": t.separatorGap }
+          : {}),
         ...(t.separatorGap !== undefined
           ? { "padding-inline-end": t.separatorGap }
           : {}),
@@ -106,6 +127,11 @@ function trailRule(): Rule {
  * are taken away rather than re-chosen. Wrap because a deep trail must not
  * scroll sideways, and a step that lost its place on a second line is a trail
  * that stopped being readable.
+ *
+ * Baseline alignment rather than centered: an item's box is not the same
+ * height with a separator in it as without one, and centering by the box
+ * leaves the first step sitting a couple of pixels high — a trail that reads
+ * as broken. One baseline is what a trail is.
  */
 function listRule(): Rule {
   return [
@@ -117,12 +143,57 @@ function listRule(): Rule {
         "list-style": "none",
         display: "flex",
         "flex-wrap": "wrap",
-        "align-items": "center",
+        "align-items": "baseline",
         margin: "0",
         padding: "0",
         ...(gap !== undefined ? { gap } : {}),
       };
     },
     { layer: "primitives", autocomplete: "breadcrumbs-list" },
+  ];
+}
+
+/**
+ * The boxed trail: the trail itself as an object — a raised surface with an
+ * edge — so a deep trail reads as one thing sitting in the page rather than
+ * loose text. The inner list is untouched; the box is a wrapper's decision.
+ */
+function boxRule(): Rule {
+  return [
+    /^breadcrumbs-box$/,
+    function* (_m, ctx) {
+      const t = tokens(ctx);
+      yield {
+        [ctx.symbols.selector]: () => ".breadcrumbs.breadcrumbs-box",
+        display: "inline-flex",
+        ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
+        ...(t.borderWidth !== undefined && t.border !== undefined
+          ? { border: `${t.borderWidth} solid ${t.border}` }
+          : {}),
+        ...(t.radiusMd !== undefined ? { "border-radius": t.radiusMd } : {}),
+        ...(t.spacing2 !== undefined ? { padding: t.spacing2 } : {}),
+      };
+    },
+    { layer: "primitives", autocomplete: "breadcrumbs-box" },
+  ];
+}
+
+/**
+ * The arrow trail: a chevron instead of a slash. Where the slash reads as
+ * prose, the chevron reads as direction — the same trail with an opinion
+ * about which way it runs.
+ */
+function arrowRule(): Rule {
+  return [
+    /^breadcrumbs-arrow$/,
+    function* (_m, ctx) {
+      const t = tokens(ctx);
+      yield {
+        [ctx.symbols.selector]: () => ".breadcrumbs-arrow li + li::before",
+        content: '"›"',
+        ...(t.muted !== undefined ? { color: t.muted } : {}),
+      };
+    },
+    { layer: "primitives", autocomplete: "breadcrumbs-arrow" },
   ];
 }
