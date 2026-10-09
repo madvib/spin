@@ -111,12 +111,16 @@ export function emit(ir: ComponentIr): EmitOutput {
           out.push(`${pad(depth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
         } else {
           bindings++;
-          out.push(`${pad(depth + 1)}${parts}.push(bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${scopeExpr(attr.value.expr, bound)})));`);
+          // bindAttr owns its own effect and returns void: pushing it would
+          // leave undefined in the update list and crash update() on sync.
+          out.push(`${pad(depth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${scopeExpr(attr.value.expr, bound)}));`);
         }
       }
       for (const ev of node.events) {
         bindings++;
-        out.push(`${pad(depth + 1)}${parts}.push(on(${el}, ${JSON.stringify(ev.event)}, (...args) => (${scopeExpr(ev.handler, bound)})(...args)));`);
+        // on() owns disposal via own() and returns its unsubscribe: pushing
+        // it would call unsubscribe on every sync. Bare call, like bindAttr.
+        out.push(`${pad(depth + 1)}on(${el}, ${JSON.stringify(ev.event)}, (...args) => (${scopeExpr(ev.handler, bound)})(...args));`);
       }
       for (const use of node.actions) {
         bindings++;

@@ -15,11 +15,21 @@
     "./carousel": "./src/carousel.ts",
     "./checkbox": "./src/checkbox.ts",
     "./radio-group": "./src/radio-group.ts",
-    "./switch": "./src/switch.ts"
+    "./switch": "./src/switch.ts",
+    "./select": "./src/select.ts",
+    "./slider": "./src/slider.ts",
+    "./toast": "./src/toast.ts"
   },
   "dependencies": {
+    "@zag-js/avatar": "~1.44.0",
     "@zag-js/checkbox": "~1.44.0",
+    "@zag-js/progress": "~1.44.0",
     "@zag-js/radio-group": "~1.44.0",
-    "@zag-js/switch": "~1.44.0"
+    "@zag-js/rating-group": "~1.44.0",
+    "@zag-js/select": "~1.44.0",
+    "@zag-js/slider": "~1.44.0",
+    "@zag-js/switch": "~1.44.0",
+    "@zag-js/tags-input": "~1.44.0",
+    "@zag-js/toast": "~1.44.0"
   }
 }

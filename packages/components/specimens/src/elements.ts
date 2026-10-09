@@ -126,6 +126,18 @@ export interface RadioItem {
   readonly disabled?: boolean;
 }
 
+export interface SelectItem {
+  readonly value: string;
+  readonly label: string;
+  readonly disabled: boolean;
+}
+
+export interface ToastItem {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+}
+
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
@@ -177,6 +189,28 @@ declare module "solid-js" {
         defaultChecked?: boolean;
         checked?: boolean;
         disabled?: boolean;
+      };
+      "spin-select": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        items?: readonly SelectItem[];
+        defaultValue?: string;
+        placeholder?: string;
+        disabled?: boolean;
+        name?: string;
+      };
+      "spin-slider": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        label?: string;
+        defaultValue?: number;
+        min?: number;
+        max?: number;
+        step?: number;
+        disabled?: boolean;
+        name?: string;
+      };
+      "spin-toast": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        items?: readonly ToastItem[];
       };
     }
   }

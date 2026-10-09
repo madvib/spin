@@ -105,6 +105,10 @@ export function define(tag: string, spec: ElementSpec): void {
     #table: ScopeTable | undefined;
 
     connectedCallback(): void {
+      // Custom elements are inline by default; content children sized in %
+      // (slider tracks, carousel slides) would shrink-wrap. Block layout is
+      // element semantics, not theme — set once here, not per component.
+      if (this.style.display === "") this.style.display = "block";
       // A reconnect opens a fresh scope. The previous one is already disposed,
       // and `dispose` is idempotent, so ordering here is not load-bearing.
       const owner = scope();

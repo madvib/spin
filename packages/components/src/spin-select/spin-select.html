@@ -1,0 +1,21 @@
+<scope>props={ items: { value: string, label: string, disabled: bool }[] = [], defaultValue: string = "", placeholder: string = "Select...", disabled: bool = false, name: string = "" } consume={ select }</scope>
+
+<div class="relative" {...api.getRootProps()}>
+  <button type="button" class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface" {...api.getTriggerProps()}>
+    <span class="text-muted" {...api.getValueTextProps()}>{placeholder}</span>
+    <span aria-hidden="true" class="text-muted transition-transform data-[state=open]:rotate-180" {...api.getIndicatorProps()}>›</span>
+  </button>
+  <select {...api.getHiddenSelectProps()}></select>
+  <div class="absolute z-10 mt-2 min-w-16" {...api.getPositionerProps()}>
+    <div class="rounded-lg border border-border bg-surface-raised p-1 shadow-lg" {...api.getContentProps()}>
+      <div {...api.getListProps()}>
+        <template for={items} as={row} key={row.value}>
+          <div class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-text transition-colors data-[highlighted]:bg-surface data-[disabled]:opacity-50" {...api.getItemProps({ item: row })}>
+            <span class="text-muted" {...api.getItemIndicatorProps({ item: row })}>✓</span>
+            <span {...api.getItemTextProps({ item: row })}>{row.label}</span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>

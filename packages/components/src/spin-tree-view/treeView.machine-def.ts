@@ -38,11 +38,11 @@ export const treeView: MachineDef = {
   machine,
   connect,
   toMachineProps: (values) => {
-    if (cachedCollection?.nodes !== values.nodes) {
+    if (cachedCollection === undefined || cachedCollection.nodes !== values.nodes) {
       cachedCollection = {
         nodes: values.nodes,
         collection: new TreeCollection<TreeNode>({
-          rootNode: { value: "ROOT", label: "", children: values.nodes as TreeNode[] },
+          rootNode: { value: "ROOT", label: "", children: (values.nodes ?? []) as TreeNode[] },
         }),
       };
     }

@@ -25,3 +25,6 @@ import "./spin-carousel/spin-carousel.html";
 import "./spin-checkbox/spin-checkbox.html";
 import "./spin-radio-group/spin-radio-group.html";
 import "./spin-switch/spin-switch.html";
+import "./spin-select/spin-select.html";
+import "./spin-slider/spin-slider.html";
+import "./spin-toast/spin-toast.html";

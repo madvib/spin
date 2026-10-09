@@ -1,0 +1,11 @@
+<scope>props={ items: { id: string, title: string, description: string }[] = [] } consume={ toast }</scope>
+
+<div {...api.getGroupProps()}>
+  <template for={api.getToasts()} as={row} key={row.id}>
+    <div class="relative rounded-lg border border-border bg-surface-raised p-4 shadow-lg">
+      <div class="text-md font-medium text-text">{row.title}</div>
+      <div class="text-sm text-muted mt-1">{row.description}</div>
+      <button type="button" data-close={row.id} class="absolute top-2 right-2 text-muted bg-transparent border-transparent transition-colors hover:text-text">×</button>
+    </div>
+  </template>
+</div>

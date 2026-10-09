@@ -10,7 +10,9 @@ import Carousel from "./routes/carousel.tsx";
 import Checkbox from "./routes/checkbox.tsx";
 import RadioGroup from "./routes/radio-group.tsx";
 import Switch from "./routes/switch.tsx";
-
+import Select from "./routes/select.tsx";
+import Slider from "./routes/slider.tsx";
+import Toast from "./routes/toast.tsx";
 
 /** One component under test, plus the route that shows it. */
 export interface Specimen {
@@ -102,5 +104,26 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "An on/off switch driven by the Zag switch machine.",
     path: "/switch",
     component: Switch,
+  },
+  {
+    id: "select",
+    title: "Select",
+    blurb: "A dropdown select driven by the Zag select machine.",
+    path: "/select",
+    component: Select,
+  },
+  {
+    id: "slider",
+    title: "Slider",
+    blurb: "A value slider driven by the Zag slider machine.",
+    path: "/slider",
+    component: Slider,
+  },
+  {
+    id: "toast",
+    title: "Toast",
+    blurb: "Toast notifications driven by the Zag toast machine.",
+    path: "/toast",
+    component: Toast,
   },
 ];

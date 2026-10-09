@@ -435,8 +435,19 @@ function startMachine(
   machine.watch?.(getParams());
 
   status = MachineStatus.Started;
+  // Deferred past the synchronous build: entry effects measure the DOM
+  // (slider thumbs, carousel snap points), and at creation time the
+  // component's children do not exist yet — effects that query for them
+  // would observe nothing and never recover. Spreads render pre-invoke
+  // defaults (state carries its initial value); the invoke's machineTick
+  // re-renders with measured values, still before paint. Matches the
+  // send() deferral rationale above: Zag adapters never run transitions
+  // re-entrantly into construction.
   debug("initializing...");
-  state.invoke(initialState, INIT_STATE);
+  queueMicrotask(() => {
+    if (status !== MachineStatus.Started) return;
+    state.invoke(initialState, INIT_STATE);
+  });
 
   return {
     state: getState(),
