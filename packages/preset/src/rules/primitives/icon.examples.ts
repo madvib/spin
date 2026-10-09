@@ -31,18 +31,7 @@ ${inner}
         </div>`;
 
 export const iconFixtureNote =
-  "An icon's size is a token a theme decides, not a number someone wrote " +
-  "down: icon-sm, icon-md and icon-lg spend icon.sm, icon.md and icon.lg " +
-  "from the theme's icon group — dimensions a theme states in em, so a " +
-  "size step scales with the control it sits in rather than pinning the " +
-  "glyph to one absolute length. The size is a font-size, and that is " +
-  "forced by the layers: the glyph these classes size is an icon class " +
-  "from @unocss/preset-icons, which sizes itself 1em in the icons layer — " +
-  "a layer the primitives layer cannot beat at equal specificity, so a " +
-  "width or height stated here would be dead the moment an icon class is " +
-  "present. font-size is the one lever that reaches it. icon-md is the " +
-  "default restated as a class: the button's slot already spends icon.md, " +
-  "so writing it changes nothing until a theme says otherwise.";
+  "Glyph sizes from the theme's icon ladder, in `em`, so a size step scales with the control it sits in.";
 
 export const ICON_EXAMPLES: readonly IconExample[] = [
   {

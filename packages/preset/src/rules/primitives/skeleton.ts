@@ -25,7 +25,7 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
     textSize: t?.fontSize?.["sm"],
     // A disc placeholder is a face, so its edge is the avatar ladder's.
     avatar: groupOf(ctx, "avatar")["md"],
-    duration: t?.motionDuration?.["fast"],
+    duration: t?.motionDuration?.["slow"],
     easing: t?.motionEasing?.["standard"],
   };
 }
@@ -49,7 +49,9 @@ function block(): Rule {
         ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
         // Both halves of the timing come from the motion scale, so a theme
         // without motion has a skeleton that holds still rather than one
-        // animating at a duration no theme chose.
+        // animating at a duration no theme chose. `slow` because a loader
+        // is watched, not reacted to: `fast` is a control's response time
+        // and at 150ms the pulse reads as a flicker.
         ...(t.duration !== undefined && t.easing !== undefined
           ? {
             animation: `spin-skeleton-pulse ${t.duration} ${t.easing} infinite`,

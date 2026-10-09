@@ -20,9 +20,7 @@ export interface FieldsetExample {
 }
 
 export const fieldsetFixtureNote =
-  "A fieldset groups related fields and disables all of them at once — " +
-  "the platform does the disabling, so the only thing to state is that " +
-  "a legend reads as the group's name.";
+  "A fieldset groups related fields and disables them at once; the legend reads as the group's name.";
 
 export const FIELDSET_EXAMPLES: readonly FieldsetExample[] = [
   {

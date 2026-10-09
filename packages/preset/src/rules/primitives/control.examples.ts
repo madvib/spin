@@ -31,12 +31,7 @@ const inputSwitch = (attrs: string, label: string): string =>
   }> ${label}</label>`;
 
 export const controlFixtureNote =
-  "A checkbox is a working checkbox with no class at all: the input " +
-  "carries the base and the platform owns its state. It draws itself " +
-  "rather than using the platform's rendering, so a tick cannot be the " +
-  "platform's blue. `checked` and `disabled` are attributes, and " +
-  "indeterminate has none — the fixture marks it `data-mixed` and the " +
-  "page sets `.indeterminate`.";
+  "A working checkbox with no class: the input carries the base and draws its own tick. `checked` and `disabled` are attributes; indeterminate is `data-mixed`.";
 
 export const CHECKBOX_EXAMPLES: readonly ControlExample[] = [
   {
@@ -60,10 +55,7 @@ export const CHECKBOX_EXAMPLES: readonly ControlExample[] = [
 ];
 
 export const switchFixtureNote =
-  'A switch is a checkbox wearing `role="switch"`: same input, same ' +
-  "attribute states, a track instead of a box. The label carries the " +
-  "state word and the description carries the detail, so a switch reads " +
-  "at any size.";
+  'A checkbox wearing `role="switch"`: same input, same states, a track instead of a box. The label carries the state word.';
 
 export const SWITCH_EXAMPLES: readonly ControlExample[] = [
   {

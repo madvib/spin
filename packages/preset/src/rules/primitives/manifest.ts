@@ -648,6 +648,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     tags: ["input"],
     variants: [],
     reads: [
+      "--border-width",
+      "--color-border",
       "--color-field",
       "--color-focus-ring",
       "--color-primary",
@@ -678,7 +680,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--avatar-md",
       "--color-field",
       "--font-size-sm",
-      "--motion-duration-fast",
+      "--motion-duration-slow",
       "--motion-easing-standard",
       "--radius-full",
       "--radius-sm",
@@ -718,8 +720,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--motion-easing-standard",
       "--radius-full",
       "--radius-md",
+      "--shadow-sm",
       "--spacing-4",
-      "--switch-depth",
     ],
     character: [
       { path: "switch.depth", type: "number", value: "1" },

@@ -16,13 +16,7 @@ export interface KbdExample {
 }
 
 export const kbdFixtureNote =
-  "A bare `<kbd>` is a keycap — the visual representation of a key on the " +
-  "keyboard. It is keyboard input, not machine text: it tells the reader " +
-  "what to press, not what the computer printed. The face is the platform's, " +
-  "so the keycap matches the surrounding text rather than imposing a " +
-  "monospace chip. Combinations are written as separate keycaps joined by " +
-  "`+`, and a keycap sits inline beside prose or a control without leaving " +
-  "the line box.";
+  "A keycap for keyboard input — what to press, not what the computer printed. Combinations are keycaps joined by `+`.";
 
 export const KBD_EXAMPLES: readonly KbdExample[] = [
   {
@@ -39,6 +33,7 @@ export const KBD_EXAMPLES: readonly KbdExample[] = [
   },
   {
     name: "Kbd · beside a control",
-    html: `<label><kbd>⌘</kbd> <input type="text" placeholder="Search"></label>`,
+    html:
+      `<label><kbd>⌘</kbd> <input type="text" placeholder="Search"></label>`,
   },
 ];

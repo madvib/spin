@@ -48,6 +48,8 @@ function rangeRule(): Rule {
       const trackHeight = t?.spacing["2"];
       const thumbSize = t?.spacing["4"];
       const field = t?.colors["field"];
+      const border = t?.colors["border"];
+      const borderWidth = t?.borderWidth?.["width"];
       const primary = t?.colors["primary"];
       const full = t?.radius["full"];
       const focusWidth = t?.focusWidth?.["width"];
@@ -80,9 +82,20 @@ function rangeRule(): Rule {
       };
 
       // The groove: the field surface — the colour a text field's box spends
-      // — fully round, one step thick.
+      // — fully round, one step thick, with the border token as an edge.
+      //
+      // The edge is not decoration: in a starter whose `field` sits at the
+      // page's own depth (console) a bare fill is invisible against the
+      // page, and a slider whose groove you cannot see is a thumb floating
+      // on nothing. The border is drawn on the pseudo, never on the host —
+      // the preflight documents that Chromium keys a control's appearance
+      // to whether the HOST has a border, and styling the host silently
+      // restores the platform slider.
       const track = {
         ...(field !== undefined ? { "background-color": field } : {}),
+        ...(borderWidth !== undefined && border !== undefined
+          ? { border: `${borderWidth} solid ${border}` }
+          : {}),
         ...(full !== undefined ? { "border-radius": full } : {}),
         ...(trackHeight !== undefined ? { height: trackHeight } : {}),
       };

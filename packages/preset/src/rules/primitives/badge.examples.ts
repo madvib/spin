@@ -22,11 +22,7 @@ ${inner}
         </div>`;
 
 export const badgeFixtureNote =
-  "A badge is the smallest component there is: a tag that carries the " +
-  "base, and a tone it spends. The tone is a variant attribute or a " +
-  "class on the tag — both resolve against the same catalog. Muted " +
-  "tones are quieter; small and large change the size; close is a " +
-  "remove action, not a tone.";
+  "The smallest component: a tag that carries the base and spends a tone. Tones are variants or classes, `-muted` suffixes are quieter, sm and lg change the size.";
 
 export const BADGE_EXAMPLES: readonly BadgeExample[] = [
   {
@@ -115,7 +111,6 @@ export const BADGE_EXAMPLES: readonly BadgeExample[] = [
   },
   {
     name: "In a button",
-    html:
-      `<button>Inbox <badge class="badge-accent">3</badge></button>`,
+    html: `<button>Inbox <badge class="badge-accent">3</badge></button>`,
   },
 ];

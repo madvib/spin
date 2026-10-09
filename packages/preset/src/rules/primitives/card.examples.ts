@@ -23,10 +23,7 @@ ${inner}
         </div>`;
 
 export const cardFixtureNote =
-  "A card is a surface with eight parts, each its own tag: figure, header, " +
-  "title, description, action, content, footer. Sizes are classes on the " +
-  "tag — card-default, card-narrow, card-wide — and card-ghost drops the " +
-  "chrome. The footer holds classless buttons.";
+  "A surface with eight parts, each its own tag. Sizes are classes on the tag; `card-ghost` drops the chrome.";
 
 export const CARD_EXAMPLES: readonly CardExample[] = [
   {

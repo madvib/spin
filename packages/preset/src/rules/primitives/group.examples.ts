@@ -23,10 +23,7 @@ ${inner}
         </div>`;
 
 export const groupFixtureNote =
-  "A group is a working group with no class at all: the role carries the " +
-  "base, and children flatten each other's corners and their borders " +
-  "collapse into one seam. data-wrap opts out of the seam for wrapping " +
-  "layouts.";
+  "A working radiogroup: children flatten each other's corners and their borders collapse into one seam. `data-wrap` opts out for wrapping layouts.";
 
 export const GROUP_EXAMPLES: readonly GroupExample[] = [
   {

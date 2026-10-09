@@ -22,11 +22,7 @@ ${inner}
         </div>`;
 
 export const detailsFixtureNote =
-  "A details is a working disclosure with no class at all: the tag carries " +
-  "the base, and the open attribute is the state. The platform owns the " +
-  "behaviour — it works with scripting disabled, is keyboard operable, and " +
-  "is announced through its native role — so everything here is the surface " +
-  "and none of it is the mechanism.";
+  "A working disclosure with no class: the tag carries the base and `open` is the state. The platform owns the behavior, so this is only the surface.";
 
 export const DETAILS_EXAMPLES: readonly DetailsExample[] = [
   {
@@ -74,8 +70,7 @@ export const DETAILS_EXAMPLES: readonly DetailsExample[] = [
   },
   {
     name: "In a group",
-    html:
-      `        <span class="flex flex-wrap items-center gap-2" role="group">
+    html: `        <span class="flex flex-wrap items-center gap-2" role="group">
           <details>
             <summary>First</summary>
             <p>First body.</p>

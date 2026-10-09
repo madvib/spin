@@ -53,15 +53,7 @@ ${
 };
 
 export const ratingFixtureNote =
-  "A rating is five radios read as stars: a `.rating` container of " +
-  "`.rating-star` radios sharing a name, so the value, the keyboard " +
-  "behaviour and the disabled state all belong to the platform. The container " +
-  "is `row-reverse` — DOM order 1..5 renders 5..1, so a later sibling is a " +
-  "star further left and `:checked ~ input` fills exactly the stars at or " +
-  "below the checked one in reading order. An empty star is `text-muted`, a " +
-  "filled one is the warning colour: a rating is a judgement, and a judgement " +
-  "is an attention. The `name` is the whole group — two ratings side by side " +
-  "are two names, never one.";
+  "Five radios read as stars: value, keyboard and disabled belong to the platform. `:checked ~` fills the stars at or below the checked one.";
 
 export const RATING_EXAMPLES: readonly RatingExample[] = [
   {

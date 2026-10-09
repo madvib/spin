@@ -22,13 +22,7 @@ ${inner}
         </div>`;
 
 export const meterFixtureNote =
-  "A meter is a gauge over a known range: with `optimum` above `high` " +
-  "the top band is the good one, the middle band is suboptimal, and " +
-  "below `low` is even less good. All three gauges below share one " +
-  "range — 0..100, low 40, high 70, optimum 90 — so 90 is optimum, 55 " +
-  "suboptimum, 10 even less good. A meter with only a `value` keeps the " +
-  "default 0..1 range, and `disabled` is an attribute like on any form " +
-  "control.";
+  "A gauge over a known range: the platform classifies the value against `low`, `high` and `optimum`; the fills are the theme's semantic colors.";
 
 export const METER_EXAMPLES: readonly MeterExample[] = [
   {

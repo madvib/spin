@@ -17,9 +17,7 @@ export interface ProseExample {
 }
 
 export const proseFixtureNote =
-  "Prose is document composition: an article states nothing — its tags " +
-  "carry headings, lists, quotes and code. The prose container constrains " +
-  "measure and closes the rhythm; it states nothing else.";
+  "Document composition: an article states nothing — its tags carry headings, lists, quotes and code. `prose` only constrains the measure.";
 
 export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
   {
@@ -56,9 +54,7 @@ export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
 ];
 
 export const typographyFixtureNote =
-  "Typography is text at scale: h1 through h6 form one ladder, each step " +
-  "a size and a weight, not a class. Inline semantics — strong, em, code, " +
-  "kbd, mark — render per the tag, because the tag IS the contract.";
+  "Text at scale: h1 through h6 are one ladder of sizes and weights, not classes.";
 
 export const TYPOGRAPHY_EXAMPLES: readonly ProseExample[] = [
   {

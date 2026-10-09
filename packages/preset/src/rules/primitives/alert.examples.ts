@@ -22,10 +22,7 @@ ${inner}
         </div>`;
 
 export const alertFixtureNote =
-  "An alert is a surface with a strong edge in the tone, not a fill. The " +
-  "tone marks the alert; the surface stays the surface. role=alert gets a " +
-  "heavier edge than role=status because an assertion interrupts and a " +
-  "status does not.";
+  "A surface with a strong edge in its tone — the tone marks the alert, the surface stays the surface. `role=alert` takes a heavier edge than `role=status`.";
 
 export const ALERT_EXAMPLES: readonly AlertExample[] = [
   {

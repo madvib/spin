@@ -50,8 +50,7 @@ const RAIL_LINK =
 const SURFACE_LINK =
   "flex-1 justify-center rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted no-underline hover:border-border-strong hover:text-text aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
 
-const RAIL_HEAD =
-  "mb-4 text-xs font-semibold uppercase tracking-wide text-text-muted";
+const RAIL_HEAD = "mb-3 text-xs font-semibold text-text-muted";
 
 function ExampleSection(props: {
   name: string;
@@ -74,8 +73,8 @@ function ExampleSection(props: {
     }
   };
   return (
-    <section class="mb-8">
-      <h3 class="mb-2 mt-8 text-xs font-semibold uppercase tracking-wide text-text-muted">
+    <section class="mb-10">
+      <h3 class="mb-3 text-xs font-semibold text-text-muted">
         {props.name}
       </h3>
       <div

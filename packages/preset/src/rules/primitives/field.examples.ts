@@ -22,11 +22,7 @@ ${inner}
         </div>`;
 
 export const fieldFixtureNote =
-  "A text field works with no class at all: the tag carries the box, and " +
-  "states are attributes on the tag. Disabled and readonly are platform " +
-  "states; aria-invalid carries validity — unjudged, passed, failed. The " +
-  "type is the platform's concern: email gets validation, search gets a " +
-  "clear button, number gets a stepper.";
+  "A text field works with no class: the tag carries the box and states are attributes. `aria-invalid` carries validity — unjudged, passed, failed.";
 
 export const INPUT_EXAMPLES: readonly FieldExample[] = [
   {
@@ -59,9 +55,7 @@ export const INPUT_EXAMPLES: readonly FieldExample[] = [
 ];
 
 export const selectFixtureNote =
-  "A select draws itself rather than wearing the platform's chrome, and it " +
-  "carries the same box as a text field — one box per control kind, not " +
-  "one class. Disabled is an attribute; the options are content.";
+  "A select draws itself rather than wearing the platform's chrome, on the same box a text field takes.";
 
 export const SELECT_EXAMPLES: readonly FieldExample[] = [
   {
@@ -100,9 +94,7 @@ export const SELECT_EXAMPLES: readonly FieldExample[] = [
 ];
 
 export const textareaFixtureNote =
-  "A textarea is a multi-line box that grows nowhere on its own: rows is " +
-  "the platform's, the resize handle is the author's, and the box knows " +
-  "aria-invalid like every other field.";
+  "A multi-line box that wraps and resizes vertically, with a min height that keeps a one-row textarea a textarea.";
 
 export const TEXTAREA_EXAMPLES: readonly FieldExample[] = [
   {

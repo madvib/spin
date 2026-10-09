@@ -16,9 +16,7 @@ export interface HrExample {
 }
 
 export const hrFixtureNote =
-  "A divider is a bare `<hr>`: a rule drawn from the theme's border token — " +
-  "a theme that thickens borders thickens its dividers — and spaced by the " +
-  "scale through margin-block.";
+  "A bare `<hr>` drawn from the theme's border token — thicken the borders and the divider thickens with them.";
 
 export const HR_EXAMPLES: readonly HrExample[] = [
   {

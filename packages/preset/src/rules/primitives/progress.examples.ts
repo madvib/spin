@@ -21,11 +21,7 @@ ${inner}
         </div>`;
 
 export const progressFixtureNote =
-  "A progress bar is a native element with a real value and a real " +
-  "indeterminate state — no JavaScript. The track is a surface with a lit " +
-  "inner edge, the same inset depth a control gets. An indeterminate bar " +
-  "gets motion: a static bar with no fill reads as a bar that failed to " +
-  "load.";
+  "A native bar with a real value and a real indeterminate state. An indeterminate bar sweeps, because a static empty bar reads as a failure to load.";
 
 export const PROGRESS_EXAMPLES: readonly ProgressExample[] = [
   {

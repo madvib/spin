@@ -17,10 +17,7 @@ export interface TabsExample {
 }
 
 export const tabsFixtureNote =
-  "No JavaScript at all: radio inputs and :checked drive both the tab's " +
-  "appearance and its panel's visibility. The radios stay in the " +
-  "accessibility tree — collapsed to a pixel, not hidden — so the tabs " +
-  "are keyboard reachable and a screen reader announces them.";
+  "No JavaScript: radios and `:checked` drive the tab and its panel, and the radios stay in the accessibility tree.";
 
 export const TABS_EXAMPLES: readonly TabsExample[] = [
   {

@@ -19,20 +19,7 @@ export interface SkeletonExample {
 }
 
 export const skeletonFixtureNote =
-  "A skeleton is a placeholder block that pulses — a loader with no " +
-  "JavaScript in it. It is one material: the `field` surface a control " +
-  "takes, an inset hole the content has not filled yet, at the small radius " +
-  "of a boxed thing. The block takes the size the content will take — here " +
-  "the three lines it stands for give a card its height — because only the " +
-  "consumer knows how big the real thing is. `skeleton-text` shapes it into " +
-  "a line of copy: the height is the text's own size, so a loading paragraph " +
-  "occupies the line boxes the paragraph will occupy and nothing reflows " +
-  "when the words land, and the space under each line is the theme's own, " +
-  "so stacked lines carry the rhythm the real text will carry. " +
-  "`skeleton-circle` shapes it into a face, its edge read from the avatar " +
-  "ladder so a loading face and a real one fill the same square. The pulse " +
-  "spends the motion scale's fast duration and standard easing, and the " +
-  "global reduced-motion clamp stops it for a reader who asks.";
+  "A placeholder block that pulses — no JavaScript. `skeleton-text` takes a line's height, `skeleton-circle` the avatar ladder's.";
 
 export const SKELETON_EXAMPLES: readonly SkeletonExample[] = [
   {

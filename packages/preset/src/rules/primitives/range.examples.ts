@@ -23,14 +23,7 @@ ${inner}
         </div>`;
 
 export const rangeFixtureNote =
-  "A slider works with no class at all: the `type` attribute is the opt-in, " +
-  "and the track and the thumb are pseudo-elements — Chromium reads the " +
-  "`-webkit-` spelling of them, Firefox the `-moz-` one, so both are " +
-  "stated. States are attributes: `disabled` dims the whole control. The " +
-  "value beside the last slider is plain text in agreement with the " +
-  "input's own `value` — a readout that tracks the thumb is script's job, " +
-  "and a fixture that faked one with script would be demonstrating " +
-  "someone else's component.";
+  "A slider with no class: `type=range` is the opt-in. Track and thumb are pseudo-elements, stated for both engines; `disabled` dims the control.";
 
 export const RANGE_EXAMPLES: readonly RangeExample[] = [
   {

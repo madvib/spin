@@ -51,7 +51,7 @@ function statContainer(): Rule {
   ];
 }
 
-/** The label above the number: small, muted, uppercase, tracked open. */
+/** The label above the number: small, muted, semibold. */
 function statTitle(): Rule {
   return [
     /^stat-title$/,
@@ -61,9 +61,12 @@ function statTitle(): Rule {
         [ctx.symbols.selector]: () => ".stat-title",
         ...(sizeXs !== undefined ? { "font-size": sizeXs } : {}),
         ...(muted !== undefined ? { color: muted } : {}),
-        ...(weightSemibold !== undefined ? { "font-weight": weightSemibold } : {}),
-        "text-transform": "uppercase",
-        ...(trackingWide !== undefined ? { "letter-spacing": trackingWide } : {}),
+        ...(weightSemibold !== undefined
+          ? { "font-weight": weightSemibold }
+          : {}),
+        ...(trackingWide !== undefined
+          ? { "letter-spacing": trackingWide }
+          : {}),
       };
     },
     { layer: "primitives", autocomplete: "stat-title" },
@@ -79,7 +82,9 @@ function statValue(): Rule {
       yield {
         [ctx.symbols.selector]: () => ".stat-value",
         ...(size2xl !== undefined ? { "font-size": size2xl } : {}),
-        ...(weightSemibold !== undefined ? { "font-weight": weightSemibold } : {}),
+        ...(weightSemibold !== undefined
+          ? { "font-weight": weightSemibold }
+          : {}),
         ...(text !== undefined ? { color: text } : {}),
       };
     },

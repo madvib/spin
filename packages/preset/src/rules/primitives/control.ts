@@ -248,7 +248,6 @@ function switchRule(): Rule {
     /^switch$/,
     function* (_m, ctx) {
       const t = themeOf(ctx);
-      const depth = groupOf(ctx, "switch")?.["depth"] ?? "1.5";
       const size = t?.spacing["4"];
       const borderWidth = t?.borderWidth?.["width"];
       const radius = t?.radius?.["md"];
@@ -259,6 +258,7 @@ function switchRule(): Rule {
       const raised = t?.colors["surface-raised"];
       const primary = t?.colors["primary"];
       const onPrimary = t?.colors["on-primary"];
+      const shadow = t?.shadow?.["sm"];
       const duration = t?.motionDuration?.["fast"];
       const easing = t?.motionEasing?.["standard"];
       const focusWidth = t?.focusWidth?.["width"];
@@ -300,12 +300,11 @@ function switchRule(): Rule {
           ? { "border-radius": radiusFull }
           : {}),
         ...(raised !== undefined ? { "background-color": raised } : {}),
-        "box-shadow": [
-          `inset 0 1px 2px 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
-          `inset 0 -1px 0 0 rgba(255, 255, 255, calc(${depth} * 0.1))`,
-          `inset 0 0 0 0 rgba(0, 0, 0, 0)`,
-          `0 0 0 0 rgba(0, 0, 0, 0)`,
-        ].join(", "),
+        // The theme's own physical language: `shadow.sm` is a soft lift in
+        // one starter, a hard offset edge in another, a phosphor ring in
+        // the third — so a switch reads as its theme's object rather than
+        // as one control's private idea of depth.
+        ...(shadow !== undefined ? { "box-shadow": shadow } : {}),
       };
       if (duration !== undefined) {
         Object.assign(shell, {
@@ -377,14 +376,10 @@ function switchRule(): Rule {
         ...(primary !== undefined
           ? { "background-color": primary, "border-color": primary }
           : {}),
-        // Pressed, like the checked checkbox: the light inset goes and the
-        // dark one compresses, so a filled track reads as pushed in.
-        "box-shadow": [
-          `inset 0 0 0 0 rgba(0, 0, 0, 0)`,
-          `inset 0 -1px 0 0 rgba(255, 255, 255, 0)`,
-          `inset 0 8px 0 -4px rgba(255, 255, 255, calc(${depth} * 0.1))`,
-          `inset 0 1px 0 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
-        ].join(", "),
+        // Pressed: the fill takes the primary and the edge goes with it,
+        // while the shadow stays the theme's own — a checked switch is the
+        // same object, lit, not a different one.
+        ...(shadow !== undefined ? { "box-shadow": shadow } : {}),
         ...(onPrimary !== undefined ? { color: onPrimary } : {}),
       };
       yield {

@@ -23,12 +23,7 @@ ${inner}
         </div>`;
 
 export const joinFixtureNote =
-  "A join merges adjacent controls into one object: the shared edges square " +
-  "off, the outer corners round, and the border between neighbours collapses " +
-  "into a single seam instead of doubling. It is a class-entry composite — a " +
-  "`join` container with `join-item` on each child — and it owns geometry " +
-  "only: a button, input or select inside keeps the paint its own rule " +
-  "gives it.";
+  "A join merges adjacent controls into one object: shared edges square off, the seam collapses to one border. Geometry only — each child keeps its own paint.";
 
 export const JOIN_EXAMPLES: readonly JoinExample[] = [
   {
@@ -65,8 +60,7 @@ export const JOIN_EXAMPLES: readonly JoinExample[] = [
   },
   {
     name: "Join · beside a paragraph",
-    html:
-      `        <div class="flex items-center gap-2">
+    html: `        <div class="flex items-center gap-2">
           <div class="join">
             <button class="join-item">Save</button>
             <button class="join-item secondary">Save and close</button>

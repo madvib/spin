@@ -21,9 +21,7 @@ ${inner}
         </div>`;
 
 export const radioFixtureNote =
-  "A radio is a working radio with no class at all: the input carries the " +
-  "base. A group is a radiogroup of labelled inputs sharing a name; " +
-  "checked and disabled are states the browser owns.";
+  "A working radio with no class: the input carries the base. A group is labelled inputs sharing a name.";
 
 export const RADIO_EXAMPLES: readonly RadioExample[] = [
   {
@@ -44,7 +42,8 @@ export const RADIO_EXAMPLES: readonly RadioExample[] = [
   },
   {
     name: "Stacked",
-    html: `        <div role="radiogroup" aria-label="Stacked" class="flex flex-col items-start gap-2">
+    html:
+      `        <div role="radiogroup" aria-label="Stacked" class="flex flex-col items-start gap-2">
           <label><input type="radio" name="stack" checked> First</label>
           <label><input type="radio" name="stack"> Second</label>
           <label><input type="radio" name="stack"> Third</label>

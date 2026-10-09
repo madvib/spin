@@ -24,11 +24,7 @@ ${inner}
         </div>`;
 
 export const dialogFixtureNote =
-  "A dialog is a native modal: the tag brings focus trapping, Escape to " +
-  "close, and the page inert. What is ours is a card that looks like every " +
-  "other card, centred and capped so it cannot outgrow the viewport. " +
-  "Buttons inside use the button variants — ghost for quiet actions, " +
-  "danger for destructive ones.";
+  "A native modal: focus trapping, Escape and inertness are the platform's. Ours is a card that looks like every other card.";
 
 export const DIALOG_EXAMPLES: readonly DialogExample[] = [
   {

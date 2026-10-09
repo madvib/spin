@@ -79,13 +79,13 @@ function popoverRule(mode: Mode): Rule {
 
       // The panel. A card, floating — the surface is the whole of it; the
       // placement belongs to the platform or to the caller's anchor.
+      //
+      // `display` is declared ONLY on the open state. The platform hides a
+      // closed popover with `display: none`, and an unconditional declaration
+      // here would outrank that UA rule and leave every closed popover
+      // painted on the page.
       yield {
         [ctx.symbols.selector]: () => popover,
-        // A popover is a card, and a card is a block. Inherited as `inline`
-        // the box has no vertical padding at all — the text sits on the
-        // border — and `transition-behavior: allow-discrete` has no `display`
-        // to make discrete, so the exit animation is cut short.
-        display: "block",
         ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         ...(t.borderWidth !== undefined && t.border !== undefined
@@ -94,10 +94,12 @@ function popoverRule(mode: Mode): Rule {
         ...(t.radiusLg !== undefined ? { "border-radius": t.radiusLg } : {}),
         ...(t.shadowLg !== undefined ? { "box-shadow": t.shadowLg } : {}),
         ...(t.spacing4 !== undefined ? { padding: t.spacing4 } : {}),
-        // `display` and `overlay` are discrete: they flip instantly unless
-        // allowed to transition, which would cut the exit short. The
-        // `@starting-style` block below is the enter's "before" state.
-        "transition-property": "opacity, transform, display, overlay",
+        // `display` is discrete: it flips instantly unless allowed to
+        // transition, which would cut the exit short. A card is a block —
+        // inherited as `inline` the box has no vertical padding at all, the
+        // text sits on the border — and there is no `display` for
+        // `allow-discrete` to make discrete unless this state states one.
+        "transition-property": "opacity, transform, display",
         "transition-behavior": "allow-discrete",
         ...(t.duration !== undefined
           ? { "transition-duration": t.duration }
@@ -127,8 +129,11 @@ function popoverRule(mode: Mode): Rule {
 
       // The entrance. Keyframes run on the way in; the transition above runs
       // on the way out, because a keyframe has no "closed" state to leave to.
+      // `display: block` rides here, on the open state, so the closed
+      // popover keeps the platform's `display: none`.
       yield {
         [ctx.symbols.selector]: () => `${popover}:popover-open`,
+        display: "block",
         ...(t.duration !== undefined
           ? {
             animation: `dialog-in ${t.duration} ${t.easing ?? "linear"}`,
