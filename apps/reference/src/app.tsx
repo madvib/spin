@@ -3,7 +3,12 @@ import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
-import { FAMILIES, PRIMITIVES } from "./primitives.ts";
+import {
+  FAMILIES,
+  FAMILY_ICONS,
+  PRIMITIVES,
+  PRIMITIVE_ICONS,
+} from "./primitives.ts";
 import { UtilitiesPage } from "./utilities.tsx";
 
 import type { TokenTree } from "@spin/theme";
@@ -38,8 +43,18 @@ function useTheme() {
   return { theme, setTheme, mode, setMode };
 }
 
-const GHOST_BUTTON =
-  "inline-flex items-center gap-1 rounded-md border-0 bg-transparent p-0 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none hover:text-text";
+/**
+ * The one affordance an example carries: a quiet toggle that reveals the
+ * markup below, with the copy INSIDE what it revealed — the pattern daisy
+ * settled on, and the reason the heading stays the anchor: a pair of buttons
+ * under every example is a toolbar, and this is a footnote.
+ */
+const MARKUP_TOGGLE =
+  "inline-flex items-center gap-1 rounded-md border border-dashed border-solid border-border bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+
+/** The copy, within the revealed block: it acts on the code beside it. */
+const COPY_BUTTON =
+  "absolute end-2 top-2 inline-flex items-center gap-1 rounded-md border border-solid border-border bg-surface px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /**
  * A theme or mode chip. Selected is a QUIET state — raised surface, strong
@@ -99,7 +114,7 @@ function ExampleSection(props: {
       <h3 class="mb-2 text-sm font-semibold text-text">
         {props.name}
       </h3>
-      <div class="min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface-raised p-4">
+      <div class="min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface-raised p-4 shadow-sm">
         {
           /* The demo is the markup exactly as a consumer writes it; the panel
             decides the room it gets. The demo area is the md measure — the
@@ -114,25 +129,30 @@ function ExampleSection(props: {
           innerHTML={props.html}
         />
       </div>
-      <div class="mt-4 flex flex-wrap items-start gap-2">
+      <div class="mt-4">
         <button
           type="button"
           onClick={() => setOpen(!open())}
-          class={GHOST_BUTTON}
+          aria-expanded={open()}
+          class={MARKUP_TOGGLE}
         >
-          markup <span>{open() ? "▾" : "▸"}</span>
-        </button>
-        <button type="button" onClick={copy} class={GHOST_BUTTON}>
-          {copied() ? "copied" : "copy"}
+          <i class="i-lucide-code-xml icon-sm" />
+          markup
         </button>
       </div>
       <Show when={open()}>
-        <pre
-          ref={pre}
-          class="mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted"
-        >
-          {props.html.trim()}
-        </pre>
+        <div class="relative mt-4">
+          <pre
+            ref={pre}
+            class="max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 pe-20 font-mono text-xs text-text-muted shadow-sm"
+          >
+            {props.html.trim()}
+          </pre>
+          <button type="button" onClick={copy} class={COPY_BUTTON}>
+            <i class="i-lucide-copy icon-sm" />
+            {copied() ? "copied" : "copy"}
+          </button>
+        </div>
       </Show>
     </section>
   );
@@ -145,9 +165,16 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
       {(f) => (
         <>
           <header class="mb-8 flex items-start justify-between gap-4">
-            <div>
-              <h2 class="m-0 text-2xl font-bold tracking-tight">{f().title}</h2>
-              <div class="font-mono text-xs text-text-muted">{f().kind}</div>
+            <div class="flex items-start gap-2">
+              <i
+                class={`${PRIMITIVE_ICONS[f().id] ?? ""} icon-md mt-1 shrink-0 text-text-muted`}
+              />
+              <div>
+                <h2 class="m-0 text-2xl font-bold tracking-tight">
+                  {f().title}
+                </h2>
+                <div class="font-mono text-xs text-text-muted">{f().kind}</div>
+              </div>
             </div>
             <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
               {f().examples.length} examples

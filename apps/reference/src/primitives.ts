@@ -495,6 +495,59 @@ export const FAMILIES: readonly PrimitiveFamily[] = [
   },
 ];
 
+/**
+ * The glyph each primitive is known by, in the rail and the page header.
+ *
+ * The values are the whole class the icon preset generates, name included: a
+ * name interpolated into `i-lucide-${name}` at runtime reaches no rule, and
+ * the scanner only ever sees what is written down.
+ */
+export const PRIMITIVE_ICONS: Readonly<Record<string, string>> = {
+  alert: "i-lucide-triangle-alert",
+  avatar: "i-lucide-circle-user",
+  "avatar-group": "i-lucide-users",
+  badge: "i-lucide-badge-check",
+  breadcrumbs: "i-lucide-chevron-right",
+  button: "i-lucide-mouse-pointer-click",
+  card: "i-lucide-square",
+  checkbox: "i-lucide-square-check",
+  details: "i-lucide-list",
+  dialog: "i-lucide-message-square",
+  divider: "i-lucide-minus",
+  fieldset: "i-lucide-boxes",
+  group: "i-lucide-group",
+  icon: "i-lucide-image",
+  input: "i-lucide-text-cursor-input",
+  join: "i-lucide-rows-3",
+  kbd: "i-lucide-keyboard",
+  label: "i-lucide-tag",
+  meter: "i-lucide-gauge",
+  popover: "i-lucide-message-circle",
+  progress: "i-lucide-loader",
+  prose: "i-lucide-whole-word",
+  radio: "i-lucide-circle-dot",
+  range: "i-lucide-slash",
+  rating: "i-lucide-star",
+  select: "i-lucide-chevron-down",
+  skeleton: "i-lucide-square-dashed",
+  stat: "i-lucide-sigma",
+  switch: "i-lucide-toggle-right",
+  table: "i-lucide-table-2",
+  tabs: "i-lucide-layout-list",
+  textarea: "i-lucide-text-cursor",
+  tooltip: "i-lucide-message-circle-off",
+  typography: "i-lucide-type",
+};
+
+/** The glyph each family header carries, beside its title in the rail. */
+export const FAMILY_ICONS: Readonly<Record<string, string>> = {
+  Forms: "i-lucide-text-cursor-input",
+  Surfaces: "i-lucide-layers",
+  Navigation: "i-lucide-route",
+  Feedback: "i-lucide-activity",
+  Content: "i-lucide-book-open",
+};
+
 const FILED = FAMILIES.flatMap((f) => f.members.map((m) => m.id));
 const seen: Record<string, true> = {};
 for (const id of FILED) {
@@ -507,4 +560,17 @@ if (FILED.length !== PRIMITIVES.length) {
   throw new Error(
     `FAMILIES: ${FILED.length} of ${PRIMITIVES.length} primitives are filed`,
   );
+}
+// A row the rail cannot draw a glyph for is a row with a hole in it, and a
+// family header with no glyph breaks the row it heads — checked here, where
+// the map and the pages it serves are both in view.
+for (const page of PRIMITIVES) {
+  if (PRIMITIVE_ICONS[page.id] === undefined) {
+    throw new Error(`PRIMITIVE_ICONS: ${page.id} has no icon`);
+  }
+}
+for (const family of FAMILIES) {
+  if (FAMILY_ICONS[family.title] === undefined) {
+    throw new Error(`FAMILY_ICONS: ${family.title} has no icon`);
+  }
 }

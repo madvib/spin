@@ -167,6 +167,11 @@ const VARIANTS: Record<PaintedVariant, {
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
+      // A ghost is paint-free: no fill, no edge, and no shadow either. The
+      // base rule spends the theme's shadow, and a neobrut theme's shadow is
+      // a hard offset — a ghost carrying it is a black box floating over an
+      // empty button.
+      "box-shadow": "none",
       color: themeOf(ctx)?.colors["text"],
     }),
   },
