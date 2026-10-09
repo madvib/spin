@@ -58,6 +58,9 @@ export const toast: MachineDef = {
       syncedItems = values.items;
       const ids = new Set(items.map((item) => item.id));
       for (const existing of store.getVisibleToasts()) {
+        // A toast id is authored; a missing one is a data error, and
+        // dropping the toast silently would hide it.
+        if (existing.id === undefined) continue;
         if (!ids.has(existing.id)) store.remove(existing.id);
       }
       for (const item of items) {
