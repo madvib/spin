@@ -3,6 +3,10 @@ import {
   alertFixtureNote,
 } from "@spin/preset/rules/primitives/alert.examples.ts";
 import {
+  AVATAR_EXAMPLES,
+  avatarFixtureNote,
+} from "@spin/preset/rules/primitives/avatar.examples.ts";
+import {
   BADGE_EXAMPLES,
   badgeFixtureNote,
 } from "@spin/preset/rules/primitives/badge.examples.ts";
@@ -29,6 +33,14 @@ import {
   dialogFixtureNote,
 } from "@spin/preset/rules/primitives/dialog.examples.ts";
 import {
+  HR_EXAMPLES,
+  hrFixtureNote,
+} from "@spin/preset/rules/primitives/hr.examples.ts";
+import {
+  KBD_EXAMPLES,
+  kbdFixtureNote,
+} from "@spin/preset/rules/primitives/kbd.examples.ts";
+import {
   fieldFixtureNote,
   INPUT_EXAMPLES,
   SELECT_EXAMPLES,
@@ -36,6 +48,10 @@ import {
   TEXTAREA_EXAMPLES,
   textareaFixtureNote,
 } from "@spin/preset/rules/primitives/field.examples.ts";
+import {
+  STAT_EXAMPLES,
+  statFixtureNote,
+} from "@spin/preset/rules/primitives/stat.examples.ts";
 import {
   FIELDSET_EXAMPLES,
   fieldsetFixtureNote,
@@ -128,6 +144,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "rule",
     note: cardFixtureNote,
     examples: [...CARD_EXAMPLES],
+  },
+  {
+    id: "avatar",
+    title: "Avatar",
+    kind: "rule",
+    note: avatarFixtureNote,
+    examples: [...AVATAR_EXAMPLES],
   },
   {
     id: "checkbox",
@@ -225,6 +248,27 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "rule",
     note: groupFixtureNote,
     examples: [...GROUP_EXAMPLES],
+  },
+  {
+    id: "divider",
+    title: "Divider",
+    kind: "rule",
+    note: hrFixtureNote,
+    examples: [...HR_EXAMPLES],
+  },
+  {
+    id: "kbd",
+    title: "Keycap",
+    kind: "rule",
+    note: kbdFixtureNote,
+    examples: [...KBD_EXAMPLES],
+  },
+  {
+    id: "stat",
+    title: "Stat",
+    kind: "rule",
+    note: statFixtureNote,
+    examples: [...STAT_EXAMPLES],
   },
   {
     id: "typography",

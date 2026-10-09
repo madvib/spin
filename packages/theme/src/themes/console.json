@@ -511,5 +511,23 @@
       "$type": "number",
       "$value": 0
     }
+  },
+  "avatar": {
+    "$description": "How big an avatar is, in the type ladder a terminal thinks in. A console avatar is a glyph box, not a photograph.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "2rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "3rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
   }
 }

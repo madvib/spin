@@ -281,7 +281,7 @@
   },
   "opacity": {
     "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme \u2014 a fraction is a measurement, not a preference \u2014 but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
+    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme — a fraction is a measurement, not a preference — but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -500,6 +500,24 @@
     "depth": {
       "$type": "number",
       "$value": 0
+    }
+  },
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
     }
   }
 }

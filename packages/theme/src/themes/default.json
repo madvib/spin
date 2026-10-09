@@ -230,7 +230,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -440,7 +440,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -622,5 +622,23 @@
       }
     }
   },
-  "$description": "Carries a `dark` group, so this one theme answers to both modes."
+  "$description": "Carries a `dark` group, so this one theme answers to both modes.",
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  }
 }

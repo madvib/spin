@@ -53,7 +53,6 @@ export function proseRules(roots: readonly string[], mode: Mode): Rule[] {
     termRule(mode),
     definitionRule(mode),
     blockquoteRule(mode),
-    hrRule(mode),
     ...codeRules(roots, mode),
     ...inlineRules(roots, mode),
     ...mediaRules(roots, mode),
@@ -323,24 +322,5 @@ function blockquoteRule(mode: Mode): Rule {
       };
     },
     { layer: "primitives", autocomplete: "blockquote" },
-  ];
-}
-
-function hrRule(mode: Mode): Rule {
-  return [
-    /^hr$/,
-    function* (_m, ctx) {
-      const t = proseTokens(ctx);
-      yield {
-        [ctx.symbols.selector]: () => claim(mode, "hr"),
-        height: "0",
-        ...(t.spacing4 !== undefined ? { "margin-block": t.spacing4 } : {}),
-        border: "0",
-        ...(t.borderWidth !== undefined && t.border !== undefined
-          ? { "border-block-start": `${t.borderWidth} solid ${t.border}` }
-          : {}),
-      };
-    },
-    { layer: "primitives", autocomplete: "hr" },
   ];
 }

@@ -26,9 +26,12 @@ import { cardRules } from "./card.ts";
 import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
+import { avatarRules } from "./avatar.ts";
 import { fieldBox } from "./field.ts";
 import { fieldsetRules } from "./fieldset.ts";
 import { groupRules } from "./group.ts";
+import { hrRules } from "./hr.ts";
+import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { iconRules } from "./icon.ts";
 import { popoverRules } from "./popover.ts";
@@ -36,6 +39,7 @@ import { progressRules } from "./progress.ts";
 import { proseRules } from "./prose.ts";
 import { radioRules } from "./radio.ts";
 import { selectRules } from "./select.ts";
+import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
 import { tabsRules } from "./tabs.ts";
 import { textareaRules } from "./textarea.ts";
@@ -345,6 +349,10 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   radio: () => radioRules(["radio"]),
   icon: () => iconRules(["icon"]),
   field: () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
+  avatar: () => avatarRules(["avatar"], { classless: false }),
+  hr: () => hrRules(["hr"], { classless: true }),
+  kbd: () => kbdRules(["kbd"], { classless: true }),
+  stat: () => statRules(["stat"], { classless: false }),
   label: () => labelRules(["label"], { classless: true }),
   fieldset: () => fieldsetRules(["fieldset"], { classless: true }),
 };
