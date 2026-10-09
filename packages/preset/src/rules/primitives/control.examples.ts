@@ -31,14 +31,14 @@ const inputSwitch = (attrs: string, label: string): string =>
   }> ${label}</label>`;
 
 export const controlFixtureNote =
-  "A checkbox and a switch are working controls with no class at all: the " +
-  "input carries the base and the platform owns its state. Both draw " +
-  "themselves rather than using the platform's rendering, so a tick cannot " +
-  "be the platform's blue and a switch cannot be a tinted box. `checked` " +
-  "and `disabled` are attributes, and indeterminate has none — the fixture " +
-  "marks it `data-mixed` and the page sets `.indeterminate`.";
+  "A checkbox is a working checkbox with no class at all: the input " +
+  "carries the base and the platform owns its state. It draws itself " +
+  "rather than using the platform's rendering, so a tick cannot be the " +
+  "platform's blue. `checked` and `disabled` are attributes, and " +
+  "indeterminate has none — the fixture marks it `data-mixed` and the " +
+  "page sets `.indeterminate`.";
 
-export const CONTROL_EXAMPLES: readonly ControlExample[] = [
+export const CHECKBOX_EXAMPLES: readonly ControlExample[] = [
   {
     name: "Checkbox · states",
     html: row(
@@ -57,6 +57,15 @@ export const CONTROL_EXAMPLES: readonly ControlExample[] = [
           ${inputCheckbox("disabled", "Disabled")}
         </div>`,
   },
+];
+
+export const switchFixtureNote =
+  'A switch is a checkbox wearing `role="switch"`: same input, same ' +
+  "attribute states, a track instead of a box. The label carries the " +
+  "state word and the description carries the detail, so a switch reads " +
+  "at any size.";
+
+export const SWITCH_EXAMPLES: readonly ControlExample[] = [
   {
     name: "Switch · states",
     html: row(
@@ -74,4 +83,9 @@ export const CONTROL_EXAMPLES: readonly ControlExample[] = [
           <label><input type="checkbox" role="switch"> <span>Digest <span>— weekly</span></span></label>`,
     ),
   },
+];
+
+export const CONTROL_EXAMPLES: readonly ControlExample[] = [
+  ...CHECKBOX_EXAMPLES,
+  ...SWITCH_EXAMPLES,
 ];

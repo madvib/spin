@@ -15,8 +15,10 @@ import {
   cardFixtureNote,
 } from "@spin/preset/rules/primitives/card.examples.ts";
 import {
-  CONTROL_EXAMPLES,
+  CHECKBOX_EXAMPLES,
   controlFixtureNote,
+  SWITCH_EXAMPLES,
+  switchFixtureNote,
 } from "@spin/preset/rules/primitives/control.examples.ts";
 import {
   DETAILS_EXAMPLES,
@@ -27,8 +29,12 @@ import {
   dialogFixtureNote,
 } from "@spin/preset/rules/primitives/dialog.examples.ts";
 import {
-  FIELD_EXAMPLES,
   fieldFixtureNote,
+  INPUT_EXAMPLES,
+  SELECT_EXAMPLES,
+  selectFixtureNote,
+  TEXTAREA_EXAMPLES,
+  textareaFixtureNote,
 } from "@spin/preset/rules/primitives/field.examples.ts";
 import {
   FIELDSET_EXAMPLES,
@@ -47,16 +53,20 @@ import {
   iconFixtureNote,
 } from "@spin/preset/rules/primitives/icon.examples.ts";
 import {
-  POPOVER_EXAMPLES,
+  POPOVER_SURFACE_EXAMPLES,
   popoverFixtureNote,
+  TOOLTIP_EXAMPLES,
+  tooltipFixtureNote,
 } from "@spin/preset/rules/primitives/popover.examples.ts";
 import {
   PROGRESS_EXAMPLES,
   progressFixtureNote,
 } from "@spin/preset/rules/primitives/progress.examples.ts";
 import {
-  PROSE_EXAMPLES,
+  PROSE_DOC_EXAMPLES,
   proseFixtureNote,
+  TYPOGRAPHY_EXAMPLES,
+  typographyFixtureNote,
 } from "@spin/preset/rules/primitives/prose.examples.ts";
 import {
   RADIO_EXAMPLES,
@@ -121,12 +131,12 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
   },
   {
     id: "checkbox",
-    title: "Checkbox & switch",
+    title: "Checkbox",
     kind: "rule",
     note: controlFixtureNote,
     onLoad:
       "document.querySelectorAll('[data-mixed]').forEach((e) => e.indeterminate = true);",
-    examples: [...CONTROL_EXAMPLES],
+    examples: [...CHECKBOX_EXAMPLES],
   },
   {
     id: "radio",
@@ -136,11 +146,34 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...RADIO_EXAMPLES],
   },
   {
-    id: "field",
-    title: "Field",
+    id: "switch",
+    title: "Switch",
+    kind: "rule",
+    note: switchFixtureNote,
+    onLoad:
+      "document.querySelectorAll('[data-mixed]').forEach((e) => e.indeterminate = true);",
+    examples: [...SWITCH_EXAMPLES],
+  },
+  {
+    id: "input",
+    title: "Input",
     kind: "rule",
     note: fieldFixtureNote,
-    examples: [...FIELD_EXAMPLES],
+    examples: [...INPUT_EXAMPLES],
+  },
+  {
+    id: "select",
+    title: "Select",
+    kind: "rule",
+    note: selectFixtureNote,
+    examples: [...SELECT_EXAMPLES],
+  },
+  {
+    id: "textarea",
+    title: "Textarea",
+    kind: "rule",
+    note: textareaFixtureNote,
+    examples: [...TEXTAREA_EXAMPLES],
   },
   {
     id: "table",
@@ -167,10 +200,17 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
   },
   {
     id: "popover",
-    title: "Popover & tooltip",
+    title: "Popover",
     kind: "rule",
     note: popoverFixtureNote,
-    examples: [...POPOVER_EXAMPLES],
+    examples: [...POPOVER_SURFACE_EXAMPLES],
+  },
+  {
+    id: "tooltip",
+    title: "Tooltip",
+    kind: "rule",
+    note: tooltipFixtureNote,
+    examples: [...TOOLTIP_EXAMPLES],
   },
   {
     id: "progress",
@@ -187,11 +227,18 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...GROUP_EXAMPLES],
   },
   {
+    id: "typography",
+    title: "Typography",
+    kind: "rule",
+    note: typographyFixtureNote,
+    examples: [...TYPOGRAPHY_EXAMPLES],
+  },
+  {
     id: "prose",
     title: "Prose",
     kind: "rule",
     note: proseFixtureNote,
-    examples: [...PROSE_EXAMPLES],
+    examples: [...PROSE_DOC_EXAMPLES],
   },
   {
     id: "label",

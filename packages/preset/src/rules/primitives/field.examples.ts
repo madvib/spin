@@ -22,13 +22,13 @@ ${inner}
         </div>`;
 
 export const fieldFixtureNote =
-  "A field is a working field with no class at all: the tag carries the " +
-  "box, and states are attributes on the tag. Disabled and readonly are " +
-  "platform states; aria-invalid carries validity — unjudged, passed, " +
-  "failed. The type is the platform's concern: email gets validation, " +
-  "search gets a clear button, number gets a stepper.";
+  "A text field works with no class at all: the tag carries the box, and " +
+  "states are attributes on the tag. Disabled and readonly are platform " +
+  "states; aria-invalid carries validity — unjudged, passed, failed. The " +
+  "type is the platform's concern: email gets validation, search gets a " +
+  "clear button, number gets a stepper.";
 
-export const FIELD_EXAMPLES: readonly FieldExample[] = [
+export const INPUT_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Input · states",
     html: row(
@@ -56,6 +56,14 @@ export const FIELD_EXAMPLES: readonly FieldExample[] = [
           <label><input type="date"><span>Date</span></label>`,
     ),
   },
+];
+
+export const selectFixtureNote =
+  "A select draws itself rather than wearing the platform's chrome, and it " +
+  "carries the same box as a text field — one box per control kind, not " +
+  "one class. Disabled is an attribute; the options are content.";
+
+export const SELECT_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Select",
     html: row(
@@ -63,6 +71,14 @@ export const FIELD_EXAMPLES: readonly FieldExample[] = [
           <label><select disabled><option>Unavailable</option></select><span>Disabled</span></label>`,
     ),
   },
+];
+
+export const textareaFixtureNote =
+  "A textarea is a multi-line box that grows nowhere on its own: rows is " +
+  "the platform's, the resize handle is the author's, and the box knows " +
+  "aria-invalid like every other field.";
+
+export const TEXTAREA_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Textarea",
     html: row(
@@ -71,4 +87,10 @@ export const FIELD_EXAMPLES: readonly FieldExample[] = [
           <label><textarea rows="2" disabled>Cannot touch</textarea><span>Disabled</span></label>`,
     ),
   },
+];
+
+export const FIELD_EXAMPLES: readonly FieldExample[] = [
+  ...INPUT_EXAMPLES,
+  ...SELECT_EXAMPLES,
+  ...TEXTAREA_EXAMPLES,
 ];

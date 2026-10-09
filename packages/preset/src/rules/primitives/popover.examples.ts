@@ -24,22 +24,14 @@ ${inner}
 export const popoverFixtureNote =
   "A popover is a card that floats in the top layer: popovertarget puts it " +
   "above everything without script, and light-dismiss is the platform's. " +
-  "A tooltip is the same surface in a smaller box, revealed on hover or " +
-  "focus of the element it describes.";
+  "Content is markup, so a popover is a surface, not a one-line string.";
 
-export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
+export const POPOVER_SURFACE_EXAMPLES: readonly PopoverExample[] = [
   {
     name: "Popover",
     html: row(
       `          <button popovertarget="menu">Open</button>
           <popover id="menu" popover="">Menu content</popover>`,
-    ),
-  },
-  {
-    name: "Tooltip",
-    html: row(
-      `          <button>Hover me</button>
-          <tooltip>Tip text</tooltip>`,
     ),
   },
   {
@@ -54,4 +46,24 @@ export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
           </popover>`,
     ),
   },
+];
+
+export const tooltipFixtureNote =
+  "A tooltip is the popover surface in a smaller box, revealed on hover or " +
+  "focus of the element it describes. The parent carries `position: " +
+  "relative` so the tip's edge sits against its trigger.";
+
+export const TOOLTIP_EXAMPLES: readonly PopoverExample[] = [
+  {
+    name: "Tooltip",
+    html: row(
+      `          <button>Hover me</button>
+          <tooltip>Tip text</tooltip>`,
+    ),
+  },
+];
+
+export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
+  ...POPOVER_SURFACE_EXAMPLES,
+  ...TOOLTIP_EXAMPLES,
 ];
