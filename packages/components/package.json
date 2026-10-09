@@ -18,7 +18,8 @@
     "./toast": "./src/spin-toast/spin-toast.html",
     "./accordion-fsm": "./src/spin-accordion/spin-accordion-fsm.html",
     "./tree-view-fsm": "./src/spin-tree-view/spin-tree-view-fsm.html",
-    "./dialog-fsm": "./src/spin-dialog/spin-dialog-fsm.html"
+    "./dialog-fsm": "./src/spin-dialog/spin-dialog-fsm.html",
+    "./tabs-fsm": "./src/spin-tabs/spin-tabs-fsm.html"
   },
   "dependencies": {
     "@zag-js/avatar": "~1.44.0",

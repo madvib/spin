@@ -160,6 +160,17 @@ declare module "solid-js" {
         collapsible?: boolean;
         onClick?: (event: MouseEvent) => void;
       };
+      "spin-tabs-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        items?: readonly { value: string; label: string; content: string; disabled?: boolean }[];
+        defaultValue?: string;
+        value?: string;
+        orientation?: string;
+        activationMode?: string;
+        loopFocus?: boolean;
+        deselectable?: boolean;
+      };
       "spin-dialog-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

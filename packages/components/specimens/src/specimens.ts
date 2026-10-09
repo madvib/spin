@@ -3,6 +3,7 @@ import Accordion from "./routes/accordion.tsx";
 import SideBySide from "./routes/side-by-side.tsx";
 import TreeViewFsm from "./routes/tree-view-fsm.tsx";
 import DialogFsm from "./routes/dialog-fsm.tsx";
+import TabsFsm from "./routes/tabs-fsm.tsx";
 import Popover from "./routes/popover.tsx";
 import Menu from "./routes/menu.tsx";
 import Tabs from "./routes/tabs.tsx";
@@ -54,6 +55,13 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "Two-state machine; focus-trap, dismissable, and scroll-lock as stdlib actions.",
     path: "/dialog-fsm",
     component: DialogFsm,
+  },
+  {
+    id: "tabs-fsm",
+    title: "Tabs (fsm)",
+    blurb: "Selection plus focus in two states; arrows, Home/End, disabled rows.",
+    path: "/tabs-fsm",
+    component: TabsFsm,
   },
   {
     id: "popover",

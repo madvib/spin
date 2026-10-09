@@ -22,6 +22,7 @@ import "./spin-dialog/spin-dialog-fsm.html";
 import "./spin-menu/spin-menu.html";
 import "./spin-popover/spin-popover.html";
 import "./spin-tabs/spin-tabs.html";
+import "./spin-tabs/spin-tabs-fsm.html";
 import "./spin-tooltip/spin-tooltip.html";
 import "./spin-tree-view/spin-tree-view.html";
 import "./spin-tree-view/spin-tree-view-fsm.html";
