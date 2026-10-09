@@ -1443,14 +1443,14 @@ const BADGE =
   "shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
 const SECTION = "mb-8";
 const SUBHEAD =
-  "mb-2 mt-8 text-xs font-semibold uppercase tracking-wide text-text-muted";
+  "mb-2 mt-8 text-xs font-semibold normal-case tracking-normal text-text-muted";
 const PROSE = "max-w-screen-md text-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
 const LEGEND = "mt-2 font-mono text-xs text-text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
 const LABEL =
-  "mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted";
+  "mb-1 text-xs font-semibold normal-case tracking-normal text-text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
   "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border border-solid border-border bg-surface p-4";
@@ -1758,7 +1758,7 @@ const HEADLINE: Record<string, string> = {
   shadow: "shadow-lg",
   font: "font-mono",
   text: "text-center",
-  typography: "uppercase tracking-widest",
+  typography: "normal-case tracking-normal",
   "text-decoration": "underline",
   overflow: "overflow-hidden",
   interactivity: "cursor-grab",

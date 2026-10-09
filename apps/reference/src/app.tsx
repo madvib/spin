@@ -96,7 +96,7 @@ const SURFACE_LINK =
 
 /** A family header in the rail: the glyph beside the name it heads. */
 const RAIL_FAMILY =
-  "mt-3 mb-1 flex items-center gap-1 px-2 text-xs font-semibold uppercase tracking-wide text-text-muted";
+  "mt-3 mb-1 flex items-center gap-1 px-2 text-xs font-semibold normal-case tracking-normal text-text-muted";
 
 /**
  * The glyph beside a page title: the small step in ink, so it supports the
@@ -247,7 +247,7 @@ function LandingPage() {
       <For each={FAMILIES}>
         {(family) => (
           <section class="mb-8">
-            <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+            <h3 class="mb-2 text-xs font-semibold normal-case tracking-normal text-text-muted">
               {family.title}
             </h3>
             <p class="mb-4 max-w-screen-md text-sm text-text-muted">

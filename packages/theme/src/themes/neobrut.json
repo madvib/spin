@@ -281,7 +281,7 @@
   },
   "opacity": {
     "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme — a fraction is a measurement, not a preference — but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
+    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme \u2014 a fraction is a measurement, not a preference \u2014 but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -411,7 +411,7 @@
       "$value": "700"
     },
     "case": {
-      "$value": "uppercase",
+      "$value": "none",
       "$type": "textTransform"
     },
     "tracking": {

@@ -425,7 +425,7 @@
       "$type": "fontWeight"
     },
     "case": {
-      "$value": "uppercase",
+      "$value": "none",
       "$type": "textTransform"
     },
     "tracking": {

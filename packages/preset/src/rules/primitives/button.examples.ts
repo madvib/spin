@@ -39,7 +39,7 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
     name: "Bare variant",
     html: row(
-      `          <button class="bare">bare</button>
+      `          <button class="bare text-text">bare</button>
           <button>default</button>`,
     ),
   },

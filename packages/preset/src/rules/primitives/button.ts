@@ -154,6 +154,13 @@ const VARIANTS: Record<PaintedVariant, {
       padding: "0",
       "box-shadow": "none",
       cursor: "pointer",
+      // The character is part of the paint, so the opt-out takes it back:
+      // without these resets a bare button still reads as its theme's
+      // control — bold, tracked, uppercase in the loud starters — while
+      // looking like chrome.
+      "font-weight": "normal",
+      "text-transform": "none",
+      "letter-spacing": "normal",
       // No `font: inherit`, no `color: inherit`: the selector is
       // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
       // single class utility — the opt-out would freeze the ink and the face
