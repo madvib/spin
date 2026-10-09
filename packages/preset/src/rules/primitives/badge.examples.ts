@@ -81,10 +81,24 @@ export const BADGE_EXAMPLES: readonly BadgeExample[] = [
     ),
   },
   {
+    name: "Empty",
+    html: row(
+      `          <badge class="badge-accent"></badge>
+          <badge class="badge-success"></badge>`,
+    ),
+  },
+  {
     name: "With a remove action",
     html: row(
       `          <badge>Item <button class="badge-close" aria-label="remove">×</button></badge>
           <badge class="badge-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>`,
+    ),
+  },
+  {
+    name: "Close on a muted badge",
+    html: row(
+      `          <badge class="badge-accent-muted">Tag <button class="badge-close" aria-label="remove">×</button></badge>
+          <badge class="badge-danger-muted">Tag <button class="badge-close" aria-label="remove">×</button></badge>`,
     ),
   },
   {

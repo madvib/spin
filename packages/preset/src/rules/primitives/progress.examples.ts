@@ -42,4 +42,10 @@ export const PROGRESS_EXAMPLES: readonly ProgressExample[] = [
       `          <meter value="0.4" min="0" max="1" low="0.3" high="0.8"></meter>`,
     ),
   },
+  {
+    name: "Indeterminate · the class",
+    html: row(
+      `          <progress class="progress-indeterminate"></progress>`,
+    ),
+  },
 ];

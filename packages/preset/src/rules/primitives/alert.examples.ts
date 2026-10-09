@@ -59,4 +59,22 @@ export const ALERT_EXAMPLES: readonly AlertExample[] = [
           <alert role="alert">alert</alert>`,
     ),
   },
+  {
+    name: "Title and description",
+    html: row(
+      `          <alert role="status" variant="accent">
+            <strong>Backup complete</strong>
+            <p>Your files were saved to the cloud.</p>
+          </alert>`,
+    ),
+  },
+  {
+    name: "Layout · horizontal",
+    html: row(
+      `          <alert role="status" variant="accent" class="flex items-center gap-2">
+            <i class="i-lucide-info"></i>
+            <span>Your files were saved to the cloud.</span>
+          </alert>`,
+    ),
+  },
 ];

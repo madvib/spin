@@ -172,14 +172,22 @@ function popoverRule(mode: Mode): Rule {
  * The trigger is the element immediately before the tooltip, matched with
  * `:has(+ tooltip)` rather than by tag so a tooltip can describe a button, a
  * link, or anything else without this component claiming that element. The
- * trigger is made a containing block so the tooltip can position against it,
- * and the tooltip itself never takes pointer events — otherwise it would sit
- * under the cursor and flicker.
+ * tooltip is a sibling of its trigger, not a child, so the trigger cannot be
+ * its containing block — a positioned element only contains its descendants.
+ * Instead the shared parent is made the containing block and shrink-wrapped
+ * to the trigger, so the tip's `100%` and `50%` resolve against the trigger's
+ * box and the tip tracks the element rather than the page. The tooltip itself
+ * never takes pointer events — otherwise it would sit under the cursor and
+ * flicker.
  */
 function tooltipRule(mode: Mode): Rule {
   const tooltip = claim(mode, "tooltip");
-  // The element a tooltip describes: anything immediately followed by one.
-  const describes = `*:has(+ ${tooltip})`;
+  // The shared parent of a trigger and its tip: the element that has the
+  // tip as a direct child. The tip is a sibling of its trigger, so the
+  // trigger cannot be its containing block — a positioned element only
+  // contains its descendants. The parent is made the containing block
+  // and shrink-wrapped to the trigger.
+  const parent = `*:has(> ${tooltip})`;
   return [
     /^tooltip$/,
     function* (_m, ctx) {
@@ -228,11 +236,14 @@ function tooltipRule(mode: Mode): Rule {
           : {}),
       };
 
-      // The trigger becomes the containing block for the floating tip, so the
-      // tip tracks the element rather than the page.
+      // The shared parent is the tip's containing block, shrink-wrapped to
+      // the trigger so the tip's `100%` and `50%` resolve against the
+      // trigger's box. Without this the tip resolves against the initial
+      // containing block (the viewport) and lands off-screen.
       yield {
-        [ctx.symbols.selector]: () => describes,
+        [ctx.symbols.selector]: () => parent,
         position: "relative",
+        "width": "fit-content",
       };
 
       // Shown on the states that mean "this has a description you want". The

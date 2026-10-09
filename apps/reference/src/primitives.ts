@@ -43,6 +43,10 @@ import {
   labelFixtureNote,
 } from "@spin/preset/rules/primitives/label.examples.ts";
 import {
+  ICON_EXAMPLES,
+  iconFixtureNote,
+} from "@spin/preset/rules/primitives/icon.examples.ts";
+import {
   POPOVER_EXAMPLES,
   popoverFixtureNote,
 } from "@spin/preset/rules/primitives/popover.examples.ts";
@@ -202,6 +206,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     kind: "alias",
     note: fieldsetFixtureNote,
     examples: [...FIELDSET_EXAMPLES],
+  },
+  {
+    id: "icon",
+    title: "Icon",
+    kind: "rule",
+    note: iconFixtureNote,
+    examples: [...ICON_EXAMPLES],
   },
   {
     id: "details",

@@ -40,11 +40,26 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
     ),
   },
   {
+    name: "Bare variant",
+    html: row(
+      `          <button class="bare">bare</button>
+          <button>default</button>`,
+    ),
+  },
+  {
     name: "Sizes",
     html: row(
       `          <button class="s-sm">small</button>
           <button>medium</button>
           <button class="s-lg">large</button>`,
+    ),
+  },
+  {
+    name: "Types",
+    html: row(
+      `          <button type="submit">submit</button>
+          <button type="reset">reset</button>
+          <button type="button">button</button>`,
     ),
   },
   {
@@ -54,6 +69,13 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
           <button disabled>disabled</button>
           <button aria-disabled="true">aria-disabled</button>
           <button aria-busy="true">busy</button>`,
+    ),
+  },
+  {
+    name: "Busy with an icon",
+    html: row(
+      `          <button aria-busy="true"><i class="i-lucide-plus button-icon"></i>Saving…</button>
+          <button aria-busy="true">Saving…</button>`,
     ),
   },
   {

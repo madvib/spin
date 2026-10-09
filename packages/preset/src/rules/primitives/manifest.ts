@@ -341,6 +341,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       { path: "icon.lg", type: "dimension", value: "1.25em" },
     ],
   },
+  label: {
+    tags: ["label"],
+    variants: [],
+    reads: ["--font-family-sans", "--spacing-2"],
+    character: [],
+  },
   field: {
     tags: ["input", "select", "textarea"],
     variants: [],
@@ -365,6 +371,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--spacing-2",
       "--spacing-4",
     ],
+    character: [],
+  },
+  fieldset: {
+    tags: ["fieldset", "legend"],
+    variants: [],
+    reads: ["--border-width", "--color-border", "--font-size-sm", "--font-weight-semibold", "--radius-md", "--spacing-2", "--spacing-4"],
     character: [],
   },
   popover: {

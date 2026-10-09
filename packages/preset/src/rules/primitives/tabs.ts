@@ -104,7 +104,6 @@ function tabsBase(mode: Mode): Rule {
         display: "contents",
       };
 
-
       // The radio is the control, the label is the drawing. Hidden with the
       // visually-hidden recipe rather than `display: none` so it keeps focus
       // and the arrow keys keep working.
@@ -175,7 +174,9 @@ function tabsBase(mode: Mode): Rule {
         ...(t.weightSemibold !== undefined
           ? { "font-weight": t.weightSemibold }
           : {}),
-        ...(t.primary !== undefined ? { "border-block-end-color": t.primary } : {}),
+        ...(t.primary !== undefined
+          ? { "border-block-end-color": t.primary }
+          : {}),
       };
 
       // Focus belongs to the label, because the label is the control the
@@ -189,6 +190,16 @@ function tabsBase(mode: Mode): Rule {
         ...(t.focusOffset !== undefined
           ? { "outline-offset": t.focusOffset }
           : {}),
+      };
+
+      // A disabled tab is not a tab you can be on. It keeps whatever state it
+      // has — one that is selected still says so — but it sits at half
+      // presence and the cursor says why, the same language a disabled
+      // button speaks.
+      yield {
+        [ctx.symbols.selector]: () => `${label}:has(input:disabled)`,
+        opacity: 0.55,
+        cursor: "not-allowed",
       };
 
       // The label, which is the rail.
@@ -279,7 +290,9 @@ function tabsVertical(mode: Mode): Rule {
 
       yield {
         [ctx.symbols.selector]: () => `${label}:has(input:checked)`,
-        ...(t.primary !== undefined ? { "border-inline-end-color": t.primary } : {}),
+        ...(t.primary !== undefined
+          ? { "border-inline-end-color": t.primary }
+          : {}),
       };
 
       // The panel sits in the second column and no longer needs the top pad

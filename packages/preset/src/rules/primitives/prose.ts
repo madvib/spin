@@ -1,5 +1,11 @@
 import type { Rule } from "@unocss/core";
-import { claim, proseTokens, rhythm, type Mode, type Tokens } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  rhythm,
+  type Tokens,
+} from "./shared.ts";
 import { codeRules } from "./prose-code.ts";
 import { inlineRules } from "./prose-inline.ts";
 import { mediaRules } from "./prose-media.ts";
@@ -182,7 +188,7 @@ function headingRules(mode: Mode): Rule[] {
       "line-height": "1.5",
     })),
     headingRule(mode, "h6", (t) => ({
-      ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
+      ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
         : {}),
@@ -231,7 +237,9 @@ function listItemRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => `${li} + ${li}`,
-        ...(t.spacing1 !== undefined ? { "margin-block-start": t.spacing1 } : {}),
+        ...(t.spacing1 !== undefined
+          ? { "margin-block-start": t.spacing1 }
+          : {}),
       };
     },
     { layer: "primitives", autocomplete: "li" },
@@ -308,7 +316,9 @@ function blockquoteRule(mode: Mode): Rule {
       };
       yield {
         [ctx.symbols.selector]: () => `${blockquote} ${claim(mode, "footer")}`,
-        ...(t.spacing1 !== undefined ? { "margin-block-start": t.spacing1 } : {}),
+        ...(t.spacing1 !== undefined
+          ? { "margin-block-start": t.spacing1 }
+          : {}),
         ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
       };
     },

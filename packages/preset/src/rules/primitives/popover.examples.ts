@@ -32,7 +32,7 @@ export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
     name: "Popover",
     html: row(
       `          <button popovertarget="menu">Open</button>
-          <popover id="menu">Menu content</popover>`,
+          <popover id="menu" popover="">Menu content</popover>`,
     ),
   },
   {
@@ -46,7 +46,7 @@ export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
     name: "Popover with content",
     html: row(
       `          <button popovertarget="profile">Profile</button>
-          <popover id="profile">
+          <popover id="profile" popover="">
             <div class="flex flex-col gap-2">
               <strong>Jane Doe</strong>
               <span>jane@example.com</span>

@@ -9,7 +9,9 @@ import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
+import { fieldsetRules } from "./fieldset.ts";
 import { groupRules } from "./group.ts";
+import { labelRules } from "./label.ts";
 import { popoverRules } from "./popover.ts";
 import { progressRules } from "./progress.ts";
 import { radioRules } from "./radio.ts";
@@ -52,9 +54,11 @@ export function primitiveRules(
     ...controlRules(roots),
     ...dialogRules(roots, mode),
     ...disclosureRules(roots, mode),
+    ...fieldsetRules(roots, mode),
     ...progressRules(roots, mode),
     ...proseRules(roots, mode),
     ...groupRules(roots),
+    ...labelRules(roots, mode),
     ...popoverRules(roots, mode),
     ...selectRules(roots),
     ...tableRules(roots, mode),

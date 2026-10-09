@@ -27,7 +27,9 @@ import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
+import { fieldsetRules } from "./fieldset.ts";
 import { groupRules } from "./group.ts";
+import { labelRules } from "./label.ts";
 import { iconRules } from "./icon.ts";
 import { popoverRules } from "./popover.ts";
 import { progressRules } from "./progress.ts";
@@ -343,6 +345,8 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   radio: () => radioRules(["radio"]),
   icon: () => iconRules(["icon"]),
   field: () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
+  label: () => labelRules(["label"], { classless: true }),
+  fieldset: () => fieldsetRules(["fieldset"], { classless: true }),
 };
 
 /** The custom properties the default theme actually declares. */

@@ -38,4 +38,12 @@ export const TABS_EXAMPLES: readonly TabsExample[] = [
           <div><label><input type="radio" name="t2"> Two</label><section>Second.</section></div>
         </tabs>`,
   },
+  {
+    name: "Disabled · an unavailable tab",
+    html: `<tabs>
+          <div><label><input type="radio" name="t3" checked> Overview</label><section>Panel one. Nothing here is script — the radio is checked and the panel is its sibling.</section></div>
+          <div><label><input type="radio" name="t3" disabled> Details</label><section>Panel two.</section></div>
+          <div><label><input type="radio" name="t3"> Settings</label><section>Panel three.</section></div>
+        </tabs>`,
+  },
 ];
