@@ -15,12 +15,16 @@
  */
 
 import "./spin-accordion/spin-accordion.html";
+import "./spin-accordion/spin-accordion-robot.html";
+import "./spin-accordion/spin-accordion-fsm.html";
 import "./spin-dialog/spin-dialog.html";
+import "./spin-dialog/spin-dialog-fsm.html";
 import "./spin-menu/spin-menu.html";
 import "./spin-popover/spin-popover.html";
 import "./spin-tabs/spin-tabs.html";
 import "./spin-tooltip/spin-tooltip.html";
 import "./spin-tree-view/spin-tree-view.html";
+import "./spin-tree-view/spin-tree-view-fsm.html";
 import "./spin-carousel/spin-carousel.html";
 import "./spin-slider/spin-slider.html";
 import "./spin-toast/spin-toast.html";
