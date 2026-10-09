@@ -1,6 +1,5 @@
-import { effect } from "../core/signal.ts";
-import { inserted } from "../core/signal.ts";
-import { machineTick } from "../machine/adapter/machine.ts";
+import { effect, inserted, machineTick, signal, untrack } from "../core/signal.ts";
+import { ACTIONS, runAction } from "../actions/index.ts";
 import { toStyleString } from "../machine/adapter/normalize-props.ts";
 
 const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
@@ -56,6 +55,10 @@ export function bindSpread(
 ): () => void {
   let last: Record<string, unknown> = {};
   const attached = new Map<string, EventListener>();
+  // The most recent bag, published for action param thunks to read through
+  // a tracked signal — that is what makes `update` fire on machine moves.
+  const latest = signal<Record<string, unknown>>({});
+  const attachedActions = new Set<string>();
   effect(() => {
     inserted();
     machineTick();
@@ -102,6 +105,28 @@ export function bindSpread(
       }
     }
     last = props;
+    // Publish for action param thunks (see the attach pass below).
+    latest(props);
+    // Bag-carried actions: a `use:name` key attaches the named registry
+    // action ONCE, with the bag entry as its reactive param. Created inside
+    // untrack for the same reason `for.ts` wraps row renders: an effect
+    // created during this effect's run would be unlinked and disposed the
+    // next time it re-runs, restarting the action on every machine move.
+    for (const name of Object.keys(props)) {
+      if (!name.startsWith("use:") || name.length <= 4) continue;
+      if (attachedActions.has(name)) continue;
+      const action = (ACTIONS as Record<string, unknown>)[name.slice(4)];
+      if (typeof action !== "function") continue;
+      attachedActions.add(name);
+      untrack(() =>
+        runAction(el, action as never, () => {
+          const entry = latest()[name];
+          // A function entry is a live read the machine wants re-evaluated;
+          // anything else is the param itself.
+          return typeof entry === "function" ? entry() : entry;
+        }),
+      );
+    }
   });
   return () => {};
 }
