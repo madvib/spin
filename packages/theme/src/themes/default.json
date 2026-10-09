@@ -230,7 +230,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -440,7 +440,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -559,6 +559,11 @@
         "info": {
           "$value": "#38bdf8"
         }
+      },
+      "field": {
+        "$type": "color",
+        "$value": "#1f2937",
+        "$description": "A field's own surface in dark mode: one step above the card it sits in, so a control still reads as an object set into the page rather than a hole cut out of nothing."
       },
       "surface-raised": {
         "$value": "#111827"

@@ -661,7 +661,13 @@ async function writeBaseline(
     findings,
     counts,
   };
-  await Deno.writeTextFile(path, `${JSON.stringify(baseline, null, 1)}\n`);
+  // Atomic: a half-written baseline is worse than no baseline — it would
+  // read as "the reference has no defects" to the next run. Write beside the
+  // target, then rename over it.
+  const payload = `${JSON.stringify(baseline, null, 1)}\n`;
+  const temporary = `${path}.partial`;
+  await Deno.writeTextFile(temporary, payload);
+  await Deno.rename(temporary, path);
   console.log(`baseline written to ${path}: ${findings.length} findings`);
 }
 
@@ -979,7 +985,10 @@ export async function main(argv: readonly string[]): Promise<number> {
       viewport,
     );
     if (options.writeBaseline !== null) {
-      writeBaseline(options.writeBaseline, results, options);
+      await writeBaseline(options.writeBaseline, results, options);
+      // The refresh is the job: the exit code says nothing about the old
+      // baseline it just replaced.
+      return 0;
     }
     if (results.flatMap((result) => result.findings).length === 0) return 0;
     return options.allowBaseline && diff.added === 0 ? 0 : 1;
