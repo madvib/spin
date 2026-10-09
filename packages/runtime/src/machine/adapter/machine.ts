@@ -41,8 +41,29 @@ import type {
   Transition,
 } from "@zag-js/core";
 import { callAll, compact, ensure, isEqual, isFunction, isString, toArray, warn } from "@zag-js/utils";
+import { ListCollection, TreeCollection } from "@zag-js/collection";
 import { batch, computed, effect, scope as createOwnerScope, signal, type OwnerScope } from "../../core/signal.ts";
 import { createBindable } from "./bindable.ts";
+
+/**
+ * A constructed collection prop, declared — not built — by the component.
+ * Machines like tree-view and select need `collection` objects scope props
+ * cannot express (plain data only). The declaration says which prop holds
+ * the raw items; the adapter builds and memoizes the Zag object per source
+ * identity, so the props getter's every-read churn doesn't rebuild trees.
+ */
+export interface CollectionDecl {
+  readonly kind: "tree" | "list";
+  /** Scope prop holding the raw items (`nodes` for trees, `items` for lists). */
+  readonly from: string;
+}
+
+function buildCollection(kind: CollectionDecl["kind"], source: unknown): unknown {
+  const items = (source ?? []) as { value: string; label: string; children?: unknown[] }[];
+  return kind === "tree"
+    ? new TreeCollection({ rootNode: { value: "ROOT", label: "", children: items } })
+    : new ListCollection({ items });
+}
 
 /** Bumped after every processed machine event. Bindings that read machine
  * state through paths that do not themselves track (plain-mutated context,
@@ -120,6 +141,8 @@ export interface MachineOptions<T extends MachineSchema, TApi extends object> {
   id?: string;
   /** Explicit ids, overriding `id`. */
   ids?: Record<string, unknown>;
+  /** Declared collection construction (tree-view, select). Built and memoized here. */
+  collection?: CollectionDecl;
   /** Where zag looks up the machine's parts. Defaults to `document`. */
   getRootNode?: GetRootNode;
 }
@@ -152,6 +175,7 @@ function startMachine(
   id: string | undefined,
   ids: Record<string, unknown> | undefined,
   getRootNode: GetRootNode | undefined,
+  collection: CollectionDecl | undefined,
 ): Service<RuntimeSchema> {
   // Zag's `scope.getById` calls `getRootNode().getElementById(id)`, which only
   // exists on Document, DocumentFragment, and ShadowRoot — never on an element,
@@ -181,8 +205,21 @@ function startMachine(
   // Zag resolves props through a memo so a prop that changes is re-read. Here
   // the memo is a computed, so the same holds, and a `connect` that reads a
   // prop subscribes to it.
+  // A declared collection is built here, memoized per source identity: the
+  // props getter runs on every machine read, and rebuilding a tree or list
+  // each time is garbage churn components must not hand-roll.
+  let cachedSource: unknown;
+  let cachedCollection: unknown;
   const resolvedProps = computed<Record<string, unknown>>(() => {
     const latest = readProps(props);
+    if (collection !== undefined) {
+      const source = latest[collection.from];
+      if (cachedCollection === undefined || cachedSource !== source) {
+        cachedSource = source;
+        cachedCollection = buildCollection(collection.kind, source);
+      }
+      latest.collection = cachedCollection;
+    }
     return machine.props?.({ props: compact(latest), scope: zagScope }) ?? latest;
   });
   const prop: PropFn<RuntimeSchema> = (key) => resolvedProps()[key];
@@ -516,6 +553,7 @@ export function createMachine<T extends MachineSchema, TApi extends object>(
       options.id,
       options.ids,
       options.getRootNode,
+      options.collection,
     ),
   ) as unknown as Service<T>;
 

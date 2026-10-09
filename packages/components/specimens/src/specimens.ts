@@ -7,10 +7,6 @@ import Tooltip from "./routes/tooltip.tsx";
 import Dialog from "./routes/dialog.tsx";
 import TreeView from "./routes/tree-view.tsx";
 import Carousel from "./routes/carousel.tsx";
-import Checkbox from "./routes/checkbox.tsx";
-import RadioGroup from "./routes/radio-group.tsx";
-import Switch from "./routes/switch.tsx";
-import Select from "./routes/select.tsx";
 import Slider from "./routes/slider.tsx";
 import Toast from "./routes/toast.tsx";
 
@@ -83,34 +79,6 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "Paged slides driven by the Zag carousel machine.",
     path: "/carousel",
     component: Carousel,
-  },
-  {
-    id: "checkbox",
-    title: "Checkbox",
-    blurb: "A checkbox driven by the Zag checkbox machine.",
-    path: "/checkbox",
-    component: Checkbox,
-  },
-  {
-    id: "radio-group",
-    title: "RadioGroup",
-    blurb: "Single-select options driven by the Zag radio-group machine.",
-    path: "/radio-group",
-    component: RadioGroup,
-  },
-  {
-    id: "switch",
-    title: "Switch",
-    blurb: "An on/off switch driven by the Zag switch machine.",
-    path: "/switch",
-    component: Switch,
-  },
-  {
-    id: "select",
-    title: "Select",
-    blurb: "A dropdown select driven by the Zag select machine.",
-    path: "/select",
-    component: Select,
   },
   {
     id: "slider",

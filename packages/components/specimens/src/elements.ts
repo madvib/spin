@@ -120,18 +120,6 @@ export interface CarouselItem {
   readonly content: string;
 }
 
-export interface RadioItem {
-  readonly value: string;
-  readonly label: string;
-  readonly disabled?: boolean;
-}
-
-export interface SelectItem {
-  readonly value: string;
-  readonly label: string;
-  readonly disabled: boolean;
-}
-
 export interface ToastItem {
   readonly id: string;
   readonly title: string;
@@ -167,36 +155,6 @@ declare module "solid-js" {
         items?: readonly CarouselItem[];
         defaultPage?: number;
         loop?: boolean;
-      };
-      "spin-checkbox": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        label?: string;
-        defaultChecked?: boolean;
-        checked?: boolean;
-        disabled?: boolean;
-        name?: string;
-      };
-      "spin-radio-group": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        items?: readonly RadioItem[];
-        defaultValue?: string;
-        value?: string;
-        name?: string;
-      };
-      "spin-switch": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        label?: string;
-        defaultChecked?: boolean;
-        checked?: boolean;
-        disabled?: boolean;
-      };
-      "spin-select": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        items?: readonly SelectItem[];
-        defaultValue?: string;
-        placeholder?: string;
-        disabled?: boolean;
-        name?: string;
       };
       "spin-slider": {
         ref?: HTMLElement | ((el: HTMLElement) => void);

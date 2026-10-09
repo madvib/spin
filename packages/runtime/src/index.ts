@@ -1,3 +1,5 @@
+import type { CollectionDecl } from "./machine/adapter/machine.ts";
+
 export {
   batch,
   computed,
@@ -37,14 +39,22 @@ export interface MachineDef {
   readonly connect: (...args: never[]) => object;
   readonly events?: Readonly<Record<string, MachineEventContract>>;
   /**
+   * A constructed collection prop, declared — not built. The adapter builds
+   * the Zag `TreeCollection`/`ListCollection` from the named scope prop and
+   * memoizes per source identity. Re-exported from the adapter; this is the
+   * same type, not a parallel one.
+   */
+  readonly collection?: CollectionDecl;
+  /**
    * Transforms scope-coerced values into machine props, merged over the
-   * values. For machines that need constructed props — tree-view's
-   * `collection: TreeCollection` built from raw `nodes`. Absent for
-   * machines whose props pass through untouched.
+   * values. For derived scalars (carousel's slideCount, select's array
+   * wrapping) and sync side effects (toast's store). Collections go through
+   * `collection` above, never here.
    */
   // deno-lint-ignore no-explicit-any
   readonly toMachineProps?: (values: Record<string, any>) => Record<string, unknown>;
 }
+export type { CollectionDecl } from "./machine/adapter/machine.ts";
 export { createScopeTable, type Handle, type ScopeTable } from "./scope/table.ts";
 
 export { createAction, runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";

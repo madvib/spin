@@ -8,6 +8,7 @@
     "alien-signals": "npm:alien-signals@^3.2.1",
     "@zag-js/core": "npm:@zag-js/core@~1.44.0",
     "@zag-js/utils": "npm:@zag-js/utils@~1.44.0",
+    "@zag-js/collection": "npm:@zag-js/collection@~1.44.0",
     "@zag-js/accordion": "npm:@zag-js/accordion@~1.44.0",
     "@spin/runtime/testing": "./src/testing.ts",
     "linkedom": "npm:linkedom@^0.18.0",

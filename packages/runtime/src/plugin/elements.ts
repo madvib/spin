@@ -89,17 +89,19 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       }
       // Consume codegen: for each consume name, import the machine-def by
       // convention (./<name>.machine-def.ts), create the machine via the
-      // scope table's watch (which registers it for named resolution and
-      // handles disposal), and set values.api as the own-machine shorthand.
-      // Props are the coerced values minus the reserved `api` and `@@resolve`
-      // keys, which are codegen-internal and never machine props. They are
-      // handed over as a getter, not a snapshot: Zag reads props on every
-      // transition, and the adapter's `resolvedProps` computed only re-runs
-      // when a read inside it tracks. `values` is already live — each declared
-      // prop is a getter over the element's prop store (the `seedProps` block
-      // below), so a property write reaches the machine. Coercion stays at
-      // build time (`values` starts as `coerceProps(...)`); a live read is
-      // signal reads plus a shallow copy, never a per-read JSON.parse.
+      // scope table's watch, and expose the bridge under the consume NAME
+      // (values.tabs), never a bare `api`. Two machines mean two names; a
+      // bare shorthand would alias whichever ran last and strand the other.
+      // Props are the coerced values minus each consume name and the reserved
+      // `@@resolve` key, which are codegen-internal and never machine props.
+      // They are handed over as a getter, not a snapshot: Zag reads props on
+      // every transition, and the adapter's `resolvedProps` computed only
+      // re-runs when a read inside it tracks. `values` is already live — each
+      // declared prop is a getter over the element's prop store (the
+      // `seedProps` block below), so a property write reaches the machine.
+      // Coercion stays at build time (`values` starts as `coerceProps(...)`);
+      // a live read is signal reads plus a shallow copy, never a per-read
+      // JSON.parse.
       // Events: a machine-def may declare `events` mapping a CustomEvent name
       // to the Zag callback prop that fires it plus a detail mapper. Each
       // entry becomes a machine prop — `(details) => el.dispatchEvent(...)` —
@@ -108,6 +110,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // machine whose callback it translates.
       const consumeImports: string[] = [];
       const consumeCalls: string[] = [];
+      const consumeDeletes = scopeDecls.consume
+        .map((name) => `delete p[${JSON.stringify(name)}];`)
+        .join(" ");
       for (const name of scopeDecls.consume) {
         const defFile = path.join(dir, `${name}.machine-def.ts`);
         try {
@@ -118,13 +123,14 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
             `  const ${bridge} = watch(${name}, () => createMachine(${name}.machine, {\n` +
+            `    collection: ${name}.collection,\n` +
             `    connect: ${name}.connect,\n` +
             `    normalize: normalizeProps,\n` +
-            `    props: () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; delete p.api; delete p["@@resolve"]; return p; },\n` +
+            `    props: () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; return p; },\n` +
             `    getRootNode: () => el.getRootNode(),\n` +
             `    id: el.id || uniqueId(${JSON.stringify(tag)}),\n` +
             `  }));\n` +
-            `  values.api = ${bridge}.api;\n` +
+            `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
             `  own(() => ${bridge}.dispose());`
           );
         } catch {

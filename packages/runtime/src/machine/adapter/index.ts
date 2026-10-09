@@ -7,4 +7,4 @@
  */
 
 export { createMachine, normalizeProps } from "./machine.ts";
-export type { MachineBridge, MachineOptions, Normalize, Props } from "./machine.ts";
+export type { CollectionDecl, MachineBridge, MachineOptions, Normalize, Props } from "./machine.ts";

@@ -1,15 +1,15 @@
 <scope>props={ nodes: { value: string, label: string }[] = [], defaultExpandedValue: string[] = "", expandOnClick: bool = true, selectionMode: string = "single" } consume={ treeView }</scope>
 
-<div class="rounded-lg border border-border bg-surface-raised" {...api.getRootProps()}>
-  <div class="text-md font-semibold text-text px-2 pt-2 pb-1" {...api.getLabelProps()}>Repository</div>
-  <div {...api.getTreeProps()}>
-    <template for={api.getVisibleNodes()} as={row} key={row.node.value}>
-      <div {...api.getBranchProps(row)}>
-        <button class="w-full flex items-center justify-start gap-2 rounded-lg px-2 py-2 text-left text-sm font-medium text-text bg-transparent border-transparent transition-colors hover:bg-surface data-[selected]:bg-surface" {...api.getBranchControlProps(row)}>
-          <span aria-hidden="true" class="shrink-0 text-muted text-sm transition-transform data-[state=open]:rotate-180" {...api.getBranchIndicatorProps(row)}>›</span>
-          <span class="font-medium min-w-0 truncate" {...api.getBranchTextProps(row)}>{row.node.label}</span>
+<div class="rounded-lg border border-border bg-surface-raised" {...treeView.getRootProps()}>
+  <div class="text-md font-semibold text-text px-2 pt-2 pb-1" {...treeView.getLabelProps()}>Repository</div>
+  <div {...treeView.getTreeProps()}>
+    <template for={treeView.getVisibleNodes()} as={row} key={row.node.value}>
+      <div {...treeView.getBranchProps(row)}>
+        <button class="w-full flex items-center justify-start gap-2 rounded-lg px-2 py-2 text-left text-sm font-medium text-text bg-transparent border-transparent transition-colors hover:bg-surface data-[selected]:bg-surface" {...treeView.getBranchControlProps(row)}>
+          <span aria-hidden="true" class="shrink-0 text-muted text-sm transition-transform data-[state=open]:rotate-180" {...treeView.getBranchIndicatorProps(row)}>›</span>
+          <span class="font-medium min-w-0 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
         </button>
-        <div class="ml-4 border-l border-solid border-border-strong pl-2" {...api.getBranchContentProps(row)}>
+        <div class="ml-4 border-l border-solid border-border-strong pl-2" {...treeView.getBranchContentProps(row)}>
         </div>
       </div>
     </template>

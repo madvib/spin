@@ -1,15 +1,15 @@
 <scope>props={ items: { value: string, label: string, content: string, disabled: bool }[] = [], defaultValue: string = "", orientation: string = "horizontal", activationMode: string = "automatic", loopFocus: bool = true, deselectable: bool = false } consume={ tabs }</scope>
 
-<div {...api.getRootProps()}>
-  <div class="flex gap-1 p-1 rounded-lg bg-surface border border-border" {...api.getListProps()}>
+<div {...tabs.getRootProps()}>
+  <div class="flex gap-1 p-1 rounded-lg bg-surface border border-border" {...tabs.getListProps()}>
     <template for={items} as={row}>
-      <button class="px-3 py-2 text-sm font-medium rounded-md text-muted bg-transparent border-transparent transition-colors hover:text-text aria-[selected]:bg-surface-raised aria-[selected]:text-text aria-[selected]:shadow-sm data-[disabled]:opacity-50" {...api.getTriggerProps(row)}>
+      <button class="px-3 py-2 text-sm font-medium rounded-md text-muted bg-transparent border-transparent transition-colors hover:text-text aria-[selected]:bg-surface-raised aria-[selected]:text-text aria-[selected]:shadow-sm data-[disabled]:opacity-50" {...tabs.getTriggerProps(row)}>
         {row.label}
       </button>
     </template>
   </div>
   <template for={items} as={row}>
-    <div class="px-4 py-4 text-sm text-muted" {...api.getContentProps(row)}>
+    <div class="px-4 py-4 text-sm text-muted" {...tabs.getContentProps(row)}>
       {row.content}
     </div>
   </template>

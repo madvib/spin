@@ -1,9 +1,0 @@
-<scope>props={ label: string = "", defaultChecked: bool = false, checked: bool, disabled: bool = false, name: string = "" } consume={ checkbox }</scope>
-
-<label class="flex items-center gap-2 cursor-pointer text-sm text-text" {...api.getRootProps()}>
-  <span class="flex items-center justify-center size-4 rounded-md border border-border bg-surface-raised shadow-sm transition-colors data-[state=checked]:bg-text data-[state=checked]:border-transparent" {...api.getControlProps()}>
-    <span aria-hidden="true" class="text-surface text-xs" {...api.getIndicatorProps()}>✓</span>
-  </span>
-  <span class="font-medium" {...api.getLabelProps()}>{label}</span>
-  <input {...api.getHiddenInputProps()} />
-</label>
