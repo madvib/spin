@@ -64,14 +64,22 @@ function preRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => pre,
+        // The mono face is what makes a block code; the SIZE is the author's.
+        // A pinned font-size here beat every text utility on the same element
+        // at equal specificity, so a consumer could not size their own code
+        // block — the ladder exists so the app can spend it.
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
         ...rhythm(t),
         ...(t.spacing2 !== undefined && t.spacing4 !== undefined
           ? { padding: `${t.spacing2} ${t.spacing4}` }
           : {}),
         ...(t.radiusMd !== undefined ? { "border-radius": t.radiusMd } : {}),
-        ...(t.surface !== undefined ? { "background-color": t.surface } : {}),
+        // A block is an object, so it takes the raised surface — the page
+        // colour leaves a code block reading as more prose, and the two are
+        // different things.
+        ...(t.raised !== undefined
+          ? { "background-color": t.raised }
+          : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         "line-height": "1.5",
         "overflow-x": "auto",

@@ -161,6 +161,11 @@ const VARIANTS: Record<PaintedVariant, {
       "font-weight": "normal",
       "text-transform": "none",
       "letter-spacing": "normal",
+      // The base states a minimum height for the control's touch target;
+      // a bare button is chrome — a link that happens to be a button — and
+      // a 34px floor on every chrome control is a tax the app pays for a
+      // default it did not choose.
+      "min-height": "0",
       // No `font: inherit`, no `color: inherit`: the selector is
       // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
       // single class utility — the opt-out would freeze the ink and the face

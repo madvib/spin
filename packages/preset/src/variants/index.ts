@@ -14,11 +14,13 @@ import { breakpointVariant } from "./breakpoint.ts";
  * the opposite case — they are a scale the theme already declares, so
  * `md:` is the same vocabulary as `p-4`, not a second way to say it.
  */
-export function spinVariants(): Variant[] {
+export function spinVariants(
+  options: { readonly breakpoints?: Readonly<Record<string, string>> } = {},
+): Variant[] {
   return [
     hoverVariant,
     focusVariant,
-    breakpointVariant(),
+    breakpointVariant(options.breakpoints ?? {}),
   ];
 }
 
@@ -31,4 +33,31 @@ export function spinVariants(): Variant[] {
  */
 export function variantPrefixes(): string[] {
   return [HOVER_PREFIX, FOCUS_PREFIX];
+}
+
+/**
+ * The theme's breakpoints as literal widths, the first declaration winning.
+ *
+ * A media query cannot carry a custom property, so the responsive variant
+ * needs the VALUE — and every theme in one stylesheet declares its own, so
+ * the first document states the edges the whole sheet uses.
+ */
+export function breakpointEdges(
+  trees: readonly import("@spin/theme").TokenTree[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const tree of trees) {
+    const walk = (node: import("@spin/theme").TokenNode): void => {
+      if (node.kind === "group") {
+        for (const child of node.children) walk(child);
+        return;
+      }
+      if (node.path[0] !== "breakpoint") return;
+      const name = node.path[1];
+      if (name === undefined || name in out) return;
+      if (typeof node.value === "string") out[name] = node.value;
+    };
+    for (const root of tree) walk(root);
+  }
+  return out;
 }
