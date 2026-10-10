@@ -41,27 +41,46 @@ function themeTreeOrParse(): TokenTree {
 }
 
 /**
- * Each color token's value, by the name the catalog spells it.
+ * Each color token's value, by the name the catalog spells it, for one theme
+ * and one mode.
  *
  * A swatch is a color a reader can identify, so its label carries the value it
  * resolves to rather than the reference it is declared with: `bg-text` holds
  * `var(--color-text)`, which is a name and not a color, while the value it
  * lands on is the whole point of the row. Aliases are followed, so a role
  * derived from the ramp shows the ramp's step. The theme's base value is the
- * one named: a mode's override is the same token rendered another way.
+ * one named: a mode's override is the same token rendered another way, so the
+ * `dark` group is read first and the base value is what a token the dark group
+ * does not restate keeps. A theme with no dark group overrides nothing.
  */
-const COLOR_VALUES: Readonly<Record<string, string>> = (() => {
+export function colorValues(
+  theme: string,
+  mode: string,
+): Readonly<Record<string, string>> {
+  const doc = (starterThemes as unknown as Record<string, unknown>)[theme];
+  if (doc === undefined) return {};
+  const parsed = parseTokens(doc as Parameters<typeof parseTokens>[0]);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const index = indexTree(resolveAliases(parsed.tree).tree);
   const out: Record<string, string> = {};
-  const leaves = Object.values(
-    indexTree(resolveAliases(themeTreeOrParse()).tree).leaves,
-  );
-  for (const leaf of leaves) {
+  for (const leaf of Object.values(index.leaves)) {
     if (leaf.path[0] !== "color") continue;
     if (typeof leaf.value !== "string") continue;
-    out[leaf.path.slice(1).join("-")] = leaf.value;
+    // The mode's own restatement of this token, by its path in the dark group.
+    const dark = index.leaves[`dark.${leaf.path.join(".")}`];
+    out[leaf.path.slice(1).join("-")] = mode === "dark" &&
+        dark !== undefined && typeof dark.value === "string"
+      ? dark.value
+      : leaf.value;
   }
   return out;
-})();
+}
+
+/** The values the utilities pages read, for the theme they demonstrate. */
+const COLOR_VALUES: Readonly<Record<string, string>> = colorValues(
+  "default",
+  "base",
+);
 
 /* ──────────────────────────────────────────────────────────────────────────
  * SAMPLES — what a utility acts ON, decided per family.

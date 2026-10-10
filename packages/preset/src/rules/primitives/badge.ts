@@ -44,13 +44,20 @@ function badgeBase(mode: Mode): Rule {
       const weightMedium = t?.fontWeight["medium"];
       const badgeGroup = groupOf(ctx, "badge");
       const edge = badgeGroup?.["edge"] ?? borderWidth;
-      const radius = badgeGroup?.["radius"] ?? t?.radius?.["full"];
+      // `badge.pill` is a boolean token: a theme declares it true for the
+      // pill and false (or omits it) for the square tag. The flag IS the
+      // decision — the rule asks one question instead of carrying a radius
+      // scale a badge has no use for.
+      const pill = badgeGroup?.["pill"] !== undefined;
+      const pillRadius = t?.radius?.["full"];
       yield {
         [ctx.symbols.selector]: () => badge,
         display: "inline-flex",
         "align-items": "center",
         ...(spacing1 !== undefined ? { gap: spacing1 } : {}),
-        ...(radius !== undefined ? { "border-radius": radius } : {}),
+        ...(pill && pillRadius !== undefined
+          ? { "border-radius": pillRadius }
+          : {}),
         ...(sizeXs !== undefined ? { "font-size": sizeXs } : {}),
         ...(weightMedium !== undefined ? { "font-weight": weightMedium } : {}),
         // The base owns its line box too: inherited leading would size the

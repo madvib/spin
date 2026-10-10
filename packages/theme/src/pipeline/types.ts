@@ -14,6 +14,7 @@
 /** Every `$type` a Spin token may declare. */
 export const TOKEN_TYPES = [
   "color",
+  "boolean",
   "dimension",
   "fontFamily",
   "fontWeight",

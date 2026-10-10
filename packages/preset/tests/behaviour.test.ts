@@ -338,10 +338,41 @@ Deno.test("the motion clamp ships whenever an animated component does", async ()
   );
 });
 
+Deno.test("a boolean token decides a component's shape", async () => {
+  // The mechanism the studio surface will lean on: a theme answers a
+  // yes/no question about a component and the rule reads the answer. A flag
+  // that is on ships the styling that goes with it; a theme that omits the
+  // flag ships nothing, so the component keeps whatever the browser does.
+  const pill = structuredClone(theme) as Record<string, unknown>;
+  (pill["badge"] as Record<string, unknown>)["pill"] = {
+    $type: "boolean",
+    $value: true,
+  };
+  const on = await generate("<badge>New</badge>", { themes: { light: pill } });
+  const flat = structuredClone(theme) as Record<string, unknown>;
+  delete (flat["badge"] as Record<string, unknown>)["pill"];
+  const off = await generate("<badge>New</badge>", { themes: { light: flat } });
+  const onRadius = declarations(bodyFor(on, "badge"))["border-radius"];
+  const offDecls = declarations(bodyFor(off, "badge"));
+  assert(
+    onRadius !== undefined && onRadius.includes("radius-full"),
+    "a theme that declares the flag pill gets the pill radius",
+  );
+  assert(
+    !("border-radius" in offDecls),
+    "a theme that does not declare the flag ships no radius",
+  );
+});
+
 Deno.test("a badge with no badge group in the theme renders from global tokens", async () => {
   // Breaks if the badge rule stops falling back to global tokens when the
-  // theme has no badge group — the badge would emit no border-radius,
-  // font-size, or padding, rendering as an unstyled element.
+  // theme has no badge group — the badge would emit no font-size or padding,
+  // rendering as an unstyled element.
+  //
+  // `border-radius` is deliberately NOT in that list any more: the pill is a
+  // boolean token, and a flag has no value to fall back to. A theme that
+  // declares no `badge.pill` has made no rounding decision, so the badge gets
+  // the browser's square box rather than a radius nobody chose.
   const { badge: _omit, ...themeWithoutBadge } = theme;
   const result = await generate("<badge>New</badge>", {
     themes: { light: themeWithoutBadge },
@@ -353,8 +384,8 @@ Deno.test("a badge with no badge group in the theme renders from global tokens",
   );
   const decls = declarations(bodyFor(result, "badge"));
   assert(
-    "border-radius" in decls,
-    "border-radius must come from the global radius token",
+    !("border-radius" in decls),
+    "an undecided pill emits no radius rather than a default nobody chose",
   );
   assert(
     "font-size" in decls,

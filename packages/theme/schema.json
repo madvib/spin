@@ -45,6 +45,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -116,6 +120,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -193,6 +201,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -264,6 +276,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -341,6 +357,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -412,6 +432,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -489,6 +513,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -560,6 +588,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -647,6 +679,10 @@
                       "type": "string"
                     },
                     {
+                      "const": "boolean",
+                      "type": "string"
+                    },
+                    {
                       "const": "dimension",
                       "type": "string"
                     },
@@ -718,6 +754,10 @@
                   "anyOf": [
                     {
                       "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "boolean",
                       "type": "string"
                     },
                     {
@@ -795,6 +835,10 @@
                       "type": "string"
                     },
                     {
+                      "const": "boolean",
+                      "type": "string"
+                    },
+                    {
                       "const": "dimension",
                       "type": "string"
                     },
@@ -866,6 +910,10 @@
                   "anyOf": [
                     {
                       "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "boolean",
                       "type": "string"
                     },
                     {
@@ -945,6 +993,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1016,6 +1068,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -1093,6 +1149,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1164,6 +1224,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -1257,6 +1321,10 @@
                       "type": "string"
                     },
                     {
+                      "const": "boolean",
+                      "type": "string"
+                    },
+                    {
                       "const": "dimension",
                       "type": "string"
                     },
@@ -1343,6 +1411,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1414,6 +1486,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {

@@ -76,6 +76,13 @@ function isAcceptableDimension(value: unknown): boolean {
 type ValueRule = (value: unknown) => string | undefined;
 
 const VALUE_RULES: Partial<Record<TokenType, ValueRule>> = {
+  // A boolean is a switch: the rule reads whether it is on. `false` emits
+  // nothing, so a theme turns a feature off by saying `false` OR by omitting
+  // the token — and the rule asks the same question either way.
+  boolean: (value) =>
+    typeof value === "boolean"
+      ? undefined
+      : `boolean token must be true or false, got ${JSON.stringify(value)}`,
   color: (value) =>
     isAcceptableColor(value)
       ? undefined

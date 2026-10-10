@@ -1,10 +1,17 @@
 import { assert, assertEquals } from "@std/assert";
 import { generateCss, generateThemeCss, generateTypes } from "./generate.ts";
+import { parseTokens } from "./parse.ts";
 import type { TokenTree } from "./types.ts";
 
 interface CssBlock {
   selector: string;
   declarations: Record<string, string>;
+}
+
+/** The parsed tree of a token document, asserted to have parsed. */
+function treeOf(result: ReturnType<typeof parseTokens>): TokenTree {
+  if (!result.ok) throw new Error(`document must parse: ${result.error}`);
+  return result.tree;
 }
 
 /**
@@ -133,6 +140,21 @@ Deno.test("generateCss puts every token of the tree into the base block", () => 
   const names = Object.keys(root.declarations).sort();
 
   assertEquals(names, ["--color-accent", "--color-brand", "--space-sm"]);
+});
+
+Deno.test("a boolean token emits its flag when on and nothing when off", () => {
+  // The flag is the whole mechanism: a rule asks whether the theme declared
+  // it, and a false flag is the same answer as no declaration at all.
+  const tree = treeOf(parseTokens({
+    badge: {
+      $type: "boolean",
+      pill: { $type: "boolean", $value: true },
+      sharp: { $type: "boolean", $value: false },
+    },
+  }));
+  const css = generateCss(tree);
+  assert(css.includes("--badge-pill: 1;"), "a true flag emits 1");
+  assert(!css.includes("--badge-sharp"), "a false flag emits nothing at all");
 });
 
 Deno.test("generateCss honours a custom prefix on every property name", () => {

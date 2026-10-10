@@ -62,10 +62,14 @@ function joinItem(): Rule {
     /^join-item$/,
     function* (_m, ctx) {
       const t = joinTokens(ctx);
-      // Flat everywhere; the two ends below restore their outer corners.
+      // Flat everywhere; the two ends below restore their outer corners. The
+      // shadow is taken back with the radius: a joined object has ONE edge,
+      // and a shadow per child paints a hard offset around every segment —
+      // in a neobrut theme, a black box hanging off each side of the seam.
       yield {
         [ctx.symbols.selector]: () => ".join-item",
         "border-radius": "0",
+        "box-shadow": "none",
       };
       // The four logical longhands, written per side rather than as a
       // shorthand, because each end restates only its own two corners.

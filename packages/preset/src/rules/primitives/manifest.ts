@@ -149,7 +149,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     reads: [
       "--badge-edge",
-      "--badge-radius",
+      "--badge-pill",
       "--border-width",
       "--color-accent",
       "--color-border",
@@ -170,6 +170,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--font-size-sm",
       "--font-size-xs",
       "--font-weight-medium",
+      "--radius-full",
       "--radius-sm",
       "--spacing-0",
       "--spacing-1",

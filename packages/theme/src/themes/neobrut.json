@@ -482,10 +482,10 @@
       "$value": "{border.width}",
       "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
     },
-    "radius": {
-      "$type": "dimension",
-      "$value": "{radius.none}",
-      "$description": "Corner rounding for the badge. Fully round reads as a pill; zero squares it into a tag."
+    "pill": {
+      "$type": "boolean",
+      "$value": false,
+      "$description": "Fully round reads as a pill; false squares it into a tag."
     }
   },
   "checkbox": {

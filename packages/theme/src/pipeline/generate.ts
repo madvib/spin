@@ -47,6 +47,11 @@ function cssValue(leaf: TokenLeaf, index: TokenIndex, prefix?: string): string {
   }
   if (typeof leaf.value === "string") return leaf.value;
   if (typeof leaf.value === "number") return String(leaf.value);
+  // A boolean is a switch the rules read, not a value CSS consumes: `true`
+  // emits as the flag `1` and `false` emits as nothing. A false flag is
+  // absence — the same shape a missing token has — which is what lets a rule
+  // ask `is this declared?` and get a per-theme answer.
+  if (typeof leaf.value === "boolean") return leaf.value ? "1" : "";
   return JSON.stringify(leaf.value);
 }
 
@@ -100,6 +105,7 @@ function collectLeaves(
 
 function renderBlock(block: Block, indent: string): string {
   const body = block.declarations
+    .filter(([, value]) => value !== "")
     .map(([name, value]) => `${indent}${name}: ${value};`)
     .join("\n");
   return `${block.selector} {\n${body}\n}`;
