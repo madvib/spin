@@ -5,8 +5,10 @@ import {
   type GenerateResult,
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
+import { parseTokens } from "@spin/theme";
 import { spinPreset } from "../src/index.ts";
 import { splitTopLevel } from "../src/rules/primitives/derive.ts";
+import { primitiveContracts } from "../src/rules/primitives/manifest.ts";
 
 /**
  * The behavioural proof.
@@ -562,4 +564,44 @@ Deno.test("an avatar's status dot is placed in the trailing corner", async () =>
     "aspect-ratio" in body,
     "the dot scales with the face it sits on, and stays a dot",
   );
+});
+
+/**
+ * The type ladder is the product's; nothing in it may out-size a page's
+ * own heading. A button bigger than the h2 above it is an app that cannot
+ * say what its hierarchy is — and the fix is the ladder, not a local
+ * override.
+ *
+ * The semantic-typography components are exempt because they ARE the ladder:
+ * `prose` renders h1 through h6 and the code family shares its type helper.
+ */
+Deno.test("no component's type out-sizes the page's own heading", () => {
+  const EXEMPT = new Set(["prose", "hr", "kbd"]);
+  const parsed = parseTokens(
+    JSON.stringify({ font: theme["font"] }),
+  );
+  assert(parsed.ok, "the theme's type ladder must parse");
+  const sizeOf: Record<string, number> = {};
+  const font = (theme["font"] ?? {}) as Record<string, never>;
+  const size = (font as unknown as { size: Record<string, never> }).size;
+  for (const [step, token] of Object.entries(size)) {
+    const raw = (token as unknown as { $value?: string }).$value ?? "";
+    const match = /^([\d.]+)rem$/.exec(raw);
+    if (match) sizeOf[step] = Number(match[1]) * 16;
+  }
+  const heading = sizeOf["2xl"];
+  assert(heading !== undefined && heading > 0, "the ladder must state the h2 step");
+  for (const [name, contract] of Object.entries(primitiveContracts)) {
+    if (EXEMPT.has(name)) continue;
+    for (const read of contract.reads) {
+      const step = /^--font-size-(.+)$/.exec(read);
+      if (step === null) continue;
+      const px = sizeOf[step[1] as string];
+      assert(px !== undefined, `${name} reads a size the ladder omits`);
+      assert(
+        px <= heading,
+        `${name} sets type at ${px}px, larger than the page's h2 (${heading}px)`,
+      );
+    }
+  }
 });
