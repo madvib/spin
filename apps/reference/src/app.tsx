@@ -148,8 +148,13 @@ const RAIL_LINK =
 const RAIL_SECTION = `${RAIL_LINK} aria-[current]:border-border-strong`;
 
 /** A family header in the rail: the glyph beside the name it heads. */
+/**
+ * A family header outranks the links under it: same size, heavier weight,
+ * full ink, and a bigger step of air above — a rail whose group titles are
+ * SMALLER than its members reads as one flat list of unrelated things.
+ */
 const RAIL_FAMILY =
-  "mt-3 mb-1 flex items-center gap-1 px-2 text-xs font-semibold normal-case tracking-normal text-text-muted";
+  "mt-5 mb-2 flex items-center gap-1 px-2 text-sm font-semibold normal-case tracking-normal text-text first:mt-0";
 
 /** What the rail says when the search has left it nothing to say. */
 const RAIL_EMPTY = "px-2 py-1 text-xs text-text-muted";
@@ -583,68 +588,69 @@ function AppHeader(props: {
   setQuery: (query: string) => void;
 }) {
   const utilities = () => props.route().startsWith("/utilities");
+  // The header lives at the top of the SIDEBAR, not above the page: the
+  // filters are the rail's controls, and a top bar would spend the page's
+  // width on chrome that only ever touches the rail.
   return (
-    <header class="sticky top-0 z-dropdown border-b border-solid border-border bg-surface">
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2">
+    <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-3 flex flex-col gap-2 border-b border-solid border-border bg-surface px-4 pt-4 pb-3">
+      <button
+        type="button"
+        onClick={() => (location.hash = "#/components")}
+        class="flex items-center gap-2 self-start rounded-md border border-solid border-transparent bg-transparent px-1 py-1 text-text shadow-none cursor-pointer hover:border-border-strong"
+      >
+        <i class={BRAND_MARK} />
+        <span class="text-lg font-bold tracking-tight">spin</span>
+      </button>
+      <label class={SEARCH_FIELD}>
+        <i class="i-lucide-search icon-md shrink-0 text-text-muted" />
+        <input
+          type="search"
+          value={props.query()}
+          onInput={(event) => props.setQuery(event.currentTarget.value)}
+          aria-label="Filter the rail"
+          class={SEARCH_INPUT}
+        />
+      </label>
+      <div class="flex flex-wrap items-center gap-1">
+        <For each={THEMES}>
+          {(t) => (
+            <Chip
+              label={t}
+              active={props.theme() === t}
+              onPick={() => props.setTheme(t)}
+            />
+          )}
+        </For>
+        <Chip
+          label="base"
+          active={props.mode() === "base"}
+          onPick={() => props.setMode("base")}
+        />
+        <Chip
+          label="dark"
+          active={props.mode() === "dark"}
+          onPick={() => props.setMode("dark")}
+        />
+      </div>
+      <div class={SEGMENT_GROUP}>
+        <button
+          type="button"
+          onClick={() => (location.hash = "#/utilities")}
+          aria-current={utilities() || undefined}
+          class={SURFACE_LINK}
+        >
+          utilities
+        </button>
         <button
           type="button"
           onClick={() => (location.hash = "#/components")}
-          class="flex items-center gap-2 rounded-md border border-solid border-transparent bg-transparent px-1 py-1 text-text shadow-none cursor-pointer hover:border-border-strong"
+          aria-current={!utilities() || undefined}
+          class={SURFACE_LINK}
         >
-          <i class={BRAND_MARK} />
-          <span class="text-lg font-bold tracking-tight">spin</span>
+          primitives
         </button>
-        <label class={SEARCH_FIELD}>
-          <i class="i-lucide-search icon-md shrink-0 text-text-muted" />
-          <input
-            type="search"
-            value={props.query()}
-            onInput={(event) => props.setQuery(event.currentTarget.value)}
-            aria-label="Filter the rail"
-            class={SEARCH_INPUT}
-          />
-        </label>
-        <div class="flex flex-wrap items-center gap-1">
-          <For each={THEMES}>
-            {(t) => (
-              <Chip
-                label={t}
-                active={props.theme() === t}
-                onPick={() => props.setTheme(t)}
-              />
-            )}
-          </For>
-          <Chip
-            label="base"
-            active={props.mode() === "base"}
-            onPick={() => props.setMode("base")}
-          />
-          <Chip
-            label="dark"
-            active={props.mode() === "dark"}
-            onPick={() => props.setMode("dark")}
-          />
-        </div>
-        <div class={SEGMENT_GROUP}>
-          <button
-            type="button"
-            onClick={() => (location.hash = "#/utilities")}
-            aria-current={utilities() || undefined}
-            class={SURFACE_LINK}
-          >
-            utilities
-          </button>
-          <button
-            type="button"
-            onClick={() => (location.hash = "#/components")}
-            aria-current={!utilities() || undefined}
-            class={SURFACE_LINK}
-          >
-            primitives
-          </button>
-        </div>
       </div>
-    </header>
+    </div>
   );
 }
 
@@ -657,7 +663,12 @@ function AppHeader(props: {
 function Rail(props: {
   route: Accessor<string>;
   query: Accessor<string>;
+  setQuery: (query: string) => void;
   catalog: Accessor<readonly CatalogSection[]>;
+  theme: Accessor<string>;
+  setTheme: (theme: string) => void;
+  mode: Accessor<string>;
+  setMode: (mode: string) => void;
 }) {
   const needle = createMemo(() => props.query().trim().toLowerCase());
   const utilities = () => props.route().startsWith("/utilities");
@@ -683,7 +694,16 @@ function Rail(props: {
   const total = () => (utilities() ? SECTIONS.length : PRIMITIVES.length);
 
   return (
-    <nav class="w-64 shrink-0 self-start border-e border-solid border-border p-4">
+    <nav class="sticky top-0 flex max-h-screen w-64 shrink-0 flex-col overflow-y-auto border-e border-solid border-border p-4">
+      <AppHeader
+        route={props.route}
+        theme={props.theme}
+        setTheme={props.setTheme}
+        mode={props.mode}
+        setMode={props.setMode}
+        query={props.query}
+        setQuery={props.setQuery}
+      />
       <div class={RAIL_HEAD}>
         <span>{utilities() ? "sections" : "components"}</span>
         <span class="font-mono font-regular">
@@ -821,18 +841,18 @@ export default function App() {
   );
 
   return (
-    <div class="flex min-h-screen flex-col bg-surface">
-      <AppHeader
-        route={route}
-        theme={theme}
-        setTheme={setTheme}
-        mode={mode}
-        setMode={setMode}
-        query={query}
-        setQuery={setQuery}
-      />
+    <div class="flex min-h-screen bg-surface">
       <div class="flex flex-1 items-start">
-        <Rail route={route} query={query} catalog={catalog} />
+        <Rail
+          route={route}
+          query={query}
+          setQuery={setQuery}
+          catalog={catalog}
+          theme={theme}
+          setTheme={setTheme}
+          mode={mode}
+          setMode={setMode}
+        />
         <main class="min-w-0 flex-1 p-8 pb-16">
           <Show when={primitiveId()} keyed>
             {(id) => <PrimitivePage id={id} />}
