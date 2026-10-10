@@ -15,6 +15,9 @@
  */
 
 import "./spin-accordion/spin-accordion.html";
+import "./spin-slider/spin-slider-fsm.html";
+import "./spin-menu/spin-menu-fsm.html";
+import "./spin-carousel/spin-carousel-fsm.html";
 import "./spin-accordion/spin-accordion-robot.html";
 import "./spin-accordion/spin-accordion-fsm.html";
 import "./spin-dialog/spin-dialog.html";

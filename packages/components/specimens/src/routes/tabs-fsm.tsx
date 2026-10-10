@@ -26,7 +26,7 @@ export default function TabsFsm() {
     "spin-tabs-fsm",
     () => ({ items: ITEMS }),
     {
-      "value-change": (e) => setSelected(e.detail.value),
+      "value-change": (e: CustomEvent<{ value: string | null }>) => setSelected(e.detail.value ?? "none"),
       "focus-change": (e) => setFocused(e.detail.focusedValue),
     },
   );

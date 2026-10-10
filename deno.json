@@ -70,7 +70,15 @@
     "@zag-js/timer": "npm:@zag-js/timer@~1.44.0",
     "@zag-js/toggle-group": "npm:@zag-js/toggle-group@~1.44.0",
     "@zag-js/tour": "npm:@zag-js/tour@~1.44.0",
-    "@zag-js/angle-slider": "npm:@zag-js/angle-slider@~1.44.0"
+    "@zag-js/angle-slider": "npm:@zag-js/angle-slider@~1.44.0",
+    "@zag-js/async-list": "npm:@zag-js/async-list@~1.44.0",
+    "@zag-js/cascade-select": "npm:@zag-js/cascade-select@~1.44.0",
+    "@zag-js/date-input": "npm:@zag-js/date-input@~1.44.0",
+    "@zag-js/image-cropper": "npm:@zag-js/image-cropper@~1.44.0",
+    "@zag-js/listbox": "npm:@zag-js/listbox@~1.44.0",
+    "@zag-js/navigation-menu": "npm:@zag-js/navigation-menu@~1.44.0",
+    "@spin/hooks/solid": "./packages/hooks/src/solid.ts",
+    "@spin/hooks/react": "./packages/hooks/src/react.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-net packages/",

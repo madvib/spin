@@ -1,0 +1,29 @@
+<scope>props={ items: string = "[]", label: string = "Menu", defaultOpen: bool = false, open: string = "", closeOnSelect: bool = true, loopFocus: bool = false, composite: bool = true, typeahead: bool = true, placement: string = "bottom-start", submenu: bool = false } consume={ menuFsm }</scope>
+
+<div class="relative inline-block">
+  <div class="relative" {...menuFsm.getContextTriggerProps()}>
+    <button class="group inline-flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface" {...menuFsm.getTriggerProps()}>
+      <span class="truncate">{label}</span>
+      <span aria-hidden="true" class="text-xs text-muted transition-transform duration-fast ease-decelerate group-data-[state=open]:rotate-180">&#9662;</span>
+    </button>
+  </div>
+  <div class="absolute z-dropdown origin-top-left transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 [left:var(--menu-anchor-x,0px)] [top:var(--menu-anchor-y,100%)] [min-width:var(--menu-anchor-w,11rem)]" {...menuFsm.getPositionerProps()}>
+    <div class="rounded-lg border border-border bg-surface-raised p-1 shadow-lg" {...menuFsm.getContentProps()}>
+      <template for={menuFsm.getBlocks()} as={block} key={block.id}>
+        <div class="py-1" {...menuFsm.getItemGroupProps(block)}>
+          <span class="block px-2 pb-1 text-xs font-medium text-muted" {...menuFsm.getItemGroupLabelProps(block)}>{block.label}</span>
+          <template for={menuFsm.getRows(block)} as={row} key={row.value}>
+            <div class="group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast cursor-default data-[highlighted]:bg-surface data-[disabled]:opacity-50" {...menuFsm.getItemProps(row)}>
+              <span class="min-w-0 flex-1 truncate" {...menuFsm.getItemTextProps(row)}>{row.label}</span>
+              <span class="shrink-0 text-xs text-muted" {...menuFsm.getItemShortcutProps(row)}>{row.shortcut}</span>
+              <span aria-hidden="true" class="shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0 data-[state=checked]:scale-100 data-[state=checked]:opacity-100" {...menuFsm.getItemIndicatorProps(row)}>&#10003;</span>
+              <span aria-hidden="true" class="shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate group-data-[state=open]:rotate-90" {...menuFsm.getItemSubmenuIndicatorProps(row)}>&#8250;</span>
+              <spin-menu-fsm class="absolute left-full top-0" {...menuFsm.getSubmenuProps(row)} submenu />
+            </div>
+          </template>
+        </div>
+        <div class="my-1 border-t border-border" {...menuFsm.getSeparatorProps(block)}></div>
+      </template>
+    </div>
+  </div>
+</div>

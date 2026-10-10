@@ -25,7 +25,7 @@ export default function DialogFsm() {
     "spin-dialog-fsm",
     () => ({ role: "dialog" }),
     {
-      "open-change": (e) => setStatus(e.detail.open ? "open" : "closed"),
+      "open-change": (e: CustomEvent<{ open: boolean }>) => setStatus(e.detail.open ? "open" : "closed"),
     },
   );
 

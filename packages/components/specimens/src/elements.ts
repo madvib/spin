@@ -190,6 +190,54 @@ declare module "solid-js" {
         defaultOpen?: boolean;
         modal?: boolean;
       };
+      "spin-slider-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        label?: string;
+        value?: string;
+        defaultValue?: number;
+        min?: number;
+        max?: number;
+        step?: number;
+        largeStep?: number;
+        orientation?: string;
+        disabled?: boolean;
+        markers?: string;
+        thumbSize?: string;
+        thumbAlignment?: string;
+        origin?: string;
+        thumbCollisionBehavior?: string;
+        minStepsBetweenThumbs?: number;
+        name?: string;
+        "prop:label"?: string;
+        "prop:defaultValue"?: number;
+        "prop:markers"?: string;
+        "prop:thumbSize"?: string;
+        "prop:disabled"?: boolean;
+      };
+      "spin-menu-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        open?: boolean;
+        closeOnSelect?: boolean;
+        loopFocus?: boolean;
+        placement?: string;
+        "prop:open"?: boolean;
+        "prop:closeOnSelect"?: boolean;
+      };
+      "spin-carousel-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        items?: readonly { value: string; label: string; content: string }[];
+        index?: number;
+        defaultIndex?: number;
+        loop?: boolean;
+        orientation?: string;
+        slidesPerPage?: number;
+        autoplay?: boolean;
+        autoplayDelay?: number;
+        allowMouseDrag?: boolean;
+      };
       "spin-tooltip": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         openDelay?: number;

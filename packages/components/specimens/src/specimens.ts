@@ -4,6 +4,9 @@ import SideBySide from "./routes/side-by-side.tsx";
 import TreeViewFsm from "./routes/tree-view-fsm.tsx";
 import DialogFsm from "./routes/dialog-fsm.tsx";
 import TabsFsm from "./routes/tabs-fsm.tsx";
+import SliderFsm from "./routes/slider-fsm.tsx";
+import MenuFsm from "./routes/menu-fsm.tsx";
+import CarouselFsm from "./routes/carousel-fsm.tsx";
 import Popover from "./routes/popover.tsx";
 import Menu from "./routes/menu.tsx";
 import Tabs from "./routes/tabs.tsx";
@@ -62,6 +65,27 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "Selection plus focus in two states; arrows, Home/End, disabled rows.",
     path: "/tabs-fsm",
     component: TabsFsm,
+  },
+  {
+    id: "slider-fsm",
+    title: "Slider (fsm)",
+    blurb: "Continuous value under pointer capture; geometry through the custom-property channel.",
+    path: "/slider-fsm",
+    component: SliderFsm,
+  },
+  {
+    id: "carousel-fsm",
+    title: "Carousel (fsm + actions)",
+    blurb: "Drag-scroll, autoplay and intersect as stdlib actions; the machine stays flat.",
+    path: "/carousel-fsm",
+    component: CarouselFsm,
+  },
+  {
+    id: "menu-fsm",
+    title: "Menu (fsm)",
+    blurb: "Two-state machine; hover-intent and long-press are actions, submenus are context.",
+    path: "/menu-fsm",
+    component: MenuFsm,
   },
   {
     id: "popover",

@@ -167,6 +167,111 @@ export const autoplay: ElementAction<AutoplayParam | undefined> = createAction((
 });
 
 // ---------------------------------------------------------------------------
+// hoverIntent — a pointer dwell of `delay` opens a nested surface; leaving
+// cancels a pending open or reports the close. The timer is the action's, so
+// the machine has no transitional state for it.
+// ---------------------------------------------------------------------------
+
+export interface HoverIntentParam {
+  /** Fired once the pointer has rested on the node for `delay`. */
+  onOpen?: () => void;
+  /** Fired when the pointer leaves the node after an open fired. */
+  onClose?: () => void;
+  /** Dwell before opening. */
+  delay?: number;
+}
+
+export const hoverIntent: ElementAction<HoverIntentParam | undefined> = createAction((node, param) => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let opened = false;
+  const clear = (): void => {
+    clearTimeout(timer);
+    timer = undefined;
+  };
+  const enter = (event: PointerEvent): void => {
+    if (event.pointerType !== "mouse") return;
+    const delay = param?.delay ?? 200;
+    if (delay <= 0 || param?.onOpen === undefined) return;
+    clear();
+    timer = setTimeout(() => {
+      timer = undefined;
+      opened = true;
+      param?.onOpen?.();
+    }, delay);
+  };
+  const leave = (): void => {
+    clear();
+    if (!opened) return;
+    opened = false;
+    param?.onClose?.();
+  };
+  const stops = [
+    listen(node, "pointerenter", enter as (e: Event) => void),
+    listen(node, "pointerleave", leave as (e: Event) => void),
+  ];
+  return {
+    update: (next) => {
+      param = next;
+    },
+    destroy: () => {
+      clear();
+      for (const stop of stops) stop();
+    },
+  };
+});
+
+// ---------------------------------------------------------------------------
+// longPress — a touch dwell fires onPress with the point; moving or lifting
+// cancels it. A mouse press is ignored: it has the contextmenu event.
+// ---------------------------------------------------------------------------
+
+export interface LongPressParam {
+  onPress?: (point: { x: number; y: number }) => void;
+  onCancel?: () => void;
+  /** Dwell before firing. */
+  delay?: number;
+}
+
+export const longPress: ElementAction<LongPressParam | undefined> = createAction((node, param) => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const clear = (): void => {
+    clearTimeout(timer);
+    timer = undefined;
+  };
+  const arm = (event: PointerEvent): void => {
+    if (event.pointerType === "mouse") return;
+    const delay = param?.delay ?? 700;
+    if (delay <= 0 || param?.onPress === undefined) return;
+    clear();
+    const point = { x: event.clientX, y: event.clientY };
+    timer = setTimeout(() => {
+      timer = undefined;
+      param?.onPress?.(point);
+    }, delay);
+  };
+  const cancel = (): void => {
+    if (timer === undefined) return;
+    clear();
+    param?.onCancel?.();
+  };
+  const stops = [
+    listen(node, "pointerdown", arm as (e: Event) => void),
+    listen(node, "pointerup", cancel as (e: Event) => void),
+    listen(node, "pointermove", cancel as (e: Event) => void),
+    listen(node, "pointercancel", cancel as (e: Event) => void),
+  ];
+  return {
+    update: (next) => {
+      param = next;
+    },
+    destroy: () => {
+      clear();
+      for (const stop of stops) stop();
+    },
+  };
+});
+
+// ---------------------------------------------------------------------------
 // dragScroll — pointer drag scrolls the node's overflow (carousel motion by
 // native scroll, zero transform writes).
 // ---------------------------------------------------------------------------
@@ -286,6 +391,8 @@ export const ACTIONS = {
   "focus-trap": focusTrap,
   dismissable,
   autoplay,
+  "hover-intent": hoverIntent,
+  "long-press": longPress,
   "drag-scroll": dragScroll,
   intersect,
   "resize-observer": resizeObserver,

@@ -19,7 +19,10 @@
     "./accordion-fsm": "./src/spin-accordion/spin-accordion-fsm.html",
     "./tree-view-fsm": "./src/spin-tree-view/spin-tree-view-fsm.html",
     "./dialog-fsm": "./src/spin-dialog/spin-dialog-fsm.html",
-    "./tabs-fsm": "./src/spin-tabs/spin-tabs-fsm.html"
+    "./tabs-fsm": "./src/spin-tabs/spin-tabs-fsm.html",
+    "./slider-fsm": "./src/spin-slider/spin-slider-fsm.html",
+    "./carousel-fsm": "./src/spin-carousel/spin-carousel-fsm.html",
+    "./menu-fsm": "./src/spin-menu/spin-menu-fsm.html"
   },
   "dependencies": {
     "@zag-js/avatar": "~1.44.0",
@@ -48,6 +51,12 @@
     "@zag-js/timer": "~1.44.0",
     "@zag-js/toggle-group": "~1.44.0",
     "@zag-js/tour": "~1.44.0",
-    "@zag-js/angle-slider": "~1.44.0"
+    "@zag-js/angle-slider": "~1.44.0",
+    "@zag-js/async-list": "~1.44.0",
+    "@zag-js/cascade-select": "~1.44.0",
+    "@zag-js/date-input": "~1.44.0",
+    "@zag-js/image-cropper": "~1.44.0",
+    "@zag-js/listbox": "~1.44.0",
+    "@zag-js/navigation-menu": "~1.44.0"
   }
 }

@@ -12,5 +12,13 @@
       "dom",
       "dom.iterable"
     ]
+  },
+  "imports": {
+    "@spin/hooks": "../../hooks/src/index.ts",
+    "@spin/hooks/solid": "../../hooks/src/solid.ts",
+    "@spin/hooks/react": "../../hooks/src/react.ts",
+    "@spin/components": "../src/index.ts",
+    "@spin/runtime": "../../../runtime/src/index.ts",
+    "@spin/runtime/fsm": "../../../runtime/src/machine/fsm/fsm.ts"
   }
 }
