@@ -1513,8 +1513,15 @@ function PageHead(props: { title: string; sub: string; badge: string }) {
  * One swatch: the color, the name that spends it, and the value it resolves
  * to. The name the catalog gives the utility is the row's subject, so it is
  * spelled first and in full ink; the value is the answer a reader came for.
+ *
+ * The values come in, because the theme is a choice the reader makes: the
+ * fill is a class and so follows the theme on its own, but the label names a
+ * hex and has to be told which theme's hex it is.
  */
-function Swatch(props: { name: string }) {
+export function Swatch(props: {
+  name: string;
+  values: Readonly<Record<string, string>>;
+}) {
   const bare = props.name.startsWith("bg-")
     ? props.name.slice(3)
     : props.name.slice(5);
@@ -1528,7 +1535,7 @@ function Swatch(props: { name: string }) {
           {props.name}
         </code>
         <span class="block truncate font-mono text-xs text-text-muted">
-          {COLOR_VALUES[bare] ?? ""}
+          {props.values[bare] ?? ""}
         </span>
       </span>
     </div>
@@ -1546,7 +1553,7 @@ function SwatchGrid(props: { names: readonly string[] }) {
   return (
     <div class={SWATCH_GRID}>
       <For each={props.names}>
-        {(name) => <Swatch name={name} />}
+        {(name) => <Swatch name={name} values={COLOR_VALUES} />}
       </For>
     </div>
   );
