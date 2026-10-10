@@ -28,5 +28,26 @@
     "@zag-js/slider": "~1.44.0",
     "@zag-js/tags-input": "~1.44.0",
     "@zag-js/toast": "~1.44.0"
+  },
+  "devDependencies": {
+    "@zag-js/color-picker": "~1.44.0",
+    "@zag-js/combobox": "~1.44.0",
+    "@zag-js/date-picker": "~1.44.0",
+    "@zag-js/editable": "~1.44.0",
+    "@zag-js/file-upload": "~1.44.0",
+    "@zag-js/floating-panel": "~1.44.0",
+    "@zag-js/hover-card": "~1.44.0",
+    "@zag-js/number-input": "~1.44.0",
+    "@zag-js/pagination": "~1.44.0",
+    "@zag-js/pin-input": "~1.44.0",
+    "@zag-js/scroll-area": "~1.44.0",
+    "@zag-js/select": "~1.44.0",
+    "@zag-js/signature-pad": "~1.44.0",
+    "@zag-js/splitter": "~1.44.0",
+    "@zag-js/steps": "~1.44.0",
+    "@zag-js/timer": "~1.44.0",
+    "@zag-js/toggle-group": "~1.44.0",
+    "@zag-js/tour": "~1.44.0",
+    "@zag-js/angle-slider": "~1.44.0"
   }
 }
