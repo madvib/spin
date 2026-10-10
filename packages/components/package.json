@@ -26,7 +26,10 @@
     "./avatar": "./src/spin-avatar/spin-avatar-fsm.html",
     "./rating-fsm": "./src/spin-rating-group/spin-rating-group-fsm.html",
     "./listbox": "./src/spin-listbox/spin-listbox-fsm.html",
-    "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html"
+    "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html",
+    "./number-input-fsm": "./src/spin-number-input/spin-number-input-fsm.html",
+    "./timer-fsm": "./src/spin-timer/spin-timer-fsm.html",
+    "./pin-input-fsm": "./src/spin-pin-input/spin-pin-input-fsm.html"
   },
   "dependencies": {
     "@zag-js/avatar": "~1.44.0",

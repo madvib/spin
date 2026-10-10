@@ -1,0 +1,52 @@
+<scope>props={ startMs: string = "", targetMs: string = "", countdown: bool = false, autoStart: bool = false, interval: int = 1000 } consume={ timerFsm }</scope>
+
+<div class="w-full" {...timerFsm.getRootProps()}>
+  <div
+    class="rounded-lg border border-border bg-surface-raised px-4 py-3 shadow-sm transition-all duration-fast ease-decelerate data-[state=paused]:opacity-70"
+    {...timerFsm.getAreaProps()}
+  >
+    <div class="flex items-start justify-center gap-1">
+      <template for={timerFsm.getUnits()} as={unit} key={unit.type}>
+        <div class="flex w-10 flex-col items-center gap-0.5" {...timerFsm.getItemProps({ type: unit.type })}>
+          <span
+            class="text-2xl font-semibold leading-none tabular-nums text-text transition-colors duration-fast ease-decelerate"
+            {...timerFsm.getItemValueProps({ type: unit.type })}
+          >{timerFsm.formattedTime[unit.type]}</span>
+          <span class="text-xs text-muted transition-colors duration-fast ease-decelerate" {...timerFsm.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
+        </div>
+        <span
+          class="pt-1 text-lg leading-none text-muted transition-colors duration-fast ease-decelerate data-[state=running]:text-primary"
+          aria-hidden="true"
+          {...timerFsm.getSeparatorProps({ after: unit.type })}
+        >:</span>
+      </template>
+    </div>
+
+    <div class="mt-3 h-1 overflow-hidden rounded-full bg-border">
+      <div class="h-full rounded-full bg-primary transition-all duration-fast ease-linear [width:var(--timer-progress,0%)]"></div>
+    </div>
+  </div>
+
+  <div class="mt-2 flex flex-wrap items-center justify-center gap-2" {...timerFsm.getControlProps()}>
+    <button
+      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=idle]:inline-flex"
+      {...timerFsm.getActionTriggerProps({ action: "start" })}
+    >Start</button>
+    <button
+      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=running]:inline-flex"
+      {...timerFsm.getActionTriggerProps({ action: "pause" })}
+    >Pause</button>
+    <button
+      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=paused]:inline-flex"
+      {...timerFsm.getActionTriggerProps({ action: "resume" })}
+    >Resume</button>
+    <button
+      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=running]:inline-flex data-[state=paused]:inline-flex"
+      {...timerFsm.getActionTriggerProps({ action: "reset" })}
+    >Reset</button>
+    <button
+      class="rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
+      {...timerFsm.getActionTriggerProps({ action: "restart" })}
+    >Restart</button>
+  </div>
+</div>

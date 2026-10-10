@@ -64,7 +64,12 @@ export function bindSpread(
     machineTick();
     const props = read();
     for (const name of Object.keys(last)) {
-      if (!(name in props) && !name.startsWith("on")) el.removeAttribute(name);
+      // `use:name` entries are directives the attach pass below owns, so this
+      // pass neither writes nor removes them as attributes.
+      const directive = name.startsWith("use:");
+      if (!(name in props) && !name.startsWith("on") && !directive) {
+        el.removeAttribute(name);
+      }
     }
     const seen = new Set<string>();
     for (const [name, value] of Object.entries(props)) {
@@ -80,6 +85,10 @@ export function bindSpread(
         }
         continue;
       }
+      // A bag-carried action is a directive, not an attribute: the attach
+      // pass below consumes it. Writing it here would leak its stringified
+      // param (`use:form-control="[object Object]"`) into the DOM.
+      if (name.startsWith("use:")) continue;
       if (Object.is(value, last[name])) continue;
       if (ASSIGNABLE.has(name)) {
         (el as unknown as Record<string, unknown>)[name] = value;

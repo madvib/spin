@@ -129,3 +129,29 @@ Deno.test("aria booleans render as true/false strings, never empty or absent", (
   assertEquals(el.getAttribute("aria-selected"), "true");
   assertEquals(el.getAttribute("hidden"), "");
 });
+
+Deno.test("a bag-carried use: directive is consumed, never written as an attribute", () => {
+  const el = document.createElement("div");
+  document.body.appendChild(el);
+
+  // A name the registry does not hold: the assertion is the attribute
+  // writer's behaviour, which must never fall through for any `use:` key.
+  // The attach pass owns the entry, so an unregistered name skips it.
+  let bag: Record<string, unknown> = {
+    "data-x": "1",
+    "use:unregistered-directive": { onDisabledChange: () => {} },
+  };
+  bindSpread(el, () => bag);
+
+  // The attach pass owns `use:name` entries: the attribute writer must not
+  // leak the stringified param into the DOM.
+  assertEquals(el.getAttribute("data-x"), "1");
+  assertEquals(el.hasAttribute("use:unregistered-directive"), false);
+
+  // Dropping the directive writes nothing either — no attribute to remove.
+  bag = { "data-x": "1" };
+  machineTick(machineTick() + 1);
+
+  assertEquals(el.getAttribute("data-x"), "1");
+  assertEquals(el.hasAttribute("use:unregistered-directive"), false);
+});

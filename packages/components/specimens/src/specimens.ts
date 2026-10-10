@@ -7,6 +7,10 @@ import TabsFsm from "./routes/tabs-fsm.tsx";
 import AvatarFsm from "./routes/avatar-fsm.tsx";
 import RatingFsm from "./routes/rating-fsm.tsx";
 import ListboxFsm from "./routes/listbox-fsm.tsx";
+import NumberInputFsm from "./routes/number-input-fsm.tsx";
+import TimerFsm from "./routes/timer-fsm.tsx";
+import PinInputFsm from "./routes/pin-input-fsm.tsx";
+import StepsFsm from "./routes/steps-fsm.tsx";
 import TagsFsm from "./routes/tags-fsm.tsx";
 import PaginationFsm from "./routes/pagination-fsm.tsx";
 import SliderFsm from "./routes/slider-fsm.tsx";
@@ -66,6 +70,13 @@ export const SPECIMENS: readonly Specimen[] = [
     component: ListboxFsm,
   },
   {
+    id: "steps-fsm",
+    title: "Steps (fsm)",
+    blurb: "The stepper: linear and non-linear, vertical or horizontal, a percent progress, controlled step.",
+    path: "/steps-fsm",
+    component: StepsFsm,
+  },
+  {
     id: "pagination-fsm",
     title: "Pagination (fsm)",
     blurb: "Page, page size, truncation and the four edge triggers on the forked FSM.",
@@ -79,6 +90,27 @@ export const SPECIMENS: readonly Specimen[] = [
       "Tag add/remove/edit-in-place on the forked FSM: four states, paste splitting, max and overflow, live-region announcements.",
     path: "/tags-fsm",
     component: TagsFsm,
+  },
+  {
+    id: "number-input-fsm",
+    title: "Number input (fsm)",
+    blurb: "Value, range, press-and-hold spin controls, and the scrubber drag on the forked FSM.",
+    path: "/number-input-fsm",
+    component: NumberInputFsm,
+  },
+  {
+    id: "timer-fsm",
+    title: "Timer (fsm)",
+    blurb: "Countdown and stopwatch with the clock as a stdlib action, never a machine timer.",
+    path: "/timer-fsm",
+    component: TimerFsm,
+  },
+  {
+    id: "pin-input-fsm",
+    title: "Pin input (fsm)",
+    blurb: "The one-time-code field: per-cell state, paste distribution, the completion edge.",
+    path: "/pin-input-fsm",
+    component: PinInputFsm,
   },
   {
     id: "side-by-side",

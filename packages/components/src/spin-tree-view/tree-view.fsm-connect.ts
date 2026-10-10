@@ -353,7 +353,13 @@ export function connectRobotTreeView(
         onFocus: () => send({ type: "NODE.FOCUS", value: row.node.value }),
       };
     },
-    getBranchIndicatorProps: (row) => ({ "aria-hidden": true, ...stateAttrs(getItemState(row)) }),
+    getBranchIndicatorProps: (row) => ({
+      "aria-hidden": true,
+      // The bag owns the affordance's visibility — a group variant here
+      // compiles to a selector lightningcss rejects as a dangling combinator.
+      hidden: !isBranch(row),
+      ...stateAttrs(getItemState(row)),
+    }),
     getBranchTextProps: () => ({}),
     getBranchContentProps: (row) => ({
       id: `${ownerId}:content:${row.node.value}`,

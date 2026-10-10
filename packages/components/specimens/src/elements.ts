@@ -283,9 +283,97 @@ declare module "solid-js" {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "spin-pin-input-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        count?: number;
+        mask?: boolean;
+        otp?: boolean;
+        disabled?: boolean;
+        label?: string;
+        blurOnComplete?: boolean;
+        "prop:count"?: number;
+        "prop:mask"?: boolean;
+        "prop:otp"?: boolean;
+        "prop:disabled"?: boolean;
+        "prop:label"?: string;
+        "prop:name"?: string;
+        "prop:defaultValue"?: readonly string[];
+        "prop:blurOnComplete"?: boolean;
+      };
+      "spin-timer-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        countdown?: boolean;
+        autoStart?: boolean;
+        startMs?: string;
+        targetMs?: string;
+        interval?: number;
+        "prop:startMs"?: string;
+        "prop:targetMs"?: string;
+        "prop:interval"?: number;
+      };
+      "spin-number-input-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        value?: string;
+        defaultValue?: string;
+        min?: string;
+        max?: string;
+        step?: string;
+        largeStep?: string;
+        smallStep?: string;
+        disabled?: boolean;
+        readOnly?: boolean;
+        invalid?: boolean;
+        required?: boolean;
+        allowMouseWheel?: boolean;
+        allowOverflow?: boolean;
+        clampValueOnBlur?: boolean;
+        focusInputOnChange?: boolean;
+        spinOnPress?: boolean;
+        dir?: string;
+        name?: string;
+        form?: string;
+        inputMode?: string;
+        pattern?: string;
+        incrementLabel?: string;
+        decrementLabel?: string;
+        "prop:label"?: string;
+        "prop:defaultValue"?: string;
+        "prop:value"?: string;
+        "prop:min"?: string;
+        "prop:max"?: string;
+        "prop:step"?: string;
+        "prop:disabled"?: boolean;
+        "prop:dir"?: string;
+        "prop:allowMouseWheel"?: boolean;
+      };
+      "spin-steps-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        count?: number;
+        step?: number;
+        defaultStep?: number;
+        linear?: boolean;
+        orientation?: string;
+        labels?: readonly string[];
+        "prop:count"?: number;
+        "prop:step"?: number;
+        "prop:defaultStep"?: number;
+        "prop:linear"?: boolean;
+        "prop:orientation"?: string;
+        "prop:labels"?: string[] | readonly string[];
+      };
       "spin-tags-input-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
+        id?: string;
         label?: string;
         placeholder?: string;
         value?: readonly string[];

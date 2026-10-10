@@ -7,8 +7,8 @@
         class="w-full flex items-center justify-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-text bg-transparent border-transparent transition-colors hover:bg-surface data-[selected]:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong"
         {...treeViewFsm.getBranchControlProps(row)}
       >
-        <span aria-hidden="true" class="hidden shrink-0 text-muted text-xs transition-transform group-data-[branch]:inline-block data-[state=open]:rotate-90" {...treeViewFsm.getBranchIndicatorProps(row)}>›</span>
-        <span aria-hidden="true" class="hidden shrink-0 items-center justify-center group-data-[checkable]:flex" {...treeViewFsm.getCheckboxProps(row)}>
+        <span aria-hidden="true" class="hidden shrink-0 text-muted text-xs transition-transform data-[state=open]:rotate-90" {...treeViewFsm.getBranchIndicatorProps(row)}>›</span>
+        <span aria-hidden="true" class="flex shrink-0 items-center justify-center" {...treeViewFsm.getCheckboxProps(row)}>
           <span class="block h-3 w-3 rounded-sm border border-border-strong data-[checked]:bg-primary data-[checked]:border-primary"></span>
         </span>
         <span class="min-w-0 truncate" {...treeViewFsm.getBranchTextProps(row)}>{row.node.label}</span>

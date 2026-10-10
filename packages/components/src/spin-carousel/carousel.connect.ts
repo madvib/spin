@@ -93,6 +93,8 @@ export interface CarouselFsmApi {
   getIndicatorGroupProps(): Record<string, unknown>;
   getIndicatorProps(props: CarouselIndicatorProps): Record<string, unknown>;
   getProgressTextProps(): Record<string, unknown>;
+  getAutoplayProgressProps(): Record<string, unknown>;
+  getAutoplayProgressFillProps(): Record<string, unknown>;
 }
 
 /** The service surface connect consumes: live context, send, nothing else. */
@@ -409,6 +411,20 @@ export function connectRobotCarousel(
     getProgressTextProps: () => ({
       id: `${ownerId}:progress-text`,
       "data-orientation": props.orientation,
+      "data-state": props.playing ? "playing" : "paused",
+    }),
+    /** The autoplay progress bar's own state, on itself: a `group-data-`
+     * selector here has no group ancestor, which Uno compiles into a
+     * dangling combinator and the build breaks. */
+    getAutoplayProgressProps: () => ({
+      id: `${ownerId}:autoplay-progress`,
+      "data-orientation": props.orientation,
+      "data-state": props.playing ? "playing" : "paused",
+      "aria-hidden": true,
+    }),
+    getAutoplayProgressFillProps: () => ({
+      "data-orientation": props.orientation,
+      "data-state": props.playing ? "playing" : "paused",
     }),
   };
 }

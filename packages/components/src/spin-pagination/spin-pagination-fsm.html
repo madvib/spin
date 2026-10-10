@@ -1,0 +1,26 @@
+<scope>props={ count: int = 0, page: int, defaultPage: int = 1, pageSize: int, defaultPageSize: int = 10, siblingCount: int = 1, boundaryCount: int = 1, dir: string = "" } consume={ paginationFsm }</scope>
+
+<nav class="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-surface p-1 shadow-sm transition-shadow duration-fast ease-decelerate" {...paginationFsm.getRootProps()}>
+  <button
+    class="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-border bg-surface-raised px-1.5 text-sm text-muted tabular-nums transition-all duration-fast ease-decelerate hover:bg-surface hover:text-text focus:outline-none focus:ring-2 focus:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40"
+    {...paginationFsm.getFirstTriggerProps()}
+  >&#171;</button>
+  <button
+    class="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-border bg-surface-raised px-1.5 text-sm text-muted tabular-nums transition-all duration-fast ease-decelerate hover:bg-surface hover:text-text focus:outline-none focus:ring-2 focus:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40"
+    {...paginationFsm.getPrevTriggerProps()}
+  >&#8249;</button>
+  <template for={paginationFsm.pages} as={entry} key={entry.type === "page" ? "p" + entry.value : "e" + entry.index}>
+    <button
+      class="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-border bg-surface-raised px-1.5 text-sm text-text tabular-nums transition-all duration-fast ease-decelerate hover:bg-surface focus:outline-none focus:ring-2 focus:ring-border-strong data-[selected]:border-primary data-[selected]:bg-primary data-[selected]:text-on-primary data-[selected]:scale-105 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40"
+      {...entry.type === "page" ? paginationFsm.getItemProps(entry) : paginationFsm.getEllipsisProps(entry)}
+    >{entry.type === "page" ? entry.value : "…"}</button>
+  </template>
+  <button
+    class="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-border bg-surface-raised px-1.5 text-sm text-muted tabular-nums transition-all duration-fast ease-decelerate hover:bg-surface hover:text-text focus:outline-none focus:ring-2 focus:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40"
+    {...paginationFsm.getNextTriggerProps()}
+  >&#8250;</button>
+  <button
+    class="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-border bg-surface-raised px-1.5 text-sm text-muted tabular-nums transition-all duration-fast ease-decelerate hover:bg-surface hover:text-text focus:outline-none focus:ring-2 focus:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40"
+    {...paginationFsm.getLastTriggerProps()}
+  >&#187;</button>
+</nav>

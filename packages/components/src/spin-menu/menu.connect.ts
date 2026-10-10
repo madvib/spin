@@ -90,6 +90,7 @@ export interface MenuFsmApi {
   getBlocks(): readonly MenuBlock[];
   getRows(block: MenuBlock): readonly MenuRow[];
   getTriggerProps(): Record<string, unknown>;
+  getTriggerIndicatorProps(): Record<string, unknown>;
   getContextTriggerProps(): Record<string, unknown>;
   getPositionerProps(): Record<string, unknown>;
   getContentProps(): Record<string, unknown>;
@@ -492,7 +493,10 @@ export function connectRobotMenu(
   const indicatorBags = new WeakMap<MenuRow, BagMemo>();
   const shortcutBags = new WeakMap<MenuRow, BagMemo>();
   const chevronBags = new WeakMap<MenuRow, BagMemo>();
+
   const submenuBags = new WeakMap<MenuRow, BagMemo>();
+  /** The trigger chevron has one state dimension; a string-keyed memo. */
+  let triggerIndicatorCache: { key: string; bag: Record<string, unknown> } | undefined;
 
   /** Row handlers, created once per row: they read the behavioural props live,
    * so a cached closure is never a stale snapshot of one. */
@@ -549,6 +553,15 @@ export function connectRobotMenu(
         },
         onKeydown: onTriggerKeydown,
       }));
+    },
+    /** The trigger chevron's own state (a group variant here compiles into
+     * a selector lightningcss rejects). */
+    getTriggerIndicatorProps: () => {
+      const key = service.open ? "open" : "closed";
+      if (triggerIndicatorCache?.key !== key) {
+        triggerIndicatorCache = { key, bag: { "aria-hidden": true, "data-state": key } };
+      }
+      return triggerIndicatorCache.bag;
     },
     getContextTriggerProps: () => {
       const props = readProps();
@@ -656,6 +669,9 @@ export function connectRobotMenu(
     })),
     getItemSubmenuIndicatorProps: (row: MenuRow) => keyed(chevronBags, row, "", () => ({
       "aria-hidden": true,
+      // Self-state, not a group variant: Uno compiles group-data-[state=open]
+      // into a selector lightningcss rejects as a dangling combinator.
+      "data-state": service.context.openSubmenu === row.value ? "open" : "closed",
       hidden: row.children.length === 0,
     })),
     getSeparatorProps: (block: MenuBlock) => keyed(separatorBags, block, "", () => ({

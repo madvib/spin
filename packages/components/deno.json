@@ -25,7 +25,11 @@
     "./avatar": "./src/spin-avatar/spin-avatar-fsm.html",
     "./rating-fsm": "./src/spin-rating-group/spin-rating-group-fsm.html",
     "./listbox": "./src/spin-listbox/spin-listbox-fsm.html",
-    "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html"
+    "./steps": "./src/spin-steps/spin-steps-fsm.html",
+    "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html",
+    "./number-input-fsm": "./src/spin-number-input/spin-number-input-fsm.html",
+    "./timer-fsm": "./src/spin-timer/spin-timer-fsm.html",
+    "./pin-input-fsm": "./src/spin-pin-input/spin-pin-input-fsm.html"
   },
   "imports": {
     "@spin/components": "./src/index.ts",
@@ -73,9 +77,13 @@
     "e2e:avatar": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/avatar.e2e.ts",
     "e2e:rating": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/rating.e2e.ts",
     "e2e:listbox": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/listbox.e2e.ts",
+    "e2e:steps": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/steps.e2e.ts",
     "e2e:cascade": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/cascade.e2e.ts",
     "e2e:pagination": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/pagination.e2e.ts",
-    "e2e:tags": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/tags.e2e.ts"
+    "e2e:tags": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/tags.e2e.ts",
+    "e2e:number-input": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/number-input.e2e.ts",
+    "e2e:timer": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/timer.e2e.ts",
+    "e2e:pin-input": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/pin-input.e2e.ts"
   },
   "compilerOptions": {
     "strict": true,
