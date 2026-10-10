@@ -234,43 +234,7 @@ declare module "solid-js" {
         autoplayDelay?: number;
         allowMouseDrag?: boolean;
       };
-      "spin-tags-input-fsm": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        children?: JSX.Element;
-        label?: string;
-        placeholder?: string;
-        value?: readonly string[];
-        defaultValue?: readonly string[];
-        inputValue?: string;
-        defaultInputValue?: string;
-        max?: number;
-        maxLength?: number;
-        delimiter?: string;
-        addOnPaste?: boolean;
-        allowDuplicates?: boolean;
-        allowOverflow?: boolean;
-        editable?: boolean;
-        disabled?: boolean;
-        readOnly?: boolean;
-        invalid?: boolean;
-        required?: boolean;
-        autoFocus?: boolean;
-        blurBehavior?: string;
-        name?: string;
-        form?: string;
-        dir?: string;
-        "prop:label"?: string;
-        "prop:defaultValue"?: readonly string[];
-        "prop:value"?: readonly string[];
-        "prop:inputValue"?: string;
-        "prop:disabled"?: boolean;
-        "prop:readOnly"?: boolean;
-        "prop:max"?: number;
-        "prop:delimiter"?: string;
-        "prop:allowOverflow"?: boolean;
-        "prop:allowDuplicates"?: boolean;
-        "prop:blurBehavior"?: string;
-      };
+
 
       
       
@@ -319,6 +283,63 @@ declare module "solid-js" {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "spin-tags-input-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        label?: string;
+        placeholder?: string;
+        value?: readonly string[];
+        defaultValue?: readonly string[];
+        inputValue?: string;
+        defaultInputValue?: string;
+        max?: number;
+        maxLength?: number;
+        delimiter?: string;
+        addOnPaste?: boolean;
+        allowDuplicates?: boolean;
+        allowOverflow?: boolean;
+        editable?: boolean;
+        disabled?: boolean;
+        readOnly?: boolean;
+        invalid?: boolean;
+        required?: boolean;
+        autoFocus?: boolean;
+        blurBehavior?: string;
+        name?: string;
+        form?: string;
+        dir?: string;
+        "prop:label"?: string;
+        "prop:defaultValue"?: readonly string[];
+        "prop:value"?: readonly string[];
+        "prop:inputValue"?: string;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+        "prop:max"?: number;
+        "prop:delimiter"?: string;
+        "prop:allowOverflow"?: boolean;
+        "prop:allowDuplicates"?: boolean;
+        "prop:blurBehavior"?: string;
+      };
+      "spin-pagination-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        count?: number;
+        page?: number;
+        defaultPage?: number;
+        pageSize?: number;
+        defaultPageSize?: number;
+        siblingCount?: number;
+        boundaryCount?: number;
+        type?: string;
+        dir?: string;
+        "prop:count"?: number;
+        "prop:page"?: number;
+        "prop:defaultPage"?: number;
+        "prop:pageSize"?: number;
+        "prop:siblingCount"?: number;
+        "prop:boundaryCount"?: number;
+      };
 "spin-avatar-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

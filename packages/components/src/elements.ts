@@ -19,6 +19,9 @@ import "./spin-slider/spin-slider-fsm.html";
 import "./spin-avatar/spin-avatar-fsm.html";
 import "./spin-rating-group/spin-rating-group-fsm.html";
 import "./spin-listbox/spin-listbox-fsm.html";
+import "./spin-tags-input/spin-tags-input-fsm.html";
+import "./spin-pagination/spin-pagination-fsm.html";
+
 import "./spin-menu/spin-menu-fsm.html";
 import "./spin-cascade-select/spin-cascade-select-fsm.html";
 import "./spin-carousel/spin-carousel-fsm.html";

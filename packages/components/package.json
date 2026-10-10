@@ -25,7 +25,8 @@
     "./menu-fsm": "./src/spin-menu/spin-menu-fsm.html",
     "./avatar": "./src/spin-avatar/spin-avatar-fsm.html",
     "./rating-fsm": "./src/spin-rating-group/spin-rating-group-fsm.html",
-    "./listbox": "./src/spin-listbox/spin-listbox-fsm.html"
+    "./listbox": "./src/spin-listbox/spin-listbox-fsm.html",
+    "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html"
   },
   "dependencies": {
     "@zag-js/avatar": "~1.44.0",

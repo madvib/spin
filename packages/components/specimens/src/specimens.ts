@@ -7,6 +7,8 @@ import TabsFsm from "./routes/tabs-fsm.tsx";
 import AvatarFsm from "./routes/avatar-fsm.tsx";
 import RatingFsm from "./routes/rating-fsm.tsx";
 import ListboxFsm from "./routes/listbox-fsm.tsx";
+import TagsFsm from "./routes/tags-fsm.tsx";
+import PaginationFsm from "./routes/pagination-fsm.tsx";
 import SliderFsm from "./routes/slider-fsm.tsx";
 import MenuFsm from "./routes/menu-fsm.tsx";
 import CascadeFsm from "./routes/cascade-fsm.tsx";
@@ -62,6 +64,21 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "The low-level listbox: selection, typeahead, grid orientation, empty state.",
     path: "/listbox-fsm",
     component: ListboxFsm,
+  },
+  {
+    id: "pagination-fsm",
+    title: "Pagination (fsm)",
+    blurb: "Page, page size, truncation and the four edge triggers on the forked FSM.",
+    path: "/pagination-fsm",
+    component: PaginationFsm,
+  },
+  {
+    id: "tags-fsm",
+    title: "Tags input (fsm)",
+    blurb:
+      "Tag add/remove/edit-in-place on the forked FSM: four states, paste splitting, max and overflow, live-region announcements.",
+    path: "/tags-fsm",
+    component: TagsFsm,
   },
   {
     id: "side-by-side",
