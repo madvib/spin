@@ -288,10 +288,16 @@ const VARIANT_HOVER: Record<string, {
   body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
 }> = {
   ghost: {
+    // The base's hover spends `button.shadow-hover` — a theme's lift, which in
+    // neobrut is a hard offset. A control that opts out of the paint has no
+    // object to lift, so its hover states the same shadow it rests with. The
+    // base selector cannot be narrowed from here, so the opt-out repeats it
+    // and adds the one thing it is entitled to change.
     selector: `${BUTTON}.ghost:hover:not(:disabled):not([aria-busy="true"])`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
+      "box-shadow": "none",
       color: themeOf(ctx)?.colors["text"],
     }),
   },
@@ -299,9 +305,14 @@ const VARIANT_HOVER: Record<string, {
     selector: `${BUTTON}.outline:hover:not(:disabled):not([aria-busy="true"])`,
     body: (ctx) => ({
       "background-color": "transparent",
+      "box-shadow": "none",
       "border-color": themeOf(ctx)?.colors["accent"],
       color: themeOf(ctx)?.colors["primary"],
     }),
+  },
+  bare: {
+    selector: `${BUTTON}.bare:hover:not(:disabled):not([aria-busy="true"])`,
+    body: () => ({ "box-shadow": "none", background: "none", border: "none" }),
   },
 };
 

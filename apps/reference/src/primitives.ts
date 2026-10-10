@@ -144,6 +144,74 @@ export interface PrimitivePage {
  * rule that styles them. No adapter, no intermediary — the app imports what
  * the package owns.
  */
+
+/**
+ * The rail's groups, named the way a reader arrives looking for them.
+ *
+ * A letter bucket was a filing convention, not a way to find anything: people
+ * look for the control they want — something to type into, something to
+ * click — not for the first letter of its name. Each group is what the thing
+ * is FOR, and a component sits in the group whose purpose it serves.
+ */
+export const CATEGORIES: readonly {
+  readonly id: string;
+  readonly label: string;
+  readonly members: readonly string[];
+}[] = [
+  {
+    id: "actions",
+    label: "Actions",
+    members: ["button", "breadcrumbs", "join", "kbd"],
+  },
+  {
+    id: "inputs",
+    label: "Inputs",
+    members: [
+      "checkbox",
+      "radio",
+      "switch",
+      "input",
+      "select",
+      "textarea",
+      "range",
+      "rating",
+      "meter",
+      "label",
+    ],
+  },
+  {
+    id: "containers",
+    label: "Containers & layout",
+    members: [
+      "card",
+      "dialog",
+      "details",
+      "popover",
+      "group",
+      "fieldset",
+      "divider",
+    ],
+  },
+  {
+    id: "display",
+    label: "Display",
+    members: ["table", "tabs", "stat", "avatar", "avatar-group"],
+  },
+  {
+    id: "feedback",
+    label: "Feedback & status",
+    members: ["alert", "badge", "progress", "skeleton", "tooltip"],
+  },
+  {
+    id: "typography",
+    label: "Typography",
+    members: ["prose", "typography", "icon"],
+  },
+];
+
+/** A component with no group is its own; the rail shows it ungrouped. */
+const UNGROUPED = "Ungrouped";
+
 export const PRIMITIVES: readonly PrimitivePage[] = [
   {
     id: "alert",

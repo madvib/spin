@@ -3,7 +3,7 @@ import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
-import { PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
+import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
@@ -81,7 +81,7 @@ const SEGMENT_GROUP =
  * the whole tile; only where the glyph sits changes.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
 
 /**
  * The band a run of rows is bucketed into.
@@ -469,7 +469,9 @@ function parseForFormat(html: string): FormatNode[] {
       parentChildren().push({ kind: "text", text: html.slice(i) });
       break;
     }
-    if (lt > i) parentChildren().push({ kind: "text", text: html.slice(i, lt) });
+    if (lt > i) {
+      parentChildren().push({ kind: "text", text: html.slice(i, lt) });
+    }
     if (html.startsWith("<!--", lt)) {
       const end = html.indexOf("-->", lt + 4);
       const stop = end === -1 ? html.length : end + 3;
@@ -1046,36 +1048,6 @@ interface RailRow {
 }
 
 /**
- * The bands a list is bucketed into: the first letter of the title, and
- * nothing else.
- *
- * This is deliberately NOT a taxonomy. The families the rail used to carry
- * grouped a utility beside a form and a button beside a sister it had nothing
- * in common with, and every such grouping is a claim about how a reader
- * thinks that the vocabulary itself cannot back. An alphabetical range makes
- * no claim at all: it is the index of a dictionary, it answers "where would
- * this be filed", and a reader who is looking for a name already knows its
- * first letter.
- *
- * The ranges are chosen so no band is a single item on the primitives side
- * (34 titles spread over five bands, the widest 11 rows) and so the same five
- * ranges cover the utilities side's eight section titles too. A band the
- * search empties is not drawn — a heading over nothing is a heading that
- * reads as a broken list.
- */
-const RAIL_BANDS: readonly {
-  readonly label: string;
-  readonly from: string;
-  readonly to: string;
-}[] = [
-  { label: "A–C", from: "a", to: "c" },
-  { label: "D–F", from: "d", to: "f" },
-  { label: "G–L", from: "g", to: "l" },
-  { label: "M–S", from: "m", to: "s" },
-  { label: "T–Z", from: "t", to: "z" },
-];
-
-/**
  * The rail: the header, the side switch, the search that filters the list, and
  * the list itself — bucketed into bands. Everything the rail does to narrow
  * the list is in the rail: a filter that lived in the header was a filter that
@@ -1124,106 +1096,137 @@ function Rail(props: {
       }))
   );
 
-  const bands = createMemo(() =>
-    RAIL_BANDS
-      .map((band) => ({
-        label: band.label,
-        rows: rows().filter((row) =>
-          band.from <= row.title[0]!.toLowerCase() &&
-          row.title[0]!.toLowerCase() <= band.to
-        ),
+  const byId = createMemo(
+    () => new Map(components().map((page) => [page.id, page])),
+  );
+
+  /**
+   * The groups. The primitives side is grouped by what a reader came for —
+   * inputs, actions, containers — because a letter bucket is a filing
+   * convention rather than a way to find anything. The utilities side keeps
+   * its own section titles, which are already groups.
+   */
+  const groups = createMemo<
+    readonly {
+      readonly label: string;
+      readonly rows: readonly RailRow[];
+    }[]
+  >(() =>
+    utilities()
+      ? sections().map((sec) => ({
+        label: sec.title,
+        rows: utilitiesFor(sec, props.catalog()).map((name) => ({
+          id: name,
+          title: name,
+        })),
       }))
-      .filter((band) => band.rows.length > 0)
+      : CATEGORIES
+        .map((cat) => ({
+          label: cat.label,
+          rows: cat.members
+            .map((id) => byId().get(id))
+            .filter((page) => page !== undefined)
+            .map((page) => ({
+              id: page.id,
+              title: page.title,
+              icon: PRIMITIVE_ICONS[page.id],
+            })),
+        }))
+        .filter((group) => group.rows.length > 0)
   );
 
   return (
-    <nav class="sticky top-0 flex max-h-screen w-[14rem] shrink-0 flex-col overflow-y-auto border-e border-solid border-border p-4">
-      <AppHeader
-        theme={props.theme}
-        setTheme={props.setTheme}
-        mode={props.mode}
-        setMode={props.setMode}
-      />
-      <div class={SEGMENT_GROUP}>
-        <button
-          type="button"
-          onClick={() => (location.hash = "#/utilities")}
-          aria-current={utilities() || undefined}
-          class={SURFACE_LINK}
-        >
-          utilities
-        </button>
-        <button
-          type="button"
-          onClick={() => (location.hash = "#/components")}
-          aria-current={!utilities() || undefined}
-          class={SURFACE_LINK}
-        >
-          primitives
-        </button>
-      </div>
-      <label class={SEARCH_FIELD}>
-        <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
-        <input
-          type="search"
-          value={props.query()}
-          onInput={(event) => props.setQuery(event.currentTarget.value)}
-          aria-label="Filter the rail"
-          class={SEARCH_INPUT}
+    <nav class="sticky top-0 flex h-screen w-[16rem] shrink-0 flex-col border-e border-solid border-border">
+      <div class="shrink-0 px-4 pt-4 pb-3">
+        <AppHeader
+          theme={props.theme}
+          setTheme={props.setTheme}
+          mode={props.mode}
+          setMode={props.setMode}
         />
-      </label>
-      <div class={RAIL_HEAD}>
-        <span>{utilities() ? "sections" : "components"}</span>
-        <span class="font-mono text-xs font-regular">
-          {needle() === "" ? `${total()}` : `${shown()} of ${total()}`}
-        </span>
+        <div class={SEGMENT_GROUP}>
+          <button
+            type="button"
+            onClick={() => (location.hash = "#/utilities")}
+            aria-current={utilities() || undefined}
+            class={SURFACE_LINK}
+          >
+            utilities
+          </button>
+          <button
+            type="button"
+            onClick={() => (location.hash = "#/components")}
+            aria-current={!utilities() || undefined}
+            class={SURFACE_LINK}
+          >
+            primitives
+          </button>
+        </div>
+        <label class={SEARCH_FIELD}>
+          <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
+          <input
+            type="search"
+            value={props.query()}
+            onInput={(event) => props.setQuery(event.currentTarget.value)}
+            aria-label="Filter the rail"
+            class={SEARCH_INPUT}
+          />
+        </label>
       </div>
-      <Show
-        when={bands().length > 0}
-        fallback={
-          <p class={RAIL_EMPTY}>
-            {`No ${
-              utilities() ? "section" : "component"
-            } matches “${props.query()}”.`}
-          </p>
-        }
-      >
-        <For each={bands()}>
-          {(band) => (
-            <>
-              <div class={RAIL_BAND}>{band.label}</div>
-              <For each={band.rows}>
-                {(row) => {
-                  const current = () =>
-                    utilities()
-                      ? routeSection(props.route()) === row.id
-                      : props.route() === `/components/${row.id}`;
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => (location.hash = `#/${
-                        utilities() ? "utilities" : "components"
-                      }/${row.id}`)}
-                      aria-current={current() || undefined}
-                      class={RAIL_LINK}
-                    >
-                      <Show when={row.icon !== undefined}>
-                        <i class={`${row.icon} icon-md`} />
-                      </Show>
-                      <span class="min-w-0 truncate">{row.title}</span>
-                      <Show when={row.count !== undefined}>
-                        <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
-                          {row.count}
-                        </span>
-                      </Show>
-                    </button>
-                  );
-                }}
-              </For>
-            </>
-          )}
-        </For>
-      </Show>
+      <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div class={RAIL_HEAD}>
+          <span>{utilities() ? "sections" : "components"}</span>
+          <span class="font-mono text-xs font-regular">
+            {needle() === "" ? `${total()}` : `${shown()} of ${total()}`}
+          </span>
+        </div>
+        <Show
+          when={groups().length > 0}
+          fallback={
+            <p class={RAIL_EMPTY}>
+              {`No ${
+                utilities() ? "section" : "component"
+              } matches “${props.query()}”.`}
+            </p>
+          }
+        >
+          <For each={groups()}>
+            {(group) => (
+              <>
+                <div class={RAIL_BAND}>{group.label}</div>
+                <For each={group.rows}>
+                  {(row) => {
+                    const current = () =>
+                      utilities()
+                        ? routeSection(props.route()) === row.id
+                        : props.route() === `/components/${row.id}`;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => (location.hash = `#/${
+                          utilities() ? "utilities" : "components"
+                        }/${row.id}`)}
+                        aria-current={current() || undefined}
+                        class={RAIL_LINK}
+                      >
+                        <Show when={row.icon !== undefined}>
+                          <i class={`${row.icon} icon-md`} />
+                        </Show>
+                        <span class="min-w-0 truncate">{row.title}</span>
+                        <Show when={row.count !== undefined}>
+                          <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+                            {row.count}
+                          </span>
+                        </Show>
+                      </button>
+                    );
+                  }}
+                </For>
+              </>
+            )}
+          </For>
+        </Show>
+      </div>
     </nav>
   );
 }
@@ -1266,12 +1269,14 @@ export default function App() {
 
   return (
     <div class="flex min-h-screen bg-surface">
-      {/*
+      {
+        /*
         `min-w-0` on the wrapper and not only on `main`: the wrapper is the
         flex item, and a flex item's automatic minimum size is its
         min-content — which, with one unbreakable line of markup anywhere
         below, was the whole page width. The specimen's pre wraps now, but
-        the column that holds it has to be ALLOWED to shrink. */}
+        the column that holds it has to be ALLOWED to shrink. */
+      }
       <div class="flex min-w-0 flex-1 items-start">
         <Rail
           route={route}
