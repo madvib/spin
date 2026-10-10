@@ -72,9 +72,33 @@ const SEGMENT_GROUP =
  * the same kind of thing to a reader looking for one, and a rail that styled
  * them differently would be a rail that explained its taxonomy instead of its
  * contents.
+ *
+ * `justify-start` and `text-left` re-state what the button primitive
+ * centers: a bare `<button>` packs its contents to the middle, and a rail row
+ * that floats its glyph and label in the middle of the tile is a rail that
+ * looks sloppy in a column this narrow — the glyph should start at the tile's
+ * own edge, the way the utilities side already reads. The state still paints
+ * the whole tile; only where the glyph sits changes.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 rounded-md border border-solid border-transparent bg-transparent p-2 text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+
+/**
+ * The band a run of rows is bucketed into.
+ *
+ * A heading outranks the rows under it: a size that is the same or larger, a
+ * heavier weight, and full ink rather than the muted step — a rail whose
+ * group titles are SMALLER than its members reads as one flat list of
+ * unrelated things, and one whose titles are quieter reads as a caption over
+ * the very things it captains. The air above is a bigger step than the air
+ * below, so the heading belongs to its group rather than to the rail.
+ *
+ * The padding is a step wider than the row's own, so the band hangs over the
+ * column of tiles instead of hiding in it: a band that is indented exactly as
+ * far as its rows does not read as their title.
+ */
+const RAIL_BAND =
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 
 /**
  * The heading over the rail's list.
@@ -940,37 +964,40 @@ function LandingPage() {
 }
 
 /**
- * The header: the brand, the search that filters the rail, and the controls
- * that choose the look. Sticky at the top of the SIDEBAR, not above the page:
- * the filters are the rail's controls, and a top bar would spend the page's
- * width on chrome that only ever touches the rail.
+ * The header: the brand, and the two controls that choose the look — the theme
+ * and the mode. Sticky at the top of the SIDEBAR, not above the page: the
+ * look is the rail's own control, and a top bar would spend the page's width
+ * on chrome that only ever touches the rail.
+ *
+ * The search is NOT here. It filters the rail's list, so it lives in the rail,
+ * in its own row above the list it filters — a filter that sits in the header
+ * is a filter that looks like it applies to the page.
  *
  * Every row is one line and one control. The taller a sticky block is, the
  * more of the rail it covers while the rail scrolls under it, so the chrome is
  * the compact thing here and the list is the prominent one.
+ *
+ * The brand is a lockup rather than a control: the mark and the wordmark sit
+ * in their own row with a real step of air above and below, and there is no
+ * button wrapper around them. The wordmark used to be a click target that went
+ * home, but the rail's list is the navigation and a reader who clicks a logo
+ * to get back has to aim at a 74-pixel target in the corner of a 224-pixel
+ * column. A word that cannot be clicked is a word that can be given room.
  */
 function AppHeader(props: {
-  route: Accessor<string>;
   theme: Accessor<string>;
   setTheme: (theme: string) => void;
   mode: Accessor<string>;
   setMode: (mode: string) => void;
-  query: Accessor<string>;
-  setQuery: (query: string) => void;
 }) {
-  const utilities = () => props.route().startsWith("/utilities");
   const dark = () => props.mode() === "dark";
   return (
     <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b border-solid border-border bg-surface px-4 pt-2 pb-2">
+      <div class="flex items-center gap-2 py-4">
+        <BrandMark />
+        <span class="text-lg font-bold tracking-tight text-text">spin</span>
+      </div>
       <div class="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => (location.hash = "#/components")}
-          class="flex min-h-0 min-w-0 items-center gap-2 rounded-md border border-solid border-transparent bg-transparent px-1 py-0 text-text shadow-none cursor-pointer hover:border-border-strong"
-        >
-          <BrandMark />
-          <span class="text-md font-bold tracking-tight">spin</span>
-        </button>
         <label class="flex min-w-0 flex-1 items-center gap-1">
           <span class={SELECT_LABEL}>theme</span>
           <select
@@ -998,44 +1025,65 @@ function AppHeader(props: {
           />
         </button>
       </div>
-      <label class={SEARCH_FIELD}>
-        <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
-        <input
-          type="search"
-          value={props.query()}
-          onInput={(event) => props.setQuery(event.currentTarget.value)}
-          aria-label="Filter the rail"
-          class={SEARCH_INPUT}
-        />
-      </label>
-      <div class={SEGMENT_GROUP}>
-        <button
-          type="button"
-          onClick={() => (location.hash = "#/utilities")}
-          aria-current={utilities() || undefined}
-          class={SURFACE_LINK}
-        >
-          utilities
-        </button>
-        <button
-          type="button"
-          onClick={() => (location.hash = "#/components")}
-          aria-current={!utilities() || undefined}
-          class={SURFACE_LINK}
-        >
-          primitives
-        </button>
-      </div>
     </div>
   );
 }
 
 /**
- * The rail: ONE alphabetical list of every primitive, or the sections of the
- * utility catalogue, filtered by the search in the header. A row the search
- * empties is hidden rather than drawn as a heading over nothing, and the count
- * tells the reader what the filter did without their having to compare
- * against what they remember.
+ * One row of the rail, whichever side it came from.
+ *
+ * The two sides are the same thing to a reader looking for one — a place to go
+ * — so they are the same row here, and the only difference is what each one
+ * carries: a component has the glyph that names it, a section has the number
+ * of utilities it draws. Building the union once means the rail has ONE row
+ * renderer rather than two that drift.
+ */
+interface RailRow {
+  readonly id: string;
+  readonly title: string;
+  readonly icon?: string;
+  readonly count?: number;
+}
+
+/**
+ * The bands a list is bucketed into: the first letter of the title, and
+ * nothing else.
+ *
+ * This is deliberately NOT a taxonomy. The families the rail used to carry
+ * grouped a utility beside a form and a button beside a sister it had nothing
+ * in common with, and every such grouping is a claim about how a reader
+ * thinks that the vocabulary itself cannot back. An alphabetical range makes
+ * no claim at all: it is the index of a dictionary, it answers "where would
+ * this be filed", and a reader who is looking for a name already knows its
+ * first letter.
+ *
+ * The ranges are chosen so no band is a single item on the primitives side
+ * (34 titles spread over five bands, the widest 11 rows) and so the same five
+ * ranges cover the utilities side's eight section titles too. A band the
+ * search empties is not drawn — a heading over nothing is a heading that
+ * reads as a broken list.
+ */
+const RAIL_BANDS: readonly {
+  readonly label: string;
+  readonly from: string;
+  readonly to: string;
+}[] = [
+  { label: "A–C", from: "a", to: "c" },
+  { label: "D–F", from: "d", to: "f" },
+  { label: "G–L", from: "g", to: "l" },
+  { label: "M–S", from: "m", to: "s" },
+  { label: "T–Z", from: "t", to: "z" },
+];
+
+/**
+ * The rail: the header, the side switch, the search that filters the list, and
+ * the list itself — bucketed into bands. Everything the rail does to narrow
+ * the list is in the rail: a filter that lived in the header was a filter that
+ * looked like it applied to the page.
+ *
+ * A row the search empties is hidden rather than drawn as a heading over
+ * nothing, and the count tells the reader what the filter did without their
+ * having to compare against what they remember.
  */
 function Rail(props: {
   route: Accessor<string>;
@@ -1062,17 +1110,68 @@ function Rail(props: {
   const shown = () => utilities() ? sections().length : components().length;
   const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length;
 
+  const rows = createMemo<readonly RailRow[]>(() =>
+    utilities()
+      ? sections().map((sec) => ({
+        id: sec.id,
+        title: sec.title,
+        count: utilitiesFor(sec, props.catalog()).length,
+      }))
+      : components().map((page) => ({
+        id: page.id,
+        title: page.title,
+        icon: PRIMITIVE_ICONS[page.id],
+      }))
+  );
+
+  const bands = createMemo(() =>
+    RAIL_BANDS
+      .map((band) => ({
+        label: band.label,
+        rows: rows().filter((row) =>
+          band.from <= row.title[0]!.toLowerCase() &&
+          row.title[0]!.toLowerCase() <= band.to
+        ),
+      }))
+      .filter((band) => band.rows.length > 0)
+  );
+
   return (
     <nav class="sticky top-0 flex max-h-screen w-[14rem] shrink-0 flex-col overflow-y-auto border-e border-solid border-border p-4">
       <AppHeader
-        route={props.route}
         theme={props.theme}
         setTheme={props.setTheme}
         mode={props.mode}
         setMode={props.setMode}
-        query={props.query}
-        setQuery={props.setQuery}
       />
+      <div class={SEGMENT_GROUP}>
+        <button
+          type="button"
+          onClick={() => (location.hash = "#/utilities")}
+          aria-current={utilities() || undefined}
+          class={SURFACE_LINK}
+        >
+          utilities
+        </button>
+        <button
+          type="button"
+          onClick={() => (location.hash = "#/components")}
+          aria-current={!utilities() || undefined}
+          class={SURFACE_LINK}
+        >
+          primitives
+        </button>
+      </div>
+      <label class={SEARCH_FIELD}>
+        <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
+        <input
+          type="search"
+          value={props.query()}
+          onInput={(event) => props.setQuery(event.currentTarget.value)}
+          aria-label="Filter the rail"
+          class={SEARCH_INPUT}
+        />
+      </label>
       <div class={RAIL_HEAD}>
         <span>{utilities() ? "sections" : "components"}</span>
         <span class="font-mono text-xs font-regular">
@@ -1080,57 +1179,50 @@ function Rail(props: {
         </span>
       </div>
       <Show
-        when={utilities()}
+        when={bands().length > 0}
         fallback={
-          <Show
-            when={components().length > 0}
-            fallback={
-              <p class={RAIL_EMPTY}>No component matches “{props.query()}”.</p>
-            }
-          >
-            <For each={components()}>
-              {(page) => {
-                const current = () =>
-                  props.route() === `/components/${page.id}`;
-                return (
-                  <button
-                    type="button"
-                    onClick={() => (location.hash = `#/components/${page.id}`)}
-                    aria-current={current() || undefined}
-                    class={RAIL_LINK}
-                  >
-                    <i class={`${PRIMITIVE_ICONS[page.id]} icon-md`} />
-                    {page.title}
-                  </button>
-                );
-              }}
-            </For>
-          </Show>
+          <p class={RAIL_EMPTY}>
+            {`No ${
+              utilities() ? "section" : "component"
+            } matches “${props.query()}”.`}
+          </p>
         }
       >
-        <Show
-          when={sections().length > 0}
-          fallback={
-            <p class={RAIL_EMPTY}>No section matches “{props.query()}”.</p>
-          }
-        >
-          <For each={sections()}>
-            {(sec) => (
-              <button
-                type="button"
-                onClick={() => (location.hash = `#/utilities/${sec.id}`)}
-                aria-current={routeSection(props.route()) === sec.id ||
-                  undefined}
-                class={RAIL_LINK}
-              >
-                <span>{sec.title}</span>
-                <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
-                  {utilitiesFor(sec, props.catalog()).length}
-                </span>
-              </button>
-            )}
-          </For>
-        </Show>
+        <For each={bands()}>
+          {(band) => (
+            <>
+              <div class={RAIL_BAND}>{band.label}</div>
+              <For each={band.rows}>
+                {(row) => {
+                  const current = () =>
+                    utilities()
+                      ? routeSection(props.route()) === row.id
+                      : props.route() === `/components/${row.id}`;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => (location.hash = `#/${
+                        utilities() ? "utilities" : "components"
+                      }/${row.id}`)}
+                      aria-current={current() || undefined}
+                      class={RAIL_LINK}
+                    >
+                      <Show when={row.icon !== undefined}>
+                        <i class={`${row.icon} icon-md`} />
+                      </Show>
+                      <span class="min-w-0 truncate">{row.title}</span>
+                      <Show when={row.count !== undefined}>
+                        <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+                          {row.count}
+                        </span>
+                      </Show>
+                    </button>
+                  );
+                }}
+              </For>
+            </>
+          )}
+        </For>
       </Show>
     </nav>
   );
