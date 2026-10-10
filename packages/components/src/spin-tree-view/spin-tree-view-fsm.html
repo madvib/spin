@@ -1,13 +1,23 @@
-<scope>props={ nodes: string = "[]", defaultExpandedValue: string[] = [], expandedValue: string[] = [], selectedValue: string[] = [], selectionMode: string = "single", expandOnClick: bool = true, typeahead: bool = true } consume={ treeViewFsm }</scope>
+<scope>props={ nodes: string = "[]", defaultExpandedValue: string[] = [], expandedValue: string[] = [], selectedValue: string[] = [], selectionMode: string = "single", expandOnClick: bool = true, typeahead: bool = true, loadChildren: string = "", rename: bool = true } consume={ treeViewFsm }</scope>
 
 <div class="rounded-lg border border-border bg-surface-raised p-2" {...treeViewFsm.getRootProps()}>
   <template for={treeViewFsm.getVisibleRows()} as={row} key={row.node.value}>
-    <button
-      class="group w-full flex items-center justify-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-text bg-transparent border-transparent transition-colors hover:bg-surface data-[selected]:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong"
-      {...treeViewFsm.getItemProps(row)}
-    >
-      <span aria-hidden="true" class="hidden shrink-0 text-muted text-xs transition-transform group-data-[branch]:inline-block data-[state=open]:rotate-90" {...treeViewFsm.getBranchIndicatorProps(row)}>›</span>
-      <span class="min-w-0 truncate" {...treeViewFsm.getBranchTextProps(row)}>{row.node.label}</span>
-    </button>
+    <div class="group" {...treeViewFsm.getItemProps(row)}>
+      <button
+        class="w-full flex items-center justify-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-text bg-transparent border-transparent transition-colors hover:bg-surface data-[selected]:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong"
+        {...treeViewFsm.getBranchControlProps(row)}
+      >
+        <span aria-hidden="true" class="hidden shrink-0 text-muted text-xs transition-transform group-data-[branch]:inline-block data-[state=open]:rotate-90" {...treeViewFsm.getBranchIndicatorProps(row)}>›</span>
+        <span aria-hidden="true" class="hidden shrink-0 items-center justify-center group-data-[checkable]:flex" {...treeViewFsm.getCheckboxProps(row)}>
+          <span class="block h-3 w-3 rounded-sm border border-border-strong data-[checked]:bg-primary data-[checked]:border-primary"></span>
+        </span>
+        <span class="min-w-0 truncate" {...treeViewFsm.getBranchTextProps(row)}>{row.node.label}</span>
+        <span class="ml-auto shrink-0 text-xs text-muted" {...treeViewFsm.getLoadingProps(row)}>…</span>
+      </button>
+      <input
+        class="ml-6 w-[calc(100%-1.5rem)] rounded-md border border-border-strong bg-surface px-2 py-1 text-sm text-text"
+        {...treeViewFsm.getRenameInputProps(row)}
+      />
+    </div>
   </template>
 </div>

@@ -1,4 +1,4 @@
-<scope>props={ collapsible: bool = true, items: { value: string, label: string, content: string }[] = [] } consume={ robotAccordion }</scope>
+<scope>props={ collapsible: bool = true, multiple: bool = false, items: { value: string, label: string, content: string }[] = [] } consume={ robotAccordion }</scope>
 
 <div class="rounded-lg border border-border bg-surface-raised divide-y divide-border" {...robotAccordion.getRootProps()}>
   <slot name="header"></slot>

@@ -50,7 +50,7 @@ function parseNodes(raw: unknown): readonly TreeNode[] {
 
 export function createTreeFsmBridge(
   props: () => Record<string, unknown>,
-  _root: () => Element,
+  root: () => Element,
   id: string,
 ): { readonly api: TreeFsmApi; dispose(): void } {
   const owner = scope();
@@ -102,11 +102,12 @@ export function createTreeFsmBridge(
     return authored(key) && Array.isArray(outer) ? [...(outer as string[])] : undefined;
   };
 
-  const readProps = (): Pick<TreeContext, "selectionMode" | "expandOnClick"> => {
+  const readProps = (): Pick<TreeContext, "selectionMode" | "expandOnClick" | "rename"> => {
     const p = props();
     return {
       selectionMode: p["selectionMode"] === "multiple" ? "multiple" : "single",
       expandOnClick: p["expandOnClick"] !== false,
+      rename: p["rename"] !== false,
     };
   };
 
@@ -114,6 +115,7 @@ export function createTreeFsmBridge(
     selectionMode: p["selectionMode"] === "multiple" ? "multiple" : "single",
     expandOnClick: p["expandOnClick"] !== false,
     typeahead: p["typeahead"] !== false,
+    rename: p["rename"] !== false,
   });
 
   const ensureService = (): FsmService<TreeContext, TreeEvent> => {
@@ -150,6 +152,22 @@ export function createTreeFsmBridge(
           moved = true;
         }
       }
+      // Scalars move too: a selectionMode write changes what the connect
+      // emits (the checkbox part), so it must re-render like a controlled
+      // value does.
+      const scalars = readProps();
+      const syncScalar = <K extends "selectionMode" | "expandOnClick" | "rename">(
+        key: K,
+        value: TreeContext[K],
+      ): void => {
+        if (svc.state.context[key] !== value) {
+          svc.state.context[key] = value;
+          moved = true;
+        }
+      };
+      syncScalar("selectionMode", scalars.selectionMode);
+      syncScalar("expandOnClick", scalars.expandOnClick);
+      syncScalar("rename", scalars.rename);
       if (moved) {
         tick(tick() + 1);
         machineTick(machineTick() + 1);
@@ -192,15 +210,25 @@ export function createTreeFsmBridge(
   const connected = computed(() => {
     tick();
     const svc = ensureService();
-    const adapted = { send: send as (e: { type: string } & Record<string, unknown>) => void, get context() {
-      return svc.state.context;
-    } };
+    const adapted = {
+      send: send as (event: { type: string } & Record<string, unknown>) => void,
+      get context() {
+        return svc.state.context;
+      },
+    };
     return connectRobotTreeView(
       adapted,
       connectProps(props()),
       () => parseNodes(props()["nodes"]),
+      (nodes) => {
+        // The tree crosses the prop channel as JSON text (the grammar has no
+        // recursive type); lazy grafting writes the host's data back the same
+        // way it arrived.
+        (root() as unknown as { nodes?: unknown }).nodes = JSON.stringify(nodes);
+      },
       id,
       send as (event: { type: string } & Record<string, unknown>) => void,
+      props,
     );
   });
 

@@ -12,6 +12,24 @@ import { createScopeTable, type Factory, type Handle, type ScopeTable } from "./
 /** Turns an attribute's string into the value the component reads. */
 export type AttributeParser = (value: string | null) => unknown;
 
+/**
+ * The scope grammar's attribute parsers, one per declared prop type. The
+ * plugin emits an `attributes` map from these so an attribute written at
+ * any time — a framework's string prop, or a later setAttribute — lands in
+ * the same live prop a property write reaches. Kept beside the element
+ * definition that consumes them, not beside the grammar that mirrors them.
+ */
+export const attrParsers = {
+  bool: (value: string | null): boolean => value === null || value === "" || value === "true",
+  string: (value: string | null): string => value ?? "",
+  int: (value: string | null): number | undefined =>
+    value === null ? undefined : Number.parseInt(value, 10),
+  "string[]": (value: string | null): string[] =>
+    value === null || value === "" ? [] : (JSON.parse(value) as string[]),
+  "object[]": (value: string | null): unknown[] =>
+    value === null || value === "" ? [] : (JSON.parse(value) as unknown[]),
+} as const satisfies Record<string, AttributeParser>;
+
 export interface ElementSpec {
   /** Property names. Each becomes a live read on `ctx.props`. */
   props?: readonly string[];

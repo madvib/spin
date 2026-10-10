@@ -1,5 +1,5 @@
 import type { MachineDef } from "@spin/runtime";
-import { computed, machineTick, scope, signal } from "@spin/runtime";
+import { computed, effect, machineTick, scope, signal } from "@spin/runtime";
 import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
 import { connectRobotDialog, type DialogFsmApi, type DialogFsmConnectProps } from "./dialog.fsm-connect.ts";
 
@@ -77,20 +77,43 @@ export function createDialogFsmBridge(
   let service: FsmService<DialogContext, DialogEvent> | undefined;
 
   /**
-   * `defaultOpen` seeds the first state. Controlled `open` (host-owned
-   * alternating) is deliberately NOT here yet: it needs the runtime's
-   * authored-prop tracking, which does not exist. The supported control
-   * surface until it does: `api.open()/close()/toggle()` imperatively, and
-   * the `open-change` event for host state. See the runtime task.
+   * `defaultOpen` seeds the first state; an AUTHORED `open` alternates it
+   * immediately (BuildContext.authored distinguishes a host write from the
+   * coerced default, so `open={false}` and "never set" are different).
+   * Controlled and imperative compose: the host writes the property, the
+   * imperative commands move the machine, `open-change` reports both.
    */
+  const authored = (name: string): boolean => {
+    const predicate = props()["@@authored"];
+    return typeof predicate === "function" ? (predicate as (n: string) => boolean)(name) : false;
+  };
+
   const ensureService = (): FsmService<DialogContext, DialogEvent> => {
     if (!service) {
-      service = owner.run(() =>
-        interpret(machine).start(props()["defaultOpen"] === true ? "open" : "closed"),
-      );
+      const initial = props()["defaultOpen"] === true
+        ? "open"
+        : authored("open") && props()["open"] === true
+          ? "open"
+          : "closed";
+      service = owner.run(() => interpret(machine).start(initial));
     }
     return service;
   };
+
+  /** A host write to `open` alternates without waiting for a machine event. */
+  owner.run(() =>
+    effect(() => {
+      const svc = ensureService();
+      const outer = props()["open"];
+      if (!authored("open") || typeof outer !== "boolean") return;
+      const isOpen = svc.state.value === "open";
+      if (outer !== isOpen) {
+        svc.send({ type: outer ? "OPEN" : "CLOSE", reason: "api" });
+        tick(tick() + 1);
+        machineTick(machineTick() + 1);
+      }
+    }),
+  );
 
   const currentOpen = (): boolean => ensureService().state.value === "open";
 

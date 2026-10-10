@@ -7,15 +7,14 @@
  *    can ask "what is visible". Here it is a 15-line function over the raw
  *    tree plus `expandedValue` — the reactive core substitutes for the
  *    class, and the visible-row list is exactly what the template iterates.
- * 2. **Navigation.** Arrows, Home/End, and typeahead compute the next view
- *    target and send `NODE.FOCUS`. The machine never walks the tree; it only
- *    holds `focusedValue`. That is the whole split: the machine owns state,
- *    the view owns where things are.
+ * 2. **Navigation.** Arrows, Home/End, typeahead and shift-range selection
+ *    compute their targets against the visible rows and send events. The
+ *    machine never walks the tree; it holds focusedValue and nothing else.
  *
- * Selection semantics (ctrl/shift in multiple mode, expandOnClick, checking)
- * stay in the machine's guards and assigns, where they are testable as data.
- * The DOM carries semantics (role/aria/ids) plus the state attributes the
- * utility engine targets — no part-identity attributes.
+ * Rename (F2 / double-click) and lazy loading (a branch expanded with no
+ * children calls the host's `loadChildren` property and reports through
+ * LOAD_START / LOAD_DONE) also live here: both are view-triggered flows
+ * over host-owned data, which is the state/data division applied.
  */
 
 export interface TreeNode {
@@ -28,6 +27,7 @@ export interface TreeFsmConnectProps {
   readonly selectionMode: "single" | "multiple";
   readonly expandOnClick: boolean;
   readonly typeahead: boolean;
+  readonly rename: boolean;
 }
 
 export interface VisibleRow {
@@ -44,6 +44,7 @@ export interface TreeItemState {
   readonly loading: boolean;
   /** Branches show the disclosure indicator; leaves don't. */
   readonly branch: boolean;
+  readonly renaming: boolean;
 }
 
 export interface TreeFsmApi {
@@ -53,20 +54,21 @@ export interface TreeFsmApi {
   readonly checkedValue: string[];
   readonly renamingValue: string | null;
   readonly loadingStatus: Record<string, "loading" | "loaded" | "error">;
+  readonly nodes: readonly TreeNode[];
   getVisibleRows(): readonly VisibleRow[];
   getItemState(row: VisibleRow): TreeItemState;
   getRootProps(): Record<string, unknown>;
   getTreeProps(): Record<string, unknown>;
   getLabelProps(): Record<string, unknown>;
-  getBranchProps(row: VisibleRow): Record<string, unknown>;
+  getItemProps(row: VisibleRow): Record<string, unknown>;
   getBranchControlProps(row: VisibleRow): Record<string, unknown>;
   getBranchIndicatorProps(row: VisibleRow): Record<string, unknown>;
   getBranchTextProps(row: VisibleRow): Record<string, unknown>;
   getBranchContentProps(row: VisibleRow): Record<string, unknown>;
-  getItemProps(row: VisibleRow): Record<string, unknown>;
-  getItemTextProps(row: VisibleRow): Record<string, unknown>;
-  getItemIndicatorProps(row: VisibleRow): Record<string, unknown>;
+  getCheckboxProps(row: VisibleRow): Record<string, unknown>;
+  getLoadingProps(row: VisibleRow): Record<string, unknown>;
   getRenameInputProps(row: VisibleRow): Record<string, unknown>;
+  startRenaming(value: string): void;
 }
 
 /** The service surface connect consumes: live context, send. */
@@ -78,23 +80,31 @@ interface TreeService {
     focusedValue: string | null;
     renamingValue: string | null;
     loadingStatus: Record<string, "loading" | "loaded" | "error">;
+    selectionMode: "single" | "multiple";
+    expandOnClick: boolean;
+    rename: boolean;
   };
   send(event: { type: string } & Record<string, unknown>): void;
 }
 
 type Send = (event: { type: string } & Record<string, unknown>) => void;
 
+/** Host hook for lazy branches: set as a property on the element. */
+type LoadChildren = (value: string) => Promise<readonly TreeNode[]> | readonly TreeNode[] | void;
+
 export function connectRobotTreeView(
   service: TreeService,
   props: TreeFsmConnectProps,
   getNodes: () => readonly TreeNode[],
+  writeNodes: (nodes: readonly TreeNode[]) => void,
   id: string,
   send: Send,
+  hostProps: () => Record<string, unknown>,
 ): TreeFsmApi {
   const ownerId = `tree:${id}`;
   const itemPrefix = `${ownerId}:item:`;
   const itemId = (value: string): string => `${itemPrefix}${value}`;
-
+  const renameInputId = (value: string): string => `${ownerId}:rename:${value}`;
   const ctx = (): TreeService["context"] => service.context;
 
   /** Flatten the tree to visible rows — the TreeCollection replacement. */
@@ -121,8 +131,11 @@ export function connectRobotTreeView(
     document.getElementById(itemId(value))?.focus();
   };
 
+  // Branch convention: `children: []` is a leaf; the key's ABSENCE is a
+  // loadable branch. Lazy nodes declare no children at all, so a missing
+  // key is what distinguishes "loads later" from "has none".
   const isBranch = (row: VisibleRow): boolean =>
-    row.node.children !== undefined && row.node.children.length > 0;
+    row.node.children === undefined || row.node.children.length > 0;
 
   const getItemState = (row: VisibleRow): TreeItemState => {
     const c = ctx();
@@ -133,22 +146,59 @@ export function connectRobotTreeView(
       checked: c.checkedValue.includes(row.node.value),
       loading: c.loadingStatus[row.node.value] === "loading",
       branch: isBranch(row),
+      renaming: c.renamingValue === row.node.value,
     };
   };
 
   const stateAttrs = (state: TreeItemState): Record<string, unknown> => {
     const attrs: Record<string, unknown> = { "data-state": state.expanded ? "open" : "closed" };
-    if (state.branch) attrs["data-branch"] = "";
     if (state.selected) attrs["data-selected"] = "";
     if (state.focused) attrs["data-focus"] = "";
     if (state.checked) attrs["data-checked"] = "";
     if (state.loading) attrs["data-loading"] = "";
+    if (state.renaming) attrs["data-renaming"] = "";
     return attrs;
   };
 
-  /** Depth indentation through the utility channel — a class chosen by
-   * state, never a style attribute. */
-  const depthClass = (depth: number): string => `ml-${(depth * 4).toString()}`;
+  /**
+   * Lazy branches: expanding a row with no children asks the host to load
+   * them. The host owns the data (it rewrites the `nodes` property); the
+   * machine owns the loading marker. Send LOAD_DONE whatever the host does,
+   * so a rejected load clears the spinner rather than sticking.
+   */
+  const ensureChildren = (value: string): void => {
+    const node = flatten().find((row) => row.node.value === value)?.node;
+    if (!node || (node.children !== undefined && node.children.length > 0)) return;
+    const load = hostProps()["loadChildren"] as LoadChildren | undefined;
+    if (typeof load !== "function") return;
+    send({ type: "NODE.LOAD_START", value });
+    void (async () => {
+      try {
+        const loaded = await load(value);
+        if (Array.isArray(loaded)) {
+          const current = getNodes();
+          const graft = (list: readonly TreeNode[]): TreeNode[] =>
+            list.map((item) =>
+              item.value === value
+                ? { ...item, children: [...(item.children ?? []), ...loaded] }
+                : item.children
+                  ? { ...item, children: graft(item.children) }
+                  : item,
+            );
+          graftInto(graft(current));
+        }
+      } catch {
+        // A failed load leaves the branch empty; the spinner clears either way.
+      } finally {
+        send({ type: "NODE.LOAD_DONE", value });
+      }
+    })();
+  };
+
+  /** The grafted tree is written back as a property — host data, host write. */
+  const graftInto = (nodes: readonly TreeNode[]): void => {
+    writeNodes(nodes);
+  };
 
   /** Typeahead: printable keys accumulate, first visible label match wins. */
   let keys = "";
@@ -160,47 +210,70 @@ export function connectRobotTreeView(
     const at = rows.findIndex((r) => r.node.value === row.node.value);
     const branch = isBranch(row);
     const expanded = ctx().expandedValue.includes(row.node.value);
-    const move = (index: number): void => {
+    const multiple = ctx().selectionMode === "multiple";
+    const shift = event.shiftKey && multiple;
+    const move = (index: number, extend: boolean): void => {
       const value = valueAt(rows, index);
       if (value !== null) {
         send({ type: "NODE.FOCUS", value });
         focusDom(value);
       }
+      if (extend) {
+        send({ type: "NODE.ARROW_DOWN" });
+      }
     };
     switch (event.key) {
       case "ArrowDown":
-        move(at + 1);
+        move(at + 1, shift);
         break;
       case "ArrowUp":
-        move(at - 1);
+        move(at - 1, shift);
         break;
       case "ArrowRight":
-        if (branch && !expanded) send({ type: "BRANCH.TOGGLE", value: row.node.value });
-        else if (branch) move(at + 1);
-        else break;
+        if (branch && !expanded) {
+          send({ type: "BRANCH.TOGGLE", value: row.node.value });
+          ensureChildren(row.node.value);
+        } else if (branch) {
+          move(at + 1, false);
+        }
         break;
       case "ArrowLeft":
         if (branch && expanded) {
           send({ type: "BRANCH.TOGGLE", value: row.node.value });
         } else if (!branch) {
           const parent = [...rows.slice(0, at)].reverse().find((r) => isBranch(r));
-          if (parent) move(rows.findIndex((r) => r.node.value === parent.node.value));
-        } else break;
+          const parentValue = parent ? parent.node.value : null;
+          if (parentValue !== null) {
+            send({ type: "NODE.FOCUS", value: parentValue });
+            focusDom(parentValue);
+          }
+        }
         break;
       case "Home":
-        move(0);
+        move(0, shift);
         break;
       case "End":
-        move(rows.length - 1);
+        move(rows.length - 1, shift);
         break;
       case "Enter":
-      case " ":
-        send(branch
+        send(branch && ctx().expandOnClick
           ? { type: "BRANCH_NODE.CLICK", value: row.node.value }
           : { type: "NODE.CLICK", value: row.node.value });
+        if (branch && !expanded) ensureChildren(row.node.value);
+        break;
+      case " ":
+        send({ type: "NODE.CLICK", value: row.node.value });
         break;
       case "*":
         send({ type: "EXPANDED.SET", value: rows.filter(isBranch).map((r) => r.node.value) });
+        break;
+      case "F2":
+        if (ctx().rename) {
+          send({ type: "NODE.RENAME", value: row.node.value });
+          // The rename input takes focus when it appears; without this the
+          // first keystrokes go to the row and Escape cannot cancel.
+          document.getElementById(renameInputId(row.node.value))?.focus();
+        }
         break;
       default:
         if (props.typeahead && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
@@ -212,6 +285,7 @@ export function connectRobotTreeView(
             send({ type: "NODE.FOCUS", value: match.node.value });
             focusDom(match.node.value);
           }
+          return;
         }
         return;
     }
@@ -219,9 +293,19 @@ export function connectRobotTreeView(
   };
 
   const click = (row: VisibleRow) => (event: MouseEvent): void => {
-    send(isBranch(row)
+    // Capture BEFORE the send: this send is synchronous, so by the time a
+    // post-send check would run, expandedValue already reflects the click
+    // and a lazy branch would never load.
+    const wasExpanded = ctx().expandedValue.includes(row.node.value);
+    const branch = isBranch(row);
+    send(branch
       ? { type: "BRANCH_NODE.CLICK", value: row.node.value, shiftKey: event.shiftKey, ctrlKey: event.ctrlKey }
       : { type: "NODE.CLICK", value: row.node.value, shiftKey: event.shiftKey, ctrlKey: event.ctrlKey });
+    if (branch && !wasExpanded) ensureChildren(row.node.value);
+  };
+
+  const dblclick = (row: VisibleRow) => (): void => {
+    if (ctx().rename) send({ type: "NODE.RENAME", value: row.node.value });
   };
 
   return {
@@ -231,36 +315,40 @@ export function connectRobotTreeView(
     checkedValue: ctx().checkedValue,
     renamingValue: ctx().renamingValue,
     loadingStatus: ctx().loadingStatus,
+    nodes: getNodes(),
     getVisibleRows: flatten,
     getItemState,
-    getRootProps: () => ({
-      id: ownerId,
-      role: "tree",
-      tabindex: -1,
-      "data-orientation": "vertical",
-    }),
+    getRootProps: () => ({ id: ownerId, role: "tree", tabindex: -1, "data-orientation": "vertical" }),
     getTreeProps: () => ({ role: "group", "data-orientation": "vertical" }),
     getLabelProps: () => ({}),
-    getBranchProps: (row) => {
+    // The row wrapper carries the treeitem semantics: ONE root node per
+    // row, so the reconciler's placement never moves a row mid-gesture
+    // (a moved node between mousedown and mouseup cancels the click).
+    getItemProps: (row) => {
       const state = getItemState(row);
       return {
         role: "treeitem",
-        "aria-expanded": state.expanded,
         "aria-level": row.depth + 1,
+        "aria-selected": state.selected,
+        "aria-expanded": state.branch ? state.expanded : undefined,
         "data-path": row.indexPath.join("-"),
+        // The checkbox affordance is a mode, so the row carries the mode
+        // and the utility on the span selects on it.
+        "data-checkable": getItemState(row).checked || ctx().selectionMode === "multiple" ? "" : undefined,
         ...stateAttrs(state),
       };
     },
+    // The control inside it carries focus, ids and the handlers.
     getBranchControlProps: (row) => {
       const state = getItemState(row);
       return {
-        class: depthClass(row.depth),
         id: itemId(row.node.value),
         type: "button",
         tabindex: state.focused ? 0 : -1,
-        "aria-controls": `${ownerId}:content:${row.node.value}`,
+        "aria-controls": state.branch ? `${ownerId}:content:${row.node.value}` : undefined,
         ...stateAttrs(state),
         onClick: click(row),
+        onDblclick: dblclick(row),
         onKeydown: keydown(row),
         onFocus: () => send({ type: "NODE.FOCUS", value: row.node.value }),
       };
@@ -272,39 +360,48 @@ export function connectRobotTreeView(
       role: "group",
       hidden: !ctx().expandedValue.includes(row.node.value),
     }),
-    getItemProps: (row) => {
+    getCheckboxProps: (row) => {
       const state = getItemState(row);
       return {
-        role: "treeitem",
-        "aria-level": row.depth + 1,
-        "aria-selected": state.selected,
-        "data-path": row.indexPath.join("-"),
-        id: itemId(row.node.value),
-        type: "button",
-        tabindex: state.focused ? 0 : -1,
-        "aria-controls": isBranch(row) ? `${ownerId}:content:${row.node.value}` : undefined,
-        ...stateAttrs(state),
-        onClick: click(row),
-        onKeydown: keydown(row),
-        onFocus: () => send({ type: "NODE.FOCUS", value: row.node.value }),
+        role: "checkbox",
+        tabindex: -1,
+        "aria-checked": state.checked,
+        "data-state": state.checked ? "checked" : "unchecked",
+        hidden: ctx().selectionMode !== "multiple",
+        onClick: (event: MouseEvent) => {
+          if (event.defaultPrevented) return;
+          send({ type: "CHECKED.TOGGLE", value: row.node.value });
+          focusDom(row.node.value);
+        },
       };
     },
-    getItemTextProps: () => ({}),
-    getItemIndicatorProps: () => ({ "aria-hidden": true }),
-    getRenameInputProps: (row) => ({
-      value: row.node.label,
-      onBlur: (event: FocusEvent) => {
-        send({ type: "RENAME.SUBMIT", value: row.node.value, label: (event.target as HTMLInputElement).value });
-      },
-      onKeydown: (event: KeyboardEvent) => {
-        if (event.key === "Enter") {
-          send({ type: "RENAME.SUBMIT", value: row.node.value, label: (event.target as HTMLInputElement).value });
-          event.preventDefault();
-        } else if (event.key === "Escape") {
-          send({ type: "RENAME.CANCEL" });
-          event.preventDefault();
-        }
-      },
+    getLoadingProps: (row) => ({
+      hidden: ctx().loadingStatus[row.node.value] !== "loading",
+      "aria-hidden": true,
     }),
+    getRenameInputProps: (row) => {
+      const state = getItemState(row);
+      return {
+        type: "text",
+        id: renameInputId(row.node.value),
+        value: row.node.label,
+        hidden: !state.renaming,
+        "aria-label": "Rename tree item",
+        onKeydown: (event: KeyboardEvent) => {
+          if (event.key === "Escape") {
+            send({ type: "RENAME.CANCEL" });
+            event.preventDefault();
+          } else if (event.key === "Enter") {
+            send({ type: "RENAME.SUBMIT", value: row.node.value, label: (event.target as HTMLInputElement).value });
+            event.preventDefault();
+          }
+          event.stopPropagation();
+        },
+        onBlur: (event: FocusEvent) => {
+          send({ type: "RENAME.SUBMIT", value: row.node.value, label: (event.target as HTMLInputElement).value });
+        },
+      };
+    },
+    startRenaming: (value: string) => send({ type: "NODE.RENAME", value }),
   };
 }

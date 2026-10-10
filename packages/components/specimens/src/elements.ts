@@ -151,7 +151,19 @@ declare module "solid-js" {
         children?: JSX.Element;
         nodes?: string;
         expandedValue?: readonly string[];
+        selectedValue?: readonly string[];
         selectionMode?: string;
+        expandOnClick?: boolean;
+        typeahead?: boolean;
+        rename?: boolean;
+        loadChildren?: (value: string) => Promise<readonly unknown[]>;
+        // Solid's property namespace: a plain string prop on a custom element
+        // is silently dropped by Solid, so the template binds through prop:.
+        // The runtime accepts both spellings (observed attributes plus the
+        // property path), so either binds to the same live prop.
+        "prop:selectionMode"?: string;
+        "prop:expandOnClick"?: boolean;
+        "prop:rename"?: boolean;
       };
       "spin-accordion-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);

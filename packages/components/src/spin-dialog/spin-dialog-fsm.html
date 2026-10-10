@@ -1,4 +1,4 @@
-<scope>props={ modal: bool = true, trapFocus: bool = true, preventScroll: bool = true, closeOnEscape: bool = true, closeOnInteractOutside: bool = true, restoreFocus: bool = true, role: string = "dialog", defaultOpen: bool = false } consume={ dialogFsm }</scope>
+<scope>props={ modal: bool = true, trapFocus: bool = true, preventScroll: bool = true, closeOnEscape: bool = true, closeOnInteractOutside: bool = true, restoreFocus: bool = true, role: string = "dialog", defaultOpen: bool = false, open: bool = false } consume={ dialogFsm }</scope>
 
 <button {...dialogFsm.getTriggerProps()} class="px-4 py-2 rounded-lg border border-border bg-surface-raised text-text text-sm font-medium shadow-sm transition-colors hover:bg-surface">Open dialog</button>
 

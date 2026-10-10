@@ -144,7 +144,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
       const runtimeImport = hasConsume
-        ? `import { define, coerceProps, own, uniqueId, projectSlots } from "@spin/runtime";`
+        ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots } from "@spin/runtime";`
         : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
       const zagImport = hasConsume
         ? `import { createMachine, normalizeProps } from "@spin/runtime/zag";`
@@ -152,9 +152,36 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)
         .join(", ");
+      // Declared props are ALSO observed attributes: a framework's string
+      // prop (Solid sets strings as attributes) and any post-connect
+      // setAttribute must land in the same live prop a property write
+      // reaches. The parsers come from the runtime, so the initial coerced
+      // path and the observed path cannot drift.
+      const PARSER_NAMES: Record<string, string> = {
+        bool: "bool",
+        string: "string",
+        int: "int",
+        "string[]": "string[]",
+        "object[]": "object[]",
+      };
+      const attributeEntries: string[] = [];
+      for (const decl of scopeDecls.props) {
+        const parser = PARSER_NAMES[decl.type];
+        if (!parser) continue;
+        // Both spellings: author HTML is dashed, but a framework that writes
+        // attributes verbatim (Solid's custom-element handling) writes the
+        // camelCase name, and an unobserved spelling is a silent no-op.
+        const dashed = decl.name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+        const entry = `${JSON.stringify(dashed)}: P[${JSON.stringify(parser)}]`;
+        attributeEntries.push(entry);
+        if (dashed !== decl.name) attributeEntries.push(`${JSON.stringify(decl.name)}: P[${JSON.stringify(parser)}]`);
+      }
+      const attributeDecl = attributeEntries.length > 0
+        ? ` attributes: { ${attributeEntries.join(", ")} },`
+        : "";
       const defineHead = hasProps
-        ? `define(${JSON.stringify(tag)}, { props: ${JSON.stringify(propNames)}, build({ ${buildParams} }) {`
-        : `define(${JSON.stringify(tag)}, { build({ ${buildParams} }) {`;
+        ? `define(${JSON.stringify(tag)}, { props: ${JSON.stringify(propNames)},${attributeDecl} build({ ${buildParams} }) {`
+        : `define(${JSON.stringify(tag)}, {${attributeDecl} build({ ${buildParams} }) {`;
       // A declared prop is a live read of the element's prop store; the
       // attribute/coerced value is the initial path, so a property write —
       // before or after connection — wins over the attribute.

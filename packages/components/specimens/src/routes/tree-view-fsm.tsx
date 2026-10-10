@@ -1,6 +1,10 @@
 import { createSignal, onMount } from "solid-js";
 
-type TreeElement = HTMLElement & { nodes?: string; expandedValue?: string[] };
+type TreeElement = HTMLElement & {
+  nodes?: string;
+  expandedValue?: string[];
+  loadChildren?: (value: string) => Promise<TreeNode[]>;
+};
 
 interface TreeNode {
   value: string;
@@ -8,36 +12,30 @@ interface TreeNode {
   children?: TreeNode[];
 }
 
-const TREE: TreeNode[] = [
+/** Lazy branches declare no children; the host loads them on first expand. */
+const LAZY: TreeNode[] = [
   {
     value: "src",
     label: "src",
     children: [
-      {
-        value: "src/components",
-        label: "components",
-        children: [
-          { value: "accordion", label: "accordion.tsx" },
-          { value: "tabs", label: "tabs.tsx" },
-        ],
-      },
-      {
-        value: "src/runtime",
-        label: "runtime",
-        children: [{ value: "signal", label: "signal.ts" }],
-      },
+      { value: "accordion", label: "accordion.tsx" },
+      { value: "tabs", label: "tabs.tsx" },
     ],
   },
-  {
-    value: "packages",
-    label: "packages",
-    children: [
-      { value: "core", label: "core" },
-      { value: "preset", label: "preset" },
-    ],
-  },
-  { value: "readme", label: "README.md" },
+  { value: "repo", label: "repo (lazy)" },
+  { value: "readme", label: "README.md", children: [] },
 ];
+
+const loadChildren = async (value: string): Promise<TreeNode[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  if (value !== "repo") return [];
+  return [
+    { value: "repo/pkg", label: "packages" },
+    { value: "repo/cfg", label: "deno.json" },
+  ];
+};
+
+const TREE: TreeNode[] = LAZY;
 
 /**
  * Tree-view on the forked FSM: the hard Zag machine, ported.
@@ -54,6 +52,7 @@ export default function TreeViewFsm() {
   // Controlled alternation: writing this property is a host write (the
   // authored-prop predicate sees it), so the machine follows it.
   const [controlled, setControlled] = createSignal(false);
+  const [multi, setMulti] = createSignal(false);
   let el: TreeElement | undefined;
 
   onMount(() => {
@@ -76,6 +75,14 @@ export default function TreeViewFsm() {
       <button
         type="button"
         class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
+        onClick={() => setMulti((m) => !m)}
+      >
+        {multi() ? "selectionMode: multiple" : "selectionMode: single"}
+      </button>
+
+      <button
+        type="button"
+        class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
         onClick={() => {
           const next = !controlled();
           setControlled(next);
@@ -87,9 +94,11 @@ export default function TreeViewFsm() {
       </button>
 
       <spin-tree-view-fsm
+        prop:selectionMode={multi() ? "multiple" : "single"}
         ref={(node) => {
           el = node as TreeElement;
           el.nodes = JSON.stringify(TREE);
+          el.loadChildren = loadChildren;
         }}
       />
       <div class="mt-4 text-sm text-muted font-mono">

@@ -59,6 +59,7 @@ export interface TreeContext {
   /** Props the guards read. Synced per send from scope values. */
   selectionMode: "single" | "multiple";
   expandOnClick: boolean;
+  rename: boolean;
 }
 
 /**
@@ -117,6 +118,7 @@ export const config = {
     typeahead: "",
     selectionMode: "single" as "single" | "multiple",
     expandOnClick: true,
+    rename: true,
   },
   // Root-level handlers: valid in every state, including `renaming`.
   on: {
