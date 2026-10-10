@@ -195,26 +195,17 @@ const QUIET_BUTTON =
   "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /**
- * The panel a specimen is demoed in. The padding is the largest spacing step,
- * one step up from where it sat: a demonstration is looked at rather than
- * skimmed, and it is the most generous surface on the page because it is the
- * one thing on the page a reader came to see.
+ * The panel every specimen sits in: ONE box, one surface, and only as much
+ * room as the thing in it needs.
  *
- * The panel NEVER scrolls and never caps its height — a panel that clips is
- * a panel that hides the component it demonstrates, and the tall specimens
- * (a textarea, a dialog, a column of prose) are exactly the ones a reader
- * needs all of. What it demonstrates it shows whole, and the page grows
- * instead.
- *
- * The fill is the page's own surface rather than the raised step: the code
- * view beside it is a `<pre>`, and a bare `pre` is claimed by the primitive
- * layer, which pins its background to the same surface — so the two views of
- * one specimen are the same paper, and swapping between them changes the
- * content and nothing else.
+ * The padding is the page's own step, not a full measure of it. A demo panel
+ * is a stage, and a stage the size of a page turns every component into a
+ * slab of nothing: the specimen is the subject, the panel is the floor it
+ * stands on, and the floor should not compete. Tall content — a table, a
+ * dialog — still gets its room by the panel growing, never by the padding.
  */
 const SPECIMEN_PANEL =
-  "min-h-16 rounded-md border border-dashed border-solid border-border bg-surface p-16 shadow-sm";
-const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
+  "min-h-16 rounded-md border border-dashed border-solid border-border bg-surface p-6 shadow-sm";
 
 /**
  * The code block of a specimen. It is ALWAYS in the flow — never a box the
@@ -232,6 +223,9 @@ const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
  */
 const CODE_PRE =
   "max-w-full whitespace-pre-wrap overflow-x-auto rounded-md border border-dashed border-solid border-border bg-surface p-4 font-mono text-text shadow-sm";
+
+/** The measure a specimen's content is set at. */
+const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 
 /**
  * One token of example markup, as the code viewer reads it.

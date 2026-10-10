@@ -458,18 +458,18 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes. In `em`, so an icon tracks the control it sits in rather than pinning itself to one absolute length.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
-      "$value": "0.875em"
+      "$value": "0.875rem"
     },
     "md": {
       "$type": "dimension",
-      "$value": "1em"
+      "$value": "1.125rem"
     },
     "lg": {
       "$type": "dimension",
-      "$value": "1.25em"
+      "$value": "1.5rem"
     }
   },
   "badge": {
