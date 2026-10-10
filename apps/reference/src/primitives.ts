@@ -392,110 +392,6 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
 ];
 
 /**
- * The index: every primitive filed in exactly one family, each with the one
- * line the landing page has room for. The fixture note is a paragraph; a row
- * in a list of thirty-four is a sentence fragment.
- *
- * A primitive in no family would vanish from the index, and a family naming a
- * primitive that does not exist would be a dead row, so both are checked here
- * rather than discovered by a reader.
- */
-export interface PrimitiveFamily {
-  readonly title: string;
-  readonly blurb: string;
-  readonly members: readonly { readonly id: string; readonly note: string }[];
-}
-
-export const FAMILIES: readonly PrimitiveFamily[] = [
-  {
-    title: "Forms",
-    blurb:
-      "Controls a form is made of. The tag is the control; the state is an attribute.",
-    members: [
-      {
-        id: "button",
-        note: "The tag is the control; variants change the tone.",
-      },
-      {
-        id: "checkbox",
-        note: "Three states, and indeterminate is data-mixed.",
-      },
-      { id: "radio", note: "One choice per group, sharing a name." },
-      { id: "switch", note: "A checkbox wearing a track instead of a box." },
-      {
-        id: "input",
-        note: "The box the base owns; aria-invalid states validity.",
-      },
-      { id: "select", note: "Drawn by us, on the box a text field takes." },
-      { id: "textarea", note: "Wraps, resizes, and keeps a one-row minimum." },
-      { id: "range", note: "A slider: track and thumb are pseudo-elements." },
-      { id: "rating", note: "Five radios read as stars." },
-      { id: "meter", note: "A gauge over a range the platform classifies." },
-      { id: "group", note: "Adjacent controls merged into one object." },
-      {
-        id: "label",
-        note: "Names the control it wraps, and inherits its type.",
-      },
-      { id: "fieldset", note: "A named group that disables at once." },
-      { id: "join", note: "Shared edges, one seam, geometry only." },
-    ],
-  },
-  {
-    title: "Surfaces",
-    blurb: "Layers that sit above the page, each a card in a different place.",
-    members: [
-      { id: "card", note: "Eight parts, each its own tag; sizes are classes." },
-      { id: "dialog", note: "A native modal; the platform traps the focus." },
-      { id: "popover", note: "The top layer with no script at all." },
-      { id: "tooltip", note: "A popover in a smaller box, on hover or focus." },
-    ],
-  },
-  {
-    title: "Navigation",
-    blurb: "Moving through a document, and showing what is open.",
-    members: [
-      { id: "tabs", note: "Radios and :checked, with no JavaScript." },
-      { id: "details", note: "A disclosure; open is the state." },
-      { id: "breadcrumbs", note: "A trail whose last step is aria-current." },
-    ],
-  },
-  {
-    title: "Feedback",
-    blurb: "What the page says back: status, load, and the number itself.",
-    members: [
-      {
-        id: "alert",
-        note: "A tone on the surface; role takes the heavier edge.",
-      },
-      { id: "progress", note: "A real value, and a sweep when indeterminate." },
-      { id: "skeleton", note: "A placeholder that pulses, no JavaScript." },
-      { id: "stat", note: "A labelled number: title, value, description." },
-      { id: "badge", note: "The smallest component: a tag spending a tone." },
-    ],
-  },
-  {
-    title: "Content",
-    blurb: "Document structure, stated by tags rather than by classes.",
-    members: [
-      { id: "typography", note: "One ladder of heading sizes and weights." },
-      { id: "prose", note: "An article states nothing; the tags carry it." },
-      { id: "divider", note: "A rule drawn from the border token." },
-      { id: "kbd", note: "What to press, not what was printed." },
-      { id: "table", note: "A document, not a spreadsheet; sticky header." },
-      {
-        id: "icon",
-        note: "Glyph sizes in em, so they scale with the control.",
-      },
-      { id: "avatar", note: "A face in a square, cropped to fill." },
-      {
-        id: "avatar-group",
-        note: "Faces pulled back a third so they overlap.",
-      },
-    ],
-  },
-];
-
-/**
  * The glyph each primitive is known by, in the rail and the page header.
  *
  * The values are the whole class the icon preset generates, name included: a
@@ -539,38 +435,10 @@ export const PRIMITIVE_ICONS: Readonly<Record<string, string>> = {
   typography: "i-lucide-type",
 };
 
-/** The glyph each family header carries, beside its title in the rail. */
-export const FAMILY_ICONS: Readonly<Record<string, string>> = {
-  Forms: "i-lucide-text-cursor-input",
-  Surfaces: "i-lucide-layers",
-  Navigation: "i-lucide-route",
-  Feedback: "i-lucide-activity",
-  Content: "i-lucide-book-open",
-};
-
-const FILED = FAMILIES.flatMap((f) => f.members.map((m) => m.id));
-const seen: Record<string, true> = {};
-for (const id of FILED) {
-  if (seen[id] === true) {
-    throw new Error(`FAMILIES: ${id} is filed in more than one family`);
-  }
-  seen[id] = true;
-}
-if (FILED.length !== PRIMITIVES.length) {
-  throw new Error(
-    `FAMILIES: ${FILED.length} of ${PRIMITIVES.length} primitives are filed`,
-  );
-}
-// A row the rail cannot draw a glyph for is a row with a hole in it, and a
-// family header with no glyph breaks the row it heads — checked here, where
-// the map and the pages it serves are both in view.
+// A row the rail cannot draw a glyph for is a row with a hole in it — checked
+// here, where the map and the pages it serves are both in view.
 for (const page of PRIMITIVES) {
   if (PRIMITIVE_ICONS[page.id] === undefined) {
     throw new Error(`PRIMITIVE_ICONS: ${page.id} has no icon`);
-  }
-}
-for (const family of FAMILIES) {
-  if (FAMILY_ICONS[family.title] === undefined) {
-    throw new Error(`FAMILY_ICONS: ${family.title} has no icon`);
   }
 }

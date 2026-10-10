@@ -3,6 +3,7 @@ import type { JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
 import { describeCatalog } from "@spin/preset";
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
+import type { Section } from "@spin/preset/organization.ts";
 import {
   buildScale,
   type BuiltScale,
@@ -16,8 +17,8 @@ import { starterThemes } from "@spin/theme/themes";
 /* ──────────────────────────────────────────────────────────────────────────
  * THE UTILITIES SURFACE.
  *
- * A section is a set of FAMILIES, and a family is a group of utilities with
- * one mechanism between them. Each family gets: what it is, why this sample,
+ * A section is a set of catalog groups, and a group is a set of utilities with
+ * one mechanism between them. Each group gets: what it is, why this sample,
  * a working before-and-after of the idea, and then every one of its names
  * shown. Nothing is summarised away and nothing is listed without being
  * demonstrated.
@@ -53,7 +54,7 @@ function themeTreeOrParse(): TokenTree {
  * `dark` group is read first and the base value is what a token the dark group
  * does not restate keeps. A theme with no dark group overrides nothing.
  */
-export function colorValues(
+function colorValues(
   theme: string,
   mode: string,
 ): Readonly<Record<string, string>> {
@@ -1462,7 +1463,7 @@ const BADGE =
   "shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
 const SECTION = "mb-8";
 const SUBHEAD =
-  "mb-2 mt-8 text-xs font-semibold normal-case tracking-normal text-text-muted";
+  "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 const PROSE = "max-w-screen-md text-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
@@ -1490,7 +1491,7 @@ const PANEL =
 const MONO_MUTED = "font-mono text-xs text-text-muted";
 const RAIL_COUNT = "shrink-0 font-mono text-xs text-text-muted";
 const CHIP =
-  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong aria-[current]:text-text";
+  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong aria-[current]:text-text";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1518,7 +1519,7 @@ function PageHead(props: { title: string; sub: string; badge: string }) {
  * fill is a class and so follows the theme on its own, but the label names a
  * hex and has to be told which theme's hex it is.
  */
-export function Swatch(props: {
+function Swatch(props: {
   name: string;
   values: Readonly<Record<string, string>>;
 }) {
@@ -2045,5 +2046,259 @@ export function UtilitiesPage(props: { group: string }) {
         </>
       )}
     </Show>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * THE UTILITIES LANDING.
+ *
+ * The primitives landing's shape, spent on the other surface: the line the
+ * thing stands for, the specimens, and the index. Here the index is the
+ * sections — a card each, with the count of names the section carries — and
+ * a specimen is shown for the sections where one utility's effect is legible
+ * in a picture. A specimen is built out of the utilities themselves rather
+ * than out of markup written to look like them: the demo IS the class, and
+ * the panel it is demoed in wears the surface being demonstrated.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+const SPECIMEN_PANEL =
+  "flex min-h-16 items-center rounded-md border border-dashed border-solid border-border bg-surface p-8";
+
+/** The quiet way out of a specimen: a link-shaped button. */
+const QUIET_BUTTON =
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+
+/** The fills the palette is made of, each with the foreground it is paired
+ *  with by the theme — the label is the class, so the tile is also the name. */
+const FILLS = [
+  "bg-primary",
+  "bg-secondary",
+  "bg-accent",
+  "bg-semantic-success",
+  "bg-semantic-warning",
+  "bg-semantic-error",
+  "bg-semantic-info",
+] as const;
+
+/** The type ladder: a scale is read as a scale, so every rung is shown. */
+const TYPE_STEPS = [
+  "text-2xl",
+  "text-xl",
+  "text-lg",
+  "text-md",
+  "text-sm",
+  "text-xs",
+] as const;
+
+/** The spacing scale, one box per step, with a mark inside it. */
+const SPACING_STEPS = ["p-1", "p-2", "p-4", "p-8"] as const;
+
+/** Corners, and the elevation that lifts them. */
+const RADIUS_STEPS = ["rounded-sm", "rounded-md", "rounded-lg", "rounded-full"];
+const SHADOW_STEPS = ["shadow-sm", "shadow-md", "shadow-lg"];
+
+function ColorSpecimen() {
+  return (
+    <div class="flex flex-wrap items-end gap-2">
+      <For each={FILLS}>
+        {(cls) => (
+          <div
+            class={`flex h-16 min-w-0 flex-1 items-end rounded-md p-2 font-mono text-xs ${cls} ${
+              inkOn(cls)
+            }`}
+          >
+            {cls}
+          </div>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function TypeSpecimen() {
+  return (
+    <div class="flex flex-col gap-2">
+      <For each={TYPE_STEPS}>
+        {(cls) => (
+          <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <span class={`min-w-0 text-text ${cls}`}>
+              Handgloves &amp; 0123
+            </span>
+            <code class="font-mono text-xs text-text-muted">{cls}</code>
+          </div>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function SpacingSpecimen() {
+  return (
+    <div class="flex flex-wrap items-end gap-4">
+      <For each={SPACING_STEPS}>
+        {(cls) => (
+          <figure class="flex flex-col items-start gap-1">
+            <div
+              class={`inline-block rounded-sm border border-dashed border-solid border-border bg-surface ${cls}`}
+            >
+              <b class="block h-4 w-4 rounded-sm bg-primary" />
+            </div>
+            <code class="font-mono text-xs text-text-muted">{cls}</code>
+          </figure>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function BorderSpecimen() {
+  return (
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-end gap-4">
+        <For each={RADIUS_STEPS}>
+          {(cls) => (
+            <figure class="flex flex-col items-start gap-1">
+              <div
+                class={`block h-12 w-20 border border-solid border-border-strong bg-surface-raised ${cls}`}
+              />
+              <code class="font-mono text-xs text-text-muted">{cls}</code>
+            </figure>
+          )}
+        </For>
+      </div>
+      <div class="flex flex-wrap items-end gap-4">
+        <For each={SHADOW_STEPS}>
+          {(cls) => (
+            <figure class="flex flex-col items-start gap-1">
+              <div
+                class={`block h-12 w-20 rounded-md border border-solid border-border bg-surface-raised ${cls}`}
+              />
+              <code class="font-mono text-xs text-text-muted">{cls}</code>
+            </figure>
+          )}
+        </For>
+      </div>
+    </div>
+  );
+}
+
+/** The section a specimen belongs to, and the specimen it is shown with. */
+const SECTION_SPECIMEN: Readonly<Record<string, () => JSX.Element>> = {
+  colors: ColorSpecimen,
+  typography: TypeSpecimen,
+  spacing: SpacingSpecimen,
+  borders: BorderSpecimen,
+};
+
+/** One specimen of the utilities landing: the section, what it looks like,
+ *  and the way in. */
+function SectionSpecimen(props: { id: string }) {
+  const section = SECTIONS.find((s) => s.id === props.id)!;
+  const Specimen = SECTION_SPECIMEN[props.id]!;
+  return (
+    <section class="flex min-w-0 flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <h4 class="m-0 text-sm font-semibold text-text">{section.title}</h4>
+      </div>
+      <div class={SPECIMEN_PANEL}>
+        <div class="w-full">
+          <Specimen />
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => (location.hash = `#/utilities/${props.id}`)}
+        class={QUIET_BUTTON}
+      >
+        <i class="i-lucide-arrow-right icon-md" />
+        open {section.title.toLowerCase()}
+      </button>
+    </section>
+  );
+}
+
+/** One card of the index: the section, its count, and the way in. */
+function SectionCard(props: { section: Section; count: number }) {
+  return (
+    <button
+      type="button"
+      onClick={() => (location.hash = `#/utilities/${props.section.id}`)}
+      class="flex w-full flex-col items-start gap-2 rounded-md border border-solid border-border bg-surface-raised p-4 text-left shadow-sm hover:border-border-strong"
+    >
+      <span class="flex w-full items-center gap-2">
+        <span class="text-sm font-semibold text-text">
+          {props.section.title}
+        </span>
+        <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+          {props.count}
+        </span>
+      </span>
+      <span class="text-xs text-text-muted">{props.section.blurb}</span>
+    </button>
+  );
+}
+
+/**
+ * The utilities side, at a glance: what the surface is, where each section
+ * lives, and four of them looked at rather than listed.
+ */
+export function UtilitiesLanding() {
+  const catalog = createMemo(() => describeCatalog(themeTreeOrParse()));
+  const cards = createMemo(() =>
+    SECTIONS.map((section) => ({
+      section,
+      count: utilitiesFor(section, catalog()).length,
+    }))
+  );
+  const total = () => cards().reduce((sum, c) => sum + c.count, 0);
+  return (
+    <>
+      <header class={PAGE_HEAD}>
+        <div>
+          <h2 class={TITLE}>Utilities</h2>
+          <div class={KIND}>
+            spin reference · {SECTIONS.length} sections · {total()} names
+          </div>
+        </div>
+        <span class={BADGE}>{total()} names</span>
+      </header>
+      <p class="mb-8 max-w-screen-md text-md text-text-muted">
+        Every page on this side is drawn by the utilities it describes: the
+        chrome around a demonstration wears the surface being demonstrated, so a
+        utility that breaks breaks the showcase with it.
+      </p>
+
+      <section class="mb-8">
+        <h3 class={SUBHEAD}>Sections</h3>
+        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+          The surface cut by what a reader is looking for, not by which file the
+          rule lives in.
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <For each={cards()}>
+            {(card) => (
+              <SectionCard
+                section={card.section}
+                count={card.count}
+              />
+            )}
+          </For>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h3 class={SUBHEAD}>Specimens</h3>
+        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+          Four of the{" "}
+          {SECTIONS.length}, each one built out of the utilities it names — the
+          demo is the class rather than a picture of it.
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+          <For each={Object.keys(SECTION_SPECIMEN)}>
+            {(id) => <SectionSpecimen id={id} />}
+          </For>
+        </div>
+      </section>
+    </>
   );
 }

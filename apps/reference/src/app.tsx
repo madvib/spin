@@ -3,13 +3,8 @@ import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
-import {
-  FAMILIES,
-  FAMILY_ICONS,
-  PRIMITIVE_ICONS,
-  PRIMITIVES,
-} from "./primitives.ts";
-import { colorValues, Swatch, UtilitiesPage } from "./utilities.tsx";
+import { PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
+import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
 import type { Accessor } from "solid-js";
@@ -46,79 +41,6 @@ function useTheme() {
 }
 
 /**
- * The accent each family is known by — one token, the same one in the rail, on
- * the landing, on a family page and beside a page title, so a family's color
- * is the family's name spelled in the theme rather than a hue invented at the
- * call site.
- *
- * The token is spent as ink (`text-`), as a mark (`bg-`) and as an edge
- * (`border-`), which the catalog safelists for every color the theme names.
- * The edge is not safelisted, because it is a variant of a color the rail only
- * ever names at runtime: a class interpolated into a template is a class the
- * scanner never sees, so the five are written out here, beside the token they
- * belong to.
- *
- * The mapping is chosen against the themes rather than against one palette:
- * `secondary` is a near-black slab in neobrut and console, and `accent` is a
- * pale amber in neobrut, so either of them spent as a glyph is a glyph that
- * disappears in a theme that is not the default. These five are the brand hue
- * plus the semantic set, each of which every starter theme states as ink
- * strong enough to read on its own surface.
- *
- * Content takes `text-muted` rather than a hue: document structure is what the
- * body copy is made of, so it wears the ink of body copy instead of competing
- * with the four families that are actually colored.
- */
-const FAMILY_ACCENT: Readonly<
-  Record<string, { token: string; current: string }>
-> = {
-  Forms: { token: "primary", current: "aria-[current]:border-primary" },
-  Surfaces: {
-    token: "semantic-error",
-    current: "aria-[current]:border-semantic-error",
-  },
-  Navigation: {
-    token: "semantic-info",
-    current: "aria-[current]:border-semantic-info",
-  },
-  Feedback: {
-    token: "semantic-warning",
-    current: "aria-[current]:border-semantic-warning",
-  },
-  Content: { token: "text-muted", current: "aria-[current]:border-text-muted" },
-};
-
-/** The family each primitive is filed in, so a page wears its family's accent. */
-const FAMILY_OF: Record<string, string> = Object.fromEntries(
-  FAMILIES.flatMap((f) => f.members.map((m) => [m.id, f.title] as const)),
-);
-
-/**
- * A theme or mode chip. Selected is a QUIET state — raised surface, strong
- * border, full ink and a filled dot — never a fill of the text token: the chip
- * hover paints the text token, so a chip filled with it would put text on text
- * in every theme, and in console the text token is a mint slab rather than ink.
- */
-const CHIP =
-  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text aria-[current]:border-border-strong aria-[current]:text-text";
-
-/** One chip of the picker, with the selected state drawn rather than declared. */
-function Chip(props: { label: string; active: boolean; onPick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={props.onPick}
-      aria-current={props.active || undefined}
-      class={CHIP}
-    >
-      {props.active &&
-        <i class="block h-2 w-2 shrink-0 rounded-full bg-text" />}
-      {props.label}
-    </button>
-  );
-}
-
-/**
  * The utilities/primitives switch, and the specimen's segmented toggle. Both
  * are one shape: a bordered group of two, where unselected is a hole —
  * transparent edge, transparent fill, muted ink — so the selected one is the
@@ -126,9 +48,14 @@ function Chip(props: { label: string; active: boolean; onPick: () => void }) {
  * weight. A hover that painted the text token would put text on text in
  * console, where that token is a mint slab rather than ink, so hover moves
  * the edge only.
+ *
+ * `min-h-0` drops the height floor the button primitive puts under every
+ * bare control: a segmented switch is chrome, not a call to action, and the
+ * floor that makes a button comfortable to press makes a toolbar two rows
+ * taller than its labels.
  */
 const SURFACE_LINK =
-  "flex-1 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
 
 /** The group either switch or toggle is drawn in. */
 const SEGMENT_GROUP =
@@ -136,25 +63,31 @@ const SEGMENT_GROUP =
 
 /**
  * The quiet rail row every entry shares: a hole until it is current, at which
- * point the surface is raised and the ink is full. The edge stays transparent
- * here and is the one thing a caller adds — a component row answers with its
- * family's accent, a utilities row with the neutral strong edge — because a
- * state that must differ per family cannot be a constant.
+ * point the surface is raised, the edge answers and the ink is full. The
+ * button fills the tile it is given — a hit target that stops at the end of
+ * the word is a hit target a reader has to aim at, so the state paints the
+ * whole row rather than the glyph and the text.
+ *
+ * The rows of both surfaces wear the same tile: a primitive and a section are
+ * the same kind of thing to a reader looking for one, and a rail that styled
+ * them differently would be a rail that explained its taxonomy instead of its
+ * contents.
  */
 const RAIL_LINK =
-  "flex items-center gap-2 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex w-full items-center gap-2 rounded-md border border-solid border-transparent bg-transparent p-2 text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
 
-/** A section row: no family to answer with, so the neutral edge. */
-const RAIL_SECTION = `${RAIL_LINK} aria-[current]:border-border-strong`;
-
-/** A family header in the rail: the glyph beside the name it heads. */
 /**
- * A family header outranks the links under it: same size, heavier weight,
- * full ink, and a bigger step of air above — a rail whose group titles are
- * SMALLER than its members reads as one flat list of unrelated things.
+ * The heading over the rail's list.
+ *
+ * A heading outranks the rows under it: a size that is the same or larger, a
+ * heavier weight, and full ink rather than the muted step — a rail whose
+ * group titles are SMALLER than its members reads as one flat list of
+ * unrelated things, and one whose titles are quieter reads as a caption over
+ * the very things it captains. The air above is a bigger step than the air
+ * below, so the heading belongs to its group rather than to the header.
  */
-const RAIL_FAMILY =
-  "mt-5 mb-2 flex items-center gap-1 px-2 text-sm font-semibold normal-case tracking-normal text-text first:mt-0";
+const RAIL_HEAD =
+  "mt-8 mb-2 flex items-center gap-2 px-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 
 /** What the rail says when the search has left it nothing to say. */
 const RAIL_EMPTY = "px-2 py-1 text-xs text-text-muted";
@@ -162,67 +95,250 @@ const RAIL_EMPTY = "px-2 py-1 text-xs text-text-muted";
 /**
  * The glyph beside a page title: the small step in ink, so it supports the
  * heading rather than competing with it. Sized in `em` by the theme, like
- * every other glyph — and colored by the family, so the page says which of the
- * five it belongs to before its title is read.
+ * every other glyph.
  */
 const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
 
-const RAIL_HEAD =
-  "mb-2 flex items-center gap-2 text-xs font-semibold text-text-muted";
-
-/** The sub-heading every section of the landing carries. */
+/**
+ * The sub-heading every section of a page carries. Same rule as the rail's:
+ * never smaller than the items under it, so the size matches the prose it
+ * captains and the hierarchy is carried by weight and ink alone.
+ */
 const SUBHEAD =
-  "mb-2 mt-8 text-xs font-semibold normal-case tracking-normal text-text-muted";
+  "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 
-/** The brand mark: a spinner, at the size the icon scale calls large. */
-const BRAND_MARK = "i-lucide-loader-circle icon-lg shrink-0 text-primary";
+/**
+ * The brand mark: a small orbit — a ring, and one dot sweeping it continuously
+ * on the theme's own motion scale, because `animate-spin` spends
+ * `--motion-duration-slow` rather than naming a number. A theme moves every
+ * animation by moving the scale, and this one moves with them.
+ *
+ * The ink is the brand hue and nothing else: `text-primary` is the one color
+ * the mark is allowed, and it is the color the focus ring already spends, so
+ * the mark is the product's own hue rather than a second opinion about it.
+ *
+ * Motion is decoration: the reduced-motion clamp in the preflight sets
+ * `animation-duration: 0.01ms !important` and `animation-iteration-count: 1
+ * !important` on every element, which stops the sweep without this component
+ * re-deciding anything.
+ */
+function BrandMark() {
+  return (
+    <span
+      class="relative block h-[1.25rem] w-[1.25rem] shrink-0"
+      aria-hidden="true"
+    >
+      <i class="absolute inset-0 rounded-full border border-solid border-primary" />
+      <i class="absolute inset-0 animate-spin flex items-start justify-center">
+        <i class="block h-1 w-1 rounded-full bg-primary" />
+      </i>
+    </span>
+  );
+}
 
-/** The search field the rail is filtered through, and the input in it. */
+/**
+ * The search field the rail is filtered through, and the input in it: one
+ * line, an icon and a box, and no chrome beyond the field itself.
+ */
 const SEARCH_FIELD =
-  "flex min-w-0 flex-1 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1";
-const SEARCH_INPUT = "w-full bg-transparent text-sm font-regular text-text";
+  "flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs";
+// The field primitive pads and borders every `<input>` it claims, so a
+// control inside a chrome of its own is a box within a box: the input spends
+// its border and its padding here, and the field it sits in supplies both.
+const SEARCH_INPUT =
+  "w-full border-transparent bg-transparent p-0 text-xs text-text";
+
+/** The theme picker: a real form control, named by the label that wraps it. */
+const SELECT_LABEL = "shrink-0 text-xs font-medium text-text-muted";
+const SELECT =
+  "min-w-0 flex-1 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
+
+/** The mode switch: one button, one icon, and the label it answers to. */
+const ICON_BUTTON =
+  "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-border bg-surface-raised p-1 text-sm text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /** The copy, within the revealed block: it acts on the code beside it. */
 const COPY_BUTTON =
-  "absolute end-2 top-2 inline-flex items-center gap-1 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
-/** The panel a specimen is demoed in: the md measure, the bound prose reads at. */
+/**
+ * The panel a specimen is demoed in. The largest spacing step is three steps
+ * tall so a demo's own fixed-height scroller (`h-16`) has something to
+ * scroll, and the panel is the scroller for anything taller still — so the
+ * padding went up a step, because a demonstration with a hairline of air
+ * around it reads as a screenshot rather than as a surface.
+ *
+ * The fill is the page's own surface rather than the raised step: the code
+ * view beside it is a `<pre>`, and a bare `pre` is claimed by the primitive
+ * layer, which pins its background to the same surface — so the two views of
+ * one specimen are the same paper, and swapping between them changes the
+ * content and nothing else.
+ */
 const SPECIMEN_PANEL =
-  "min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface-raised p-4 shadow-sm";
+  "min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface p-8 shadow-sm";
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 
 /**
- * The palette the landing strips, in the order a reader meets it: the three
- * brand hues, the status set, the surfaces a page is built from, and the inks
- * and edges that say what is on them.
+ * The code block of a specimen. It is ALWAYS in the flow — it is the element
+ * that decides the height of the specimen's box — so the component view is
+ * laid over the same box instead of replacing it and switching between the
+ * two cannot move the page under the reader.
+ *
+ * The declarations that the primitive layer already pins on a bare `<pre>`
+ * are still spelled here — the padding, the radius, the ink — because a class
+ * that names what it means survives the day the pin is lifted, and a panel
+ * that relied on a rule it cannot see is a panel that breaks silently.
  */
-const PALETTE: readonly string[] = [
-  "bg-primary",
-  "bg-secondary",
-  "bg-accent",
-  "bg-semantic-success",
-  "bg-semantic-warning",
-  "bg-semantic-error",
-  "bg-semantic-info",
-  "bg-surface",
-  "bg-surface-raised",
-  "bg-surface-sunken",
-  "bg-field",
-  "bg-text",
-  "bg-text-muted",
-  "bg-border",
-  "bg-border-strong",
-  "bg-link",
-];
+const CODE_PRE =
+  "max-w-full overflow-x-auto rounded-md border border-dashed border-solid border-border bg-surface p-4 font-mono text-text shadow-sm";
 
 /**
- * The three specimens the landing shows. One per family that has a face:
- * Forms, Surfaces and Feedback, each the example that shows the most of the
- * component at once — the variants, every part, the whole tone set.
+ * One token of example markup, as the code viewer reads it.
+ *
+ * Self-contained on purpose: the reference demonstrates the styling surface,
+ * so a syntax highlighter from a dependency would be a second stylesheet the
+ * theme cannot reach. The tokenizer is a single pass over the string and
+ * nothing else — no grammar, no recovery, no recursion.
+ */
+type CodeTokenType =
+  | "tag"
+  | "attr"
+  | "string"
+  | "comment"
+  | "punct"
+  | "text";
+
+interface CodeToken {
+  readonly type: CodeTokenType;
+  readonly value: string;
+}
+
+const WHITESPACE = /\s/;
+const NAME_STOP = /[\s=/>]/;
+
+/**
+ * Example HTML, tokenized: tags, attribute names, string values, comments and
+ * the text between them. Everything the markup spells is preserved exactly,
+ * whitespace included, because the code view is the markup a consumer copies.
+ */
+function tokenizeHtml(html: string): CodeToken[] {
+  const out: CodeToken[] = [];
+  const push = (type: CodeTokenType, value: string) => {
+    if (value !== "") out.push({ type, value });
+  };
+  let i = 0;
+  while (i < html.length) {
+    const lt = html.indexOf("<", i);
+    if (lt === -1) {
+      push("text", html.slice(i));
+      break;
+    }
+    if (lt > i) push("text", html.slice(i, lt));
+    // A comment runs to its close, or to the end of the document.
+    if (html.startsWith("<!--", lt)) {
+      const end = html.indexOf("-->", lt + 4);
+      const stop = end === -1 ? html.length : end + 3;
+      push("comment", html.slice(lt, stop));
+      i = stop;
+      continue;
+    }
+    // A declaration (`<!doctype html>`) is read as one opaque run.
+    if (html.startsWith("<!", lt)) {
+      const end = html.indexOf(">", lt);
+      const stop = end === -1 ? html.length : end + 1;
+      push("comment", html.slice(lt, stop));
+      i = stop;
+      continue;
+    }
+    i = lt + 1;
+    if (html[i] === "/") {
+      push("punct", "/");
+      i += 1;
+    }
+    let end = i;
+    while (
+      end < html.length && !WHITESPACE.test(html[end]!) && html[end] !== ">" &&
+      html[end] !== "/"
+    ) {
+      end += 1;
+    }
+    push("tag", html.slice(i, end));
+    i = end;
+    while (i < html.length) {
+      const ch = html[i]!;
+      if (ch === ">") {
+        push("punct", ">");
+        i += 1;
+        break;
+      }
+      if (ch === "/" && html[i + 1] === ">") {
+        push("punct", "/>");
+        i += 2;
+        break;
+      }
+      if (WHITESPACE.test(ch)) {
+        let stop = i;
+        while (stop < html.length && WHITESPACE.test(html[stop]!)) stop += 1;
+        push("text", html.slice(i, stop));
+        i = stop;
+        continue;
+      }
+      if (ch === "/") {
+        push("punct", "/");
+        i += 1;
+        continue;
+      }
+      let attrEnd = i;
+      while (attrEnd < html.length && !NAME_STOP.test(html[attrEnd]!)) {
+        attrEnd += 1;
+      }
+      push("attr", html.slice(i, attrEnd));
+      i = attrEnd;
+      if (html[i] === "=") {
+        push("punct", "=");
+        i += 1;
+        const quote = html[i];
+        if (quote === '"' || quote === "'") {
+          const close = html.indexOf(quote, i + 1);
+          const stop = close === -1 ? html.length : close + 1;
+          push("string", html.slice(i, stop));
+          i = stop;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The ink each token of the code viewer wears.
+ *
+ * Every one is a theme token and every one was MEASURED against the panel it
+ * sits on, in all three starter themes and both modes: the hues that read as
+ * syntax in one palette are illegible in another — `semantic-success` is a
+ * 3.3:1 slab on neobrut's white — so this is the set that clears 4.5:1
+ * everywhere rather than the set that looks most like someone else's editor.
+ * Tag and attribute are the two that carry the structure, so they take the
+ * two brand inks; a string is the one value a reader copies, and the muted
+ * step is the ink comments and punctuation are written in.
+ */
+const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
+  tag: "text-semantic-error",
+  attr: "text-primary",
+  string: "text-semantic-warning",
+  comment: "text-text-muted",
+  punct: "text-text-muted",
+  text: "text-text",
+};
+
+/**
+ * The three specimens the landing shows. Each is the example that shows the
+ * most of the component at once — the variants, every part, the whole tone
+ * set.
  */
 const FEATURED: readonly string[] = ["button", "card", "alert"];
 
@@ -232,11 +348,15 @@ const FEATURED: readonly string[] = ["button", "card", "alert"];
  * specimens, which turns a page of components into a page of code with
  * components in the gaps; the toggle puts the choice where it belongs, on the
  * specimen, and leaves the page a single surface at a time.
+ *
+ * The two views are not two boxes. The code is always in the flow and the
+ * component is laid over the very same box, so the panel's height is decided
+ * once and switching tabs cannot move the page under the reader — a viewer
+ * that reflows on every toggle is a viewer that loses your place.
  */
 function ExampleSection(props: {
   name: string;
   html: string;
-  accent: string;
   onLoad?: string;
 }) {
   let pre!: HTMLPreElement;
@@ -261,11 +381,12 @@ function ExampleSection(props: {
   const measure = props.html.trimStart().startsWith("<header")
     ? ""
     : SPECIMEN_MEASURE;
+  const tokens = createMemo(() => tokenizeHtml(props.html.trim()));
   return (
     <section class="mb-8">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-text">
-          <span class={`block h-1 w-4 rounded-full bg-${props.accent}`} />
+          <span class="block h-1 w-4 rounded-full bg-primary" />
           {props.name}
         </h3>
         <div class={SEGMENT_GROUP}>
@@ -289,36 +410,38 @@ function ExampleSection(props: {
           </button>
         </div>
       </div>
-      <Show
-        when={tab() === "component"}
-        fallback={
-          <div class="relative mt-4">
-            <pre
-              ref={pre}
-              class="max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted shadow-sm"
-            >
-            {props.html.trim()}
-            </pre>
-            <button type="button" onClick={copy} class={COPY_BUTTON}>
-              <i class="i-lucide-copy icon-md" />
-              {copied() ? "copied" : "copy"}
-            </button>
-          </div>
-        }
-      >
+      <div class="relative">
         {
-          /* The demo is the markup exactly as a consumer writes it; the panel
-            decides the room it gets. The demo area is the md measure — the
-            bound the page's own prose reads at — so a row of size variants
-            stacks into a column that compares them instead of a ragged wrap.
-            The largest spacing step is three steps tall so a demo's own
-            fixed-height scroller (`h-16`) has something to scroll, and the
-            panel is the scroller for anything taller still. */
+          /* The face the code reads at is spent on the tokens, not on the
+            block: a bare `<pre>` is claimed by the primitive layer, which
+            pins the block's own size, so the step a reader sees is the one the
+            text carries. This is also the step that makes the specimens
+            bigger — the code reads a size up from the demos around it. */
         }
-        <div class={SPECIMEN_PANEL}>
-          <div class={measure} innerHTML={props.html} />
-        </div>
-      </Show>
+        <pre ref={pre} class={CODE_PRE}>
+          <span class="text-md">
+            <For each={tokens()}>
+              {(token) => (
+                <span class={CODE_INK[token.type]}>{token.value}</span>
+              )}
+            </For>
+          </span>
+        </pre>
+        <button type="button" onClick={copy} class={COPY_BUTTON}>
+          <i class="i-lucide-copy icon-md" />
+          {copied() ? "copied" : "copy"}
+        </button>
+        {
+          /* The demo is the markup exactly as a consumer writes it, laid over
+            the code's box: the same panel, the same surface, the same edges,
+            so the swap is a change of content and not a change of page. */
+        }
+        <Show when={tab() === "component"}>
+          <div class={`${SPECIMEN_PANEL} absolute inset-0`}>
+            <div class={measure} innerHTML={props.html} />
+          </div>
+        </Show>
+      </div>
     </section>
   );
 }
@@ -327,46 +450,38 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
   const fixture = createMemo(() => PRIMITIVES.find((r) => r.id === props.id));
   return (
     <Show when={fixture()} fallback={<p>Not found</p>}>
-      {(f) => {
-        const accent = FAMILY_ACCENT[FAMILY_OF[f().id]];
-        return (
-          <>
-            <header class="mb-8 flex items-start justify-between gap-4">
-              <div class="flex items-start gap-2">
-                <i
-                  class={`${
-                    PRIMITIVE_ICONS[f().id]
-                  } ${TITLE_ICON} text-${accent.token}`}
-                />
-                <div>
-                  <h2 class="m-0 text-2xl font-bold tracking-tight">
-                    {f().title}
-                  </h2>
-                  <div class="font-mono text-xs text-text-muted">
-                    {f().kind}
-                  </div>
+      {(f) => (
+        <>
+          <header class="mb-8 flex items-start justify-between gap-4">
+            <div class="flex items-start gap-2">
+              <i class={`${PRIMITIVE_ICONS[f().id]} ${TITLE_ICON}`} />
+              <div>
+                <h2 class="m-0 text-2xl font-bold tracking-tight">
+                  {f().title}
+                </h2>
+                <div class="font-mono text-xs text-text-muted">
+                  {f().kind}
                 </div>
               </div>
-              <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
-                {f().examples.length} examples
-              </span>
-            </header>
-            <p class="mb-8 max-w-screen-md text-md text-text-muted">
-              {f().note}
-            </p>
-            <For each={[...f().examples]}>
-              {(e) => (
-                <ExampleSection
-                  name={e.name}
-                  html={e.html}
-                  accent={accent.token}
-                  onLoad={f().onLoad ?? props.onLoad}
-                />
-              )}
-            </For>
-          </>
-        );
-      }}
+            </div>
+            <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+              {f().examples.length} examples
+            </span>
+          </header>
+          <p class="mb-8 max-w-screen-md text-md text-text-muted">
+            {f().note}
+          </p>
+          <For each={[...f().examples]}>
+            {(e) => (
+              <ExampleSection
+                name={e.name}
+                html={e.html}
+                onLoad={f().onLoad ?? props.onLoad}
+              />
+            )}
+          </For>
+        </>
+      )}
     </Show>
   );
 }
@@ -375,26 +490,13 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
 const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number]> = Object
   .fromEntries(PRIMITIVES.map((p) => [p.id, p]));
 
-/**
- * The family's members, alphabetical by the title the rail spells: the
- * grouping is the index's, and within a family a reader scans a sorted list.
- */
-function membersOf(family: (typeof FAMILIES)[number]) {
-  return [...family.members].sort((a, b) =>
-    PAGE_BY_ID[a.id].title.localeCompare(PAGE_BY_ID[b.id].title)
-  );
-}
-
 /** One specimen on the landing: a component, as a consumer writes it. */
 function FeaturedSpecimen(props: { id: string }) {
   const page = PAGE_BY_ID[props.id];
-  const accent = FAMILY_ACCENT[FAMILY_OF[props.id]];
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
-        <i
-          class={`${PRIMITIVE_ICONS[props.id]} icon-md text-${accent.token}`}
-        />
+        <i class={`${PRIMITIVE_ICONS[props.id]} icon-md text-text-muted`} />
         <h4 class="m-0 text-sm font-semibold text-text">{page.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
@@ -413,26 +515,54 @@ function FeaturedSpecimen(props: { id: string }) {
 }
 
 /**
+ * One row of the landing's index: the glyph, the name, the count. Alphabetical,
+ * because a reader looking for a name scans a sorted list rather than a
+ * taxonomy they have to learn first — and a filing is an opinion about where a
+ * component belongs, which is a decision the reference has no business making
+ * on a reader's behalf.
+ */
+function IndexRow(props: { id: string }) {
+  const page = PAGE_BY_ID[props.id];
+  return (
+    <button
+      type="button"
+      onClick={() => (location.hash = `#/components/${props.id}`)}
+      class="flex w-full items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2 text-left shadow-sm hover:border-border-strong"
+    >
+      <i
+        class={`${PRIMITIVE_ICONS[props.id]} icon-md shrink-0 text-text-muted`}
+      />
+      <span class="min-w-0 flex-1 truncate text-sm text-text">
+        {page.title}
+      </span>
+      <span class="shrink-0 font-mono text-xs text-text-muted">
+        {page.examples.length}
+      </span>
+    </button>
+  );
+}
+
+/**
  * The landing.
  *
  * Not a menu: the rail is the navigable list and it is on screen at the same
  * time, so a landing that repeats it is the same menu twice. What a landing
  * can say that a rail cannot is what the thing IS — the mark, the line it
- * stands for, the palette that is the product, the five families as places to
- * go, and three specimens to look at.
+ * stands for, three specimens to look at, and the index a reader scans.
  */
-function LandingPage(props: { values: Readonly<Record<string, string>> }) {
+function LandingPage() {
+  const components = createMemo(() =>
+    [...PRIMITIVES].sort((a, b) => a.title.localeCompare(b.title))
+  );
   return (
     <>
       <header class="mb-8">
         <div class="flex items-center gap-3">
-          <i class={BRAND_MARK} />
+          <BrandMark />
           <h2 class="m-0 text-2xl font-bold tracking-tight">Primitives</h2>
         </div>
         <div class="font-mono text-xs text-text-muted">
-          spin reference · {PRIMITIVES.length} components · {FAMILIES.length}
-          {" "}
-          families
+          spin reference · {PRIMITIVES.length} components
         </div>
         <p class="mt-4 max-w-screen-md text-md text-text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
@@ -442,62 +572,28 @@ function LandingPage(props: { values: Readonly<Record<string, string>> }) {
       </header>
 
       <section class="mb-8">
-        <h3 class={SUBHEAD}>The palette</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
-          Every color on every page is one of these tokens, filled by a class
-          and resolved by the theme. Switching the theme in the header is the
-          whole product changing, not a repaint.
-        </p>
-        <div class="flex flex-wrap gap-2">
-          <For each={PALETTE}>
-            {(name) => <Swatch name={name} values={props.values} />}
-          </For>
-        </div>
-      </section>
-
-      <section class="mb-8">
-        <h3 class={SUBHEAD}>Families</h3>
-        <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
-          <For each={FAMILIES}>
-            {(family) => {
-              const accent = FAMILY_ACCENT[family.title];
-              return (
-                <button
-                  type="button"
-                  onClick={() => (location.hash = `#/family/${family.title}`)}
-                  class="flex flex-col items-start gap-2 rounded-md border border-solid border-border bg-surface-raised p-4 text-left shadow-sm hover:border-border-strong"
-                >
-                  <span class="flex w-full items-center gap-2">
-                    <i
-                      class={`${
-                        FAMILY_ICONS[family.title]
-                      } icon-md text-${accent.token}`}
-                    />
-                    <span class="text-sm font-semibold text-text">
-                      {family.title}
-                    </span>
-                    <span class="ms-auto font-mono text-xs text-text-muted">
-                      {family.members.length}
-                    </span>
-                  </span>
-                  <span class="text-xs text-text-muted">{family.blurb}</span>
-                </button>
-              );
-            }}
-          </For>
-        </div>
-      </section>
-
-      <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
         <p class="mb-4 max-w-screen-md text-sm text-text-muted">
           Three of the{" "}
           {PRIMITIVES.length}, rendered from the markup a consumer writes — no
           wrapper, no adapter, the rules beside the rule they came from.
         </p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="grid grid-cols-3 gap-4">
           <For each={FEATURED}>
             {(id) => <FeaturedSpecimen id={id} />}
+          </For>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h3 class={SUBHEAD}>Index</h3>
+        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+          Every component, alphabetical, with the number of examples each one
+          carries.
+        </p>
+        <div class="grid grid-cols-3 gap-2">
+          <For each={components()}>
+            {(page) => <IndexRow id={page.id} />}
           </For>
         </div>
       </section>
@@ -505,78 +601,15 @@ function LandingPage(props: { values: Readonly<Record<string, string>> }) {
   );
 }
 
-/** One family, as a page: what it is, and every member filed under it. */
-function FamilyPage(props: { title: string }) {
-  const family = createMemo(() =>
-    FAMILIES.find((f) => f.title === props.title)
-  );
-  return (
-    <Show when={family()} fallback={<p>Not found</p>}>
-      {(f) => {
-        const accent = FAMILY_ACCENT[f().title];
-        return (
-          <>
-            <header class="mb-8 flex items-start justify-between gap-4">
-              <div class="flex items-start gap-2">
-                <i
-                  class={`${
-                    FAMILY_ICONS[f().title]
-                  } ${TITLE_ICON} text-${accent.token}`}
-                />
-                <div>
-                  <h2 class="m-0 text-2xl font-bold tracking-tight">
-                    {f().title}
-                  </h2>
-                  <div class="font-mono text-xs text-text-muted">
-                    {f().members.length} components
-                  </div>
-                </div>
-              </div>
-            </header>
-            <p class="mb-8 max-w-screen-md text-md text-text-muted">
-              {f().blurb}
-            </p>
-            <ul class="flex list-none flex-col gap-2 p-0">
-              <For each={membersOf(f())}>
-                {(member) => (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => (location.hash =
-                        `#/components/${member.id}`)}
-                      class="flex w-full items-center gap-4 rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-left shadow-sm hover:border-border-strong"
-                    >
-                      <i
-                        class={`${
-                          PRIMITIVE_ICONS[member.id]
-                        } icon-md shrink-0 text-${accent.token}`}
-                      />
-                      <span class="w-32 shrink-0 text-sm text-text">
-                        {PAGE_BY_ID[member.id].title}
-                      </span>
-                      <span class="min-w-0 flex-1 text-xs text-text-muted">
-                        {member.note}
-                      </span>
-                      <span class="shrink-0 font-mono text-xs text-text-muted">
-                        {PAGE_BY_ID[member.id].examples.length} examples
-                      </span>
-                    </button>
-                  </li>
-                )}
-              </For>
-            </ul>
-          </>
-        );
-      }}
-    </Show>
-  );
-}
-
 /**
  * The header: the brand, the search that filters the rail, and the controls
- * that were the rail's. Sticky at the top, so the rail's own contents scroll
- * under it and the one thing a reader always has is the way to change the
- * theme, switch the surface, or name a component.
+ * that choose the look. Sticky at the top of the SIDEBAR, not above the page:
+ * the filters are the rail's controls, and a top bar would spend the page's
+ * width on chrome that only ever touches the rail.
+ *
+ * Every row is one line and one control. The taller a sticky block is, the
+ * more of the rail it covers while the rail scrolls under it, so the chrome is
+ * the compact thing here and the list is the prominent one.
  */
 function AppHeader(props: {
   route: Accessor<string>;
@@ -588,21 +621,47 @@ function AppHeader(props: {
   setQuery: (query: string) => void;
 }) {
   const utilities = () => props.route().startsWith("/utilities");
-  // The header lives at the top of the SIDEBAR, not above the page: the
-  // filters are the rail's controls, and a top bar would spend the page's
-  // width on chrome that only ever touches the rail.
+  const dark = () => props.mode() === "dark";
   return (
-    <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-3 flex flex-col gap-2 border-b border-solid border-border bg-surface px-4 pt-4 pb-3">
-      <button
-        type="button"
-        onClick={() => (location.hash = "#/components")}
-        class="flex items-center gap-2 self-start rounded-md border border-solid border-transparent bg-transparent px-1 py-1 text-text shadow-none cursor-pointer hover:border-border-strong"
-      >
-        <i class={BRAND_MARK} />
-        <span class="text-lg font-bold tracking-tight">spin</span>
-      </button>
+    <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b border-solid border-border bg-surface px-4 pt-2 pb-2">
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => (location.hash = "#/components")}
+          class="flex min-h-0 min-w-0 items-center gap-2 rounded-md border border-solid border-transparent bg-transparent px-1 py-0 text-text shadow-none cursor-pointer hover:border-border-strong"
+        >
+          <BrandMark />
+          <span class="text-md font-bold tracking-tight">spin</span>
+        </button>
+        <label class="flex min-w-0 flex-1 items-center gap-1">
+          <span class={SELECT_LABEL}>theme</span>
+          <select
+            class={SELECT}
+            onChange={(event) => props.setTheme(event.currentTarget.value)}
+          >
+            <For each={THEMES}>
+              {(t) => (
+                <option value={t} selected={t === props.theme()}>
+                  {t}
+                </option>
+              )}
+            </For>
+          </select>
+        </label>
+        <button
+          type="button"
+          onClick={() => props.setMode(dark() ? "base" : "dark")}
+          aria-label={dark() ? "Switch to base mode" : "Switch to dark mode"}
+          title={dark() ? "base mode" : "dark mode"}
+          class={ICON_BUTTON}
+        >
+          <i
+            class={dark() ? "i-lucide-sun icon-md" : "i-lucide-moon icon-md"}
+          />
+        </button>
+      </div>
       <label class={SEARCH_FIELD}>
-        <i class="i-lucide-search icon-md shrink-0 text-text-muted" />
+        <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
         <input
           type="search"
           value={props.query()}
@@ -611,27 +670,6 @@ function AppHeader(props: {
           class={SEARCH_INPUT}
         />
       </label>
-      <div class="flex flex-wrap items-center gap-1">
-        <For each={THEMES}>
-          {(t) => (
-            <Chip
-              label={t}
-              active={props.theme() === t}
-              onPick={() => props.setTheme(t)}
-            />
-          )}
-        </For>
-        <Chip
-          label="base"
-          active={props.mode() === "base"}
-          onPick={() => props.setMode("base")}
-        />
-        <Chip
-          label="dark"
-          active={props.mode() === "dark"}
-          onPick={() => props.setMode("dark")}
-        />
-      </div>
       <div class={SEGMENT_GROUP}>
         <button
           type="button"
@@ -655,10 +693,11 @@ function AppHeader(props: {
 }
 
 /**
- * The rail: families first, then alphabetical within each, filtered by the
- * search in the header. A family the search empties is hidden rather than
- * drawn as a heading over nothing, and the counts tell the reader what the
- * filter did without their having to compare against what they remember.
+ * The rail: ONE alphabetical list of every primitive, or the sections of the
+ * utility catalogue, filtered by the search in the header. A row the search
+ * empties is hidden rather than drawn as a heading over nothing, and the count
+ * tells the reader what the filter did without their having to compare
+ * against what they remember.
  */
 function Rail(props: {
   route: Accessor<string>;
@@ -673,28 +712,20 @@ function Rail(props: {
   const needle = createMemo(() => props.query().trim().toLowerCase());
   const utilities = () => props.route().startsWith("/utilities");
 
-  const groups = createMemo(() =>
-    FAMILIES.map((family) => ({
-      family,
-      accent: FAMILY_ACCENT[family.title],
-      members: membersOf(family).filter((m) =>
-        PAGE_BY_ID[m.id].title.toLowerCase().includes(needle())
-      ),
-    })).filter((g) => g.members.length > 0)
+  const components = createMemo(() =>
+    PRIMITIVES.filter((page) => page.title.toLowerCase().includes(needle()))
+      .sort((a, b) => a.title.localeCompare(b.title))
   );
 
   const sections = createMemo(() =>
     SECTIONS.filter((s) => s.title.toLowerCase().includes(needle()))
   );
 
-  const shown = () =>
-    utilities()
-      ? sections().length
-      : groups().reduce((total, g) => total + g.members.length, 0);
-  const total = () => (utilities() ? SECTIONS.length : PRIMITIVES.length);
+  const shown = () => utilities() ? sections().length : components().length;
+  const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length;
 
   return (
-    <nav class="sticky top-0 flex max-h-screen w-64 shrink-0 flex-col overflow-y-auto border-e border-solid border-border p-4">
+    <nav class="sticky top-0 flex max-h-screen w-[14rem] shrink-0 flex-col overflow-y-auto border-e border-solid border-border p-4">
       <AppHeader
         route={props.route}
         theme={props.theme}
@@ -706,7 +737,7 @@ function Rail(props: {
       />
       <div class={RAIL_HEAD}>
         <span>{utilities() ? "sections" : "components"}</span>
-        <span class="font-mono font-regular">
+        <span class="font-mono text-xs font-regular">
           {needle() === "" ? `${total()}` : `${shown()} of ${total()}`}
         </span>
       </div>
@@ -714,54 +745,27 @@ function Rail(props: {
         when={utilities()}
         fallback={
           <Show
-            when={groups().length > 0}
+            when={components().length > 0}
             fallback={
               <p class={RAIL_EMPTY}>No component matches “{props.query()}”.</p>
             }
           >
-            <For each={groups()}>
-              {(g) => (
-                <div>
-                  <div class={RAIL_FAMILY}>
-                    <i
-                      class={`${
-                        FAMILY_ICONS[g.family.title]
-                      } icon-md text-${g.accent.token}`}
-                    />
-                    {g.family.title}
-                    <span class="ms-auto font-mono text-xs font-regular text-text-muted">
-                      {g.members.length}
-                    </span>
-                  </div>
-                  <For each={g.members}>
-                    {(member) => {
-                      const current = () =>
-                        props.route() === `/components/${member.id}`;
-                      return (
-                        <button
-                          type="button"
-                          onClick={() => (location.hash =
-                            `#/components/${member.id}`)}
-                          aria-current={current() || undefined}
-                          class={`${RAIL_LINK} ${g.accent.current}`}
-                        >
-                          <i
-                            class={`${PRIMITIVE_ICONS[member.id]} icon-md ${
-                              current() ? `text-${g.accent.token}` : ""
-                            }`}
-                          />
-                          {PAGE_BY_ID[member.id].title}
-                          <Show when={current()}>
-                            <i
-                              class={`ms-auto block h-2 w-2 shrink-0 rounded-full bg-${g.accent.token}`}
-                            />
-                          </Show>
-                        </button>
-                      );
-                    }}
-                  </For>
-                </div>
-              )}
+            <For each={components()}>
+              {(page) => {
+                const current = () =>
+                  props.route() === `/components/${page.id}`;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => (location.hash = `#/components/${page.id}`)}
+                    aria-current={current() || undefined}
+                    class={RAIL_LINK}
+                  >
+                    <i class={`${PRIMITIVE_ICONS[page.id]} icon-md`} />
+                    {page.title}
+                  </button>
+                );
+              }}
             </For>
           </Show>
         }
@@ -779,7 +783,7 @@ function Rail(props: {
                 onClick={() => (location.hash = `#/utilities/${sec.id}`)}
                 aria-current={routeSection(props.route()) === sec.id ||
                   undefined}
-                class={RAIL_SECTION}
+                class={RAIL_LINK}
               >
                 <span>{sec.title}</span>
                 <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
@@ -794,11 +798,15 @@ function Rail(props: {
   );
 }
 
-/** The section a utilities route names, or the first one for a bare route. */
+/**
+ * The section a utilities route names, or the empty string for the bare one —
+ * a bare route is a question ("what is on this side"), the first section is
+ * not an answer to it, and the landing is.
+ */
 function routeSection(route: string): string {
   const parts = route.split("/");
   if (parts[1] !== "utilities") return "";
-  return parts[2] || SECTIONS[0]?.id || "";
+  return parts[2] ?? "";
 }
 
 export default function App() {
@@ -813,13 +821,6 @@ export default function App() {
     return () => removeEventListener("hashchange", onHash);
   });
   const catalog = createMemo(() => describeCatalog(themeTreeOrParse()));
-  // A bare `#/utilities` names no section. The first one is the answer: an
-  // empty route is a question, and "No such section" is not an answer to it.
-  const section = createMemo(() => routeSection(route()));
-  // The palette the landing strips is the theme the reader picked, in the mode
-  // they picked it in: a landing that showed one theme's hexes under another
-  // theme's fills would be a page that lies about the product.
-  const palette = createMemo(() => colorValues(theme(), mode()));
 
   const primitiveId = createMemo(() => {
     const parts = route().split("/");
@@ -827,17 +828,10 @@ export default function App() {
       ? parts[2]
       : undefined;
   });
-  const familyTitle = createMemo(() => {
-    const parts = route().split("/");
-    return parts[1] === "family" && (parts[2] ?? "") !== ""
-      ? decodeURIComponent(parts[2])
-      : undefined;
-  });
   const utilities = createMemo(() => route().startsWith("/utilities"));
+  const sectionId = createMemo(() => routeSection(route()));
   const landing = createMemo(
-    () =>
-      primitiveId() === undefined && familyTitle() === undefined &&
-      !utilities(),
+    () => primitiveId() === undefined && !utilities(),
   );
 
   return (
@@ -857,14 +851,13 @@ export default function App() {
           <Show when={primitiveId()} keyed>
             {(id) => <PrimitivePage id={id} />}
           </Show>
-          <Show when={familyTitle()} keyed>
-            {(title) => <FamilyPage title={title} />}
+          <Show when={landing()}>
+            <LandingPage />
           </Show>
           <Show when={utilities()}>
-            <UtilitiesPage group={section()} />
-          </Show>
-          <Show when={landing()}>
-            <LandingPage values={palette()} />
+            <Show when={sectionId() !== ""} fallback={<UtilitiesLanding />}>
+              <UtilitiesPage group={sectionId()} />
+            </Show>
           </Show>
         </main>
       </div>
