@@ -103,15 +103,13 @@ const RAIL_BAND =
 /**
  * The heading over the rail's list.
  *
- * A heading outranks the rows under it: a size that is the same or larger, a
- * heavier weight, and full ink rather than the muted step — a rail whose
- * group titles are SMALLER than its members reads as one flat list of
- * unrelated things, and one whose titles are quieter reads as a caption over
- * the very things it captains. The air above is a bigger step than the air
- * below, so the heading belongs to its group rather than to the header.
+ * It outranks the group bands beneath it, which outrank the rows beneath those:
+ * three levels of rail, three distinct sizes. A list heading the same size as
+ * its own groups reads as one band among many, and a rail whose hierarchy is
+ * flat is a rail you have to read end to end.
  */
 const RAIL_HEAD =
-  "mt-8 mb-2 flex items-center gap-2 px-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
+  "mb-2 flex items-center gap-2 px-2 pt-3 text-lg font-bold normal-case tracking-normal text-text first:mt-0";
 
 /** What the rail says when the search has left it nothing to say. */
 const RAIL_EMPTY = "px-2 py-1 text-xs text-text-muted";
@@ -132,52 +130,36 @@ const SUBHEAD =
   "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 
 /**
- * The brand mark: a spinnaker.
+ * The spin mark: a spinnaker in full hoist.
  *
- * `spin` is short for spinnaker, so the mark is the sail that names the
- * product rather than a spinner that names nothing — the luff up the left, a
- * straight foot along the bottom, and a belly that bulges between them to a
- * corner at the clew. A quarter-disc with a straight edge: the two straight
- * edges are what give the curve a reason to be there, so at 20px it reads as
- * a sail and not as a pie.
+ * A spinnaker is the balloon sail — a rounded head at the tack, a long curve
+ * out to the clew, a straight luff back down to the throat. The shape is the
+ * whole mark, so it is drawn as that: one filled path for the cloth, one line
+ * for the luff that keeps it reading as a sail rather than a blob.
  *
- * Three shapes were drawn first. The orbit — a ring with a dot sweeping it —
- * is the shape every loading state already wears, and a mark that spells
- * "busy" above a word that means "sail" is a contradiction. A billowed
- * teardrop has a belly everywhere and an edge nowhere, so at 20px it is a
- * blob with nothing to name it. A plain quarter-disc arc, the mast and boom
- * removed, is a chart. The sail keeps all three corners of the real thing:
- * the head, the tack and the clew.
- *
- * The ink is the brand hue and nothing else: `text-primary` is the one color
- * the mark is allowed, and it is the color the focus ring already spends, so
- * the mark is the product's own hue rather than a second opinion about it.
- * The fill inherits it through `fill-current`, which is the only way an SVG
- * may take a theme color — there is no `fill-*` in the vocabulary, because
- * `text-*` is the one namespace that reaches an element's own color.
- *
- * Motion is decoration, and the vocabulary it may be drawn from is closed:
- * `animate-spin` is a full turn, which is the spinner this mark replaced, and
- * an app may not author a keyframe of its own. What is left is `animate-pulse`
- * — the one gentle loop there is — which spends `--motion-duration-slow` and
- * `--motion-easing-standard` rather than naming a number. A theme moves every
- * animation by moving the scale, and this one moves with them: the ink eases
- * between full and half, the way a gust passes through a real sail.
- *
- * The reduced-motion clamp in the preflight sets `animation-duration: 0.01ms
- * !important` and `animation-iteration-count: 1 !important` on every element,
- * which stops the breath without this component re-deciding anything.
+ * It animates on hover only. A brand that moves on its own is a brand that
+ * competes with the page for attention — a loader's job — so at rest it is
+ * still, and the pointer asking about it is what fills the cloth. The wind is
+ * the theme's own motion tokens, so a theme with no motion ships a mark that
+ * simply doesn't animate.
  */
 function BrandMark() {
   return (
     <svg
-      class="block h-[1.25rem] w-[1.25rem] shrink-0 animate-pulse text-primary"
-      viewBox="0 0 20 20"
+      class="group/mark block h-[1.25rem] w-[1.25rem] shrink-0 text-primary"
+      viewBox="0 0 24 24"
       aria-hidden="true"
     >
       <path
-        class="fill-current"
-        d="M3 3 L3 16 L17.5 16 C 17.5 9 11.5 4 3 3 Z"
+        class="fill-current transition-transform duration-slow ease-standard origin-bottom group-hover/mark:-translate-y-px"
+        d="M5 4 C 12 4 19 9 20 20 L 5 20 Z"
+      />
+      <path
+        class="stroke-current transition-opacity duration-slow ease-standard opacity-0 group-hover/mark:opacity-100"
+        d="M5 4 L5 20"
+        stroke-width="1.25"
+        stroke-linecap="round"
+        fill="none"
       />
     </svg>
   );
@@ -1109,16 +1091,18 @@ function Rail(props: {
   const groups = createMemo<
     readonly {
       readonly label: string;
+      readonly count?: number;
       readonly rows: readonly RailRow[];
     }[]
   >(() =>
     utilities()
       ? sections().map((sec) => ({
         label: sec.title,
-        rows: utilitiesFor(sec, props.catalog()).map((name) => ({
-          id: name,
-          title: name,
-        })),
+        count: utilitiesFor(sec, props.catalog()).length,
+        // A utility is a token's spelling — `bg-primary`, `p-2` — and has no
+        // page of its own, so a rail row per utility is a column of links
+        // that go nowhere.
+        rows: [],
       }))
       : CATEGORIES
         .map((cat) => ({
@@ -1193,7 +1177,31 @@ function Rail(props: {
           <For each={groups()}>
             {(group) => (
               <>
-                <div class={RAIL_BAND}>{group.label}</div>
+                {
+                  /*
+                  A group with no rows IS its row: the utilities side
+                  navigates by section, and a section's name is the thing you
+                  click.
+                */
+                }
+                <Show when={group.rows.length === 0}>
+                  <button
+                    type="button"
+                    onClick={() => (location.hash =
+                      `#/utilities/${group.label.toLowerCase()}`)}
+                    aria-current={routeSection(props.route()) ===
+                        group.label.toLowerCase() || undefined}
+                    class={RAIL_LINK}
+                  >
+                    <span class="min-w-0 truncate">{group.label}</span>
+                    <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+                      {group.count}
+                    </span>
+                  </button>
+                </Show>
+                <Show when={group.rows.length > 0}>
+                  <div class={RAIL_BAND}>{group.label}</div>
+                </Show>
                 <For each={group.rows}>
                   {(row) => {
                     const current = () =>
