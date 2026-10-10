@@ -4,8 +4,12 @@ import SideBySide from "./routes/side-by-side.tsx";
 import TreeViewFsm from "./routes/tree-view-fsm.tsx";
 import DialogFsm from "./routes/dialog-fsm.tsx";
 import TabsFsm from "./routes/tabs-fsm.tsx";
+import AvatarFsm from "./routes/avatar-fsm.tsx";
+import RatingFsm from "./routes/rating-fsm.tsx";
+import ListboxFsm from "./routes/listbox-fsm.tsx";
 import SliderFsm from "./routes/slider-fsm.tsx";
 import MenuFsm from "./routes/menu-fsm.tsx";
+import CascadeFsm from "./routes/cascade-fsm.tsx";
 import CarouselFsm from "./routes/carousel-fsm.tsx";
 import Popover from "./routes/popover.tsx";
 import Menu from "./routes/menu.tsx";
@@ -37,6 +41,27 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "Disclosure rows driven by the Zag accordion machine.",
     path: "/accordion",
     component: Accordion,
+  },
+  {
+    id: "avatar-fsm",
+    title: "Avatar (fsm)",
+    blurb: "Image load state on the forked FSM, with the observe action reporting settled status.",
+    path: "/avatar-fsm",
+    component: AvatarFsm,
+  },
+  {
+    id: "rating-fsm",
+    title: "Rating (fsm)",
+    blurb: "Hover preview, half stars from pointer position, form-control for fieldsets.",
+    path: "/rating-fsm",
+    component: RatingFsm,
+  },
+  {
+    id: "listbox-fsm",
+    title: "Listbox (fsm)",
+    blurb: "The low-level listbox: selection, typeahead, grid orientation, empty state.",
+    path: "/listbox-fsm",
+    component: ListboxFsm,
   },
   {
     id: "side-by-side",
@@ -86,6 +111,13 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "Two-state machine; hover-intent and long-press are actions, submenus are context.",
     path: "/menu-fsm",
     component: MenuFsm,
+  },
+  {
+    id: "cascade-fsm",
+    title: "Cascade select (fsm)",
+    blurb: "Multi-level selection: the level stack is derived from the highlight.",
+    path: "/cascade-fsm",
+    component: CascadeFsm,
   },
   {
     id: "popover",

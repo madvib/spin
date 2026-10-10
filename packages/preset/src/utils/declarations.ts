@@ -28,6 +28,7 @@ import {
   SHADOW,
   TEXT_ALIGN,
   TEXT_DECORATION,
+  NUMERIC_VARIANTS,
   TEXT_TRANSFORMS,
   TRACKING,
   TRANSITION_PROPERTY,
@@ -61,6 +62,12 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
     Object.entries(TEXT_TRANSFORMS).map(([name, value]) => [
       name,
       { "text-transform": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(NUMERIC_VARIANTS).map(([name, value]) => [
+      name,
+      { "font-variant-numeric": value },
     ]),
   ),
   ...Object.fromEntries(

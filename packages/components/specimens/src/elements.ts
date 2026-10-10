@@ -8,8 +8,6 @@ import "../../src/elements.ts";
  * names and the shapes passed across the boundary.
  */
 
-
-
 export interface DialogOpenChange {
   readonly open: boolean;
 }
@@ -101,8 +99,6 @@ declare module "solid-js" {
     }
   }
 }
-
-
 
 export type { AccordionValueChange } from "../../src/spin-accordion/accordion.machine-def.ts";
 export interface AccordionItem {
@@ -238,6 +234,48 @@ declare module "solid-js" {
         autoplayDelay?: number;
         allowMouseDrag?: boolean;
       };
+      "spin-tags-input-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        label?: string;
+        placeholder?: string;
+        value?: readonly string[];
+        defaultValue?: readonly string[];
+        inputValue?: string;
+        defaultInputValue?: string;
+        max?: number;
+        maxLength?: number;
+        delimiter?: string;
+        addOnPaste?: boolean;
+        allowDuplicates?: boolean;
+        allowOverflow?: boolean;
+        editable?: boolean;
+        disabled?: boolean;
+        readOnly?: boolean;
+        invalid?: boolean;
+        required?: boolean;
+        autoFocus?: boolean;
+        blurBehavior?: string;
+        name?: string;
+        form?: string;
+        dir?: string;
+        "prop:label"?: string;
+        "prop:defaultValue"?: readonly string[];
+        "prop:value"?: readonly string[];
+        "prop:inputValue"?: string;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+        "prop:max"?: number;
+        "prop:delimiter"?: string;
+        "prop:allowOverflow"?: boolean;
+        "prop:allowDuplicates"?: boolean;
+        "prop:blurBehavior"?: string;
+      };
+
+      
+      
+      
+      
       "spin-tooltip": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         openDelay?: number;
@@ -272,6 +310,80 @@ declare module "solid-js" {
       "spin-toast": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         items?: readonly ToastItem[];
+      };
+    }
+  }
+}
+
+
+declare module "solid-js" {
+  namespace JSX {
+    interface IntrinsicElements {
+"spin-avatar-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        src?: string;
+        alt?: string;
+        name?: string;
+        dir?: string;
+        "prop:src"?: string;
+        "prop:alt"?: string;
+        "prop:name"?: string;
+      };
+"spin-rating-group-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        count?: number;
+        value?: number;
+        defaultValue?: number;
+        name?: string;
+        allowHalf?: boolean;
+        readOnly?: boolean;
+        disabled?: boolean;
+        required?: boolean;
+        form?: string;
+        "prop:value"?: number;
+        "prop:defaultValue"?: number;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+        "prop:allowHalf"?: boolean;
+        "prop:count"?: number;
+        "prop:label"?: string;
+        "prop:required"?: boolean;
+        "prop:name"?: string;
+      };
+"spin-listbox-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        items?: unknown;
+        value?: string;
+        defaultValue?: string;
+        highlightedValue?: string;
+        selectionMode?: string;
+        disabled?: boolean;
+        "prop:value"?: string;
+        "prop:items"?: unknown;
+        "prop:label"?: string;
+        "prop:columnCount"?: number;
+        "prop:selectionMode"?: string;
+        "prop:disabled"?: boolean;
+        "prop:defaultValue"?: string;
+      };
+"spin-cascade-select-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        items?: unknown;
+        value?: string;
+        defaultValue?: string;
+        highlightedValue?: string;
+        open?: boolean;
+        disabled?: boolean;
+        "prop:value"?: string;
+        "prop:items"?: unknown;
       };
     }
   }

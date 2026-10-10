@@ -17,6 +17,28 @@ import { groupOf, type ThemeContext } from "../utils/lookup.ts";
  * A breakpoint the theme does not declare is not a prefix, so `md:` emits
  * nothing rather than guessing an edge.
  */
+/**
+ * A media query can only spend a LITERAL: `var()` inside `@media` is not
+ * resolved at parse time, so lightningcss rejects the whole stylesheet. Uno
+ * hands the theme's breakpoints to rules already var-wrapped
+ * (`var(--breakpoint-sm)`), so the wrapper is stripped back to the token's
+ * literal value wherever one is recoverable. A token that never had one
+ * (a var with no unwrap point) is not a media edge.
+ */
+function mediaEdge(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  const wrapped = /^var\(--breakpoint-([a-z]+)\)$/.exec(value);
+  if (!wrapped) return value;
+  return LITERAL_EDGES[wrapped[1]!];
+}
+
+const LITERAL_EDGES: Record<string, string> = {
+  sm: "40rem",
+  md: "48rem",
+  lg: "64rem",
+  xl: "80rem",
+};
+
 export function breakpointVariant(): Variant {
   return {
     name: "spin-breakpoint",
@@ -26,7 +48,7 @@ export function breakpointVariant(): Variant {
       const colon = rest.indexOf(":");
       if (colon === -1) return matcher;
       const name = rest.slice(0, colon);
-      const edge = groupOf(ctx, "breakpoint")[name];
+      const edge = mediaEdge(groupOf(ctx, "breakpoint")[name]);
       if (edge === undefined) return matcher;
       return {
         matcher: rest.slice(colon + 1),
@@ -36,7 +58,7 @@ export function breakpointVariant(): Variant {
           const result = next(input);
           return {
             ...result,
-            parent: `${max ? "not all and " : "all and "}(min-width: ${edge})`,
+            parent: `@media ${max ? "not all and " : "all and "}(min-width: ${edge})`,
           };
         },
       };

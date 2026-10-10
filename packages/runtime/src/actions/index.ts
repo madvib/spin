@@ -16,9 +16,13 @@
 
 import { createAction } from "./action.ts";
 import type { ElementAction } from "./action.ts";
+import { formControl } from "./form-control.ts";
+import { observe } from "./observe.ts";
+import { scrollIntoView } from "./scroll-into-view.ts";
 
 export { runAction, createAction } from "./action.ts";
 export type { ElementAction } from "./action.ts";
+export type { ObserveParam } from "./observe.ts";
 
 /** Listen with automatic removal on destroy. */
 function listen(
@@ -377,7 +381,7 @@ export const resizeObserver: ElementAction<ResizeObserverParam | undefined> = cr
   if (typeof ResizeObserver !== "function") return;
   const observer = new ResizeObserver((entries) => {
     const box = entries[0]?.contentRect;
-    if (box) param?.onResize?.({ width: box.width, height: box.height });
+    if (box) param?.onResize?.(box);
   });
   observer.observe(node);
   return { destroy: () => observer.disconnect() };
@@ -397,6 +401,9 @@ export const ACTIONS = {
   intersect,
   "resize-observer": resizeObserver,
   "scroll-lock": scrollLock,
+  "form-control": formControl,
+  observe,
+  "scroll-into-view": scrollIntoView,
 } as const;
 
 export type ActionName = keyof typeof ACTIONS;

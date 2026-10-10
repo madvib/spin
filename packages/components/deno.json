@@ -21,7 +21,10 @@
     "./tabs-fsm": "./src/spin-tabs/spin-tabs-fsm.html",
     "./slider-fsm": "./src/spin-slider/spin-slider-fsm.html",
     "./carousel-fsm": "./src/spin-carousel/spin-carousel-fsm.html",
-    "./menu-fsm": "./src/spin-menu/spin-menu-fsm.html"
+    "./menu-fsm": "./src/spin-menu/spin-menu-fsm.html",
+    "./avatar": "./src/spin-avatar/spin-avatar-fsm.html",
+    "./rating-fsm": "./src/spin-rating-group/spin-rating-group-fsm.html",
+    "./listbox": "./src/spin-listbox/spin-listbox-fsm.html"
   },
   "imports": {
     "@spin/components": "./src/index.ts",
@@ -65,7 +68,11 @@
     "fmt": "deno fmt",
     "e2e:slider": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/slider.e2e.ts",
     "e2e:carousel": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/carousel.e2e.ts",
-    "e2e:menu": "deno run --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import tests/menu.e2e.ts"
+    "e2e:menu": "deno run --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import tests/menu.e2e.ts",
+    "e2e:avatar": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/avatar.e2e.ts",
+    "e2e:rating": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/rating.e2e.ts",
+    "e2e:listbox": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/listbox.e2e.ts",
+    "e2e:cascade": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/cascade.e2e.ts"
   },
   "compilerOptions": {
     "strict": true,

@@ -406,6 +406,22 @@ export const CORNER_LOGICAL: Record<string, string> = {
  * A theme that wanted to own this would be expressing a preference about its
  * own prose, which is what the type scale already is — so it is vocabulary.
  */
+/**
+ * Font variant numeric. wind4's rule emits `var(--un-numeric-spacing,)
+ * var(--un-numeric-fraction,)` — empty-fallback vars that lightningcss
+ * rejects outright, so the utility is unusable in a spin build. Literals
+ * override wind4's rule (ours sits above it), and the useful two names are
+ * fixed CSS keywords: a theme has nothing to theme here.
+ */
+export const NUMERIC_VARIANTS: Record<string, string> = {
+  "tabular-nums": "tabular-nums",
+  "proportional-nums": "proportional-nums",
+  "normal-nums": "normal",
+  "oldstyle-nums": "oldstyle-nums",
+  "lining-nums": "lining-nums",
+  "slashed-zero": "slashed-zero",
+};
+
 export const TEXT_TRANSFORMS: Record<string, string> = {
   uppercase: "uppercase",
   lowercase: "lowercase",

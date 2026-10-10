@@ -97,11 +97,12 @@ Deno.test("spin-accordion e2e", async () => {
       try {
         await page.goto(URL, { waitUntil: "load" });
         await page.waitForSelector('spin-accordion [data-part="item"]', {
-          timeout: 3000,
+          timeout: 10000,
         });
       } catch {
-        await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: "load" });
-        await page.click('a[href="/accordion"]');
+        // The specimens index hydrates client-side and the router-link dance
+        // races it; navigate directly like every other component e2e.
+        await page.goto(URL, { waitUntil: "load" });
         await page.waitForSelector('spin-accordion [data-part="item"]', {
           timeout: 5000,
         });

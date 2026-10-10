@@ -2,9 +2,10 @@ import type { Rule } from "@unocss/core";
 import { arbitraryValue, staticRules } from "../utils/factories.ts";
 import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
-import { OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
+import { NUMERIC_VARIANTS, OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
 
 export const TYPOGRAPHY_NAMES: readonly string[] = [
+  ...Object.keys(NUMERIC_VARIANTS),
   ...Object.keys(TEXT_TRANSFORMS),
   ...Object.keys(TRACKING).map((name) => `tracking-${name}`),
   ...Object.keys(OUTLINE),
