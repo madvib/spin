@@ -265,6 +265,15 @@ export function themeSchema(): Record<string, unknown> {
   for (const [group, paths] of Object.entries(groupedPaths())) {
     properties[group] = groupSchema(paths);
   }
+  // `modes` is document metadata, not a token: it sits at the root beside
+  // the groups and no emitter reads it. `additionalProperties` would already
+  // admit it, but the schema says what a document may carry so the field is
+  // listed — and constrained to the two modes the pipeline understands.
+  properties["modes"] = Type.Optional(
+    Type.Array(Type.Union([Type.Literal("light"), Type.Literal("dark")]), {
+      description: "The modes this theme serves.",
+    }),
+  );
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "https://spin.dev/theme.schema.json",

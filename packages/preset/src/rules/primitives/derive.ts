@@ -38,6 +38,7 @@ import { labelRules } from "./label.ts";
 import { iconRules } from "./icon.ts";
 import { joinRules } from "./join.ts";
 import { meterRules } from "./meter.ts";
+import { modeRules } from "./mode.ts";
 import { popoverRules } from "./popover.ts";
 import { rangeRules } from "./range.ts";
 import { ratingRules } from "./rating.ts";
@@ -360,6 +361,7 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   radio: () => radioRules(["radio"]),
   icon: () => iconRules(["icon"]),
   meter: () => meterRules(["meter"], { classless: true }),
+  mode: () => modeRules(["mode"], { classless: false }),
   field: () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
   range: () => rangeRules(["range"], { classless: true }),
   rating: () => ratingRules(["rating"], { classless: false }),

@@ -41,6 +41,10 @@ import {
   meterFixtureNote,
 } from "@spin/preset/rules/primitives/meter.examples.ts";
 import {
+  MODE_EXAMPLES,
+  modeFixtureNote,
+} from "@spin/preset/rules/primitives/mode.examples.ts";
+import {
   DIALOG_EXAMPLES,
   dialogFixtureNote,
 } from "@spin/preset/rules/primitives/dialog.examples.ts";
@@ -351,6 +355,13 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...METER_EXAMPLES],
   },
   {
+    id: "mode",
+    title: "Mode switch",
+    kind: "rule",
+    note: modeFixtureNote,
+    examples: [...MODE_EXAMPLES],
+  },
+  {
     id: "popover",
     title: "Popover",
     kind: "rule",
@@ -486,6 +497,7 @@ export const PRIMITIVE_ICONS: Readonly<Record<string, string>> = {
   kbd: "i-lucide-keyboard",
   label: "i-lucide-tag",
   meter: "i-lucide-gauge",
+  mode: "i-lucide-sun-moon",
   popover: "i-lucide-message-circle",
   progress: "i-lucide-loader",
   prose: "i-lucide-whole-word",

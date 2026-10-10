@@ -536,6 +536,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     character: [],
   },
+  mode: {
+    tags: [],
+    variants: ["button", "mode"],
+    reads: ["--icon-md", "--spacing-2"],
+    character: [],
+  },
   popover: {
     tags: ["popover", "tooltip"],
     variants: [],

@@ -874,10 +874,15 @@ function resolveMatrix(
         }.`,
       );
     }
-    // A theme's own modes, because a theme without a dark group renders one
-    // way and checking it twice would measure the same frame twice.
+    // A theme's own modes, because a theme with one rendering checked
+    // twice would measure the same frame twice. "base" is the reference's
+    // name for the theme's own base; "dark" is the override set a theme that
+    // serves it carries.
     const declared = modes.length === 0
-      ? ["base", ...themeModes(THEMES[theme])]
+      ? [
+        "base",
+        ...themeModes(THEMES[theme]).filter((m) => m === "dark"),
+      ]
       : modes;
     for (const mode of declared) matrix.push({ theme, mode });
   }

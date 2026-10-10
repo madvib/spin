@@ -1552,6 +1552,22 @@
           }
         }
       }
+    },
+    "modes": {
+      "description": "The modes this theme serves.",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "light",
+            "type": "string"
+          },
+          {
+            "const": "dark",
+            "type": "string"
+          }
+        ]
+      }
     }
   }
 }

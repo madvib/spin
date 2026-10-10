@@ -618,6 +618,21 @@
       },
       "on-semantic-error": {
         "$value": "#0b1120"
+      },
+      "border-strong": {
+        "$type": "color",
+        "$value": "#475569",
+        "$description": "The control's own edge, lifted one ramp step from its dark base so it still reads as stronger than `border`."
+      },
+      "on-semantic-info": {
+        "$type": "color",
+        "$value": "#0b1120",
+        "$description": "Ink on the lifted dark info fill, the same dark ink the other semantic fills take."
+      },
+      "surface-sunken": {
+        "$type": "color",
+        "$value": "{color.neutral.200}",
+        "$description": "Below the dark page the way the light stripe sits below the light page: one ramp step down, not the light stripe itself left over."
       }
     },
     "focus": {
@@ -648,5 +663,9 @@
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
     }
-  }
+  },
+  "modes": [
+    "light",
+    "dark"
+  ]
 }

@@ -19,6 +19,7 @@ import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { meterRules } from "./meter.ts";
+import { modeRules } from "./mode.ts";
 import { popoverRules } from "./popover.ts";
 import { rangeRules } from "./range.ts";
 import { ratingRules } from "./rating.ts";
@@ -76,6 +77,7 @@ export function primitiveRules(
     ...hrRules(roots, mode),
     ...kbdRules(roots, mode),
     ...labelRules(roots, mode),
+    ...modeRules(roots, mode),
     ...meterRules(roots, mode),
     ...popoverRules(roots, mode),
     ...rangeRules(roots, mode),

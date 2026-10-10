@@ -1,8 +1,15 @@
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import { starterThemes, themeModes } from "@spin/theme/themes";
 import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
@@ -28,16 +35,59 @@ function useTheme() {
   const [theme, setTheme] = createSignal(
     localStorage.getItem("spin-theme") ?? "default",
   );
-  const [mode, setMode] = createSignal(
-    localStorage.getItem("spin-mode") ?? "base",
+  const doc = () =>
+    (starterThemes as unknown as Record<string, unknown>)[theme()] as never;
+  const modes = () => [...themeModes(doc())];
+  // The mode the theme actually serves, in preference order: a theme with no
+  // dark group has one rendering, so it never reads "dark"; a theme whose
+  // base is light never reads "system" as dark-first.
+  const resolved = (requested: string): string => {
+    if (requested === "system") {
+      return modes().includes("dark")
+        ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "base")
+        : "base";
+    }
+    if (requested === "dark" && !modes().includes("dark")) return "base";
+    if (requested === "light") return "base";
+    return requested === "base" ? "base" : requested;
+  };
+  const [want, setWant] = createSignal(
+    localStorage.getItem("spin-mode") ?? "system",
   );
+  // A theme switch can strand the want: neobrut never serves dark, so a
+  // reader arriving from a dark default theme with "dark" wanted must land
+  // on its base instead of a mode that renders nothing different.
+  const wantFor = (t: string): string => {
+    const stored = t === theme()
+      ? localStorage.getItem("spin-mode") ?? "system"
+      : "system";
+    const m = [...themeModes(
+      (starterThemes as unknown as Record<string, unknown>)[t] as never,
+    )];
+    if (stored === "dark" && !m.includes("dark")) return "base";
+    return stored;
+  };
+  const wrappedSetTheme = (t: string) => {
+    setTheme(t);
+    setWant(wantFor(t));
+  };
+  const mode = () => resolved(want());
+  const setMode = (next: string) => setWant(next);
   createEffect(() => {
     document.documentElement.dataset.theme = theme();
     document.documentElement.dataset.mode = mode();
     localStorage.setItem("spin-theme", theme());
-    localStorage.setItem("spin-mode", mode());
+    localStorage.setItem("spin-mode", want());
   });
-  return { theme, setTheme, mode, setMode };
+  // The platform preference is live: a reader on "system" whose OS flips
+  // must see the page follow without touching the control again.
+  createEffect(() => {
+    const mql = matchMedia("(prefers-color-scheme: dark)");
+    const sync = () => setWant((w) => w);
+    mql.addEventListener("change", sync);
+    onCleanup(() => mql.removeEventListener("change", sync));
+  });
+  return { theme, setTheme: wrappedSetTheme, mode, setMode, want, modes };
 }
 
 /**
@@ -967,8 +1017,34 @@ function AppHeader(props: {
   setTheme: (theme: string) => void;
   mode: Accessor<string>;
   setMode: (mode: string) => void;
+  want: Accessor<string>;
+  modes: Accessor<readonly string[]>;
 }) {
+  // The cycle the reader walks: light -> dark -> system. A theme with one
+  // rendering disables the control rather than cycling to somewhere that
+  // does not exist: an enabled switcher on neobrut promises a dark
+  // rendering neobrut never ships.
   const dark = () => props.mode() === "dark";
+  const single = () => props.modes().length <= 1;
+  const next = (): string => {
+    const want = props.want();
+    if (single()) return want;
+    return want === "light" ? "dark" : want === "dark" ? "system" : "light";
+  };
+  const glyph = (): string => {
+    if (single()) return "i-lucide-minus icon-md";
+    const want = props.want();
+    if (want === "light") return "i-lucide-sun icon-md";
+    if (want === "dark") return "i-lucide-moon icon-md";
+    return "i-lucide-monitor icon-md";
+  };
+  const label = (): string => {
+    if (single()) return "This theme serves one mode";
+    const want = props.want();
+    if (want === "light") return "Use dark mode";
+    if (want === "dark") return "Follow the system";
+    return "Use light mode";
+  };
   return (
     <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b border-solid border-border bg-surface px-4 pt-2 pb-2">
       <div class="flex items-center gap-2 py-4">
@@ -993,14 +1069,14 @@ function AppHeader(props: {
         </label>
         <button
           type="button"
-          onClick={() => props.setMode(dark() ? "base" : "dark")}
-          aria-label={dark() ? "Switch to base mode" : "Switch to dark mode"}
-          title={dark() ? "base mode" : "dark mode"}
-          class={ICON_BUTTON}
+          class="mode"
+          onClick={() => props.setMode(next())}
+          aria-label={label()}
+          title={label()}
+          disabled={single() || undefined}
+          aria-disabled={single() || undefined}
         >
-          <i
-            class={dark() ? "i-lucide-sun icon-md" : "i-lucide-moon icon-md"}
-          />
+          <i class={glyph()} />
         </button>
       </div>
     </div>
@@ -1042,6 +1118,8 @@ function Rail(props: {
   setTheme: (theme: string) => void;
   mode: Accessor<string>;
   setMode: (mode: string) => void;
+  want: Accessor<string>;
+  modes: Accessor<readonly string[]>;
 }) {
   const needle = createMemo(() => props.query().trim().toLowerCase());
   const utilities = () => props.route().startsWith("/utilities");
@@ -1121,6 +1199,8 @@ function Rail(props: {
           setTheme={props.setTheme}
           mode={props.mode}
           setMode={props.setMode}
+          want={props.want}
+          modes={props.modes}
         />
         <div class={SEGMENT_GROUP}>
           <button
@@ -1245,7 +1325,7 @@ function routeSection(route: string): string {
 }
 
 export default function App() {
-  const { theme, setTheme, mode, setMode } = useTheme();
+  const { theme, setTheme, mode, setMode, want, modes } = useTheme();
   const [query, setQuery] = createSignal("");
   const [route, setRoute] = createSignal(
     location.hash.slice(1) || "/components",
@@ -1289,6 +1369,8 @@ export default function App() {
           setTheme={setTheme}
           mode={mode}
           setMode={setMode}
+          want={want}
+          modes={modes}
         />
         <main class="min-w-0 flex-1 p-8 pb-16">
           <Show when={primitiveId()} keyed>

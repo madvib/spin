@@ -530,5 +530,8 @@
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
     }
-  }
+  },
+  "modes": [
+    "dark"
+  ]
 }

@@ -10,7 +10,7 @@ import {
   validateTokens,
 } from "@spin/theme";
 import type { ParseResult, ThemeDocument, TokenTree } from "@spin/theme";
-import { supportsDark } from "@spin/theme/themes";
+import { themeModes } from "@spin/theme/themes";
 
 /**
  * These tests run the whole package against the example theme that ships with
@@ -301,29 +301,61 @@ Deno.test("the example theme's light document validates on its own", async () =>
   assertEquals(validateTokens(light).issues, []);
 });
 
-Deno.test("a theme declares the modes it actually has", async () => {
-  // Not "every starter carries a dark group" — that was the wrong property, and
-  // it was wrong for console, whose BASE is already dark: a terminal palette
-  // has no light mode, and generating a `dark` group from its own base
-  // restated it and added nothing.
-  //
-  // What is true of every theme is that its `dark` group only restates tokens
-  // it already declares, and that the set of modes a theme reports is derived
-  // from that group rather than listed beside it — so adding a mode is a change
-  // to the theme and not to a second file that has to agree.
-  for (const name of ["default", "neobrut", "console"]) {
-    const doc = parseTokens(
+Deno.test("a theme states its modes at the root", async () => {
+  // The modes are data, not derived from a group's presence: neobrut and
+  // console have no `dark` group but different mode postures, and asking "does
+  // this theme carry a dark override set?" cannot tell a base-that-is-dark
+  // from a theme that never declares one. `modes` says what it serves.
+  const expected: Record<string, string[]> = {
+    default: ["light", "dark"],
+    neobrut: ["light"],
+    console: ["dark"],
+  };
+  for (const [name, modes] of Object.entries(expected)) {
+    const doc = JSON.parse(
       await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
     );
-    if (!doc.ok) throw new Error(`${name}: ${doc.error}`);
+    assertEquals(doc.modes, modes, `${name}: root modes must say what it serves`);
+  }
+});
 
-    const carriesDark = Object.keys(doc.tree).some((node) =>
-      node.toLowerCase() === "dark"
+Deno.test("default's dark group restates every color and focus leaf", async () => {
+  // A `modes: ["light", "dark"]` theme that only restates SOME colors is a
+  // theme that ships half a dark mode: `border-strong` keeps its light value
+  // under a dark selector, and the stripe that reads `surface-sunken` paints
+  // a light cell on a dark row. The mode key is a promise to restate all of
+  // them, and the validator holds it — not the dark group's existence.
+  const tree = treeOf(
+    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
+    "default.json",
+  );
+  assertEquals(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
+});
+
+Deno.test("a theme declares the modes it actually has", async () => {
+  // Not "every starter carries a dark group" — that was the wrong property,
+  // and it was wrong for console, whose BASE is already dark: a terminal
+  // palette has no light mode, and generating a `dark` group from its own
+  // base restated it and added nothing.
+  //
+  // The set of modes a theme reports is what it DECLARES at its root, so a
+  // theme that drops the field answers nothing rather than answering from a
+  // group's presence — and adding a mode is a change to the theme document,
+  // which is the one file a theme owns.
+  for (
+    const [name, modes] of Object.entries({
+      default: ["light", "dark"],
+      neobrut: ["light"],
+      console: ["dark"],
+    })
+  ) {
+    const doc = JSON.parse(
+      await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
     );
     assertEquals(
-      supportsDark(doc as ThemeDocument),
-      carriesDark,
-      `${name}: the reported modes must follow from whether it declares one`,
+      [...themeModes(doc as ThemeDocument)],
+      modes,
+      `${name}: the reported modes must follow from its root field`,
     );
   }
 });

@@ -21,6 +21,7 @@
     "./rules/primitives/field.examples.ts": "./src/rules/primitives/field.examples.ts",
     "./rules/primitives/group.examples.ts": "./src/rules/primitives/group.examples.ts",
     "./rules/primitives/meter.examples.ts": "./src/rules/primitives/meter.examples.ts",
+    "./rules/primitives/mode.examples.ts": "./src/rules/primitives/mode.examples.ts",
     "./rules/primitives/join.examples.ts": "./src/rules/primitives/join.examples.ts",
     "./rules/primitives/label.examples.ts": "./src/rules/primitives/label.examples.ts",
     "./rules/primitives/popover.examples.ts": "./src/rules/primitives/popover.examples.ts",
