@@ -12,6 +12,7 @@ import {
 } from "@spin/preset/reference/build.ts";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
+import { inkTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -1174,11 +1175,6 @@ const MECHANISMS: readonly Mechanism[] = [
  * ────────────────────────────────────────────────────────────────────────── */
 
 /** The themes, so a swatch knows which foregrounds actually exist. */
-const THEME_COLORS = starterThemes as unknown as Record<
-  string,
-  Record<string, unknown>
->;
-
 /**
  * The foreground a fill DECLARES, as a class — or nothing.
  *
@@ -1186,14 +1182,13 @@ const THEME_COLORS = starterThemes as unknown as Record<
  * RAMP rather than a pairing: eleven steps and no ink for each.
  */
 function inkOn(name: string): string {
+  // The theme answers which ink goes on which fill: `inkTokens()` is derived
+  // from the contrast floors the theme already declares, so a fill's
+  // foreground is a question the domain answers rather than a convention the
+  // reference invents.
   if (!name.startsWith("bg-")) return "";
   const bare = name.slice(3);
-  const token = `on-${bare}`;
-  const declared = Object.values(THEME_COLORS).some((theme) => {
-    const color = theme["color"] as Record<string, unknown> | undefined;
-    return color !== undefined && token in color;
-  });
-  return declared ? `text-${token}` : "";
+  return inkTokens().includes(`on-${bare}`) ? `text-on-${bare}` : "";
 }
 
 /** The column count a grid utility declares, defaulting to three. */
@@ -2097,19 +2092,34 @@ const SPACING_STEPS = ["p-1", "p-2", "p-4", "p-8"] as const;
 const RADIUS_STEPS = ["rounded-sm", "rounded-md", "rounded-lg", "rounded-full"];
 const SHADOW_STEPS = ["shadow-sm", "shadow-md", "shadow-lg"];
 
+/**
+ * Every fill at once, each labelled with the ink the theme pairs with it.
+ *
+ * A fill without a declared pair carries its label BELOW it rather than on
+ * it: `bg-secondary` and the neutral ramp have no `on-*` token, so painting
+ * the class name on top of them is the reference inventing a foreground the
+ * theme never declared — measured 1.2:1 to 3.3:1 across the starters. Only a
+ * fill whose ink the theme answers gets text on it.
+ */
 function ColorSpecimen() {
   return (
     <div class="flex flex-wrap items-end gap-2">
       <For each={FILLS}>
-        {(cls) => (
-          <div
-            class={`flex h-16 min-w-0 flex-1 items-end rounded-md p-2 font-mono text-xs ${cls} ${
-              inkOn(cls)
-            }`}
-          >
-            {cls}
-          </div>
-        )}
+        {(cls) => {
+          const ink = inkOn(cls);
+          return (
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+              <div
+                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${
+                  ink
+                }`}
+              >
+                {ink === "" ? "" : cls}
+              </div>
+              <code class={MONO_MUTED}>{cls}</code>
+            </div>
+          );
+        }}
       </For>
     </div>
   );

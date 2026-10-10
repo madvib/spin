@@ -615,6 +615,9 @@
       "on-semantic-warning": {
         "$value": "#0b1120",
         "$description": "Ink on the dark warning fill. The dark warning background is amber, so the foreground stays dark where the light-mode one is white."
+      },
+      "on-semantic-error": {
+        "$value": "#0b1120"
       }
     },
     "focus": {

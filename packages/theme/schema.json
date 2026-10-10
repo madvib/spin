@@ -24,7 +24,7 @@
         "accent",
         "semantic",
         "on-primary",
-        "on-danger",
+        "on-semantic-error",
         "focus-ring",
         "link"
       ],
@@ -1055,9 +1055,9 @@
             }
           }
         },
-        "on-danger": {
+        "on-semantic-error": {
           "additionalProperties": true,
-          "description": "Text on a danger fill.",
+          "description": "Text on an error fill.",
           "type": "object",
           "required": [
             "$value"

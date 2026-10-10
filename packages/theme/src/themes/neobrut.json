@@ -141,7 +141,7 @@
     },
     "on-semantic-error": {
       "$type": "color",
-      "$value": "#1a1a1a",
+      "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
     },
     "on-semantic-info": {

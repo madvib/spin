@@ -51,7 +51,13 @@ export {
   everyTokenTypeIsDecided,
   validateTokens,
 } from "./pipeline/validate.ts";
-export { BASE_ROLES, requiredPaths, themeSchema } from "./contract/roles.ts";
+export {
+  BASE_ROLES,
+  inkTokens,
+  legibilityFloors,
+  requiredPaths,
+  themeSchema,
+} from "./contract/roles.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 

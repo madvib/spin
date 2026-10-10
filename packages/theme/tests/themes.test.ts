@@ -5,6 +5,7 @@ import {
   generateCss,
   generateThemeCss,
   indexTree,
+  inkTokens,
   parseTokens,
   validateTokens,
 } from "@spin/theme";
@@ -178,6 +179,25 @@ const REQUIRED = [
   "border.width",
   "color.link",
 ];
+
+
+Deno.test("the ink a theme declares is read from the theme itself", () => {
+  // The pairing is a fact about the theme, not a convention a consumer
+  // invents: every fill with a contrast floor names its own foreground, and
+  // `inkTokens()` answers "which ink goes on this fill?" from those floors.
+  const inks = inkTokens();
+  assert(inks.includes("on-primary"), "the primary pairs with its own ink");
+  assert(
+    inks.includes("on-semantic-error"),
+    "the error fill pairs with its own ink",
+  );
+  for (const ink of inks) {
+    assert(
+      ink.startsWith("on-"),
+      `an ink token is named for the fill it sits on: ${ink}`,
+    );
+  }
+});
 
 Deno.test("the example theme's light document parses into a token tree", async () => {
   const source = await Deno.readTextFile(new URL("default.json", THEMES_DIR));
