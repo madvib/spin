@@ -84,7 +84,7 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
   },
   {
     name: "Breadcrumbs · in a page header",
-    html: `        <header class="flex items-center gap-2">
+    html: `        <header>
           <h2>Settings</h2>
 ${
       trail(
