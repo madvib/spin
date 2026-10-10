@@ -108,31 +108,54 @@ const SUBHEAD =
   "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 
 /**
- * The brand mark: a small orbit — a ring, and one dot sweeping it continuously
- * on the theme's own motion scale, because `animate-spin` spends
- * `--motion-duration-slow` rather than naming a number. A theme moves every
- * animation by moving the scale, and this one moves with them.
+ * The brand mark: a spinnaker.
+ *
+ * `spin` is short for spinnaker, so the mark is the sail that names the
+ * product rather than a spinner that names nothing — the luff up the left, a
+ * straight foot along the bottom, and a belly that bulges between them to a
+ * corner at the clew. A quarter-disc with a straight edge: the two straight
+ * edges are what give the curve a reason to be there, so at 20px it reads as
+ * a sail and not as a pie.
+ *
+ * Three shapes were drawn first. The orbit — a ring with a dot sweeping it —
+ * is the shape every loading state already wears, and a mark that spells
+ * "busy" above a word that means "sail" is a contradiction. A billowed
+ * teardrop has a belly everywhere and an edge nowhere, so at 20px it is a
+ * blob with nothing to name it. A plain quarter-disc arc, the mast and boom
+ * removed, is a chart. The sail keeps all three corners of the real thing:
+ * the head, the tack and the clew.
  *
  * The ink is the brand hue and nothing else: `text-primary` is the one color
  * the mark is allowed, and it is the color the focus ring already spends, so
  * the mark is the product's own hue rather than a second opinion about it.
+ * The fill inherits it through `fill-current`, which is the only way an SVG
+ * may take a theme color — there is no `fill-*` in the vocabulary, because
+ * `text-*` is the one namespace that reaches an element's own color.
  *
- * Motion is decoration: the reduced-motion clamp in the preflight sets
- * `animation-duration: 0.01ms !important` and `animation-iteration-count: 1
- * !important` on every element, which stops the sweep without this component
- * re-deciding anything.
+ * Motion is decoration, and the vocabulary it may be drawn from is closed:
+ * `animate-spin` is a full turn, which is the spinner this mark replaced, and
+ * an app may not author a keyframe of its own. What is left is `animate-pulse`
+ * — the one gentle loop there is — which spends `--motion-duration-slow` and
+ * `--motion-easing-standard` rather than naming a number. A theme moves every
+ * animation by moving the scale, and this one moves with them: the ink eases
+ * between full and half, the way a gust passes through a real sail.
+ *
+ * The reduced-motion clamp in the preflight sets `animation-duration: 0.01ms
+ * !important` and `animation-iteration-count: 1 !important` on every element,
+ * which stops the breath without this component re-deciding anything.
  */
 function BrandMark() {
   return (
-    <span
-      class="relative block h-[1.25rem] w-[1.25rem] shrink-0"
+    <svg
+      class="block h-[1.25rem] w-[1.25rem] shrink-0 animate-pulse text-primary"
+      viewBox="0 0 20 20"
       aria-hidden="true"
     >
-      <i class="absolute inset-0 rounded-full border border-solid border-primary" />
-      <i class="absolute inset-0 animate-spin flex items-start justify-center">
-        <i class="block h-1 w-1 rounded-full bg-primary" />
-      </i>
-    </span>
+      <path
+        class="fill-current"
+        d="M3 3 L3 16 L17.5 16 C 17.5 9 11.5 4 3 3 Z"
+      />
+    </svg>
   );
 }
 
@@ -166,11 +189,16 @@ const QUIET_BUTTON =
   "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /**
- * The panel a specimen is demoed in. The largest spacing step is three steps
- * tall so a demo's own fixed-height scroller (`h-16`) has something to
- * scroll, and the panel is the scroller for anything taller still — so the
- * padding went up a step, because a demonstration with a hairline of air
- * around it reads as a screenshot rather than as a surface.
+ * The panel a specimen is demoed in. The padding is the largest spacing step,
+ * one step up from where it sat: a demonstration is looked at rather than
+ * skimmed, and it is the most generous surface on the page because it is the
+ * one thing on the page a reader came to see.
+ *
+ * The panel NEVER scrolls and never caps its height — a panel that clips is
+ * a panel that hides the component it demonstrates, and the tall specimens
+ * (a textarea, a dialog, a column of prose) are exactly the ones a reader
+ * needs all of. What it demonstrates it shows whole, and the page grows
+ * instead.
  *
  * The fill is the page's own surface rather than the raised step: the code
  * view beside it is a `<pre>`, and a bare `pre` is claimed by the primitive
@@ -179,22 +207,25 @@ const QUIET_BUTTON =
  * content and nothing else.
  */
 const SPECIMEN_PANEL =
-  "min-h-16 max-h-screen overflow-auto rounded-md border border-dashed border-solid border-border bg-surface p-8 shadow-sm";
+  "min-h-16 rounded-md border border-dashed border-solid border-border bg-surface p-16 shadow-sm";
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 
 /**
- * The code block of a specimen. It is ALWAYS in the flow — it is the element
- * that decides the height of the specimen's box — so the component view is
- * laid over the same box instead of replacing it and switching between the
- * two cannot move the page under the reader.
+ * The code block of a specimen. It is ALWAYS in the flow — never a box the
+ * component is laid over — so the section's height is decided by measurement
+ * rather than by whichever view happens to be showing.
  *
- * The declarations that the primitive layer already pins on a bare `<pre>`
- * are still spelled here — the padding, the radius, the ink — because a class
- * that names what it means survives the day the pin is lifted, and a panel
- * that relied on a rule it cannot see is a panel that breaks silently.
+ * It WRAPS. The primitive layer already pins `overflow-x` on a bare `<pre>`,
+ * which is what let an example's inline data URI — a 4KB face as one unbroken
+ * token — widen the page to seven thousand pixels instead of scrolling in
+ * its own box: a scroller only contains what it is GIVEN, and a min-content
+ * chain with one unbreakable line refuses to shrink. So the block takes
+ * `whitespace-pre-wrap` and the tokens `break-all`, and the scrollbar has
+ * nothing left to do — it stays as the floor for the one line that somehow
+ * still cannot break.
  */
 const CODE_PRE =
-  "max-w-full overflow-x-auto rounded-md border border-dashed border-solid border-border bg-surface p-4 font-mono text-text shadow-sm";
+  "max-w-full whitespace-pre-wrap overflow-x-auto rounded-md border border-dashed border-solid border-border bg-surface p-4 font-mono text-text shadow-sm";
 
 /**
  * One token of example markup, as the code viewer reads it.
@@ -254,6 +285,10 @@ function tokenizeHtml(html: string): CodeToken[] {
       i = stop;
       continue;
     }
+    // The opening bracket is a token of its own. Without it the view read
+    // `div class=…>` — a tag with no bracket, and a closer with no bracket at
+    // all — so every `<`, `/` and `>` the markup spells is spent as punct.
+    push("punct", "<");
     i = lt + 1;
     if (html[i] === "/") {
       push("punct", "/");
@@ -307,11 +342,296 @@ function tokenizeHtml(html: string): CodeToken[] {
           const stop = close === -1 ? html.length : close + 1;
           push("string", html.slice(i, stop));
           i = stop;
+        } else {
+          // An unquoted value runs to the whitespace or the bracket.
+          let stop = i;
+          while (
+            stop < html.length && !WHITESPACE.test(html[stop]!) &&
+            html[stop] !== ">"
+          ) {
+            stop += 1;
+          }
+          push("string", html.slice(i, stop));
+          i = stop;
         }
       }
     }
   }
   return out;
+}
+
+/**
+ * Example markup, formatted for the code view.
+ *
+ * The examples are data — written to be read beside a rule, not by a
+ * formatter — so they arrive with the indentation of the template literals
+ * they were pieced together in: ten spaces of air before every variant, a
+ * closing tag at column eight. The code view is the markup a consumer copies,
+ * so it shows that markup as a consumer would write it: nested tags indented
+ * one step per depth, runs of blank lines collapsed to a single break, and a
+ * tag with more than two attributes spelled one attribute per line, so the
+ * parts are visible instead of a wall.
+ *
+ * It is FORMATTING, not rewriting. The only text replaced is whitespace the
+ * markup does not need; every tag, attribute name, attribute value and word
+ * of content survives exactly as authored. Content whose whitespace IS its
+ * meaning — a `<pre>`, a `<textarea>` — is copied through untouched, and text
+ * that spells anything never moves onto a line of its own.
+ */
+const FORMAT_INDENT = "  ";
+
+/** Tags whose content is whitespace: never re-indented, never re-flowed. */
+const VERBATIM_TAGS: Record<string, true> = {
+  pre: true,
+  textarea: true,
+  listing: true,
+};
+
+/** Tags that never take a close. */
+const VOID_TAGS: Record<string, true> = {
+  area: true,
+  base: true,
+  br: true,
+  col: true,
+  embed: true,
+  hr: true,
+  img: true,
+  input: true,
+  link: true,
+  meta: true,
+  param: true,
+  source: true,
+  track: true,
+  wbr: true,
+};
+
+interface FormatElement {
+  readonly kind: "element";
+  readonly tag: string;
+  readonly attrs: readonly (readonly [string, string | undefined])[];
+  readonly children: FormatNode[];
+  readonly selfClose: boolean;
+  /** The raw inside of a verbatim element, copied through as authored. */
+  raw?: string;
+}
+
+interface FormatText {
+  readonly kind: "text";
+  readonly text: string;
+}
+
+interface FormatRaw {
+  readonly kind: "raw";
+  readonly text: string;
+}
+
+type FormatNode = FormatElement | FormatText | FormatRaw;
+
+/**
+ * Example HTML, parsed into a tree shallow enough to re-indent and no
+ * deeper: an element, the text, and the two kinds of run that are copied
+ * whole (comments and declarations). A close that matches nothing on the
+ * stack is kept as raw text rather than guessed at.
+ */
+function parseForFormat(html: string): FormatNode[] {
+  const roots: FormatNode[] = [];
+  const stack: FormatElement[] = [];
+  const parentChildren = (): FormatNode[] =>
+    stack.length === 0 ? roots : stack[stack.length - 1]!.children;
+  let i = 0;
+  while (i < html.length) {
+    const lt = html.indexOf("<", i);
+    if (lt === -1) {
+      parentChildren().push({ kind: "text", text: html.slice(i) });
+      break;
+    }
+    if (lt > i) parentChildren().push({ kind: "text", text: html.slice(i, lt) });
+    if (html.startsWith("<!--", lt)) {
+      const end = html.indexOf("-->", lt + 4);
+      const stop = end === -1 ? html.length : end + 3;
+      parentChildren().push({ kind: "raw", text: html.slice(lt, stop) });
+      i = stop;
+      continue;
+    }
+    if (html.startsWith("<!", lt)) {
+      const end = html.indexOf(">", lt);
+      const stop = end === -1 ? html.length : end + 1;
+      parentChildren().push({ kind: "raw", text: html.slice(lt, stop) });
+      i = stop;
+      continue;
+    }
+    if (html.startsWith("</", lt)) {
+      const end = html.indexOf(">", lt);
+      const stop = end === -1 ? html.length : end + 1;
+      const name = html.slice(lt + 2, stop - 1).trim().toLowerCase();
+      // The close matches the OPENEST copy on the stack from the top down:
+      // a nested `<div>` closes itself, not its ancestor of the same name.
+      let match = -1;
+      for (let s = stack.length - 1; s >= 0; s--) {
+        if (stack[s]!.tag.toLowerCase() === name) {
+          match = s;
+          break;
+        }
+      }
+      if (match !== -1) {
+        stack.length = match;
+      } else {
+        parentChildren().push({ kind: "raw", text: html.slice(lt, stop) });
+      }
+      i = stop;
+      continue;
+    }
+    // An open tag: the name, then the attributes — quoted, unquoted, or bare.
+    i = lt + 1;
+    let nameEnd = i;
+    while (
+      nameEnd < html.length && !WHITESPACE.test(html[nameEnd]!) &&
+      html[nameEnd] !== ">" && html[nameEnd] !== "/"
+    ) {
+      nameEnd += 1;
+    }
+    const tag = html.slice(i, nameEnd);
+    i = nameEnd;
+    const attrs: [string, string | undefined][] = [];
+    let selfClose = false;
+    while (i < html.length) {
+      const ch = html[i]!;
+      if (WHITESPACE.test(ch)) {
+        i += 1;
+        continue;
+      }
+      if (ch === ">") {
+        i += 1;
+        break;
+      }
+      if (ch === "/") {
+        if (html[i + 1] === ">") {
+          selfClose = true;
+          i += 2;
+          break;
+        }
+        i += 1;
+        continue;
+      }
+      let attrEnd = i;
+      while (attrEnd < html.length && !NAME_STOP.test(html[attrEnd]!)) {
+        attrEnd += 1;
+      }
+      const name = html.slice(i, attrEnd).toLowerCase();
+      i = attrEnd;
+      if (html[i] !== "=") {
+        attrs.push([name, undefined]);
+        continue;
+      }
+      i += 1;
+      const quote = html[i];
+      if (quote === '"' || quote === "'") {
+        const close = html.indexOf(quote, i + 1);
+        const stop = close === -1 ? html.length : close + 1;
+        attrs.push([name, html.slice(i, stop)]);
+        i = stop;
+      } else {
+        let stop = i;
+        while (
+          stop < html.length && !WHITESPACE.test(html[stop]!) &&
+          html[stop] !== ">"
+        ) {
+          stop += 1;
+        }
+        attrs.push([name, stop > i ? `"${html.slice(i, stop)}"` : undefined]);
+        i = stop;
+      }
+    }
+    const element: FormatElement = {
+      kind: "element",
+      tag,
+      attrs,
+      children: [],
+      selfClose,
+    };
+    parentChildren().push(element);
+    const lower = tag.toLowerCase();
+    if (!selfClose && VOID_TAGS[lower] !== true) {
+      if (VERBATIM_TAGS[lower] === true) {
+        const close = html.toLowerCase().indexOf(`</${lower}`, i);
+        const stop = close === -1 ? html.length : close;
+        element.raw = html.slice(i, stop);
+        if (close !== -1) {
+          const gt = html.indexOf(">", close);
+          i = gt === -1 ? html.length : gt + 1;
+        }
+      } else {
+        stack.push(element);
+      }
+    }
+  }
+  return roots;
+}
+
+/**
+ * One open tag: the attributes on one line when there are two or fewer, one
+ * per line — indented a step past the tag — when there are more, so a long
+ * value has its own line instead of ploughing through its neighbours.
+ */
+function formatOpenTag(
+  tag: string,
+  attrs: readonly (readonly [string, string | undefined])[],
+  depth: number,
+): string {
+  const spelled = attrs.map(([name, value]) =>
+    value === undefined ? name : `${name}=${value}`
+  );
+  if (spelled.length > 2) {
+    const pad = FORMAT_INDENT.repeat(depth + 1);
+    return `<${tag}\n${spelled.map((s) => `${pad}${s}`).join("\n")}\n${
+      FORMAT_INDENT.repeat(depth)
+    }`;
+  }
+  return `<${tag}${spelled.length === 0 ? "" : ` ${spelled.join(" ")}`}`;
+}
+
+function formatNode(node: FormatNode, depth: number): string {
+  if (node.kind === "text" || node.kind === "raw") return node.text;
+  const pad = FORMAT_INDENT.repeat(depth);
+  const open = formatOpenTag(node.tag, node.attrs, depth);
+  if (node.raw !== undefined) return `${pad}${open}>${node.raw}</${node.tag}>`;
+  const close = node.selfClose ? "/>" : `</${node.tag}>`;
+  if (node.children.length === 0) {
+    return VOID_TAGS[node.tag.toLowerCase()] === true
+      ? `${pad}${open}${node.selfClose ? "/>" : ">"}`
+      : `${pad}${open}>${close}`;
+  }
+  // Text that spells anything keeps its element on one line: breaking
+  // `Press <kbd>Enter</kbd> to submit.` across four lines would put the
+  // formatter's indentation INSIDE the sentence.
+  const inline = node.children.some(
+    (c) => c.kind === "text" && !/^\s*$/.test(c.text),
+  );
+  if (inline) {
+    const inner = node.children.map((c) => formatNode(c, 0)).join("");
+    return `${pad}${open}>${inner}${close}`;
+  }
+  const body = node.children
+    .filter((c) => c.kind !== "text" || !/^\s*$/.test(c.text))
+    .map((c) => formatNode(c, depth + 1))
+    .join("\n");
+  return `${pad}${open}>\n${body}\n${pad}${close}`;
+}
+
+/**
+ * Example HTML, formatted. Idempotent: formatting what was formatted
+ * changes nothing, because it replaces whitespace-only runs and nothing
+ * else.
+ */
+function formatExampleHtml(html: string): string {
+  // Roots that are only elements break between siblings; a root that spells
+  // text keeps its neighbours on the same line, because a newline a
+  // formatter adds beside text is text the markup did not have.
+  const roots = parseForFormat(html).filter(
+    (n) => n.kind !== "text" || !/^\s*$/.test(n.text),
+  );
+  const inline = roots.some((n) => n.kind === "text");
+  return roots.map((n) => formatNode(n, 0)).join(inline ? "" : "\n");
 }
 
 /**
@@ -349,10 +669,15 @@ const FEATURED: readonly string[] = ["button", "card", "alert"];
  * components in the gaps; the toggle puts the choice where it belongs, on the
  * specimen, and leaves the page a single surface at a time.
  *
- * The two views are not two boxes. The code is always in the flow and the
- * component is laid over the very same box, so the panel's height is decided
- * once and switching tabs cannot move the page under the reader — a viewer
- * that reflows on every toggle is a viewer that loses your place.
+ * The two views are TWO BOXES, not two surfaces over one box — an overlay
+ * preview had to clip, because the panel could only be as tall as the code
+ * that framed it. Both live in the flow now, in the SAME cell of a one-cell
+ * grid: the cell is as tall as the taller of the two, so the section reserves
+ * the max of the code's height and the component's, the view that is not
+ * showing is `invisible` — out of sight, still in flow — and switching tabs
+ * moves nothing under the reader. Neither view scrolls inside its own box
+ * and neither is ever clipped: the tall specimens are the ones a reader most
+ * needs all of, so the page grows to fit them.
  */
 function ExampleSection(props: {
   name: string;
@@ -381,7 +706,7 @@ function ExampleSection(props: {
   const measure = props.html.trimStart().startsWith("<header")
     ? ""
     : SPECIMEN_MEASURE;
-  const tokens = createMemo(() => tokenizeHtml(props.html.trim()));
+  const tokens = createMemo(() => tokenizeHtml(formatExampleHtml(props.html)));
   return (
     <section class="mb-8">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -410,16 +735,25 @@ function ExampleSection(props: {
           </button>
         </div>
       </div>
-      <div class="relative">
+      <div class="relative grid">
         {
           /* The face the code reads at is spent on the tokens, not on the
             block: a bare `<pre>` is claimed by the primitive layer, which
             pins the block's own size, so the step a reader sees is the one the
             text carries. This is also the step that makes the specimens
-            bigger — the code reads a size up from the demos around it. */
+            bigger — the code reads a size up from the demos around it, and
+            `break-all` spends the theme's break on the one token that is
+            wider than the view: a 4KB data URI has no space in it, and a
+            token that cannot break is a token that widens the page. */
         }
-        <pre ref={pre} class={CODE_PRE}>
-          <span class="text-md">
+        <pre
+          ref={pre}
+          class={`${CODE_PRE} col-start-1 row-start-1 ${
+            tab() === "code" ? "" : "invisible"
+          }`}
+          aria-hidden={tab() === "code" ? undefined : "true"}
+        >
+          <span class="text-lg break-all">
             <For each={tokens()}>
               {(token) => (
                 <span class={CODE_INK[token.type]}>{token.value}</span>
@@ -432,15 +766,19 @@ function ExampleSection(props: {
           {copied() ? "copied" : "copy"}
         </button>
         {
-          /* The demo is the markup exactly as a consumer writes it, laid over
-            the code's box: the same panel, the same surface, the same edges,
-            so the swap is a change of content and not a change of page. */
+          /* The demo is the markup exactly as a consumer writes it, in the
+            flow beside the code rather than over it: the same cell, the same
+            surface, the same edges — so the visible view is the whole box
+            and the swap is a change of content and not a change of page. */
         }
-        <Show when={tab() === "component"}>
-          <div class={`${SPECIMEN_PANEL} absolute inset-0`}>
-            <div class={measure} innerHTML={props.html} />
-          </div>
-        </Show>
+        <div
+          class={`${SPECIMEN_PANEL} col-start-1 row-start-1 ${
+            tab() === "component" ? "" : "invisible"
+          }`}
+          aria-hidden={tab() === "component" ? undefined : "true"}
+        >
+          <div class={measure} innerHTML={props.html} />
+        </div>
       </div>
     </section>
   );
@@ -836,7 +1174,13 @@ export default function App() {
 
   return (
     <div class="flex min-h-screen bg-surface">
-      <div class="flex flex-1 items-start">
+      {/*
+        `min-w-0` on the wrapper and not only on `main`: the wrapper is the
+        flex item, and a flex item's automatic minimum size is its
+        min-content — which, with one unbreakable line of markup anywhere
+        below, was the whole page width. The specimen's pre wraps now, but
+        the column that holds it has to be ALLOWED to shrink. */}
+      <div class="flex min-w-0 flex-1 items-start">
         <Rail
           route={route}
           query={query}
