@@ -125,6 +125,16 @@ export interface ToastItem {
   readonly description: string;
 }
 
+export interface ToastFsmItem {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly type: string;
+  readonly duration: number;
+  readonly priority: number;
+  readonly action: string;
+}
+
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
@@ -283,6 +293,18 @@ declare module "solid-js" {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "spin-async-list-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:load"?: unknown;
+        "prop:sortFn"?: unknown;
+        "prop:initialItems"?: unknown;
+        "prop:initialFilterText"?: string;
+        "prop:initialSortDescriptor"?: unknown;
+        "prop:dependencies"?: readonly unknown[];
+        "prop:autoReload"?: boolean;
+      };
       "spin-pin-input-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
@@ -428,7 +450,7 @@ declare module "solid-js" {
         "prop:siblingCount"?: number;
         "prop:boundaryCount"?: number;
       };
-"spin-avatar-fsm": {
+      "spin-avatar-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
         id?: string;
@@ -440,7 +462,7 @@ declare module "solid-js" {
         "prop:alt"?: string;
         "prop:name"?: string;
       };
-"spin-rating-group-fsm": {
+      "spin-rating-group-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
         id?: string;
@@ -463,7 +485,7 @@ declare module "solid-js" {
         "prop:required"?: boolean;
         "prop:name"?: string;
       };
-"spin-listbox-fsm": {
+      "spin-listbox-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
         id?: string;
@@ -481,7 +503,57 @@ declare module "solid-js" {
         "prop:disabled"?: boolean;
         "prop:defaultValue"?: string;
       };
-"spin-cascade-select-fsm": {
+      "spin-scroll-area-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        dir?: string;
+        class?: string;
+        "prop:dir"?: string;
+      };
+      "spin-editable-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        value?: string;
+        defaultValue?: string;
+        editing?: boolean;
+        defaultEdit?: boolean;
+        activationMode?: string;
+        submitMode?: string;
+        autoResize?: boolean;
+        selectOnFocus?: boolean;
+        disabled?: boolean;
+        readOnly?: boolean;
+        invalid?: boolean;
+        required?: boolean;
+        maxLength?: number;
+        name?: string;
+        form?: string;
+        placeholder?: string;
+        finalFocus?: string;
+        dir?: string;
+        "prop:label"?: string;
+        "prop:defaultValue"?: string;
+        "prop:placeholder"?: string;
+        "prop:editing"?: boolean;
+        "prop:defaultEdit"?: boolean;
+        "prop:activationMode"?: string;
+        "prop:submitMode"?: string;
+        "prop:autoResize"?: boolean;
+        "prop:selectOnFocus"?: boolean;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+        "prop:invalid"?: boolean;
+        "prop:required"?: boolean;
+        "prop:maxLength"?: number;
+        "prop:name"?: string;
+        "prop:form"?: string;
+        "prop:finalFocus"?: string;
+        "prop:dir"?: string;
+      };
+      "spin-cascade-select-fsm": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
         id?: string;
@@ -493,6 +565,50 @@ declare module "solid-js" {
         disabled?: boolean;
         "prop:value"?: string;
         "prop:items"?: unknown;
+      };
+      "spin-combobox-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        items?: unknown;
+        value?: string;
+        defaultValue?: string;
+        inputValue?: string;
+        defaultInputValue?: string;
+        highlightedValue?: string;
+        defaultHighlightedValue?: string;
+        open?: boolean;
+        defaultOpen?: boolean;
+        multiple?: boolean;
+        closeOnSelect?: boolean;
+        disabled?: boolean;
+        "prop:items"?: unknown;
+        "prop:label"?: string;
+        "prop:placeholder"?: string;
+        "prop:value"?: string;
+        "prop:defaultValue"?: string;
+        "prop:inputValue"?: string;
+        "prop:defaultInputValue"?: string;
+        "prop:multiple"?: boolean;
+        "prop:disabled"?: boolean;
+        "prop:inputBehavior"?: string;
+        "prop:defaultOpen"?: boolean;
+        "prop:open"?: boolean;
+        "prop:closeOnSelect"?: boolean;
+      };
+      "spin-toast-fsm": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        items?: readonly ToastFsmItem[];
+        overlap?: boolean;
+        placement?: string;
+        removeDelay?: number;
+        label?: string;
+        "prop:items"?: readonly ToastFsmItem[];
+        "prop:overlap"?: boolean;
+        "prop:placement"?: string;
+        "prop:removeDelay"?: number;
       };
     }
   }

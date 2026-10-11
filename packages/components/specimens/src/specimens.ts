@@ -7,6 +7,8 @@ import TabsFsm from "./routes/tabs-fsm.tsx";
 import AvatarFsm from "./routes/avatar-fsm.tsx";
 import RatingFsm from "./routes/rating-fsm.tsx";
 import ListboxFsm from "./routes/listbox-fsm.tsx";
+import AsyncListFsm from "./routes/async-list-fsm.tsx";
+import ComboboxFsm from "./routes/combobox-fsm.tsx";
 import NumberInputFsm from "./routes/number-input-fsm.tsx";
 import TimerFsm from "./routes/timer-fsm.tsx";
 import PinInputFsm from "./routes/pin-input-fsm.tsx";
@@ -25,7 +27,10 @@ import Dialog from "./routes/dialog.tsx";
 import TreeView from "./routes/tree-view.tsx";
 import Carousel from "./routes/carousel.tsx";
 import Slider from "./routes/slider.tsx";
+import ScrollAreaFsm from "./routes/scroll-area-fsm.tsx";
+import EditableFsm from "./routes/editable-fsm.tsx";
 import Toast from "./routes/toast.tsx";
+import ToastFsm from "./routes/toast-fsm.tsx";
 
 /** One component under test, plus the route that shows it. */
 export interface Specimen {
@@ -68,6 +73,20 @@ export const SPECIMENS: readonly Specimen[] = [
     blurb: "The low-level listbox: selection, typeahead, grid orientation, empty state.",
     path: "/listbox-fsm",
     component: ListboxFsm,
+  },
+  {
+    id: "async-list-fsm",
+    title: "Async list (fsm)",
+    blurb: "Cursor-paged async loading: idle/loading/sorting, fetch as a bridge-owned reflex, infinite-scroll sentinel.",
+    path: "/async-list-fsm",
+    component: AsyncListFsm,
+  },
+  {
+    id: "combobox-fsm",
+    title: "Combobox (fsm)",
+    blurb: "Input plus listbox: filtering, inline autocomplete, trigger, grouped options.",
+    path: "/combobox-fsm",
+    component: ComboboxFsm,
   },
   {
     id: "steps-fsm",
@@ -225,10 +244,31 @@ export const SPECIMENS: readonly Specimen[] = [
     component: Slider,
   },
   {
+    id: "scroll-area-fsm",
+    title: "Scroll area (fsm)",
+    blurb: "Layout-derived state: the view measures, the machine holds, and geometry travels as custom properties.",
+    path: "/scroll-area-fsm",
+    component: ScrollAreaFsm,
+  },
+  {
+    id: "editable-fsm",
+    title: "Editable (fsm)",
+    blurb: "Preview/edit pair with a controlled edit channel, commit/revert and submit-on-blur.",
+    path: "/editable-fsm",
+    component: EditableFsm,
+  },
+  {
     id: "toast",
     title: "Toast",
     blurb: "Toast notifications driven by the Zag toast machine.",
     path: "/toast",
     component: Toast,
+  },
+  {
+    id: "toast-fsm",
+    title: "Toast (fsm)",
+    blurb: "Toast queue on the forked FSM: per-toast lifecycle status, every clock an action.",
+    path: "/toast-fsm",
+    component: ToastFsm,
   },
 ];

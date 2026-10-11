@@ -74,7 +74,12 @@ export function emit(ir: ComponentIr): EmitOutput {
             if (part.kind === "static") return JSON.stringify(part.value);
             return `String((${scopeExpr(part.expr, bound)}) ?? "")`;
           }).join(" + ");
-          out.push(`${pad(depth)}{ const ${id} = text(""); ${parts}.push(() => { ${id}.set(${reads}); }); ${host}.appendChild(${id}.node); }`);
+          // Two update channels: the effect re-runs on the signals the
+          // reads touch (machine text via its tick), and the parts entry
+          // re-reads on every for-cell update (stable holders the connect
+          // rewrites, like the carousel readout). Either alone freezes one
+          // of the two families.
+          out.push(`${pad(depth)}{ const ${id} = document.createTextNode(""); bindText(${id}, () => (${reads})); ${parts}.push(() => { ${id}.data = (${reads}); }); ${host}.appendChild(${id}); }`);
         }
         continue;
       }
@@ -159,8 +164,7 @@ export function emit(ir: ComponentIr): EmitOutput {
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText as _bt, bindFor, text, bindActionProps, bindSpread, placeSlot } from "@spin/runtime";`,
-    `void _bt;`,
+    `import { runAction, on, bindAttr, bindText, bindFor, bindActionProps, bindSpread, placeSlot } from "@spin/runtime";`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,
     `  const frag = document.createDocumentFragment();`,

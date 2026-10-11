@@ -19,6 +19,10 @@ import "./spin-slider/spin-slider-fsm.html";
 import "./spin-avatar/spin-avatar-fsm.html";
 import "./spin-rating-group/spin-rating-group-fsm.html";
 import "./spin-listbox/spin-listbox-fsm.html";
+import "./spin-async-list/spin-async-list-fsm.html";
+import "./spin-editable/spin-editable-fsm.html";
+
+import "./spin-combobox/spin-combobox-fsm.html";
 import "./spin-number-input/spin-number-input-fsm.html";
 
 import "./spin-steps/spin-steps-fsm.html";
@@ -29,6 +33,8 @@ import "./spin-pin-input/spin-pin-input-fsm.html";
 
 import "./spin-tags-input/spin-tags-input-fsm.html";
 import "./spin-pagination/spin-pagination-fsm.html";
+import "./spin-scroll-area/spin-scroll-area-fsm.html";
+import "./spin-toast/spin-toast-fsm.html";
 
 import "./spin-menu/spin-menu-fsm.html";
 import "./spin-cascade-select/spin-cascade-select-fsm.html";

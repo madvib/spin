@@ -1,0 +1,57 @@
+<scope>props={ items: { value: string, label: string, disabled: bool, group: string }[] = [], label: string = "", value: string = "", defaultValue: string = "", inputValue: string = "", defaultInputValue: string = "", highlightedValue: string = "", defaultHighlightedValue: string = "", open: bool = false, defaultOpen: bool = false, multiple: bool = false, closeOnSelect: bool = true, allowCustomValue: bool = false, alwaysSubmitOnEnter: bool = false, openOnChange: bool = true, openOnClick: bool = true, openOnKeyPress: bool = true, inputBehavior: string = "none", selectionBehavior: string = "", composite: bool = true, loopFocus: bool = true, disabled: bool = false, readOnly: bool = false, invalid: bool = false, required: bool = false, name: string = "", form: string = "", placeholder: string = "", dir: string = "ltr", placement: string = "bottom", triggerLabel: string = "", clearTriggerLabel: string = "" } consume={ comboboxFsm }</scope>
+
+<div class="relative w-full" {...comboboxFsm.getRootProps()}>
+  <label
+    class="mb-1 block text-sm font-medium text-text transition-colors duration-fast ease-decelerate data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[focused]:text-primary"
+    {...comboboxFsm.getLabelProps()}
+  >{label}</label>
+
+  <div class="relative" {...comboboxFsm.getControlProps()}>
+    <input
+      class="h-7 w-full rounded-md border border-border bg-surface-raised px-2 pr-16 text-sm text-text shadow-sm transition-colors duration-fast ease-decelerate placeholder:text-muted focus-visible:ring-2 focus-visible:ring-border-strong data-[disabled]:opacity-60 data-[disabled]:cursor-not-allowed data-[invalid]:border-border-strong data-[state=open]:border-border-strong"
+      {...comboboxFsm.getInputProps()}
+    />
+
+    <div class="absolute inset-y-0 right-0 flex items-center gap-0.5 pr-1">
+      <button
+        class="grid h-5 w-5 place-items-center rounded-sm text-muted transition-colors duration-fast ease-decelerate hover:text-text data-[invalid]:text-text"
+        {...comboboxFsm.getClearTriggerProps()}
+      ><span aria-hidden="true">&#10005;</span></button>
+      <button
+        class="grid h-6 w-6 place-items-center rounded-md text-muted transition-colors duration-fast ease-decelerate hover:text-text data-[disabled]:cursor-not-allowed"
+        {...comboboxFsm.getTriggerProps()}
+      ><span aria-hidden="true" class="text-xs transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180" {...comboboxFsm.getTriggerIndicatorProps()}>&#9662;</span></button>
+    </div>
+
+    <div
+      class="absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0"
+      {...comboboxFsm.getPositionerProps()}
+    >
+      <div
+        class="overflow-hidden rounded-lg border border-border bg-surface-raised shadow-lg data-[disabled]:opacity-60"
+        {...comboboxFsm.getContentProps()}
+      >
+        <div class="max-h-60 overflow-y-auto p-1 transition-opacity duration-fast ease-decelerate data-[empty]:hidden" {...comboboxFsm.getListProps()}>
+          <template for={comboboxFsm.getBlocks()} as={block} key={block.id}>
+            <div class="py-0.5" {...comboboxFsm.getItemGroupProps(block)}>
+              <span class="block px-2 py-1 text-xs font-medium text-muted" {...comboboxFsm.getItemGroupLabelProps(block)}>{block.label}</span>
+              <template for={comboboxFsm.getRows(block)} as={row} key={row.value}>
+                <div
+                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+                  {...comboboxFsm.getItemProps(row)}
+                >
+                  <span class="min-w-0 flex-1 truncate" {...comboboxFsm.getItemTextProps(row)}>{row.label}</span>
+                  <span
+                    aria-hidden="true"
+                    class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[state=checked]:scale-100 data-[state=checked]:opacity-100"
+                    {...comboboxFsm.getItemIndicatorProps(row)}
+                  >&#10003;</span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

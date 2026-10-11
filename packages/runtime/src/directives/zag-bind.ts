@@ -2,8 +2,10 @@ import { effect, inserted, machineTick, signal, untrack } from "../core/signal.t
 import { ACTIONS, runAction } from "../actions/index.ts";
 import { toStyleString } from "../machine/adapter/normalize-props.ts";
 
+/**
+ * Properties written through the IDL rather than as content attributes.
+ */
 const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
-
 
 /**
  * Reactive prop application from a live reader.
@@ -29,6 +31,15 @@ export function bindActionProps(
       if (Object.is(value, last[name])) continue;
       if (ASSIGNABLE.has(name)) {
         (el as unknown as Record<string, unknown>)[name] = value;
+      } else if (
+        name.startsWith("aria-") &&
+        (value === true || value === false)
+      ) {
+        // ARIA states are not HTML booleans (see bindActionProps above):
+        // both render explicitly, and this writes the string form itself
+        // instead of relying on IDL reflection, which linkedom does not
+        // implement — so unit DOM and Chromium agree.
+        el.setAttribute(name, value === true ? "true" : "false");
       } else if (value === undefined || value === null || value === false) {
         el.removeAttribute(name);
       } else if (value === true) {

@@ -14,7 +14,11 @@
     "linkedom": "npm:linkedom@^0.18.0",
     "@spin/runtime/adapter": "./src/adapter/index.ts",
     "@zag-js/types": "npm:@zag-js/types@~1.44.0",
-    "unplugin": "npm:unplugin@^3.4.0"
+    "unplugin": "npm:unplugin@^3.4.0",
+    "@spin/runtime/fsm": "./src/machine/fsm/fsm.ts",
+    "@spin/runtime/actions": "./src/actions/index.ts",
+    "@spin/hooks": "../../hooks/src/index.ts",
+    "@spin/hooks/solid": "../../hooks/src/solid.ts"
   },
   "tasks": {
     "test": "deno test --config deno.test.json --allow-read --allow-import src/",

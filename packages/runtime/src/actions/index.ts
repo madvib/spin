@@ -19,6 +19,9 @@ import type { ElementAction } from "./action.ts";
 import { formControl } from "./form-control.ts";
 import { observe } from "./observe.ts";
 import { scrollIntoView } from "./scroll-into-view.ts";
+import { interactOutside } from "../../../components/src/spin-editable/actions/interact-outside.action.ts";
+import { infiniteScroll } from "./infinite-scroll.ts";
+import { toastRegion, toastRow, toastTimer } from "../../../components/src/spin-toast/actions/toast-actions.ts";
 
 export { runAction, createAction } from "./action.ts";
 export type { ElementAction } from "./action.ts";
@@ -404,6 +407,11 @@ export const ACTIONS = {
   "form-control": formControl,
   observe,
   "scroll-into-view": scrollIntoView,
+  "interact-outside": interactOutside,
+  "infinite-scroll": infiniteScroll,
+  "toast-timer": toastTimer,
+  "toast-row": toastRow,
+  "toast-region": toastRegion,
 } as const;
 
 export type ActionName = keyof typeof ACTIONS;

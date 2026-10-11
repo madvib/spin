@@ -379,7 +379,7 @@ export function createCascadeFsmBridge(
       return key in commands ? Reflect.get(commands, key) : Reflect.get(ensureConnect(), key);
     },
     has: (_target, key) => key in commands || Reflect.has(ensureConnect(), key),
-    ownKeys: () => [...Reflect.ownKeys(ensureConnect()), ...Object.keys(commands)],
+    ownKeys: () => [...new Set([...Reflect.ownKeys(ensureConnect()), ...Object.keys(commands)])],
     getOwnPropertyDescriptor: (_target, key) => {
       if (key in commands) {
         return { configurable: true, enumerable: true, value: Reflect.get(commands, key) };

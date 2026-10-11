@@ -29,7 +29,12 @@
     "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html",
     "./number-input-fsm": "./src/spin-number-input/spin-number-input-fsm.html",
     "./timer-fsm": "./src/spin-timer/spin-timer-fsm.html",
-    "./pin-input-fsm": "./src/spin-pin-input/spin-pin-input-fsm.html"
+    "./pin-input-fsm": "./src/spin-pin-input/spin-pin-input-fsm.html",
+    "./async-list-fsm": "./src/spin-async-list/spin-async-list-fsm.html",
+    "./combobox-fsm": "./src/spin-combobox/spin-combobox-fsm.html",
+    "./editable-fsm": "./src/spin-editable/spin-editable-fsm.html",
+    "./scroll-area-fsm": "./src/spin-scroll-area/spin-scroll-area-fsm.html",
+    "./toast-fsm": "./src/spin-toast/spin-toast-fsm.html"
   },
   "dependencies": {
     "@zag-js/avatar": "~1.44.0",

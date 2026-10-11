@@ -275,7 +275,7 @@ export function createSliderFsmBridge(
         ? (commands as Record<string | symbol, unknown>)[key]
         : Reflect.get(connected(), key),
     has: (_target, key) => key in commands || Reflect.has(connected(), key),
-    ownKeys: () => [...Reflect.ownKeys(connected()), ...Object.keys(commands)],
+    ownKeys: () => [...new Set([...Reflect.ownKeys(connected()), ...Object.keys(commands)])],
     getOwnPropertyDescriptor: (_target, key) => {
       if (key in commands) {
         return {

@@ -29,7 +29,12 @@
     "./pagination-fsm": "./src/spin-pagination/spin-pagination-fsm.html",
     "./number-input-fsm": "./src/spin-number-input/spin-number-input-fsm.html",
     "./timer-fsm": "./src/spin-timer/spin-timer-fsm.html",
-    "./pin-input-fsm": "./src/spin-pin-input/spin-pin-input-fsm.html"
+    "./pin-input-fsm": "./src/spin-pin-input/spin-pin-input-fsm.html",
+    "./async-list-fsm": "./src/spin-async-list/spin-async-list-fsm.html",
+    "./combobox-fsm": "./src/spin-combobox/spin-combobox-fsm.html",
+    "./editable-fsm": "./src/spin-editable/spin-editable-fsm.html",
+    "./scroll-area-fsm": "./src/spin-scroll-area/spin-scroll-area-fsm.html",
+    "./toast-fsm": "./src/spin-toast/spin-toast-fsm.html"
   },
   "imports": {
     "@spin/components": "./src/index.ts",
@@ -83,7 +88,12 @@
     "e2e:tags": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/tags.e2e.ts",
     "e2e:number-input": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/number-input.e2e.ts",
     "e2e:timer": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/timer.e2e.ts",
-    "e2e:pin-input": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/pin-input.e2e.ts"
+    "e2e:pin-input": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/pin-input.e2e.ts",
+    "e2e:async-list": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/async-list.e2e.ts",
+    "e2e:combobox": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/combobox.e2e.ts",
+    "e2e:editable": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/editable.e2e.ts",
+    "e2e:scroll-area": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/scroll-area.e2e.ts",
+    "e2e:toast": "deno test --allow-read --allow-net --allow-run --allow-env --allow-sys --allow-write=/tmp --allow-import --min-dep-age=0 tests/toast.e2e.ts"
   },
   "compilerOptions": {
     "strict": true,

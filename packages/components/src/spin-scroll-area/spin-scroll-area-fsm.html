@@ -1,0 +1,40 @@
+<scope>props={ id: string = "", dir: string = "ltr" } consume={ scrollAreaFsm }</scope>
+
+<div
+  class="relative h-full [--scroll-area-thumb-width:0px] [--scroll-area-thumb-height:0px] [--scroll-area-corner-width:0px] [--scroll-area-corner-height:0px]"
+  {...scrollAreaFsm.getRootProps()}
+>
+  <div
+    class="h-full w-full overflow-auto rounded-lg border border-border bg-surface-raised [scrollbar-width:none]"
+    {...scrollAreaFsm.getViewportProps()}
+  >
+    <div class="min-w-full" {...scrollAreaFsm.getContentProps()}>
+      <slot></slot>
+    </div>
+  </div>
+
+  <div
+    class="absolute top-0 bottom-0 end-0 z-10 w-2 touch-none select-none opacity-0 transition-opacity duration-fast ease-decelerate data-[overflow-x]:[bottom:var(--scroll-area-corner-height,0px)] data-[hover]:opacity-100 data-[scrolling]:opacity-100 data-[dragging]:opacity-100"
+    {...scrollAreaFsm.getScrollbarProps({ orientation: "vertical" })}
+  >
+    <div
+      class="relative left-0 top-[var(--scroll-area-thumb-y,0px)] h-[var(--scroll-area-thumb-height,0px)] w-full rounded-full bg-neutral-400 [transition-property:width,height,opacity] duration-fast ease-decelerate data-[hover]:bg-neutral-500 data-[dragging]:bg-neutral-500"
+      {...scrollAreaFsm.getThumbProps({ orientation: "vertical" })}
+    ></div>
+  </div>
+
+  <div
+    class="absolute bottom-0 start-0 end-0 z-10 h-2 touch-none select-none opacity-0 transition-opacity duration-fast ease-decelerate data-[overflow-y]:[end:var(--scroll-area-corner-width,0px)] data-[hover]:opacity-100 data-[scrolling]:opacity-100 data-[dragging]:opacity-100"
+    {...scrollAreaFsm.getScrollbarProps({ orientation: "horizontal" })}
+  >
+    <div
+      class="relative left-[var(--scroll-area-thumb-x,0px)] top-0 h-full w-[var(--scroll-area-thumb-width,0px)] rounded-full bg-neutral-400 [transition-property:width,height,opacity] duration-fast ease-decelerate data-[hover]:bg-neutral-500 data-[dragging]:bg-neutral-500"
+      {...scrollAreaFsm.getThumbProps({ orientation: "horizontal" })}
+    ></div>
+  </div>
+
+  <div
+    class="absolute bottom-0 end-0 z-10 bg-neutral-400 opacity-0 transition-opacity duration-fast ease-decelerate data-[state=hidden]:pointer-events-none data-[state=visible]:opacity-100 data-[hover]:opacity-100 [width:var(--scroll-area-corner-width,0px)] [height:var(--scroll-area-corner-height,0px)]"
+    {...scrollAreaFsm.getCornerProps()}
+  ></div>
+</div>

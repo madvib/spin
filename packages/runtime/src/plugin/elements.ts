@@ -134,6 +134,15 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
             `  })));\n` +
             `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
             `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
+            // Hosts poll state off the element, so the api's reads land
+            // there too: every non-function member the element does not
+            // already carry becomes a forwarding getter. Declared props,
+            // commands, and platform members all win the name.
+            `  for (const key of new Set(Object.keys(${bridge}.api))) {\n` +
+            `    if (typeof ${bridge}.api[key] !== "function" && !(key in el)) {\n` +
+            `      Object.defineProperty(el, key, { get: () => ${bridge}.api[key], configurable: true });\n` +
+            `    }\n` +
+            `  }\n` +
             `  own(() => ${bridge}.dispose());`
           );
         } catch {
