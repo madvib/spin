@@ -158,11 +158,13 @@ export const themeRouter = os.router({
         const themes: Array<{ name: string; text: string; file: string }> = [];
         for (const entry of entries.sort()) {
           if (!entry.endsWith(".json")) continue;
-          const file = join(root, "themes", entry);
           themes.push({
             name: entry.replace(/\.json$/, ""),
-            text: await readFile(file, "utf8"),
-            file,
+            text: await readFile(join(root, "themes", entry), "utf8"),
+            // Project-relative, so a path a developer sees never carries the
+            // machine's filesystem layout: a screenshot, a log line, an issue
+            // report. The daemon knows the root; the contract does not leak it.
+            file: join("themes", entry),
           });
         }
         return themes;
@@ -212,7 +214,10 @@ export const themeRouter = os.router({
           const from = join(rootOrThrow(), "themes", `${input.from}.json`);
           // Read first so a missing source is an error, not an empty file.
           await readFile(from, "utf8");
-          await copyFile(from, join(rootOrThrow(), "themes", `${input.to}.json`));
+          await copyFile(
+            from,
+            join(rootOrThrow(), "themes", `${input.to}.json`),
+          );
           return { error: null };
         } catch (err) {
           return { error: err instanceof Error ? err.message : String(err) };

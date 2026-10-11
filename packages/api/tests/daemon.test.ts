@@ -56,6 +56,19 @@ describe("daemon project.themes over HTTP", () => {
     const listed = await client.project.themes.list({});
     const names = listed.map((t) => t.name).sort();
     assertEquals(names, ["acme", "starter"]);
+    // Project-relative, never absolute: a path a developer sees carries no
+    // machine with it — no screenshot, log line, or issue report says where
+    // the files live on someone's disk.
+    assertEquals(
+      listed.every((t) => !t.file.startsWith("/") && !t.file.includes(":\\")),
+      true,
+      "a reported path is relative to its project, not to a machine",
+    );
+    assertEquals(
+      listed.map((t) => t.file).sort(),
+      ["themes/acme.json", "themes/starter.json"],
+      "the path is the project's own layout",
+    );
     assertEquals(
       listed.every((t) => t.file.endsWith(".json")),
       true,
