@@ -32,16 +32,13 @@ export function DemoCard(props: {
           : props.width === "lg"
             ? "max-w-[36rem]"
             : "";
-  // A card grows to its content's need and no further: a lone example is a
-  // card, not a void. The cap is the inner bound plus the card's own
-  // padding; `full` says the demo IS the layout and takes the whole stage.
-  const shell = props.width === "full"
+  // A card is half the stage (two per row) unless the demo is wide: `lg` and
+  // `full` take the whole row, because a data-dense demo is not a specimen
+  // card, it is a page. The component inside stays bounded by `bound`, so
+  // the card never becomes a slab.
+  const shell = props.width === "full" || props.width === "lg"
     ? "flex min-w-0 basis-full flex-col"
-    : props.width === "lg"
-      ? "flex min-w-0 flex-1 basis-[22rem] max-w-[39rem] flex-col"
-      : props.width === "md"
-        ? "flex min-w-0 flex-1 basis-[22rem] max-w-[27rem] flex-col"
-        : "flex min-w-0 flex-1 basis-[22rem] max-w-[21rem] flex-col";
+    : "flex min-w-0 basis-full flex-col md:basis-[calc(50%-0.75rem)]";
   return (
     <figure class={`m-0 ${shell} rounded-lg border border-solid border-border bg-surface`}>
       <figcaption class="flex items-baseline justify-between gap-2 border-b border-border px-4 py-2">
