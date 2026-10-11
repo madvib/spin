@@ -65,6 +65,15 @@ export interface TokenLeaf {
   type: TokenType;
   /** `$value`. Aliases are kept as written: `'{color.primary}'`. */
   value: unknown;
+  /**
+   * Per-mode values, keyed by mode name — `{ dark: "#60a5fa" }`.
+   *
+   * A token that varies by mode carries its variants beside its base value
+   * rather than in a second `dark` tree, because a reader of the token should
+   * see every value it has in one place. Mode-eligibility is validated, not
+   * implied: only the closed set of groups that may vary carries `$modes`.
+   */
+  modes?: Record<string, unknown>;
   description?: string;
 }
 

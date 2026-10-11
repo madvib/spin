@@ -208,13 +208,14 @@ function darkCoverageIssues(index: TokenIndex): ValidationIssue[] {
   for (const [path, node] of Object.entries(index.nodes)) {
     if (node.kind !== "token") continue;
     const [group] = path.split(".");
+    // The groups that vary by mode are closed, because a mode is a change of
+    // ink and surface, not of space or type.
     if (group !== "color" && group !== "focus") continue;
-    if (path.startsWith("dark.")) continue;
-    if (index.nodes[`dark.${path}`] === undefined) {
+    if (node.modes === undefined || !("dark" in node.modes)) {
       issues.push({
         path,
         message:
-          `dark mode declares "${path}" but the dark group does not restate it`,
+          `dark mode is declared but "${path}" has no "$modes.dark" value`,
       });
     }
   }

@@ -39,20 +39,33 @@ export { cssVarName } from "./resolve.ts";
 
 /** Render a leaf's value as CSS text, keeping aliases as `var()` references. */
 function cssValue(leaf: TokenLeaf, index: TokenIndex, prefix?: string): string {
-  const target = aliasTarget(leaf.value);
+  return valueAsCss(leaf.value, index, prefix);
+}
+
+/**
+ * Render a raw value — a leaf's `$value` or one of its `$modes` entries — as
+ * CSS text. Same rules either way, so a token's base and its dark value are
+ * indistinguishable to the stylesheet.
+ */
+function valueAsCss(
+  value: unknown,
+  index: TokenIndex,
+  prefix?: string,
+): string {
+  const target = aliasTarget(value);
   if (target !== null) {
     const referenced = index.nodes[target] ?? index.vars[target];
     if (referenced === undefined) return `{${target}}`;
     return `var(${cssVarName(referenced.path, prefix)})`;
   }
-  if (typeof leaf.value === "string") return leaf.value;
-  if (typeof leaf.value === "number") return String(leaf.value);
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
   // A boolean is a switch the rules read, not a value CSS consumes: `true`
   // emits as the flag `1` and `false` emits as nothing. A false flag is
   // absence — the same shape a missing token has — which is what lets a rule
   // ask `is this declared?` and get a per-theme answer.
-  if (typeof leaf.value === "boolean") return leaf.value ? "1" : "";
-  return JSON.stringify(leaf.value);
+  if (typeof value === "boolean") return value ? "1" : "";
+  return JSON.stringify(value);
 }
 
 /** Split a tree into its base block and its dark override block. */
@@ -69,13 +82,16 @@ function collectBlocks(
   for (const node of tree) {
     const isDarkRoot = node.kind === "group" &&
       node.name.toLowerCase() === DARK_GROUP;
+    // The `dark` root is a VARIANT, not a namespace: strip its own segment so
+    // `dark.color.brand` lands on the same property as `color.brand`. A token
+    // carrying its own `$modes` does the same job from inside itself, so both
+    // spellings emit identical CSS — which is the migration's contract.
     collectLeaves(
       node,
       index,
       prefix,
       isDarkRoot ? dark : base,
-      // The dark root is a VARIANT, not a namespace: strip its own segment so
-      // `dark.color.brand` lands on the same property as `color.brand`.
+      dark,
       isDarkRoot,
     );
   }
@@ -87,19 +103,32 @@ function collectLeaves(
   node: TokenNode,
   index: TokenIndex,
   prefix: string | undefined,
-  block: Block,
+  into: Block,
+  dark: Block | undefined,
   stripRoot: boolean,
 ): void {
   if (node.kind === "token") {
     const path = stripRoot ? node.path.slice(1) : node.path;
-    block.declarations.push([
+    into.declarations.push([
       cssVarName(path, prefix),
       cssValue(node, index, prefix),
     ]);
+    // A token's own mode values land in the mode block beside its base, which
+    // is what lets the `dark` group go away without changing a byte of
+    // emitted CSS.
+    if (node.modes !== undefined && dark !== undefined) {
+      const value = node.modes[DARK_GROUP];
+      if (value !== undefined) {
+        dark.declarations.push([
+          cssVarName(path, prefix),
+          valueAsCss(value, index, prefix),
+        ]);
+      }
+    }
     return;
   }
   for (const child of node.children) {
-    collectLeaves(child, index, prefix, block, stripRoot);
+    collectLeaves(child, index, prefix, into, dark, stripRoot);
   }
 }
 

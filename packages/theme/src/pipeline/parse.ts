@@ -34,6 +34,9 @@ const RESERVED: Record<string, true> = {
   $description: true,
   $extensions: true,
   $deprecated: true,
+  // Per-mode values, keyed by mode name. Metadata, not a child group: a token
+  // that varies by mode carries its variants beside its base value.
+  $modes: true,
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -144,6 +147,9 @@ function buildNode(
     value: raw["$value"],
   };
   if (description !== undefined) leaf.description = description;
+  if (isPlainObject(raw["$modes"])) {
+    leaf.modes = raw["$modes"] as Record<string, unknown>;
+  }
 
   return { ok: true, node: leaf, leaves: 1 };
 }

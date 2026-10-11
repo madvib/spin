@@ -9,138 +9,243 @@
     "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
     "primary": {
       "$value": "#2563eb",
-      "$description": "Brand accent: primary actions, links, focus rings."
+      "$description": "Brand accent: primary actions, links, focus rings.",
+      "$modes": {
+        "dark": "#60a5fa"
+      }
     },
     "secondary": {
       "$value": "#6d28d9",
-      "$description": "Brand accent: secondary actions and highlights."
+      "$description": "Brand accent: secondary actions and highlights.",
+      "$modes": {
+        "dark": "#a78bfa"
+      }
     },
     "accent": {
       "$value": "#0f766e",
-      "$description": "Brand accent: supporting emphasis, distinct from primary."
+      "$description": "Brand accent: supporting emphasis, distinct from primary.",
+      "$modes": {
+        "dark": "#2dd4bf"
+      }
     },
     "neutral": {
       "50": {
-        "$value": "#f8fafc"
+        "$value": "#f8fafc",
+        "$modes": {
+          "dark": "#0b1120"
+        }
       },
       "100": {
-        "$value": "#f1f5f9"
+        "$value": "#f1f5f9",
+        "$modes": {
+          "dark": "#111827"
+        }
       },
       "200": {
-        "$value": "#e2e8f0"
+        "$value": "#e2e8f0",
+        "$modes": {
+          "dark": "#1f2937"
+        }
       },
       "300": {
-        "$value": "#cbd5e1"
+        "$value": "#cbd5e1",
+        "$modes": {
+          "dark": "#334155"
+        }
       },
       "400": {
-        "$value": "#94a3b8"
+        "$value": "#94a3b8",
+        "$modes": {
+          "dark": "#475569"
+        }
       },
       "500": {
-        "$value": "#64748b"
+        "$value": "#64748b",
+        "$modes": {
+          "dark": "#64748b"
+        }
       },
       "600": {
-        "$value": "#475569"
+        "$value": "#475569",
+        "$modes": {
+          "dark": "#94a3b8"
+        }
       },
       "700": {
-        "$value": "#334155"
+        "$value": "#334155",
+        "$modes": {
+          "dark": "#cbd5e1"
+        }
       },
       "800": {
-        "$value": "#1e293b"
+        "$value": "#1e293b",
+        "$modes": {
+          "dark": "#e2e8f0"
+        }
       },
       "900": {
-        "$value": "#0f172a"
+        "$value": "#0f172a",
+        "$modes": {
+          "dark": "#f8fafc"
+        }
       },
       "$description": "The grey ramp, 50 (lightest) through 900 (darkest)."
     },
     "semantic": {
       "$description": "Status colors. Named by meaning, never by hue.",
       "success": {
-        "$value": "#15803d"
+        "$value": "#15803d",
+        "$modes": {
+          "dark": "#4ade80"
+        }
       },
       "warning": {
-        "$value": "#a16207"
+        "$value": "#a16207",
+        "$modes": {
+          "dark": "#fbbf24"
+        }
       },
       "error": {
-        "$value": "#b91c1c"
+        "$value": "#b91c1c",
+        "$modes": {
+          "dark": "#f87171"
+        }
       },
       "info": {
-        "$value": "#0369a1"
+        "$value": "#0369a1",
+        "$modes": {
+          "dark": "#38bdf8"
+        }
       }
     },
     "surface": {
       "$value": "{color.neutral.50}",
-      "$description": "Page background."
+      "$description": "Page background.",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "surface-sunken": {
       "$value": "{color.neutral.100}",
-      "$description": "Background of elements that sit below the page: table stripes, inset wells."
+      "$description": "Background of elements that sit below the page: table stripes, inset wells.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
     },
     "surface-raised": {
       "$value": "#ffffff",
-      "$description": "Background of elements that sit above the page: cards, popovers, menus."
+      "$description": "Background of elements that sit above the page: cards, popovers, menus.",
+      "$modes": {
+        "dark": "#111827"
+      }
     },
     "text": {
       "$value": "{color.neutral.900}",
-      "$description": "Default body text."
+      "$description": "Default body text.",
+      "$modes": {
+        "dark": "#f8fafc"
+      }
     },
     "text-muted": {
       "$value": "{color.neutral.600}",
-      "$description": "Secondary text: captions, helper copy, placeholders."
+      "$description": "Secondary text: captions, helper copy, placeholders.",
+      "$modes": {
+        "dark": "#94a3b8"
+      }
     },
     "border": {
       "$value": "{color.neutral.200}",
-      "$description": "Default hairline and divider."
+      "$description": "Default hairline and divider.",
+      "$modes": {
+        "dark": "#1f2937"
+      }
     },
     "on-primary": {
       "$value": "#ffffff",
-      "$type": "color"
+      "$type": "color",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "on-danger": {
       "$value": "#ffffff",
-      "$type": "color"
+      "$type": "color",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "focus-ring": {
-      "$value": "{color.primary}"
+      "$value": "{color.primary}",
+      "$modes": {
+        "dark": "#60a5fa"
+      }
     },
     "link": {
       "$value": "{color.primary}",
-      "$description": "Links read against body text, so they follow the primary."
+      "$description": "Links read against body text, so they follow the primary.",
+      "$modes": {
+        "dark": "#7dd3fc"
+      }
     },
     "on-secondary": {
       "$type": "color",
-      "$value": "#ffffff"
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "on-accent": {
       "$type": "color",
-      "$value": "#ffffff"
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "on-semantic-success": {
       "$type": "color",
-      "$value": "#ffffff"
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "on-semantic-warning": {
       "$type": "color",
-      "$value": "#ffffff"
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "field": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "A field's own surface. Distinct from `surface`, so a control reads as an inset object rather than a hole in the page, and distinct from `surface-raised`, so a card on a field is still two things."
+      "$description": "A field's own surface. Distinct from `surface`, so a control reads as an inset object rather than a hole in the page, and distinct from `surface-raised`, so a card on a field is still two things.",
+      "$modes": {
+        "dark": "#1f2937"
+      }
     },
     "border-strong": {
       "$type": "color",
       "$value": "#94a3b8",
-      "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance."
+      "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance.",
+      "$modes": {
+        "dark": "#475569"
+      }
     },
     "on-semantic-error": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     },
     "on-semantic-info": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#0b1120"
+      }
     }
   },
   "spacing": {
@@ -226,7 +331,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -273,8 +378,6 @@
     }
   },
   "opacity": {
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
@@ -318,7 +421,9 @@
     "100": {
       "$value": 1,
       "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
-    }
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
   },
   "shadow": {
     "$type": "shadow",
@@ -436,7 +541,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -447,14 +552,20 @@
     "$type": "dimension",
     "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs.",
     "width": {
-      "$value": "1px"
+      "$value": "1px",
+      "$modes": {
+        "dark": "2px"
+      }
     },
     "offset": {
-      "$value": "2px"
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      }
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"
@@ -493,152 +604,6 @@
     "depth": {
       "$type": "number",
       "$value": 1.5
-    }
-  },
-  "dark": {
-    "$description": "Dark mode. Re-states every token whose value depends on the background so the dark side is complete on its own; roles that track the ramp state their dark values explicitly rather than aliasing it.",
-    "color": {
-      "$type": "color",
-      "primary": {
-        "$value": "#60a5fa",
-        "$description": "Lifted from the light-mode brand hue so it stays legible on a dark surface."
-      },
-      "secondary": {
-        "$value": "#a78bfa"
-      },
-      "accent": {
-        "$value": "#2dd4bf"
-      },
-      "neutral": {
-        "50": {
-          "$value": "#0b1120"
-        },
-        "100": {
-          "$value": "#111827"
-        },
-        "200": {
-          "$value": "#1f2937"
-        },
-        "300": {
-          "$value": "#334155"
-        },
-        "400": {
-          "$value": "#475569"
-        },
-        "500": {
-          "$value": "#64748b"
-        },
-        "600": {
-          "$value": "#94a3b8"
-        },
-        "700": {
-          "$value": "#cbd5e1"
-        },
-        "800": {
-          "$value": "#e2e8f0"
-        },
-        "900": {
-          "$value": "#f8fafc"
-        },
-        "$description": "The same ramp inverted: 50 is the darkest, 900 the lightest."
-      },
-      "semantic": {
-        "success": {
-          "$value": "#4ade80"
-        },
-        "warning": {
-          "$value": "#fbbf24"
-        },
-        "error": {
-          "$value": "#f87171"
-        },
-        "info": {
-          "$value": "#38bdf8"
-        }
-      },
-      "field": {
-        "$type": "color",
-        "$value": "#1f2937",
-        "$description": "A field's own surface in dark mode: one step above the card it sits in, so a control still reads as an object set into the page rather than a hole cut out of nothing."
-      },
-      "surface-raised": {
-        "$value": "#111827"
-      },
-      "surface": {
-        "$value": "#0b1120",
-        "$description": "Page background in dark mode."
-      },
-      "text": {
-        "$value": "#f8fafc",
-        "$description": "Default body text in dark mode."
-      },
-      "text-muted": {
-        "$value": "#94a3b8",
-        "$description": "Secondary text in dark mode."
-      },
-      "border": {
-        "$value": "#1f2937",
-        "$description": "Default hairline and divider in dark mode."
-      },
-      "on-primary": {
-        "$value": "#0b1120",
-        "$type": "color"
-      },
-      "on-danger": {
-        "$value": "#0b1120",
-        "$type": "color"
-      },
-      "on-secondary": {
-        "$value": "#0b1120",
-        "$type": "color"
-      },
-      "on-accent": {
-        "$value": "#0b1120",
-        "$type": "color"
-      },
-      "on-semantic-success": {
-        "$value": "#0b1120",
-        "$type": "color"
-      },
-      "focus-ring": {
-        "$value": "#60a5fa",
-        "$description": "Ring matches the lifted dark primary."
-      },
-      "link": {
-        "$value": "#7dd3fc",
-        "$description": "Lifted link color; the dark accent is not restated in this group."
-      },
-      "on-semantic-warning": {
-        "$value": "#0b1120",
-        "$description": "Ink on the dark warning fill. The dark warning background is amber, so the foreground stays dark where the light-mode one is white."
-      },
-      "on-semantic-error": {
-        "$value": "#0b1120"
-      },
-      "border-strong": {
-        "$type": "color",
-        "$value": "#475569",
-        "$description": "The control's own edge, lifted one ramp step from its dark base so it still reads as stronger than `border`."
-      },
-      "on-semantic-info": {
-        "$type": "color",
-        "$value": "#0b1120",
-        "$description": "Ink on the lifted dark info fill, the same dark ink the other semantic fills take."
-      },
-      "surface-sunken": {
-        "$type": "color",
-        "$value": "{color.neutral.200}",
-        "$description": "Below the dark page the way the light stripe sits below the light page: one ramp step down, not the light stripe itself left over."
-      }
-    },
-    "focus": {
-      "$type": "dimension",
-      "width": {
-        "$value": "2px"
-      },
-      "offset": {
-        "$value": "2px"
-      }
     }
   },
   "$description": "Carries a `dark` group, so this one theme answers to both modes.",

@@ -142,6 +142,81 @@ Deno.test("generateCss puts every token of the tree into the base block", () => 
   assertEquals(names, ["--color-accent", "--color-brand", "--space-sm"]);
 });
 
+Deno.test("a token's per-mode values emit the same CSS as a dark group", () => {
+  // The migration's whole contract: a token that carries its dark value in
+  // `$modes` and a document that carries it in a `dark` group are the same
+  // stylesheet to the last byte. If this fails, the migration is not a
+  // migration — it is a rewrite with a regression in it.
+  const grouped = {
+    color: { brand: { $value: "#000000", $type: "color" } },
+    dark: {
+      color: { brand: { $value: "#ffffff", $type: "color" } },
+    },
+  };
+  const inline = {
+    color: {
+      brand: {
+        $value: "#000000",
+        $type: "color",
+        $modes: { dark: "#ffffff" },
+      },
+    },
+  };
+  const alias = {
+    color: {
+      brand: { $value: "#000000", $type: "color" },
+      onBrand: { $value: "#111111", $type: "color" },
+    },
+    dark: {
+      color: { onBrand: { $value: "{color.brand}", $type: "color" } },
+    },
+  };
+  const aliasInline = {
+    color: {
+      brand: { $value: "#000000", $type: "color" },
+      onBrand: {
+        $value: "#111111",
+        $type: "color",
+        $modes: { dark: "{color.brand}" },
+      },
+    },
+  };
+
+  for (
+    const [withGroup, perToken] of [
+      [grouped, inline],
+      [alias, aliasInline],
+    ]
+  ) {
+    const fromGroup = generateCss(
+      treeOf(parseTokens(JSON.stringify(withGroup))),
+    );
+    const fromToken = generateCss(
+      treeOf(parseTokens(JSON.stringify(perToken))),
+    );
+    // Same declarations, byte for byte, in the base block: the migration
+    // touches no base value.
+    const baseOf = (css: string) => css.slice(0, css.indexOf("[data-mode"));
+    assertEquals(
+      baseOf(fromToken),
+      baseOf(fromGroup),
+      "the base block is unchanged by the migration",
+    );
+    // The dark block holds the same declarations. Its ORDER follows the base
+    // tree rather than the old group's, because the values now come from the
+    // tokens themselves — so this is a set comparison, and a deliberate one:
+    // the emitted dark block is ordered by the base it overrides.
+    const declsOf = (css: string) =>
+      (css.slice(css.indexOf("[data-mode")).match(/--[\w-]+:[^;]+;/g) ?? [])
+        .sort();
+    assertEquals(
+      declsOf(fromToken),
+      declsOf(fromGroup),
+      "the dark block declares the same values either way",
+    );
+  }
+});
+
 Deno.test("a boolean token emits its flag when on and nothing when off", () => {
   // The flag is the whole mechanism: a rule asks whether the theme declared
   // it, and a false flag is the same answer as no declaration at all.

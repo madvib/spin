@@ -9,7 +9,13 @@ import {
   parseTokens,
   validateTokens,
 } from "@spin/theme";
-import type { ParseResult, ThemeDocument, TokenTree } from "@spin/theme";
+import type {
+  ParseResult,
+  ThemeDocument,
+  TokenLeaf,
+  TokenNode,
+  TokenTree,
+} from "@spin/theme";
 import { themeModes } from "@spin/theme/themes";
 
 /**
@@ -242,44 +248,37 @@ Deno.test("the example theme's light document parses into a token tree", async (
 });
 
 /**
- * The dark SIDE of the default theme: its `dark` group, as a tree of its own.
+ * Every leaf in a subtree, depth-first.
  *
- * Not a second document — `dark` is a MODE, and the group inside the one
- * document is what it resolves to. Reading it out here is what lets a test ask
- * "what does dark change?" without pretending the dark side is a theme.
+ * The dark side is no longer a group of its own: it lives on each token as
+ * `$modes.dark`, so "what does dark change?" is a question about the leaves
+ * rather than about a second tree.
  */
-function darkGroup(): TokenTree {
-  const tree = treeOf(
-    parseTokens(
-      Deno.readTextFileSync(new URL("default.json", THEMES_DIR)),
-    ),
-    "default.json",
-  );
-  const dark = tree.find((node) => node.path.join(".") === "dark");
-  assert(dark !== undefined, "the default theme must carry a dark group");
-  return [dark];
+function leavesOf(node: TokenNode): TokenLeaf[] {
+  if (node.kind === "token") return [node];
+  return node.children.flatMap(leavesOf);
 }
 
 Deno.test("the default theme carries a dark MODE rather than being a second theme", async () => {
   // `light` and `dark` are two modes of ONE theme. There is no theme named
-  // `light` and no document named `dark` — the dark side is a `dark` group
-  // inside the same document, which is what `generateCss` scopes to
+  // `light` and no document named `dark` — the dark side lives on the tokens
+  // themselves as `$modes.dark`, which `generateCss` scopes to
   // `[data-theme="<name>"][data-mode="dark"]`.
   const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
     "default.json",
   );
-  const dark = tree.find((node) => node.path.join(".") === "dark");
-  assert(dark !== undefined, "the default theme must carry a dark group");
 
   // The dark side restates colours and the focus ring; metrics are inherited,
-  // because a mode says what CHANGES.
-  assertEquals(
-    dark?.kind === "group"
-      ? dark.children.map((node) => node.path.join("."))
-      : [],
-    ["dark.color", "dark.focus"],
-  );
+  // because a mode says what CHANGES. The set of groups that vary is closed,
+  // so the paths carrying a dark value are exactly color and focus.
+  const varying = new Set<string>();
+  for (const node of tree) {
+    for (const leaf of leavesOf(node)) {
+      if (leaf.modes !== undefined) varying.add(leaf.path[0] as string);
+    }
+  }
+  assertEquals([...varying].sort(), ["color", "focus"]);
 });
 
 Deno.test("the example theme defines every token path it advertises", async () => {
@@ -322,7 +321,7 @@ Deno.test("a theme states its modes at the root", async () => {
   }
 });
 
-Deno.test("default's dark group restates every color and focus leaf", async () => {
+Deno.test("default's dark mode restates every color and focus leaf", async () => {
   // A `modes: ["light", "dark"]` theme that only restates SOME colors is a
   // theme that ships half a dark mode: `border-strong` keeps its light value
   // under a dark selector, and the stripe that reads `surface-sunken` paints
@@ -433,10 +432,13 @@ Deno.test("the dark block emits every token the dark document declares", async (
   );
   const css = generateCss(tree);
   const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
-  const declared = Object.values(indexTree(darkGroup()).leaves).map((leaf) =>
-    // The leaf paths arrive prefixed with `dark`, which is the mode's own
-    // namespace rather than part of the property name.
-    cssVarName(leaf.path.slice(1))
+  // Every leaf the document gives a dark value, whatever spelling it uses:
+  // a `$modes.dark` entry on the token, which is the spelling the shipped
+  // themes now carry.
+  const declared = tree.flatMap(leavesOf).flatMap((leaf) =>
+    leaf.modes !== undefined && "dark" in leaf.modes
+      ? [cssVarName(leaf.path)]
+      : []
   );
   for (const name of declared) {
     assert(
@@ -451,12 +453,11 @@ Deno.test("the dark block emits every token the dark document declares", async (
 });
 
 Deno.test("a dark-mode consumer reads the dark document's colors", async () => {
-  const light = treeOf(
+  const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
     "default.json",
   );
-  const dark = darkGroup();
-  const vars = varsInMode(generateCss([...light, ...dark]), "dark");
+  const vars = varsInMode(generateCss(tree), "dark");
 
   assertEquals(vars["--color-primary"], "#60a5fa");
   assertEquals(vars["--color-secondary"], "#a78bfa");
@@ -523,12 +524,11 @@ Deno.test("spacing, typography and layering are the same scale in both modes", a
 });
 
 Deno.test("the example theme's spacing scale grows with its step number", async () => {
-  const light = treeOf(
+  const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
     "default.json",
   );
-  const dark = darkGroup();
-  const vars = varsInMode(generateCss([...light, ...dark]), "light");
+  const vars = varsInMode(generateCss(tree), "light");
 
   assertAscending(
     ["0", "1", "2", "4", "8", "16"].map((step) =>
@@ -539,12 +539,11 @@ Deno.test("the example theme's spacing scale grows with its step number", async 
 });
 
 Deno.test("the example theme's radii round off from square to fully round", async () => {
-  const light = treeOf(
+  const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
     "default.json",
   );
-  const dark = darkGroup();
-  const vars = varsInMode(generateCss([...light, ...dark]), "light");
+  const vars = varsInMode(generateCss(tree), "light");
 
   assertAscending(
     ["none", "sm", "md", "lg", "full"].map((name) =>
@@ -555,12 +554,11 @@ Deno.test("the example theme's radii round off from square to fully round", asyn
 });
 
 Deno.test("the example theme's breakpoints and z-index layers are ordered", async () => {
-  const light = treeOf(
+  const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
     "default.json",
   );
-  const dark = darkGroup();
-  const vars = varsInMode(generateCss([...light, ...dark]), "light");
+  const vars = varsInMode(generateCss(tree), "light");
 
   assertAscending(
     ["sm", "md", "lg", "xl"].map((name) =>
