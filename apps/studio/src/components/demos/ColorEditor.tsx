@@ -23,6 +23,7 @@ export default function ColorEditor(props: {
               <div class="flex items-center gap-4">
                 <ValueInput
                   value={row.value}
+                  type={row.type}
                   onCommit={(value) => props.onEdit(row.path.split("."), value)}
                 />
               </div>

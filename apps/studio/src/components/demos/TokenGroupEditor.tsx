@@ -15,6 +15,7 @@ export default function TokenGroupEditor(props: {
             <code>{row.path}</code>
             <ValueInput
               value={row.value}
+              type={row.type}
               onCommit={(value) => props.onEdit(row.path.split("."), value)}
             />
           </div>

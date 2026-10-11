@@ -69,6 +69,7 @@ describe("daemon project.themes over HTTP", () => {
       );
       const parsed = parseTokens(theme.text);
       assertEquals(parsed.ok, true, `${theme.name}: parses`);
+      if (!parsed.ok) return;
       const modes = themeModes(doc as never);
       assertEquals(
         modes.includes("dark"),
@@ -76,9 +77,7 @@ describe("daemon project.themes over HTTP", () => {
         `${theme.name}: declares dark`,
       );
       assertEquals(
-        validateTokens((parsed as { tree: never }).tree, {
-          modes: [...modes],
-        }).issues,
+        validateTokens(parsed.tree, { modes: [...modes] }).issues,
         [],
         `${theme.name}: every color and focus leaf has a dark value`,
       );

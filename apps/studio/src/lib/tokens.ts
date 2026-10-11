@@ -5,6 +5,8 @@ export interface TokenRow {
   path: string;
   variable: string;
   value: string;
+  /** The theme's own declared type for this token, e.g. `color`, `dimension`. */
+  type: string;
 }
 
 const SECTION_PREFIXES: Record<string, string[][]> = {
@@ -62,6 +64,11 @@ export function groupTokens(
         path,
         variable: cssVarName(leaf.path),
         value: formatValue(effective.get(path) ?? leaf.value),
+        // The theme declares what a token IS, and the editor follows it: a
+        // color gets a picker, a dimension gets a step control. Letting one
+        // control imply every token's type is how radius ends up with a
+        // hex-only field.
+        type: (leaf.type as string | undefined) ?? "",
       };
     });
 }
