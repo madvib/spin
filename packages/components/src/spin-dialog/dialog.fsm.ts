@@ -65,11 +65,21 @@ const implementations = {
   },
 };
 
+/**
+ * The api the bridge publishes: the connect surface plus the imperative
+ * commands the proxy resolves from its own trap.
+ */
+export interface DialogFsmBridgeApi extends DialogFsmApi {
+  show(): void;
+  hide(reason?: "escape" | "outside" | "api"): void;
+  toggle(): void;
+}
+
 export function createDialogFsmBridge(
   props: () => Record<string, unknown>,
   root: () => Element,
   id: string,
-): { readonly api: DialogFsmApi; dispose(): void } {
+): { readonly api: DialogFsmBridgeApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<DialogContext, DialogEvent>(config, implementations);
@@ -173,7 +183,7 @@ export function createDialogFsmBridge(
         ? (commands as Record<string | symbol, unknown>)[key]
         : Reflect.get(connected(), key),
     has: (_target, key) => key in commands || Reflect.has(connected(), key),
-    ownKeys: () => [...Reflect.ownKeys(connected()), ...Object.keys(commands)],
+    ownKeys: () => [...new Set([...Reflect.ownKeys(connected()), ...Object.keys(commands)])],
     getOwnPropertyDescriptor: (_target, key) => {
       if (key in commands) return { configurable: true, enumerable: true, value: (commands as Record<string | symbol, unknown>)[key] };
       const descriptor = Reflect.getOwnPropertyDescriptor(connected(), key);
@@ -182,7 +192,7 @@ export function createDialogFsmBridge(
   });
 
   return {
-    api: api as DialogFsmApi,
+    api: api as DialogFsmBridgeApi,
     dispose: () => {
       service?.stop();
       owner.dispose();

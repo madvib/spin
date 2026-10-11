@@ -19,11 +19,20 @@ export interface TabsFocusChange {
   readonly focusedValue: string | null;
 }
 
-function createTabsBridge(
+/**
+ * The api the bridge publishes: the connect surface plus the imperative
+ * commands the proxy resolves from its own trap.
+ */
+export interface TabsFsmBridgeApi extends TabsFsmApi {
+  select(value: string | null): void;
+  focus(value: string): void;
+}
+
+export function createTabsBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
-  id: string,
-): { readonly api: TabsFsmApi; dispose(): void } {
+  _id: string,
+): { readonly api: TabsFsmBridgeApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<TabsContext, TabsEvent>(config, implementations);
@@ -123,19 +132,24 @@ function createTabsBridge(
   // is shadowed by its own get trap and the host would call undefined.
   const commands = {
     select: (value: string | null): void => send({ type: "SET_VALUE", value }),
-    focus: (value: string): void => send({ type: "TAB_FOCUS", value }),
+    focus: (value: string): void => {
+      send({ type: "TAB_FOCUS", value });
+      // Same contract as the keyboard move: automatic mode selects what
+      // focus lands on, manual waits for a click.
+      if (readProps().activationMode === "automatic") send({ type: "SELECT_FOCUSED" });
+    },
     get value(): string | null {
       return ensureService().state.context.value;
     },
   };
 
-  const api = new Proxy({} as TabsFsmApi, {
+  const api = new Proxy({} as TabsFsmBridgeApi, {
     get: (_target, key) =>
       key in commands
         ? (commands as Record<string | symbol, unknown>)[key]
         : Reflect.get(connected(), key),
     has: (_target, key) => key in commands || Reflect.has(connected(), key),
-    ownKeys: () => [...Reflect.ownKeys(connected()), ...Object.keys(commands)],
+    ownKeys: () => [...new Set([...Reflect.ownKeys(connected()), ...Object.keys(commands)])],
     getOwnPropertyDescriptor: (_target, key) => {
       if (key in commands) {
         return { configurable: true, enumerable: true, value: (commands as Record<string | symbol, unknown>)[key] };
@@ -146,7 +160,7 @@ function createTabsBridge(
   });
 
   return {
-    api: api as TabsFsmApi,
+    api: api as TabsFsmBridgeApi,
     dispose: () => {
       service?.stop();
       owner.dispose();
