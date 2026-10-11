@@ -57,7 +57,8 @@ export default function OverviewPage() {
       <h1 class="text-2xl">{activeName()}</h1>
       <p>
         {themeSummaries().find((summary) => summary.name === activeName())
-          ?.file ?? "packages/theme/src/themes"} · {rootDescription(themeText())}
+          ?.file ?? "packages/theme/src/themes"} ·{" "}
+        {rootDescription(themeText())}
       </p>
       <Show when={report().issues.length > 0}>
         <ul>

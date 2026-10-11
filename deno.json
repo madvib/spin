@@ -41,7 +41,10 @@
     "check": "deno check packages/",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
     "visual": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env oracles/visual/check.ts",
-    "serve": "cd apps/reference && deno task dev"
+    "serve": "cd apps/reference && deno task dev",
+    "dev": "deno task dev:studio & deno task dev:daemon & wait",
+    "dev:daemon": "cd packages/api && deno task dev --root ../../examples/fixture-app --port 0",
+    "dev:studio": "cd apps/studio && deno task dev"
   },
   "fmt": {
     "exclude": [

@@ -8,7 +8,7 @@
  * answers "what changed".
  */
 
-import { createResource, createSignal } from "solid-js";
+import { createEffect, createResource, createSignal } from "solid-js";
 import { analyzeTheme } from "./theme.ts";
 import { indexTree } from "@spin/theme";
 import { listProjectThemes } from "./themes.ts";
@@ -43,6 +43,22 @@ export function registry() {
 export function refetchThemes(): void {
   registryResource()[1].refetch();
 }
+
+/**
+ * Seat the active theme on something that exists.
+ *
+ * The registry is the answer to "what is there", and it arrives after first
+ * paint — a signal seeded with a name nobody writes would otherwise have the
+ * editor editing a theme the project does not have, with empty text and an
+ * invalid-JSON banner. When the current name is absent from what the daemon
+ * listed, take the first thing it did list rather than guessing.
+ */
+createEffect(() => {
+  const listed = registry();
+  if (listed === undefined || listed.length === 0) return;
+  const known = listed.some((theme) => theme.name === activeName());
+  if (!known) setActiveName(listed[0]!.name);
+});
 
 /** The editor text per theme, seeded from disk on first read. */
 const [docs, setDocs] = createSignal<Record<string, string>>({});

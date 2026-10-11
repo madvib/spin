@@ -1,9 +1,16 @@
-import { strict as assert } from "node:assert";
+import { assertEquals } from "@std/assert";
 import { after, before, describe, it } from "node:test";
-import { copyFileSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createDaemonApp, serveDaemon } from "@spin/api/daemon";
+import { DISCOVERY_FILE, startDaemon } from "@spin/api/daemon";
 import { createSpinClient, type SpinClient } from "@spin/api";
 
 /**
@@ -18,7 +25,7 @@ import { createSpinClient, type SpinClient } from "@spin/api";
  */
 describe("daemon project.themes over HTTP", () => {
   let dir: string;
-  let server: Deno.HttpServer<Deno.NetAddr>;
+  let daemon: ReturnType<typeof startDaemon>;
   let client: SpinClient;
 
   before(async () => {
@@ -30,27 +37,28 @@ describe("daemon project.themes over HTTP", () => {
       "../../../examples/fixture-app/themes",
       import.meta.url,
     );
-    const { mkdirSync } = await import("node:fs");
     mkdirSync(join(dir, "themes"));
     for (const entry of readdirSync(fixture)) {
       copyFileSync(join(fixture.pathname, entry), join(dir, "themes", entry));
     }
-    server = serveDaemon(createDaemonApp({ root: dir }), 0);
-    const addr = server.addr;
-    client = createSpinClient(`http://localhost:${addr.port}/rpc`);
+    daemon = startDaemon({ root: dir, port: 0 });
+    client = createSpinClient(daemon.url);
   });
 
   after(async () => {
-    await server.shutdown();
+    // close() removes the discovery document too, which is half of what it
+    // exists to be tested for.
+    daemon.close();
     rmSync(dir, { recursive: true, force: true });
   });
 
   it("lists the fixture themes", async () => {
     const listed = await client.project.themes.list({});
     const names = listed.map((t) => t.name).sort();
-    assert.deepEqual(names, ["acme", "starter"]);
-    assert(
+    assertEquals(names, ["acme", "starter"]);
+    assertEquals(
       listed.every((t) => t.file.endsWith(".json")),
+      true,
       "every entry names the file on disk it came from",
     );
   });
@@ -60,35 +68,63 @@ describe("daemon project.themes over HTTP", () => {
       from: "starter",
       to: "acme-dark",
     });
-    assert.equal(copied.error, null);
+    assertEquals(copied.error, null);
     const names = (await client.project.themes.list({})).map((t) => t.name);
-    assert(names.includes("acme-dark"), "the copy appears in the list");
+    assertEquals(
+      names.includes("acme-dark"),
+      true,
+      "the copy appears in the list",
+    );
     const read = await client.project.themes.read({ name: "acme-dark" });
     const source = await client.project.themes.read({ name: "starter" });
-    assert.equal(read.text, source.text);
+    assertEquals(read.text, source.text);
   });
 
   it("writes a theme and reads it back", async () => {
     const before = await client.project.themes.read({ name: "acme" });
-    assert(before.text !== null, "the fixture theme reads");
+    assertEquals(
+      before.text !== null,
+      true,
+      "the fixture theme reads",
+    );
     const edited = (before.text as string).replace(
-      '"#0ea5e9"',
-      '"#ff0000"',
+      "#0369a1",
+      "#ff0000",
     );
     const written = await client.project.themes.write({
       name: "acme",
       text: edited,
     });
-    assert.equal(written.error, null);
+    assertEquals(written.error, null);
     const after = await client.project.themes.read({ name: "acme" });
-    assert(after.text?.includes("#ff0000"), "the write landed on disk");
+    assertEquals(
+      after.text?.includes("#ff0000"),
+      true,
+      "the write landed on disk",
+    );
   });
 
   it("removes a theme", async () => {
     const removed = await client.project.themes.remove({ name: "acme-dark" });
-    assert.equal(removed.error, null);
+    assertEquals(removed.error, null);
     const names = (await client.project.themes.list({})).map((t) => t.name);
-    assert(!names.includes("acme-dark"), "the removed theme is gone");
+    assertEquals(
+      names.includes("acme-dark"),
+      false,
+      "the removed theme is gone",
+    );
+  });
+
+  it("publishes discovery so a client can find the port", async () => {
+    // A client cannot guess a port it was never told. The daemon writes one,
+    // and it is gone on close.
+    const bound = new URL(daemon.url).port;
+    const doc = JSON.parse(readFileSync(join(dir, DISCOVERY_FILE), "utf8")) as {
+      port: number;
+      path: string;
+    };
+    assertEquals(doc.port, Number(bound), "discovery names the bound port");
+    assertEquals(doc.path, "/rpc");
   });
 
   it("refuses a name that escapes the themes directory", async () => {
@@ -101,6 +137,6 @@ describe("daemon project.themes over HTTP", () => {
     } catch {
       refused = true;
     }
-    assert(refused, "a name with a separator must be refused");
+    assertEquals(refused, true, "a name with a separator must be refused");
   });
 });

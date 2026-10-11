@@ -6,6 +6,12 @@ import UnoCSS from "@unocss/vite";
 import presetIcons from "@unocss/preset-icons";
 import { spinPreset } from "../../packages/preset/src/index.ts";
 import studioTheme from "./theme.json" with { type: "json" };
+/**
+ * The daemon's port in development. The dev task pins it; this file's only
+ * other caller is a human who ran the daemon themselves and can set the env
+ * var. A second free port would be discovered in production, not here.
+ */
+const DAEMON_PORT = process.env.SPIN_DAEMON_PORT ?? "7463";
 export default defineConfig({
   plugins: [
     UnoCSS({

@@ -31,7 +31,7 @@ export interface StudioTheme {
  */
 export async function listProjectThemes(): Promise<StudioTheme[]> {
   "use server";
-  const listed = await spinClient().project.themes.list({});
+  const listed = await (await spinClient()).project.themes.list({});
   return listed.map((theme) => ({
     name: theme.name,
     text: theme.text,
@@ -44,6 +44,6 @@ export async function loadProjectTheme(
   name: string,
 ): Promise<string | undefined> {
   "use server";
-  const read = await spinClient().project.themes.read({ name });
+  const read = await (await spinClient()).project.themes.read({ name });
   return read.text ?? undefined;
 }
