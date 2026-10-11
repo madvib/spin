@@ -258,6 +258,32 @@ declare module "solid-js" {
         "prop:value"?: string;
         "prop:items"?: unknown;
       };
+      "spin-select": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        items?: unknown;
+        value?: string | readonly string[];
+        defaultValue?: string | readonly string[];
+        highlightedValue?: string;
+        open?: boolean;
+        multiple?: boolean;
+        disabled?: boolean;
+        label?: string;
+        placeholder?: string;
+        name?: string;
+        form?: string;
+        "prop:items"?: unknown;
+        "prop:label"?: string;
+        "prop:placeholder"?: string;
+        "prop:value"?: string | readonly string[];
+        "prop:defaultValue"?: string | readonly string[];
+        "prop:multiple"?: boolean;
+        "prop:disabled"?: boolean;
+        "prop:open"?: boolean;
+        "prop:name"?: string;
+        "prop:form"?: string;
+      };
       "spin-combobox": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

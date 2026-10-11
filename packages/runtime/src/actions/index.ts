@@ -20,6 +20,8 @@ import { formControl } from "./form-control.ts";
 import { observe } from "./observe.ts";
 import { scrollIntoView } from "./scroll-into-view.ts";
 import { interactOutside } from "../../../components/src/spin-editable/actions/interact-outside.action.ts";
+import { selectOptions } from "../../../components/src/spin-select/actions/select-options.action.ts";
+import { selectFocus } from "../../../components/src/spin-select/actions/select-focus.action.ts";
 import { infiniteScroll } from "./infinite-scroll.ts";
 import { toastRegion, toastRow, toastTimer } from "../../../components/src/spin-toast/actions/toast-actions.ts";
 
@@ -408,6 +410,8 @@ export const ACTIONS = {
   observe,
   "scroll-into-view": scrollIntoView,
   "interact-outside": interactOutside,
+  "select-options": selectOptions,
+  "select-focus": selectFocus,
   "infinite-scroll": infiniteScroll,
   "toast-timer": toastTimer,
   "toast-row": toastRow,

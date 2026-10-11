@@ -1,0 +1,404 @@
+/**
+ * Select machine: closed and unfocused (`idle`), closed and focused
+ * (`focused`), open (`open`) — plus the selection, the highlight, and the
+ * placement the content was last positioned at.
+ *
+ * Zag ships exactly these three states, with the value/highlight events on
+ * the root tier. The fork has no nesting, so the root tier is the root `on`
+ * and the closed states shadow only what Zag defines per-state.
+ *
+ * The controlled-open events (`CONTROLLED.OPEN` / `CONTROLLED.CLOSE`) carry
+ * Zag's "was the open state authored" distinction: the bridge reports a host
+ * write as one of these, and the machine moves only when the host owns the
+ * state. A host that never writes `open` sends plain `OPEN`/`CLOSE` and the
+ * machine owns it. Which of the two a close lands in (`focused` vs `idle`)
+ * is the restoreFocus question, decided by who asked: a layer dismissal
+ * after a non-focusable interaction lands in `idle`; everything else the
+ * trigger focused, so it returns to `focused`.
+ *
+ * Navigation is NOT here. Arrows, Home and End compute their target against
+ * the collection the view holds — the connect sends the resolved value or a
+ * `CONTENT.*` event, exactly as the combobox and listbox ports do. The
+ * machine reads `order` and `labels` (synced from scope by the bridge) for
+ * the selection's string form and the "is the highlight still in the
+ * collection" question.
+ */
+
+export interface SelectContext {
+  /** The selected values, in the order they were added. */
+  value: string[];
+  highlightedValue: string | null;
+  /** The collection's values in order. Synced from scope by the bridge. */
+  order: string[];
+  /** The collection's labels by value. Synced from scope by the bridge. */
+  labels: Record<string, string>;
+  multiple: boolean;
+  closeOnSelect: boolean;
+  loopFocus: boolean;
+}
+
+export type SelectEvent =
+  | { type: "SELECTED_ITEMS.SYNC" }
+  | { type: "HIGHLIGHTED_VALUE.SET"; value: string | null }
+  | { type: "HIGHLIGHTED_VALUE.CLEAR" }
+  | { type: "ITEM.SELECT"; value: string }
+  | { type: "ITEM.CLEAR"; value: string }
+  | { type: "VALUE.SET"; value: readonly string[] }
+  | { type: "VALUE.CLEAR" }
+  | { type: "CLEAR.CLICK" }
+  | { type: "OPEN" }
+  | { type: "CLOSE" }
+  | { type: "CONTROLLED.OPEN" }
+  | { type: "CONTROLLED.CLOSE"; restoreFocus?: boolean }
+  | { type: "TRIGGER.CLICK" }
+  | { type: "TRIGGER.FOCUS" }
+  | { type: "TRIGGER.BLUR" }
+  | { type: "TRIGGER.ENTER" }
+  | { type: "TRIGGER.ARROW_UP" }
+  | { type: "TRIGGER.ARROW_DOWN" }
+  | { type: "TRIGGER.ARROW_LEFT" }
+  | { type: "TRIGGER.ARROW_RIGHT" }
+  | { type: "TRIGGER.HOME" }
+  | { type: "TRIGGER.END" }
+  | { type: "TRIGGER.TYPEAHEAD"; value: string }
+  | { type: "ITEM.CLICK"; value: string }
+  | { type: "ITEM.POINTER_MOVE"; value: string }
+  | { type: "ITEM.POINTER_LEAVE" }
+  | { type: "CONTENT.HOME" }
+  | { type: "CONTENT.END" }
+  | { type: "CONTENT.ARROW_UP" }
+  | { type: "CONTENT.ARROW_DOWN" }
+  | { type: "CONTENT.TYPEAHEAD"; value: string }
+  | { type: "LAYER.ESCAPE" }
+  | { type: "LAYER.INTERACT_OUTSIDE"; restoreFocus?: boolean };
+
+/** The label the trigger shows for one value, or the joined many. */
+export const selectLabel = (ctx: SelectContext): string => {
+  if (ctx.value.length === 0) return "";
+  if (!ctx.multiple) return ctx.labels[ctx.value[0]!] ?? "";
+  return ctx.value.map((value) => ctx.labels[value] ?? value).join(", ");
+};
+
+/** True when the value is still in the synced collection. */
+const inCollection = (
+  ctx: SelectContext,
+  value: string | null,
+): value is string => value !== null && ctx.order.includes(value);
+
+export const config = {
+  id: "select",
+  initial: "idle",
+  context: {
+    value: [] as string[],
+    highlightedValue: null as string | null,
+    order: [] as string[],
+    labels: {} as Record<string, string>,
+    multiple: false,
+    closeOnSelect: true,
+    loopFocus: false,
+  },
+  // The root tier: the value and highlight events Zag fires from every
+  // state, so a controlled write or a programmatic select lands the same
+  // whatever the panel is doing.
+  on: {
+    "SELECTED_ITEMS.SYNC": { actions: [{ assign: "dropVanishedSelection" }] },
+    "HIGHLIGHTED_VALUE.SET": { actions: [{ assign: "setHighlighted" }] },
+    "HIGHLIGHTED_VALUE.CLEAR": { actions: [{ assign: "clearHighlighted" }] },
+    "ITEM.SELECT": { actions: [{ assign: "selectValue" }] },
+    "ITEM.CLEAR": { actions: [{ assign: "clearValue" }] },
+    "VALUE.SET": { actions: [{ assign: "setValue" }] },
+    "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
+    "CLEAR.CLICK": { actions: [{ assign: "clearSelectionAndHighlight" }] },
+  },
+  states: {
+    idle: {
+      on: {
+        "TRIGGER.FOCUS": { target: "focused" },
+        "TRIGGER.CLICK": {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+        OPEN: {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+        "CONTROLLED.OPEN": {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+      },
+    },
+    focused: {
+      on: {
+        "TRIGGER.BLUR": { target: "idle" },
+        "TRIGGER.CLICK": {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+        OPEN: {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+        "CONTROLLED.OPEN": {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+        // The trigger's own open gestures: Enter and the arrows open with the
+        // highlight pre-placed (first for Enter/Down, last for Up), and the
+        // closed-mode arrows only move the selection when they do NOT open.
+        "TRIGGER.ARROW_DOWN": [
+          { target: "open", actions: [{ assign: "highlightFirst" }] },
+        ],
+        "TRIGGER.ARROW_UP": [
+          { target: "open", actions: [{ assign: "highlightLast" }] },
+        ],
+        "TRIGGER.ENTER": [
+          { target: "open", actions: [{ assign: "highlightFirst" }] },
+        ],
+        // The closed-mode selection moves: single-select cycles the
+        // selection itself while closed, which is Zag's trigger-level
+        // behavior for the non-multiple case.
+        "TRIGGER.ARROW_RIGHT": [
+          { cond: "single", actions: [{ assign: "selectNextInOrder" }] },
+        ],
+        "TRIGGER.ARROW_LEFT": [
+          { cond: "single", actions: [{ assign: "selectPreviousInOrder" }] },
+        ],
+        "TRIGGER.HOME": [
+          { cond: "single", actions: [{ assign: "selectFirstInOrder" }] },
+        ],
+        "TRIGGER.END": [
+          { cond: "single", actions: [{ assign: "selectLastInOrder" }] },
+        ],
+        "TRIGGER.TYPEAHEAD": [
+          { cond: "single", actions: [{ assign: "selectMatchingInOrder" }] },
+        ],
+      },
+    },
+    open: {
+      on: {
+        "TRIGGER.CLICK": {
+          target: "focused",
+          actions: [{ assign: "clearHighlighted" }],
+        },
+        "ITEM.CLICK": [
+          {
+            cond: "closeOnSelect",
+            target: "focused",
+            actions: [{ assign: "selectClicked" }, {
+              assign: "clearHighlighted",
+            }],
+          },
+          { actions: [{ assign: "selectClicked" }] },
+        ],
+        CLOSE: [{ target: "idle", actions: [{ assign: "clearHighlighted" }] }],
+        "CONTROLLED.CLOSE": [
+          {
+            cond: "restoreFocus",
+            target: "focused",
+            actions: [{ assign: "clearHighlighted" }],
+          },
+          { target: "idle", actions: [{ assign: "clearHighlighted" }] },
+        ],
+        "LAYER.ESCAPE": [
+          { target: "focused", actions: [{ assign: "clearHighlighted" }] },
+        ],
+        "LAYER.INTERACT_OUTSIDE": [
+          {
+            cond: "restoreFocus",
+            target: "focused",
+            actions: [{ assign: "clearHighlighted" }],
+          },
+          { target: "idle", actions: [{ assign: "clearHighlighted" }] },
+        ],
+        "CONTENT.HOME": { actions: [{ assign: "highlightFirst" }] },
+        "CONTENT.END": { actions: [{ assign: "highlightLast" }] },
+        "CONTENT.ARROW_DOWN": { actions: [{ assign: "highlightNext" }] },
+        "CONTENT.ARROW_UP": { actions: [{ assign: "highlightPrevious" }] },
+        "CONTENT.TYPEAHEAD": { actions: [{ assign: "highlightMatching" }] },
+        "ITEM.POINTER_MOVE": { actions: [{ assign: "setHighlighted" }] },
+        "ITEM.POINTER_LEAVE": { actions: [{ assign: "clearHighlighted" }] },
+      },
+    },
+  },
+};
+
+export const implementations = {
+  conds: {
+    single: (ctx: SelectContext): boolean => !ctx.multiple,
+    closeOnSelect: (ctx: SelectContext): boolean => ctx.closeOnSelect,
+    restoreFocus: (_ctx: SelectContext, event: SelectEvent): boolean => {
+      if (
+        event.type === "CONTROLLED.CLOSE" ||
+        event.type === "LAYER.INTERACT_OUTSIDE"
+      ) {
+        return event.restoreFocus !== false;
+      }
+      return true;
+    },
+  },
+  assigns: {
+    setHighlighted: (
+      ctx: SelectContext,
+      event: SelectEvent,
+    ): Partial<SelectContext> => ({
+      highlightedValue: event.type === "HIGHLIGHTED_VALUE.SET" ||
+          event.type === "ITEM.POINTER_MOVE"
+        ? event.value
+        : ctx.highlightedValue,
+    }),
+    clearHighlighted: (): Partial<SelectContext> => ({
+      highlightedValue: null,
+    }),
+    setValue: (
+      _ctx: SelectContext,
+      event: SelectEvent,
+    ): Partial<SelectContext> =>
+      event.type === "VALUE.SET" ? { value: [...event.value] } : {},
+    clearValue: (): Partial<SelectContext> => ({ value: [] }),
+    clearSelectionAndHighlight: (): Partial<SelectContext> => ({
+      value: [],
+      highlightedValue: null,
+    }),
+    // ITEM.SELECT adds (single) or toggles (multiple); the guard on the
+    // event's type is what keeps the assign signature honest.
+    selectValue: (
+      ctx: SelectContext,
+      event: SelectEvent,
+    ): Partial<SelectContext> => {
+      if (event.type !== "ITEM.SELECT") return {};
+      if (ctx.multiple) {
+        return {
+          value: ctx.value.includes(event.value)
+            ? ctx.value.filter((value) => value !== event.value)
+            : [...ctx.value, event.value],
+        };
+      }
+      return { value: [event.value] };
+    },
+    // The click carries the row it landed on: a click without a preceding
+    // pointer-move must still select the row under the cursor, which is why
+    // this is not the highlight.
+    selectClicked: (
+      ctx: SelectContext,
+      event: SelectEvent,
+    ): Partial<SelectContext> => {
+      if (event.type !== "ITEM.CLICK") return {};
+      if (ctx.multiple) {
+        return {
+          value: ctx.value.includes(event.value)
+            ? ctx.value.filter((value) => value !== event.value)
+            : [...ctx.value, event.value],
+        };
+      }
+      return { value: [event.value] };
+    },
+    selectHighlighted: (ctx: SelectContext): Partial<SelectContext> => {
+      if (!inCollection(ctx, ctx.highlightedValue)) return {};
+      if (ctx.multiple) {
+        return {
+          value: ctx.value.includes(ctx.highlightedValue)
+            ? ctx.value.filter((value) => value !== ctx.highlightedValue)
+            : [...ctx.value, ctx.highlightedValue],
+        };
+      }
+      return { value: [ctx.highlightedValue] };
+    },
+    highlightFirstOrSelected: (ctx: SelectContext): Partial<SelectContext> => {
+      const selected = ctx.value.find((value) => ctx.order.includes(value));
+      if (selected !== undefined) return { highlightedValue: selected };
+      return { highlightedValue: ctx.order[0] ?? null };
+    },
+    highlightFirst: (ctx: SelectContext): Partial<SelectContext> => ({
+      highlightedValue: ctx.order[0] ?? null,
+    }),
+    highlightLast: (ctx: SelectContext): Partial<SelectContext> => ({
+      highlightedValue: ctx.order[ctx.order.length - 1] ?? null,
+    }),
+    highlightNext: (ctx: SelectContext): Partial<SelectContext> => {
+      const at = inCollection(ctx, ctx.highlightedValue)
+        ? ctx.order.indexOf(ctx.highlightedValue)
+        : -1;
+      if (at === -1) return { highlightedValue: ctx.order[0] ?? null };
+      const next = ctx.order[at + 1];
+      if (next === undefined) {
+        return ctx.loopFocus ? { highlightedValue: ctx.order[0] ?? null } : {};
+      }
+      return { highlightedValue: next };
+    },
+    highlightPrevious: (ctx: SelectContext): Partial<SelectContext> => {
+      const at = inCollection(ctx, ctx.highlightedValue)
+        ? ctx.order.indexOf(ctx.highlightedValue)
+        : -1;
+      if (at === -1) {
+        return { highlightedValue: ctx.order[ctx.order.length - 1] ?? null };
+      }
+      const previous = ctx.order[at - 1];
+      if (previous === undefined) {
+        return ctx.loopFocus
+          ? { highlightedValue: ctx.order[ctx.order.length - 1] ?? null }
+          : {};
+      }
+      return { highlightedValue: previous };
+    },
+    highlightMatching: (
+      ctx: SelectContext,
+      event: SelectEvent,
+    ): Partial<SelectContext> => {
+      if (event.type !== "CONTENT.TYPEAHEAD") return {};
+      const value = ctx.order.find((candidate) =>
+        (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
+          event.value.toLowerCase(),
+        )
+      );
+      return value === undefined ? {} : { highlightedValue: value };
+    },
+    // The closed-mode selection moves: the trigger itself changes the
+    // selection without opening.
+    selectFirstInOrder: (ctx: SelectContext): Partial<SelectContext> => ({
+      value: ctx.order.length === 0 ? ctx.value : [ctx.order[0]!],
+    }),
+    selectLastInOrder: (ctx: SelectContext): Partial<SelectContext> => ({
+      value: ctx.order.length === 0
+        ? ctx.value
+        : [ctx.order[ctx.order.length - 1]!],
+    }),
+    selectNextInOrder: (ctx: SelectContext): Partial<SelectContext> => {
+      const at = ctx.value.length === 0 ? -1 : ctx.order.indexOf(ctx.value[0]!);
+      const next = ctx.order[at + 1];
+      return next === undefined ? {} : { value: [next] };
+    },
+    selectPreviousInOrder: (ctx: SelectContext): Partial<SelectContext> => {
+      const at = ctx.value.length === 0
+        ? ctx.order.length
+        : ctx.order.indexOf(ctx.value[0]!);
+      const previous = ctx.order[at - 1];
+      return previous === undefined ? {} : { value: [previous] };
+    },
+    selectMatchingInOrder: (
+      ctx: SelectContext,
+      event: SelectEvent,
+    ): Partial<SelectContext> => {
+      if (event.type !== "TRIGGER.TYPEAHEAD") return {};
+      const value = ctx.order.find((candidate) =>
+        (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
+          event.value.toLowerCase(),
+        )
+      );
+      return value === undefined ? {} : { value: [value] };
+    },
+    // A collection change can strand the selection and the highlight.
+    dropVanishedSelection: (ctx: SelectContext): Partial<SelectContext> => {
+      const value = ctx.value.filter((candidate) =>
+        ctx.order.includes(candidate)
+      );
+      const highlighted = inCollection(ctx, ctx.highlightedValue)
+        ? ctx.highlightedValue
+        : (value[0] ?? null);
+      const sameSelection = value.length === ctx.value.length;
+      const sameHighlight = highlighted === ctx.highlightedValue;
+      if (sameSelection && sameHighlight) return {};
+      return { value, highlightedValue: highlighted };
+    },
+  },
+};

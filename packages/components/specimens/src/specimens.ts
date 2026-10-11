@@ -8,6 +8,7 @@ import Editable from "./routes/editable.tsx";
 import Menu from "./routes/menu.tsx";
 import NumberInput from "./routes/number-input.tsx";
 import PinInput from "./routes/pin-input.tsx";
+import Select from "./routes/select.tsx";
 import Tags from "./routes/tags.tsx";
 import Timer from "./routes/timer.tsx";
 import Toast from "./routes/toast.tsx";
@@ -68,6 +69,14 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/editable",
     group: "Inputs",
     component: Editable,
+  },
+  {
+    id: "select",
+    title: "Select",
+    blurb: "Three modes with the selection on the root tier; every reflex an action.",
+    path: "/select",
+    group: "Selection",
+    component: Select,
   },
   {
     id: "cascade",
