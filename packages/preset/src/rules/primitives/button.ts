@@ -65,7 +65,6 @@ const CHARACTER_PROPERTY: Record<string, string> = {
   "shadow-hover": "box-shadow",
 };
 
-
 /**
  * The character tokens this component OWNS, and which rule spends each.
  *
@@ -237,7 +236,7 @@ const VARIANTS: Record<PaintedVariant, {
         "padding-bottom": spacing1,
         "font-size": fontSize,
         ...(fontSize !== undefined && spacing1 !== undefined &&
-          borderWidth !== undefined
+            borderWidth !== undefined
           ? {
             "min-height":
               `calc(${fontSize} + (2 * ${spacing1}) + (2 * ${borderWidth}))`,
@@ -260,7 +259,7 @@ const VARIANTS: Record<PaintedVariant, {
         "padding-bottom": spacing4,
         "font-size": fontSize,
         ...(fontSize !== undefined && spacing4 !== undefined &&
-          borderWidth !== undefined
+            borderWidth !== undefined
           ? {
             "min-height":
               `calc(${fontSize} + (2 * ${spacing4}) + (2 * ${borderWidth}))`,
@@ -369,7 +368,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["border-radius", radius],
           ["line-height", "1"],
           ...(fontSize !== undefined && spacing2 !== undefined &&
-            borderWidth !== undefined
+              borderWidth !== undefined
             ? ([[
               "min-height",
               `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,

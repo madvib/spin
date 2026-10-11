@@ -60,9 +60,13 @@ export interface Scale {
    */
   readonly sample?: Sample;
   /** Scales with a continuous value get a slider instead of named stops. */
-  readonly continuum?: { min: number; max: number; step: number; name: (n: number) => string };
+  readonly continuum?: {
+    min: number;
+    max: number;
+    step: number;
+    name: (n: number) => string;
+  };
 }
-
 
 /**
  * The axes every spacing scale shares.

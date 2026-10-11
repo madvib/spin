@@ -1,9 +1,5 @@
 import type { Rule } from "@unocss/core";
-import {
-  claim,
-  proseTokens,
-  type Mode,
-} from "./shared.ts";
+import { claim, type Mode, proseTokens } from "./shared.ts";
 
 /**
  * Inline text: links, weight, `small`, sub/superscript, `abbr`, `mark`, `ins`,
@@ -161,9 +157,7 @@ function delRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "del"),
         "text-decoration": "line-through",
-        ...(t.error !== undefined
-          ? { "text-decoration-color": t.error }
-          : {}),
+        ...(t.error !== undefined ? { "text-decoration-color": t.error } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
       };
     },

@@ -141,7 +141,8 @@ export function fieldBox(): Rule {
         Object.assign(box, {
           "transition-duration": duration,
           "transition-timing-function": easing ?? "linear",
-          "transition-property": "color, background-color, border-color, box-shadow",
+          "transition-property":
+            "color, background-color, border-color, box-shadow",
         });
       }
 

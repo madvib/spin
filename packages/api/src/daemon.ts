@@ -13,7 +13,7 @@
 
 import { Hono } from "hono";
 import { handleApiRequest } from "./index.ts";
-import { setProjectRoot } from "@spin/theme";
+import { setProjectRoot } from "./project-procedures.ts";
 import { join } from "node:path";
 
 /** A daemon pointed at a project: its root, which it never leaves. */

@@ -1,5 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
-import { indexTree, parseTokens, validateLegibility, validateTokens } from "@spin/theme";
+import {
+  indexTree,
+  parseTokens,
+  validateLegibility,
+  validateTokens,
+} from "@spin/theme";
 import { requiredRolesFor } from "../src/index.ts";
 
 /**
@@ -58,7 +63,9 @@ Deno.test("a dark MODE restates what it flips and inherits the rest", () => {
     parsed.tree
       .filter((node) => node.path.join(".") !== "dark")
       .flatMap((node) =>
-        Object.keys(indexTree([node]).leaves).map((k) => k.replace(/^dark\./, ""))
+        Object.keys(indexTree([node]).leaves).map((k) =>
+          k.replace(/^dark\./, "")
+        )
       ),
   );
   for (const leaf of Object.keys(indexTree([dark]).leaves)) {

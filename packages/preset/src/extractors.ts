@@ -72,12 +72,14 @@ export const typeExtractor: Extractor = {
 export const variantExtractor: Extractor = {
   name: "spin/variant",
   order: 0,
-    extract({ code }) {
-      return [...code.matchAll(/<([a-z][a-z0-9-]*)[^>]*\svariant=["']([^"']*)["']/g)]
+  extract({ code }) {
+    return [
+      ...code.matchAll(/<([a-z][a-z0-9-]*)[^>]*\svariant=["']([^"']*)["']/g),
+    ]
       .flatMap((match) => {
         const element = match[1] as string;
         const values = (match[2] as string).split(/\s+/).filter(Boolean);
         return values.flatMap((value) => [value, `${element}-${value}`]);
       });
-    },
-  };
+  },
+};

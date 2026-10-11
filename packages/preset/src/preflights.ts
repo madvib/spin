@@ -40,7 +40,6 @@ import type { ThemeDocument } from "./index.ts";
 const RESET_CSS =
   "*, ::before, ::after { box-sizing: border-box; border-width: 0; }";
 
-
 /**
  * The motion floor, applied once rather than copied into every component that
  * animates. A component that needs to do more than stop — a busy spinner that
@@ -63,7 +62,6 @@ export const LAYER = {
   reset: -100,
   theme: -90,
 } as const;
-
 
 export interface PreflightInput {
   /** Parsed token trees, keyed by theme name. */
@@ -91,7 +89,6 @@ interface Assembled extends PreflightProvider {
 function assemble(
   input: PreflightInput,
 ): Assembled[] {
-
   const base = basePreflights(input.documents.light ?? {}).map((provider) => ({
     ...provider,
     layer: "theme",

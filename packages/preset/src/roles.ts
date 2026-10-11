@@ -1,8 +1,4 @@
-import {
-  requiredPaths,
-  scaffoldTheme,
-  treeToJson,
-} from "@spin/theme";
+import { requiredPaths, scaffoldTheme, treeToJson } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 
 /**
@@ -35,4 +31,3 @@ export function scaffold(): TokenTree {
 export function scaffoldDocument(): Record<string, unknown> {
   return JSON.parse(treeToJson(scaffold())) as Record<string, unknown>;
 }
-

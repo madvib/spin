@@ -1,10 +1,5 @@
 import type { Rule } from "@unocss/core";
-import {
-  claim,
-  proseTokens,
-  rhythm,
-  type Mode,
-} from "./shared.ts";
+import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
 
 /**
  * The code family: `code`, `samp`, `pre`.
@@ -37,7 +32,6 @@ function codeRule(mode: Mode): Rule {
     { layer: "primitives", autocomplete: "code" },
   ];
 }
-
 
 /** Program output: the mono face, no chip — it is a run of text, not a token. */
 function sampRule(mode: Mode): Rule {
@@ -77,9 +71,7 @@ function preRule(mode: Mode): Rule {
         // A block is an object, so it takes the raised surface — the page
         // colour leaves a code block reading as more prose, and the two are
         // different things.
-        ...(t.raised !== undefined
-          ? { "background-color": t.raised }
-          : {}),
+        ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         "line-height": "1.5",
         "overflow-x": "auto",

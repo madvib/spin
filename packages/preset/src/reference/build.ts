@@ -1,4 +1,4 @@
-import { EDGES, type Axis, type Scale } from "./scale.ts";
+import { type Axis, EDGES, type Scale } from "./scale.ts";
 import type { Sample } from "../organization.ts";
 
 /**
@@ -136,5 +136,5 @@ export function scaleClass(
   return axis === "" ? `${prefix}-${step}` : `${prefix}${axis}-${step}`;
 }
 
-export { EDGES, EDGE_AXES };
+export { EDGE_AXES, EDGES };
 export type { Axis, Sample, Scale };

@@ -40,7 +40,9 @@ Deno.test("a complete theme assembles a working document", async () => {
   // Every rule here once read `var(--…)` out of the emitted CSS, which means
   // a rename anywhere in the theme pipeline broke the suite for no reason —
   // and a rule that emitted nothing could pass by never being checked.
-  const uno = await createGenerator({ presets: [spinPreset({ themes: { light: theme } })] });
+  const uno = await createGenerator({
+    presets: [spinPreset({ themes: { light: theme } })],
+  });
   const { css, matched } = await uno.generate(
     "bg-primary p-4 md:flex gap-gutter animate-spin hover:bg-primary",
     { extendedInfo: true },

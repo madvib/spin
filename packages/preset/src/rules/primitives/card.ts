@@ -123,7 +123,8 @@ function cardSurface(card: string): Rule {
   return [
     /^card$/,
     function* (_m, ctx) {
-      const { spacing, radius, borderWidth, border, raised, shadow } = cardTokens(ctx);
+      const { spacing, radius, borderWidth, border, raised, shadow } =
+        cardTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => card,
         display: "flex",
@@ -177,7 +178,9 @@ function cardTitle(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-title"),
         ...(sizeLg !== undefined ? { "font-size": sizeLg } : {}),
-        ...(weightSemibold !== undefined ? { "font-weight": weightSemibold } : {}),
+        ...(weightSemibold !== undefined
+          ? { "font-weight": weightSemibold }
+          : {}),
         ...(text !== undefined ? { color: text } : {}),
       };
     },

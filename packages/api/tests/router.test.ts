@@ -7,6 +7,8 @@ import {
   presetRouter,
   primitivesContract,
   primitivesRouter,
+  projectContract,
+  projectRouter,
   router,
   themeContract,
   themeRouter,
@@ -49,6 +51,13 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
       "theme.tokens.set",
       "theme.types",
       "themes.css",
+    ],
+    themeContract,
+    themeRouter,
+  ],
+  [
+    "project",
+    [
       "project.detect",
       "project.init",
       "project.themes.list",
@@ -57,8 +66,8 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
       "project.themes.remove",
       "project.themes.copy",
     ],
-    themeContract,
-    themeRouter,
+    projectContract,
+    projectRouter,
   ],
   [
     "primitives",

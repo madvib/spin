@@ -20,9 +20,7 @@ const WIDTHS = Object.keys(DIVIDE_WIDTHS).filter((w) => w !== "");
 export function divideNames(colors: readonly string[] = []): readonly string[] {
   return [
     ...["x", "y"].flatMap((axis) =>
-      [undefined, ...WIDTHS].map((w) =>
-        `divide-${axis}${w ? `-${w}` : ""}`
-      )
+      [undefined, ...WIDTHS].map((w) => `divide-${axis}${w ? `-${w}` : ""}`)
     ),
     ...colors.map((c) => `divide-${c}`),
   ];

@@ -15,8 +15,16 @@ import { createORPCClient } from "@orpc/client";
 import { themeRouter } from "@spin/theme";
 import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 import { presetRouter } from "@spin/preset";
+import { projectRouter } from "./project-procedures.ts";
 
 export { themeRouter } from "@spin/theme";
+export { projectRouter, setProjectRoot } from "./project-procedures.ts";
+export {
+  initFiles,
+  isWired,
+  PROJECT_DIR,
+  projectContract,
+} from "./project-contract.ts";
 export { themeContract } from "@spin/theme";
 export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
@@ -28,6 +36,7 @@ export const router = {
   ...themeRouter,
   ...primitivesRouter,
   ...presetRouter,
+  ...projectRouter,
 };
 
 export const rpcHandler = new RPCHandler(router);

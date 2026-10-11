@@ -179,8 +179,9 @@ function alertTones(mode: Mode): Rule[] {
               : {}),
             ...(surface !== undefined
               ? {
-                "background-color":
-                  `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})`,
+                "background-color": `color-mix(in oklab, ${surface} 92%, ${
+                  toneColour ?? "transparent"
+                })`,
               }
               : {}),
           };

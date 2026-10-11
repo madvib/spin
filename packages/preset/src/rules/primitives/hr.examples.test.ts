@@ -29,7 +29,10 @@ describe("hr examples resolve", () => {
     it(example.name, () => {
       const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
         .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
-      const known = new Set([...primitiveVariants(), ...Object.keys(STRUCTURAL)]);
+      const known = new Set([
+        ...primitiveVariants(),
+        ...Object.keys(STRUCTURAL),
+      ]);
       for (const cls of classes) {
         assert(
           isKnown(cls, known),

@@ -4,7 +4,9 @@ import { STATIC_DECLS } from "../utils/declarations.ts";
 import { insetRule, staticRules } from "../utils/factories.ts";
 import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 
-export const POSITION_NAMES: readonly string[] = Object.keys(POSITION_UTILITIES);
+export const POSITION_NAMES: readonly string[] = Object.keys(
+  POSITION_UTILITIES,
+);
 
 export function positionRules(): Rule[] {
   // The inset family below takes an arbitrary value as well as a token:

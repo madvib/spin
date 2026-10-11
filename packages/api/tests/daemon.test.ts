@@ -137,6 +137,22 @@ describe("daemon project.themes over HTTP", () => {
     const detect = await client.project.detect({ root: fresh });
     assertEquals(detect.spin, true, "init created the directory");
     assertEquals(detect.themes, ["first.json"], "and seeded one theme");
+    // And the build config, which is the other half of a project: the daemon
+    // composes theme's document with the preset's config because it is the
+    // only thing that knows a project needs both.
+    assertEquals(detect.uno, true, "init wrote an uno config");
+    assertEquals(detect.wired, true, "and that config wires the preset");
+    const config = readFileSync(join(fresh, "uno.config.ts"), "utf8");
+    assertEquals(
+      config.includes('"@spin/config"'),
+      true,
+      "it applies the encapsulated form",
+    );
+    assertEquals(
+      config.includes("spin()"),
+      true,
+      "with the spin config, not raw uno",
+    );
     const listed = await client.project.themes.list({ root: fresh });
     assertEquals(listed.map((t) => t.name), ["first"]);
     const seeded = await client.project.themes.read({

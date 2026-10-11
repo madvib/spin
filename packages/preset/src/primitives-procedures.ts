@@ -5,7 +5,10 @@
 
 import { implement } from "@orpc/server";
 
-import { primitiveComponents, primitiveReadsByGroup } from "./rules/primitives/manifest.ts";
+import {
+  primitiveComponents,
+  primitiveReadsByGroup,
+} from "./rules/primitives/manifest.ts";
 import { primitivesContract } from "./primitives-contract.ts";
 
 // Re-exported so a consumer can reach the contract and the handlers from one

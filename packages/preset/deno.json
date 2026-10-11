@@ -38,7 +38,8 @@
     "./rules/primitives/hr.examples.ts": "./src/rules/primitives/hr.examples.ts",
     "./rules/primitives/icon.examples.ts": "./src/rules/primitives/icon.examples.ts",
     "./rules/primitives/table.examples.ts": "./src/rules/primitives/table.examples.ts",
-    "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts"
+    "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts",
+    "./config": "./src/config.ts"
   },
   "imports": {
     "@spin/preset": "./src/index.ts",

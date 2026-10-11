@@ -61,8 +61,16 @@ export function stateRow(
         <div class="state-frame">${markup}</div>
         <figcaption>
           <span class="state-name">${escapeHtml(state.name)}</span>
-          ${state.when ? `<code class="state-when">${escapeHtml(state.when)}</code>` : ""}
-          ${state.note ? `<span class="state-note">${escapeHtml(state.note)}</span>` : ""}
+          ${
+      state.when
+        ? `<code class="state-when">${escapeHtml(state.when)}</code>`
+        : ""
+    }
+          ${
+      state.note
+        ? `<span class="state-note">${escapeHtml(state.note)}</span>`
+        : ""
+    }
         </figcaption>
       </figure>`;
   }).join("");
@@ -118,11 +126,15 @@ export function tokenReport(surface: Surface): string {
     <section class="tokens" data-component="${escapeHtml(surface.name)}">
       <h2>${escapeHtml(surface.name)} spends</h2>
       <h3>shared <span class="count">${shared.length}</span></h3>
-      <ul class="token-list">${shared.map((t) => `<li><code>--${escapeHtml(t)}</code></li>`).join("")}</ul>
+      <ul class="token-list">${
+    shared.map((t) => `<li><code>--${escapeHtml(t)}</code></li>`).join("")
+  }</ul>
       <h3>its own <span class="count">${own.length}</span></h3>
-      <ul class="token-list">${own.length === 0
-        ? "<li class=\"none\">none — it spends only the shared vocabulary</li>"
-        : own.map((t) => `<li><code>--${escapeHtml(t)}</code></li>`).join("")}</ul>
+      <ul class="token-list">${
+    own.length === 0
+      ? '<li class="none">none — it spends only the shared vocabulary</li>'
+      : own.map((t) => `<li><code>--${escapeHtml(t)}</code></li>`).join("")
+  }</ul>
     </section>`;
 }
 

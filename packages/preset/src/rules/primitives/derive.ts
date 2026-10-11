@@ -14,7 +14,7 @@
  */
 
 import type { Rule } from "@unocss/core";
-import { indexTree, parseTokens, resolveAliases, REF_SPECS } from "@spin/theme";
+import { indexTree, parseTokens, REF_SPECS, resolveAliases } from "@spin/theme";
 import type { ThemeCssVar } from "@spin/theme/theme-types";
 import type { State, Surface } from "../../reference/surface.ts";
 import type { ThemeDocument } from "@spin/theme";
@@ -163,10 +163,14 @@ function extractSelectors(yields: unknown[]): string[] {
       // Object yield: selector function is under a Symbol key. Spreads of
       // `ctx.symbols` — which several rules use, so a computed key lands on a
       // SYMBOL, not a string — keep that key, so both are checked.
-      for (const sym of [
-        ...Object.getOwnPropertySymbols(y),
-        ...(Object.keys(y) as (string | symbol)[]).filter((k) => typeof k === "symbol"),
-      ]) {
+      for (
+        const sym of [
+          ...Object.getOwnPropertySymbols(y),
+          ...(Object.keys(y) as (string | symbol)[]).filter((k) =>
+            typeof k === "symbol"
+          ),
+        ]
+      ) {
         const value = (y as Record<symbol, unknown>)[sym];
         if (typeof value === "function") {
           selectors.push((value as () => string)());
@@ -299,7 +303,11 @@ export function splitTopLevel(text: string): string[] {
 /**
  * Run a rule's generator with a probe ctx.
  */
-function runRule(rule: Rule, probe: { theme: unknown; paths: Set<string> }, label?: string): unknown[] {
+function runRule(
+  rule: Rule,
+  probe: { theme: unknown; paths: Set<string> },
+  label?: string,
+): unknown[] {
   const handler = rule[1];
   if (typeof handler !== "function") return [];
 
@@ -330,7 +338,10 @@ function runRule(rule: Rule, probe: { theme: unknown; paths: Set<string> }, labe
     // for derivation: a crash here means the contract is silently incomplete,
     // and a silent skip is how a component ends up claiming no tags. So the
     // reason is reported rather than swallowed.
-    console.error(`derive: ${label ?? "rule"} threw:`, String(error).slice(0, 120));
+    console.error(
+      `derive: ${label ?? "rule"} threw:`,
+      String(error).slice(0, 120),
+    );
   }
   return yields;
 }
@@ -341,7 +352,8 @@ function runRule(rule: Rule, probe: { theme: unknown; paths: Set<string> }, labe
 const RULE_SOURCES: Record<string, () => Rule[]> = {
   a11y: () => a11yRules(["a11y"]),
   alert: () => alertRules(["alert"], { classless: true }),
-  "avatar-group": () => avatarGroupRules(["avatar-group"], { classless: false }),
+  "avatar-group": () =>
+    avatarGroupRules(["avatar-group"], { classless: false }),
   badge: () => badgeRules(["badge"], { classless: true }),
   breadcrumbs: () => breadcrumbsRules(["breadcrumbs"], { classless: false }),
   button: () => buttonRules(["button"]),
@@ -362,7 +374,8 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   icon: () => iconRules(["icon"]),
   meter: () => meterRules(["meter"], { classless: true }),
   mode: () => modeRules(["mode"], { classless: false }),
-  field: () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
+  field:
+    () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
   range: () => rangeRules(["range"], { classless: true }),
   rating: () => ratingRules(["rating"], { classless: false }),
   avatar: () => avatarRules(["avatar"], { classless: false }),
@@ -509,7 +522,8 @@ function parseAuthored(text: string): Map<string, Authored> {
     const name = /^ {2}([\w-]+): \{/.exec(part)?.[1];
     if (!name) continue;
     const header = /\/\*[\s\S]*?\*\/\n(?= {2}[\w-]+: \{)/.exec(part)?.[0] ?? "";
-    const comment = / {2}\/\*[\s\S]*?\*\/\n(?= {2}[\w-]+:)/.exec(part)?.[0] ?? "";
+    const comment = / {2}\/\*[\s\S]*?\*\/\n(?= {2}[\w-]+:)/.exec(part)?.[0] ??
+      "";
     out.set(name, {
       header: header.replace(/\n+$/, ""),
       character: /^ {4}character: \[[\s\S]*?\],/m.exec(part)?.[0] ??
@@ -520,10 +534,8 @@ function parseAuthored(text: string): Map<string, Authored> {
   return out;
 }
 
-
 const DECL =
   "export const primitiveContracts: Record<string, PrimitiveContract> = {";
-
 
 const DEFAULT_HEADER = `/**
  * Primitives manifest — each component's contract with the theme: \`tags\`,
@@ -531,8 +543,6 @@ const DEFAULT_HEADER = `/**
  * execution (\`deno task codegen\`), \`character\` is authored, and
  * \`tests/manifest.test.ts\` fails when the checked-in file goes stale.
  */`;
-
-
 
 export async function writeManifest(): Promise<void> {
   const existing = await readIfPresent(MANIFEST_OUT);
@@ -643,22 +653,38 @@ export function deriveStates(name: string): State[] {
   // row for them is a row nobody asked for — you do not write `:first-child`,
   // it is a consequence of order — so they are listed apart from the states.
   const STRUCTURAL = new Set([
-    "first-child", "last-child", "only-child", "nth-child", "first-of-type",
-    "last-of-type", "only-of-type", "nth-of-type", "first-letter",
-    "first-line", "root", "empty",
+    "first-child",
+    "last-child",
+    "only-child",
+    "nth-child",
+    "first-of-type",
+    "last-of-type",
+    "only-of-type",
+    "nth-of-type",
+    "first-letter",
+    "first-line",
+    "root",
+    "empty",
   ]);
 
   for (const selector of selectors) {
     const bare = selector.replace(PSEUDO_ELEMENT, "");
     // Drop the contents of a functional pseudo-class: `:is(button, [type="x"])`
     // contributes a STATE only if something outside it does.
-    const outside = bare.replace(/:(is|not|where|has|matches)\([^()]*(\([^()]*\)[^()]*)*\)/g, "");
+    const outside = bare.replace(
+      /:(is|not|where|has|matches)\([^()]*(\([^()]*\)[^()]*)*\)/g,
+      "",
+    );
     for (const m of outside.matchAll(/:([a-z-]+)/g)) {
       const name = m[1] as string;
       if (COMBINERS.has(name) || STRUCTURAL.has(name)) continue;
       add({ name: name.replace(/-/g, " "), when: `:${name}` });
     }
-    for (const m of outside.matchAll(/\[([a-z][a-z-]*)(?:([~|^$*]?)=(?:"([^"]*)"|'([^']*)'|([^\]]*)))?\]/g)) {
+    for (
+      const m of outside.matchAll(
+        /\[([a-z][a-z-]*)(?:([~|^$*]?)=(?:"([^"]*)"|'([^']*)'|([^\]]*)))?\]/g,
+      )
+    ) {
       const [, name, , dq, sq, bareValue] = m;
       const value = dq ?? sq ?? bareValue;
       // A plain attribute selector is a STATE only when it has a value — the
@@ -704,11 +730,15 @@ function manifestAuthored(): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   const src = Deno.readTextFileSync(new URL("./manifest.ts", import.meta.url));
   for (
-    const m of src.matchAll(/^ {2}([\w-]+): \{[\s\S]*?character: \[([\s\S]*?)\],/gm)
+    const m of src.matchAll(
+      /^ {2}([\w-]+): \{[\s\S]*?character: \[([\s\S]*?)\],/gm,
+    )
   ) {
     const name = m[1] as string;
     const body = m[2] ?? "";
-    out[name] = [...body.matchAll(/"([\w-]+\.[\w-]+)"/g)].map((p) => p[1] as string);
+    out[name] = [...body.matchAll(/"([\w-]+\.[\w-]+)"/g)].map((p) =>
+      p[1] as string
+    );
   }
   return out;
 }

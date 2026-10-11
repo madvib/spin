@@ -82,6 +82,6 @@ export const primitivesContract = {
   primitives: {
     list,
     contract,
-      tokens,
+    tokens,
   },
 };

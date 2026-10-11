@@ -51,7 +51,10 @@ import type {
 } from "@unocss/core";
 import { symbols, toArray } from "@unocss/core";
 import { refFamilies } from "@spin/theme";
-import { rules as wind4Rules, variants as wind4Variants } from "@unocss/preset-wind4";
+import {
+  rules as wind4Rules,
+  variants as wind4Variants,
+} from "@unocss/preset-wind4";
 import { spinRules } from "./rules/index.ts";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 
@@ -178,11 +181,13 @@ function claimsOf(rule: Rule): string[] {
     }
     break;
   }
-  return [...new Set(
-    claims.map((claim) => claim.replace(/-+$/, "")).filter((claim) =>
-      claim.length > 0
+  return [
+    ...new Set(
+      claims.map((claim) => claim.replace(/-+$/, "")).filter((claim) =>
+        claim.length > 0
+      ),
     ),
-  )];
+  ];
 }
 
 /**
@@ -329,7 +334,10 @@ function inspect(value: unknown, into: {
 
 /** Inspect a synchronous result. */
 function inspected(value: unknown): Inspected {
-  const into = { pairs: [] as (readonly [string, unknown])[], objects: [] as object[] };
+  const into = {
+    pairs: [] as (readonly [string, unknown])[],
+    objects: [] as object[],
+  };
   inspect(value, into);
   return into;
 }
@@ -482,7 +490,11 @@ function guarded(
         // (Measured: `backdrop-blur` threw
         // `TypeError: Cannot read properties of undefined (reading
         // 'startsWith')` from inside wind4's `cssvar`.)
-        reportOnce({ rule: nameOf(rule), reason: "inert", undefined: "wind4 theme" });
+        reportOnce({
+          rule: nameOf(rule),
+          reason: "inert",
+          undefined: "wind4 theme",
+        });
         return undefined;
       }
       const broken = undefinedRead(await inspectedAsync(value));
@@ -561,8 +573,9 @@ function buildVariants(dark: Wind4Options["dark"]): Variant[] {
   // scheme variants" — so it is normalised before the branch, or the default
   // would read as "enabled" and quietly restore what it is meant to remove.
   const mode = dark ?? false;
-  const built = wind4Variants({ dark: mode === false ? "class" : mode }) as
-    VariantObject[];
+  const built = wind4Variants({
+    dark: mode === false ? "class" : mode,
+  }) as VariantObject[];
   if (mode !== false) return built;
   // A colour variant only reads the separator list and the theme, so the probe
   // carries those two and nothing else. A variant needing more than that
@@ -572,9 +585,9 @@ function buildVariants(dark: Wind4Options["dark"]): Variant[] {
     theme: {},
     generator: { config: { separators: [":", "-"] } },
   } as unknown as Readonly<VariantContext>;
-  const probes = COLOUR_SCHEME_SPELLINGS.flatMap((axis) =>
-    [`${axis}:x`, `.${axis}:x`, `@${axis}:x`, `not-${axis}:x`]
-  );
+  const probes = COLOUR_SCHEME_SPELLINGS.flatMap((
+    axis,
+  ) => [`${axis}:x`, `.${axis}:x`, `@${axis}:x`, `not-${axis}:x`]);
   return built.filter((variant) => {
     if (typeof variant.match !== "function") return true;
     return !probes.some((probe) => {

@@ -4,7 +4,7 @@ import { createGenerator } from "@unocss/core";
 import { parseTokens } from "@spin/theme";
 import { describeCatalog, spinPreset } from "@spin/preset";
 import { wind4Exclusions } from "../src/wind4.ts";
-import { claims, claimedClasses, selectorFor } from "../src/utils/claimed.ts";
+import { claimedClasses, claims, selectorFor } from "../src/utils/claimed.ts";
 import { BORDER_NAMES } from "../src/rules/border.ts";
 import { BORDER_STYLE_NAMES } from "../src/rules/border.ts";
 import { DISPLAY_NAMES } from "../src/rules/display.ts";
@@ -23,8 +23,8 @@ import { TRANSITION_NAMES } from "../src/rules/transitions.ts";
 import { TYPOGRAPHY_NAMES } from "../src/rules/typography.ts";
 import {
   claimedGroups,
-  SECTIONS,
   sectionFor,
+  SECTIONS,
   utilitiesFor,
 } from "../src/organization.ts";
 import { readFileSync } from "node:fs";
@@ -55,10 +55,21 @@ const catalog = describeCatalog(parsed.tree);
  * where the catalog gets its names from too.
  */
 const CLAIMED_BY_RULES: readonly string[] = [
-  ...BORDER_NAMES, ...DISPLAY_NAMES, ...DIVIDE_NAMES, ...GRID_NAMES,
-  ...INTERACTIVITY_NAMES, ...LAYOUT_NAMES, ...OPACITY_NAMES, ...OVERFLOW_NAMES,
-  ...POSITION_NAMES, ...TEXT_NAMES, ...TRANSITION_NAMES, ...BORDER_STYLE_NAMES,
-  ...TYPOGRAPHY_NAMES, ...SHADOW_NAMES, ...SIZING_NAMES,
+  ...BORDER_NAMES,
+  ...DISPLAY_NAMES,
+  ...DIVIDE_NAMES,
+  ...GRID_NAMES,
+  ...INTERACTIVITY_NAMES,
+  ...LAYOUT_NAMES,
+  ...OPACITY_NAMES,
+  ...OVERFLOW_NAMES,
+  ...POSITION_NAMES,
+  ...TEXT_NAMES,
+  ...TRANSITION_NAMES,
+  ...BORDER_STYLE_NAMES,
+  ...TYPOGRAPHY_NAMES,
+  ...SHADOW_NAMES,
+  ...SIZING_NAMES,
   ...STACKING_NAMES,
 ];
 
@@ -81,7 +92,9 @@ Deno.test("no group is claimed twice", () => {
   for (const section of SECTIONS) {
     for (const group of section.groups) {
       const owner = seen.get(group);
-      if (owner !== undefined) doubles.push(`${group} (${owner} and ${section.id})`);
+      if (owner !== undefined) {
+        doubles.push(`${group} (${owner} and ${section.id})`);
+      }
       seen.set(group, section.id);
     }
   }
@@ -96,7 +109,11 @@ Deno.test("every section names a group the catalog has", () => {
   const missing = SECTIONS.flatMap((s) =>
     s.groups.filter((g) => !ids.has(g)).map((g) => `${s.id} -> ${g}`)
   );
-  assertEquals(missing, [], `sections naming groups that do not exist: ${missing.join(", ")}`);
+  assertEquals(
+    missing,
+    [],
+    `sections naming groups that do not exist: ${missing.join(", ")}`,
+  );
 });
 
 Deno.test("every section has utilities to show", () => {
@@ -190,7 +207,9 @@ Deno.test("no utility sets only custom properties nothing consumes", async () =>
   });
   const inert: string[] = [];
   for (const name of catalog.flatMap((g) => g.utilities)) {
-    if (name.endsWith(":") || !name.includes("-") && !name.includes(".")) continue;
+    if (name.endsWith(":") || !name.includes("-") && !name.includes(".")) {
+      continue;
+    }
     const { css } = await uno.generate(name);
     const rule = [...css.split("}")]
       .map((r) => r.slice(0, r.indexOf("{")).trim())
@@ -245,7 +264,10 @@ Deno.test("no utility emits a declaration its property cannot hold", async () =>
       const selector = selectorFor(name);
       const open = css.indexOf(selector + "{");
       if (open === -1) continue;
-      const body = css.slice(open + selector.length + 1, css.indexOf("}", open));
+      const body = css.slice(
+        open + selector.length + 1,
+        css.indexOf("}", open),
+      );
       for (const decl of body.split(";")) {
         const property = decl.split(":")[0]?.trim();
         const value = decl.slice(decl.indexOf(":") + 1).trim();
@@ -262,7 +284,9 @@ Deno.test("no utility emits a declaration its property cannot hold", async () =>
   assertEquals(
     bad,
     [],
-    `these declare a function named after the property, which CSS drops: ${bad.join(", ")}`,
+    `these declare a function named after the property, which CSS drops: ${
+      bad.join(", ")
+    }`,
   );
 });
 
@@ -445,7 +469,9 @@ Deno.test("every catalog utility produces a rule", async () => {
   assertEquals(
     missing,
     [],
-    `the catalog advertises these and the sheet has no rule for them: ${missing.join(", ")}`,
+    `the catalog advertises these and the sheet has no rule for them: ${
+      missing.join(", ")
+    }`,
   );
 });
 
@@ -495,7 +521,9 @@ Deno.test("no utility we own reads a variable the sheet does not declare", async
   assertEquals(
     offenders,
     [],
-    `these read a variable no spin sheet declares, so they compute to nothing: ${offenders.join("; ")}`,
+    `these read a variable no spin sheet declares, so they compute to nothing: ${
+      offenders.join("; ")
+    }`,
   );
 });
 
@@ -523,7 +551,9 @@ Deno.test("no custom property is defined in terms of itself", async () => {
   assertEquals(
     selfReferential,
     [],
-    `these variables are defined as themselves, which resolves to nothing: ${[...new Set(selfReferential)].join("; ")}`,
+    `these variables are defined as themselves, which resolves to nothing: ${
+      [...new Set(selfReferential)].join("; ")
+    }`,
   );
 });
 
@@ -567,7 +597,9 @@ Deno.test("wind4's inert rules stay out of the layer", async () => {
   assertEquals(
     inert,
     [...KNOWN_INERT],
-    `wind4's inert rules changed — a new one means a utility quietly left the layer: ${inert.join(", ")}`,
+    `wind4's inert rules changed — a new one means a utility quietly left the layer: ${
+      inert.join(", ")
+    }`,
   );
   // And the consequence, which is the part a caller would notice: each of them
   // generates no rule at all. `from-primary` is not in the exclusion list — it
@@ -575,7 +607,15 @@ Deno.test("wind4's inert rules stay out of the layer", async () => {
   // family of defects, so it is asserted here too. The blur PATTERN is not a
   // utility and generates nothing by itself, so it is excluded from the loop.
   const leaked: string[] = [];
-  for (const name of ["transform", "transform-cpu", "transform-gpu", "from-primary", "backdrop-blur"]) {
+  for (
+    const name of [
+      "transform",
+      "transform-cpu",
+      "transform-gpu",
+      "from-primary",
+      "backdrop-blur",
+    ]
+  ) {
     const { css } = await uno.generate(name, { preflights: false });
     if (claims(css, name)) leaked.push(name);
   }
