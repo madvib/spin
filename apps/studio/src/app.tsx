@@ -14,7 +14,17 @@ import { FileRoutes } from "@solidjs/start/router";
 import { createResource, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
-import { listProjectThemes } from "./lib/themes.ts";
+import { listProjectThemes, saveTheme } from "./lib/themes.ts";
+import {
+  canRedo,
+  canUndo,
+  isDirty,
+  lastRefusal,
+  markSaved,
+  redo,
+  themeText,
+  undo,
+} from "./lib/store.ts";
 import {
   activeMode,
   activeName,
@@ -137,6 +147,46 @@ export default function App() {
                 }
                 {activePath() ?? "…"} · previewing {activeMode()}
               </span>
+              <button
+                type="button"
+                onClick={() => undo()}
+                disabled={!canUndo()}
+                aria-label="Undo"
+                title="Undo"
+                class="hover:bg-surface rounded-md p-2 disabled:opacity-40"
+              >
+                <i class="i-lucide-undo-2 icon-md" />
+              </button>
+              <button
+                type="button"
+                onClick={() => redo()}
+                disabled={!canRedo()}
+                aria-label="Redo"
+                title="Redo"
+                class="hover:bg-surface rounded-md p-2 disabled:opacity-40"
+              >
+                <i class="i-lucide-redo-2 icon-md" />
+              </button>
+              <p
+                class="text-red-600 text-sm"
+                hidden={lastRefusal() === undefined}
+              >
+                Edit refused: {lastRefusal() ?? ""}
+              </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  const name = activeName();
+                  const written = await saveTheme(name, themeText());
+                  if (written.error === null) markSaved(name);
+                }}
+                disabled={!isDirty(activeName())}
+                aria-label="Save to disk"
+                title="Save to disk"
+                class="bg-surface-raised border-border rounded-md border p-2 disabled:opacity-40"
+              >
+                Save
+              </button>
             </div>
             {
               /* The preview carries the project's theme. Everything above is

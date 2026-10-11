@@ -39,6 +39,22 @@ export async function listProjectThemes(): Promise<StudioTheme[]> {
   }));
 }
 
+/**
+ * Write one theme to disk. The studio's save is explicit: nothing persists
+ * until the author says so, and this is the only call that changes disk.
+ */
+export async function saveTheme(
+  name: string,
+  text: string,
+): Promise<{ error: string | null }> {
+  "use server";
+  const written = await (await spinClient()).project.themes.write({
+    name,
+    text,
+  });
+  return { error: written.error ?? null };
+}
+
 /** Re-reads one theme from disk, discarding unsaved edits to it. */
 export async function loadProjectTheme(
   name: string,

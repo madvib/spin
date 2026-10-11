@@ -26,20 +26,38 @@ function documentOf(
   };
 }
 
-/** Generates the theme variables plus every utility the catalog can produce. */
-export async function previewCss(
+/** Why a preview could not be generated. */
+export interface PreviewFailure {
+  readonly error: string;
+}
+
+/**
+ * Generate the preview stylesheet, or say why it could not.
+ *
+ * The preset VALIDATES as it generates and throws when a theme fails a
+ * legibility floor — which is right, because a build should not ship an
+ * illegible pair. But a throw inside a resource unmounts the studio, so a bad
+ * edit would blank the tool instead of telling you what it broke. Generation
+ * failure is a message to the author, never a crash.
+ */
+export async function previewCssSafely(
   tree: TokenTree,
   name: string,
-): Promise<string> {
-  const utilities = describeCatalog(tree).flatMap((s) => s.utilities);
-  const uno = await createGenerator({
-    presets: [
-      spinPreset({ themes: documentOf(name, tree) }),
-    ],
-  });
-  const { css } = await uno.generate(utilities.join(" "));
-  return css;
+): Promise<string | PreviewFailure> {
+  try {
+    const utilities = describeCatalog(tree).flatMap((s) => s.utilities);
+    const uno = await createGenerator({
+      presets: [spinPreset({ themes: documentOf(name, tree) })],
+    });
+    const { css } = await uno.generate(utilities.join(" "));
+    return css;
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
+
 
 /** Generates only the named utilities, for a section preview. */
 export async function previewSection(

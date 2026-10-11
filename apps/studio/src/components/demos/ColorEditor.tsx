@@ -9,7 +9,8 @@ function tokenSuffix(path: string): string {
 
 export default function ColorEditor(props: {
   tokens: TokenRow[];
-  onEdit: (path: string[], value: string) => void;
+  /** Applies an edit. Returns false when the theme refused it. */
+  onEdit: (path: string[], value: string) => boolean;
 }) {
   return (
     <div class="flex flex-col gap-4">

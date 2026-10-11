@@ -1,7 +1,7 @@
 import { createMemo, createResource, For, Show } from "solid-js";
 import Sample from "../components/demos/Sample";
 import { catalogSections } from "../lib/catalog";
-import { cssDeclarations, previewCss } from "../lib/preview";
+import { cssDeclarations, previewCssSafely } from "../lib/preview";
 import { analyzeTheme } from "../lib/theme";
 import { activeName, themeText } from "../lib/store";
 import { createSignal } from "solid-js";
@@ -22,11 +22,13 @@ export default function UtilitiesPage() {
   const [css] = createResource(
     () => ({ tree: tree(), name: activeName() }),
     ({ tree: current, name }) =>
-      current ? previewCss(current, name) : Promise.resolve(""),
+      current ? previewCssSafely(current, name) : Promise.resolve(""),
   );
   const decls = createMemo(() => {
     const rendered = css();
-    if (rendered === undefined) return new Map<string, string>();
+    if (rendered === undefined || typeof rendered !== "string") {
+      return new Map<string, string>();
+    }
     return cssDeclarations(
       rendered,
       matches().map(({ utility }) => utility),

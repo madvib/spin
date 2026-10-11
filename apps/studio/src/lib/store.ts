@@ -11,7 +11,12 @@
 import { createEffect, createResource, createSignal } from "solid-js";
 import { listPrimitives, type RpcComponent } from "./primitives.ts";
 import { analyzeTheme } from "./theme.ts";
-import { indexTree } from "@spin/theme";
+import {
+  indexTree,
+  parseTokens,
+  validateLegibility,
+} from "@spin/theme";
+import type { ValidationIssue } from "@spin/theme";
 import { listProjectThemes } from "./themes.ts";
 import type { StudioTheme } from "./themes.ts";
 
@@ -96,6 +101,22 @@ const [docs, setDocs] = createSignal<Record<string, string>>({});
 /** The last-written text per theme. Equal to `docs` means clean. */
 const [saved, setSaved] = createSignal<Record<string, string>>({});
 
+/** How many snapshots a theme keeps. A bounded stack means undo cannot eat a tab. */
+const UNDO_LIMIT = 100;
+
+/** The theme's legibility rules, applied to one document as text. */
+function legibilityIssues(text: string): readonly ValidationIssue[] {
+  try {
+    const parsed = parseTokens(JSON.parse(text));
+    if (!parsed.ok) return [{ path: "", message: parsed.error }];
+    return validateLegibility(parsed.tree);
+  } catch {
+    // Unparseable text is never a legibility problem, and the gate is about
+    // legibility; a broken document is caught by the preview's own message.
+    return [];
+  }
+}
+
 const [activeName, setActiveName] = createSignal("default");
 const [activeMode, setActiveMode] = createSignal("light");
 
@@ -125,9 +146,123 @@ export function themeText(): string {
   return seed(activeName()) ?? "";
 }
 
+/**
+ * The undo/redo stack, per theme.
+ *
+ * A theme is a text document, so history is a stack of texts: an edit pushes,
+ * undo pops backwards and redo replays. The document is small enough that
+ * keeping whole snapshots is cheaper than inventing an inverse-operation
+ * scheme, and a snapshot stack is undo that cannot desynchronise — there is
+ * no partial op to misapply.
+ */
+interface History {
+  /** Snapshots behind the current one, oldest first. */
+  past: readonly string[];
+  /** Snapshots ahead, newest first. Empty while editing. */
+  future: readonly string[];
+  /** The document as it stands. */
+  present: string;
+}
+
+const [history, setHistory] = createSignal<Record<string, History>>({});
+
+/**
+ * The stack for a theme, seeded from the document it stands in front of.
+ *
+ * Seeding `present` from the DOCUMENT rather than from the text being applied
+ * is the whole point: a stack seeded with the new text has nothing behind it,
+ * so the first edit returns "nothing to undo" and undo never works at all.
+ */
+function historyFor(name: string): History {
+  return history()[name] ?? { past: [], future: [], present: themeText() };
+}
+
+/**
+ * Why the last edit was refused.
+ *
+ * An edit that would break the theme does not enter the document: the gate
+ * runs the theme's own legibility rule on the proposed text and refuses,
+ * which is validation by construction rather than by discovery. A document
+ * that fails a floor has no build to fall back to — the preset throws — so
+ * letting it in would leave the author with a broken theme and no idea which
+ * edit did it.
+ */
+const [refusal, setRefusal] = createSignal<string | undefined>();
+
+export function lastRefusal(): string | undefined {
+  return refusal();
+}
+
 /** Replaces the editor text for the active theme. Not a write to disk. */
-export function setThemeText(next: string): void {
+export function setThemeText(next: string): boolean {
   const name = activeName();
+  // The rule is the theme's, not the studio's: the same one `spinPreset`
+  // applies when it generates, so the two cannot disagree.
+  const issues = legibilityIssues(next);
+  if (issues.length > 0) {
+    setRefusal(issues[0]!.message);
+    return false;
+  }
+  setRefusal(undefined);
+
+  // History is recorded BEFORE the document moves. Reading the document
+  // afterwards would seed `present` with the new text, and a stack whose
+  // first entry is the current state has nothing behind it — undo would be
+  // enabled and do nothing.
+  const at = historyFor(name);
+  const before = themeText();
+  if (at.present === next) return true;
+  setHistory((prev) => ({
+    ...prev,
+    [name]: {
+      past: [...at.past, before].slice(-UNDO_LIMIT),
+      future: [],
+      present: next,
+    },
+  }));
+  setDocs((prev) => ({ ...prev, [name]: next }));
+  return true;
+}
+
+/** Whether an undo is available. */
+export function canUndo(): boolean {
+  return historyFor(activeName()).past.length > 0;
+}
+
+/** Whether a redo is available. */
+export function canRedo(): boolean {
+  return historyFor(activeName()).future.length > 0;
+}
+
+export function undo(): void {
+  const name = activeName();
+  const at = historyFor(name);
+  const previous = at.past[at.past.length - 1];
+  if (previous === undefined) return;
+  setHistory((prev) => ({
+    ...prev,
+    [name]: {
+      past: at.past.slice(0, -1),
+      future: [at.present, ...at.future],
+      present: previous,
+    },
+  }));
+  setDocs((prev) => ({ ...prev, [name]: previous }));
+}
+
+export function redo(): void {
+  const name = activeName();
+  const at = historyFor(name);
+  const next = at.future[0];
+  if (next === undefined) return;
+  setHistory((prev) => ({
+    ...prev,
+    [name]: {
+      past: [...at.past, at.present],
+      future: at.future.slice(1),
+      present: next,
+    },
+  }));
   setDocs((prev) => ({ ...prev, [name]: next }));
 }
 

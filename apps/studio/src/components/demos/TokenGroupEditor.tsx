@@ -4,7 +4,8 @@ import ValueInput from "./ValueInput";
 
 export default function TokenGroupEditor(props: {
   tokens: TokenRow[];
-  onEdit: (path: string[], value: string) => void;
+  /** Applies an edit. Returns false when the theme refused it. */
+  onEdit: (path: string[], value: string) => boolean;
 }) {
   return (
     <div class="flex flex-col gap-4">

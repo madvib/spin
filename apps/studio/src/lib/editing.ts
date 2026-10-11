@@ -10,17 +10,24 @@ import { activeMode, setThemeText, themeText } from "./store";
  * never has to reject anything, and a bad edit cannot reach the document in
  * the first place.
  */
-export function editToken(path: string[], value: string): void {
-  try {
-    setThemeText(
-      setToken(
+export function editToken(path: string[], value: string): boolean {
+  const next = (() => {
+    try {
+      return setToken(
         themeText(),
         path,
         value,
         activeMode() === "dark" ? "dark" : "base",
-      ),
-    );
-  } catch {
-    return;
-  }
+      );
+    } catch {
+      return undefined;
+    }
+  })();
+  if (next === undefined) return false;
+  // The gate refuses a document the theme's own legibility rule fails and
+  // says why; the answer is whether the DOCUMENT moved, which is what the
+  // control needs in order to revert.
+  const before = themeText();
+  setThemeText(next);
+  return themeText() !== before;
 }

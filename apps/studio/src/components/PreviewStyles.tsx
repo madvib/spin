@@ -6,18 +6,29 @@
  * into the tool around it.
  */
 
-import { createEffect, createResource } from "solid-js";
-import { previewCss } from "../lib/preview.ts";
+import { Show, createEffect, createResource } from "solid-js";
+import { previewCssSafely } from "../lib/preview.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import { activeName, themeText } from "../lib/store.ts";
 
 export default function PreviewStyles() {
   const [css] = createResource(
     () => ({ tree: analyzeTheme(themeText()).tree, name: activeName() }),
-    ({ tree, name }) => (tree ? previewCss(tree, name) : Promise.resolve("")),
+    ({ tree, name }) => (tree ? previewCssSafely(tree, name) : Promise.resolve("")),
   );
 
+  // A failure is rendered as a banner on the preview surface, never as a
+  // missing page: the author is looking at the theme that failed, and the
+  // message belongs with it.
+  const failure = () => {
+    const rendered = css();
+    return typeof rendered === "object" ? rendered.error : undefined;
+  };
+  const previewHost = () =>
+    document.querySelector("[data-theme][data-mode] > div");
+
   createEffect(() => {
+    previewHost();
     const rendered = css();
     if (rendered === undefined) return;
     let tag = document.getElementById("spin-preview");
@@ -26,8 +37,20 @@ export default function PreviewStyles() {
       tag.id = "spin-preview";
       document.head.appendChild(tag);
     }
-    tag.textContent = rendered;
+    // A failed generation leaves the last good stylesheet in place and says
+    // so, rather than wiping the preview to nothing.
+    tag.textContent = typeof rendered === "string" ? rendered : "";
   });
+
+  return (
+    <Show when={failure() !== undefined}>
+      {(message) => (
+        <p class="bg-red-100 border-red-500 text-red-900 m-4 rounded border p-3 text-sm">
+          This theme does not build: {message()}
+        </p>
+      )}
+    </Show>
+  );
 
   return null;
 }
