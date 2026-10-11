@@ -20,6 +20,13 @@ import { join } from "node:path";
 export interface DaemonOptions {
   /** The project root. All theme reads and writes resolve under it. */
   readonly root: string;
+  /**
+   * The address to bind. Defaults to loopback, because the daemon writes to
+   * disk and a socket open to the network is a remote write to a developer's
+   * project for anyone who can reach the port. Widening this is an explicit
+   * decision, not a default.
+   */
+  readonly hostname?: string;
 }
 
 /** The document that tells a client where its daemon went. */
@@ -37,25 +44,56 @@ export function createDaemonApp(options: DaemonOptions) {
   setProjectRoot(options.root);
   // CORS, because a studio client and a daemon are separate origins in
   // development: the studio runs on vite's port and the daemon on its own.
-  // The daemon binds localhost, so answering any origin on the two paths it
-  // owns accepts the dev shape without inventing an auth model for it.
+  //
+  // The origin is echoed when it is loopback and refused otherwise. A
+  // wildcard would let any page on the internet call a daemon that writes to
+  // disk; a browser is the only client that sends a forged Origin it does
+  // not own, and the daemon binds loopback, so both halves of the check are
+  // the same statement: only this machine talks to this machine.
   return new Hono()
     .use("/rpc/*", async (c, next) => {
       await next();
-      c.res.headers.set("access-control-allow-origin", "*");
-      c.res.headers.set(
-        "access-control-allow-methods",
-        "GET, POST, OPTIONS",
-      );
-      c.res.headers.set("access-control-allow-headers", "content-type");
+      const origin = c.req.header("origin") ?? "";
+      if (origin === "" || isLoopback(origin)) {
+        c.res.headers.set(
+          "access-control-allow-origin",
+          origin === "" ? "" : origin,
+        );
+        c.res.headers.set(
+          "access-control-allow-methods",
+          "GET, POST, OPTIONS",
+        );
+        c.res.headers.set("access-control-allow-headers", "content-type");
+      }
     })
-    .options("/rpc/*", () => new Response(null, { status: 204 }))
+    .options("/rpc/*", (c) => {
+      const origin = c.req.header("origin") ?? "";
+      if (origin !== "" && !isLoopback(origin)) {
+        return c.text("cross-origin access is refused", 403);
+      }
+      return c.body(null, 204);
+    })
     .all("/rpc/*", async (c) => {
       const { matched, response } = await handleApiRequest(c.req.raw, {
         prefix: "/rpc",
       });
       return matched ? response : c.notFound();
     }).notFound((c) => c.text("no procedure claims this path", 404));
+}
+
+/**
+ * Whether an origin is this machine's. Loopback host, any port: the studio's
+ * dev server moves ports as it likes, and a daemon that hardcodes one would
+ * refuse its own client the first time two are open.
+ */
+function isLoopback(origin: string): boolean {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === "localhost" || hostname === "127.0.0.1" ||
+      hostname === "::1" || hostname === "[::1]";
+  } catch {
+    return false;
+  }
 }
 
 /** A started daemon: its app, its address, and how to stop it. */
@@ -84,7 +122,7 @@ export function startDaemon(
 ): Daemon {
   const app = createDaemonApp(options);
   const server = Deno.serve(
-    { port: options.port ?? 7463 },
+    { hostname: options.hostname ?? "127.0.0.1", port: options.port ?? 7463 },
     (request) => app.fetch(request),
   );
   const bound = (server.addr as Deno.NetAddr).port;

@@ -127,6 +127,22 @@ describe("daemon project.themes over HTTP", () => {
     assertEquals(doc.path, "/rpc");
   });
 
+  it("refuses a cross-origin caller whose origin is not this machine", async () => {
+    // A wildcard CORS header on a daemon that writes to disk is a remote
+    // write for any page that can reach the port; loopback scoping is what
+    // makes that impossible.
+    const remote = await fetch(daemon.url + "/project/themes/list", {
+      method: "OPTIONS",
+      headers: { origin: "https://evil.example" },
+    });
+    assertEquals(remote.status, 403, "a non-loopback origin is refused");
+    const own = await fetch(daemon.url + "/project/themes/list", {
+      method: "OPTIONS",
+      headers: { origin: "http://localhost:5193" },
+    });
+    assertEquals(own.status, 204, "the studio's own origin is accepted");
+  });
+
   it("refuses a name that escapes the themes directory", async () => {
     // The contract's name regex rejects the separator before any handler
     // runs: the refusal is validation, not a filesystem miss, so the error
