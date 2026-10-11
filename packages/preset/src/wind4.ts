@@ -134,17 +134,19 @@ function claimsOf(rule: Rule): string[] {
     }
     const alternation = /^\(\??:?([^)]*)\)/.exec(rest);
     if (alternation) {
+      const [, inner = ""] = alternation;
       // A character class names utilities outright: `[wh]` means `w` or `h`,
       // which is a claim on both and not on the class spelling.
-      const characterClass = /^\[([a-z0-9-]+)\]$/.exec(alternation[1]);
+      const characterClass = /^\[([a-z0-9-]+)\]$/.exec(inner);
       if (characterClass) {
+        const [, chars = ""] = characterClass;
         claims = claims.flatMap((claim) =>
-          [...characterClass[1]].map((letter) => claim + letter)
+          [...chars].map((letter) => claim + letter)
         );
         rest = rest.slice(alternation[0].length);
         continue;
       }
-      const options = alternation[1].split("|");
+      const options = inner.split("|");
       // Every option must be something a utility can actually be CALLED. An
       // option carrying a metacharacter — `(\?|\w)`, `(a|b)?` — admits names
       // beyond what is written, so the rule claims nothing rather than
@@ -387,7 +389,10 @@ function registered(objects: readonly object[]): ReadonlySet<string> {
       const matched = typeof name === "string"
         ? /^@property\s+(--[\w-]+)/.exec(name)
         : null;
-      if (matched) names.add(matched[1]);
+      if (matched) {
+        const [, read] = matched;
+        if (read !== undefined) names.add(read);
+      }
     }
   }
   return names;
@@ -417,7 +422,8 @@ function undefinedRead(output: Inspected): string | undefined {
       hit;
       hit = BARE_READ.exec(value)
     ) {
-      const name = hit[1];
+      const [, name] = hit;
+      if (name === undefined) continue;
       const defined = definedNamespaces.some((namespace) =>
         name === namespace || name.startsWith(namespace + "-")
       );
@@ -465,38 +471,38 @@ function guarded(
       report(exclusion);
     }
   };
-  return [
-    matcher,
-    (async (match: RegExpMatchArray, ctx: Readonly<RuleContext>) => {
-      let value: unknown;
-      try {
-        value = await handler(match, ctx);
-      } catch {
-        // A handler that cannot run without wind4's own theme — `backdrop-blur`
-        // reads a `backdropBlur` table a spin theme does not carry, and its
-        // `cssvar` throws on the missing entry — is inert for the same reason
-        // a bare read of an undefined variable is: it can produce nothing
-        // under a spin theme. Reported rather than passed through, because a
-        // rule that throws inside `generate()` fails the whole build, and a
-        // quiet exclusion is what the owned and bare-read cases already do.
-        // (Measured: `backdrop-blur` threw
-        // `TypeError: Cannot read properties of undefined (reading
-        // 'startsWith')` from inside wind4's `cssvar`.)
-        reportOnce({ rule: nameOf(rule), reason: "inert", undefined: "wind4 theme" });
-        return undefined;
-      }
-      const broken = undefinedRead(await inspectedAsync(value));
-      if (broken !== undefined) {
-        reportOnce({ rule: nameOf(rule), reason: "inert", undefined: broken });
-        return undefined;
-      }
-      // Handed back untouched: a generator stays a generator, because uno
-      // resolves variants differently for a generator than for an array, and
-      // reshaping a rule we are KEEPING would change it.
-      return value;
-    }) as unknown as DynamicRule[1],
-    meta,
-  ];
+  const wrapped = (async (match: RegExpMatchArray, ctx: Readonly<RuleContext>) => {
+    let value: unknown;
+    try {
+      value = await handler(match, ctx);
+    } catch {
+      // A handler that cannot run without wind4's own theme — `backdrop-blur`
+      // reads a `backdropBlur` table a spin theme does not carry, and its
+      // `cssvar` throws on the missing entry — is inert for the same reason
+      // a bare read of an undefined variable is: it can produce nothing
+      // under a spin theme. Reported rather than passed through, because a
+      // rule that throws inside `generate()` fails the whole build, and a
+      // quiet exclusion is what the owned and bare-read cases already do.
+      // (Measured: `backdrop-blur` threw
+      // `TypeError: Cannot read properties of undefined (reading
+      // 'startsWith')` from inside wind4's `cssvar`.)
+      reportOnce({ rule: nameOf(rule), reason: "inert", undefined: "wind4 theme" });
+      return undefined;
+    }
+    const broken = undefinedRead(await inspectedAsync(value));
+    if (broken !== undefined) {
+      reportOnce({ rule: nameOf(rule), reason: "inert", undefined: broken });
+      return undefined;
+    }
+    // Handed back untouched: a generator stays a generator, because uno
+    // resolves variants differently for a generator than for an array, and
+    // reshaping a rule we are KEEPING would change it.
+    return value;
+  }) as unknown as DynamicRule[1];
+  // `meta` is optional on a DynamicRule, but under exactOptionalPropertyTypes
+  // a tuple typed `RuleMeta | undefined` is not assignable to it: the defined
+  // case spells the third element and the undefined case omits it.
+  return meta === undefined ? [matcher, wrapped] : [matcher, wrapped, meta];
 }
 
 /**

@@ -1,41 +1,38 @@
 import type { MachineDef } from "@spin/runtime";
-import { machine, connect } from "@zag-js/menu";
+import { createMenuBridge } from "./menu.bridge.ts";
+import type { MenuHighlightChange, MenuOpenChange, MenuSelect } from "./menu.bridge.ts";
 
 /**
- * The menu's Zag wiring.
+ * The menu's seam: the bridge, the element's imperative commands and the
+ * CustomEvents the host reads.
  *
- * The scope declares `open` with no default: any value there is Zag's
- * controlled mode, which pins the menu to that value until a writer moves it,
- * so the trigger could never open it. `defaultOpen` carries the initial state.
+ * `machine`/`connect` are inert placeholders — the def's `createBridge` routes
+ * straight to the fork, which is what makes this interpreter a drop-in behind
+ * the `<name>.machine-def.ts` contract the plugin consumes.
  *
- * Both events are faithful to Zag's callbacks: `open-change` carries
- * `onOpenChange({ open })`, `select` carries `onSelect({ value })` — the
- * selected item's value, which the consumer maps back to its own items.
+ * Events are faithful to Zag's callbacks: `open-change` carries `onOpenChange`,
+ * `select` carries `onSelect` with the clicked item's value, and
+ * `highlight-change` carries `onHighlightChange`, which Zag's bindable
+ * highlightedValue fires whenever the highlighted item moves.
  */
 
-export interface MenuOpenChange {
-  readonly open: boolean;
-}
-
-export interface MenuSelect {
-  readonly value: string;
-}
+export type { MenuHighlightChange, MenuOpenChange, MenuSelect };
 
 export const menu: MachineDef = {
-  machine,
-  connect,
+  createBridge: createMenuBridge,
+  commands: ["open", "close", "setHighlighted"],
   events: {
     "open-change": {
       on: "onOpenChange",
-      detail: (change: { open: boolean }): MenuOpenChange => ({
-        open: change.open,
-      }),
+      detail: (change: MenuOpenChange) => ({ open: change.open }),
     },
     select: {
       on: "onSelect",
-      detail: (change: { value: string }): MenuSelect => ({
-        value: change.value,
-      }),
+      detail: (change: MenuSelect) => ({ value: change.value }),
+    },
+    "highlight-change": {
+      on: "onHighlightChange",
+      detail: (change: MenuHighlightChange) => ({ highlightedValue: change.highlightedValue }),
     },
   },
 };

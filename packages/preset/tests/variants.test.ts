@@ -2,6 +2,7 @@ import { assert } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "../src/index.ts";
 import { readFile } from "node:fs/promises";
+import { starterThemes } from "@spin/theme/themes";
 
 /**
  * What a variant utility has to do.
@@ -82,4 +83,47 @@ Deno.test("a variant and its base both ship", async () => {
     css.includes("hover"),
     `the variant must carry its pseudo-class:\n${css}`,
   );
+});
+
+Deno.test("a responsive prefix emits the theme's width as a media query", async () => {
+  // A custom property is not valid in a media query: an emitting variant
+  // produced `(min-width: var(--breakpoint-md))`, which never matches, and
+  // every responsive rule in the product was silently dead. The width must
+  // arrive as the literal the theme declared.
+  const theme = starterThemes.default;
+  const gen = await createGenerator({
+    presets: [spinPreset({ themes: { default: theme } })],
+  });
+  const { css } = await gen.generate(
+    '<div class="md:flex max-md:hidden"></div>',
+  );
+  const media = css.match(/@media[^{]+/g) ?? [];
+  const responsive = media.filter((m) => m.includes("min-width"));
+  assert(
+    responsive.length >= 2,
+    `both the min and the inverted prefix must carry a media query; got ${
+      JSON.stringify(media)
+    }`,
+  );
+  for (const query of responsive) {
+    assert(
+      !query.includes("var("),
+      `a media query cannot read a custom property: ${query}`,
+    );
+    assert(
+      /min-width:\s*[\d.]+(rem|px|em)/.test(query),
+      `the query must carry a literal width: ${query}`,
+    );
+  }
+  const [md = ""] = responsive;
+  const themeWidth = (theme.breakpoint as Record<string, { $value?: string }>)
+    ?.[
+      "md"
+    ]?.$value;
+  if (themeWidth !== undefined) {
+    assert(
+      md.includes(themeWidth),
+      `the query must carry the theme's own width (${themeWidth}): ${md}`,
+    );
+  }
 });

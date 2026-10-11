@@ -12,8 +12,9 @@ import type { ElementAction } from "./action.ts";
  * reaches across element boundaries, holds nothing that outlives the node,
  * and releases the observer in `destroy`.
  *
- * Added for the avatar port: Zag's `trackSrcChange` and
- * `trackImageRemoval` effects have no equivalent in the catalog.
+ * Added for the avatar port: image sources swap under a rendered node and
+ * images get removed while rendered, and nothing in the catalog watches
+ * either.
  */
 
 export interface ObserveParam {

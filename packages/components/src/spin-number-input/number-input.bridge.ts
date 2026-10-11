@@ -1,9 +1,9 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService, type FsmState } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service, type State } from "@spin/runtime/fsm";
 import {
   connectRobotNumberInput,
-  type NumberInputFsmApi,
-  type NumberInputFsmConnectProps,
+  type NumberInputApi,
+  type NumberInputConnectProps,
   type NumberInputService,
 } from "./number-input.connect.ts";
 import {
@@ -141,16 +141,16 @@ function seedValue(p: Record<string, unknown>, authored: (name: string) => boole
  * leaves an out-of-range value standing, and the focus whenever the machine
  * leaves or returns to `idle`.
  */
-export function createNumberInputFsmBridge(
+export function createNumberInputBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: NumberInputFsmApi; dispose(): void } {
+): { readonly api: NumberInputApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<NumberInputContext, NumberInputEvent>(config, implementations);
 
-  let service: FsmService<NumberInputContext, NumberInputEvent> | undefined;
+  let service: Service<NumberInputContext, NumberInputEvent> | undefined;
   /** What a form reset restores: the seed, captured with the service. */
   let initialValue = "";
 
@@ -186,7 +186,7 @@ export function createNumberInputFsmBridge(
     };
   }
 
-  function readConnectProps(): NumberInputFsmConnectProps {
+  function readConnectProps(): NumberInputConnectProps {
     const p = props();
     return {
       ...readContextProps(),
@@ -223,7 +223,7 @@ export function createNumberInputFsmBridge(
     };
   };
 
-  function ensureService(): FsmService<NumberInputContext, NumberInputEvent> {
+  function ensureService(): Service<NumberInputContext, NumberInputEvent> {
     if (service) return service;
     const p = props();
     // An authored `value` is the first state, exactly as Zag's bindable prefers
@@ -235,7 +235,7 @@ export function createNumberInputFsmBridge(
     // read — the same context. `start` takes the seeded state precisely so a
     // per-instance seed can be handed over.
     const start = machine.initialState.value;
-    const seeded: FsmState<NumberInputContext> = {
+    const seeded: State<NumberInputContext> = {
       value: start,
       context: { ...machine.initialState.context, ...readContextProps(), value: initialValue },
       actions: machine.initialState.actions,
@@ -359,8 +359,8 @@ export function createNumberInputFsmBridge(
   /** One connect per element, not one per machine move: its bags are cached
    * against machine state, so rebuilding it per move would hand every
    * binding a fresh bag and detach every listener each move. */
-  let inputConnect: NumberInputFsmApi | undefined;
-  const ensureConnect = (): NumberInputFsmApi => {
+  let inputConnect: NumberInputApi | undefined;
+  const ensureConnect = (): NumberInputApi => {
     inputConnect ??= connectRobotNumberInput(serviceApi, readConnectProps, id);
     return inputConnect;
   };
@@ -372,7 +372,7 @@ export function createNumberInputFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as NumberInputFsmApi, {
+  const api = new Proxy({} as NumberInputApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

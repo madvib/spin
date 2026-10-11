@@ -1,13 +1,13 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createPinInputFsmBridge } from "./pin-input.bridge.ts";
+import { createPinInputBridge } from "./pin-input.bridge.ts";
 import type {
   PinInputValueChange,
   PinInputValueComplete,
   PinInputValueInvalid,
 } from "./pin-input.bridge.ts";
-import type { PinInputFsmApi } from "./pin-input.connect.ts";
+import type { PinInputApi } from "./pin-input.connect.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -82,7 +82,7 @@ const typing = (target: HTMLInputElement, inputType: string): InputEvent =>
 const focusOut = (relatedTarget: unknown): FocusEvent => ({ relatedTarget }) as unknown as FocusEvent;
 
 interface Harness {
-  readonly api: PinInputFsmApi;
+  readonly api: PinInputApi;
   readonly root: HTMLDivElement;
   readonly events: {
     readonly value: PinInputValueChange[];
@@ -144,7 +144,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   write("onValueComplete", (change: PinInputValueComplete) => events.complete.push(change));
   write("onValueInvalid", (change: PinInputValueInvalid) => events.invalid.push(change));
 
-  const bridge = createPinInputFsmBridge(
+  const bridge = createPinInputBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();

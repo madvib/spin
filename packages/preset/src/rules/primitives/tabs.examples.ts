@@ -17,10 +17,7 @@ export interface TabsExample {
 }
 
 export const tabsFixtureNote =
-  "No JavaScript at all: radio inputs and :checked drive both the tab's " +
-  "appearance and its panel's visibility. The radios stay in the " +
-  "accessibility tree — collapsed to a pixel, not hidden — so the tabs " +
-  "are keyboard reachable and a screen reader announces them.";
+  "No JavaScript: radios and `:checked` drive the tab and its panel, and the radios stay in the accessibility tree.";
 
 export const TABS_EXAMPLES: readonly TabsExample[] = [
   {
@@ -36,6 +33,14 @@ export const TABS_EXAMPLES: readonly TabsExample[] = [
     html: `<tabs class="tabs-vertical">
           <div><label><input type="radio" name="t2" checked> One</label><section>The rail runs down and the panel beside it.</section></div>
           <div><label><input type="radio" name="t2"> Two</label><section>Second.</section></div>
+        </tabs>`,
+  },
+  {
+    name: "Disabled · an unavailable tab",
+    html: `<tabs>
+          <div><label><input type="radio" name="t3" checked> Overview</label><section>Panel one. Nothing here is script — the radio is checked and the panel is its sibling.</section></div>
+          <div><label><input type="radio" name="t3" disabled> Details</label><section>Panel two.</section></div>
+          <div><label><input type="radio" name="t3"> Settings</label><section>Panel three.</section></div>
         </tabs>`,
   },
 ];

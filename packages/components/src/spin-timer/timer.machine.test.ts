@@ -1,9 +1,9 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createTimerFsmBridge } from "./timer.bridge.ts";
+import { createTimerBridge } from "./timer.bridge.ts";
 import type { TimerTickChange } from "./timer.bridge.ts";
-import type { TimerFsmApi, TimerUnit } from "./timer.connect.ts";
+import type { TimerApi, TimerUnit } from "./timer.connect.ts";
 import type { Time, TimePart } from "./timer.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -49,7 +49,7 @@ function clockOf(bag: Record<string, unknown>): ClockParam {
 const realNow = Date.now;
 
 interface Harness {
-  readonly api: TimerFsmApi;
+  readonly api: TimerApi;
   readonly events: {
     readonly tick: TimerTickChange[];
     readonly complete: number;
@@ -91,7 +91,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   write("onComplete", () => {
     events.complete += 1;
   });
-  const bridge = createTimerFsmBridge(
+  const bridge = createTimerBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
@@ -119,9 +119,9 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   };
 }
 
-const time = (api: TimerFsmApi): Time => api.time;
-const formatted = (api: TimerFsmApi): Readonly<Record<TimePart, string>> => api.formattedTime;
-const hidden = (api: TimerFsmApi, action: string): boolean =>
+const time = (api: TimerApi): Time => api.time;
+const formatted = (api: TimerApi): Readonly<Record<TimePart, string>> => api.formattedTime;
+const hidden = (api: TimerApi, action: string): boolean =>
   api.getActionTriggerProps({ action: action as "start" })["hidden"] === true;
 
 // ---- the start state ------------------------------------------------------

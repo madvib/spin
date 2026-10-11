@@ -1,14 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createNumberInputFsmBridge } from "./number-input.bridge.ts";
+import { createNumberInputBridge } from "./number-input.bridge.ts";
 import type {
   NumberInputFocusChange,
   NumberInputValueChange,
   NumberInputValueCommit,
   NumberInputValueInvalid,
 } from "./number-input.bridge.ts";
-import type { NumberInputFsmApi } from "./number-input.connect.ts";
+import type { NumberInputApi } from "./number-input.connect.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -130,7 +130,7 @@ function attachInput(): { readonly focused: unknown[] } {
 }
 
 interface Harness {
-  readonly api: NumberInputFsmApi;
+  readonly api: NumberInputApi;
   readonly root: Element;
   readonly events: {
     readonly valueChange: NumberInputValueChange[];
@@ -189,7 +189,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   write("onValueCommit", (change: NumberInputValueCommit) => events.valueCommit.push(change));
   write("onValueInvalid", (change: NumberInputValueInvalid) => events.valueInvalid.push(change));
   write("onFocusChange", (change: NumberInputFocusChange) => events.focusChange.push(change));
-  const bridge = createNumberInputFsmBridge(
+  const bridge = createNumberInputBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();

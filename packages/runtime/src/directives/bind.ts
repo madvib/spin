@@ -146,9 +146,9 @@ export function bindChecked(el: HTMLInputElement, source: Writable<boolean>): Bi
  * `<slot name="x">` in markup resolves to its group; unmatched groups are
  * dropped (native slot behavior — unassigned nodes render nowhere).
  *
- * Why manual instead of shadow DOM: Zag measures light DOM, the preset
- * styles light DOM, and every selector in the system assumes it. Shadow
- * would isolate correctly and break everything else.
+ * Why manual instead of shadow DOM: the preset styles light DOM, and every
+ * selector in the system assumes it. Shadow would isolate correctly and
+ * break everything else.
  */
 export function projectSlots(el: HTMLElement): Map<string, Node[]> {
   const groups = new Map<string, Node[]>();

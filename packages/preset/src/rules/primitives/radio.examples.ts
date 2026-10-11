@@ -2,12 +2,10 @@
  * Radio examples — the markup a consumer writes, beside the rule that
  * styles it.
  *
- * A bare `<radio>` or `<input type="radio">` carries the base; the tag is
- * the opt-in and the platform's spelling is the same control to the rule.
- * There are no variant classes — the control draws itself. Every class
- * used here resolves against the preset's own catalog; the self-resolution
- * test fails the suite if an example demonstrates what the package cannot
- * do.
+ * An `<input type="radio">` carries the base; there are no variant classes
+ * and no custom tags — the control draws itself. Every class used here
+ * resolves against the preset's own catalog; the self-resolution test fails
+ * the suite if an example demonstrates what the package cannot do.
  */
 
 export interface RadioExample {
@@ -23,26 +21,32 @@ ${inner}
         </div>`;
 
 export const radioFixtureNote =
-  "A radio is a working radio with no class at all: the tag carries the " +
-  'base, and `<radio>` and `<input type="radio">` reach the same rule. A ' +
-  "group is a radiogroup of labelled inputs sharing a name; checked and " +
-  "disabled are states the browser owns, so they are real on the " +
-  "platform's spelling.";
+  "A working radio with no class: the input carries the base. A group is labelled inputs sharing a name.";
 
 export const RADIO_EXAMPLES: readonly RadioExample[] = [
-  {
-    name: "Both spellings",
-    html: row(
-      `          <label><radio name="spell"> tag</label>
-          <label><input type="radio" name="spell" checked> input</label>`,
-    ),
-  },
   {
     name: "A group",
     html: `        <div role="radiogroup" aria-label="Choice">
           <label><input type="radio" name="choice" checked> First</label>
           <label><input type="radio" name="choice"> Second</label>
           <label><input type="radio" name="choice" disabled> Disabled</label>
+        </div>`,
+  },
+  {
+    name: "States",
+    html: row(
+      `          <label><input type="radio" name="s" checked> Checked</label>
+          <label><input type="radio" name="s"> Unchecked</label>
+          <label><input type="radio" name="s" disabled> Disabled</label>`,
+    ),
+  },
+  {
+    name: "Stacked",
+    html:
+      `        <div role="radiogroup" aria-label="Stacked" class="flex flex-col items-start gap-2">
+          <label><input type="radio" name="stack" checked> First</label>
+          <label><input type="radio" name="stack"> Second</label>
+          <label><input type="radio" name="stack"> Third</label>
         </div>`,
   },
   {

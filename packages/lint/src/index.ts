@@ -72,7 +72,7 @@ function utilityNames(tree?: TokenTree): Set<string> {
 function utilityPrefixes(tree: TokenTree): Set<string> {
   const out = new Set<string>();
   for (const section of describeCatalog(tree)) {
-    for (const utility of section.utilities) out.add(utility.split("-")[0]);
+    for (const utility of section.utilities) out.add(utility.split("-")[0] ?? "");
   }
   return out;
 }
@@ -85,7 +85,7 @@ function utilityPrefixes(tree: TokenTree): Set<string> {
 function colorWords(tree: TokenTree): Set<string> {
   const words = new Set<string>(CSS_WIDE_COLORS);
   for (const leaf of Object.values(indexTree(tree).leaves)) {
-    if (leaf.type === "color") words.add(leaf.path[leaf.path.length - 1]);
+    if (leaf.type === "color") words.add(leaf.path[leaf.path.length - 1] ?? "");
   }
   return words;
 }

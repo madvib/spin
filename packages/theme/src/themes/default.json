@@ -1,11 +1,7 @@
 {
   "$extensions": {
     "spin": {
-      "id": "spin-light",
-      "modes": [
-        "light",
-        "dark"
-      ]
+      "id": "spin-light"
     }
   },
   "color": {
@@ -74,6 +70,10 @@
     "surface": {
       "$value": "{color.neutral.50}",
       "$description": "Page background."
+    },
+    "surface-sunken": {
+      "$value": "{color.neutral.100}",
+      "$description": "Background of elements that sit below the page: table stripes, inset wells."
     },
     "surface-raised": {
       "$value": "#ffffff",
@@ -454,18 +454,18 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes. In `em`, so an icon tracks the control it sits in rather than pinning itself to one absolute length.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
-      "$value": "0.875em"
+      "$value": "0.875rem"
     },
     "md": {
       "$type": "dimension",
-      "$value": "1em"
+      "$value": "1.125rem"
     },
     "lg": {
       "$type": "dimension",
-      "$value": "1.25em"
+      "$value": "1.5rem"
     }
   },
   "badge": {
@@ -475,10 +475,10 @@
       "$value": "{border.width}",
       "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
     },
-    "radius": {
-      "$type": "dimension",
-      "$value": "{radius.full}",
-      "$description": "Corner rounding for the badge. Fully round reads as a pill; zero squares it into a tag."
+    "pill": {
+      "$type": "boolean",
+      "$value": true,
+      "$description": "Fully round reads as a pill; false squares it into a tag."
     }
   },
   "checkbox": {
@@ -556,6 +556,11 @@
           "$value": "#38bdf8"
         }
       },
+      "field": {
+        "$type": "color",
+        "$value": "#1f2937",
+        "$description": "A field's own surface in dark mode: one step above the card it sits in, so a control still reads as an object set into the page rather than a hole cut out of nothing."
+      },
       "surface-raised": {
         "$value": "#111827"
       },
@@ -606,6 +611,24 @@
       "on-semantic-warning": {
         "$value": "#0b1120",
         "$description": "Ink on the dark warning fill. The dark warning background is amber, so the foreground stays dark where the light-mode one is white."
+      },
+      "on-semantic-error": {
+        "$value": "#0b1120"
+      },
+      "border-strong": {
+        "$type": "color",
+        "$value": "#475569",
+        "$description": "The control's own edge, lifted one ramp step from its dark base so it still reads as stronger than `border`."
+      },
+      "on-semantic-info": {
+        "$type": "color",
+        "$value": "#0b1120",
+        "$description": "Ink on the lifted dark info fill, the same dark ink the other semantic fills take."
+      },
+      "surface-sunken": {
+        "$type": "color",
+        "$value": "{color.neutral.200}",
+        "$description": "Below the dark page the way the light stripe sits below the light page: one ramp step down, not the light stripe itself left over."
       }
     },
     "focus": {
@@ -618,5 +641,27 @@
       }
     }
   },
-  "$description": "Carries a `dark` group, so this one theme answers to both modes."
+  "$description": "Carries a `dark` group, so this one theme answers to both modes.",
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "modes": [
+    "light",
+    "dark"
+  ]
 }

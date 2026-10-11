@@ -36,7 +36,7 @@ export function sizingRules(): Rule[] {
   return [
     [
       /^w-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         // The ONE place a hardcoded literal is correct. Every other width here
         // is a theme token — the spacing scale, a fraction, a content keyword
         // — and one the theme does not carry means the rule omits itself. An
@@ -57,7 +57,7 @@ export function sizingRules(): Rule[] {
     ],
     [
       /^h-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         // As `w-`: the escape hatch, and the only height that is not a token.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { height: literal };
@@ -84,7 +84,7 @@ export function sizingRules(): Rule[] {
     // width that changes with the viewport is a contradiction, not a utility.
     [
       /^(min|max)-([wh])-(.+)$/,
-      ([, edge, axis, name]: string[], ctx?: ThemeContext) => {
+      ([, edge = "", axis = "", name = ""]: string[], ctx?: ThemeContext) => {
         const prop = `${edge === "min" ? "min-" : "max-"}${
           axis === "w" ? "width" : "height"
         }`;

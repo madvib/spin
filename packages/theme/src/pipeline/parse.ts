@@ -180,7 +180,7 @@ export function parseTokens(input: string | unknown): ParseResult {
     };
   }
 
-  const names = childKeys(doc);
+  const names = childKeys(doc).filter((key) => !DOCUMENT_KEYS[key]);
   if (names.length === 0) {
     return { ok: false, error: "token document contains no tokens" };
   }
@@ -202,6 +202,12 @@ export function parseTokens(input: string | unknown): ParseResult {
   return { ok: true, tree };
 }
 
+/** The modes a document declares, as authored. */
+export type DocumentModes = readonly ["light"] | readonly ["dark"] | readonly [
+  "light",
+  "dark",
+];
+
 /** A document's tokens and its extensions, both from one parse. */
 export type DocumentResult =
   | {
@@ -209,6 +215,12 @@ export type DocumentResult =
     readonly tree: TokenTree;
     /** Whatever the document declared under `$extensions`. */
     readonly extensions: Record<string, unknown>;
+    /**
+     * The modes the document declares at its root. `undefined` means it
+     * declares none — so `themeModes()` can tell "declares one mode" from
+     * "declares nothing", which the `dark` group's presence alone could not.
+     */
+    readonly modes: DocumentModes | undefined;
   }
   | { readonly ok: false; readonly error: string };
 
@@ -221,6 +233,9 @@ export type DocumentResult =
  * that a caller needing a font declaration had to keep the raw JSON alive and
  * re-read `$extensions` by hand. This is the one place that is not optional.
  */
+/** The root document keys that are metadata, not tokens. */
+const DOCUMENT_KEYS: Record<string, true> = { modes: true };
+
 export function parseDocument(input: string | unknown): DocumentResult {
   const parsed = parseTokens(input);
   if (!parsed.ok) return { ok: false, error: parsed.error };
@@ -231,10 +246,37 @@ export function parseDocument(input: string | unknown): DocumentResult {
   return {
     ok: true,
     tree: parsed.tree,
+    modes: readModes(doc),
     extensions: isPlainObject(extensions)
       ? extensions as Record<string, unknown>
       : {},
   };
+}
+
+/**
+ * The modes a document declares at its root, when they are well-formed.
+ *
+ * `modes` is document metadata, not a token: no emitter reads it, and the
+ * tree never carries it. Malformed metadata fails the document rather than
+ * sailing through — a studio that thinks its theme has two modes when the
+ * document states something else renders toggles for nothing.
+ */
+function readModes(doc: unknown): DocumentModes | undefined {
+  if (!isPlainObject(doc)) return undefined;
+  const raw = (doc as Record<string, unknown>)["modes"];
+  if (raw === undefined) return undefined;
+  if (
+    Array.isArray(raw) && raw.length > 0 &&
+    raw.every((entry) => entry === "light" || entry === "dark")
+  ) {
+    return (raw as unknown) as DocumentModes;
+  }
+  return undefined;
+}
+
+/** Whether `parseDocument` would keep a root `modes` value. */
+export function isValidModes(value: unknown): value is DocumentModes {
+  return readModes({ modes: value }) !== undefined;
 }
 
 /** Decode without re-throwing; `parseTokens` has already reported the failure. */

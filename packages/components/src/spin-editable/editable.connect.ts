@@ -28,7 +28,7 @@ const TRANSLATIONS = {
   cancel: "cancel",
 } as const;
 
-export interface EditableFsmConnectProps {
+export interface EditableConnectProps {
   readonly activationMode: "focus" | "click" | "dblclick" | "none";
   readonly submitMode: "enter" | "blur" | "both" | "none";
   readonly autoResize: boolean;
@@ -58,7 +58,7 @@ export interface EditableCommands {
   submit(): void;
 }
 
-export interface EditableFsmApi extends EditableCommands {
+export interface EditableApi extends EditableCommands {
   readonly editing: boolean;
   readonly empty: boolean;
   readonly value: string;
@@ -86,7 +86,7 @@ export interface EditableHooks {
   onEnterPreview?: (focusable: boolean) => void;
 }
 
-export type ReadEditableProps = () => EditableFsmConnectProps;
+export type ReadEditableProps = () => EditableConnectProps;
 
 /** What the input's `input` event carries: the field's current value. */
 interface InputChangeEvent {
@@ -120,7 +120,7 @@ export function connectRobotEditable(
   readProps: ReadEditableProps,
   id: string,
   hooks: EditableHooks,
-): EditableFsmApi {
+): EditableApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const rootId = ownerId;
   const areaId = `${ownerId}:area`;

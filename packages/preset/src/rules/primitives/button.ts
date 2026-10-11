@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf, type ThemeContext } from "../../utils/lookup.ts";
+import { type ThemeContext, themeOf } from "../../utils/lookup.ts";
 import { type Entry, spend, spentEntries } from "./shared.ts";
 
 /**
@@ -97,10 +97,14 @@ const CHARACTER_STEPS: readonly CharacterStep[] = [
 ];
 
 /** The character step the base rule spends — all but the hover shadow. */
-const BASE_CHARACTER = CHARACTER_STEPS.filter((step) => step !== "shadow-hover");
+const BASE_CHARACTER = CHARACTER_STEPS.filter((step) =>
+  step !== "shadow-hover"
+);
 
 /** The character step the hover rule spends. */
-const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow-hover");
+const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) =>
+  step === "shadow-hover"
+);
 
 /** The resting shadow step, re-spent by the active and disabled rules. */
 const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
@@ -149,17 +153,34 @@ const VARIANTS: Record<PaintedVariant, {
       border: "none",
       padding: "0",
       "box-shadow": "none",
-      color: "inherit",
-      font: "inherit",
       cursor: "pointer",
+      // The character is part of the paint, so the opt-out takes it back:
+      // without these resets a bare button still reads as its theme's
+      // control — bold, tracked, uppercase in the loud starters — while
+      // looking like chrome.
+      "font-weight": "normal",
+      "text-transform": "none",
+      "letter-spacing": "normal",
+      // The base states a minimum height for the control's touch target;
+      // a bare button is chrome — a link that happens to be a button — and
+      // a 34px floor on every chrome control is a tax the app pays for a
+      // default it did not choose.
+      "min-height": "0",
+      // No `font: inherit`, no `color: inherit`: the selector is
+      // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
+      // single class utility — the opt-out would freeze the ink and the face
+      // of the very control that opts out to paint itself. Dropping them
+      // leaves the paint-free base (no fill, no edge, no shadow, no padding)
+      // and lets utilities decide the rest; an author who wants the page's
+      // ink spells `text-text`.
     }),
   },
   secondary: {
     selector: `${BUTTON}.secondary, ${BUTTON}[variant~="secondary"]`,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors["surface-raised"],
-      "border-color": themeOf(ctx)?.colors["border"],
-      color: themeOf(ctx)?.colors["text"],
+      "background-color": themeOf(ctx)?.colors?.["surface-raised"],
+      "border-color": themeOf(ctx)?.colors?.["border"],
+      color: themeOf(ctx)?.colors?.["text"],
     }),
   },
   ghost: {
@@ -167,38 +188,47 @@ const VARIANTS: Record<PaintedVariant, {
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
-      color: themeOf(ctx)?.colors["text"],
+      // A ghost is paint-free: no fill, no edge, and no shadow either. The
+      // base rule spends the theme's shadow, and a neobrut theme's shadow is
+      // a hard offset — a ghost carrying it is a black box floating over an
+      // empty button.
+      "box-shadow": "none",
+      color: themeOf(ctx)?.colors?.["text"],
     }),
   },
   danger: {
     selector: `${BUTTON}.danger, ${BUTTON}[variant~="danger"]`,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors["semantic-error"],
-      color: themeOf(ctx)?.colors["on-danger"],
+      "background-color": themeOf(ctx)?.colors?.["semantic-error"],
+      color: themeOf(ctx)?.colors?.["on-danger"],
     }),
   },
   contrast: {
     selector: `${CONTRAST}.contrast, ${CONTRAST}[variant~="contrast"]`,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors["text"],
-      "border-color": themeOf(ctx)?.colors["text"],
-      color: themeOf(ctx)?.colors["surface"],
+      "background-color": themeOf(ctx)?.colors?.["text"],
+      "border-color": themeOf(ctx)?.colors?.["text"],
+      color: themeOf(ctx)?.colors?.["surface"],
     }),
   },
   outline: {
     selector: `${BUTTON}.outline, ${BUTTON}[variant~="outline"]`,
     body: (ctx) => ({
       "background-color": "transparent",
-      "border-color": themeOf(ctx)?.colors["accent"],
-      color: themeOf(ctx)?.colors["primary"],
+      // An outline is an edge and nothing else: no fill, so no shadow — the
+      // same reason ghost spends none. Without this the theme's shadow hangs
+      // off an empty box (a hard offset in neobrut).
+      "box-shadow": "none",
+      "border-color": themeOf(ctx)?.colors?.["accent"],
+      color: themeOf(ctx)?.colors?.["primary"],
     }),
   },
   "s-sm": {
     selector: `${BUTTON}.s-sm, ${BUTTON}[variant~="s-sm"]`,
     body: (ctx) => {
-      const fontSize = themeOf(ctx)?.fontSize["sm"];
-      const spacing1 = themeOf(ctx)?.spacing["1"];
-      const spacing2 = themeOf(ctx)?.spacing["2"];
+      const fontSize = themeOf(ctx)?.fontSize?.["sm"];
+      const spacing1 = themeOf(ctx)?.spacing?.["1"];
+      const spacing2 = themeOf(ctx)?.spacing?.["2"];
       const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
       return {
         "padding-inline-start": spacing2,
@@ -219,9 +249,9 @@ const VARIANTS: Record<PaintedVariant, {
   "s-lg": {
     selector: `${BUTTON}.s-lg, ${BUTTON}[variant~="s-lg"]`,
     body: (ctx) => {
-      const fontSize = themeOf(ctx)?.fontSize["lg"];
-      const spacing4 = themeOf(ctx)?.spacing["4"];
-      const spacing8 = themeOf(ctx)?.spacing["8"];
+      const fontSize = themeOf(ctx)?.fontSize?.["lg"];
+      const spacing4 = themeOf(ctx)?.spacing?.["4"];
+      const spacing8 = themeOf(ctx)?.spacing?.["8"];
       const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
       return {
         "padding-inline-start": spacing8,
@@ -258,20 +288,31 @@ const VARIANT_HOVER: Record<string, {
   body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
 }> = {
   ghost: {
+    // The base's hover spends `button.shadow-hover` — a theme's lift, which in
+    // neobrut is a hard offset. A control that opts out of the paint has no
+    // object to lift, so its hover states the same shadow it rests with. The
+    // base selector cannot be narrowed from here, so the opt-out repeats it
+    // and adds the one thing it is entitled to change.
     selector: `${BUTTON}.ghost:hover:not(:disabled):not([aria-busy="true"])`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
-      color: themeOf(ctx)?.colors["text"],
+      "box-shadow": "none",
+      color: themeOf(ctx)?.colors?.["text"],
     }),
   },
   outline: {
     selector: `${BUTTON}.outline:hover:not(:disabled):not([aria-busy="true"])`,
     body: (ctx) => ({
       "background-color": "transparent",
-      "border-color": themeOf(ctx)?.colors["accent"],
-      color: themeOf(ctx)?.colors["primary"],
+      "box-shadow": "none",
+      "border-color": themeOf(ctx)?.colors?.["accent"],
+      color: themeOf(ctx)?.colors?.["primary"],
     }),
+  },
+  bare: {
+    selector: `${BUTTON}.bare:hover:not(:disabled):not([aria-busy="true"])`,
+    body: () => ({ "box-shadow": "none", background: "none", border: "none" }),
   },
 };
 
@@ -293,16 +334,16 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // The base's tokens, read from the theme. One the theme omits reads
         // as undefined: the engine drops a single-token declaration, and a
         // compound one states itself only when every token in it resolves.
-        const spacing2 = themeOf(ctx)?.spacing["2"];
-        const spacing4 = themeOf(ctx)?.spacing["4"];
-        const fontFamily = themeOf(ctx)?.fontFamily["sans"];
-        const fontSize = themeOf(ctx)?.fontSize["md"];
-        const radius = themeOf(ctx)?.radius["md"];
+        const spacing2 = themeOf(ctx)?.spacing?.["2"];
+        const spacing4 = themeOf(ctx)?.spacing?.["4"];
+        const fontFamily = themeOf(ctx)?.fontFamily?.["sans"];
+        const fontSize = themeOf(ctx)?.fontSize?.["md"];
+        const radius = themeOf(ctx)?.radius?.["md"];
         const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
-        const primary = themeOf(ctx)?.colors["primary"];
-        const onPrimary = themeOf(ctx)?.colors["on-primary"];
-        const duration = themeOf(ctx)?.motionDuration["fast"];
-        const easing = themeOf(ctx)?.motionEasing["standard"];
+        const primary = themeOf(ctx)?.colors?.["primary"];
+        const onPrimary = themeOf(ctx)?.colors?.["on-primary"];
+        const duration = themeOf(ctx)?.motionDuration?.["fast"];
+        const easing = themeOf(ctx)?.motionEasing?.["standard"];
         // The base. An array body because the rule states `transition-property`
         // three times and the last one wins; reproducing it keeps the computed
         // value (transform only) rather than "fixing" it into a colour transition.
@@ -378,7 +419,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // width and offset come from the theme's focus scale; a theme that
         // states none gets no ring rather than an outline of undefined width.
         const focusWidth = themeOf(ctx)?.focusWidth?.["width"];
-        const focusRing = themeOf(ctx)?.colors["focus-ring"];
+        const focusRing = themeOf(ctx)?.colors?.["focus-ring"];
         const focusOffset = themeOf(ctx)?.focusOffset?.["offset"];
         yield {
           [ctx.symbols.selector]: () => `${BUTTON}:focus-visible`,
@@ -447,21 +488,21 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // selector is specific enough to beat the base rule.
         yield {
           [ctx.symbols.selector]: () => '[type="reset"]',
-          "background-color": themeOf(ctx)?.colors["surface-raised"],
-          "border-color": themeOf(ctx)?.colors["border"],
-          color: themeOf(ctx)?.colors["text"],
+          "background-color": themeOf(ctx)?.colors?.["surface-raised"],
+          "border-color": themeOf(ctx)?.colors?.["border"],
+          color: themeOf(ctx)?.colors?.["text"],
         };
         yield {
           [ctx.symbols.selector]: () => '[type="reset"].outline',
           "background-color": "transparent",
-          "border-color": themeOf(ctx)?.colors["accent"],
-          color: themeOf(ctx)?.colors["primary"],
+          "border-color": themeOf(ctx)?.colors?.["accent"],
+          color: themeOf(ctx)?.colors?.["primary"],
         };
         yield {
           [ctx.symbols.selector]: () =>
             '[type="reset"].outline:hover:not(:disabled)',
-          "background-color": themeOf(ctx)?.colors["primary"],
-          color: themeOf(ctx)?.colors["on-primary"],
+          "background-color": themeOf(ctx)?.colors?.["primary"],
+          color: themeOf(ctx)?.colors?.["on-primary"],
         };
       },
       { layer: "primitives", autocomplete: "button" },
@@ -544,13 +585,13 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:first-child`,
           "margin-inline-start": 0,
-          "border-start-start-radius": themeOf(ctx)?.radius["md"],
-          "border-end-start-radius": themeOf(ctx)?.radius["md"],
+          "border-start-start-radius": themeOf(ctx)?.radius?.["md"],
+          "border-end-start-radius": themeOf(ctx)?.radius?.["md"],
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:last-child`,
-          "border-start-end-radius": themeOf(ctx)?.radius["md"],
-          "border-end-end-radius": themeOf(ctx)?.radius["md"],
+          "border-start-end-radius": themeOf(ctx)?.radius?.["md"],
+          "border-end-end-radius": themeOf(ctx)?.radius?.["md"],
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:hover`,
@@ -559,9 +600,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${GROUP} > button[aria-pressed="true"]`,
-          "background-color": themeOf(ctx)?.colors["primary"],
-          color: themeOf(ctx)?.colors["on-primary"],
-          "border-color": themeOf(ctx)?.colors["on-primary"],
+          "background-color": themeOf(ctx)?.colors?.["primary"],
+          color: themeOf(ctx)?.colors?.["on-primary"],
+          "border-color": themeOf(ctx)?.colors?.["on-primary"],
           "z-index": 1,
         };
       },

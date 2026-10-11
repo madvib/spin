@@ -27,9 +27,9 @@ import { effect, signal } from "../core/signal.ts";
 const { window } = parseHTML("<!doctype html><html><body></body></html>");
 // linkedom's own types, deliberately not cast to the browser's. Casting them
 // to `typeof globalThis.HTMLElement` manufactured a second `Window` in this
-// program, which surfaced as Zag's `Scope` becoming unassignable the moment
-// any other package joined the check. The shim is a different DOM and says
-// so; the runtime is written against the subset both agree on.
+// program the moment any other package joined the check. The shim is a
+// different DOM and says so; the runtime is written against the subset both
+// agree on.
 const { document, customElements, HTMLElement, Element, Node } = window;
 Object.assign(globalThis, { document, customElements, HTMLElement, Element, Node });
 

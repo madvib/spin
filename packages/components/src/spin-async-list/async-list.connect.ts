@@ -50,7 +50,7 @@ export interface AsyncListCommands {
   clearFilter(): void;
 }
 
-export interface AsyncListFsmApi extends AsyncListCommands {
+export interface AsyncListApi extends AsyncListCommands {
   readonly items: readonly unknown[];
   readonly loading: boolean;
   readonly sorting: boolean;
@@ -153,7 +153,7 @@ const toRow = (item: unknown, index: number): AsyncListRow => {
 export function connectRobotAsyncList(
   service: AsyncListService,
   id: string,
-): AsyncListFsmApi {
+): AsyncListApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const partId = (part: string): string => `${ownerId}:${part}`;
   const ctx = (): AsyncListContext => service.context;

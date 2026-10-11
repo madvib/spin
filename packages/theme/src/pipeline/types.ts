@@ -14,6 +14,7 @@
 /** Every `$type` a Spin token may declare. */
 export const TOKEN_TYPES = [
   "color",
+  "boolean",
   "dimension",
   "fontFamily",
   "fontWeight",
@@ -112,6 +113,13 @@ export interface ValidateOptions {
    * document only has `surface.brand`.
    */
   required?: readonly string[];
+  /**
+   * The modes the document serves. When it includes `"dark"`, every color and
+   * focus leaf the base document declares must appear in the `dark` group —
+   * declaring the mode is a promise to restate all of them, and a dark mode
+   * that only restates some colors ships a theme that is half one mode.
+   */
+  modes?: readonly ("light" | "dark")[];
 }
 
 /** Options for CSS emission. */

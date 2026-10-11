@@ -18,11 +18,7 @@ export interface TableExample {
 }
 
 export const tableFixtureNote =
-  "A table is a document, not a spreadsheet: figures line up on the digit, " +
-  "the header stays put when the table scrolls, and cells are separated by a " +
-  "rule rather than boxed. `striped` is the only class, because no element " +
-  "expresses \"every other row\"; everything else a table needs, the tag " +
-  "already does.";
+  "A document, not a spreadsheet: figures align on the digit, cells are separated by a rule. `striped` is the only class.";
 
 export const TABLE_EXAMPLES: readonly TableExample[] = [
   {

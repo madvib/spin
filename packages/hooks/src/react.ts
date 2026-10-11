@@ -5,11 +5,11 @@ import { bindSpinElement, type SpinHookOptions } from "./index.ts";
  * React adapter: `useSpin(tag, { props, on })` returns a ref to spread.
  *
  * ```tsx
- * const dialog = useSpin("spin-dialog-fsm", {
+ * const dialog = useSpin("spin-dialog", {
  *   props: { role: "dialog" },
  *   on: { "open-change": (e) => setOpen(e.detail.open) },
  * })
- * return <spin-dialog-fsm ref={dialog.ref} />
+ * return <spin-dialog ref={dialog.ref} />
  * // later: dialog.commands.show()
  * ```
  *

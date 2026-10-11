@@ -56,17 +56,17 @@ function checkboxRule(): Rule {
     /^checkbox$/,
     function* (_m, ctx) {
       const t = themeOf(ctx);
-      const size = t?.spacing["4"];
-      const radius = t?.radius["sm"];
-      const text = t?.colors["text"];
-      const primary = t?.colors["primary"];
-      const onPrimary = t?.colors["on-primary"];
-      const border = t?.colors["border"];
-      const duration = t?.motionDuration["fast"];
-      const easing = t?.motionEasing["standard"];
+      const size = t?.spacing?.["4"];
+      const radius = t?.radius?.["sm"];
+      const text = t?.colors?.["text"];
+      const primary = t?.colors?.["primary"];
+      const onPrimary = t?.colors?.["on-primary"];
+      const border = t?.colors?.["border"];
+      const duration = t?.motionDuration?.["fast"];
+      const easing = t?.motionEasing?.["standard"];
       const borderWidth = t?.borderWidth?.["width"];
       const focusWidth = t?.focusWidth?.["width"];
-      const focusRing = t?.colors["focus-ring"];
+      const focusRing = t?.colors?.["focus-ring"];
       const focusOffset = t?.focusOffset?.["offset"];
 
       // Depth is three inset shadows driven by one scalar rather than a
@@ -122,7 +122,7 @@ function checkboxRule(): Rule {
       }
 
       yield {
-        [ctx.symbols.selector]: () => CHECKBOX,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role])',
         ...shell,
       };
 
@@ -161,12 +161,12 @@ function checkboxRule(): Rule {
         });
       }
       yield {
-        [ctx.symbols.selector]: () => `${CHECKBOX}::before`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role])::before',
         ...mark,
       };
 
       yield {
-        [ctx.symbols.selector]: () => `${CHECKBOX}:focus-visible`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):focus-visible',
         ...(focusWidth !== undefined && focusRing !== undefined
           ? { outline: `${focusWidth} solid ${focusRing}` }
           : {}),
@@ -187,19 +187,12 @@ function checkboxRule(): Rule {
           `inset 0 1px 0 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
         ].join(", "),
       };
-      yield { [ctx.symbols.selector]: () => `${CHECKBOX}:checked`, ...on };
+      yield { [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):checked', ...on };
       yield {
-        [ctx.symbols.selector]: () => `${CHECKBOX}:indeterminate`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):indeterminate',
         ...on,
       };
 
-      // The custom tag spells state as an ATTRIBUTE, not a pseudo-class:
-      // `:checked` is platform-owned and never matches `<checkbox>`, so the
-      // author's spelling of the same state is the attribute form. Native
-      // inputs keep the pseudo-classes above — the platform owns their state —
-      // which is why every twin below names the bare tag and nothing else.
-      yield { [ctx.symbols.selector]: () => `checkbox[checked]`, ...on };
-      yield { [ctx.symbols.selector]: () => `checkbox[data-mixed]`, ...on };
 
       // A 45°-rotated square has its visual mass below its geometric centre,
       // so a tick drawn inside it reads as sitting low in the box unless the
@@ -207,15 +200,7 @@ function checkboxRule(): Rule {
       // element: `translate` would be animated by the state transition and
       // fight the clip-path's own.
       yield {
-        [ctx.symbols.selector]: () => `${CHECKBOX}:checked::before`,
-        opacity: "1",
-        ...(borderWidth !== undefined
-          ? { translate: `0 -${borderWidth}` }
-          : {}),
-        "clip-path": TICK_ON,
-      };
-      yield {
-        [ctx.symbols.selector]: () => `checkbox[checked]::before`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):checked::before',
         opacity: "1",
         ...(borderWidth !== undefined
           ? { translate: `0 -${borderWidth}` }
@@ -224,14 +209,7 @@ function checkboxRule(): Rule {
       };
       // The mixed mark is a bar, not a tick: no rotation, and it sits higher.
       yield {
-        [ctx.symbols.selector]: () => `${CHECKBOX}:indeterminate::before`,
-        opacity: "1",
-        rotate: "0deg",
-        scale: "1 0.5",
-        "clip-path": TICK_MIXED,
-      };
-      yield {
-        [ctx.symbols.selector]: () => `checkbox[data-mixed]::before`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):indeterminate::before',
         opacity: "1",
         rotate: "0deg",
         scale: "1 0.5",
@@ -239,16 +217,10 @@ function checkboxRule(): Rule {
       };
 
       yield {
-        [ctx.symbols.selector]: () => `${CHECKBOX}:disabled`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):disabled',
         cursor: "not-allowed",
         // The depth goes with the interaction: a box you cannot press should
         // not have the shadows that say it can be.
-        "box-shadow": "none",
-        opacity: "0.4",
-      };
-      yield {
-        [ctx.symbols.selector]: () => `checkbox[disabled]`,
-        cursor: "not-allowed",
         "box-shadow": "none",
         opacity: "0.4",
       };
@@ -256,21 +228,6 @@ function checkboxRule(): Rule {
     { layer: "primitives", autocomplete: "checkbox" },
   ];
 }
-
-/**
- * What a checkbox IS.
- *
- * `<checkbox>` is the tag, and `input[type="checkbox"]` is the same control
- * written the way the platform spells it. A component that only matched one
- * of them is not classless — it is a component that only works if you write it
- * the way the library prefers, which is the thing this whole surface exists
- * to avoid.
- *
- * `:not([role])` keeps the switch out: a switch is a checkbox with a role, and
- * it draws a thumb rather than a tick, so two rules on one element would
- * fight over `appearance`.
- */
-const CHECKBOX = ':is(checkbox, input[type="checkbox"]:not([role]))';
 
 /**
  * The switch.
@@ -291,21 +248,21 @@ function switchRule(): Rule {
     /^switch$/,
     function* (_m, ctx) {
       const t = themeOf(ctx);
-      const depth = groupOf(ctx, "switch")?.["depth"] ?? "1.5";
-      const size = t?.spacing["4"];
+      const size = t?.spacing?.["4"];
       const borderWidth = t?.borderWidth?.["width"];
       const radius = t?.radius?.["md"];
       const radiusFull = t?.radius?.["full"];
-      const border = t?.colors["border"];
-      const text = t?.colors["text"];
-      const muted = t?.colors["text-muted"];
-      const raised = t?.colors["surface-raised"];
-      const primary = t?.colors["primary"];
-      const onPrimary = t?.colors["on-primary"];
+      const border = t?.colors?.["border"];
+      const text = t?.colors?.["text"];
+      const muted = t?.colors?.["text-muted"];
+      const raised = t?.colors?.["surface-raised"];
+      const primary = t?.colors?.["primary"];
+      const onPrimary = t?.colors?.["on-primary"];
+      const shadow = t?.shadow?.["sm"];
       const duration = t?.motionDuration?.["fast"];
       const easing = t?.motionEasing?.["standard"];
       const focusWidth = t?.focusWidth?.["width"];
-      const focusRing = t?.colors["focus-ring"];
+      const focusRing = t?.colors?.["focus-ring"];
       const focusOffset = t?.focusOffset?.["offset"];
 
       const shell: Record<string, string | undefined> = {
@@ -343,12 +300,11 @@ function switchRule(): Rule {
           ? { "border-radius": radiusFull }
           : {}),
         ...(raised !== undefined ? { "background-color": raised } : {}),
-        "box-shadow": [
-          `inset 0 1px 2px 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
-          `inset 0 -1px 0 0 rgba(255, 255, 255, calc(${depth} * 0.1))`,
-          `inset 0 0 0 0 rgba(0, 0, 0, 0)`,
-          `0 0 0 0 rgba(0, 0, 0, 0)`,
-        ].join(", "),
+        // The theme's own physical language: `shadow.sm` is a soft lift in
+        // one starter, a hard offset edge in another, a phosphor ring in
+        // the third — so a switch reads as its theme's object rather than
+        // as one control's private idea of depth.
+        ...(shadow !== undefined ? { "box-shadow": shadow } : {}),
       };
       if (duration !== undefined) {
         Object.assign(shell, {
@@ -361,7 +317,7 @@ function switchRule(): Rule {
       }
 
       yield {
-        [ctx.symbols.selector]: () => SWITCH,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]',
         ...shell,
       };
 
@@ -410,7 +366,7 @@ function switchRule(): Rule {
         });
       }
       yield {
-        [ctx.symbols.selector]: () => `${SWITCH}::before`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]::before',
         ...thumb,
       };
 
@@ -420,75 +376,48 @@ function switchRule(): Rule {
         ...(primary !== undefined
           ? { "background-color": primary, "border-color": primary }
           : {}),
-        // Pressed, like the checked checkbox: the light inset goes and the
-        // dark one compresses, so a filled track reads as pushed in.
-        "box-shadow": [
-          `inset 0 0 0 0 rgba(0, 0, 0, 0)`,
-          `inset 0 -1px 0 0 rgba(255, 255, 255, 0)`,
-          `inset 0 8px 0 -4px rgba(255, 255, 255, calc(${depth} * 0.1))`,
-          `inset 0 1px 0 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
-        ].join(", "),
+        // Pressed: the fill takes the primary and the edge goes with it,
+        // while the shadow stays the theme's own — a checked switch is the
+        // same object, lit, not a different one.
+        ...(shadow !== undefined ? { "box-shadow": shadow } : {}),
         ...(onPrimary !== undefined ? { color: onPrimary } : {}),
       };
       yield {
-        [ctx.symbols.selector]: () => `${SWITCH}:checked`,
-        ...onGrid,
-      };
-      // The custom tag spells state as an ATTRIBUTE, not a pseudo-class, as
-      // on the checkbox: `:checked` never matches `<switch>`, so the author's
-      // spelling of the same state is `switch[checked]`, and native inputs
-      // keep the pseudo-class — the platform owns their state.
-      yield {
-        [ctx.symbols.selector]: () => `switch[checked]`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:checked',
         ...onGrid,
       };
       yield {
-        [ctx.symbols.selector]: () => `${SWITCH}:checked::before`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:checked::before',
         // Opaque on, because the track behind it is now the primary and the
         // thumb has to sit on it as a solid object rather than tint it.
         opacity: "1",
         ...(onPrimary !== undefined ? { "background-color": onPrimary } : {}),
       };
-      yield {
-        [ctx.symbols.selector]: () => `switch[checked]::before`,
-        opacity: "1",
-        ...(onPrimary !== undefined ? { "background-color": onPrimary } : {}),
-      };
 
       yield {
-        [ctx.symbols.selector]: () => `${SWITCH}:focus-visible`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:focus-visible',
         ...(focusWidth !== undefined && focusRing !== undefined
           ? { outline: `${focusWidth} solid ${focusRing}` }
           : {}),
         ...(focusOffset !== undefined ? { "outline-offset": focusOffset } : {}),
       };
       yield {
-        [ctx.symbols.selector]: () => `${SWITCH}:disabled`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:disabled',
         cursor: "not-allowed",
         // The depth goes with the interaction, as it does on the checkbox.
-        "box-shadow": "none",
-        opacity: "0.4",
-      };
-      yield {
-        [ctx.symbols.selector]: () => `switch[disabled]`,
-        cursor: "not-allowed",
         "box-shadow": "none",
         opacity: "0.4",
       };
       // An indeterminate switch has no middle position to sit at, so the grid
       // halves rather than choosing one for it.
       yield {
-        [ctx.symbols.selector]: () => `${SWITCH}:indeterminate`,
-        "grid-template-columns": "0.5fr 1fr 0.5fr",
-      };
-      yield {
-        [ctx.symbols.selector]: () => `switch[data-mixed]`,
+        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:indeterminate',
         "grid-template-columns": "0.5fr 1fr 0.5fr",
       };
       // Unset colours must not leave the thumb invisible against the track.
       if (text === undefined && muted !== undefined) {
         yield {
-          [ctx.symbols.selector]: () => `${SWITCH}::before`,
+          [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]::before',
           "background-color": muted,
         };
       }
@@ -497,11 +426,3 @@ function switchRule(): Rule {
   ];
 }
 
-/**
- * What a switch IS: the tag, or the platform's own spelling of it.
- *
- * `role="switch"` on a checkbox is how the platform expresses a toggle, so a
- * consumer may reach for either. A switch is its own component rather than a
- * checkbox variant because it draws a thumb, not a tick.
- */
-const SWITCH = ':is(switch, input[type="checkbox"][role="switch"])';

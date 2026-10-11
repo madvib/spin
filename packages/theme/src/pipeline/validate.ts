@@ -76,6 +76,13 @@ function isAcceptableDimension(value: unknown): boolean {
 type ValueRule = (value: unknown) => string | undefined;
 
 const VALUE_RULES: Partial<Record<TokenType, ValueRule>> = {
+  // A boolean is a switch: the rule reads whether it is on. `false` emits
+  // nothing, so a theme turns a feature off by saying `false` OR by omitting
+  // the token — and the rule asks the same question either way.
+  boolean: (value) =>
+    typeof value === "boolean"
+      ? undefined
+      : `boolean token must be true or false, got ${JSON.stringify(value)}`,
   color: (value) =>
     isAcceptableColor(value)
       ? undefined
@@ -186,6 +193,34 @@ function duplicateVarIssues(leaves: TokenLeaf[]): ValidationIssue[] {
   }
   return issues;
 }
+/**
+ * Every color and focus leaf the base declares must appear in the `dark`
+ * group, when the document serves dark.
+ *
+ * The groups that vary by mode are closed — color and focus — because a mode
+ * is a change of ink and surface, not of space or type. A `dark` group that
+ * covers only some of them inherits light values for the rest, and the
+ * inherited ones are the failure: a light stripe on a dark row, white ink
+ * staying white on a lifted red.
+ */
+function darkCoverageIssues(index: TokenIndex): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  for (const [path, node] of Object.entries(index.nodes)) {
+    if (node.kind !== "token") continue;
+    const [group] = path.split(".");
+    if (group !== "color" && group !== "focus") continue;
+    if (path.startsWith("dark.")) continue;
+    if (index.nodes[`dark.${path}`] === undefined) {
+      issues.push({
+        path,
+        message:
+          `dark mode declares "${path}" but the dark group does not restate it`,
+      });
+    }
+  }
+  return issues;
+}
+
 
 /**
  * Check a token tree for missing required tokens, unresolvable references,
@@ -237,6 +272,14 @@ export function validateTokens(
   }
 
   issues.push(...duplicateVarIssues(leaves));
+  // A declared dark mode is a promise to restate every color and focus leaf:
+  // a `dark` group that only covers some of them ships a theme whose dark
+  // mode inherits light values for the rest — the half-dark theme. The check
+  // reads the mode from the caller's `modes`, never from whether a `dark`
+  // group happens to exist, because existence cannot say what is served.
+  if ((opts.modes ?? []).includes("dark")) {
+    issues.push(...darkCoverageIssues(index));
+  }
 
   return { valid: issues.length === 0, issues };
 }

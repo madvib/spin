@@ -23,12 +23,20 @@ const row = (inner: string): string =>
 ${inner}
         </div>`;
 
+/**
+ * The close control: an x, not the word "Close".
+ *
+ * A dialog's own close is an icon you read before you read it — the corner
+ * control is a shape, and a label in that corner is a second title competing
+ * with the first. It is an icon-only button, so it carries the label the
+ * shape cannot: `aria-label` names it for assistive tech, and the button's
+ * own square is the hit area.
+ */
+const close =
+  `<button class="icon" aria-label="Close" onclick="this.closest('dialog').close()"><i class="i-lucide-x button-icon"></i></button>`;
+
 export const dialogFixtureNote =
-  "A dialog is a native modal: the tag brings focus trapping, Escape to " +
-  "close, and the page inert. What is ours is a card that looks like every " +
-  "other card, centred and capped so it cannot outgrow the viewport. " +
-  "Buttons inside use the button variants — ghost for quiet actions, " +
-  "danger for destructive ones.";
+  "A native modal: focus trapping, Escape and inertness are the platform's. Ours is a card that looks like every other card.";
 
 export const DIALOG_EXAMPLES: readonly DialogExample[] = [
   {
@@ -38,7 +46,7 @@ export const DIALOG_EXAMPLES: readonly DialogExample[] = [
           <dialog id="confirm">
             <header>
               <h2>Delete this file?</h2>
-              <button class="ghost" onclick="this.closest('dialog').close()">Close</button>
+              ${close}
             </header>
             <p>The file and its history will be removed. This cannot be undone.</p>
             <footer>
@@ -55,7 +63,7 @@ export const DIALOG_EXAMPLES: readonly DialogExample[] = [
           <dialog id="info">
             <header>
               <h2>About this file</h2>
-              <button class="ghost" onclick="this.closest('dialog').close()">Close</button>
+              ${close}
             </header>
             <p>This file was created on 2024-01-15 and last modified on 2024-03-22.</p>
           </dialog>`,
@@ -68,7 +76,7 @@ export const DIALOG_EXAMPLES: readonly DialogExample[] = [
           <dialog id="rename">
             <header>
               <h2>Rename file</h2>
-              <button class="ghost" onclick="this.closest('dialog').close()">Close</button>
+              ${close}
             </header>
             <form>
               <label>

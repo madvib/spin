@@ -46,7 +46,7 @@ export interface ElementSpec {
 }
 
 export interface BuildContext {
-  /** The element itself. Zag's `getRootNode` wants exactly this. */
+  /** The element itself. The bridge's root accessor wants exactly this. */
   readonly el: HTMLElement;
   /** The declared props. Every read is a live read of the current value. */
   readonly props: Readonly<Record<string, unknown>>;
@@ -80,8 +80,8 @@ type PropStore = Map<string, Signal>;
  * components live on: a `defaultOpen` seeds, an authored `open` alternates.
  * Without it every declared prop reads as "set", because coercion
  * materializes a default for all of them, and a machine can never tell the
- * two apart. Zag's bindables do this at the prop layer (`value` vs
- * `defaultValue`); the element is where it lands here.
+ * two apart. A controlled/uncontrolled pair does this at the prop layer
+ * (`value` vs `defaultValue`); the element is where it lands here.
  */
 const authoredProps = new WeakMap<HTMLElement, Set<string>>();
 
@@ -92,13 +92,13 @@ function authoredFor(el: HTMLElement): Set<string> {
 }
 
 /** Per-tag counters for generated element ids. Page-load scoped: uniqueness
- * is what Zag's part-id scoping needs, stability across loads is not. */
+ * is what part-id scoping needs, stability across loads is not. */
 const idCounters = new Map<string, number>();
 
 /**
- * A unique id for a `tag` instance. Used when the author sets no `id`: Zag
- * scopes part ids (and aria references) by machine id, so two id-less
- * `<spin-accordion>` elements would otherwise share every part id.
+ * A unique id for a `tag` instance. Used when the author sets no `id`: the
+ * machine scopes part ids (and aria references) by its own id, so two
+ * id-less `<spin-accordion>` elements would otherwise share every part id.
  */
 export function uniqueId(tag: string): string {
   const next = (idCounters.get(tag) ?? 0) + 1;

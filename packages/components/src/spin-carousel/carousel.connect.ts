@@ -28,7 +28,7 @@ export interface CarouselSlide {
   readonly content: string;
 }
 
-export interface CarouselFsmConnectProps {
+export interface CarouselConnectProps {
   readonly dir: "ltr" | "rtl";
   readonly orientation: "horizontal" | "vertical";
   readonly slidesPerPage: number;
@@ -56,7 +56,7 @@ export interface CarouselReadout {
   value: string;
 }
 
-export interface CarouselFsmApi {
+export interface CarouselApi {
   readonly index: number;
   readonly pageCount: number;
   readonly slidesInView: readonly number[];
@@ -145,12 +145,12 @@ const perPageAttrs = (slidesPerPage: number): Record<string, unknown> => {
 
 export function connectRobotCarousel(
   service: CarouselService,
-  props: CarouselFsmConnectProps,
+  props: CarouselConnectProps,
   slides: readonly CarouselSlide[],
   id: string,
   send: Send,
   view: CarouselView,
-): CarouselFsmApi {
+): CarouselApi {
   const ownerId = `carousel:${id}`;
   const itemGroupId = `${ownerId}:item-group`;
   const ctx = (): CarouselContext => service.context;

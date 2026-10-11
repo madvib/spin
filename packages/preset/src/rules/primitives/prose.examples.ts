@@ -17,12 +17,9 @@ export interface ProseExample {
 }
 
 export const proseFixtureNote =
-  "Headings, rhythm, lists, quotes and code, styled globally because the " +
-  "tag IS the contract — and where we disagree with the platform on " +
-  "purpose, we say so in a token rather than a utility. The prose " +
-  "container only constrains measure.";
+  "Document composition: an article states nothing — its tags carry headings, lists, quotes and code. `prose` only constrains the measure.";
 
-export const PROSE_EXAMPLES: readonly ProseExample[] = [
+export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
   {
     name: "Content tags",
     html: `<article>
@@ -42,12 +39,6 @@ export const PROSE_EXAMPLES: readonly ProseExample[] = [
         </prose>`,
   },
   {
-    name: "Inline text",
-    html: `<p>A <a href="#">link</a>, <strong>strong</strong>, <em>em</em>, and <code>code</code>.</p>
-        <p><kbd>Ctrl</kbd> + <kbd>C</kbd> to copy.</p>
-        <p><mark>Marked</mark>, <ins>inserted</ins>, and <del>deleted</del>.</p>`,
-  },
-  {
     name: "Code",
     html: `<pre><code>function greet(name) {
   return "Hello, " + name + "!";
@@ -60,4 +51,31 @@ export const PROSE_EXAMPLES: readonly ProseExample[] = [
           <figcaption>Q3 revenue by region</figcaption>
         </figure>`,
   },
+];
+
+export const typographyFixtureNote =
+  "Text at scale: h1 through h6 are one ladder of sizes and weights, not classes.";
+
+export const TYPOGRAPHY_EXAMPLES: readonly ProseExample[] = [
+  {
+    name: "Heading scale",
+    html: `<h1>Heading 1</h1>
+        <h2>Heading 2</h2>
+        <h3>Heading 3</h3>
+        <h4>Heading 4</h4>
+        <h5>Heading 5</h5>
+        <h6>Heading 6</h6>`,
+  },
+  {
+    name: "Inline text",
+    html:
+      `<p>A <a href="#">link</a>, <strong>strong</strong>, <em>em</em>, and <code>code</code>.</p>
+        <p><kbd>Ctrl</kbd> + <kbd>C</kbd> to copy.</p>
+        <p><mark>Marked</mark>, <ins>inserted</ins>, and <del>deleted</del>.</p>`,
+  },
+];
+
+export const PROSE_EXAMPLES: readonly ProseExample[] = [
+  ...TYPOGRAPHY_EXAMPLES,
+  ...PROSE_DOC_EXAMPLES,
 ];

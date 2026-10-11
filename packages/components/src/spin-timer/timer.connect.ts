@@ -52,7 +52,7 @@ export interface TimerActionTrigger {
   readonly action: TimerAction;
 }
 
-export interface TimerFsmConnectProps {
+export interface TimerConnectProps {
   /** The clock's period in milliseconds. */
   readonly interval: number;
 }
@@ -68,7 +68,7 @@ export interface TimerCommands {
   restart(): void;
 }
 
-export interface TimerFsmApi extends TimerCommands {
+export interface TimerApi extends TimerCommands {
   readonly running: boolean;
   readonly paused: boolean;
   readonly time: Time;
@@ -106,7 +106,7 @@ export interface TimerService {
 /** The behavioural props, read on demand: the connect lives as long as the
  * element does, so a snapshot would freeze the first read's interval inside
  * the clock it caches. */
-export type ReadTimerProps = () => TimerFsmConnectProps;
+export type ReadTimerProps = () => TimerConnectProps;
 
 /** A bag cached until the signature of the fields it reads moves. */
 interface BagMemo {
@@ -143,12 +143,6 @@ function keyed(
   return bag;
 }
 
-/** Zag's `dataAttr`: the attribute is present when the condition holds and
- * absent otherwise. */
-function dataAttr(value: boolean): string | undefined {
-  return value ? "" : undefined;
-}
-
 /** The units the recipe renders, and their captions. Milliseconds stays on
  * the api — a host that wants it reads `formattedTime.milliseconds`. */
 const UNIT_LABELS: Readonly<Record<TimePart, string>> = {
@@ -172,7 +166,7 @@ export function connectRobotTimer(
   service: TimerService,
   readProps: ReadTimerProps,
   id: string,
-): TimerFsmApi {
+): TimerApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const areaId = `${ownerId}:area`;
   const controlId = `${ownerId}:control`;

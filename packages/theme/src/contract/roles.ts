@@ -147,11 +147,16 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     doc: "Text on a primary fill.",
   },
   {
-    path: "color.on-danger",
+    // One ink, one name: the semantic fills pair with `on-semantic-*`, and a
+    // second `on-danger` for the same red made two answers to one question
+    // while the starters disagreed on which was right. `color.on-danger` is
+    // therefore a legacy alias a theme may keep declaring; the domain's
+    // answer for "what goes on this fill?" is the `on-semantic-*` step.
+    path: "color.on-semantic-error",
     type: "color",
     value: "#ffffff",
-    doc: "Text on a danger fill.",
-    floor: { fg: "color.on-danger", bg: "color.semantic.error", min: 4.5 },
+    doc: "Text on an error fill.",
+    floor: { fg: "color.on-semantic-error", bg: "color.semantic.error", min: 4.5 },
   },
   {
     // Non-text indicator, so it needs the 3:1 floor rather than the text floor
@@ -203,6 +208,33 @@ export function legibilityFloors(): LegibilityFloor[] {
   return BASE_ROLES.flatMap((role) => (role.floor ? [role.floor] : []));
 }
 
+/**
+ * The foregrounds a theme declares, keyed by the word that names them.
+ *
+ * The theme already says which ink goes on which fill — a `floor` names both
+ * sides — so this reads the answer out rather than restating it. A consumer
+ * asking "what do I write on top of `bg-semantic-error`?" asks the theme, and
+ * gets `on-semantic-error` for every theme that has one rather than a
+ * convention the consumer invented.
+ *
+ * Only `on-*` steps count: a floor's `fg` is any role that must stay legible
+ * against a surface, and `color.text` on `color.surface` is not a fill a
+ * consumer paints behind something. The prefix is the domain's own spelling
+ * for "this is the ink for that fill".
+ */
+export function inkTokens(): readonly string[] {
+  const steps = legibilityFloors()
+    .map((floor) => foregroundStep(floor.fg))
+    .filter((step) => step !== undefined && step.startsWith("on-"));
+  return [...new Set(steps)] as string[];
+}
+
+/** The last segment of a token path. */
+function foregroundStep(path: string): string {
+  const segments = path.split(".");
+  return segments[segments.length - 1] as string;
+}
+
 const TokenTypeSchema = Type.Union(
   TOKEN_TYPES.map((type) => Type.Literal(type)),
 );
@@ -233,6 +265,15 @@ export function themeSchema(): Record<string, unknown> {
   for (const [group, paths] of Object.entries(groupedPaths())) {
     properties[group] = groupSchema(paths);
   }
+  // `modes` is document metadata, not a token: it sits at the root beside
+  // the groups and no emitter reads it. `additionalProperties` would already
+  // admit it, but the schema says what a document may carry so the field is
+  // listed — and constrained to the two modes the pipeline understands.
+  properties["modes"] = Type.Optional(
+    Type.Array(Type.Union([Type.Literal("light"), Type.Literal("dark")]), {
+      description: "The modes this theme serves.",
+    }),
+  );
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "https://spin.dev/theme.schema.json",

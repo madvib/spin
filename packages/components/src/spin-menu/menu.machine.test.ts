@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createMenuFsmBridge } from "./menu.bridge.ts";
+import { createMenuBridge } from "./menu.bridge.ts";
 import type { MenuCommands } from "./menu.bridge.ts";
-import type { MenuBlock, MenuEntry, MenuFsmApi, MenuRow } from "./menu.connect.ts";
+import type { MenuBlock, MenuEntry, MenuApi, MenuRow } from "./menu.connect.ts";
 import type { MenuHighlightChange, MenuOpenChange, MenuSelect } from "./menu.bridge.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -62,7 +62,7 @@ const NESTED: MenuEntry[] = [
 ];
 
 interface Harness {
-  readonly api: MenuFsmApi & MenuCommands;
+  readonly api: MenuApi & MenuCommands;
   readonly root: Element;
   readonly events: {
     readonly openChange: MenuOpenChange[];
@@ -98,7 +98,7 @@ function mount(
   write("onOpenChange", (change: MenuOpenChange) => events.openChange.push(change));
   write("onSelect", (change: MenuSelect) => events.select.push(change));
   write("onHighlightChange", (change: MenuHighlightChange) => events.highlightChange.push(change));
-  const bridge = createMenuFsmBridge(
+  const bridge = createMenuBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
@@ -202,7 +202,7 @@ Deno.test("Given an authored open prop / When the host writes it / Then the mach
   const root = document.createElement("div");
   document.body.appendChild(root);
   const seen: boolean[] = [];
-  const bridge = createMenuFsmBridge(
+  const bridge = createMenuBridge(
     () => ({
       items: JSON.stringify(FLAT),
       "@@authored": (name: string) => name === "open",
@@ -224,7 +224,7 @@ Deno.test("Given an un-authored open prop / When the host writes it / Then the m
   const outer = signal<unknown>(true);
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const bridge = createMenuFsmBridge(
+  const bridge = createMenuBridge(
     () => ({ items: JSON.stringify(FLAT), open: outer() }),
     () => root,
     "menu",
@@ -438,7 +438,7 @@ Deno.test("Given a submenu instance / When ArrowLeft arrives / Then it closes an
   root.addEventListener("submenuclose", (event) => {
     seen.push(Reflect.get(event, "select") === true ? "select" : "dismiss");
   });
-  const bridge = createMenuFsmBridge(
+  const bridge = createMenuBridge(
     () => ({ items: JSON.stringify(NESTED), submenu: true }),
     () => root,
     "submenu",
@@ -485,7 +485,7 @@ Deno.test("Given a submenu that is open / When a different instance dismisses / 
 Deno.test("Given closeOnSelect / When a descendant reports a select / Then this level closes", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const bridge = createMenuFsmBridge(
+  const bridge = createMenuBridge(
     () => ({
       items: JSON.stringify(NESTED),
       submenu: true,
@@ -505,7 +505,7 @@ Deno.test("Given closeOnSelect / When a descendant reports a select / Then this 
 Deno.test("Given closeOnSelect false / When a descendant reports a select / Then this level stays open", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const bridge = createMenuFsmBridge(
+  const bridge = createMenuBridge(
     () => ({
       items: JSON.stringify(NESTED),
       submenu: true,
@@ -625,7 +625,7 @@ Deno.test("Given a nested instance / When it is handed an already-namespaced id 
   const root = document.createElement("div");
   document.body.appendChild(root);
   const ownerId = "menu:host";
-  const nested = createMenuFsmBridge(() => ({ items: JSON.stringify(FLAT) }), () => root, ownerId);
+  const nested = createMenuBridge(() => ({ items: JSON.stringify(FLAT) }), () => root, ownerId);
   const contentId = String(nested.api.getContentProps()["id"]);
   assertEquals(contentId, `${ownerId}:content`, "the nested content part id keeps one namespace");
   assertEquals(
@@ -659,7 +659,7 @@ Deno.test("Given a submenu row is opened by keyboard / When the level is focused
   const childRoot = document.createElement("div");
   childRoot.id = childId;
   h.root.appendChild(childRoot);
-  const nested = createMenuFsmBridge(
+  const nested = createMenuBridge(
     () => ({ items: JSON.stringify(NESTED), submenu: true, open: true }),
     () => childRoot,
     childId,

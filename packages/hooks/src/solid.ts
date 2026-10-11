@@ -8,10 +8,10 @@ import { bindSpinElement } from "./index.ts";
  * stable accessor.
  *
  * ```tsx
- * const dialog = createSpin("spin-dialog-fsm", () => ({ role: "dialog" }), {
+ * const dialog = createSpin("spin-dialog", () => ({ role: "dialog" }), {
  *   "open-change": (e) => setOpen((e as CustomEvent).detail.open),
  * })
- * <spin-dialog-fsm ref={dialog.ref} />
+ * <spin-dialog ref={dialog.ref} />
  * dialog.commands().show()
  * ```
  */

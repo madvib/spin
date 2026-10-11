@@ -1,14 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createAsyncListFsmBridge } from "./async-list.bridge.ts";
+import { createAsyncListBridge } from "./async-list.bridge.ts";
 import type {
   AsyncListFailure,
   AsyncListSuccess,
   LoadDetails,
   SortDetails,
 } from "./async-list.bridge.ts";
-import type { AsyncListFsmApi, AsyncListRow, SortTrigger } from "./async-list.connect.ts";
+import type { AsyncListApi, AsyncListRow, SortTrigger } from "./async-list.connect.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -49,7 +49,7 @@ const MANIFEST = [
 /** One element under test, with the async work it starts parked until the
  * test settles it. */
 interface Harness {
-  readonly api: AsyncListFsmApi;
+  readonly api: AsyncListApi;
   readonly loadCalls: readonly LoadDetails[];
   readonly sortCalls: readonly SortDetails[];
   readonly success: readonly AsyncListSuccess[];
@@ -106,7 +106,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     failure.push(change);
     gates.shift()?.resolve();
   });
-  const bridge = createAsyncListFsmBridge(
+  const bridge = createAsyncListBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
@@ -154,10 +154,10 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   };
 }
 
-const state = (api: AsyncListFsmApi): unknown => api.getRootProps()["data-state"];
-const labels = (api: AsyncListFsmApi): readonly string[] =>
+const state = (api: AsyncListApi): unknown => api.getRootProps()["data-state"];
+const labels = (api: AsyncListApi): readonly string[] =>
   api.getRows().map((row: AsyncListRow) => row.label);
-const values = (api: AsyncListFsmApi): readonly string[] =>
+const values = (api: AsyncListApi): readonly string[] =>
   api.getRows().map((row: AsyncListRow) => row.value);
 
 /** Prop bags hand back `Record<string, unknown>`, so a handler read out of one

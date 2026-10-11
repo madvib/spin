@@ -20,16 +20,6 @@ import { themeOf } from "../../utils/lookup.ts";
  * `radius.md`, because a 4px radius on a 20px circle is a squircle, and a
  * squircle is not a radio.
  */
-/**
- * What a radio IS.
- *
- * `<radio>` is the tag; `input[type="radio"]` is the same control written the
- * way the platform spells it. Both match, because a primitive that only
- * matched one of them would be a primitive that only works if you write it the
- * way the library prefers — which is the thing this surface exists to avoid.
- */
-const RADIO = ':is(radio, input[type="radio"])';
-
 export function radioRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("radio")) return [];
   return [
@@ -37,7 +27,7 @@ export function radioRules(roots: readonly string[]): Rule[] {
       /^radio$/,
       function* (_m, ctx) {
         const t = themeOf(ctx);
-        const size = t?.spacing["4"];
+        const size = t?.spacing?.["4"];
         const borderWidth = t?.borderWidth?.["width"];
         const border = t?.colors?.["border"];
         const field = t?.colors?.["field"];
@@ -81,35 +71,47 @@ export function radioRules(roots: readonly string[]): Rule[] {
           });
         }
         yield {
-          [ctx.symbols.selector]: () => RADIO,
+          [ctx.symbols.selector]: () => 'input[type="radio"]',
           ...shell,
         };
 
-        // The field box pads every text-like input from
-        // `:is(input, select, textarea)` (specificity (0,0,1)), and the
-        // radio's own rule above never mentions padding — so the box's
-        // padding lands on the radio. This yield's `padding: 0` on
-        // `:is(radio, input[type="radio"])` (specificity (0,1,1)) beats it.
-        // The box's `width: auto` is not the fight: that yield lists only
-        // BOX_TYPES (submit, button, file, ...), which excludes radio, and
-        // the radio's `width: size` already beats the box's `width: 100%`
-        // on specificity.
+        // The field box pads every text-like input, and the radio's own rule
+        // above never mentions padding — so the box's padding lands on the
+        // radio. This yield's `padding: 0` beats it on specificity.
         yield {
-          [ctx.symbols.selector]: () => RADIO,
+          [ctx.symbols.selector]: () => 'input[type="radio"]',
           padding: "0",
           ...(size !== undefined
             ? { width: size, height: size, "border-radius": "50%" }
             : {}),
         };
 
-        // The dot. Hidden by scaling to nothing rather than by opacity, so it
-        // animates the way the tick does — the mark appearing IS the state.
+        // The dot, daisy-style: a ring, a gap, then the dot. The box keeps a
+        // surface fill and takes the tone in its BORDER; the `::after` is a
+        // smaller circle in the same tone, centred by `inset: 0` + `margin:
+        // auto` with its size inset from the box so the gap reads. Our old
+        // form filled box and dot both primary — a solid disc with no
+        // separation, which reads as a blob rather than a selected radio.
+        // Hidden by scaling to nothing rather than by opacity, so it animates
+        // the way the tick does — the mark appearing IS the state.
         const dot: Record<string, string | undefined> = {
           content: '""',
           position: "absolute",
           inset: "0",
           margin: "auto",
           "border-radius": "50%",
+          // Half the CONTENT box, not the border box: the abspos child
+          // resolves against the padding box inside the border, so sizing
+          // from the full size leaves the dot nearly touching a heavy ring
+          // (neobrut's 3px border left a 1px gap that reads as touching).
+          ...(size !== undefined && borderWidth !== undefined
+            ? {
+              width: `calc((${size} - ${borderWidth} * 2) / 2)`,
+              height: `calc((${size} - ${borderWidth} * 2) / 2)`,
+            }
+            : size !== undefined
+            ? { width: `calc(${size} / 2)`, height: `calc(${size} / 2)` }
+            : {}),
           ...(primary !== undefined ? { "background-color": primary } : {}),
           scale: "0",
           ...(duration !== undefined
@@ -123,39 +125,23 @@ export function radioRules(roots: readonly string[]): Rule[] {
           Object.assign(dot, { "transition-property": "scale" });
         }
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}::after`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]::after',
           ...dot,
         };
 
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}:checked::after`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:checked::after',
           scale: "1",
         };
-        // The custom tag spells state as an ATTRIBUTE, not a pseudo-class, as
-        // on the checkbox: `:checked` never matches `<radio>`, so the author's
-        // spelling of the same state is `radio[checked]`, and native inputs
-        // keep the pseudo-class — the platform owns their state.
+        // Checked takes the tone in the BORDER, not the fill: the box keeps
+        // its surface so the gap between ring and dot reads, and the control
+        // is a ring with a dot rather than a solid disc.
         yield {
-          [ctx.symbols.selector]: () => `radio[checked]::after`,
-          scale: "1",
-        };
-        // Checked fills the border too, so the ring disappears into the dot's
-        // own colour and the control reads as one object rather than a dot
-        // inside a ring.
-        yield {
-          [ctx.symbols.selector]: () => `${RADIO}:checked`,
-          ...(primary !== undefined
-            ? { "border-color": primary, "background-color": primary }
-            : {}),
+          [ctx.symbols.selector]: () => 'input[type="radio"]:checked',
+          ...(primary !== undefined ? { "border-color": primary } : {}),
         };
         yield {
-          [ctx.symbols.selector]: () => `radio[checked]`,
-          ...(primary !== undefined
-            ? { "border-color": primary, "background-color": primary }
-            : {}),
-        };
-        yield {
-          [ctx.symbols.selector]: () => `${RADIO}:focus-visible`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:focus-visible',
           ...(focusWidth !== undefined && focusRing !== undefined
             ? { outline: `${focusWidth} solid ${focusRing}` }
             : {}),
@@ -164,16 +150,10 @@ export function radioRules(roots: readonly string[]): Rule[] {
             : {}),
         };
         yield {
-          [ctx.symbols.selector]: () => `${RADIO}:disabled`,
+          [ctx.symbols.selector]: () => 'input[type="radio"]:disabled',
           cursor: "not-allowed",
           // Flatten with the checkbox: a control you cannot press should
           // not carry the shadows that say it can be.
-          "box-shadow": "none",
-          opacity: "0.4",
-        };
-        yield {
-          [ctx.symbols.selector]: () => `radio[disabled]`,
-          cursor: "not-allowed",
           "box-shadow": "none",
           opacity: "0.4",
         };

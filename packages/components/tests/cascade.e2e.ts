@@ -1,5 +1,5 @@
 /**
- * E2E: spin-cascade-select-fsm drives its machine in a real browser — the
+ * E2E: spin-cascade-select drives its machine in a real browser — the
  * trigger contract, the level stack that grows with the highlight, the
  * keyboard map (arrows in and out, Home/End, Enter, Escape), the mouse path
  * over a disabled row, the controlled command surface, and the hidden input
@@ -25,10 +25,10 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5214;
-const URL = `http://127.0.0.1:${PORT}/cascade-fsm`;
+const URL = `http://127.0.0.1:${PORT}/cascade`;
 
 /** Parts are addressed by the machine's id scheme: `cascade:<id>:<part>`. */
-const ROOT_EL = "spin-cascade-select-fsm";
+const ROOT_EL = "spin-cascade-select";
 const TRIGGER = `${ROOT_EL} [role="combobox"]`;
 const CONTENT = `${ROOT_EL} [role="listbox"]`;
 const LEVEL = `${ROOT_EL} [role="group"]`;
@@ -113,7 +113,7 @@ async function pressRow(page: Page, selector: string): Promise<void> {
   await page.mouse.click(settled.x + settled.width / 2, settled.y + settled.height / 2);
 }
 
-Deno.test("spin-cascade-select-fsm e2e", async () => {
+Deno.test("spin-cascade-select e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

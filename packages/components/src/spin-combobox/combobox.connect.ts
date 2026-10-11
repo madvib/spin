@@ -54,7 +54,7 @@ export interface ComboboxTriggerProps {
   readonly focusable?: boolean;
 }
 
-export interface ComboboxFsmConnectProps {
+export interface ComboboxConnectProps {
   readonly disabled: boolean;
   readonly readOnly: boolean;
   readonly invalid: boolean;
@@ -87,7 +87,7 @@ export interface ComboboxCommands {
   setOpen(open: boolean): void;
 }
 
-export interface ComboboxFsmApi extends ComboboxCommands {
+export interface ComboboxApi extends ComboboxCommands {
   readonly open: boolean;
   readonly focused: boolean;
   readonly inputValue: string;
@@ -140,7 +140,7 @@ export interface ComboboxService {
 /** The behavioural props, read on demand: the connect lives as long as the
  * element does, so a snapshot would freeze the first read's values inside the
  * handlers it caches. */
-export type ReadComboboxProps = () => ComboboxFsmConnectProps;
+export type ReadComboboxProps = () => ComboboxConnectProps;
 
 /** A bag cached until the signature of the fields it reads moves. */
 interface BagMemo {
@@ -198,7 +198,7 @@ export function connectRobotCombobox(
   readProps: ReadComboboxProps,
   getRows: () => readonly ComboboxRow[],
   id: string,
-): ComboboxFsmApi {
+): ComboboxApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const rootId = ownerId;
   const labelId = `${ownerId}:label`;

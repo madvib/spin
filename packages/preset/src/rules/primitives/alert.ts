@@ -36,12 +36,12 @@ export function alertRules(roots: readonly string[], mode: Mode): Rule[] {
 function alertTokens(ctx: Parameters<typeof themeOf>[0]) {
   const t = themeOf(ctx);
   return {
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
+    spacing2: t?.spacing?.["2"],
+    spacing4: t?.spacing?.["4"],
     radius: t?.radius?.["md"],
-    text: t?.colors["text"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
+    text: t?.colors?.["text"],
+    raised: t?.colors?.["surface-raised"],
+    border: t?.colors?.["border"],
     borderWidth: t?.borderWidth?.["width"],
     fontSize: t?.fontSize?.["sm"],
     weight: t?.fontWeight?.["medium"],

@@ -24,7 +24,7 @@
         "accent",
         "semantic",
         "on-primary",
-        "on-danger",
+        "on-semantic-error",
         "focus-ring",
         "link"
       ],
@@ -42,6 +42,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -119,6 +123,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -190,6 +198,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -267,6 +279,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -338,6 +354,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -415,6 +435,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -489,6 +513,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -560,6 +588,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -647,6 +679,10 @@
                       "type": "string"
                     },
                     {
+                      "const": "boolean",
+                      "type": "string"
+                    },
+                    {
                       "const": "dimension",
                       "type": "string"
                     },
@@ -718,6 +754,10 @@
                   "anyOf": [
                     {
                       "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "boolean",
                       "type": "string"
                     },
                     {
@@ -795,6 +835,10 @@
                       "type": "string"
                     },
                     {
+                      "const": "boolean",
+                      "type": "string"
+                    },
+                    {
                       "const": "dimension",
                       "type": "string"
                     },
@@ -866,6 +910,10 @@
                   "anyOf": [
                     {
                       "const": "color",
+                      "type": "string"
+                    },
+                    {
+                      "const": "boolean",
                       "type": "string"
                     },
                     {
@@ -945,6 +993,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1003,9 +1055,9 @@
             }
           }
         },
-        "on-danger": {
+        "on-semantic-error": {
           "additionalProperties": true,
-          "description": "Text on a danger fill.",
+          "description": "Text on an error fill.",
           "type": "object",
           "required": [
             "$value"
@@ -1016,6 +1068,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -1093,6 +1149,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1164,6 +1224,10 @@
               "anyOf": [
                 {
                   "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
                   "type": "string"
                 },
                 {
@@ -1257,6 +1321,10 @@
                       "type": "string"
                     },
                     {
+                      "const": "boolean",
+                      "type": "string"
+                    },
+                    {
                       "const": "dimension",
                       "type": "string"
                     },
@@ -1343,6 +1411,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1417,6 +1489,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
                   "const": "dimension",
                   "type": "string"
                 },
@@ -1475,6 +1551,22 @@
             }
           }
         }
+      }
+    },
+    "modes": {
+      "description": "The modes this theme serves.",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "light",
+            "type": "string"
+          },
+          {
+            "const": "dark",
+            "type": "string"
+          }
+        ]
       }
     }
   }

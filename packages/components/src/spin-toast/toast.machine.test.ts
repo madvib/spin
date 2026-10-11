@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createToastFsmBridge } from "./toast.bridge.ts";
+import { createToastBridge } from "./toast.bridge.ts";
 import type { ToastStatusChange } from "./toast.bridge.ts";
-import type { ToastFsmApi, ToastItem } from "./toast.connect.ts";
+import type { ToastApi, ToastItem } from "./toast.connect.ts";
 import type { ToastEntry } from "./toast.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -69,7 +69,7 @@ const ITEMS: ToastItem[] = [
 ];
 
 interface Harness {
-  readonly api: ToastFsmApi;
+  readonly api: ToastApi;
   readonly root: Element;
   readonly statuses: ToastStatusChange[];
   readonly actions: string[];
@@ -104,7 +104,7 @@ function mount(items: ToastItem[], overrides: Readonly<Record<string, unknown>> 
   write("items", items);
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("onStatusChange", (change: ToastStatusChange) => statuses.push(change));
-  const bridge = createToastFsmBridge(
+  const bridge = createToastBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();

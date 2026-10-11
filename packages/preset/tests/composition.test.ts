@@ -157,7 +157,6 @@ Deno.test("a theme's tokens and extensions come from one parse", () => {
   assert(parsed.ok, `the example parses: ${JSON.stringify(parsed)}`);
   const spin = parsed.extensions["spin"] as Record<string, unknown>;
   assertEquals(spin?.["id"], "spin-light");
-  assertEquals(spin?.["modes"], ["light", "dark"]);
   const css = generateCss(parsed.tree);
   assert(css.includes("--color-primary"), "the tree emits its variables");
 });

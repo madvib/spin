@@ -45,7 +45,7 @@ import { elementExtractor, typeExtractor, variantExtractor } from "./extractors.
 import { themeRef } from "@spin/theme";
 import { wind4Layers, type Wind4Options } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
-import { spinVariants } from "./variants/index.ts";
+import { spinVariants, breakpointEdges } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
@@ -205,13 +205,16 @@ const factory = definePreset(
       Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
       componentRoots,
     );
+    // Breakpoint VALUES, resolved: a media query cannot read a custom
+    // property, so the variant needs the literal width the theme declared.
+    const edges = breakpointEdges(Object.values(trees));
     const wind4 = wind4Layer(options.wind4);
 
 
     return {
       name: "spin",
       theme,
-      variants: [...spinVariants(), ...wind4.variants],
+      variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.

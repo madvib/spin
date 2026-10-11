@@ -22,9 +22,7 @@ ${inner}
         </div>`;
 
 export const labelFixtureNote =
-  "A label is a working label with no class at all: the tag carries the " +
-  "base, and the control it names is a child. The label inherits the type " +
-  "it sits beside rather than stating a size of its own.";
+  "A working label with no class: the control it names is a child, and the label inherits the type beside it.";
 
 export const LABEL_EXAMPLES: readonly LabelExample[] = [
   {

@@ -1,5 +1,5 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   config,
   formatTime,
@@ -12,8 +12,8 @@ import {
 import {
   connectRobotTimer,
   type ReadTimerProps,
-  type TimerFsmApi,
-  type TimerFsmConnectProps,
+  type TimerApi,
+  type TimerConnectProps,
   type TimerService,
 } from "./timer.connect.ts";
 
@@ -92,11 +92,11 @@ const validateProps = (
  * that sees every send. The view's interval action re-arms its clock on each
  * one, so the span since the last send is what a tick is worth.
  */
-export function createTimerFsmBridge(
+export function createTimerBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: TimerFsmApi; dispose(): void } {
+): { readonly api: TimerApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   // The fork's `config.context` is ONE object, and its interpreter starts on
@@ -107,7 +107,7 @@ export function createTimerFsmBridge(
     implementations,
   );
 
-  let service: FsmService<TimerContext, TimerEvent> | undefined;
+  let service: Service<TimerContext, TimerEvent> | undefined;
   let lastMoveAt = 0;
 
   const authored = (name: string): boolean => {
@@ -141,7 +141,7 @@ export function createTimerFsmBridge(
     };
   };
 
-  const ensureService = (): FsmService<TimerContext, TimerEvent> => {
+  const ensureService = (): Service<TimerContext, TimerEvent> => {
     if (service) return service;
     const p = props();
     const startMs = parseMs(p["startMs"]);
@@ -207,7 +207,7 @@ export function createTimerFsmBridge(
     elapsedSinceMove: (): number => Date.now() - lastMoveAt,
   };
 
-  const readConnectProps: ReadTimerProps = (): TimerFsmConnectProps => ({
+  const readConnectProps: ReadTimerProps = (): TimerConnectProps => ({
     interval: ensureService().state.context.interval,
   });
 
@@ -266,8 +266,8 @@ export function createTimerFsmBridge(
 
   /** One connect per element, not one per machine move: its bags are cached
    * against machine state. */
-  let timerConnect: TimerFsmApi | undefined;
-  const ensureConnect = (): TimerFsmApi => {
+  let timerConnect: TimerApi | undefined;
+  const ensureConnect = (): TimerApi => {
     timerConnect ??= connectRobotTimer(serviceApi, readConnectProps, id);
     return timerConnect;
   };
@@ -279,7 +279,7 @@ export function createTimerFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as TimerFsmApi, {
+  const api = new Proxy({} as TimerApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

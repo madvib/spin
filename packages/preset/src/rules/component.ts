@@ -31,6 +31,7 @@ export function componentRules(roots: readonly string[]): Rule[] {
       [
         new RegExp(`^${root}-(.+)$`),
         ([, step]: string[], ctx?: ThemeContext) => {
+          if (step === undefined) return undefined;
           const value = themeOf(ctx)?.[root]?.[step];
           if (value === undefined) return undefined;
           const type = typeByStep[step];

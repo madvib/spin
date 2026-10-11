@@ -35,9 +35,6 @@ const STEPS = ["sm", "md", "lg"] as const;
 
 export function iconRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("icon")) return [];
-  // One rule per step the manifest declares. Each is a class an author writes
-  // beside the slot — `class="button-icon icon-lg"` — and each spends its
-  // step from the theme.
   return STEPS.map((step): Rule[] => [
     [
       new RegExp(`^icon-${step}$`),
@@ -45,6 +42,16 @@ export function iconRules(roots: readonly string[]): Rule[] {
         const size = themeOf(ctx)?.icon?.[step];
         return {
           [ctx.symbols.selector]: () => `.icon-${step}`,
+          // An icon class from `preset-icons` sizes the glyph `1em` square
+          // but leaves it `display: inline` — and a width on an inline box
+          // is not applied, so the glyph's measured box is zero wherever
+          // nothing else makes it one. In a flex row or a button the parent
+          // does it accidentally; inline in a paragraph, which is the
+          // ordinary use, it vanishes. Stating the block makes the step
+          // real in every context, and `vertical-align` keeps a block-level
+          // glyph sitting on the text's own mid-line.
+          display: "inline-block",
+          "vertical-align": "-0.125em",
           ...(size !== undefined ? { "font-size": size } : {}),
         };
       },

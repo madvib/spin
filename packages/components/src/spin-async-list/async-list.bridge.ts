@@ -1,5 +1,5 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   config,
   implementations,
@@ -9,7 +9,7 @@ import {
 } from "./async-list.machine.ts";
 import {
   connectRobotAsyncList,
-  type AsyncListFsmApi,
+  type AsyncListApi,
   type AsyncListService,
 } from "./async-list.connect.ts";
 
@@ -128,11 +128,11 @@ function asSortResult(raw: unknown): SortResult {
  * of a write over newer data, and the controller is what tells a superseded
  * fetch to stop.
  */
-export function createAsyncListFsmBridge(
+export function createAsyncListBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: AsyncListFsmApi; dispose(): void } {
+): { readonly api: AsyncListApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   // The fork's `config.context` is ONE object, and its interpreter starts on
@@ -143,7 +143,7 @@ export function createAsyncListFsmBridge(
     implementations,
   );
 
-  let service: FsmService<AsyncListContext, AsyncListEvent> | undefined;
+  let service: Service<AsyncListContext, AsyncListEvent> | undefined;
   let aborting: AbortController | undefined;
   let seq = 0;
   let lastDependencies: string | undefined;
@@ -166,7 +166,7 @@ export function createAsyncListFsmBridge(
     };
   };
 
-  const ensureService = (): FsmService<AsyncListContext, AsyncListEvent> => {
+  const ensureService = (): Service<AsyncListContext, AsyncListEvent> => {
     if (service) return service;
     const p = props();
     if (!isLoadFn(p["load"])) {
@@ -203,7 +203,7 @@ export function createAsyncListFsmBridge(
 
   function startFetch(
     event: AsyncListEvent,
-    svc: FsmService<AsyncListContext, AsyncListEvent>,
+    svc: Service<AsyncListContext, AsyncListEvent>,
   ): void {
     const load = readLoad();
     if (load === undefined) return;
@@ -241,7 +241,7 @@ export function createAsyncListFsmBridge(
 
   function startSort(
     event: AsyncListEvent,
-    svc: FsmService<AsyncListContext, AsyncListEvent>,
+    svc: Service<AsyncListContext, AsyncListEvent>,
   ): void {
     const sort = readSort();
     if (sort === undefined) return;
@@ -358,8 +358,8 @@ export function createAsyncListFsmBridge(
 
   /** One connect per element, not one per machine move: its bags are cached
    * against machine state. */
-  let asyncListConnect: AsyncListFsmApi | undefined;
-  const ensureConnect = (): AsyncListFsmApi => {
+  let asyncListConnect: AsyncListApi | undefined;
+  const ensureConnect = (): AsyncListApi => {
     asyncListConnect ??= connectRobotAsyncList(serviceApi, id);
     return asyncListConnect;
   };
@@ -371,7 +371,7 @@ export function createAsyncListFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as AsyncListFsmApi, {
+  const api = new Proxy({} as AsyncListApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

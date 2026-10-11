@@ -142,3 +142,19 @@
     background-position: -200% 0;
   }
 }
+
+/* The loading pulse. 0.55 is a STATE, not a token: it is the floor a
+   placeholder dims to while its content loads — the same dim a disabled
+   control takes — and no scale owns a loading state, so the number is stated
+   here rather than minted as a token nothing else would spend. Timing comes
+   from the theme at the call site, so a theme moves the pulse's speed
+   without owning its depth. */
+@keyframes spin-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}

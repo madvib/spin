@@ -44,9 +44,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const { js } = emit(ir);
       const scopeDecls = parseScope(code);
       const body = js
-        .replace(/^import .*$/m, 'import { runAction, on, bindAttr, bindText, bindFor, text, bindActionProps, bindSpread, placeSlot } from "@spin/runtime";')
-        .replace(/^void _bt;$/m, "")
-        .replace(/export function create\(ctx, actions\) \{/, "export function create(actions, values) {")
+        .replace(/^export function create\(ctx, actions\) \{/, "export function create(actions, values) {")
         .replace(/void ctx;\n/, "");
       const fs = await import("node:fs/promises");
       const path = await import("node:path");
@@ -94,44 +92,41 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // bare shorthand would alias whichever ran last and strand the other.
       // Props are the coerced values minus each consume name and the reserved
       // `@@resolve` key, which are codegen-internal and never machine props.
-      // They are handed over as a getter, not a snapshot: Zag reads props on
-      // every transition, and the adapter's `resolvedProps` computed only
-      // re-runs when a read inside it tracks. `values` is already live — each
-      // declared prop is a getter over the element's prop store (the
-      // `seedProps` block below), so a property write reaches the machine.
-      // Coercion stays at build time (`values` starts as `coerceProps(...)`);
-      // a live read is signal reads plus a shallow copy, never a per-read
-      // JSON.parse.
+      // They are handed over as a getter, not a snapshot: the bridge reads
+      // props on demand, and a snapshot would strand post-build property
+      // writes. `values` is already live — each declared prop is a getter
+      // over the element's prop store (the `seedProps` block below), so a
+      // property write reaches the machine. Coercion stays at build time
+      // (`values` starts as `coerceProps(...)`); a live read is signal reads
+      // plus a shallow copy, never a per-read JSON.parse.
       // Events: a machine-def may declare `events` mapping a CustomEvent name
-      // to the Zag callback prop that fires it plus a detail mapper. Each
-      // entry becomes a machine prop — `(details) => el.dispatchEvent(...)` —
-      // so Zag's own callback invocation is what emits. No effect-watching,
-      // no diffing; the mapper is authored in the machine-def beside the
-      // machine whose callback it translates.
+      // to the bridge's callback prop that fires it plus a detail mapper.
+      // Each entry becomes a machine prop — `(details) => el.dispatchEvent(...)`
+      // — so the bridge's own callback invocation is what emits. No
+      // effect-watching, no diffing; the mapper is authored in the
+      // machine-def beside the machine whose callback it translates.
       const consumeImports: string[] = [];
       const consumeCalls: string[] = [];
       const consumeDeletes = scopeDecls.consume
         .map((name) => `delete p[${JSON.stringify(name)}];`)
         .join(" ");
       for (const name of scopeDecls.consume) {
-        const defFile = path.join(dir, `${name}.machine-def.ts`);
+        // The def file is named for the COMPONENT (kebab, like the directory
+        // and the tag); the consume name is the export (camel). Resolve the
+        // path through the same dash mapping the attribute spellings use, or
+        // a camelCase consume name never finds its def and the element
+        // silently mounts without its machine.
+        const defStem = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+        const defFile = path.join(dir, `${defStem}.machine-def.ts`);
         try {
           await fs.access(defFile);
-          const defMod = `./${name}.machine-def.ts`;
+          const defMod = `./${defStem}.machine-def.ts`;
           consumeImports.push(`import { ${name} } from ${JSON.stringify(defMod)};`);
           const bridge = `${name}Bridge`;
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...values, ...(${name}.toMachineProps?.(values) ?? {}), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
-            `  const ${bridge} = watch(${name}, () => (${name}.createBridge\n` +
-            `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
-            `    : createMachine(${name}.machine, {\n` +
-            `    collection: ${name}.collection,\n` +
-            `    connect: ${name}.connect,\n` +
-            `    props: ${bridge}Props,\n` +
-            `    getRootNode: () => el.getRootNode(),\n` +
-            `    id: el.id || uniqueId(${JSON.stringify(tag)}),\n` +
-            `  })));\n` +
+            `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge} = watch(${name}, () => ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
             `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
             `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
             // Hosts poll state off the element, so the api's reads land
@@ -155,9 +150,6 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const runtimeImport = hasConsume
         ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots } from "@spin/runtime";`
         : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
-      const zagImport = hasConsume
-        ? `import { createMachine, normalizeProps } from "@spin/runtime/zag";`
-        : "";
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)
         .join(", ");
@@ -208,7 +200,6 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       return {
         code: [
           runtimeImport,
-          zagImport,
           actionImports,
           ...consumeImports,
           `const actions = { ${actionNames.join(", ")} };`,

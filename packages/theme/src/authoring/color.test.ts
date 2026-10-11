@@ -8,10 +8,11 @@ const HEX = /^#[0-9a-f]{6}$/;
 function channels(hex: string): [number, number, number] {
   const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(hex);
   if (!match) throw new Error(`expected a #rrggbb colour, got: ${hex}`);
+  const [, r = "", g = "", b = ""] = match;
   return [
-    parseInt(match[1], 16),
-    parseInt(match[2], 16),
-    parseInt(match[3], 16),
+    parseInt(r, 16),
+    parseInt(g, 16),
+    parseInt(b, 16),
   ];
 }
 
@@ -67,13 +68,19 @@ Deno.test("generateScale ramps from darker to lighter without reversing", () => 
   const luminances = scale.map(relativeLuminance);
 
   for (let i = 1; i < luminances.length; i++) {
+    const previous = luminances[i - 1];
+    const current = luminances[i];
+    if (previous === undefined || current === undefined) continue;
     assert(
-      luminances[i] >= luminances[i - 1],
+      current >= previous,
       `step ${i} (${scale[i]}) is darker than step ${i - 1} (${scale[i - 1]})`,
     );
   }
+  const first = scale[0];
+  const last = scale[scale.length - 1];
+  if (first === undefined || last === undefined) return;
   assert(
-    relativeLuminance(scale[0]) < relativeLuminance(scale[scale.length - 1]),
+    relativeLuminance(first) < relativeLuminance(last),
     "the scale must get lighter from first to last",
   );
 });
@@ -81,11 +88,19 @@ Deno.test("generateScale never darkens an individual colour channel", () => {
   const scale = generateScale("#3a7bd5", 9);
 
   for (let i = 1; i < scale.length; i++) {
-    const before = channels(scale[i - 1]);
-    const after = channels(scale[i]);
+    const previousHex = scale[i - 1];
+    const currentHex = scale[i];
+    if (previousHex === undefined || currentHex === undefined) continue;
+    const before = channels(previousHex);
+    const after = channels(currentHex);
     for (let c = 0; c < 3; c++) {
+      const beforeChannel = before[c];
+      const afterChannel = after[c];
+      if (beforeChannel === undefined || afterChannel === undefined) {
+        continue;
+      }
       assert(
-        after[c] >= before[c],
+        afterChannel >= beforeChannel,
         `channel ${c} darkened at step ${i}: ${scale[i - 1]} -> ${scale[i]}`,
       );
     }

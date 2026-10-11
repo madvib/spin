@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createTagsFsmBridge } from "./tags.bridge.ts";
+import { createTagsBridge } from "./tags.bridge.ts";
 import type { TagsCommands } from "./tags.bridge.ts";
-import type { TagsFsmApi, TagsRow } from "./tags.connect.ts";
+import type { TagsApi, TagsRow } from "./tags.connect.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -59,7 +59,7 @@ const settle = (): Promise<void> => {
 };
 
 interface Harness {
-  readonly api: TagsFsmApi & TagsCommands;
+  readonly api: TagsApi & TagsCommands;
   readonly root: HTMLDivElement;
   readonly input: HTMLInputElement;
   readonly changes: { value: string[][]; inputValue: string[]; highlight: (number | null)[]; invalid: string[] };
@@ -112,7 +112,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   write("onHighlightChange", (change: { highlightedValue: number | null }) => changes.highlight.push(change.highlightedValue));
   write("onValueInvalid", (change: { reason: string }) => changes.invalid.push(change.reason));
 
-  const bridge = createTagsFsmBridge(
+  const bridge = createTagsBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();

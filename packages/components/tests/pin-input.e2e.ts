@@ -20,7 +20,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5221;
-const URL = `http://127.0.0.1:${PORT}/pin-input-fsm`;
+const URL = `http://127.0.0.1:${PORT}/pin-input`;
 
 /** Parts are addressed by the element's id, which the route writes so each
  * instance is addressable: `pin-input:<id>:input:<index>`. */
@@ -128,7 +128,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
   throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
 }
 
-Deno.test("spin-pin-input-fsm e2e", async () => {
+Deno.test("spin-pin-input e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

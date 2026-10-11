@@ -1,13 +1,14 @@
 import type { Variant } from "@unocss/core";
-import { groupOf, type ThemeContext } from "../utils/lookup.ts";
+import type { ThemeContext } from "../utils/lookup.ts";
 
 /**
  * Responsive prefixes, resolved against the theme's own breakpoint tokens.
  *
  * A theme declares `breakpoint.md: 48rem` and gets `md:` — the same names it
- * would get as a scale, because it is a scale. The media query spends the
- * token rather than a literal, so a theme that moves a breakpoint moves every
- * responsive utility with it, and the stylesheet stays theme-agnostic.
+ * would get as a scale, because it is a scale. The media query carries the
+ * token's VALUE, not its custom property: `var()` is not valid in a media
+ * query, so an emitting variant produced `(min-width: var(--breakpoint-md))`
+ * and every responsive rule silently never matched.
  *
  * `max-` inverts the query rather than adding a second vocabulary: an author
  * who writes `max-md:` is expressing the same token with an opposite edge, and
@@ -17,29 +18,9 @@ import { groupOf, type ThemeContext } from "../utils/lookup.ts";
  * A breakpoint the theme does not declare is not a prefix, so `md:` emits
  * nothing rather than guessing an edge.
  */
-/**
- * A media query can only spend a LITERAL: `var()` inside `@media` is not
- * resolved at parse time, so lightningcss rejects the whole stylesheet. Uno
- * hands the theme's breakpoints to rules already var-wrapped
- * (`var(--breakpoint-sm)`), so the wrapper is stripped back to the token's
- * literal value wherever one is recoverable. A token that never had one
- * (a var with no unwrap point) is not a media edge.
- */
-function mediaEdge(value: string | undefined): string | undefined {
-  if (value === undefined) return undefined;
-  const wrapped = /^var\(--breakpoint-([a-z]+)\)$/.exec(value);
-  if (!wrapped) return value;
-  return LITERAL_EDGES[wrapped[1]!];
-}
-
-const LITERAL_EDGES: Record<string, string> = {
-  sm: "40rem",
-  md: "48rem",
-  lg: "64rem",
-  xl: "80rem",
-};
-
-export function breakpointVariant(): Variant {
+export function breakpointVariant(
+  edges: Readonly<Record<string, string>>,
+): Variant {
   return {
     name: "spin-breakpoint",
     match(matcher: string, ctx?: ThemeContext) {
@@ -48,7 +29,7 @@ export function breakpointVariant(): Variant {
       const colon = rest.indexOf(":");
       if (colon === -1) return matcher;
       const name = rest.slice(0, colon);
-      const edge = mediaEdge(groupOf(ctx, "breakpoint")[name]);
+      const edge = edges[name];
       if (edge === undefined) return matcher;
       return {
         matcher: rest.slice(colon + 1),
@@ -58,7 +39,13 @@ export function breakpointVariant(): Variant {
           const result = next(input);
           return {
             ...result,
-            parent: `@media ${max ? "not all and " : "all and "}(min-width: ${edge})`,
+            // The `@media` keyword is part of the parent, not Uno's: a
+            // parent without it is emitted verbatim as a selector, and the
+            // stylesheet carries `all and (min-width: 48rem){` — an invalid
+            // rule the browser drops whole.
+            parent: `@media ${
+              max ? "not all and " : "all and "
+            }(min-width: ${edge})`,
           };
         },
       };

@@ -3,21 +3,23 @@ import type { JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
 import { describeCatalog } from "@spin/preset";
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
+import type { Section } from "@spin/preset/organization.ts";
 import {
   buildScale,
   type BuiltScale,
   EDGE_AXES,
   scaleClass,
 } from "@spin/preset/reference/build.ts";
-import { parseTokens } from "@spin/theme";
+import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
+import { inkTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE UTILITIES SURFACE.
  *
- * A section is a set of FAMILIES, and a family is a group of utilities with
- * one mechanism between them. Each family gets: what it is, why this sample,
+ * A section is a set of catalog groups, and a group is a set of utilities with
+ * one mechanism between them. Each group gets: what it is, why this sample,
  * a working before-and-after of the idea, and then every one of its names
  * shown. Nothing is summarised away and nothing is listed without being
  * demonstrated.
@@ -39,6 +41,48 @@ function themeTreeOrParse(): TokenTree {
   }
   return themeTree;
 }
+
+/**
+ * Each color token's value, by the name the catalog spells it, for one theme
+ * and one mode.
+ *
+ * A swatch is a color a reader can identify, so its label carries the value it
+ * resolves to rather than the reference it is declared with: `bg-text` holds
+ * `var(--color-text)`, which is a name and not a color, while the value it
+ * lands on is the whole point of the row. Aliases are followed, so a role
+ * derived from the ramp shows the ramp's step. The theme's base value is the
+ * one named: a mode's override is the same token rendered another way, so the
+ * `dark` group is read first and the base value is what a token the dark group
+ * does not restate keeps. A theme with no dark group overrides nothing.
+ */
+function colorValues(
+  theme: string,
+  mode: string,
+): Readonly<Record<string, string>> {
+  const doc = (starterThemes as unknown as Record<string, unknown>)[theme];
+  if (doc === undefined) return {};
+  const parsed = parseTokens(doc as Parameters<typeof parseTokens>[0]);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const index = indexTree(resolveAliases(parsed.tree).tree);
+  const out: Record<string, string> = {};
+  for (const leaf of Object.values(index.leaves)) {
+    if (leaf.path[0] !== "color") continue;
+    if (typeof leaf.value !== "string") continue;
+    // The mode's own restatement of this token, by its path in the dark group.
+    const dark = index.leaves[`dark.${leaf.path.join(".")}`];
+    out[leaf.path.slice(1).join("-")] = mode === "dark" &&
+        dark !== undefined && typeof dark.value === "string"
+      ? dark.value
+      : leaf.value;
+  }
+  return out;
+}
+
+/** The values the utilities pages read, for the theme they demonstrate. */
+const COLOR_VALUES: Readonly<Record<string, string>> = colorValues(
+  "default",
+  "base",
+);
 
 /* ──────────────────────────────────────────────────────────────────────────
  * SAMPLES — what a utility acts ON, decided per family.
@@ -85,13 +129,15 @@ const DEMO_SAMPLE: Readonly<Record<Demo, string>> = {
   prose: "A run of prose, because type is read rather than seen.",
   fill:
     "The filled element itself, with its label in the `on-*` foreground the theme pairs with that fill.",
-  lifted: "An elevated panel over a contrasting backdrop, so the shadow has air.",
+  lifted:
+    "An elevated panel over a contrasting backdrop, so the shadow has air.",
   faded:
     "A fill at the class's own alpha over a striped backdrop, so partial opacity reads as partial.",
   motion: "Two elements, one of them moving, so the movement is visible.",
   edge:
     "A panel with a visible edge beside a second panel, so the ring or outline reads against what it is drawn outside of.",
-  ruled: "A panel holding two marked rows, so the rule between them is visible.",
+  ruled:
+    "A panel holding two marked rows, so the rule between them is visible.",
   clipped: "Content larger than its box, so the clipping is visible.",
   said:
     "The utility's name as words, because the family acts on the pointer, the selection, or the scroller.",
@@ -193,7 +239,11 @@ function noteFor(group: string): string | undefined {
 
 const SCALE_SHAPES: Record<
   string,
-  { title: string; blurb: string; axes?: readonly { key: string; label: string }[] }
+  {
+    title: string;
+    blurb: string;
+    axes?: readonly { key: string; label: string }[];
+  }
 > = {
   padding: {
     title: "Padding",
@@ -393,9 +443,11 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
   return (
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
-        <b class={`block h-4 w-8 shrink-0 rounded-sm bg-neutral-200 text-center font-mono text-xs leading-4 text-text ${
-          props.cls?.[i] ?? ""
-        }`}>
+        <b
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-neutral-200 text-center font-mono text-xs leading-4 text-text ${
+            props.cls?.[i] ?? ""
+          }`}
+        >
           {"abc"[i]}
         </b>
       )}
@@ -418,7 +470,11 @@ function Mixed() {
   return (
     <For each={["h-2", "h-8", "h-16"]}>
       {(h, i) => (
-        <b class={`block w-8 shrink-0 rounded-sm bg-${FILL[i() % FILL.length]} ${h}`} />
+        <b
+          class={`block w-8 shrink-0 rounded-sm bg-${
+            FILL[i() % FILL.length]
+          } ${h}`}
+        />
       )}
     </For>
   );
@@ -433,9 +489,11 @@ function Figure(props: {
   children: JSX.Element;
 }) {
   return (
-    <figure class={`flex w-1/3 shrink-0 min-w-0 flex-col items-start gap-1 ${
-      props.overflow ?? "overflow-hidden"
-    }`}>
+    <figure
+      class={`flex w-1/3 shrink-0 min-w-0 flex-col items-start gap-1 ${
+        props.overflow ?? "overflow-hidden"
+      }`}
+    >
       <div class={`${props.box ?? BOX} ${props.cls}`}>{props.children}</div>
       <code class={CAP}>{props.label}</code>
     </figure>
@@ -458,7 +516,9 @@ function Cards(props: { extra: string; offsets: readonly string[] }) {
     <Frame>
       <For each={props.offsets}>
         {(o, i) => (
-          <b class={`${CARD} bg-${FILL[i() % FILL.length]} ${o} ${props.extra}`} />
+          <b
+            class={`${CARD} bg-${FILL[i() % FILL.length]} ${o} ${props.extra}`}
+          />
         )}
       </For>
     </Frame>
@@ -587,7 +647,11 @@ const MECHANISMS: readonly Mechanism[] = [
     demo: "row",
     sample: () => (
       <>
-        <Figure cls="flex-row items-center gap-2" label="flex-row" box={FLEXBOX}>
+        <Figure
+          cls="flex-row items-center gap-2"
+          label="flex-row"
+          box={FLEXBOX}
+        >
           <Tiles n={3} />
         </Figure>
         <Figure
@@ -597,7 +661,11 @@ const MECHANISMS: readonly Mechanism[] = [
         >
           <Spelled n={3} />
         </Figure>
-        <Figure cls="flex-col items-center gap-2" label="flex-col" box={TALLFLEX}>
+        <Figure
+          cls="flex-col items-center gap-2"
+          label="flex-col"
+          box={TALLFLEX}
+        >
           <Tiles n={3} />
         </Figure>
         <Figure
@@ -1107,11 +1175,6 @@ const MECHANISMS: readonly Mechanism[] = [
  * ────────────────────────────────────────────────────────────────────────── */
 
 /** The themes, so a swatch knows which foregrounds actually exist. */
-const THEME_COLORS = starterThemes as unknown as Record<
-  string,
-  Record<string, unknown>
->;
-
 /**
  * The foreground a fill DECLARES, as a class — or nothing.
  *
@@ -1119,14 +1182,13 @@ const THEME_COLORS = starterThemes as unknown as Record<
  * RAMP rather than a pairing: eleven steps and no ink for each.
  */
 function inkOn(name: string): string {
+  // The theme answers which ink goes on which fill: `inkTokens()` is derived
+  // from the contrast floors the theme already declares, so a fill's
+  // foreground is a question the domain answers rather than a convention the
+  // reference invents.
   if (!name.startsWith("bg-")) return "";
   const bare = name.slice(3);
-  const token = `on-${bare}`;
-  const declared = Object.values(THEME_COLORS).some((theme) => {
-    const color = theme["color"] as Record<string, unknown> | undefined;
-    return color !== undefined && token in color;
-  });
-  return declared ? `text-${token}` : "";
+  return inkTokens().includes(`on-${bare}`) ? `text-on-${bare}` : "";
 }
 
 /** The column count a grid utility declares, defaulting to three. */
@@ -1302,13 +1364,18 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           <i class="absolute inset-0 flex">
             <For each={Array.from({ length: 8 }, (_, i) => i)}>
               {(i) => (
-                <b class={`block h-full grow rounded-none bg-${
-                  i % 2 === 0 ? "neutral-200" : "surface"
-                }`} />
+                <b
+                  class={`block h-full grow rounded-none bg-${
+                    i % 2 === 0 ? "neutral-200" : "surface"
+                  }`}
+                />
               )}
             </For>
           </i>
-          <UnderTest base="absolute inset-0 rounded-sm bg-primary" cls={cls()} />
+          <UnderTest
+            base="absolute inset-0 rounded-sm bg-primary"
+            cls={cls()}
+          />
         </span>
       );
 
@@ -1391,13 +1458,14 @@ const BADGE =
   "shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
 const SECTION = "mb-8";
 const SUBHEAD =
-  "mb-2 mt-8 text-xs font-semibold uppercase tracking-wide text-text-muted";
+  "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
 const PROSE = "max-w-screen-md text-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
 const LEGEND = "mt-2 font-mono text-xs text-text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
-const LABEL = "mb-1 text-xs font-semibold uppercase tracking-wide text-text-muted";
+const LABEL =
+  "mb-1 text-xs font-semibold normal-case tracking-normal text-text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
   "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border border-solid border-border bg-surface p-4";
@@ -1409,14 +1477,16 @@ const SCALE_BUTTONS = "flex flex-wrap gap-1";
 const DECL =
   "mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted";
 const DECL_NAME = "font-mono text-xs text-text";
-const NAME_LIST = "flex flex-wrap gap-2";
+const NAME_LIST = "grid grid-cols-4 gap-2";
+const SWATCH_GRID = "mt-4 grid grid-cols-4 gap-2";
 const NOTE_BOX =
   "mt-4 max-w-screen-md rounded-md border border-solid border-border bg-surface-raised p-4 text-sm text-text-muted";
-const PANEL = "mb-8 rounded-lg border border-solid border-border bg-surface p-4";
+const PANEL =
+  "mb-8 rounded-lg border border-solid border-border bg-surface p-4";
 const MONO_MUTED = "font-mono text-xs text-text-muted";
 const RAIL_COUNT = "shrink-0 font-mono text-xs text-text-muted";
 const CHIP =
-  "inline-flex items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-text aria-[current]:bg-text aria-[current]:text-surface";
+  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong aria-[current]:text-text";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1435,11 +1505,63 @@ function PageHead(props: { title: string; sub: string; badge: string }) {
   );
 }
 
+/**
+ * One swatch: the color, the name that spends it, and the value it resolves
+ * to. The name the catalog gives the utility is the row's subject, so it is
+ * spelled first and in full ink; the value is the answer a reader came for.
+ *
+ * The values come in, because the theme is a choice the reader makes: the
+ * fill is a class and so follows the theme on its own, but the label names a
+ * hex and has to be told which theme's hex it is.
+ */
+function Swatch(props: {
+  name: string;
+  values: Readonly<Record<string, string>>;
+}) {
+  const bare = props.name.startsWith("bg-")
+    ? props.name.slice(3)
+    : props.name.slice(5);
+  return (
+    <div class="flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2">
+      <i
+        class={`block h-8 w-8 shrink-0 rounded-sm border border-solid border-border bg-${bare}`}
+      />
+      <span class="min-w-0">
+        <code class="block truncate font-mono text-xs text-text">
+          {props.name}
+        </code>
+        <span class="block truncate font-mono text-xs text-text-muted">
+          {props.values[bare] ?? ""}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The palette as a grid rather than a rail of full-width fills.
+ *
+ * A color utility is a NAME and a VALUE; a box the width of the page showing
+ * one fill says the value and nothing else, and thirty-five of them is a wall.
+ * A swatch is both, and a grid of them is a palette a reader can scan.
+ */
+function SwatchGrid(props: { names: readonly string[] }) {
+  return (
+    <div class={SWATCH_GRID}>
+      <For each={props.names}>
+        {(name) => <Swatch name={name} values={COLOR_VALUES} />}
+      </For>
+    </div>
+  );
+}
+
 /** One cell of a specimen: the sample, and the name of the class on it. */
 function Cell(props: { name: string; demo?: Demo; children: JSX.Element }) {
   // overflow-hidden clips the overflow; overflow-x-auto for the clipped demo,
   // where clipping the frame would hide the very escape the utility shows.
-  const overflow = props.demo === "clipped" ? "overflow-x-auto" : "overflow-hidden";
+  const overflow = props.demo === "clipped"
+    ? "overflow-x-auto"
+    : "overflow-hidden";
   return (
     <figure
       class={`flex w-1/3 shrink-0 min-w-0 flex-col items-start gap-1 ${overflow}`}
@@ -1490,7 +1612,9 @@ function NameRail(props: {
 function BeforeAfter(props: { group: string; demo: Demo; cls: string }) {
   // For the clipped demo, the frame must not clip the inner element's
   // overflow — that would demonstrate the opposite of the utility.
-  const overflow = props.demo === "clipped" ? "overflow-x-auto" : "overflow-hidden";
+  const overflow = props.demo === "clipped"
+    ? "overflow-x-auto"
+    : "overflow-hidden";
   return (
     <div class={FAMILY_DEMO}>
       <figure class={PAIR}>
@@ -1592,7 +1716,7 @@ function TransitionsBench() {
   return (
     <div class={PANEL}>
       <div class={LABEL}>hover a box — the movement is the demonstration</div>
-      <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-8">
         <div>
           <div class={LABEL}>what moves</div>
           <div class={RAIL_WRAP}>
@@ -1656,7 +1780,7 @@ const HEADLINE: Record<string, string> = {
   shadow: "shadow-lg",
   font: "font-mono",
   text: "text-center",
-  typography: "uppercase tracking-widest",
+  typography: "normal-case tracking-normal",
   "text-decoration": "underline",
   overflow: "overflow-hidden",
   interactivity: "cursor-grab",
@@ -1673,14 +1797,22 @@ type Group = { id: string; title: string; utilities: readonly string[] };
 /** One family: a scale, or a prose block with a working demonstration. */
 function Family(props: { group: Group }) {
   const scale = scaleFor(props.group.id, props.group);
-  if (scale !== undefined) return <ScaleSection scale={scale} group={props.group} />;
+  if (scale !== undefined) {
+    return <ScaleSection scale={scale} group={props.group} />;
+  }
 
   const demo = demoFor(props.group.id);
   const note = noteFor(props.group.id);
   const headline = demoClass(
     HEADLINE[props.group.id] ?? props.group.utilities[0] ?? "",
   );
-  const lead = demo === undefined ? noSampleLead(props.group.id) : DEMO_SAMPLE[demo];
+  const lead = demo === undefined
+    ? noSampleLead(props.group.id)
+    : DEMO_SAMPLE[demo];
+  // The palette is one answer given twice: a fill and an ink over it. A swatch
+  // names both, where a rail of fills showed the color and spent a page on it.
+  const palette = props.group.id === "background" ||
+    props.group.id === "text-color";
   // The transitions stage was a before/after pair on a still box, which
   // demonstrates nothing: the bench is the demonstration.
   const stage = demo === undefined || props.group.id === "transitions"
@@ -1704,7 +1836,9 @@ function Family(props: { group: Group }) {
       {stage}
       {note !== undefined ? <p class={NOTE_BOX}>{note}</p> : null}
       {bench}
-      {demo === undefined
+      {palette
+        ? <SwatchGrid names={props.group.utilities} />
+        : demo === undefined
         ? (
           <ul class={NAME_LIST}>
             <For each={props.group.utilities}>
@@ -1716,7 +1850,13 @@ function Family(props: { group: Group }) {
             </For>
           </ul>
         )
-        : <NameRail groupId={props.group.id} demo={demo} names={props.group.utilities} />}
+        : (
+          <NameRail
+            groupId={props.group.id}
+            demo={demo}
+            names={props.group.utilities}
+          />
+        )}
     </section>
   );
 }
@@ -1894,14 +2034,281 @@ export function UtilitiesPage(props: { group: string }) {
           />
           <Show
             when={sec().id === "layout"}
-            fallback={
-              <For each={groups()}>{(g) => <Family group={g} />}</For>
-            }
+            fallback={<For each={groups()}>{(g) => <Family group={g} />}</For>}
           >
             <LayoutSurface groups={groups()} />
           </Show>
         </>
       )}
     </Show>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * THE UTILITIES LANDING.
+ *
+ * The primitives landing's shape, spent on the other surface: the line the
+ * thing stands for, the specimens, and the index. Here the index is the
+ * sections — a card each, with the count of names the section carries — and
+ * a specimen is shown for the sections where one utility's effect is legible
+ * in a picture. A specimen is built out of the utilities themselves rather
+ * than out of markup written to look like them: the demo IS the class, and
+ * the panel it is demoed in wears the surface being demonstrated.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+const SPECIMEN_PANEL =
+  "flex min-h-16 items-center rounded-md border border-dashed border-solid border-border bg-surface p-8";
+
+/** The quiet way out of a specimen: a link-shaped button. */
+const QUIET_BUTTON =
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+
+/** The fills the palette is made of, each with the foreground it is paired
+ *  with by the theme — the label is the class, so the tile is also the name. */
+const FILLS = [
+  "bg-primary",
+  "bg-secondary",
+  "bg-accent",
+  "bg-semantic-success",
+  "bg-semantic-warning",
+  "bg-semantic-error",
+  "bg-semantic-info",
+] as const;
+
+/** The type ladder: a scale is read as a scale, so every rung is shown. */
+const TYPE_STEPS = [
+  "text-2xl",
+  "text-xl",
+  "text-lg",
+  "text-md",
+  "text-sm",
+  "text-xs",
+] as const;
+
+/** The spacing scale, one box per step, with a mark inside it. */
+const SPACING_STEPS = ["p-1", "p-2", "p-4", "p-8"] as const;
+
+/** Corners, and the elevation that lifts them. */
+const RADIUS_STEPS = ["rounded-sm", "rounded-md", "rounded-lg", "rounded-full"];
+const SHADOW_STEPS = ["shadow-sm", "shadow-md", "shadow-lg"];
+
+/**
+ * Every fill at once, each labelled with the ink the theme pairs with it.
+ *
+ * A fill without a declared pair carries its label BELOW it rather than on
+ * it: `bg-secondary` and the neutral ramp have no `on-*` token, so painting
+ * the class name on top of them is the reference inventing a foreground the
+ * theme never declared — measured 1.2:1 to 3.3:1 across the starters. Only a
+ * fill whose ink the theme answers gets text on it.
+ */
+function ColorSpecimen() {
+  return (
+    <div class="flex flex-wrap items-end gap-2">
+      <For each={FILLS}>
+        {(cls) => {
+          const ink = inkOn(cls);
+          return (
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+              <div
+                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${
+                  ink
+                }`}
+              >
+                {ink === "" ? "" : cls}
+              </div>
+              <code class={MONO_MUTED}>{cls}</code>
+            </div>
+          );
+        }}
+      </For>
+    </div>
+  );
+}
+
+function TypeSpecimen() {
+  return (
+    <div class="flex flex-col gap-2">
+      <For each={TYPE_STEPS}>
+        {(cls) => (
+          <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <span class={`min-w-0 text-text ${cls}`}>
+              Handgloves &amp; 0123
+            </span>
+            <code class="font-mono text-xs text-text-muted">{cls}</code>
+          </div>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function SpacingSpecimen() {
+  return (
+    <div class="flex flex-wrap items-end gap-4">
+      <For each={SPACING_STEPS}>
+        {(cls) => (
+          <figure class="flex flex-col items-start gap-1">
+            <div
+              class={`inline-block rounded-sm border border-dashed border-solid border-border bg-surface ${cls}`}
+            >
+              <b class="block h-4 w-4 rounded-sm bg-primary" />
+            </div>
+            <code class="font-mono text-xs text-text-muted">{cls}</code>
+          </figure>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function BorderSpecimen() {
+  return (
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-end gap-4">
+        <For each={RADIUS_STEPS}>
+          {(cls) => (
+            <figure class="flex flex-col items-start gap-1">
+              <div
+                class={`block h-12 w-20 border border-solid border-border-strong bg-surface-raised ${cls}`}
+              />
+              <code class="font-mono text-xs text-text-muted">{cls}</code>
+            </figure>
+          )}
+        </For>
+      </div>
+      <div class="flex flex-wrap items-end gap-4">
+        <For each={SHADOW_STEPS}>
+          {(cls) => (
+            <figure class="flex flex-col items-start gap-1">
+              <div
+                class={`block h-12 w-20 rounded-md border border-solid border-border bg-surface-raised ${cls}`}
+              />
+              <code class="font-mono text-xs text-text-muted">{cls}</code>
+            </figure>
+          )}
+        </For>
+      </div>
+    </div>
+  );
+}
+
+/** The section a specimen belongs to, and the specimen it is shown with. */
+const SECTION_SPECIMEN: Readonly<Record<string, () => JSX.Element>> = {
+  colors: ColorSpecimen,
+  typography: TypeSpecimen,
+  spacing: SpacingSpecimen,
+  borders: BorderSpecimen,
+};
+
+/** One specimen of the utilities landing: the section, what it looks like,
+ *  and the way in. */
+function SectionSpecimen(props: { id: string }) {
+  const section = SECTIONS.find((s) => s.id === props.id)!;
+  const Specimen = SECTION_SPECIMEN[props.id]!;
+  return (
+    <section class="flex min-w-0 flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <h4 class="m-0 text-sm font-semibold text-text">{section.title}</h4>
+      </div>
+      <div class={SPECIMEN_PANEL}>
+        <div class="w-full">
+          <Specimen />
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => (location.hash = `#/utilities/${props.id}`)}
+        class={QUIET_BUTTON}
+      >
+        <i class="i-lucide-arrow-right icon-md" />
+        open {section.title.toLowerCase()}
+      </button>
+    </section>
+  );
+}
+
+/** One card of the index: the section, its count, and the way in. */
+function SectionCard(props: { section: Section; count: number }) {
+  return (
+    <button
+      type="button"
+      onClick={() => (location.hash = `#/utilities/${props.section.id}`)}
+      class="flex w-full flex-col items-start gap-2 rounded-md border border-solid border-border bg-surface-raised p-4 text-left shadow-sm hover:border-border-strong"
+    >
+      <span class="flex w-full items-center gap-2">
+        <span class="text-sm font-semibold text-text">
+          {props.section.title}
+        </span>
+        <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+          {props.count}
+        </span>
+      </span>
+      <span class="text-xs text-text-muted">{props.section.blurb}</span>
+    </button>
+  );
+}
+
+/**
+ * The utilities side, at a glance: what the surface is, where each section
+ * lives, and four of them looked at rather than listed.
+ */
+export function UtilitiesLanding() {
+  const catalog = createMemo(() => describeCatalog(themeTreeOrParse()));
+  const cards = createMemo(() =>
+    SECTIONS.map((section) => ({
+      section,
+      count: utilitiesFor(section, catalog()).length,
+    }))
+  );
+  const total = () => cards().reduce((sum, c) => sum + c.count, 0);
+  return (
+    <>
+      <header class={PAGE_HEAD}>
+        <div>
+          <h2 class={TITLE}>Utilities</h2>
+          <div class={KIND}>
+            spin reference · {SECTIONS.length} sections · {total()} names
+          </div>
+        </div>
+        <span class={BADGE}>{total()} names</span>
+      </header>
+      <p class="mb-8 max-w-screen-md text-md text-text-muted">
+        Every page on this side is drawn by the utilities it describes: the
+        chrome around a demonstration wears the surface being demonstrated, so a
+        utility that breaks breaks the showcase with it.
+      </p>
+
+      <section class="mb-8">
+        <h3 class={SUBHEAD}>Sections</h3>
+        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+          The surface cut by what a reader is looking for, not by which file the
+          rule lives in.
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <For each={cards()}>
+            {(card) => (
+              <SectionCard
+                section={card.section}
+                count={card.count}
+              />
+            )}
+          </For>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h3 class={SUBHEAD}>Specimens</h3>
+        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+          Four of the{" "}
+          {SECTIONS.length}, each one built out of the utilities it names — the
+          demo is the class rather than a picture of it.
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+          <For each={Object.keys(SECTION_SPECIMEN)}>
+            {(id) => <SectionSpecimen id={id} />}
+          </For>
+        </div>
+      </section>
+    </>
   );
 }

@@ -1,9 +1,9 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotTagsInput,
-  type TagsFsmApi,
-  type TagsFsmConnectProps,
+  type TagsApi,
+  type TagsConnectProps,
   type TagsTranslations,
 } from "./tags.connect.ts";
 import {
@@ -174,16 +174,16 @@ const readScalars = (
  * the fork's send is synchronous, so a post-send read already sees the
  * new value and a "before" snapshot is the only honest diff.
  */
-export function createTagsFsmBridge(
+export function createTagsBridge(
   props: () => Record<string, unknown>,
   root: () => Element,
   id: string,
-): { readonly api: TagsFsmApi & TagsCommands; dispose(): void } {
+): { readonly api: TagsApi & TagsCommands; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<TagsContext, TagsEvent>(config, implementations);
 
-  let service: FsmService<TagsContext, TagsEvent> | undefined;
+  let service: Service<TagsContext, TagsEvent> | undefined;
 
   const authored = (name: string): boolean => {
     const predicate = props()["@@authored"];
@@ -192,7 +192,7 @@ export function createTagsFsmBridge(
 
   let seedValue: readonly string[] = [];
 
-  const ensureService = (): FsmService<TagsContext, TagsEvent> => {
+  const ensureService = (): Service<TagsContext, TagsEvent> => {
     if (service) return service;
     const p = props();
     const seed = Array.isArray(p["defaultValue"]) ? [...(p["defaultValue"] as string[])] : [];
@@ -344,7 +344,7 @@ export function createTagsFsmBridge(
   /** The behavioral props, read per connect call rather than snapshotted:
    * the connect is long-lived, so a host write has to reach the handlers
    * it holds. */
-  const readConnectProps = (): TagsFsmConnectProps => {
+  const readConnectProps = (): TagsConnectProps => {
     const p = props();
     const svc = ensureService();
     const state = svc.state.context;
@@ -387,8 +387,8 @@ export function createTagsFsmBridge(
    * against machine state and its row handlers against the rows
    * themselves, so rebuilding it per move is what orphaned listeners and
    * re-inserted rows in the menu port. */
-  let tagsConnect: TagsFsmApi | undefined;
-  const ensureConnect = (): TagsFsmApi => {
+  let tagsConnect: TagsApi | undefined;
+  const ensureConnect = (): TagsApi => {
     tagsConnect ??= connectRobotTagsInput(
       {
         send: send as (event: { type: string } & Record<string, unknown>) => void,
@@ -438,7 +438,7 @@ export function createTagsFsmBridge(
     focus: (): void => ensureConnect().focusInput(),
   };
 
-  const api = new Proxy({} as TagsFsmApi & TagsCommands, {
+  const api = new Proxy({} as TagsApi & TagsCommands, {
     get: (_target, key) =>
       key in commands ? Reflect.get(commands, key) : Reflect.get(connected(), key),
     has: (_target, key) => key in commands || Reflect.has(connected(), key),

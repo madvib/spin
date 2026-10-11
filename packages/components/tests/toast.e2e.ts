@@ -18,7 +18,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5221;
-const URL = `http://127.0.0.1:${PORT}/toast-fsm`;
+const URL = `http://127.0.0.1:${PORT}/toast`;
 
 const REGION = '[id="toast:region:group"]';
 const ROWS = `${REGION} [role="status"]`;
@@ -105,7 +105,7 @@ async function waitCount(page: Page, expected: number): Promise<void> {
   );
 }
 
-Deno.test("spin-toast-fsm e2e", async () => {
+Deno.test("spin-toast e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

@@ -79,7 +79,7 @@ export function primitiveReadsByGroup(): Record<string, string[]> {
   const out: Record<string, Set<string>> = {};
   for (const component of Object.values(primitiveComponents)) {
     for (const token of component.reads) {
-      const [group, ...rest] = token.split("-");
+      const [group = "", ...rest] = token.split("-");
       // A multi-segment name like `on-primary` belongs to the group that
       // precedes it; a single-segment name like `white` has no group.
       const key = rest.length > 0 ? group : "color";

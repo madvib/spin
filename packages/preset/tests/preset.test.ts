@@ -84,7 +84,7 @@ function declarationsFor(
   );
   const selector = new RegExp(`\\.${escaped}(?![\\w-])`);
   const declarations: Record<string, string> = {};
-  for (const [, selectorText, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  for (const [, selectorText = "", body = ""] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (!selector.test(selectorText)) continue;
     for (const declaration of body.split(";")) {
       const at = declaration.indexOf(":");
@@ -352,7 +352,7 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
         info: { $value: "#444" },
       },
       "on-primary": { $value: "#fff" },
-      "on-danger": { $value: "#fff" },
+      "on-semantic-error": { $value: "#fff" },
       "focus-ring": { $value: "{color.primary}" },
       "link": { $value: "{color.primary}" },
     },
@@ -410,7 +410,7 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
         info: { $value: "#38bdf8" },
       },
       "on-primary": { $value: "#000" },
-      "on-danger": { $value: "#000" },
+      "on-semantic-error": { $value: "#000" },
       "focus-ring": { $value: "{color.primary}" },
       "link": { $value: "{color.primary}" },
     },

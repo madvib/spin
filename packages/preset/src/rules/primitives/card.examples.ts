@@ -23,9 +23,7 @@ ${inner}
         </div>`;
 
 export const cardFixtureNote =
-  "A card is a surface with seven parts, each its own tag: header, title, " +
-  "description, action, content, footer. Sizes are classes on the tag — " +
-  "card-default, card-narrow, card-wide. The footer holds classless buttons.";
+  "A surface with eight parts, each its own tag. Sizes are classes on the tag; `card-ghost` drops the chrome.";
 
 export const CARD_EXAMPLES: readonly CardExample[] = [
   {
@@ -51,24 +49,42 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-content>
-              <p>A card needs no header or footer to be a card.</p>
+              <p>A card needs no header or footer to be a card: a raised
+              surface with room to breathe is already grouping.</p>
             </card-content>
           </card>`,
     ),
   },
   {
     name: "Sizes",
-    html: row(
-      `          <card class="card-default">
-            <card-content><p>Default</p></card-content>
-          </card>
+    // The size variants are three objects, so they are spaced as three
+    // objects: the wrapper's step is the largest the scale owns, not the
+    // hairline a row of parts sits at. A tight row reads as one ragged
+    // strip with a seam in it, which is the opposite of what a comparison
+    // of sizes is for.
+    html: `<div class="flex flex-wrap items-center gap-8">
           <card class="card-narrow">
-            <card-content><p>Narrow</p></card-content>
+            <card-header>
+              <card-title>Narrow</card-title>
+              <card-description>24rem — a column card</card-description>
+            </card-header>
+            <card-content><p>Sidebars, rails, tight grids.</p></card-content>
+          </card>
+          <card class="card-default">
+            <card-header>
+              <card-title>Default</card-title>
+              <card-description>32rem — the page measure</card-description>
+            </card-header>
+            <card-content><p>Dialogs, settings panels, forms.</p></card-content>
           </card>
           <card class="card-wide">
-            <card-content><p>Wide</p></card-content>
-          </card>`,
-    ),
+            <card-header>
+              <card-title>Wide</card-title>
+              <card-description>48rem — a spanning card</card-description>
+            </card-header>
+            <card-content><p>Dashboards, tables, galleries.</p></card-content>
+          </card>
+        </div>`,
   },
   {
     name: "Header only",
@@ -90,6 +106,35 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
               <button class="ghost">Cancel</button>
               <button>Save</button>
             </card-footer>
+          </card>`,
+    ),
+  },
+  {
+    name: "Image on top",
+    html: row(
+      `          <card class="card-narrow">
+            <card-figure>
+              <img src="https://picsum.photos/400/200" alt="A placeholder photograph" class="block w-full">
+            </card-figure>
+            <card-header>
+              <card-title>Card Title</card-title>
+            </card-header>
+            <card-content>
+              <p>The figure bleeds to the surface edge; the corners hold.</p>
+            </card-content>
+          </card>`,
+    ),
+  },
+  {
+    name: "Ghost",
+    html: row(
+      `          <card class="card-ghost">
+            <card-header>
+              <card-title>Ungrouped</card-title>
+            </card-header>
+            <card-content>
+              <p>Grouping without a box: no border, no surface, no shadow.</p>
+            </card-content>
           </card>`,
     ),
   },

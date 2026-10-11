@@ -20,7 +20,7 @@
 import { parseValue } from "./number-input.machine.ts";
 import type { NumberInputContext, NumberInputPoint } from "./number-input.machine.ts";
 
-export interface NumberInputFsmConnectProps {
+export interface NumberInputConnectProps {
   readonly dir: "ltr" | "rtl";
   /** The authored `disabled`, without the fieldset. */
   readonly disabled: boolean;
@@ -58,7 +58,7 @@ export interface NumberInputCommands {
   focus(): void;
 }
 
-export interface NumberInputFsmApi extends NumberInputCommands {
+export interface NumberInputApi extends NumberInputCommands {
   readonly value: string;
   readonly valueAsNumber: number;
   readonly empty: boolean;
@@ -92,7 +92,7 @@ export interface NumberInputService {
 /** The behavioural props, read on demand: the connect lives as long as the
  * element does, so a snapshot would freeze the first read's values inside
  * the handlers it caches. */
-export type ReadNumberInputProps = () => NumberInputFsmConnectProps;
+export type ReadNumberInputProps = () => NumberInputConnectProps;
 
 /** The part-id namespace. */
 const NAMESPACE = "number-input";
@@ -178,7 +178,7 @@ export function connectRobotNumberInput(
   service: NumberInputService,
   readProps: ReadNumberInputProps,
   id: string,
-): NumberInputFsmApi {
+): NumberInputApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const rootId = ownerId;
   const labelId = `${ownerId}:label`;

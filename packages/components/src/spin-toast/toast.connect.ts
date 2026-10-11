@@ -44,7 +44,7 @@ export interface ToastItem {
   readonly action: string;
 }
 
-export interface ToastFsmConnectProps {
+export interface ToastConnectProps {
   readonly placement: string;
   readonly overlap: boolean;
   readonly max: number;
@@ -68,7 +68,7 @@ export interface ToastCommands {
   resume(id: string): void;
 }
 
-export interface ToastFsmApi extends ToastCommands {
+export interface ToastApi extends ToastCommands {
   readonly count: number;
   readonly layout: "stack" | "overlap";
   readonly placement: string;
@@ -98,7 +98,7 @@ export interface ToastService {
 /** The behavioural props, read on demand: the connect lives as long as the
  * element does, so a snapshot would freeze the first read's values inside
  * the handlers it caches. */
-export type ReadToastProps = () => ToastFsmConnectProps;
+export type ReadToastProps = () => ToastConnectProps;
 
 /** A bag cached until the signature of the fields it reads moves. */
 interface BagMemo {
@@ -152,7 +152,7 @@ export function connectRobotToast(
   readProps: ReadToastProps,
   id: string,
   root: () => Element,
-): ToastFsmApi {
+): ToastApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const groupId = `${ownerId}:group`;
   const toastId = (toastId: string): string => `${ownerId}:toast:${toastId}`;

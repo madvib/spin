@@ -1,9 +1,9 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotPinInput,
-  type PinInputFsmApi,
-  type PinInputFsmConnectProps,
+  type PinInputApi,
+  type PinInputConnectProps,
   type PinInputSanitize,
   type PinInputTranslations,
 } from "./pin-input.connect.ts";
@@ -104,18 +104,18 @@ const authored = (props: () => Record<string, unknown>, name: string): boolean =
  * `isValueComplete` is; `value-invalid` is the refused keystroke, which the
  * view has already told the machine about.
  */
-export function createPinInputFsmBridge(
+export function createPinInputBridge(
   props: () => Record<string, unknown>,
   root: () => Element,
   id: string,
-): { readonly api: PinInputFsmApi; dispose(): void } {
+): { readonly api: PinInputApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<PinInputContext, PinInputEvent>(config, implementations);
 
-  let service: FsmService<PinInputContext, PinInputEvent> | undefined;
+  let service: Service<PinInputContext, PinInputEvent> | undefined;
 
-  const ensureService = (): FsmService<PinInputContext, PinInputEvent> => {
+  const ensureService = (): Service<PinInputContext, PinInputEvent> => {
     if (service !== undefined) return service;
     const p = props();
     const count = readCount(p);
@@ -140,7 +140,7 @@ export function createPinInputFsmBridge(
   /** The behavioural props, read per connect call rather than snapshotted:
    * the connect is long-lived, so a host write has to reach the handlers it
    * holds. */
-  const readConnectProps = (): PinInputFsmConnectProps => {
+  const readConnectProps = (): PinInputConnectProps => {
     const p = props();
     const type = p["type"];
     const name = p["name"];
@@ -228,8 +228,8 @@ export function createPinInputFsmBridge(
    * against machine state and its cell handlers against the cells
    * themselves, so rebuilding it per move would detach listeners and
    * re-insert inputs mid-gesture. */
-  let pinConnect: PinInputFsmApi | undefined;
-  const ensureConnect = (): PinInputFsmApi => {
+  let pinConnect: PinInputApi | undefined;
+  const ensureConnect = (): PinInputApi => {
     pinConnect ??= connectRobotPinInput(
       {
         send,
@@ -278,7 +278,7 @@ export function createPinInputFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as PinInputFsmApi, {
+  const api = new Proxy({} as PinInputApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

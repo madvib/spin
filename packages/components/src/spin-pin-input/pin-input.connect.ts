@@ -37,7 +37,7 @@ export interface PinInputTranslations {
   inputLabel(index: number, length: number): string;
 }
 
-export interface PinInputFsmConnectProps {
+export interface PinInputConnectProps {
   readonly count: number;
   readonly type: PinInputType;
   readonly pattern: string;
@@ -69,7 +69,7 @@ export interface PinInputCommands {
   setValueAtIndex(index: number, value: string): void;
 }
 
-export interface PinInputFsmApi extends PinInputCommands {
+export interface PinInputApi extends PinInputCommands {
   readonly count: number;
   readonly items: readonly number[];
   readonly value: readonly string[];
@@ -96,7 +96,7 @@ export interface PinInputService {
 /** The behavioural props, read on demand: the connect lives as long as the
  * element does, so a snapshot would freeze the first read's values inside
  * the handlers it caches. */
-export type ReadPinInputProps = () => PinInputFsmConnectProps;
+export type ReadPinInputProps = () => PinInputConnectProps;
 
 /** A bag cached until the signature of the fields it reads moves. */
 interface BagMemo {
@@ -170,7 +170,7 @@ export function connectRobotPinInput(
   readProps: ReadPinInputProps,
   id: string,
   root: () => Element,
-): PinInputFsmApi {
+): PinInputApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const labelId = `${ownerId}:label`;
   const controlId = `${ownerId}:control`;
@@ -412,7 +412,7 @@ export function connectRobotPinInput(
   const hiddenBag = cached();
   const inputBags = new Map<number, BagMemo>();
 
-  const connect: PinInputFsmApi = {
+  const connect: PinInputApi = {
     get count(): number {
       return ctx().count;
     },

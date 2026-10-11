@@ -14,7 +14,7 @@ export function shadowRules(): Rule[] {
     ...staticRules([...SHADOW_NAMES], STATIC_DECLS),
     [
       /^shadow-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const token = tokenOf(ctx, "shadow", name, "boxShadow");
         if (token) return { "box-shadow": token };
         return undefined;

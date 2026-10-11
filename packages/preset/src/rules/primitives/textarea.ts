@@ -11,13 +11,13 @@ import { themeOf } from "../../utils/lookup.ts";
  * computed from two steps — a textarea sized to one line is not a textarea.
  */
 export function textareaRules(roots: readonly string[]): Rule[] {
-  if (!roots.includes("textarea")) return [];
+  if (!roots.includes("field")) return [];
   return [
     [
       /^textarea$/,
       function* (_m, ctx) {
-        const spacing16 = themeOf(ctx)?.spacing["16"];
-        const spacing4 = themeOf(ctx)?.spacing["4"];
+        const spacing16 = themeOf(ctx)?.spacing?.["16"];
+        const spacing4 = themeOf(ctx)?.spacing?.["4"];
         yield {
           [ctx.symbols.selector]: () => "textarea",
           display: "block",

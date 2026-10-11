@@ -11,7 +11,7 @@ export function interactivityRules(): Rule[] {
     ...staticRules([...INTERACTIVITY_NAMES], STATIC_DECLS),
     [
       /^translate-([xy])-(.+)$/,
-      ([, axis, name]: string[], ctx?: ThemeContext) => {
+      ([, axis = "", name = ""]: string[], ctx?: ThemeContext) => {
         const value = name === "0" ? "0" : tokenOf(ctx, "spacing", name);
         if (value === undefined) return undefined;
         return { transform: `translate${axis.toUpperCase()}(${value})` };

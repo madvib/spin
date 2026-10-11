@@ -22,7 +22,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5223;
-const URL = `http://127.0.0.1:${PORT}/editable-fsm`;
+const URL = `http://127.0.0.1:${PORT}/editable`;
 
 /** Part ids are the machine's scheme: `editable:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="editable:${id}:${part}"]`;
@@ -95,7 +95,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
   throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
 }
 
-Deno.test("spin-editable-fsm e2e", async () => {
+Deno.test("spin-editable e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

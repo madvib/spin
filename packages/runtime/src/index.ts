@@ -1,5 +1,3 @@
-import type { CollectionDecl } from "./machine/adapter/machine.ts";
-
 export {
   batch,
   computed,
@@ -35,17 +33,13 @@ export interface MachineEventContract<TDetail = unknown> {
   readonly detail: (change: any) => TDetail;
 }
 export interface MachineDef {
-  readonly machine: object;
-  readonly connect: (...args: never[]) => object;
-  readonly events?: Readonly<Record<string, MachineEventContract>>;
   /**
-   * Alternative to the Zag pair: builds the bridge directly from scope
-   * props, the element root, and the machine id. A def that provides this
-   * never touches the Zag adapter — `machine`/`connect` are ignored and
-   * may be placeholders. The bridge shape (`{ api, dispose }`) is the
-   * same either way, so generated markup spreads identically.
+   * Builds the bridge from scope props, the element root, and the machine
+   * id. Props arrive as a live reader (the element's prop store), never a
+   * snapshot. The returned api is what the markup spreads and what commands
+   * and element getters forward to.
    */
-  readonly createBridge?: (
+  readonly createBridge: (
     props: () => Record<string, unknown>,
     root: () => Element,
     id: string,
@@ -58,22 +52,14 @@ export interface MachineDef {
    */
   readonly commands?: readonly string[];
   /**
-   * A constructed collection prop, declared — not built. The adapter builds
-   * the Zag `TreeCollection`/`ListCollection` from the named scope prop and
-   * memoizes per source identity. Re-exported from the adapter; this is the
-   * same type, not a parallel one.
+   * Authored out-side: each CustomEvent name maps to a callback prop the
+   * bridge reports through and the detail mapper. The plugin codegen turns
+   * each entry into a machine prop that dispatches on `el`. A misspelled
+   * `on` never fires, so machine-defs annotate against this rather than
+   * widening to `unknown`.
    */
-  readonly collection?: CollectionDecl;
-  /**
-   * Transforms scope-coerced values into machine props, merged over the
-   * values. For derived scalars (carousel's slideCount, select's array
-   * wrapping) and sync side effects (toast's store). Collections go through
-   * `collection` above, never here.
-   */
-  // deno-lint-ignore no-explicit-any
-  readonly toMachineProps?: (values: Record<string, any>) => Record<string, unknown>;
+  readonly events?: Readonly<Record<string, MachineEventContract>>;
 }
-export type { CollectionDecl } from "./machine/adapter/machine.ts";
 export { createScopeTable, type Handle, type ScopeTable } from "./scope/table.ts";
 
 export { createAction, runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";
@@ -111,9 +97,8 @@ export type {
   TextNode,
 } from "./directives/ir.ts";
 export { ParseError } from "./directives/ir.ts";
-export { useMachine, type MachineApi, type MachineService } from "./machine/machine.ts";
 
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
 export { component, type ComponentSpec } from "./scope/component.ts";
-export { bindActionProps, bindSpread } from "./directives/zag-bind.ts";
+export { bindActionProps, bindSpread } from "./directives/spread.ts";
 export { machineTick } from "./core/signal.ts";

@@ -13,7 +13,7 @@ export function transitionRules(): Rule[] {
     ...staticRules([...TRANSITION_NAMES], STATIC_DECLS),
     [
       /^duration-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const token = tokenOf(ctx, "motionDuration", name, "transitionDuration");
         if (token) return { "transition-duration": token };
         return undefined;
@@ -22,7 +22,7 @@ export function transitionRules(): Rule[] {
     ],
     [
       /^ease-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const token = tokenOf(ctx, "motionEasing", name, "transitionTimingFunction");
         if (token) return { "transition-timing-function": token };
         return undefined;

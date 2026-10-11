@@ -51,14 +51,14 @@ export function popoverRules(roots: readonly string[], mode: Mode): Rule[] {
 function popoverTokens(ctx: Parameters<typeof themeOf>[0]) {
   const t = themeOf(ctx);
   return {
-    spacing1: t?.spacing["1"],
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
+    spacing1: t?.spacing?.["1"],
+    spacing2: t?.spacing?.["2"],
+    spacing4: t?.spacing?.["4"],
     radiusSm: t?.radius?.["sm"],
     radiusLg: t?.radius?.["lg"],
-    text: t?.colors["text"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
+    text: t?.colors?.["text"],
+    raised: t?.colors?.["surface-raised"],
+    border: t?.colors?.["border"],
     borderWidth: t?.borderWidth?.["width"],
     shadowSm: t?.shadow?.["sm"],
     shadowLg: t?.shadow?.["lg"],
@@ -79,13 +79,13 @@ function popoverRule(mode: Mode): Rule {
 
       // The panel. A card, floating — the surface is the whole of it; the
       // placement belongs to the platform or to the caller's anchor.
+      //
+      // `display` is declared ONLY on the open state. The platform hides a
+      // closed popover with `display: none`, and an unconditional declaration
+      // here would outrank that UA rule and leave every closed popover
+      // painted on the page.
       yield {
         [ctx.symbols.selector]: () => popover,
-        // A popover is a card, and a card is a block. Inherited as `inline`
-        // the box has no vertical padding at all — the text sits on the
-        // border — and `transition-behavior: allow-discrete` has no `display`
-        // to make discrete, so the exit animation is cut short.
-        display: "block",
         ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         ...(t.borderWidth !== undefined && t.border !== undefined
@@ -94,10 +94,12 @@ function popoverRule(mode: Mode): Rule {
         ...(t.radiusLg !== undefined ? { "border-radius": t.radiusLg } : {}),
         ...(t.shadowLg !== undefined ? { "box-shadow": t.shadowLg } : {}),
         ...(t.spacing4 !== undefined ? { padding: t.spacing4 } : {}),
-        // `display` and `overlay` are discrete: they flip instantly unless
-        // allowed to transition, which would cut the exit short. The
-        // `@starting-style` block below is the enter's "before" state.
-        "transition-property": "opacity, transform, display, overlay",
+        // `display` is discrete: it flips instantly unless allowed to
+        // transition, which would cut the exit short. A card is a block —
+        // inherited as `inline` the box has no vertical padding at all, the
+        // text sits on the border — and there is no `display` for
+        // `allow-discrete` to make discrete unless this state states one.
+        "transition-property": "opacity, transform, display",
         "transition-behavior": "allow-discrete",
         ...(t.duration !== undefined
           ? { "transition-duration": t.duration }
@@ -127,8 +129,11 @@ function popoverRule(mode: Mode): Rule {
 
       // The entrance. Keyframes run on the way in; the transition above runs
       // on the way out, because a keyframe has no "closed" state to leave to.
+      // `display: block` rides here, on the open state, so the closed
+      // popover keeps the platform's `display: none`.
       yield {
         [ctx.symbols.selector]: () => `${popover}:popover-open`,
+        display: "block",
         ...(t.duration !== undefined
           ? {
             animation: `dialog-in ${t.duration} ${t.easing ?? "linear"}`,
@@ -172,14 +177,22 @@ function popoverRule(mode: Mode): Rule {
  * The trigger is the element immediately before the tooltip, matched with
  * `:has(+ tooltip)` rather than by tag so a tooltip can describe a button, a
  * link, or anything else without this component claiming that element. The
- * trigger is made a containing block so the tooltip can position against it,
- * and the tooltip itself never takes pointer events — otherwise it would sit
- * under the cursor and flicker.
+ * tooltip is a sibling of its trigger, not a child, so the trigger cannot be
+ * its containing block — a positioned element only contains its descendants.
+ * Instead the shared parent is made the containing block and shrink-wrapped
+ * to the trigger, so the tip's `100%` and `50%` resolve against the trigger's
+ * box and the tip tracks the element rather than the page. The tooltip itself
+ * never takes pointer events — otherwise it would sit under the cursor and
+ * flicker.
  */
 function tooltipRule(mode: Mode): Rule {
   const tooltip = claim(mode, "tooltip");
-  // The element a tooltip describes: anything immediately followed by one.
-  const describes = `*:has(+ ${tooltip})`;
+  // The shared parent of a trigger and its tip: the element that has the
+  // tip as a direct child. The tip is a sibling of its trigger, so the
+  // trigger cannot be its containing block — a positioned element only
+  // contains its descendants. The parent is made the containing block
+  // and shrink-wrapped to the trigger.
+  const parent = `*:has(> ${tooltip})`;
   return [
     /^tooltip$/,
     function* (_m, ctx) {
@@ -228,11 +241,14 @@ function tooltipRule(mode: Mode): Rule {
           : {}),
       };
 
-      // The trigger becomes the containing block for the floating tip, so the
-      // tip tracks the element rather than the page.
+      // The shared parent is the tip's containing block, shrink-wrapped to
+      // the trigger so the tip's `100%` and `50%` resolve against the
+      // trigger's box. Without this the tip resolves against the initial
+      // containing block (the viewport) and lands off-screen.
       yield {
-        [ctx.symbols.selector]: () => describes,
+        [ctx.symbols.selector]: () => parent,
         position: "relative",
+        "width": "fit-content",
       };
 
       // Shown on the states that mean "this has a description you want". The

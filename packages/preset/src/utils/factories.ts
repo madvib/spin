@@ -30,7 +30,7 @@ export function spacingRule(
 ): Rule {
   return [
     pattern,
-    ([, name]: string[], ctx?: ThemeContext) => {
+    ([, name = ""]: string[], ctx?: ThemeContext) => {
       const path = groupOf(ctx, "spacing")[name];
       const ref = path ? path : extendedTheme(ctx, ["spacing"], name);
       if (!ref) return undefined;
@@ -170,7 +170,7 @@ export function insetRule(
 ): Rule {
   return [
     pattern,
-    ([, name]: string[], ctx?: ThemeContext) => {
+    ([, name = ""]: string[], ctx?: ThemeContext) => {
       // The ONE place a hardcoded literal is correct. Every other value an
       // inset resolves is a theme token — spacing, a fraction, a keyword — and
       // one the theme does not carry means the rule omits itself. An arbitrary

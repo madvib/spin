@@ -1,11 +1,7 @@
 {
   "$extensions": {
     "spin": {
-      "id": "spin-neobrut",
-      "modes": [
-        "light",
-        "dark"
-      ]
+      "id": "spin-neobrut"
     }
   },
   "color": {
@@ -77,6 +73,10 @@
       "$value": "{color.neutral.50}",
       "$description": "Page background."
     },
+    "surface-sunken": {
+      "$value": "{color.neutral.100}",
+      "$description": "Background of elements that sit below the page: table stripes, inset wells."
+    },
     "surface-raised": {
       "$value": "#ffffff",
       "$description": "Background of elements that sit above the page: cards, popovers, menus."
@@ -137,7 +137,7 @@
     },
     "on-semantic-error": {
       "$type": "color",
-      "$value": "#1a1a1a",
+      "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
     },
     "on-semantic-info": {
@@ -407,7 +407,7 @@
       "$value": "700"
     },
     "case": {
-      "$value": "uppercase",
+      "$value": "none",
       "$type": "textTransform"
     },
     "tracking": {
@@ -457,18 +457,18 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes. In `em`, so an icon tracks the control it sits in rather than pinning itself to one absolute length.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
-      "$value": "1em"
+      "$value": "1rem"
     },
     "md": {
       "$type": "dimension",
-      "$value": "1.125em"
+      "$value": "1.25rem"
     },
     "lg": {
       "$type": "dimension",
-      "$value": "1.375em"
+      "$value": "1.75rem"
     }
   },
   "badge": {
@@ -478,10 +478,10 @@
       "$value": "{border.width}",
       "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
     },
-    "radius": {
-      "$type": "dimension",
-      "$value": "{radius.none}",
-      "$description": "Corner rounding for the badge. Fully round reads as a pill; zero squares it into a tag."
+    "pill": {
+      "$type": "boolean",
+      "$value": false,
+      "$description": "Fully round reads as a pill; false squares it into a tag."
     }
   },
   "checkbox": {
@@ -497,5 +497,26 @@
       "$type": "number",
       "$value": 0
     }
-  }
+  },
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "modes": [
+    "light"
+  ]
 }

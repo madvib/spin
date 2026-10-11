@@ -9,48 +9,21 @@
  *   import "@spin/components/elements";
  *
  * For a smaller bundle, import per component instead — each pulls only its
- * own machine — e.g. `import "@spin/components/accordion"`. Framework JSX
+ * own machine — e.g. `import "@spin/components/combobox"`. Framework JSX
  * augmentations and prop types live with the frameworks, never here: this
  * module registers elements and does nothing else.
  */
 
-import "./spin-accordion/spin-accordion.html";
-import "./spin-slider/spin-slider-fsm.html";
-import "./spin-avatar/spin-avatar-fsm.html";
-import "./spin-rating-group/spin-rating-group-fsm.html";
-import "./spin-listbox/spin-listbox-fsm.html";
-import "./spin-async-list/spin-async-list-fsm.html";
-import "./spin-editable/spin-editable-fsm.html";
-
-import "./spin-combobox/spin-combobox-fsm.html";
-import "./spin-number-input/spin-number-input-fsm.html";
-
-import "./spin-steps/spin-steps-fsm.html";
-import "./spin-timer/spin-timer-fsm.html";
-import "./spin-pin-input/spin-pin-input-fsm.html";
-
-
-
-import "./spin-tags-input/spin-tags-input-fsm.html";
-import "./spin-pagination/spin-pagination-fsm.html";
-import "./spin-scroll-area/spin-scroll-area-fsm.html";
-import "./spin-toast/spin-toast-fsm.html";
-
-import "./spin-menu/spin-menu-fsm.html";
-import "./spin-cascade-select/spin-cascade-select-fsm.html";
-import "./spin-carousel/spin-carousel-fsm.html";
-import "./spin-accordion/spin-accordion-robot.html";
-import "./spin-accordion/spin-accordion-fsm.html";
-import "./spin-dialog/spin-dialog.html";
-import "./spin-dialog/spin-dialog-fsm.html";
-import "./spin-menu/spin-menu.html";
-import "./spin-popover/spin-popover.html";
-import "./spin-tabs/spin-tabs.html";
-import "./spin-tabs/spin-tabs-fsm.html";
-import "./spin-tooltip/spin-tooltip.html";
-import "./spin-tree-view/spin-tree-view.html";
-import "./spin-tree-view/spin-tree-view-fsm.html";
-
+import "./spin-async-list/spin-async-list.html";
 import "./spin-carousel/spin-carousel.html";
-import "./spin-slider/spin-slider.html";
+import "./spin-cascade-select/spin-cascade-select.html";
+import "./spin-combobox/spin-combobox.html";
+import "./spin-dialog/spin-dialog.html";
+import "./spin-editable/spin-editable.html";
+import "./spin-menu/spin-menu.html";
+import "./spin-number-input/spin-number-input.html";
+import "./spin-pin-input/spin-pin-input.html";
+import "./spin-tags-input/spin-tags-input.html";
+import "./spin-timer/spin-timer.html";
 import "./spin-toast/spin-toast.html";
+import "./spin-tree-view/spin-tree-view.html";

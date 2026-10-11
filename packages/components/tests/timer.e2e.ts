@@ -20,7 +20,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5217;
-const URL = `http://127.0.0.1:${PORT}/timer-fsm`;
+const URL = `http://127.0.0.1:${PORT}/timer`;
 
 /** Parts are addressed by the machine's id scheme: `timer:<id>:<part>`. */
 const byId = (id: string): string => `[id="${id}"]`;
@@ -91,7 +91,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
   throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
 }
 
-Deno.test("spin-timer-fsm e2e", async () => {
+Deno.test("spin-timer e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

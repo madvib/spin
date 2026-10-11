@@ -22,19 +22,34 @@ ${inner}
         </div>`;
 
 export const popoverFixtureNote =
-  "A popover is a card that floats in the top layer: popovertarget puts it " +
-  "above everything without script, and light-dismiss is the platform's. " +
-  "A tooltip is the same surface in a smaller box, revealed on hover or " +
-  "focus of the element it describes.";
+  "A card in the top layer: `popovertarget` shows it without script, and light-dismiss is the platform's.";
 
-export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
+export const POPOVER_SURFACE_EXAMPLES: readonly PopoverExample[] = [
   {
     name: "Popover",
     html: row(
       `          <button popovertarget="menu">Open</button>
-          <popover id="menu">Menu content</popover>`,
+          <popover id="menu" popover="">Menu content</popover>`,
     ),
   },
+  {
+    name: "Popover with content",
+    html: row(
+      `          <button popovertarget="profile">Profile</button>
+          <popover id="profile" popover="">
+            <div class="flex flex-col gap-2">
+              <strong>Jane Doe</strong>
+              <span>jane@example.com</span>
+            </div>
+          </popover>`,
+    ),
+  },
+];
+
+export const tooltipFixtureNote =
+  "The popover surface in a smaller box, revealed on hover or focus of the element before it.";
+
+export const TOOLTIP_EXAMPLES: readonly PopoverExample[] = [
   {
     name: "Tooltip",
     html: row(
@@ -43,15 +58,28 @@ export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
     ),
   },
   {
-    name: "Popover with content",
+    name: "Tooltip · focus reveals",
     html: row(
-      `          <button popovertarget="profile">Profile</button>
-          <popover id="profile">
-            <div class="flex flex-col gap-2">
-              <strong>Jane Doe</strong>
-              <span>jane@example.com</span>
-            </div>
-          </popover>`,
+      `          <a href="#">A link</a>
+          <tooltip>Tab to the link: the tip appears on focus, not only hover.</tooltip>`,
     ),
   },
+  {
+    name: "Tooltip · inline in prose",
+    html: row(
+      `          <p>A lookup table maps coordinates — <span>LUT<tooltip>Lookup table.</tooltip></span> — to values.</p>`,
+    ),
+  },
+  {
+    name: "Tooltip · long text",
+    html: row(
+      `          <button>Hover me</button>
+          <tooltip>A tip too long for the trigger widens beside it — one line, because the surface never wraps.</tooltip>`,
+    ),
+  },
+];
+
+export const POPOVER_EXAMPLES: readonly PopoverExample[] = [
+  ...POPOVER_SURFACE_EXAMPLES,
+  ...TOOLTIP_EXAMPLES,
 ];

@@ -136,7 +136,7 @@ async function cssFor(classes: string): Promise<string> {
 function declarationsFor(css: string, utility: string): Record<string, string> {
   const selector = new RegExp(`\\.${utility}(?![\\w-])`);
   const declarations: Record<string, string> = {};
-  for (const [, selectorText, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  for (const [, selectorText = "", body = ""] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (!selector.test(selectorText)) continue;
     for (const declaration of body.split(";")) {
       const at = declaration.indexOf(":");

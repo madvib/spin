@@ -21,7 +21,12 @@ export function badgeRules(
   mode: Mode,
 ): Rule[] {
   if (!roots.includes("badge")) return [];
-  return [badgeBase(mode), ...badgeTones(mode), ...badgeSizes(mode), ...badgeClose(mode)];
+  return [
+    badgeBase(mode),
+    ...badgeTones(mode),
+    ...badgeSizes(mode),
+    ...badgeClose(mode),
+  ];
 }
 
 /** The shared shape every tone keeps: a small inline pill. */
@@ -31,23 +36,34 @@ function badgeBase(mode: Mode): Rule {
     /^badge$/,
     function* (_m, ctx) {
       const t = themeOf(ctx);
-      const spacing2 = t?.spacing["2"];
-      const spacing1 = t?.spacing["1"];
+      const spacing2 = t?.spacing?.["2"];
+      const spacing1 = t?.spacing?.["1"];
       const borderWidth = t?.borderWidth?.["width"];
       const borderColor = t?.colors?.["border"];
-      const sizeXs = t?.fontSize["xs"];
-      const weightMedium = t?.fontWeight["medium"];
+      const sizeXs = t?.fontSize?.["xs"];
+      const weightMedium = t?.fontWeight?.["medium"];
       const badgeGroup = groupOf(ctx, "badge");
       const edge = badgeGroup?.["edge"] ?? borderWidth;
-      const radius = badgeGroup?.["radius"] ?? t?.radius?.["full"];
+      // `badge.pill` is a boolean token: a theme declares it true for the
+      // pill and false (or omits it) for the square tag. The flag IS the
+      // decision — the rule asks one question instead of carrying a radius
+      // scale a badge has no use for.
+      const pill = badgeGroup?.["pill"] !== undefined;
+      const pillRadius = t?.radius?.["full"];
       yield {
         [ctx.symbols.selector]: () => badge,
         display: "inline-flex",
         "align-items": "center",
         ...(spacing1 !== undefined ? { gap: spacing1 } : {}),
-        ...(radius !== undefined ? { "border-radius": radius } : {}),
+        ...(pill && pillRadius !== undefined
+          ? { "border-radius": pillRadius }
+          : {}),
         ...(sizeXs !== undefined ? { "font-size": sizeXs } : {}),
         ...(weightMedium !== undefined ? { "font-weight": weightMedium } : {}),
+        // The base owns its line box too: inherited leading would size the
+        // pill to its context — 12px inside a button, 18px in a row —
+        // rather than to its own type. Unitless 1 keeps glyphs centered.
+        "line-height": 1,
         ...(spacing2 !== undefined
           ? {
             "padding-inline-start": spacing2,
@@ -112,7 +128,8 @@ function badgeTones(mode: Mode): Rule[] {
           // fires; the attribute selector matches the element that carries
           // no class. Either authoring produces this declaration block.
           yield {
-            [ctx.symbols.selector]: () => `${badge}.badge-${name}, ${badge}[variant~="${name}"]`,
+            [ctx.symbols.selector]: () =>
+              `${badge}.badge-${name}, ${badge}[variant~="${name}"]`,
             ...(bg !== undefined ? { "background-color": bg } : {}),
             ...(fg !== undefined ? { color: fg } : {}),
             // Neutral's edge IS the tone — same surface, a border the
@@ -136,10 +153,15 @@ function badgeTones(mode: Mode): Rule[] {
             ? colors?.[edge]
             : colors?.[fill];
           yield {
-            [ctx.symbols.selector]: () => `${badge}.badge-${name}-muted, ${badge}[variant~="${name}-muted"]`,
+            [ctx.symbols.selector]: () =>
+              `${badge}.badge-${name}-muted, ${badge}[variant~="${name}-muted"]`,
             ...(toneColour !== undefined ? { "border-color": toneColour } : {}),
             ...(surface !== undefined
-              ? { "background-color": `color-mix(in oklab, ${surface} 92%, ${toneColour ?? "transparent"})` }
+              ? {
+                "background-color": `color-mix(in oklab, ${surface} 92%, ${
+                  toneColour ?? "transparent"
+                })`,
+              }
               : {}),
           };
         },
@@ -163,28 +185,47 @@ function badgeSizes(mode: Mode): Rule[] {
     spacingInline: string;
     spacingBlock: string;
   }> = [
-    { name: "badge-sm", short: "sm", fontSize: "2xs", spacingInline: "1", spacingBlock: "0" },
-    { name: "badge-lg", short: "lg", fontSize: "sm", spacingInline: "4", spacingBlock: "2" },
+    {
+      name: "badge-sm",
+      short: "sm",
+      fontSize: "2xs",
+      spacingInline: "1",
+      spacingBlock: "0",
+    },
+    {
+      name: "badge-lg",
+      short: "lg",
+      fontSize: "sm",
+      spacingInline: "4",
+      spacingBlock: "2",
+    },
   ];
   return SIZES.map((size) => [
     new RegExp(`^${size.name}$`),
     function* (_m, ctx) {
       const t = themeOf(ctx);
-      const fontSize = t?.fontSize[size.fontSize];
-      const spacingInline = t?.spacing[size.spacingInline];
-      const spacingBlock = t?.spacing[size.spacingBlock];
+      const fontSize = t?.fontSize?.[size.fontSize];
+      const spacingInline = t?.spacing?.[size.spacingInline];
+      const spacingBlock = t?.spacing?.[size.spacingBlock];
       yield {
-        [ctx.symbols.selector]: () => `${badge}.${size.name}, ${badge}[variant~="${size.short}"]`,
+        [ctx.symbols.selector]: () =>
+          `${badge}.${size.name}, ${badge}[variant~="${size.short}"]`,
         ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
         // Sizes own their line box: inherited body leading would swallow the
         // 2px text step between sm and the base, leaving pills the same
         // height with different type. Unitless 1 keeps glyphs centered.
         "line-height": 1,
         ...(spacingInline !== undefined
-          ? { "padding-inline-start": spacingInline, "padding-inline-end": spacingInline }
+          ? {
+            "padding-inline-start": spacingInline,
+            "padding-inline-end": spacingInline,
+          }
           : {}),
         ...(spacingBlock !== undefined
-          ? { "padding-block-start": spacingBlock, "padding-block-end": spacingBlock }
+          ? {
+            "padding-block-start": spacingBlock,
+            "padding-block-end": spacingBlock,
+          }
           : {}),
       };
     },

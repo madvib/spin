@@ -7,9 +7,9 @@ import {
 } from "./shared.ts";
 
 /**
- * The code family: `code`, `kbd`, `samp`, `pre`.
+ * The code family: `code`, `samp`, `pre`.
  *
- * Four tags that all say "this is machine text" and all read the same way — a
+ * Three tags that all say "this is machine text" and all read the same way — a
  * monospace face at a size that sits correctly beside prose, on a surface that
  * separates it from the paragraph. Separate from `prose.ts` because none of
  * them shares a state with a heading or a list; what they share is typography,
@@ -38,34 +38,6 @@ function codeRule(mode: Mode): Rule {
   ];
 }
 
-/** Keyboard input: a keycap, raised and with a real bottom edge. */
-function kbdRule(mode: Mode): Rule {
-  return [
-    /^kbd$/,
-    function* (_m, ctx) {
-      const t = proseTokens(ctx);
-      yield {
-        [ctx.symbols.selector]: () => claim(mode, "kbd"),
-        ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
-        ...(t.spacing1 !== undefined
-          ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
-          : {}),
-        ...(t.borderWidth !== undefined && t.border !== undefined
-          ? { border: `${t.borderWidth} solid ${t.border}` }
-          : {}),
-        ...(t.borderWidth !== undefined
-          ? { "border-block-end-width": `calc(${t.borderWidth} * 2)` }
-          : {}),
-        ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
-        ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
-        ...(t.text !== undefined ? { color: t.text } : {}),
-        "white-space": "nowrap",
-      };
-    },
-    { layer: "primitives", autocomplete: "kbd" },
-  ];
-}
 
 /** Program output: the mono face, no chip — it is a run of text, not a token. */
 function sampRule(mode: Mode): Rule {
@@ -92,14 +64,22 @@ function preRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => pre,
+        // The mono face is what makes a block code; the SIZE is the author's.
+        // A pinned font-size here beat every text utility on the same element
+        // at equal specificity, so a consumer could not size their own code
+        // block — the ladder exists so the app can spend it.
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
         ...rhythm(t),
         ...(t.spacing2 !== undefined && t.spacing4 !== undefined
           ? { padding: `${t.spacing2} ${t.spacing4}` }
           : {}),
         ...(t.radiusMd !== undefined ? { "border-radius": t.radiusMd } : {}),
-        ...(t.surface !== undefined ? { "background-color": t.surface } : {}),
+        // A block is an object, so it takes the raised surface — the page
+        // colour leaves a code block reading as more prose, and the two are
+        // different things.
+        ...(t.raised !== undefined
+          ? { "background-color": t.raised }
+          : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         "line-height": "1.5",
         "overflow-x": "auto",
@@ -119,7 +99,6 @@ export function codeRules(roots: readonly string[], mode: Mode): Rule[] {
   if (!roots.includes("prose")) return [];
   return [
     codeRule(mode),
-    kbdRule(mode),
     sampRule(mode),
     preRule(mode),
   ];

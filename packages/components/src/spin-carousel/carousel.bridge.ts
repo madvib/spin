@@ -1,10 +1,10 @@
 import type { MachineDef } from "@spin/runtime";
 import { computed, effect, machineTick, scope, signal } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotCarousel,
-  type CarouselFsmApi,
-  type CarouselFsmConnectProps,
+  type CarouselApi,
+  type CarouselConnectProps,
   type CarouselSlide,
   type CarouselView,
 } from "./carousel.connect.ts";
@@ -56,17 +56,17 @@ function derive(props: Record<string, unknown>): Derived {
  * `index` alternates from an authored prop, exactly as tree-view's
  * controlled sets do, and the change events fire from `send`.
  */
-export function createCarouselFsmBridge(
+export function createCarouselBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: CarouselFsmApi; dispose(): void } {
+): { readonly api: CarouselApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<CarouselContext, CarouselEvent>(config, implementations);
   const view: CarouselView = { appliedKey: "", readout: { value: "" } };
 
-  let service: FsmService<CarouselContext, CarouselEvent> | undefined;
+  let service: Service<CarouselContext, CarouselEvent> | undefined;
 
   const readCallbacks = () => {
     const p = props();
@@ -82,7 +82,7 @@ export function createCarouselFsmBridge(
     return typeof predicate === "function" ? (predicate as (n: string) => boolean)(name) : false;
   };
 
-  const ensureService = (): FsmService<CarouselContext, CarouselEvent> => {
+  const ensureService = (): Service<CarouselContext, CarouselEvent> => {
     if (!service) {
       const p = props();
       const d = derive(p);
@@ -101,7 +101,7 @@ export function createCarouselFsmBridge(
     return service;
   };
 
-  const connectProps = (): CarouselFsmConnectProps => {
+  const connectProps = (): CarouselConnectProps => {
     const svc = ensureService();
     const p = props();
     const d = derive(p);
@@ -225,7 +225,7 @@ export function createCarouselFsmBridge(
     setAutoplay: (on: boolean): void => send({ type: on ? "AUTOPLAY.START" : "AUTOPLAY.STOP" }),
   };
 
-  const api = new Proxy({} as CarouselFsmApi, {
+  const api = new Proxy({} as CarouselApi, {
     get: (_target, key) =>
       key in commands
         ? (commands as Record<string | symbol, unknown>)[key]
@@ -255,11 +255,7 @@ export function createCarouselFsmBridge(
 }
 
 export const carousel: MachineDef = {
-  machine: {},
-  connect: (() => {
-    throw new Error("carousel fsm runs through createCarouselFsmBridge");
-  }) as never,
-  createBridge: createCarouselFsmBridge,
+  createBridge: createCarouselBridge,
   commands: ["next", "prev", "goTo", "setAutoplay"],
   events: {
     "index-change": {

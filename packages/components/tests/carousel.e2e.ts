@@ -1,5 +1,5 @@
 /**
- * E2E: spin-carousel-fsm renders and pages in a real browser.
+ * E2E: spin-carousel renders and pages in a real browser.
  *
  * Run explicitly (not in default `deno task test`):
  *   cd packages/components && deno task e2e:carousel
@@ -18,7 +18,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5204;
-const URL = `http://127.0.0.1:${PORT}/carousel-fsm`;
+const URL = `http://127.0.0.1:${PORT}/carousel`;
 
 /** Runs a named step, rethrowing any failure prefixed with the step name. */
 async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -80,7 +80,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
 const indexOf = async (page: Page): Promise<string> =>
   (await page.locator("#carousel-index").textContent()) ?? "";
 
-Deno.test("spin-carousel-fsm e2e", async () => {
+Deno.test("spin-carousel e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];
@@ -95,18 +95,18 @@ Deno.test("spin-carousel-fsm e2e", async () => {
 
     await step("load page", async () => {
       await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector('spin-carousel-fsm [aria-roledescription="carousel"]', {
+      await page.waitForSelector('spin-carousel [aria-roledescription="carousel"]', {
         timeout: 5000,
       });
     });
 
-    const region = page.locator('spin-carousel-fsm [aria-roledescription="carousel"]');
-    const track = page.locator('spin-carousel-fsm [id$=":item-group"]');
-    const items = page.locator('spin-carousel-fsm [id$=":item-group"] > [data-index]');
-    const indicators = page.locator('spin-carousel-fsm [aria-label="Slides"] > button');
-    const prev = page.locator('spin-carousel-fsm button[aria-label="Previous slide"]');
-    const next = page.locator('spin-carousel-fsm button[aria-label="Next slide"]');
-    const autoplayTrigger = page.locator('spin-carousel-fsm button[aria-label="Start slide rotation"]');
+    const region = page.locator('spin-carousel [aria-roledescription="carousel"]');
+    const track = page.locator('spin-carousel [id$=":item-group"]');
+    const items = page.locator('spin-carousel [id$=":item-group"] > [data-index]');
+    const indicators = page.locator('spin-carousel [aria-label="Slides"] > button');
+    const prev = page.locator('spin-carousel button[aria-label="Previous slide"]');
+    const next = page.locator('spin-carousel button[aria-label="Next slide"]');
+    const autoplayTrigger = page.locator('spin-carousel button[aria-label="Start slide rotation"]');
 
     await step("renders the carousel contract", async () => {
       assert.equal(await region.getAttribute("role"), "region");
@@ -118,7 +118,7 @@ Deno.test("spin-carousel-fsm e2e", async () => {
         "the track is the keyboard surface",
       );
       assert.equal(
-        await page.locator('spin-carousel-fsm [id$=":progress-text"]').textContent(),
+        await page.locator('spin-carousel [id$=":progress-text"]').textContent(),
         "1 / 5",
         "progress text reads page one of five",
       );
@@ -150,7 +150,7 @@ Deno.test("spin-carousel-fsm e2e", async () => {
       assert.equal(await indexOf(page), "1");
       assert.equal(await indicators.nth(1).getAttribute("data-current"), "");
       assert.equal(
-        await page.locator('spin-carousel-fsm [id$=":progress-text"]').textContent(),
+        await page.locator('spin-carousel [id$=":progress-text"]').textContent(),
         "2 / 5",
       );
     });

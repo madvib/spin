@@ -1,7 +1,10 @@
 import type { Rule } from "@unocss/core";
 import { a11yRules } from "./a11y.ts";
 import { alertRules } from "./alert.ts";
+import { avatarGroupRules } from "./avatar-group.ts";
+import { avatarRules } from "./avatar.ts";
 import { badgeRules } from "./badge.ts";
+import { breadcrumbsRules } from "./breadcrumbs.ts";
 import { buttonRules } from "./button.ts";
 import { cardRules } from "./card.ts";
 import type { Mode } from "./shared.ts";
@@ -10,13 +13,23 @@ import { dialogRules } from "./dialog.ts";
 import { accordionRules } from "./accordion.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
+import { fieldsetRules } from "./fieldset.ts";
 import { groupRules } from "./group.ts";
-import { inputRules } from "./input.ts";
+import { joinRules } from "./join.ts";
+import { hrRules } from "./hr.ts";
+import { kbdRules } from "./kbd.ts";
+import { labelRules } from "./label.ts";
+import { meterRules } from "./meter.ts";
+import { modeRules } from "./mode.ts";
 import { popoverRules } from "./popover.ts";
+import { rangeRules } from "./range.ts";
+import { ratingRules } from "./rating.ts";
 import { progressRules } from "./progress.ts";
 import { radioRules } from "./radio.ts";
 import { proseRules } from "./prose.ts";
 import { selectRules } from "./select.ts";
+import { skeletonRules } from "./skeleton.ts";
+import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
 import { tabsRules } from "./tabs.ts";
 import { textareaRules } from "./textarea.ts";
@@ -43,29 +56,37 @@ export function primitiveRules(
   mode: Mode,
 ): Rule[] {
   return [
-    // The shared box is emitted by whichever of the three text-like fields is
-    // enabled, because they are one box: `<select>` renders the same field a
-    // `<textarea>` does. Gating it on `input` alone would leave a select with
-    // no border when only it was asked for.
-    ...(roots.includes("input") || roots.includes("select") ||
-        roots.includes("textarea")
-      ? [fieldBox()]
-      : []),
+    // The shared box is one component: `field` covers input, select and
+    // textarea, because they are one box with three contents.
+    ...(roots.includes("field") ? [fieldBox()] : []),
     ...a11yRules(roots),
+    ...avatarGroupRules(roots, mode),
+    ...avatarRules(roots, mode),
     ...alertRules(roots, mode),
     ...badgeRules(roots, mode),
+    ...breadcrumbsRules(roots, mode),
     ...buttonRules(roots),
     ...cardRules(roots, mode),
     ...controlRules(roots),
     ...dialogRules(roots, mode),
     ...accordionRules(roots, mode),
     ...disclosureRules(roots, mode),
+    ...fieldsetRules(roots, mode),
     ...progressRules(roots, mode),
     ...proseRules(roots, mode),
     ...groupRules(roots),
-    ...inputRules(roots),
+    ...joinRules(roots, mode),
+    ...hrRules(roots, mode),
+    ...kbdRules(roots, mode),
+    ...labelRules(roots, mode),
+    ...modeRules(roots, mode),
+    ...meterRules(roots, mode),
     ...popoverRules(roots, mode),
+    ...rangeRules(roots, mode),
+    ...ratingRules(roots, mode),
     ...selectRules(roots),
+    ...skeletonRules(roots, mode),
+    ...statRules(roots, mode),
     ...tableRules(roots, mode),
     ...tabsRules(roots, mode),
     ...textareaRules(roots),

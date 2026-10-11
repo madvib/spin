@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createEditableFsmBridge } from "./editable.bridge.ts";
+import { createEditableBridge } from "./editable.bridge.ts";
 import type { EditableEditChange, EditableValueChange } from "./editable.bridge.ts";
-import type { EditableFsmApi } from "./editable.connect.ts";
+import type { EditableApi } from "./editable.connect.ts";
 import type { InteractOutsideEvent } from "./actions/interact-outside.action.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -69,7 +69,7 @@ interface OutsideReport {
 }
 
 interface Harness {
-  readonly api: EditableFsmApi;
+  readonly api: EditableApi;
   readonly valueChanges: string[];
   readonly editChanges: boolean[];
   readonly commits: string[];
@@ -131,7 +131,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     outside.interact += 1;
     if (event.defaultPrevented) return;
   });
-  const bridge = createEditableFsmBridge(
+  const bridge = createEditableBridge(
     () => {
       const bag: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) bag[name] = source();

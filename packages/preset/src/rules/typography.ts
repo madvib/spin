@@ -18,7 +18,7 @@ export function typographyRules(): Rule[] {
     ...staticRules([...TYPOGRAPHY_NAMES], STATIC_DECLS),
     [
       /^font-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const family = tokenOf(ctx, "fontFamily", name);
         if (family) return { "font-family": family };
         const weight = tokenOf(ctx, "fontWeight", name);
@@ -41,14 +41,14 @@ export function typographyRules(): Rule[] {
     // missing step, a colour it does not carry is an unapproved palette.
     [
       /^text-(.+)$/,
-      ([, name]: string[]) => {
+      ([, name = ""]: string[]) => {
         const literal = arbitraryValue(name);
         return literal === undefined ? undefined : { "font-size": literal };
       },
     ],
     [
       /^text-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const size = tokenOf(ctx, "fontSize", name);
         if (size) return { "font-size": size };
         const color = tokenOf(ctx, "colors", name);

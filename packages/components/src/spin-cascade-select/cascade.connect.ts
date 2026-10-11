@@ -87,7 +87,7 @@ export interface CascadeScrollDetails {
 
 export type CascadeFormatValue = (items: readonly (readonly CascadeNode[])[]) => string;
 
-export interface CascadeFsmConnectProps {
+export interface CascadeConnectProps {
   readonly closeOnSelect: boolean;
   readonly allowParentSelection: boolean;
   readonly multiple: boolean;
@@ -109,7 +109,7 @@ export interface CascadeFsmConnectProps {
   readonly onInteractOutside: ((details: CascadeOutsideDetails) => void) | undefined;
 }
 
-export interface CascadeFsmApi {
+export interface CascadeApi {
   readonly open: boolean;
   readonly focused: boolean;
   readonly multiple: boolean;
@@ -160,7 +160,7 @@ export interface CascadeService {
   send(event: { type: string } & Record<string, unknown>): void;
 }
 
-export type ReadCascadeProps = () => CascadeFsmConnectProps;
+export type ReadCascadeProps = () => CascadeConnectProps;
 
 type Send = (event: { type: string } & Record<string, unknown>) => void;
 
@@ -304,7 +304,7 @@ export function connectRobotCascade(
   id: string,
   send: Send,
   root: () => Element,
-): CascadeFsmApi {
+): CascadeApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const rootId = ownerId;
   const labelId = `${ownerId}:label`;
@@ -318,7 +318,7 @@ export function connectRobotCascade(
   const listId = (key: string): string => `${ownerId}:list:${key}`;
   const itemId = (path: readonly string[]): string => `${ownerId}:item:${path.join(",")}`;
   const ctx = (): CascadeService["context"] => service.context;
-  const props = (): CascadeFsmConnectProps => readProps();
+  const props = (): CascadeConnectProps => readProps();
 
   /** Zag's `fieldsetDisabled`, tracked by trackFormControlState: here it is a
    *  read of the enclosing fieldset, not a tracked effect. */

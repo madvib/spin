@@ -51,7 +51,13 @@ export {
   everyTokenTypeIsDecided,
   validateTokens,
 } from "./pipeline/validate.ts";
-export { BASE_ROLES, requiredPaths, themeSchema } from "./contract/roles.ts";
+export {
+  BASE_ROLES,
+  inkTokens,
+  legibilityFloors,
+  requiredPaths,
+  themeSchema,
+} from "./contract/roles.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 
@@ -82,7 +88,7 @@ export type { ThemeRef, ThemeRefGroup } from "./uno-ref.ts";
 
 // Procedures: the typed interface, owned by the module that implements it.
 export { themeContract } from "./contract/contract.ts";
-export { themeRouter } from "./contract/procedures.ts";
+export { setProjectRoot, themeRouter } from "./contract/procedures.ts";
 
 // Colour reading and contrast — what validation depends on.
 export {

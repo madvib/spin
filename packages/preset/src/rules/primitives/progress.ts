@@ -3,7 +3,7 @@ import { themeOf } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
- * Progress — `<progress>` and `<meter>`.
+ * Progress — the `<progress>` element.
  *
  * A native element with a real value and a real indeterminate state, so no
  * JavaScript. What is hard about styling one is that it is the only control
@@ -44,9 +44,8 @@ export function progressRules(
 ): Rule[] {
   if (!roots.includes("progress")) return [];
   const progress = claim(mode, "progress");
-  const meter = claim(mode, "meter");
   return [
-    barRule(progress, meter),
+    barRule(progress),
     ...indeterminateRule(progress),
     ariaBusyRule(),
   ];
@@ -55,25 +54,28 @@ export function progressRules(
 function tokens(ctx: Parameters<typeof themeOf>[0]) {
   const t = themeOf(ctx);
   return {
-    height: t?.spacing["1"],
+    height: t?.spacing?.["1"],
     radius: t?.radius?.["full"],
     track: t?.colors?.["surface-raised"],
     primary: t?.colors?.["primary"],
     warning: t?.colors?.["semantic-warning"],
     error: t?.colors?.["semantic-error"],
-    duration: t?.motionDuration?.["fast"],
+    // A sweep is watched for the length of a load, not clicked through:
+    // the motion ladder's steps are response times (150/250/400ms), and a
+    // 150ms sweep is a strobe. The period is stated, like the skeleton's
+    // dim floor, because no scale owns a loader's cycle.
+    sweep: "1.6s",
   };
 }
 
 /**
- * The bar: its groove, its fill, its indeterminate state, and a meter's three
- * ranges.
+ * The bar: its groove, its fill, and the indeterminate sweep.
  *
  * All of it yields from one rule because uno keeps only the first rule matching
  * a token, and a document only ever says `<progress>` — a `progress-value` rule
  * would never match, so the fill would never ship.
  */
-function barRule(progress: string, meter: string): Rule {
+function barRule(progress: string): Rule {
   return [
     /^progress$/,
     function* (_m, ctx) {
@@ -97,7 +99,7 @@ function barRule(progress: string, meter: string): Rule {
       // for them, and stating them here also keeps this body distinct from the
       // vendor rules' so they are never merged.
       yield {
-        [ctx.symbols.selector]: () => `${progress}, ${meter}`,
+        [ctx.symbols.selector]: () => progress,
         ...track,
         "-webkit-appearance": "none",
         "-moz-appearance": "none",
@@ -131,27 +133,6 @@ function barRule(progress: string, meter: string): Rule {
         "-moz-appearance": "none",
       };
 
-      // A meter is not a progress bar: it reports a measurement inside a known
-      // range, so its fill carries the value's own colour, and it has no
-      // indeterminate state at all.
-      yield {
-        [ctx.symbols.selector]: () => `${meter}::-webkit-meter-optimum-value`,
-        ...fill,
-        "-webkit-appearance": "none",
-      };
-      yield {
-        [ctx.symbols.selector]: () =>
-          `${meter}::-webkit-meter-suboptimum-value`,
-        ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
-        ...(t.warning !== undefined ? { "background-color": t.warning } : {}),
-      };
-      yield {
-        [ctx.symbols.selector]: () =>
-          `${meter}::-webkit-meter-even-less-good-value`,
-        ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
-        ...(t.error !== undefined ? { "background-color": t.error } : {}),
-      };
-
       // Indeterminate. The motion is the state: a bar with no fill and no
       // movement is a bar that failed to load.
       //
@@ -173,9 +154,9 @@ function barRule(progress: string, meter: string): Rule {
           "background-size": "300% 100%",
           "background-repeat": "no-repeat",
         };
-        const motion = t.duration === undefined
-          ? {}
-          : { animation: `progress-indeterminate ${t.duration} linear infinite` };
+        const motion = {
+          animation: `progress-indeterminate ${t.sweep} linear infinite`,
+        };
 
         yield {
           [ctx.symbols.selector]: () => `${progress}:indeterminate::-webkit-progress-bar`,
@@ -243,9 +224,7 @@ function indeterminateRule(progress: string): Rule[] {
             "linear-gradient(90deg, var(--progress-sweep-from) 0 30%, var(--progress-sweep-to) 50% 70%, var(--progress-sweep-from) 90% 100%)",
           "background-size": "300% 100%",
           "background-repeat": "no-repeat",
-          ...(t.duration !== undefined
-            ? { animation: `progress-indeterminate ${t.duration} linear infinite` }
-            : {}),
+          animation: `progress-indeterminate ${t.sweep} linear infinite`,
         };
         const band = {};
         yield {
@@ -302,12 +281,10 @@ function ariaBusyRule(): Rule {
         ...(t.height !== undefined ? { height: t.height } : {}),
         ...(t.primary !== undefined ? { "background-color": t.primary } : {}),
       };
-      if (t.duration !== undefined) {
-        Object.assign(bar, {
-          transformOrigin: "left",
-          animation: `progress-indeterminate ${t.duration} linear infinite`,
-        });
-      }
+      Object.assign(bar, {
+        transformOrigin: "left",
+        animation: `progress-indeterminate ${t.sweep} linear infinite`,
+      });
       yield {
         [ctx.symbols.selector]: () => '[aria-busy="true"]::before',
         ...bar,

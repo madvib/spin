@@ -16,7 +16,9 @@ import { CONTROL_EXAMPLES } from "./control.examples.ts";
 const STRUCTURAL: Record<string, true> = {
   "flex": true,
   "flex-wrap": true,
+  "flex-col": true,
   "items-center": true,
+  "items-start": true,
   "gap-2": true,
 };
 

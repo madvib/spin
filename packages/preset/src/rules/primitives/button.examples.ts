@@ -22,10 +22,7 @@ ${inner}
         </div>`;
 
 export const buttonFixtureNote =
-  "A button is a working button with no class at all: the tag carries the " +
-  "base, and variants and sizes are classes on the tag. Secondary, outline, " +
-  "contrast, danger and ghost change the tone; small and large change the " +
-  "size; bare opts out of the paint entirely for quiet actions and chrome.";
+  "A working button with no class at all: the tag carries the base. Variants change the tone, sm and lg change the size, `bare` opts out of paint for chrome.";
 
 export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
@@ -40,11 +37,26 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
     ),
   },
   {
+    name: "Bare variant",
+    html: row(
+      `          <button class="bare text-text">bare</button>
+          <button>default</button>`,
+    ),
+  },
+  {
     name: "Sizes",
     html: row(
       `          <button class="s-sm">small</button>
           <button>medium</button>
           <button class="s-lg">large</button>`,
+    ),
+  },
+  {
+    name: "Types",
+    html: row(
+      `          <button type="submit">submit</button>
+          <button type="reset">reset</button>
+          <button type="button">button</button>`,
     ),
   },
   {
@@ -54,6 +66,13 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
           <button disabled>disabled</button>
           <button aria-disabled="true">aria-disabled</button>
           <button aria-busy="true">busy</button>`,
+    ),
+  },
+  {
+    name: "Busy with an icon",
+    html: row(
+      `          <button aria-busy="true"><i class="i-lucide-plus button-icon"></i>Saving…</button>
+          <button aria-busy="true">Saving…</button>`,
     ),
   },
   {
@@ -67,8 +86,7 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   },
   {
     name: "In a group · joined corners",
-    html:
-      `        <span class="flex flex-wrap items-center gap-2" role="group">
+    html: `        <span class="flex flex-wrap items-center gap-2" role="group">
           <button class="secondary">left</button>
           <button class="secondary" aria-pressed="true">middle</button>
           <button class="secondary">right</button>

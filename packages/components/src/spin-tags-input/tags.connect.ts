@@ -52,7 +52,7 @@ export interface TagsTranslations {
   readonly noTagsSelected: string;
 }
 
-export interface TagsFsmConnectProps {
+export interface TagsConnectProps {
   readonly disabled: boolean;
   readonly readOnly: boolean;
   readonly invalid: boolean;
@@ -73,7 +73,7 @@ export interface TagsFsmConnectProps {
   readonly onFocusOutside: ((event: FocusEvent) => void) | undefined;
 }
 
-export interface TagsFsmApi {
+export interface TagsApi {
   readonly value: readonly string[];
   readonly inputValue: string;
   readonly valueAsString: string;
@@ -113,7 +113,7 @@ type Send = (event: { type: string } & Record<string, unknown>) => void;
 
 /** Read the behavioral props on demand: the connect is long-lived, so a
  * snapshot would freeze the first read's props inside cached handlers. */
-export type ReadTagsProps = () => TagsFsmConnectProps;
+export type ReadTagsProps = () => TagsConnectProps;
 
 const NAMESPACE = "tags-input";
 
@@ -163,7 +163,7 @@ export function connectRobotTagsInput(
   id: string,
   send: Send,
   root: () => Element,
-): TagsFsmApi {
+): TagsApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const rootId = ownerId;
   const labelId = `${ownerId}:label`;

@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createComboboxFsmBridge } from "./combobox.bridge.ts";
+import { createComboboxBridge } from "./combobox.bridge.ts";
 import type {
   ComboboxHighlightChange,
   ComboboxInputValueChange,
@@ -9,7 +9,7 @@ import type {
   ComboboxSelect,
   ComboboxValueChange,
 } from "./combobox.bridge.ts";
-import type { ComboboxBlock, ComboboxFsmApi, ComboboxRow } from "./combobox.connect.ts";
+import type { ComboboxBlock, ComboboxApi, ComboboxRow } from "./combobox.connect.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -87,7 +87,7 @@ const GROUPED_ITEMS = [
 ];
 
 interface Harness {
-  readonly api: ComboboxFsmApi;
+  readonly api: ComboboxApi;
   readonly root: Element;
   readonly events: {
     readonly valueChange: ComboboxValueChange[];
@@ -147,7 +147,7 @@ function mount(
   write("onInputValueChange", (change: ComboboxInputValueChange) => events.inputValueChange.push(change));
   write("onOpenChange", (change: ComboboxOpenChange) => events.openChange.push(change));
   write("onSelect", (change: ComboboxSelect) => events.select.push(change));
-  const bridge = createComboboxFsmBridge(
+  const bridge = createComboboxBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
@@ -1392,7 +1392,7 @@ Deno.test("Given a combobox / When the root id is handed an already-namespaced o
     else s(v);
   };
   write("items", FRUIT_ITEMS);
-  const bridge = createComboboxFsmBridge(
+  const bridge = createComboboxBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [n, s] of Object.entries(values)) record[n] = s();

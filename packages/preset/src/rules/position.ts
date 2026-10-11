@@ -39,7 +39,7 @@ export function positionRules(): Rule[] {
     insetRule(/^end-(.+)$/, ["inset-inline-end"], "inset-$spacing"),
     [
       /^z-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const token = tokenOf(ctx, "zIndex", name);
         if (token) return { "z-index": token };
         return undefined;

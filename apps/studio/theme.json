@@ -95,16 +95,16 @@
     "on-primary": {
       "$value": "#ffffff"
     },
-    "on-danger": {
-      "$value": "#ffffff",
-      "$type": "color"
-    },
     "focus-ring": {
       "$value": "#3f3f46"
     },
     "link": {
       "$value": "{color.primary}",
       "$description": "Links read against body text, so they follow the primary."
+    },
+    "on-semantic-error": {
+      "$value": "#ffffff",
+      "$type": "color"
     }
   },
   "spacing": {

@@ -121,7 +121,10 @@ function markRule(mode: Mode): Rule {
           ? { padding: `0 calc(${t.spacing1} / 2)` }
           : {}),
         ...(t.accent !== undefined ? { "background-color": t.accent } : {}),
-        ...(t.surface !== undefined ? { color: t.surface } : {}),
+        // The theme states what reads ON its accent; the page surface is
+        // what the accent sits on, and a starter whose accent is lighter
+        // than its surface (neobrut's amber) makes that pairing illegible.
+        ...(t.onAccent !== undefined ? { color: t.onAccent } : {}),
       };
     },
     { layer: "primitives", autocomplete: "mark" },
@@ -136,7 +139,14 @@ function insRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "ins"),
         "text-decoration": "underline",
-        ...(t.success !== undefined ? { color: t.success } : {}),
+        // The hue marks the insertion in the underline; the TEXT keeps the
+        // ink. A semantic colour as text is a fill's pairing worn on a
+        // glyph, and a starter whose success is lighter than its ink
+        // (neobrut) fails contrast with it.
+        ...(t.success !== undefined
+          ? { "text-decoration-color": t.success }
+          : {}),
+        ...(t.text !== undefined ? { color: t.text } : {}),
       };
     },
     { layer: "primitives", autocomplete: "ins" },
@@ -151,7 +161,10 @@ function delRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "del"),
         "text-decoration": "line-through",
-        ...(t.error !== undefined ? { color: t.error } : {}),
+        ...(t.error !== undefined
+          ? { "text-decoration-color": t.error }
+          : {}),
+        ...(t.text !== undefined ? { color: t.text } : {}),
       };
     },
     { layer: "primitives", autocomplete: "del" },

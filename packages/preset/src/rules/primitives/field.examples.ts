@@ -22,13 +22,9 @@ ${inner}
         </div>`;
 
 export const fieldFixtureNote =
-  "A field is a working field with no class at all: the tag carries the " +
-  "box, and states are attributes on the tag. Disabled and readonly are " +
-  "platform states; aria-invalid carries validity — unjudged, passed, " +
-  "failed. The type is the platform's concern: email gets validation, " +
-  "search gets a clear button, number gets a stepper.";
+  "A text field works with no class: the tag carries the box and states are attributes. `aria-invalid` carries validity — unjudged, passed, failed.";
 
-export const FIELD_EXAMPLES: readonly FieldExample[] = [
+export const INPUT_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Input · states",
     html: row(
@@ -56,6 +52,12 @@ export const FIELD_EXAMPLES: readonly FieldExample[] = [
           <label><input type="date"><span>Date</span></label>`,
     ),
   },
+];
+
+export const selectFixtureNote =
+  "A select draws itself rather than wearing the platform's chrome, on the same box a text field takes.";
+
+export const SELECT_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Select",
     html: row(
@@ -64,6 +66,38 @@ export const FIELD_EXAMPLES: readonly FieldExample[] = [
     ),
   },
   {
+    name: "Select · validity",
+    html: row(
+      `          <label><select><option>Unjudged</option></select><span>Unjudged</span></label>
+          <label><select aria-invalid="false"><option>Passed</option></select><span>Passed</span></label>
+          <label><select aria-invalid="true"><option>Failed</option></select><span>Failed</span></label>`,
+    ),
+  },
+  {
+    name: "Select · grouped options",
+    html: row(
+      `          <label><select>
+            <optgroup label="Fruit"><option>Apple</option><option>Pear</option></optgroup>
+            <optgroup label="Vegetable"><option>Beet</option></optgroup>
+          </select><span>Groups are the platform's</span></label>`,
+    ),
+  },
+  {
+    name: "Select · multiple",
+    html: row(
+      `          <label><select multiple size="4">
+            <option selected>Alpha</option><option>Bravo</option>
+            <option>Charlie</option><option>Delta</option>
+          </select><span>Size, not classes</span></label>`,
+    ),
+  },
+];
+
+export const textareaFixtureNote =
+  "A multi-line box that wraps and resizes vertically, with a min height that keeps a one-row textarea a textarea.";
+
+export const TEXTAREA_EXAMPLES: readonly FieldExample[] = [
+  {
     name: "Textarea",
     html: row(
       `          <label><textarea rows="2" placeholder="Multi-line"></textarea><span>Default</span></label>
@@ -71,4 +105,22 @@ export const FIELD_EXAMPLES: readonly FieldExample[] = [
           <label><textarea rows="2" disabled>Cannot touch</textarea><span>Disabled</span></label>`,
     ),
   },
+  {
+    name: "Textarea · readonly",
+    html: row(
+      `          <label><textarea rows="2" readonly>Cannot touch</textarea><span>Read only, still selectable</span></label>`,
+    ),
+  },
+  {
+    name: "Textarea · one line at rest",
+    html: row(
+      `          <label><textarea rows="1" placeholder="Grows by the author's drag, never by content"></textarea><span>Min height keeps it a textarea</span></label>`,
+    ),
+  },
+];
+
+export const FIELD_EXAMPLES: readonly FieldExample[] = [
+  ...INPUT_EXAMPLES,
+  ...SELECT_EXAMPLES,
+  ...TEXTAREA_EXAMPLES,
 ];

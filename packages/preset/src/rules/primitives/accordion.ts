@@ -51,13 +51,13 @@ interface Tokens {
 function tokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
   const t = themeOf(ctx);
   return {
-    spacing2: t?.spacing["2"],
-    spacing3: t?.spacing["4"],
+    spacing2: t?.spacing?.["2"],
+    spacing3: t?.spacing?.["4"],
     radius: t?.radius?.["md"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
+    text: t?.colors?.["text"],
+    muted: t?.colors?.["text-muted"],
+    raised: t?.colors?.["surface-raised"],
+    border: t?.colors?.["border"],
     borderWidth: t?.borderWidth?.["DEFAULT"],
     duration: t?.duration?.["DEFAULT"],
     easing: t?.easing?.["DEFAULT"],

@@ -31,18 +31,7 @@ ${inner}
         </div>`;
 
 export const iconFixtureNote =
-  "An icon's size is a token a theme decides, not a number someone wrote " +
-  "down: icon-sm, icon-md and icon-lg spend icon.sm, icon.md and icon.lg " +
-  "from the theme's icon group — dimensions a theme states in em, so a " +
-  "size step scales with the control it sits in rather than pinning the " +
-  "glyph to one absolute length. The size is a font-size, and that is " +
-  "forced by the layers: the glyph these classes size is an icon class " +
-  "from @unocss/preset-icons, which sizes itself 1em in the icons layer — " +
-  "a layer the primitives layer cannot beat at equal specificity, so a " +
-  "width or height stated here would be dead the moment an icon class is " +
-  "present. font-size is the one lever that reaches it. icon-md is the " +
-  "default restated as a class: the button's slot already spends icon.md, " +
-  "so writing it changes nothing until a theme says otherwise.";
+  "Glyph sizes from the theme's icon ladder. The step is set against the root, so it is a jump you can see rather than two pixels of prose.";
 
 export const ICON_EXAMPLES: readonly IconExample[] = [
   {
@@ -51,6 +40,14 @@ export const ICON_EXAMPLES: readonly IconExample[] = [
       `          <i class="i-lucide-plus icon-sm"></i>
           <i class="i-lucide-plus icon-md"></i>
           <i class="i-lucide-plus icon-lg"></i>`,
+    ),
+  },
+  {
+    name: "Sizes · at the size they read",
+    html: row(
+      `          <p class="text-md"><i class="i-lucide-plus icon-sm"></i> small step</p>
+          <p class="text-md"><i class="i-lucide-plus icon-md"></i> medium step</p>
+          <p class="text-md"><i class="i-lucide-plus icon-lg"></i> large step</p>`,
     ),
   },
   {
@@ -80,8 +77,8 @@ export const ICON_EXAMPLES: readonly IconExample[] = [
   {
     name: "In text",
     html:
-      `<p>Press the <i class="i-lucide-plus icon-sm"></i> button to continue.</p>
-        <p>Press the <i class="i-lucide-plus icon-md"></i> button to continue.</p>
-        <p>Press the <i class="i-lucide-plus icon-lg"></i> button to continue.</p>`,
+      `<p>An icon inline with a sentence keeps the sentence's own measure: the step is set against the root, not against the paragraph.</p>
+        <p>Press <i class="i-lucide-plus icon-md"></i> to continue, or <i class="i-lucide-x icon-md"></i> to cancel.</p>
+        <p>Visit <i class="i-lucide-globe icon-md"></i> the dashboard, or <i class="i-lucide-search icon-md"></i> to find something.</p>`,
   },
 ];

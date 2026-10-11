@@ -1,7 +1,7 @@
 import type { MachineDef } from "@spin/runtime";
 import { computed, effect, machineTick, scope, signal } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
-import { connectRobotTreeView, type TreeFsmApi, type TreeFsmConnectProps, type TreeNode } from "./tree-view.fsm-connect.ts";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
+import { connectRobotTreeView, type TreeApi, type TreeConnectProps, type TreeNode } from "./tree-view.connect.ts";
 import {
   config,
   implementations,
@@ -48,16 +48,16 @@ function parseNodes(raw: unknown): readonly TreeNode[] {
  * callbacks live here too — the machine itself stays pure state.
  */
 
-export function createTreeFsmBridge(
+export function createTreeBridge(
   props: () => Record<string, unknown>,
   root: () => Element,
   id: string,
-): { readonly api: TreeFsmApi; dispose(): void } {
+): { readonly api: TreeApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<TreeContext, TreeEvent>(config, implementations);
 
-  let service: FsmService<TreeContext, TreeEvent> | undefined;
+  let service: Service<TreeContext, TreeEvent> | undefined;
 
   const readCallbacks = (): TreeCallbacks => {
     const p = props();
@@ -111,14 +111,14 @@ export function createTreeFsmBridge(
     };
   };
 
-  const connectProps = (p: Record<string, unknown>): TreeFsmConnectProps => ({
+  const connectProps = (p: Record<string, unknown>): TreeConnectProps => ({
     selectionMode: p["selectionMode"] === "multiple" ? "multiple" : "single",
     expandOnClick: p["expandOnClick"] !== false,
     typeahead: p["typeahead"] !== false,
     rename: p["rename"] !== false,
   });
 
-  const ensureService = (): FsmService<TreeContext, TreeEvent> => {
+  const ensureService = (): Service<TreeContext, TreeEvent> => {
     if (!service) {
       const p = props();
       const seed = {
@@ -232,7 +232,7 @@ export function createTreeFsmBridge(
     );
   });
 
-  const api = new Proxy({} as TreeFsmApi, {
+  const api = new Proxy({} as TreeApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),
@@ -249,11 +249,7 @@ export function createTreeFsmBridge(
 }
 
 export const treeView: MachineDef = {
-  machine: config,
-  connect: (() => {
-    throw new Error("tree-view fsm runs through createTreeFsmBridge");
-  }) as never,
-  createBridge: createTreeFsmBridge,
+  createBridge: createTreeBridge,
   events: {
     "expanded-change": {
       on: "onExpandedChange",

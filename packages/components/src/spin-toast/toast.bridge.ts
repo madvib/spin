@@ -20,12 +20,12 @@
  */
 
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotToast,
   type ReadToastProps,
-  type ToastFsmApi,
-  type ToastFsmConnectProps,
+  type ToastApi,
+  type ToastConnectProps,
   type ToastItem,
   type ToastService,
 } from "./toast.connect.ts";
@@ -100,11 +100,11 @@ export type { ToastItem };
 /**
  * The toast bridge: scope values in, machine state out.
  */
-export function createToastFsmBridge(
+export function createToastBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: ToastFsmApi; dispose(): void } {
+): { readonly api: ToastApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   // A mutable context shared by every instance on the page is silent in a
@@ -115,7 +115,7 @@ export function createToastFsmBridge(
     context: { ...config.context },
   }, implementations);
 
-  let service: FsmService<ToastContext, ToastEvent> | undefined;
+  let service: Service<ToastContext, ToastEvent> | undefined;
 
   /** Tolls the machine removed on its own; a host write never revives them. */
   const machineRemoved = new Set<string>();
@@ -140,7 +140,7 @@ export function createToastFsmBridge(
     };
   };
 
-  const readConnectProps: ReadToastProps = (): ToastFsmConnectProps => {
+  const readConnectProps: ReadToastProps = (): ToastConnectProps => {
     const p = props();
     return {
       ...readContextProps(),
@@ -154,7 +154,7 @@ export function createToastFsmBridge(
     };
   };
 
-  const ensureService = (): FsmService<ToastContext, ToastEvent> => {
+  const ensureService = (): Service<ToastContext, ToastEvent> => {
     if (service) return service;
     service = owner.run(() => interpret(machine).start());
     return service;
@@ -304,8 +304,8 @@ export function createToastFsmBridge(
     },
   };
 
-  let toastConnect: ToastFsmApi | undefined;
-  const ensureConnect = (): ToastFsmApi => {
+  let toastConnect: ToastApi | undefined;
+  const ensureConnect = (): ToastApi => {
     toastConnect ??= connectRobotToast(serviceApi, readConnectProps, id, _root);
     return toastConnect;
   };
@@ -316,7 +316,7 @@ export function createToastFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as ToastFsmApi, {
+  const api = new Proxy({} as ToastApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

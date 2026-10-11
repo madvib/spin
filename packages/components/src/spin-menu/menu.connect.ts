@@ -72,7 +72,7 @@ export interface MenuBlock {
   readonly separator: boolean;
 }
 
-export interface MenuFsmConnectProps {
+export interface MenuConnectProps {
   readonly closeOnSelect: boolean;
   readonly loopFocus: boolean;
   readonly composite: boolean;
@@ -84,7 +84,7 @@ export interface MenuFsmConnectProps {
   readonly navigate?: ((details: { value: string; node: Element; href: string }) => void) | undefined;
 }
 
-export interface MenuFsmApi {
+export interface MenuApi {
   readonly isOpen: boolean;
   readonly highlightedValue: string | null;
   getBlocks(): readonly MenuBlock[];
@@ -132,7 +132,7 @@ export interface MenuService {
  * connect caches. Read live instead: a host write then reaches a gesture armed
  * before it.
  */
-export type ReadMenuProps = () => MenuFsmConnectProps;
+export type ReadMenuProps = () => MenuConnectProps;
 
 /** Typeahead state outlives the connect: the bridge's api proxy rebuilds the
  * connect on every machine move, and a fresh buffer would erase the sequence. */
@@ -189,7 +189,7 @@ export function connectRobotMenu(
   send: Send,
   root: () => Element,
   typeahead: TypeaheadState,
-): MenuFsmApi {
+): MenuApi {
   const ownerId = id.startsWith(`${NAMESPACE}:`) ? id : `${NAMESPACE}:${id}`;
   const triggerId = `${ownerId}:trigger`;
   const contentId = `${ownerId}:content`;

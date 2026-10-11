@@ -1,0 +1,153 @@
+import { effect, inserted, machineTick, signal, untrack } from "../core/signal.ts";
+import { ACTIONS, runAction } from "../actions/index.ts";
+import { toStyleString } from "../core/style.ts";
+
+/**
+ * Properties written through the IDL rather than as content attributes.
+ */
+const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
+
+/**
+ * Reactive prop application from a live reader.
+ *
+ * Loader-owned effect: called from emitted code in build scope. The reader
+ * is re-invoked on every machine move (via machineTick) and on insertion.
+ * Handlers (on*) are skipped — actions own those.
+ */
+export function bindActionProps(
+  el: Element,
+  read: () => Record<string, unknown>,
+): void {
+  let last: Record<string, unknown> = {};
+  effect(() => {
+    inserted();
+    machineTick();
+    const props = read();
+    for (const name of Object.keys(last)) {
+      if (!(name in props) && !name.startsWith("on")) el.removeAttribute(name);
+    }
+    for (const [name, value] of Object.entries(props)) {
+      if (name.startsWith("on")) continue;
+      if (Object.is(value, last[name])) continue;
+      if (ASSIGNABLE.has(name)) {
+        (el as unknown as Record<string, unknown>)[name] = value;
+      } else if (
+        name.startsWith("aria-") &&
+        (value === true || value === false)
+      ) {
+        // ARIA states are not HTML booleans (see bindActionProps above):
+        // both render explicitly, and this writes the string form itself
+        // instead of relying on IDL reflection, which linkedom does not
+        // implement — so unit DOM and Chromium agree.
+        el.setAttribute(name, value === true ? "true" : "false");
+      } else if (value === undefined || value === null || value === false) {
+        el.removeAttribute(name);
+      } else if (value === true) {
+        el.setAttribute(name, "");
+      } else {
+        el.setAttribute(name, String(value));
+      }
+    }
+    last = props;
+  });
+}
+
+/**
+ * Reactive spread application from a live reader.
+ *
+ * Same lifecycle as bindActionProps (inserted + machineTick), but `on*`
+ * function values attach as event listeners instead of being skipped —
+ * the bag owns its handlers. Listener names are the lowercased slice(2)
+ * of the key; a camelCase name (`onFocus`) is already the DOM spelling.
+ */
+export function bindSpread(
+  el: Element,
+  read: () => Record<string, unknown>,
+): () => void {
+  let last: Record<string, unknown> = {};
+  const attached = new Map<string, EventListener>();
+  // The most recent bag, published for action param thunks to read through
+  // a tracked signal — that is what makes `update` fire on machine moves.
+  const latest = signal<Record<string, unknown>>({});
+  const attachedActions = new Set<string>();
+  effect(() => {
+    inserted();
+    machineTick();
+    const props = read();
+    for (const name of Object.keys(last)) {
+      // `use:name` entries are directives the attach pass below owns, so this
+      // pass neither writes nor removes them as attributes.
+      const directive = name.startsWith("use:");
+      if (!(name in props) && !name.startsWith("on") && !directive) {
+        el.removeAttribute(name);
+      }
+    }
+    const seen = new Set<string>();
+    for (const [name, value] of Object.entries(props)) {
+      if (name.startsWith("on") && typeof value === "function") {
+        const type = name.slice(2).toLowerCase();
+        const listener = value as EventListener;
+        seen.add(type);
+        if (attached.get(type) !== listener) {
+          const prev = attached.get(type);
+          if (prev !== undefined) el.removeEventListener(type, prev);
+          el.addEventListener(type, listener);
+          attached.set(type, listener);
+        }
+        continue;
+      }
+      // A bag-carried action is a directive, not an attribute: the attach
+      // pass below consumes it. Writing it here would leak its stringified
+      // param (`use:form-control="[object Object]"`) into the DOM.
+      if (name.startsWith("use:")) continue;
+      if (Object.is(value, last[name])) continue;
+      if (ASSIGNABLE.has(name)) {
+        (el as unknown as Record<string, unknown>)[name] = value;
+      } else if (name.startsWith("aria-") && typeof value === "boolean") {
+        // ARIA states are not HTML booleans: `aria-selected=""` parses as
+        // unset, not true, and a removed `aria-selected` reads as a third
+        // state rather than false. Render both explicitly, matching React.
+        el.setAttribute(name, String(value));
+      } else if (value === undefined || value === null || value === false) {
+        el.removeAttribute(name);
+      } else if (value === true) {
+        el.setAttribute(name, "");
+      } else if (name === "style" && typeof value === "object") {
+        el.setAttribute("style", toStyleString(value as Record<string, unknown>));
+      } else {
+        el.setAttribute(name, String(value));
+      }
+    }
+    for (const [type, fn] of attached) {
+      if (!seen.has(type)) {
+        el.removeEventListener(type, fn);
+        attached.delete(type);
+      }
+    }
+    last = props;
+    // Publish for action param thunks (see the attach pass below).
+    latest(props);
+    // Bag-carried actions: a `use:name` key attaches the named registry
+    // action ONCE, with the bag entry as its reactive param. Created inside
+    // untrack for the same reason `for.ts` wraps row renders: an effect
+    // created during this effect's run would be unlinked and disposed the
+    // next time it re-runs, restarting the action on every machine move.
+    for (const name of Object.keys(props)) {
+      if (!name.startsWith("use:") || name.length <= 4) continue;
+      if (attachedActions.has(name)) continue;
+      const action = (ACTIONS as Record<string, unknown>)[name.slice(4)];
+      if (typeof action !== "function") continue;
+      attachedActions.add(name);
+      untrack(() =>
+        runAction(el, action as never, () => {
+          const entry = latest()[name];
+          // A function entry is a live read the machine wants re-evaluated;
+          // anything else is the param itself.
+          return typeof entry === "function" ? entry() : entry;
+        }),
+      );
+    }
+  });
+  return () => {};
+}
+

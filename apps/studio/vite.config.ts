@@ -25,7 +25,12 @@ export default defineConfig({
         },
       },
     }),
-    solidStart(),
+    // The studio is an authenticated tool, not a page: nothing here is
+    // crawlable and nothing needs a server-rendered first paint. Rendering on
+    // the server would mean the page cannot load without the daemon answering
+    // an HTTP fetch mid-render, which couples the studio's uptime to a process
+    // the client can equally well talk to. Client-only is the boring shape.
+    solidStart({ ssr: false }),
     nitro(),
   ],
   resolve: {
@@ -65,6 +70,13 @@ export default defineConfig({
         replacement: resolve(
           import.meta.dirname,
           "../../packages/preset/src/index.ts",
+        ),
+      },
+      {
+        find: "@spin/api",
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/api/src/index.ts",
         ),
       },
       { find: /^npm:(.+)$/, replacement: "$1" },

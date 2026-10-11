@@ -1,5 +1,5 @@
 import { bindAttr, bindText } from "./bind.ts";
-import { bindSpread } from "./zag-bind.ts";
+import { bindSpread } from "./spread.ts";
 import { on } from "./use.ts";
 import { scope as makeScope } from "../core/signal.ts";
 import { bindFor } from "./for.ts";

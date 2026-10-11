@@ -45,7 +45,7 @@ export function divideRules(): Rule[] {
     ],
     [
       /^divide-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const ref = tokenOf(ctx, "colors", name);
         if (!ref) return undefined;
         return {

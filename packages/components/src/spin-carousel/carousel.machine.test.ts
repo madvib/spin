@@ -6,7 +6,7 @@ import {
   type CarouselContext,
   type CarouselEvent,
 } from "./carousel.machine.ts";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 
 /**
  * The carousel's config, its assigns and its derived page count, through the
@@ -17,7 +17,7 @@ import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
  * object, so one test's writes cannot reach the next), then the scalar the
  * assigns read. Everything asserted after that is what a host observes.
  */
-function carousel(slideCount: number, loop = false): FsmService<CarouselContext, CarouselEvent> {
+function carousel(slideCount: number, loop = false): Service<CarouselContext, CarouselEvent> {
   const svc = interpret(createMachine<CarouselContext, CarouselEvent>(config, implementations));
   svc.start("idle");
   svc.send({ type: "PAGES.SET", count: slideCount });
@@ -25,7 +25,7 @@ function carousel(slideCount: number, loop = false): FsmService<CarouselContext,
   return svc;
 }
 
-const contextOf = (svc: FsmService<CarouselContext, CarouselEvent>): CarouselContext => svc.state.context;
+const contextOf = (svc: Service<CarouselContext, CarouselEvent>): CarouselContext => svc.state.context;
 
 Deno.test("Given a five-slide carousel / When it starts / Then it is idle on page 0 of 5", () => {
   const svc = carousel(5);

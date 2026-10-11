@@ -1,14 +1,14 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotMenu,
   type MenuEntry,
-  type MenuFsmApi,
-  type MenuFsmConnectProps,
+  type MenuApi,
+  type MenuConnectProps,
   type MenuService,
   type ReadMenuProps,
 } from "./menu.connect.ts";
-import { config, implementations, type MenuContext, type MenuEvent } from "./menu.fsm-machine.ts";
+import { config, implementations, type MenuContext, type MenuEvent } from "./menu.machine.ts";
 
 export interface MenuOpenChange {
   readonly open: boolean;
@@ -94,17 +94,17 @@ function parseItems(raw: unknown): readonly MenuEntry[] {
  * behavioural props) sync through the same owned effect that drives the
  * controlled channel.
  */
-export function createMenuFsmBridge(
+export function createMenuBridge(
   props: () => Record<string, unknown>,
   root: () => Element,
   id: string,
-): { readonly api: MenuFsmApi & MenuCommands; dispose(): void } {
+): { readonly api: MenuApi & MenuCommands; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<MenuContext, MenuEvent>(config, implementations);
   const typeahead = { keys: "", at: 0 };
 
-  let service: FsmService<MenuContext, MenuEvent> | undefined;
+  let service: Service<MenuContext, MenuEvent> | undefined;
 
   const authored = (name: string): boolean => {
     const predicate = props()["@@authored"];
@@ -143,7 +143,7 @@ export function createMenuFsmBridge(
     return undefined;
   };
 
-  const ensureService = (): FsmService<MenuContext, MenuEvent> => {
+  const ensureService = (): Service<MenuContext, MenuEvent> => {
     if (service) return service;
     const p = props();
     service = owner.run(() => {
@@ -257,7 +257,7 @@ export function createMenuFsmBridge(
 
   /** The behavioural props, read per connect call rather than snapshotted: the
    * connect is long-lived, so a host write has to reach the handlers it holds. */
-  const readConnectProps: ReadMenuProps = (): MenuFsmConnectProps => {
+  const readConnectProps: ReadMenuProps = (): MenuConnectProps => {
     const p = props();
     const placement = p["placement"];
     const label = p["label"];
@@ -279,8 +279,8 @@ export function createMenuFsmBridge(
    * themselves. Rebuilding it per move is what made each read hand out a fresh
    * item tree, and the `for` directive replaced the row nodes on every
    * highlight change. */
-  let menuConnect: MenuFsmApi | undefined;
-  const ensureConnect = (): MenuFsmApi => {
+  let menuConnect: MenuApi | undefined;
+  const ensureConnect = (): MenuApi => {
     menuConnect ??= connectRobotMenu(
       serviceApi,
       readConnectProps,
@@ -308,7 +308,7 @@ export function createMenuFsmBridge(
     setHighlighted: (value: string | null): void => send({ type: "HIGHLIGHT", value }),
   };
 
-  const api = new Proxy({} as MenuFsmApi & MenuCommands, {
+  const api = new Proxy({} as MenuApi & MenuCommands, {
     get: (_target, key) =>
       key in commands ? Reflect.get(commands, key) : Reflect.get(connected(), key),
     has: (_target, key) => key in commands || Reflect.has(connected(), key),

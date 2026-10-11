@@ -11,8 +11,7 @@ import { claim, type Mode } from "./shared.ts";
  * disabled, is keyboard operable, and is announced through its native role —
  * so everything here is the surface and none of it is the mechanism.
  *
- * Three opinions, all about what "expanded" looks like rather than about a
- * different animation:
+ * Four opinions, and the fourth is about motion:
  *
  * **The marker is ours.** The platform triangle is the one part of a native
  * disclosure that looks the same in every browser and belongs to none of them.
@@ -26,6 +25,11 @@ import { claim, type Mode } from "./shared.ts";
  * **Only the marker turns.** Rotating the row moves the label's baseline, which
  * reads as the row shifting rather than as a control opening. The label stays
  * put and the indicator moves.
+ *
+ * **The reveal is the platform's, too.** The content box is `::details-content`
+ * and the platform toggles it in place, so the body can grow and shrink in
+ * place — no JavaScript, no wrapper, and no layout shift beyond the reveal
+ * itself. What is ours is the pair of states the transition interpolates.
  */
 export function disclosureRules(
   roots: readonly string[],
@@ -49,22 +53,28 @@ interface Tokens {
   readonly focusOffset: string | undefined;
   readonly duration: string | undefined;
   readonly easing: string | undefined;
+  /** The reveal's duration: a whole block entering, so a step slower. */
+  readonly reveal: string | undefined;
+  /** The reveal's curve: content enters fast and settles. */
+  readonly easeOut: string | undefined;
 }
 
 function tokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
   const t = themeOf(ctx);
   return {
-    spacing2: t?.spacing["2"],
+    spacing2: t?.spacing?.["2"],
     radius: t?.radius?.["md"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
+    text: t?.colors?.["text"],
+    muted: t?.colors?.["text-muted"],
+    raised: t?.colors?.["surface-raised"],
+    border: t?.colors?.["border"],
     borderWidth: t?.borderWidth?.["width"],
     weightSemibold: t?.fontWeight?.["semibold"],
     focusOffset: t?.focusOffset?.["offset"],
     duration: t?.motionDuration?.["fast"],
     easing: t?.motionEasing?.["standard"],
+    reveal: t?.motionDuration?.["base"],
+    easeOut: t?.motionEasing?.["decelerate"],
   };
 }
 
@@ -76,6 +86,11 @@ function detailsRule(details: string, summary: string): Rule {
       const t = tokens(ctx);
       yield {
         [ctx.symbols.selector]: () => details,
+        // The reveal interpolates a keyword — the content's natural height —
+        // and a keyword only interpolates when the element says so. The
+        // property is inherited, so stating it here lets the content box
+        // below spend `auto` as a length rather than as a jump.
+        "interpolate-size": "allow-keywords",
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { border: `${t.borderWidth} solid ${t.border}` }
           : {}),
@@ -96,7 +111,45 @@ function detailsRule(details: string, summary: string): Rule {
       yield {
         [ctx.symbols.selector]: () =>
           `${details} > :not(${summary}):not(${summary} *)`,
-        ...(t.spacing2 !== undefined ? { "padding-block-start": t.spacing2 } : {}),
+        ...(t.spacing2 !== undefined
+          ? { "padding-block-start": t.spacing2 }
+          : {}),
+      };
+      // The reveal, and the reason a disclosure is not a `<div>`.
+      //
+      // The platform gives the content its own box — `::details-content` —
+      // and toggles it in place, so a disclosure can be animated with no
+      // JavaScript and no wrapper: the size moves between clamped and
+      // natural while the summary above it stays exactly where it was. The
+      // summary is not inside the content box, which is what keeps the label
+      // from moving with the body.
+      //
+      // The transition is stated as a shorthand because the two properties
+      // move in different ways: the size interpolates, and the visibility is
+      // discrete — it changes at a moment rather than over the duration, and
+      // `allow-discrete` is what lets it change at all. Stating the behaviour
+      // for the size too would flip the content into view halfway through
+      // instead of growing it, which is the jump this exists to remove.
+      //
+      // An engine that knows none of this ships the element it already had:
+      // the selectors match nothing, the closed content is hidden and the
+      // open content is shown, in one frame, exactly as before.
+      const reveal = t.reveal !== undefined
+        ? `block-size ${t.reveal}${
+          t.easeOut !== undefined ? ` ${t.easeOut}` : ""
+        }, content-visibility ${t.reveal} allow-discrete`
+        : undefined;
+      yield {
+        [ctx.symbols.selector]: () => `${details}::details-content`,
+        "block-size": "0",
+        // The clip is the other half of the clamp: without it the content
+        // spills over the page below while the box shrinks.
+        overflow: "hidden",
+        ...(reveal !== undefined ? { transition: reveal } : {}),
+      };
+      yield {
+        [ctx.symbols.selector]: () => `${details}[open]::details-content`,
+        "block-size": "auto",
       };
     },
     { layer: "primitives", autocomplete: "details" },
@@ -135,7 +188,9 @@ function summaryRule(summary: string, details: string): Rule {
           ? { "font-weight": t.weightSemibold }
           : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
-        ...(t.duration !== undefined ? { "transition-duration": t.duration } : {}),
+        ...(t.duration !== undefined
+          ? { "transition-duration": t.duration }
+          : {}),
         ...(t.easing !== undefined
           ? { "transition-timing-function": t.easing }
           : {}),

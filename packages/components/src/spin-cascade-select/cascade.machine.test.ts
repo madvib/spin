@@ -1,14 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createCascadeFsmBridge } from "./cascade.bridge.ts";
+import { createCascadeBridge } from "./cascade.bridge.ts";
 import type {
   CascadeCommands,
   CascadeHighlightChange,
   CascadeOpenChange,
   CascadeValueChange,
 } from "./cascade.bridge.ts";
-import type { CascadeFsmApi, CascadeItem, CascadeLevel, CascadeNode } from "./cascade.connect.ts";
+import type { CascadeApi, CascadeItem, CascadeLevel, CascadeNode } from "./cascade.connect.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -35,15 +35,6 @@ function callback<H>(bag: Record<string, unknown>, action: string, name: string)
   const params: unknown = bag[action];
   if (typeof params !== "object" || params === null) throw new Error(`no action param at ${action}`);
   return handler<H>(params as Record<string, unknown>, name);
-}
-
-/** The active-id thunk a bag's `use:scroll-into-view` entry carries. */
-function activeId(bag: Record<string, unknown>): string {
-  const params: unknown = bag["use:scroll-into-view"];
-  if (typeof params !== "object" || params === null) return "";
-  const read = (params as Record<string, unknown>)["activeId"];
-  if (typeof read !== "function") return "";
-  return (read as () => string)();
 }
 
 /**
@@ -124,7 +115,7 @@ const TREE: readonly CascadeNode[] = [
 ];
 
 interface Harness {
-  readonly api: CascadeFsmApi & CascadeCommands;
+  readonly api: CascadeApi & CascadeCommands;
   /** The element id this mount handed the bridge, so part ids are its own. */
   readonly id: string;
   /** A part id in this mount's namespace: `cascade:<id>:<part>`. */
@@ -143,14 +134,13 @@ interface Harness {
   /** The level stack's rows, by level depth. */
   levels(): readonly CascadeLevel[];
   rows(depth: number): readonly CascadeItem[];
+  /** A row by its value path, drilling the highlight to it when it is not on
+   *  the current stack (a select clears the highlight, so its rows leave). */
   row(...path: string[]): CascadeItem;
   /** The machine's state, as the content part reports it. */
   state(): unknown;
   /** The level stack as its parent paths: `[[], ["asia"], ["asia","india"]]`. */
   stack(): readonly (readonly string[])[];
-  /** A row by its value path, drilling the highlight to it when it is not on
-   *  the current stack (a select clears the highlight, so its rows leave). */
-  row(...path: string[]): CascadeItem;
   write(name: string, value: unknown): void;
 }
 
@@ -190,7 +180,7 @@ function mount(
   });
   write("onInteractOutside", (details: { focusable: boolean; contextmenu: boolean }) =>
     events.outside.interact.push(details.contextmenu ? "contextmenu" : details.focusable ? "focusable" : "inert"));
-  const bridge = createCascadeFsmBridge(
+  const bridge = createCascadeBridge(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
@@ -944,7 +934,7 @@ Deno.test("Given a disabled fieldset / When the select is read / Then it reports
   const root = document.createElement("fieldset");
   root.setAttribute("disabled", "");
   document.body.appendChild(root);
-  const bridge = createCascadeFsmBridge(
+  const bridge = createCascadeBridge(
     () => ({ collection: JSON.stringify(TREE) }),
     () => root,
     "in-fieldset",
@@ -1036,7 +1026,7 @@ Deno.test("Given a host / When the value and highlight props are authored / Then
   const open = signal<unknown>(true);
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const bridge = createCascadeFsmBridge(
+  const bridge = createCascadeBridge(
     () => ({
       collection: JSON.stringify(TREE),
       "@@authored": (name: string) => name === "value" || name === "highlightedValue" || name === "open",
@@ -1062,7 +1052,7 @@ Deno.test("Given a host / When the value and highlight props are authored / Then
 Deno.test("Given a host / When the value prop is not authored / Then a coerced default is not a write", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const bridge = createCascadeFsmBridge(
+  const bridge = createCascadeBridge(
     () => ({ collection: JSON.stringify(TREE), value: [["asia"]] }),
     () => root,
     "uncontrolled",

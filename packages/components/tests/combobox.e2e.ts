@@ -22,7 +22,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5228;
-const URL = `http://127.0.0.1:${PORT}/combobox-fsm`;
+const URL = `http://127.0.0.1:${PORT}/combobox`;
 
 /** Part ids are the machine's scheme: `combobox:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="combobox:${id}:${part}"]`;
@@ -90,7 +90,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
   throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
 }
 
-Deno.test("spin-combobox-fsm e2e", async () => {
+Deno.test("spin-combobox e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

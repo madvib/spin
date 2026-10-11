@@ -1,5 +1,5 @@
 /**
- * E2E: spin-menu-fsm drives its machine in a real browser — the trigger
+ * E2E: spin-menu drives its machine in a real browser — the trigger
  * contract, the keyboard map (arrows, Home/End, typeahead, Enter, Escape), a
  * submenu level that opens by hover dwell and by ArrowRight, and the rows
  * that stay inert.
@@ -24,7 +24,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5213;
-const URL = `http://127.0.0.1:${PORT}/menu-fsm`;
+const URL = `http://127.0.0.1:${PORT}/menu`;
 
 /** Runs a named step, rethrowing any failure prefixed with the step name. */
 async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -111,7 +111,7 @@ try {
 
   await step("load page", async () => {
     await page.goto(URL, { waitUntil: "load" });
-    await page.waitForSelector('spin-menu-fsm [aria-haspopup="menu"]', {
+    await page.waitForSelector('spin-menu [aria-haspopup="menu"]', {
       timeout: 5000,
     });
   });

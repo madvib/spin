@@ -1,5 +1,5 @@
 /**
- * E2E: spin-tags-input-fsm drives its machine in a real browser — the
+ * E2E: spin-tags-input drives its machine in a real browser — the
  * keyboard map, the pointer gestures, edit-in-place, the max/overflow and
  * blurBehavior contracts, the host commands, the live-region
  * announcements and the aria contract, with zero page errors.
@@ -20,10 +20,10 @@ import { chromium, type Browser } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5215;
-const URL = `http://127.0.0.1:${PORT}/tags-fsm`;
+const URL = `http://127.0.0.1:${PORT}/tags`;
 
 /** Parts are addressed by the machine's id scheme: `tags-input:<id>:<part>`. */
-const ROOT_PART = "spin-tags-input-fsm > div";
+const ROOT_PART = "spin-tags-input > div";
 const CONTROL = '[id$=":control"]';
 /** The entry field, as opposed to the inline tag inputs and the hidden one. */
 const INPUT = '[id$=":input"]:not([id*=":tag:"])';
@@ -91,7 +91,7 @@ async function startServer(): Promise<Deno.ChildProcess> {
   throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
 }
 
-Deno.test("spin-tags-input-fsm e2e", async () => {
+Deno.test("spin-tags-input e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];

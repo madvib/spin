@@ -12,10 +12,12 @@ import {
   bindText,
   coerceProps,
   define,
+  effect,
   on,
   own,
   projectSlots,
   runAction,
+  signal,
   text,
 } from "@spin/runtime";
 
@@ -41,6 +43,8 @@ const RUNTIME = {
   bindActionProps,
   bindSpread,
   projectSlots,
+  signal,
+  effect,
 };
 
 const SOURCE = `<scope>props={ items: { label: string }[] = [] }</scope>

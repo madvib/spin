@@ -1,9 +1,9 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotEditable,
-  type EditableFsmApi,
-  type EditableFsmConnectProps,
+  type EditableApi,
+  type EditableConnectProps,
   type EditableHooks,
   type EditableService,
 } from "./editable.connect.ts";
@@ -54,11 +54,11 @@ const pickMode = <T extends string>(raw: unknown, modes: readonly T[], fallback:
  * distinction Zag gets from its bindables and the scope grammar cannot make
  * on its own.
  */
-export function createEditableFsmBridge(
+export function createEditableBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: EditableFsmApi; dispose(): void } {
+): { readonly api: EditableApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   // `config.context` is the module's object: a bridge per element must get
@@ -68,7 +68,7 @@ export function createEditableFsmBridge(
     implementations,
   );
 
-  let service: FsmService<EditableContext, EditableEvent> | undefined;
+  let service: Service<EditableContext, EditableEvent> | undefined;
   // The reflexes the connect fills; the bridge calls them on a transition.
   const hooks: EditableHooks = {};
 
@@ -104,7 +104,7 @@ export function createEditableFsmBridge(
     };
   };
 
-  const readConnectProps = (): EditableFsmConnectProps => {
+  const readConnectProps = (): EditableConnectProps => {
     const p = props();
     const placeholder = typeof p["placeholder"] === "string" ? p["placeholder"] : "";
     const name = typeof p["name"] === "string" && p["name"].length > 0 ? p["name"] : undefined;
@@ -136,7 +136,7 @@ export function createEditableFsmBridge(
     };
   };
 
-  const ensureService = (): FsmService<EditableContext, EditableEvent> => {
+  const ensureService = (): Service<EditableContext, EditableEvent> => {
     if (service) return service;
     const p = props();
     const edit = authored("editing") ? p["editing"] === true : p["defaultEdit"] === true;
@@ -259,8 +259,8 @@ export function createEditableFsmBridge(
   /** One connect per element, not one per machine move: its bags are cached
    * against machine state, and rebuilding it per move would hand out fresh
    * bag objects each read. */
-  let editableConnect: EditableFsmApi | undefined;
-  const ensureConnect = (): EditableFsmApi => {
+  let editableConnect: EditableApi | undefined;
+  const ensureConnect = (): EditableApi => {
     if (editableConnect !== undefined) return editableConnect;
     editableConnect = connectRobotEditable(serviceApi, readConnectProps, id, hooks);
     // Zag's `entry: focusInputIfNeeded`: a field that opens in edit mode
@@ -276,7 +276,7 @@ export function createEditableFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as EditableFsmApi, {
+  const api = new Proxy({} as EditableApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

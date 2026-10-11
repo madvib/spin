@@ -8,8 +8,9 @@ import { createAction, type ElementAction } from "./action.ts";
  * fieldset is inert, and a reset returns it to its seeded value. The machine
  * decides what either report means.
  *
- * Written for the rating-group port: Zag's `trackFormControl` effect has no
- * equivalent in the action catalog.
+ * Written for the rating-group port: a radio-shaped control inside a form
+ * participates in both reports, and nothing in the action catalog wires
+ * either.
  */
 
 export interface FormControlParam {

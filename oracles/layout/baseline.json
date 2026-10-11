@@ -1,0 +1,693 @@
+{
+ "origin": "http://127.0.0.1:5199",
+ "measuredAt": "2026-10-09T19:28:13.799Z",
+ "viewport": {
+  "width": 1024,
+  "height": 800
+ },
+ "byRoute": {
+  "table": {
+   "default": {
+    "theme": "default",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [
+     {
+      "scrollerHeight": 260,
+      "scrollHeight": 258,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 226,
+      "scrollHeight": 224,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 192,
+      "scrollHeight": 323,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 234,
+      "scrollHeight": 232,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       40.5
+      ]
+     }
+    ],
+    "joins": [],
+    "avatars": [],
+    "groups": [],
+    "stripedOddBg": "rgb(241, 245, 249)",
+    "stripedEvenBg": "rgba(0, 0, 0, 0)"
+   },
+   "neobrut": {
+    "theme": "neobrut",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [
+     {
+      "scrollerHeight": 266,
+      "scrollHeight": 264,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
+       43,
+       43,
+       41.5
+      ]
+     },
+     {
+      "scrollerHeight": 226,
+      "scrollHeight": 224,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
+       43,
+       43,
+       43,
+       43,
+       43,
+       41.5
+      ]
+     },
+     {
+      "scrollerHeight": 192,
+      "scrollHeight": 335,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
+       43,
+       43,
+       43,
+       43,
+       43,
+       41.5
+      ]
+     },
+     {
+      "scrollerHeight": 240,
+      "scrollHeight": 238,
+      "headerHeight": 37,
+      "rowHeights": [
+       41.5,
+       43,
+       43,
+       41.5
+      ]
+     }
+    ],
+    "joins": [],
+    "avatars": [],
+    "groups": [],
+    "stripedOddBg": "rgb(245, 245, 245)",
+    "stripedEvenBg": "rgba(0, 0, 0, 0)"
+   },
+   "console": {
+    "theme": "console",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [
+     {
+      "scrollerHeight": 260,
+      "scrollHeight": 258,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 226,
+      "scrollHeight": 224,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 192,
+      "scrollHeight": 323,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       41,
+       41,
+       41,
+       40.5
+      ]
+     },
+     {
+      "scrollerHeight": 234,
+      "scrollHeight": 232,
+      "headerHeight": 37,
+      "rowHeights": [
+       40.5,
+       41,
+       41,
+       40.5
+      ]
+     }
+    ],
+    "joins": [],
+    "avatars": [],
+    "groups": [],
+    "stripedOddBg": "oklch(0.12 0.012 220)",
+    "stripedEvenBg": "rgba(0, 0, 0, 0)"
+   }
+  },
+  "avatar": {
+   "default": {
+    "theme": "default",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [],
+    "avatars": [
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-md"
+     },
+     {
+      "width": 64,
+      "height": 64,
+      "classes": "avatar avatar-lg"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-md"
+     }
+    ],
+    "groups": [],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   },
+   "neobrut": {
+    "theme": "neobrut",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [],
+    "avatars": [
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-md"
+     },
+     {
+      "width": 64,
+      "height": 64,
+      "classes": "avatar avatar-lg"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-md"
+     }
+    ],
+    "groups": [],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   },
+   "console": {
+    "theme": "console",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [],
+    "avatars": [
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 48,
+      "height": 48,
+      "classes": "avatar avatar-md"
+     },
+     {
+      "width": 64,
+      "height": 64,
+      "classes": "avatar avatar-lg"
+     },
+     {
+      "width": 48,
+      "height": 48,
+      "classes": "avatar avatar-circle"
+     },
+     {
+      "width": 48,
+      "height": 48,
+      "classes": "avatar avatar-md"
+     }
+    ],
+    "groups": [],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   }
+  },
+  "avatar-group": {
+   "default": {
+    "theme": "default",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [],
+    "avatars": [
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle avatar-md"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle avatar-md"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle avatar-md"
+     }
+    ],
+    "groups": [
+     {
+      "steps": [
+       10.67,
+       10.67
+      ]
+     },
+     {
+      "steps": [
+       10.67,
+       10.67,
+       10.68,
+       10.67,
+       10.67
+      ]
+     },
+     {
+      "steps": [
+       26.67,
+       26.67
+      ]
+     }
+    ],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   },
+   "neobrut": {
+    "theme": "neobrut",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [],
+    "avatars": [
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 24,
+      "height": 24,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle avatar-md"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle avatar-md"
+     },
+     {
+      "width": 40,
+      "height": 40,
+      "classes": "avatar avatar-circle avatar-md"
+     }
+    ],
+    "groups": [
+     {
+      "steps": [
+       10.67,
+       10.67
+      ]
+     },
+     {
+      "steps": [
+       10.67,
+       10.67,
+       10.68,
+       10.67,
+       10.67
+      ]
+     },
+     {
+      "steps": [
+       26.67,
+       26.67
+      ]
+     }
+    ],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   },
+   "console": {
+    "theme": "console",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [],
+    "avatars": [
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 32,
+      "height": 32,
+      "classes": "avatar avatar-sm"
+     },
+     {
+      "width": 48,
+      "height": 48,
+      "classes": "avatar avatar-circle avatar-md"
+     },
+     {
+      "width": 48,
+      "height": 48,
+      "classes": "avatar avatar-circle avatar-md"
+     },
+     {
+      "width": 48,
+      "height": 48,
+      "classes": "avatar avatar-circle avatar-md"
+     }
+    ],
+    "groups": [
+     {
+      "steps": [
+       16,
+       16
+      ]
+     },
+     {
+      "steps": [
+       16,
+       16,
+       16,
+       16,
+       16
+      ]
+     },
+     {
+      "steps": [
+       32,
+       32
+      ]
+     }
+    ],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   }
+  },
+  "join": {
+   "default": {
+    "theme": "default",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [
+     {
+      "gaps": [
+       -1,
+       -0.99
+      ],
+      "borderWidth": "1px"
+     },
+     {
+      "gaps": [
+       -1
+      ],
+      "borderWidth": "1px"
+     },
+     {
+      "gaps": [
+       -1
+      ],
+      "borderWidth": "1px"
+     },
+     {
+      "gaps": [
+       -1
+      ],
+      "borderWidth": "1px"
+     }
+    ],
+    "avatars": [],
+    "groups": [],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   },
+   "neobrut": {
+    "theme": "neobrut",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [
+     {
+      "gaps": [
+       -3,
+       -3
+      ],
+      "borderWidth": "3px"
+     },
+     {
+      "gaps": [
+       -3
+      ],
+      "borderWidth": "3px"
+     },
+     {
+      "gaps": [
+       -3
+      ],
+      "borderWidth": "3px"
+     },
+     {
+      "gaps": [
+       -3
+      ],
+      "borderWidth": "3px"
+     }
+    ],
+    "avatars": [],
+    "groups": [],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   },
+   "console": {
+    "theme": "console",
+    "docScrollWidth": 1009,
+    "docClientWidth": 1009,
+    "sticky": [],
+    "joins": [
+     {
+      "gaps": [
+       -1,
+       -1
+      ],
+      "borderWidth": "1px"
+     },
+     {
+      "gaps": [
+       -1
+      ],
+      "borderWidth": "1px"
+     },
+     {
+      "gaps": [
+       -1
+      ],
+      "borderWidth": "1px"
+     },
+     {
+      "gaps": [
+       -1
+      ],
+      "borderWidth": "1px"
+     }
+    ],
+    "avatars": [],
+    "groups": [],
+    "stripedOddBg": null,
+    "stripedEvenBg": null
+   }
+  }
+ }
+}

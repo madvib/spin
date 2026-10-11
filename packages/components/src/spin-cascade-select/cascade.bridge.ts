@@ -1,12 +1,12 @@
 import { effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotCascade,
   itemsAlongPath,
   parseCollection,
   type CascadeFormatValue,
-  type CascadeFsmApi,
-  type CascadeFsmConnectProps,
+  type CascadeApi,
+  type CascadeConnectProps,
   type CascadeNode,
   type CascadeOutsideDetails,
   type CascadeScrollDetails,
@@ -95,16 +95,16 @@ function parsePaths(raw: unknown): readonly string[][] {
  * anywhere. The scalars the guards read (`closeOnSelect`, `multiple`, ...)
  * sync in the same owned effect that drives the controlled channel.
  */
-export function createCascadeFsmBridge(
+export function createCascadeBridge(
   props: () => Record<string, unknown>,
   root: () => Element,
   id: string,
-): { readonly api: CascadeFsmApi & CascadeCommands; dispose(): void } {
+): { readonly api: CascadeApi & CascadeCommands; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const machine = createMachine<CascadeContext, CascadeEvent>(config, implementations);
 
-  let service: FsmService<CascadeContext, CascadeEvent> | undefined;
+  let service: Service<CascadeContext, CascadeEvent> | undefined;
 
   const authored = (name: string): boolean => {
     const predicate = props()["@@authored"];
@@ -182,7 +182,7 @@ export function createCascadeFsmBridge(
     };
   };
 
-  const readConnectProps = (): CascadeFsmConnectProps => {
+  const readConnectProps = (): CascadeConnectProps => {
     const p = props();
     const dir = p["dir"];
     const placement = p["placement"];
@@ -217,7 +217,7 @@ export function createCascadeFsmBridge(
     };
   };
 
-  const ensureService = (): FsmService<CascadeContext, CascadeEvent> => {
+  const ensureService = (): Service<CascadeContext, CascadeEvent> => {
     if (service) return service;
     service = owner.run(() => {
       const p = props();
@@ -342,8 +342,8 @@ export function createCascadeFsmBridge(
    *  machine state and its row handlers against the rows themselves. Rebuilding
    *  it per move hands every read a fresh item list, which re-inserts row
    *  cells and orphans whatever they hold. */
-  let cascadeConnect: CascadeFsmApi | undefined;
-  const ensureConnect = (): CascadeFsmApi => {
+  let cascadeConnect: CascadeApi | undefined;
+  const ensureConnect = (): CascadeApi => {
     cascadeConnect ??= connectRobotCascade(
       serviceApi,
       readConnectProps,
@@ -373,7 +373,7 @@ export function createCascadeFsmBridge(
   // identity across moves, so the reactive core never re-notifies, and a `for`
   // whose items come from the api never re-syncs. The level stack of this
   // component changes on every drill, so the read itself has to be tracked.
-  const api = new Proxy({} as CascadeFsmApi & CascadeCommands, {
+  const api = new Proxy({} as CascadeApi & CascadeCommands, {
     get: (_target, key) => {
       tick();
       return key in commands ? Reflect.get(commands, key) : Reflect.get(ensureConnect(), key);

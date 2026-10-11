@@ -18,7 +18,7 @@ export function radiusRules(): Rule[] {
     [
       // A corner suffix followed by a radius: `rounded-ss-md`.
       new RegExp(`^rounded-(${Object.keys(CORNER_LOGICAL).join("|")})-(.+)$`),
-      ([, corner, name]: string[], ctx?: ThemeContext) => {
+      ([, corner = "", name = ""]: string[], ctx?: ThemeContext) => {
         const property = CORNER_LOGICAL[corner];
         const value = radiusOf(name, ctx);
         if (property === undefined || value === undefined) return undefined;
@@ -32,7 +32,7 @@ export function radiusRules(): Rule[] {
     ],
     [
       /^rounded-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
+      ([, name = ""]: string[], ctx?: ThemeContext) => {
         const value = radiusOf(name, ctx);
         return value === undefined ? undefined : { "border-radius": value };
       },

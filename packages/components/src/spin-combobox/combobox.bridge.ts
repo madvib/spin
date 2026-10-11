@@ -1,5 +1,5 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type FsmService } from "@spin/runtime/fsm";
+import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
   config,
   implementations,
@@ -11,8 +11,8 @@ import {
 } from "./combobox.machine.ts";
 import {
   connectRobotCombobox,
-  type ComboboxFsmApi,
-  type ComboboxFsmConnectProps,
+  type ComboboxApi,
+  type ComboboxConnectProps,
   type ComboboxItem,
   type ComboboxRow,
   type ComboboxService,
@@ -167,11 +167,11 @@ const nullableProp = (raw: unknown): string | null =>
  * comparing against the context, so a machine move of its own is never
  * undone by an unrelated prop change.
  */
-export function createComboboxFsmBridge(
+export function createComboboxBridge(
   props: () => Record<string, unknown>,
   _root: () => Element,
   id: string,
-): { readonly api: ComboboxFsmApi; dispose(): void } {
+): { readonly api: ComboboxApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   // The fork's `config.context` is ONE object, and its interpreter starts on
@@ -182,7 +182,7 @@ export function createComboboxFsmBridge(
     implementations,
   );
 
-  let service: FsmService<ComboboxContext, ComboboxEvent> | undefined;
+  let service: Service<ComboboxContext, ComboboxEvent> | undefined;
 
   const authored = (name: string): boolean => {
     const predicate = props()["@@authored"];
@@ -255,7 +255,7 @@ export function createComboboxFsmBridge(
     };
   };
 
-  const readConnectProps: ReadComboboxProps = (): ComboboxFsmConnectProps => {
+  const readConnectProps: ReadComboboxProps = (): ComboboxConnectProps => {
     const p = props();
     const label = (name: string, fallback: string): string => {
       const value = textProp(p[name]);
@@ -282,7 +282,7 @@ export function createComboboxFsmBridge(
     };
   };
 
-  const ensureService = (): FsmService<ComboboxContext, ComboboxEvent> => {
+  const ensureService = (): Service<ComboboxContext, ComboboxEvent> => {
     if (service) return service;
     const p = props();
     const scalars = readContextProps();
@@ -327,8 +327,8 @@ export function createComboboxFsmBridge(
   /** The view's focus, captured when the connect is built: the bridge is what
    * decides the panel opening owes the field its focus. */
   let focusInput = (): void => {};
-  let comboboxConnect: ComboboxFsmApi | undefined;
-  const ensureConnect = (): ComboboxFsmApi => {
+  let comboboxConnect: ComboboxApi | undefined;
+  const ensureConnect = (): ComboboxApi => {
     comboboxConnect ??= connectRobotCombobox(serviceApi, readConnectProps, rows, id);
     focusInput = comboboxConnect.focus;
     return comboboxConnect;
@@ -533,7 +533,7 @@ export function createComboboxFsmBridge(
     return ensureConnect();
   });
 
-  const api = new Proxy({} as ComboboxFsmApi, {
+  const api = new Proxy({} as ComboboxApi, {
     get: (_target, key) => Reflect.get(connected(), key),
     has: (_target, key) => Reflect.has(connected(), key),
     ownKeys: () => Reflect.ownKeys(connected()),

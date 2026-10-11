@@ -17,6 +17,9 @@ const STRUCTURAL: Record<string, true> = {
   "flex-wrap": true,
   "items-center": true,
   "gap-2": true,
+  "gap-8": true,
+  block: true,
+  "w-full": true,
 };
 
 const isKnown = (cls: string, known: Set<string>): boolean =>
@@ -27,7 +30,10 @@ describe("card examples resolve", () => {
     it(example.name, () => {
       const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
         .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
-      const known = new Set([...primitiveVariants(), ...Object.keys(STRUCTURAL)]);
+      const known = new Set([
+        ...primitiveVariants(),
+        ...Object.keys(STRUCTURAL),
+      ]);
       for (const cls of classes) {
         assert(
           isKnown(cls, known),

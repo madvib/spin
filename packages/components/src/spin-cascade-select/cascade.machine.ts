@@ -28,7 +28,7 @@
  *    rewrites the collection property, as tree-view's host rewrites `nodes`.
  */
 
-import type { FsmService } from "@spin/runtime/fsm";
+import type { Service } from "@spin/runtime/fsm";
 
 /** Two paths are the same when every segment matches, in order. */
 const samePath = (a: readonly string[], b: readonly string[]): boolean =>
@@ -250,4 +250,4 @@ export const implementations = {
   // change snapshot, so a no-op event means no event anywhere.
 };
 
-export type CascadeService = FsmService<CascadeContext, CascadeEvent>;
+export type CascadeService = Service<CascadeContext, CascadeEvent>;

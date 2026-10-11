@@ -1,5 +1,11 @@
 import type { Rule } from "@unocss/core";
-import { claim, proseTokens, rhythm, type Mode, type Tokens } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  rhythm,
+  type Tokens,
+} from "./shared.ts";
 import { codeRules } from "./prose-code.ts";
 import { inlineRules } from "./prose-inline.ts";
 import { mediaRules } from "./prose-media.ts";
@@ -47,7 +53,6 @@ export function proseRules(roots: readonly string[], mode: Mode): Rule[] {
     termRule(mode),
     definitionRule(mode),
     blockquoteRule(mode),
-    hrRule(mode),
     ...codeRules(roots, mode),
     ...inlineRules(roots, mode),
     ...mediaRules(roots, mode),
@@ -182,7 +187,7 @@ function headingRules(mode: Mode): Rule[] {
       "line-height": "1.5",
     })),
     headingRule(mode, "h6", (t) => ({
-      ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
+      ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
         : {}),
@@ -231,7 +236,9 @@ function listItemRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => `${li} + ${li}`,
-        ...(t.spacing1 !== undefined ? { "margin-block-start": t.spacing1 } : {}),
+        ...(t.spacing1 !== undefined
+          ? { "margin-block-start": t.spacing1 }
+          : {}),
       };
     },
     { layer: "primitives", autocomplete: "li" },
@@ -308,29 +315,12 @@ function blockquoteRule(mode: Mode): Rule {
       };
       yield {
         [ctx.symbols.selector]: () => `${blockquote} ${claim(mode, "footer")}`,
-        ...(t.spacing1 !== undefined ? { "margin-block-start": t.spacing1 } : {}),
+        ...(t.spacing1 !== undefined
+          ? { "margin-block-start": t.spacing1 }
+          : {}),
         ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
       };
     },
     { layer: "primitives", autocomplete: "blockquote" },
-  ];
-}
-
-function hrRule(mode: Mode): Rule {
-  return [
-    /^hr$/,
-    function* (_m, ctx) {
-      const t = proseTokens(ctx);
-      yield {
-        [ctx.symbols.selector]: () => claim(mode, "hr"),
-        height: "0",
-        ...(t.spacing4 !== undefined ? { "margin-block": t.spacing4 } : {}),
-        border: "0",
-        ...(t.borderWidth !== undefined && t.border !== undefined
-          ? { "border-block-start": `${t.borderWidth} solid ${t.border}` }
-          : {}),
-      };
-    },
-    { layer: "primitives", autocomplete: "hr" },
   ];
 }

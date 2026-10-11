@@ -21,7 +21,7 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
 const PORT = 5229;
-const URL = `http://127.0.0.1:${PORT}/async-list-fsm`;
+const URL = `http://127.0.0.1:${PORT}/async-list`;
 
 /** Part ids are the recipe's scheme: `async-list:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="async-list:${id}:${part}"]`;
@@ -99,7 +99,7 @@ async function waitGrowth(page: Page, id: string, floor: number): Promise<number
   throw new Error(`readout #${id} never grew past ${floor}`);
 }
 
-Deno.test("spin-async-list-fsm e2e", async () => {
+Deno.test("spin-async-list e2e", async () => {
   await step("build", buildDemo);
   const server = await step("serve", startServer);
   const pageErrors: string[] = [];
