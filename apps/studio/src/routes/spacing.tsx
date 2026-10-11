@@ -4,7 +4,6 @@ import { groupTokens } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
 import { editToken } from "../lib/editing";
 import ScaleBar from "../components/demos/ScaleBar";
-import TokenGroupEditor from "../components/demos/TokenGroupEditor";
 
 function toPx(value: string): number | undefined {
   if (value.trim() === "0") return 0;
@@ -40,25 +39,28 @@ export default function SpacingPage() {
         </For>
       </div>
       <h2 class="text-xl">Breakpoints</h2>
-      <div class="flex flex-col gap-4">
+      <p>
+        The viewport widths a layout changes at. Read them, do not restyle them
+        — the editor above is the only path to a value.
+      </p>
+      <div class="flex flex-col gap-2">
         <For each={breakpoints()}>
           {(row) => (
             <div class="flex items-center gap-4 bg-surface-raised rounded-lg shadow-sm p-4 border border-border">
-              <code>{row.path}</code>
-              <div
-                class={`h-4 bg-primary max-w-screen-${
-                  row.path.split(".").pop()
-                }`}
-              >
-                <div class="h-4 w-full bg-neutral-100 opacity-50" />
-              </div>
-              <code>{row.value}</code>
+              <code class="w-40">{row.path}</code>
+              {/*
+                A class built at runtime never reaches the scanner, so
+                `max-w-screen-${name}` styles nothing. The value is the demo:
+                what a breakpoint is worth is the whole fact about it.
+              */}
+              <code class="flex-1">{row.value}</code>
+              <code class="font-mono text-xs opacity-70">
+                {toPx(row.value) === undefined ? "" : `${toPx(row.value)}px`}
+              </code>
             </div>
           )}
         </For>
       </div>
-      <h2 class="text-xl">Tokens</h2>
-      <TokenGroupEditor tokens={tokens()} onEdit={editToken} />
     </div>
   );
 }
