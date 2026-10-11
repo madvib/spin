@@ -49,6 +49,8 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
       "theme.tokens.set",
       "theme.types",
       "themes.css",
+      "project.detect",
+      "project.init",
       "project.themes.list",
       "project.themes.read",
       "project.themes.write",

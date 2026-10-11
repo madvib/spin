@@ -221,7 +221,6 @@ function darkCoverageIssues(index: TokenIndex): ValidationIssue[] {
   return issues;
 }
 
-
 /**
  * Check a token tree for missing required tokens, unresolvable references,
  * alias cycles, unknown types, and values a browser will not accept.

@@ -7,6 +7,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -25,21 +26,21 @@ import { createSpinClient, type SpinClient } from "@spin/api";
  */
 describe("daemon project.themes over HTTP", () => {
   let dir: string;
+  const fixture = new URL(
+    "../../../examples/fixture-app/spin",
+    import.meta.url,
+  );
   let daemon: ReturnType<typeof startDaemon>;
   let client: SpinClient;
 
   before(async () => {
-    // The daemon reads themes from `<root>/themes`, so the fixture is
+    // The daemon reads themes from `<root>/spin`, so the fixture is
     // copied into a temp dir shaped like a project: root with a themes/
     // directory inside it. The product's own themes are never touched.
     dir = mkdtempSync(join(tmpdir(), "spin-daemon-"));
-    const fixture = new URL(
-      "../../../examples/fixture-app/themes",
-      import.meta.url,
-    );
-    mkdirSync(join(dir, "themes"));
+    mkdirSync(join(dir, "spin"));
     for (const entry of readdirSync(fixture)) {
-      copyFileSync(join(fixture.pathname, entry), join(dir, "themes", entry));
+      copyFileSync(join(fixture.pathname, entry), join(dir, "spin", entry));
     }
     daemon = startDaemon({ root: dir, port: 0 });
     client = createSpinClient(daemon.url);
@@ -66,7 +67,7 @@ describe("daemon project.themes over HTTP", () => {
     );
     assertEquals(
       listed.map((t) => t.file).sort(),
-      ["themes/acme.json", "themes/starter.json"],
+      ["spin/acme.json", "spin/starter.json"],
       "the path is the project's own layout",
     );
     assertEquals(
@@ -74,6 +75,80 @@ describe("daemon project.themes over HTTP", () => {
       true,
       "every entry names the file on disk it came from",
     );
+  });
+
+  it("detects a project by its spin directory, and by an uno config", async () => {
+    // Registration is presence, not a list: a project is a root with `spin/`
+    // in it, and the uno config answers the second half without being the
+    // mark of one — a project can hold themes it has not wired up yet.
+    const report = await client.project.detect({ root: dir });
+    assertEquals(report.spin, true, "the fixture's spin directory is seen");
+    assertEquals(report.uno, false, "the fixture has no uno config");
+    assertEquals(report.themes, ["acme.json", "starter.json"]);
+
+    const bare = mkdtempSync(join(tmpdir(), "spin-bare-"));
+    const empty = await client.project.detect({ root: bare });
+    assertEquals(empty.spin, false, "a root without spin is not a project");
+    assertEquals(empty.themes, []);
+
+    writeFileSync(join(bare, "uno.config.ts"), "export default []");
+    const noPlugin = await client.project.detect({ root: bare });
+    assertEquals(noPlugin.uno, true);
+    assertEquals(noPlugin.wired, false, "an uno config without the preset");
+    writeFileSync(
+      join(bare, "uno.config.ts"),
+      'import { spinPreset } from "@spin/preset";',
+    );
+    const wired = await client.project.detect({ root: bare });
+    assertEquals(wired.wired, true, "an uno config naming the preset");
+    rmSync(bare, { recursive: true, force: true });
+  });
+
+  it("serves two projects from one daemon, named per call", async () => {
+    // One process, many projects: a client names the root it means. Two
+    // daemons in one process used to stomp on each other, which is exactly
+    // what a shared module root would do — and this test failed until the
+    // root became a per-call answer.
+    const other = mkdtempSync(join(tmpdir(), "spin-other-"));
+    mkdirSync(join(other, "spin"));
+    copyFileSync(
+      join(fixture.pathname, "acme.json"),
+      join(other, "spin", "solo.json"),
+    );
+    const theirs = await client.project.themes.list({ root: other });
+    assertEquals(theirs.map((t) => t.name), ["solo"]);
+    // The daemon's own project is unchanged, which is the point.
+    const mine = await client.project.themes.list({});
+    assertEquals(mine.map((t) => t.name).sort(), ["acme", "starter"]);
+    rmSync(other, { recursive: true, force: true });
+  });
+
+  it("inits a project by making the spin directory and seeding a theme", async () => {
+    // The one act that makes a project spin's: no add, no registry to edit.
+    // Its own daemon, because the fixture's daemon is pointed elsewhere and
+    // a project's themes resolve against the root it was started with.
+    const fresh = mkdtempSync(join(tmpdir(), "spin-init-"));
+    const init = await client.project.init({
+      root: fresh,
+      name: "first",
+      starter: "default",
+    });
+    assertEquals(init.error, null);
+    const detect = await client.project.detect({ root: fresh });
+    assertEquals(detect.spin, true, "init created the directory");
+    assertEquals(detect.themes, ["first.json"], "and seeded one theme");
+    const listed = await client.project.themes.list({ root: fresh });
+    assertEquals(listed.map((t) => t.name), ["first"]);
+    const seeded = await client.project.themes.read({
+      name: "first",
+      root: fresh,
+    });
+    assertEquals(
+      JSON.parse(seeded.text ?? "{}").color !== undefined,
+      true,
+      "the seeded theme is a real document, not an empty file",
+    );
+    rmSync(fresh, { recursive: true, force: true });
   });
 
   it("copies a starter into a new theme", async () => {

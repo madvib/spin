@@ -180,7 +180,6 @@ const REQUIRED = [
   "color.link",
 ];
 
-
 Deno.test("the ink a theme declares is read from the theme itself", () => {
   // The pairing is a fact about the theme, not a convention a consumer
   // invents: every fill with a contrast floor names its own foreground, and
@@ -315,7 +314,11 @@ Deno.test("a theme states its modes at the root", async () => {
     const doc = JSON.parse(
       await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
     );
-    assertEquals(doc.modes, modes, `${name}: root modes must say what it serves`);
+    assertEquals(
+      doc.modes,
+      modes,
+      `${name}: root modes must say what it serves`,
+    );
   }
 });
 
@@ -650,7 +653,9 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
       `${name}.json`,
     );
     const css = generateCss(tree);
-    const hasDark = tree.find((node) => node.path.join(".") === "dark") !== undefined;
+    const hasDark = tree.find((node) =>
+      node.path.join(".") === "dark"
+    ) !== undefined;
     const modes = hasDark ? ["light", "dark"] as const : ["light"] as const;
 
     for (const mode of modes) {
@@ -662,7 +667,9 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
         );
         assert(
           ratio >= 4.5,
-          `${name} ${mode} ${fill} on ${fg} is ${ratio.toFixed(2)}:1, below 4.5:1`,
+          `${name} ${mode} ${fill} on ${fg} is ${
+            ratio.toFixed(2)
+          }:1, below 4.5:1`,
         );
       }
     }

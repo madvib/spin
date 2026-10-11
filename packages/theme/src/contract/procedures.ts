@@ -127,10 +127,43 @@ const themeTypes = os.theme.types.handler(({ input }) => {
  * filesystem procedures, and a test that never sets it gets the refusal it
  * deserves rather than a cwd it never asked for.
  */
+/**
+ * The directory a project's themes live in, relative to its root.
+ *
+ * `spin/` rather than `themes/` because the name is the marker: a directory
+ * called `spin` at a project root is a claim, and no dependency has one. A
+ * `themes/` directory is ambiguous — libraries ship those, unrelated
+ * subdirectories have that name, and a scanner that trusts it finds projects
+ * that are not projects. `spin init` creates this directory; the daemon reads
+ * it; nothing else in a project is spin's to own.
+ */
+const PROJECT_DIR = "spin";
+
 let projectRoot: string | undefined;
 
 export function setProjectRoot(root: string): void {
   projectRoot = root;
+}
+
+/**
+ * A scaffolded document as text, ready to write.
+ *
+ * The authoring layer builds a tree; disk holds JSON. Keeping the conversion
+ * in one place means the seeded file and the round-tripped documents agree.
+ */
+function textOf(tree: ReturnType<typeof scaffoldTheme>): string {
+  return treeToJson(tree);
+}
+
+/**
+ * The root a call is about: its own, or the daemon's.
+ *
+ * A client that names a root gets that root's themes; a client that names
+ * none gets the project the daemon was started with. One process can serve
+ * many projects this way, with no shared state to stomp on.
+ */
+function rootFor(input: { readonly root?: string }): string {
+  return input.root ?? rootOrThrow();
 }
 
 function rootOrThrow(): string {
@@ -144,14 +177,68 @@ function rootOrThrow(): string {
 
 export const themeRouter = os.router({
   project: {
+    detect: os.project.detect.handler(async ({ input }) => {
+      const { readdir, readFile } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      const { existsSync } = await import("node:fs");
+      const here = join(input.root, PROJECT_DIR);
+      const hasSpin = existsSync(here);
+      let themes: string[] = [];
+      if (hasSpin) {
+        try {
+          themes = (await readdir(here)).filter((e) => e.endsWith(".json"))
+            .sort();
+        } catch {
+          themes = [];
+        }
+      }
+      // The uno config is where the preset is wired, so it answers the
+      // other half of "is this a spin project" without being the mark of
+      // one: a project can hold themes it has not wired up yet.
+      const unoName = ["uno.config.ts", "uno.config.js", "uno.config.mjs"]
+        .find((name) => existsSync(join(input.root, name)));
+      let wired = false;
+      if (unoName !== undefined) {
+        try {
+          const text = await readFile(join(input.root, unoName), "utf8");
+          wired = /@spin\/preset|spinPreset/.test(text);
+        } catch {
+          wired = false;
+        }
+      }
+      return {
+        root: input.root,
+        spin: hasSpin,
+        uno: unoName !== undefined,
+        wired,
+        themes,
+      };
+    }),
+    init: os.project.init.handler(async ({ input }) => {
+      const { mkdir, writeFile } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      try {
+        const dir = join(input.root, PROJECT_DIR);
+        await mkdir(dir, { recursive: true });
+        // Scaffolded from the starter's own roles, so an initialised theme
+        // is a starting point a designer edits rather than a blank file
+        // they have to fill.
+        const seeded = textOf(scaffoldTheme());
+        await writeFile(join(dir, `${input.name}.json`), seeded, "utf8");
+        return { error: null };
+      } catch (err) {
+        return { error: err instanceof Error ? err.message : String(err) };
+      }
+    }),
+
     themes: {
-      list: os.project.themes.list.handler(async () => {
+      list: os.project.themes.list.handler(async ({ input }) => {
         const { readdir, readFile } = await import("node:fs/promises");
         const { join } = await import("node:path");
-        const root = rootOrThrow();
+        const root = rootFor(input);
         let entries: string[];
         try {
-          entries = await readdir(join(root, "themes"));
+          entries = await readdir(join(root, PROJECT_DIR));
         } catch {
           return [];
         }
@@ -160,11 +247,11 @@ export const themeRouter = os.router({
           if (!entry.endsWith(".json")) continue;
           themes.push({
             name: entry.replace(/\.json$/, ""),
-            text: await readFile(join(root, "themes", entry), "utf8"),
+            text: await readFile(join(root, PROJECT_DIR, entry), "utf8"),
             // Project-relative, so a path a developer sees never carries the
             // machine's filesystem layout: a screenshot, a log line, an issue
             // report. The daemon knows the root; the contract does not leak it.
-            file: join("themes", entry),
+            file: join(PROJECT_DIR, entry),
           });
         }
         return themes;
@@ -175,7 +262,7 @@ export const themeRouter = os.router({
         try {
           return {
             text: await readFile(
-              join(rootOrThrow(), "themes", `${input.name}.json`),
+              join(rootFor(input), PROJECT_DIR, `${input.name}.json`),
               "utf8",
             ),
           };
@@ -188,7 +275,7 @@ export const themeRouter = os.router({
         const { join } = await import("node:path");
         try {
           await writeFile(
-            join(rootOrThrow(), "themes", `${input.name}.json`),
+            join(rootFor(input), PROJECT_DIR, `${input.name}.json`),
             input.text,
             "utf8",
           );
@@ -201,7 +288,7 @@ export const themeRouter = os.router({
         const { rm } = await import("node:fs/promises");
         const { join } = await import("node:path");
         try {
-          await rm(join(rootOrThrow(), "themes", `${input.name}.json`));
+          await rm(join(rootFor(input), PROJECT_DIR, `${input.name}.json`));
           return { error: null };
         } catch (err) {
           return { error: err instanceof Error ? err.message : String(err) };
@@ -211,12 +298,12 @@ export const themeRouter = os.router({
         const { copyFile, readFile } = await import("node:fs/promises");
         const { join } = await import("node:path");
         try {
-          const from = join(rootOrThrow(), "themes", `${input.from}.json`);
+          const from = join(rootFor(input), PROJECT_DIR, `${input.from}.json`);
           // Read first so a missing source is an error, not an empty file.
           await readFile(from, "utf8");
           await copyFile(
             from,
-            join(rootOrThrow(), "themes", `${input.to}.json`),
+            join(rootFor(input), PROJECT_DIR, `${input.to}.json`),
           );
           return { error: null };
         } catch (err) {

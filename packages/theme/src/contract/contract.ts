@@ -210,8 +210,24 @@ const ProjectTheme = v.object({
   file: v.string(),
 });
 
+/**
+ * The project a call is about.
+ *
+ * Optional because a daemon has a project it was started with, and naming it
+ * on every call would be noise. Present because one daemon process can serve
+ * many projects — a client that names another root gets that root's themes,
+ * with no second process and no shared state to stomp on.
+ */
+const ProjectInput = v.object({
+  root: v.pipe(
+    v.optional(v.string()),
+    v.description("Defaults to the daemon's own project root."),
+  ),
+});
+
 /** Every theme file in the project's themes directory. */
 export const listThemes = oc
+  .input(ProjectInput)
   .output(v.array(ProjectTheme))
   .route({
     method: "GET",
@@ -221,7 +237,7 @@ export const listThemes = oc
 
 /** Read one theme file by name. */
 export const readTheme = oc
-  .input(v.object({ name: ThemeName }))
+  .input(v.object({ name: ThemeName, root: v.optional(v.string()) }))
   .output(
     v.object({ text: v.nullable(v.string()) }),
   )
@@ -233,7 +249,13 @@ export const readTheme = oc
 
 /** Write one theme file by name, creating it when absent. */
 export const writeTheme = oc
-  .input(v.object({ name: ThemeName, text: ThemeText }))
+  .input(
+    v.object({
+      name: ThemeName,
+      text: ThemeText,
+      root: v.optional(v.string()),
+    }),
+  )
   .output(v.object({ error: v.nullable(v.string()) }))
   .route({
     method: "POST",
@@ -243,7 +265,7 @@ export const writeTheme = oc
 
 /** Remove one theme file by name. */
 export const removeTheme = oc
-  .input(v.object({ name: ThemeName }))
+  .input(v.object({ name: ThemeName, root: v.optional(v.string()) }))
   .output(v.object({ error: v.nullable(v.string()) }))
   .route({
     method: "POST",
@@ -251,9 +273,63 @@ export const removeTheme = oc
     summary: "Remove one theme file by name",
   });
 
+/** What a project root looks like to the daemon. */
+const ProjectReport = v.object({
+  /** The root that was examined. */
+  root: v.string(),
+  /** Whether the `spin/` directory is there — the mark of a spin project. */
+  spin: v.boolean(),
+  /** Whether an uno config is there, which is where the preset gets wired. */
+  uno: v.boolean(),
+  /** Whether the uno config names the spin preset. */
+  wired: v.boolean(),
+  /** The themes `spin/` holds, if it holds any. */
+  themes: v.array(v.string()),
+});
+
+/**
+ * Whether a root is a spin project.
+ *
+ * Detection, not a registry: a project is registered by having a `spin/`
+ * directory, which `spin init` creates and nothing else does. There is no
+ * `spin add` and no global list, because a project is a place on disk and
+ * the CLI can be told which place. The uno config is a secondary answer —
+ * a project can hold themes before it is wired into a build.
+ */
+export const detectProject = oc
+  .input(v.object({ root: v.string() }))
+  .output(ProjectReport)
+  .route({
+    method: "POST",
+    path: "/project/detect",
+    summary: "Report whether a root is a spin project",
+  });
+
+/** Create `spin/` and seed one theme from a starter. */
+export const initProject = oc
+  .input(
+    v.object({
+      root: v.string(),
+      name: ThemeName,
+      starter: v.pipe(v.string(), v.description("The starter to seed from.")),
+    }),
+  )
+  .output(v.object({ error: v.nullable(v.string()) }))
+  .route({
+    method: "POST",
+    path: "/project/init",
+    summary: "Create the spin directory and seed a theme",
+  });
+
 /** Copy one theme file to a new name. A new theme starts as a copy. */
 export const copyTheme = oc
-  .input(v.object({ from: ThemeName, to: ThemeName }))
+  .input(
+    v.object({
+      from: ThemeName,
+      to: ThemeName,
+      root: v.optional(v.string()),
+    }),
+  )
   .output(v.object({ error: v.nullable(v.string()) }))
   .route({
     method: "POST",
@@ -277,6 +353,10 @@ export const themeContract = {
     css: themesCss,
   },
   project: {
+    // `detect` and `init` are the project's own, not a theme's: one answers
+    // whether a root is spin's, the other makes one.
+    detect: detectProject,
+    init: initProject,
     themes: {
       list: listThemes,
       read: readTheme,

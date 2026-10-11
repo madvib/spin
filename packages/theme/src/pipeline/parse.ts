@@ -203,10 +203,13 @@ export function parseTokens(input: string | unknown): ParseResult {
 }
 
 /** The modes a document declares, as authored. */
-export type DocumentModes = readonly ["light"] | readonly ["dark"] | readonly [
-  "light",
-  "dark",
-];
+export type DocumentModes =
+  | readonly ["light"]
+  | readonly ["dark"]
+  | readonly [
+    "light",
+    "dark",
+  ];
 
 /** A document's tokens and its extensions, both from one parse. */
 export type DocumentResult =
