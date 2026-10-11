@@ -1,4 +1,4 @@
-import { cssVarName, indexTree } from "@spin/theme";
+import { cssVarName, indexTree, valuesInMode } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 
 export interface TokenRow {
@@ -46,7 +46,10 @@ export function groupTokens(
 ): TokenRow[] {
   if (prefixes.length === 0) return [];
   const index = indexTree(tree);
-  const dark = mode === "dark" ? darkTokenValues(tree) : undefined;
+  // The theme answers what a token is worth in the active mode. It used to be
+  // a walk of a `dark` group that no longer exists, so dark mode edited blind
+  // — showing the base value while writing the override.
+  const effective = valuesInMode(tree, mode);
   return Object.values(index.leaves)
     .filter((leaf) =>
       prefixes.some((prefix) =>
@@ -58,29 +61,7 @@ export function groupTokens(
       return {
         path,
         variable: cssVarName(leaf.path),
-        value: dark?.get(path) ?? formatValue(leaf.value),
+        value: formatValue(effective.get(path) ?? leaf.value),
       };
     });
-}
-
-function walkLeaves(
-  nodes: TokenTree,
-): { path: string[]; value: unknown }[] {
-  const out: { path: string[]; value: unknown }[] = [];
-  for (const node of nodes) {
-    if (node.kind === "token") out.push(node);
-    else out.push(...walkLeaves(node.children));
-  }
-  return out;
-}
-
-export function darkTokenValues(tree: TokenTree): Map<string, string> {
-  const out = new Map<string, string>();
-  for (const node of tree) {
-    if (node.kind !== "group" || node.name.toLowerCase() !== "dark") continue;
-    for (const leaf of walkLeaves(node.children)) {
-      out.set(leaf.path.slice(1).join("."), formatValue(leaf.value));
-    }
-  }
-  return out;
 }

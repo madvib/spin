@@ -32,10 +32,21 @@ function coerceValue(current: unknown, value: string): unknown {
   return value;
 }
 
-export function setTokenValue(
+/**
+ * Set one token's value, in one mode.
+ *
+ * `mode` is `"base"` for the token's own `$value` and `"dark"` for its
+ * `$modes.dark` — which are the only two places a value can live, now that
+ * the dark side lives on the token rather than in a group beside it. A dark
+ * value that equals the base is dropped rather than stored: a mode that
+ * restates the light value says nothing changed, and the reader should have
+ * to say something did.
+ */
+export function setToken(
   text: string,
   path: string[],
   value: string,
+  mode: "base" | "dark",
 ): string {
   const doc = JSON.parse(text) as Record<string, unknown>;
   let node: unknown = doc;
@@ -49,39 +60,25 @@ export function setTokenValue(
     throw new Error(`token ${path.join(".")} has no editable value`);
   }
   const leaf = node as Record<string, unknown>;
-  leaf["$value"] = coerceValue(leaf["$value"], value);
-  return JSON.stringify(doc, null, 2);
-}
+  const next = coerceValue(leaf["$value"], value);
 
-export function setDarkValue(
-  text: string,
-  path: string[],
-  value: string,
-): string {
-  const doc = JSON.parse(text) as Record<string, unknown>;
-  let dark = doc["dark"];
-  if (typeof dark !== "object" || dark === null || Array.isArray(dark)) {
-    dark = {};
-    doc["dark"] = dark;
+  if (mode === "base") {
+    // The base moves and the dark value stays: a mode is an override of
+    // whatever the base is, so it survives the base changing.
+    leaf["$value"] = next;
+    return JSON.stringify(doc, null, 2);
   }
-  let node: Record<string, unknown> = dark as Record<string, unknown>;
-  for (const segment of path.slice(0, -1)) {
-    let next = node[segment];
-    if (typeof next !== "object" || next === null || Array.isArray(next)) {
-      next = {};
-      node[segment] = next;
-    }
-    node = next as Record<string, unknown>;
-  }
-  const leafName = path[path.length - 1] as string;
-  const existing = node[leafName];
-  if (
-    typeof existing === "object" && existing !== null && "$value" in existing
-  ) {
-    const leaf = existing as Record<string, unknown>;
-    leaf["$value"] = coerceValue(leaf["$value"], value);
+
+  const modes = (leaf["$modes"] ?? {}) as Record<string, unknown>;
+  if (next === leaf["$value"]) {
+    delete modes["dark"];
   } else {
-    node[leafName] = { $value: coerceValue(undefined, value) };
+    modes["dark"] = next;
+  }
+  if (Object.keys(modes).length === 0) {
+    delete leaf["$modes"];
+  } else {
+    leaf["$modes"] = modes;
   }
   return JSON.stringify(doc, null, 2);
 }

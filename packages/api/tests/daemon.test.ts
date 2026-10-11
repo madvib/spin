@@ -12,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DISCOVERY_FILE, startDaemon } from "@spin/api/daemon";
+import { parseTokens, themeModes, validateTokens } from "@spin/theme";
 import { createSpinClient, type SpinClient } from "@spin/api";
 
 /**
@@ -51,6 +52,37 @@ describe("daemon project.themes over HTTP", () => {
     // exists to be tested for.
     daemon.close();
     rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("keeps the fixtures in the shape the pipeline currently speaks", async () => {
+    // The fixtures were copied from the starters before per-token `$modes`
+    // existed, so a dark-mode edit in the studio showed the light value while
+    // it wrote the override. A guard, because a stale fixture is exactly the
+    // kind of thing that passes every other test.
+    const listed = await client.project.themes.list({});
+    for (const theme of listed) {
+      const doc = JSON.parse(theme.text) as Record<string, unknown>;
+      assertEquals(
+        "dark" in doc,
+        false,
+        `${theme.name}: no dark group — a token carries its own $modes`,
+      );
+      const parsed = parseTokens(theme.text);
+      assertEquals(parsed.ok, true, `${theme.name}: parses`);
+      const modes = themeModes(doc as never);
+      assertEquals(
+        modes.includes("dark"),
+        true,
+        `${theme.name}: declares dark`,
+      );
+      assertEquals(
+        validateTokens((parsed as { tree: never }).tree, {
+          modes: [...modes],
+        }).issues,
+        [],
+        `${theme.name}: every color and focus leaf has a dark value`,
+      );
+    }
   });
 
   it("lists the fixture themes", async () => {
