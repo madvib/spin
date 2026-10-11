@@ -15,13 +15,14 @@
 
 import { createMemo, createResource, For, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { listPrimitives, primitivesTokens } from "../../lib/primitives.ts";
+import { primitivesTokens } from "../../lib/primitives.ts";
+import { library } from "../../lib/store.ts";
 
 export default function ComponentPage() {
   const params = useParams();
-  const [components] = createResource(listPrimitives);
-  // A file route remounts per name, so a plain read is as reactive as a signal
-  // here and the branches stay obvious: found, ready-but-absent, not yet.
+  // The shared registry: the side list and this page are one fetch, and the
+  // store owns it so neither can drift from the other.
+  const components = library;
   const [tokens] = createResource(
     () => params.name,
     (name) => primitivesTokens(name),
@@ -47,7 +48,7 @@ export default function ComponentPage() {
         keyed
         fallback={
           <Show
-            when={components.state === "ready"}
+            when={components() !== undefined}
             fallback={
               <div>
                 <h1 class="text-2xl capitalize">{params.name}</h1>

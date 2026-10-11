@@ -86,6 +86,12 @@ const CONCERNS = [
 ] as const;
 
 export default function App() {
+  // The path is the daemon's answer, project-relative: it states the layout
+  // of a project rather than of the machine the studio happens to run on.
+  const [themes] = createResource(listProjectThemes);
+  const activePath = () =>
+    themes()?.find((theme) => theme.name === activeName())?.file;
+
   return (
     <Router
       root={(props) => (
@@ -125,8 +131,11 @@ export default function App() {
             </nav>
             <div class="flex items-center gap-4 p-4 shrink-0 border-b border-border">
               <span>
-                Editing <code>{activeName()}</code>{" "}
-                in packages/theme/src/themes · previewing {activeMode()}
+                Editing <code>{activeName()}</code> {
+                  /* The daemon reports the path relative to its project, so
+                     nothing here carries the machine it ran on. */
+                }
+                {activePath() ?? "…"} · previewing {activeMode()}
               </span>
             </div>
             {

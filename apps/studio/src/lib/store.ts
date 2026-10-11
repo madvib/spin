@@ -9,6 +9,7 @@
  */
 
 import { createEffect, createResource, createSignal } from "solid-js";
+import { listPrimitives, type RpcComponent } from "./primitives.ts";
 import { analyzeTheme } from "./theme.ts";
 import { indexTree } from "@spin/theme";
 import { listProjectThemes } from "./themes.ts";
@@ -59,6 +60,35 @@ createEffect(() => {
   const known = listed.some((theme) => theme.name === activeName());
   if (!known) setActiveName(listed[0]!.name);
 });
+
+/**
+ * The component registry, read once and shared.
+ *
+ * The side list and the component page both need it, and a resource per
+ * caller would fetch the payload twice for one page load. Created lazily so
+ * it never runs under SSR.
+ */
+let libraryCache:
+  | ReturnType<
+    typeof createResource<Awaited<ReturnType<typeof listPrimitives>>>
+  >
+  | undefined;
+
+function libraryResource() {
+  if (libraryCache === undefined) {
+    libraryCache = createResource(listPrimitives);
+  }
+  return libraryCache;
+}
+
+/** Every component the daemon knows, or `undefined` before it answers. */
+export function library(): readonly RpcComponent[] | undefined {
+  return libraryResource()[0]();
+}
+
+export function refetchLibrary(): void {
+  libraryResource()[1].refetch();
+}
 
 /** The editor text per theme, seeded from disk on first read. */
 const [docs, setDocs] = createSignal<Record<string, string>>({});
