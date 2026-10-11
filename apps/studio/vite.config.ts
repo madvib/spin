@@ -67,6 +67,13 @@ export default defineConfig({
           "../../packages/preset/src/index.ts",
         ),
       },
+      {
+        find: "@spin/api",
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/api/src/index.ts",
+        ),
+      },
       { find: /^npm:(.+)$/, replacement: "$1" },
       {
         find: "@unocss/core",

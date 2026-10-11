@@ -1,11 +1,7 @@
 {
   "$extensions": {
     "spin": {
-      "id": "spin-neobrut",
-      "modes": [
-        "light",
-        "dark"
-      ]
+      "id": "spin-neobrut"
     }
   },
   "color": {

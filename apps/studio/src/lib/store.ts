@@ -14,10 +14,35 @@ import { indexTree } from "@spin/theme";
 import { listProjectThemes } from "./themes.ts";
 import type { StudioTheme } from "./themes.ts";
 
-/** Every theme on disk at load. Refresh is explicit: the user picks it up. */
-const [registry, { refetch }] = createResource(listProjectThemes);
+/**
+ * Every theme on disk at load. Refresh is explicit: the user picks it up.
+ *
+ * Lazy, because this module also loads on the server: a resource created at
+ * module scope runs during SSR, where there is no request context for it to
+ * resolve under. Creating it on first read keeps the browser the only place
+ * it ever runs.
+ */
+let registryCache:
+  | ReturnType<
+    typeof createResource<Awaited<ReturnType<typeof listProjectThemes>>>
+  >
+  | undefined;
 
-export { refetch as refetchThemes, registry };
+function registryResource() {
+  if (registryCache === undefined) {
+    registryCache = createResource(listProjectThemes);
+  }
+  return registryCache;
+}
+
+/** The registry resource, created on first read. */
+export function registry() {
+  return registryResource()[0]();
+}
+
+export function refetchThemes(): void {
+  registryResource()[1].refetch();
+}
 
 /** The editor text per theme, seeded from disk on first read. */
 const [docs, setDocs] = createSignal<Record<string, string>>({});
@@ -78,10 +103,7 @@ export function markSaved(name: string): void {
 export function activeModes(): string[] {
   try {
     const doc = JSON.parse(themeText()) as Record<string, unknown>;
-    const spin = ((doc["$extensions"] ?? {}) as Record<string, unknown>)[
-      "spin"
-    ] as Record<string, unknown> | undefined;
-    const modes = spin?.["modes"];
+    const modes = doc["modes"];
     if (
       Array.isArray(modes) &&
       modes.length > 0 &&
