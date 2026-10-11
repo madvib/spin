@@ -1,5 +1,6 @@
 import { createSignal, onMount } from "solid-js";
 import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.bridge.ts";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
 
 interface CascadeElement extends HTMLElement {
   /** The tree crosses as JSON text: the scope grammar has no recursive type. */
@@ -114,16 +115,24 @@ export default function CascadeFsm() {
     });
   });
 
-  const button =
-    "rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface";
-
   return (
-    <section>
-
-      <div class="flex flex-wrap items-center gap-3 mb-4">
+    <DemoCard
+      title="Location"
+      width="md"
+      note="The component carries a hidden input that submits as location when it sits in a form."
+    >
+      <spin-cascade-select
+        ref={(node: HTMLElement) => {
+          el = node as CascadeElement;
+          el.collection = JSON.stringify(TREE);
+          el.label = "Location";
+          el.name = "location";
+        }}
+      />
+      <DemoControls>
         <button
           type="button"
-          class={button}
+          class={DEMO_BUTTON}
           onClick={() => {
             const commands = el as unknown as CascadeCommands | undefined;
             commands?.setOpen(true);
@@ -133,7 +142,7 @@ export default function CascadeFsm() {
         </button>
         <button
           type="button"
-          class={button}
+          class={DEMO_BUTTON}
           onClick={() => {
             const commands = el as unknown as CascadeCommands | undefined;
             commands?.setValue([["asia", "india", "haryana"]]);
@@ -141,18 +150,8 @@ export default function CascadeFsm() {
         >
           el.setValue([…])
         </button>
-      </div>
-
-      <spin-cascade-select
-        ref={(node: HTMLElement) => {
-          el = node as CascadeElement;
-          el.collection = JSON.stringify(TREE);
-          el.label = "Location";
-          el.name = "location";
-        }}
-      />
-
-      <div class="mt-4 text-sm text-muted font-mono">
+      </DemoControls>
+      <DemoReadout>
         <div>
           value: <span id="cascade-value">{value().length === 0 ? "—" : labelOf(...value())}</span>
         </div>
@@ -163,10 +162,7 @@ export default function CascadeFsm() {
           open: <span id="cascade-open">{open() ? "true" : "false"}</span> · value-change:{" "}
           <span id="cascade-changes">{changes()}</span>
         </div>
-      </div>
-      <p class="mt-4 text-sm text-muted">
-        The component carries a hidden input that submits as <code>location</code> when it sits in a form.
-      </p>
-    </section>
+      </DemoReadout>
+    </DemoCard>
   );
 }

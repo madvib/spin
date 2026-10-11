@@ -1,4 +1,5 @@
 import { createSignal, onMount } from "solid-js";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
 
 type TreeElement = HTMLElement & {
   nodes?: string;
@@ -71,28 +72,11 @@ export default function TreeViewFsm() {
   });
 
   return (
-    <section>
-      <button
-        type="button"
-        class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
-        onClick={() => setMulti((m) => !m)}
-      >
-        {multi() ? "selectionMode: multiple" : "selectionMode: single"}
-      </button>
-
-      <button
-        type="button"
-        class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
-        onClick={() => {
-          const next = !controlled();
-          setControlled(next);
-          // A real host write: property, not attribute.
-          if (el) el.expandedValue = next ? ["src", "packages"] : [];
-        }}
-      >
-        {controlled() ? "clear controlled expandedValue" : "control expandedValue = [src, packages]"}
-      </button>
-
+    <DemoCard
+      title="Per-node state, ~30 events, lazy branches"
+      width="lg"
+      note="A hard machine as config plus pure assigns and a view layer that owns flattening. The status line is the last key the machine answered."
+    >
       <spin-tree-view
         prop:selectionMode={multi() ? "multiple" : "single"}
         ref={(node) => {
@@ -101,11 +85,28 @@ export default function TreeViewFsm() {
           el.loadChildren = loadChildren;
         }}
       />
-      <div class="mt-4 text-sm text-muted font-mono">
+      <DemoControls>
+        <button type="button" class={DEMO_BUTTON} onClick={() => setMulti((m) => !m)}>
+          {multi() ? "selectionMode: multiple" : "selectionMode: single"}
+        </button>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => {
+            const next = !controlled();
+            setControlled(next);
+            // A real host write: property, not attribute.
+            if (el) el.expandedValue = next ? ["src", "packages"] : [];
+          }}
+        >
+          {controlled() ? "clear controlled expandedValue" : "control expandedValue = [src, packages]"}
+        </button>
+      </DemoControls>
+      <DemoReadout>
         <div>expanded: {expanded().join(", ") || "—"}</div>
         <div>selected: {selected().join(", ") || "—"}</div>
         <div>{status()}</div>
-      </div>
-    </section>
+      </DemoReadout>
+    </DemoCard>
   );
 }

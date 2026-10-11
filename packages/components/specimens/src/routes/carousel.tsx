@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
 import type { CarouselSlide } from "../../../src/spin-carousel/carousel.connect.ts";
 
 /** The element's host surface, from its machine-def's commands. */
@@ -67,13 +68,16 @@ export default function CarouselFsm() {
   );
 
   return (
-    <section>
-
-      <div class="flex flex-wrap items-center gap-2 mb-4">
+    <DemoCard
+      title="Five slides, native scroll-snap"
+      width="full"
+      note="allowMouseDrag is authored up front: a `use:` action attaches the first frame its key is in the bag, and the runtime has no detach path."
+    >
+      <DemoControls>
         <button
           id="carousel-prev"
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => carousel.commands().prev()}
         >
           el.prev()
@@ -81,7 +85,7 @@ export default function CarouselFsm() {
         <button
           id="carousel-next"
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => carousel.commands().next()}
         >
           el.next()
@@ -89,7 +93,7 @@ export default function CarouselFsm() {
         <button
           id="carousel-goto"
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => carousel.commands().goTo(4)}
         >
           el.goTo(4)
@@ -97,7 +101,7 @@ export default function CarouselFsm() {
         <button
           id="carousel-play"
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => carousel.commands().setAutoplay(!playing())}
         >
           {playing() ? "el.setAutoplay(false)" : "el.setAutoplay(true)"}
@@ -105,33 +109,27 @@ export default function CarouselFsm() {
         <button
           id="carousel-loop"
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => setLoop((l) => !l)}
         >
           loop: {loop() ? "true" : "false"}
         </button>
-        <button
-          id="carousel-drag"
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
-        >
+        <button id="carousel-drag" type="button" class={DEMO_BUTTON}>
           drag the track →
         </button>
-      </div>
-
+      </DemoControls>
       <spin-carousel ref={carousel.ref} />
-
-      <div class="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted font-mono">
-        <span>
+      <DemoReadout>
+        <span class="mr-4">
           index: <span id="carousel-index">{index()}</span>
         </span>
-        <span>
+        <span class="mr-4">
           drag: <span id="carousel-drag-status">{drag()}</span>
         </span>
         <span>
           rotation: <span id="carousel-rotation">{rotation()}</span>
         </span>
-      </div>
-    </section>
+      </DemoReadout>
+    </DemoCard>
   );
 }

@@ -32,14 +32,17 @@ function BrandMark() {
 }
 
 const NAV_LINK =
-  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text aria-[current]:bg-surface-raised aria-[current]:font-medium aria-[current]:text-text";
+  "flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text-muted transition-colors hover:text-text aria-[current]:font-medium aria-[current]:text-text";
 
-const GROUP_LABEL = "px-2 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-text-muted";
+const GROUP_LABEL = "px-2 pt-5 pb-1 text-xs font-medium text-text-muted";
 
 const SELECT = "min-w-0 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
 
 const ICON_BUTTON =
-  "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-border bg-surface-raised p-1 text-sm text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-transparent bg-transparent p-1 text-sm text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+
+const FILTER_ROW =
+  "mt-2 flex items-center gap-2 border-b border-border px-2 pb-2 text-xs text-text-muted";
 
 /** The theme picker: a real form control, named by the label that wraps it. */
 function ThemePicker() {
@@ -120,9 +123,9 @@ function Rail() {
     return SPECIMENS.filter((s) => `${s.title} ${s.blurb} ${s.id}`.toLowerCase().includes(q));
   });
   return (
-    <nav class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-60 shrink-0 overflow-y-auto pb-10 md:block">
-      <label class="mt-4 flex items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1">
-        <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
+    <nav class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto pb-10 md:block">
+      <label class={FILTER_ROW}>
+        <i class="i-lucide-search icon-sm shrink-0" />
         <span class="sr-only">Filter components</span>
         <input
           class="w-full border-transparent bg-transparent p-0 text-xs text-text"
@@ -158,7 +161,7 @@ function Rail() {
 
 /** The frame every specimen stands in: a stage, sized to its subject. */
 const STAGE =
-  "min-h-16 rounded-md border border-dashed border-solid border-border bg-surface p-6 shadow-sm";
+  "rounded-lg border border-solid border-border bg-surface p-6";
 
 function Shell(props: { children?: JSX.Element }) {
   const location = useLocation();
@@ -166,7 +169,7 @@ function Shell(props: { children?: JSX.Element }) {
     SPECIMENS.find((s) => s.path === location.pathname);
   return (
     <div class="min-h-dvh bg-surface text-text font-sans">
-      <header class="sticky top-0 z-dropdown flex h-16 items-center gap-3 border-b border-border bg-surface px-6">
+      <header class="sticky top-0 z-dropdown flex h-14 items-center gap-3 border-b border-border bg-surface px-6">
         <a href="/" class="flex items-center gap-2 font-bold tracking-tight">
           <BrandMark />
           <span>spin · components</span>
@@ -184,9 +187,9 @@ function Shell(props: { children?: JSX.Element }) {
           <i class="i-lucide-github icon-sm" />
         </a>
       </header>
-      <div class="mx-auto flex max-w-[100rem] gap-8 px-6">
+      <div class="mx-auto flex max-w-[72rem] gap-10 px-6">
         <Rail />
-        <main class="min-w-0 flex-1 py-8">
+        <main class="min-w-0 flex-1 py-10">
           <Show
             when={specimen()}
             fallback={props.children}

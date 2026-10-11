@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 
 /** The element's host surface, from its machine-def's commands. */
 interface DialogCommands {
@@ -30,31 +31,27 @@ export default function DialogFsm() {
   );
 
   return (
-    <section>
-
-      <div class="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
-          onClick={() => dialog.commands().show()}
-        >
-          el.show()
-        </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface"
-          onClick={() => dialog.commands().hide("api")}
-        >
-          el.hide("api")
-        </button>
-        <span class="text-sm text-muted">
+    <DemoGrid>
+      <DemoCard
+        title="The host surface"
+        width="sm"
+        note="The machine is open/closed; focus-trap, dismissable and scroll-lock are stdlib actions in the content bag, not code in the host."
+      >
+        <spin-dialog ref={dialog.ref}>
+          <div slot="title" class="text-lg font-semibold text-text">Slotted title</div>
+        </spin-dialog>
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => dialog.commands().show()}>
+            el.show()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => dialog.commands().hide("api")}>
+            el.hide("api")
+          </button>
+        </DemoControls>
+        <DemoReadout>
           status: <span id="dialog-status">{status()}</span>
-        </span>
-      </div>
-
-      <spin-dialog ref={dialog.ref}>
-        <div slot="title" class="text-lg font-semibold text-text">Slotted title</div>
-      </spin-dialog>
-    </section>
+        </DemoReadout>
+      </DemoCard>
+    </DemoGrid>
   );
 }

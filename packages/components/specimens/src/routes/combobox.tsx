@@ -7,6 +7,7 @@ import type {
   ComboboxSelect,
   ComboboxValueChange,
 } from "../../../src/spin-combobox/combobox.bridge.ts";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 
 interface ComboboxCommands {
   syncSelectedItems: () => void;
@@ -150,102 +151,107 @@ export default function ComboboxFsm() {
     },
   );
 
-  const button =
-    "rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface";
-
   return (
-    <section>
-
-      <div class="grid gap-8 sm:grid-cols-2">
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Single, grouped, host-filtered</h3>
-          <spin-combobox
-            id="frameworks"
-            ref={single.ref}
-            prop:items={matches()}
-            prop:label="Framework"
-            prop:placeholder="Search a framework"
-            prop:defaultValue="svelte"
-          />
-          <p class="mt-1 text-xs text-muted">
-            {matches().length} of {FRAMEWORKS.length} rows match “{query()}”.
-          </p>
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Multiple, stays open</h3>
-          <spin-combobox
-            id="toppings"
-            ref={multiple.ref}
-            prop:items={TOPPINGS}
-            prop:label="Toppings"
-            prop:multiple={true}
-            prop:closeOnSelect={false}
-          />
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Inline autocomplete</h3>
-          <spin-combobox
-            id="cities"
-            ref={completing.ref}
-            prop:items={CITIES}
-            prop:label="City"
-            prop:inputBehavior="autocomplete"
-          />
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Controlled open</h3>
-          <spin-combobox
-            id="controlled"
-            ref={controlled.ref}
-            prop:items={CITIES}
-            prop:label="Controlled open"
-            prop:open={panelOpen()}
-            prop:placeholder="Opens from outside"
-          />
-          <div class="mt-2 flex gap-2">
-            <button type="button" class={button} onClick={() => setPanelOpen((v) => !v)}>
-              {panelOpen() ? "close from host" : "open from host"}
-            </button>
+    <DemoGrid>
+      <DemoCard
+        title="Single, grouped, host-filtered"
+        width="md"
+        note="The host filter narrows the collection it passes down; the commands below drive this instance."
+      >
+        <spin-combobox
+          id="frameworks"
+          ref={single.ref}
+          prop:items={matches()}
+          prop:label="Framework"
+          prop:placeholder="Search a framework"
+          prop:defaultValue="svelte"
+        />
+        <p class="mt-1 text-xs text-muted">
+          {matches().length} of {FRAMEWORKS.length} rows match “{query()}”.
+        </p>
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setOpen(true)}>
+            el.setOpen(true)
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setOpen(false)}>
+            el.setOpen(false)
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().selectValue("deno")}>
+            el.selectValue("deno")
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setValue(["react", "vue"])}>
+            el.setValue([...])
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setInputValue("sve")}>
+            el.setInputValue("sve")
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().clearValue()}>
+            el.clearValue()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().focus()}>
+            el.focus()
+          </button>
+        </DemoControls>
+        <DemoReadout>
+          <div>
+            value: <span id="combobox-value">{value()}</span> · highlighted:{" "}
+            <span id="combobox-highlighted">{highlighted()}</span> · typed:{" "}
+            <span id="combobox-typed">{typed()}</span>
           </div>
-        </div>
-      </div>
+          <div>
+            panel: <span id="combobox-open">{open()}</span> · selects:{" "}
+            <span id="combobox-selects">{selects()}</span> · opens:{" "}
+            <span id="combobox-opens">{opens()}</span>
+          </div>
+        </DemoReadout>
+      </DemoCard>
 
-      <div class="flex flex-wrap items-center gap-3 mt-8">
-        <button type="button" class={button} onClick={() => single.commands().setOpen(true)}>
-          el.setOpen(true)
-        </button>
-        <button type="button" class={button} onClick={() => single.commands().setOpen(false)}>
-          el.setOpen(false)
-        </button>
-        <button type="button" class={button} onClick={() => single.commands().selectValue("deno")}>
-          el.selectValue("deno")
-        </button>
-        <button type="button" class={button} onClick={() => single.commands().setValue(["react", "vue"])}>
-          el.setValue([...])
-        </button>
-        <button type="button" class={button} onClick={() => single.commands().setInputValue("sve")}>
-          el.setInputValue("sve")
-        </button>
-        <button type="button" class={button} onClick={() => single.commands().clearValue()}>
-          el.clearValue()
-        </button>
-        <button type="button" class={button} onClick={() => single.commands().focus()}>
-          el.focus()
-        </button>
-      </div>
+      <DemoCard title="Multiple, stays open" width="md" note="closeOnSelect is false, so each pick leaves the panel up.">
+        <spin-combobox
+          id="toppings"
+          ref={multiple.ref}
+          prop:items={TOPPINGS}
+          prop:label="Toppings"
+          prop:multiple={true}
+          prop:closeOnSelect={false}
+        />
+        <DemoReadout>
+          toppings: <span id="combobox-toppings">{toppings()}</span>
+        </DemoReadout>
+      </DemoCard>
 
-      <div class="mt-4 text-sm text-muted font-mono tabular-nums">
-        <div>
-          value: <span id="combobox-value">{value()}</span> · toppings:{" "}
-          <span id="combobox-toppings">{toppings()}</span> · inline:{" "}
-          <span id="combobox-inline">{inline()}</span>
-        </div>
-        <div>
-          highlighted: <span id="combobox-highlighted">{highlighted()}</span> · typed:{" "}
-          <span id="combobox-typed">{typed()}</span> · panel: <span id="combobox-open">{open()}</span> · selects:{" "}
-          <span id="combobox-selects">{selects()}</span> · opens: <span id="combobox-opens">{opens()}</span>
-        </div>
-      </div>
-    </section>
+      <DemoCard title="Inline autocomplete" width="md" note="inputBehavior autocomplete: the walk completes the row into the field.">
+        <spin-combobox
+          id="cities"
+          ref={completing.ref}
+          prop:items={CITIES}
+          prop:label="City"
+          prop:inputBehavior="autocomplete"
+        />
+        <DemoReadout>
+          inline: <span id="combobox-inline">{inline()}</span>
+        </DemoReadout>
+      </DemoCard>
+
+      <DemoCard
+        title="Controlled open"
+        width="md"
+        note="The open channel is the host's: the value it writes is the machine's, and Escape closes it the way a user would."
+      >
+        <spin-combobox
+          id="controlled"
+          ref={controlled.ref}
+          prop:items={CITIES}
+          prop:label="Controlled open"
+          prop:open={panelOpen()}
+          prop:placeholder="Opens from outside"
+        />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => setPanelOpen((v) => !v)}>
+            {panelOpen() ? "close from host" : "open from host"}
+          </button>
+        </DemoControls>
+      </DemoCard>
+    </DemoGrid>
   );
 }

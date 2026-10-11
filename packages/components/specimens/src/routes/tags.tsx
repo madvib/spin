@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
 import type { TagsCommands } from "../../../src/spin-tags-input/tags.bridge.ts";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
 
 type TagsElement = HTMLElement & {
   label?: string;
@@ -116,10 +117,12 @@ export default function TagsFsm() {
   );
 
   return (
-    <section>
-
+    <DemoCard
+      title="Tags input"
+      width="md"
+      note="A real form, the behaviour props the machine reads, and the imperative commands."
+    >
       <form
-        class="mb-4"
         onSubmit={(event) => {
           event.preventDefault();
           note("submit");
@@ -143,27 +146,21 @@ export default function TagsFsm() {
             };
           }}
         />
-        <div class="mt-2 flex flex-wrap gap-2">
-          <button
-            type="reset"
-            class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          >
+        <DemoControls>
+          <button type="reset" class={DEMO_BUTTON}>
             form reset
           </button>
-          <button
-            type="submit"
-            class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          >
+          <button type="submit" class={DEMO_BUTTON}>
             submit
           </button>
-        </div>
+        </DemoControls>
       </form>
 
-      <div class="mb-4 flex flex-wrap gap-2">
+      <DemoControls>
         <button
           type="button"
           id="tags-add-value"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().addValue("kept")}
         >
           el.addValue("kept")
@@ -171,129 +168,93 @@ export default function TagsFsm() {
         <button
           type="button"
           id="tags-add-elm"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().addValue("elm")}
         >
           el.addValue("elm")
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setMaxed((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setMaxed((on) => !on)}>
           {maxed() ? "max: 2" : "max: unlimited"}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setAllowOverflow((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setAllowOverflow((on) => !on)}>
           allowOverflow: {String(allowOverflow())}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setDelimiter(delimiter() === "," ? ";" : ",")}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setDelimiter(delimiter() === "," ? ";" : ",")}>
           delimiter: {delimiter()}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setAllowDuplicates((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setAllowDuplicates((on) => !on)}>
           allowDuplicates: {String(allowDuplicates())}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setEditable((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setEditable((on) => !on)}>
           editable: {String(editable())}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setBlur(blur() === "add" ? "" : "add")}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setBlur(blur() === "add" ? "" : "add")}>
           blurBehavior: {blur() === "add" ? "add" : "none"}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setDisabled((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setDisabled((on) => !on)}>
           {disabled() ? "enable" : "disable"}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setReadOnly((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setReadOnly((on) => !on)}>
           readOnly: {String(readOnly())}
         </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => setControlled((on) => !on)}
-        >
+        <button type="button" class={DEMO_BUTTON} onClick={() => setControlled((on) => !on)}>
           {controlled() ? "controlled: on" : "controlled: off"}
         </button>
-      </div>
+      </DemoControls>
 
-      <div class="mb-4 flex flex-wrap gap-2">
+      <DemoControls>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().setValue(["deno", "fresh", "jsr"])}
         >
           el.setValue(["deno", "fresh", "jsr"])
         </button>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().addValue("elm")}
         >
           el.addValue("elm")
         </button>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().setValueAtIndex(0, "rewritten")}
         >
           el.setValueAtIndex(0, "rewritten")
         </button>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().clearValue()}
         >
           el.clearValue()
         </button>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().setInputValue("typed")}
         >
           el.setInputValue("typed")
         </button>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().clearInputValue()}
         >
           el.clearInputValue()
         </button>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
+          class={DEMO_BUTTON}
           onClick={() => tags.commands().focus()}
         >
           el.focus()
         </button>
-      </div>
+      </DemoControls>
 
-      <div class="text-sm text-muted font-mono">
+      <DemoReadout>
         <div>
           value: <span id="tags-value">{value().join(", ") || "—"}</span>
         </div>
@@ -313,7 +274,7 @@ export default function TagsFsm() {
           events:{" "}
           <span id="tags-events">{events().join(" · ") || "—"}</span>
         </div>
-      </div>
-    </section>
+      </DemoReadout>
+    </DemoCard>
   );
 }

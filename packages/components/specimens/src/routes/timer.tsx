@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 import type { TimerTickChange } from "../../../src/spin-timer/timer.bridge.ts";
 
 interface TimerCommands {
@@ -68,55 +69,58 @@ export default function TimerFsm() {
     },
   );
 
-  const button =
-    "rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface";
-
   return (
-    <section>
-
-      <div class="grid gap-6 sm:grid-cols-2">
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Stopwatch, 250ms interval</h3>
-          <spin-timer id="stopwatch" ref={stopwatch.ref} />
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Countdown, autoStart, one minute</h3>
-          <spin-timer id="auto" ref={auto.ref} />
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Countdown, one and a half seconds</h3>
-          <spin-timer id="short" ref={shortTimer.ref} />
-        </div>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3 mt-6">
-        <button type="button" class={button} onClick={() => stopwatch.commands().start()}>
-          el.start()
-        </button>
-        <button type="button" class={button} onClick={() => stopwatch.commands().pause()}>
-          el.pause()
-        </button>
-        <button type="button" class={button} onClick={() => stopwatch.commands().resume()}>
-          el.resume()
-        </button>
-        <button type="button" class={button} onClick={() => stopwatch.commands().reset()}>
-          el.reset()
-        </button>
-        <button type="button" class={button} onClick={() => stopwatch.commands().restart()}>
-          el.restart()
-        </button>
-      </div>
-
-      <div class="mt-4 text-sm text-muted font-mono tabular-nums">
-        <div>
-          stopwatch: <span id="timer-value">{value()}</span> · auto countdown:{" "}
-          <span id="timer-countdown">{countdown()}</span>
-        </div>
-        <div>
-          short: <span id="timer-short">{short()}</span> · completes:{" "}
+    <DemoGrid>
+      <DemoCard
+        title="Stopwatch, 250ms interval"
+        width="md"
+        note="The interval is a stdlib action; the tick's arithmetic is pure assigns."
+      >
+        <spin-timer id="stopwatch" ref={stopwatch.ref} />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().start()}>
+            el.start()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().pause()}>
+            el.pause()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().resume()}>
+            el.resume()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().reset()}>
+            el.reset()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().restart()}>
+            el.restart()
+          </button>
+        </DemoControls>
+        <DemoReadout>
+          stopwatch: <span id="timer-value">{value()}</span> · completes:{" "}
           <span id="timer-completes">{completes()}</span>
-        </div>
-      </div>
-    </section>
+        </DemoReadout>
+      </DemoCard>
+
+      <DemoCard
+        title="Countdown, autoStart, one minute"
+        width="md"
+        note="autoStart seeds the running phase, so the clock is already going."
+      >
+        <spin-timer id="auto" ref={auto.ref} />
+        <DemoReadout>
+          auto countdown: <span id="timer-countdown">{countdown()}</span>
+        </DemoReadout>
+      </DemoCard>
+
+      <DemoCard
+        title="Countdown, one and a half seconds"
+        width="sm"
+        note="A countdown runs its bar from full to empty and completes on its own."
+      >
+        <spin-timer id="short" ref={shortTimer.ref} />
+        <DemoReadout>
+          short: <span id="timer-short">{short()}</span>
+        </DemoReadout>
+      </DemoCard>
+    </DemoGrid>
   );
 }

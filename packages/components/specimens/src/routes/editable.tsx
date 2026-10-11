@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
 import type { EditableEditChange, EditableValueChange } from "../../../src/spin-editable/editable.bridge.ts";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 
 interface EditableCommands {
   setValue: (value: string) => void;
@@ -9,9 +10,6 @@ interface EditableCommands {
   cancel: () => void;
   submit: () => void;
 }
-
-const button =
-  "rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface";
 
 /**
  * Editable on the forked FSM: the preview/edit pair, the controlled edit
@@ -67,86 +65,75 @@ export default function EditableFsm() {
   );
 
   return (
-    <section>
-
-      <div class="grid gap-6 sm:grid-cols-2">
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Uncontrolled</h3>
-          <spin-editable
-            id="uncontrolled"
-            ref={uncontrolled.ref}
-            prop:label="Name"
-            prop:defaultValue="Ada Lovelace"
-            prop:placeholder="Type a name"
-            prop:name="fullName"
-          />
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Controlled edit</h3>
-          <spin-editable
-            id="controlled"
-            ref={controlled.ref}
-            prop:label="Controlled edit"
-            prop:editing={edit()}
-            prop:defaultValue="Grace Hopper"
-          />
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              class={button}
-              onClick={() => controlled.commands().edit()}
-            >
-              el.edit()
-            </button>
-            <button
-              type="button"
-              class={button}
-              onClick={() => controlled.commands().submit()}
-            >
-              el.submit()
-            </button>
-            <button
-              type="button"
-              class={button}
-              onClick={() => controlled.commands().cancel()}
-            >
-              el.cancel()
-            </button>
-          </div>
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Auto-resize</h3>
-          <spin-editable
-            id="autoresize"
-            ref={autoresize.ref}
-            prop:label="Auto-resizing"
-            prop:autoResize={true}
-            prop:placeholder="It grows with the text"
-          />
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Disabled</h3>
-          <spin-editable
-            id="disabled"
-            ref={disabled.ref}
-            prop:label="Disabled"
-            prop:defaultValue="not editable"
-            prop:disabled={true}
-          />
-        </div>
-      </div>
-
-      <div class="mt-4 text-sm text-muted font-mono tabular-nums">
-        <div>
+    <DemoGrid>
+      <DemoCard
+        title="Uncontrolled"
+        width="md"
+        note="The host readouts belong to this field: it is the one the route reports value-change, value-commit and value-revert from."
+      >
+        <spin-editable
+          id="uncontrolled"
+          ref={uncontrolled.ref}
+          prop:label="Name"
+          prop:defaultValue="Ada Lovelace"
+          prop:placeholder="Type a name"
+          prop:name="fullName"
+        />
+        <DemoReadout>
           value: <span id="editable-value">{value()}</span> · commits:{" "}
           <span id="editable-commits">{commits()}</span> · reverts:{" "}
           <span id="editable-reverts">{reverts()}</span>
-        </div>
-        <div>
+        </DemoReadout>
+      </DemoCard>
+
+      <DemoCard
+        title="Controlled edit"
+        width="md"
+        note="The host owns the edit channel: the field asks, the host answers, and the last report reads out."
+      >
+        <spin-editable
+          id="controlled"
+          ref={controlled.ref}
+          prop:label="Controlled edit"
+          prop:editing={edit()}
+          prop:defaultValue="Grace Hopper"
+        />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().edit()}>
+            el.edit()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().submit()}>
+            el.submit()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().cancel()}>
+            el.cancel()
+          </button>
+        </DemoControls>
+        <DemoReadout>
           controlled edit: <span id="editable-edit">{edit() ? "edit" : "preview"}</span> · last report:{" "}
           <span id="editable-outside">{outside()}</span>
-        </div>
-      </div>
-    </section>
+        </DemoReadout>
+      </DemoCard>
+
+      <DemoCard title="Auto-resize" width="md" note="Both parts share one grid cell, so the inactive one is invisible but still laid out.">
+        <spin-editable
+          id="autoresize"
+          ref={autoresize.ref}
+          prop:label="Auto-resizing"
+          prop:autoResize={true}
+          prop:placeholder="It grows with the text"
+        />
+      </DemoCard>
+
+      <DemoCard title="Disabled" width="md" note="The preview leaves the tab order and the input is disabled.">
+        <spin-editable
+          id="disabled"
+          ref={disabled.ref}
+          prop:label="Disabled"
+          prop:defaultValue="not editable"
+          prop:disabled={true}
+        />
+      </DemoCard>
+    </DemoGrid>
   );
 }

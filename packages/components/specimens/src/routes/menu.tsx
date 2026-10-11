@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 import type { MenuEntry, MenuRow } from "../../../src/spin-menu/menu.connect.ts";
 
 interface MenuCommands {
@@ -74,45 +75,37 @@ export default function MenuFsm() {
   );
 
   return (
-    <section>
-
-      <div class="flex flex-wrap items-center gap-3 mb-4">
+    <DemoGrid>
+      <DemoCard
+        title="Two states, one bridge per level"
+        width="md"
+        note="Hover-intent, long-press and the close delay are actions on the trigger; a submenu is another instance a parent opens by writing its `open` prop."
+      >
         <spin-menu ref={menu.ref} />
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => menu.commands().open()}
-        >
-          el.open()
-        </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => menu.commands().close()}
-        >
-          el.close()
-        </button>
-        <button
-          type="button"
-          class="rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface"
-          onClick={() => menu.commands().setHighlighted("copy")}
-        >
-          el.setHighlighted("copy")
-        </button>
-      </div>
-
-      <div class="text-sm text-muted font-mono">
-        <div>
-          open: <span id="menu-open">{open() ? "true" : "false"}</span>
-        </div>
-        <div>
-          highlighted: <span id="menu-highlighted">{highlighted()}</span>
-        </div>
-        <div>
-          selected: <span id="menu-selected">{selected()}</span>
-        </div>
-      </div>
-    </section>
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => menu.commands().open()}>
+            el.open()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => menu.commands().close()}>
+            el.close()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => menu.commands().setHighlighted("copy")}>
+            el.setHighlighted("copy")
+          </button>
+        </DemoControls>
+        <DemoReadout>
+          <div>
+            open: <span id="menu-open">{open() ? "true" : "false"}</span>
+          </div>
+          <div>
+            highlighted: <span id="menu-highlighted">{highlighted()}</span>
+          </div>
+          <div>
+            selected: <span id="menu-selected">{selected()}</span>
+          </div>
+        </DemoReadout>
+      </DemoCard>
+    </DemoGrid>
   );
 }
 

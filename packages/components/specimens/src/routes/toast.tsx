@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 import type { ToastStatusChange } from "../../../src/spin-toast/toast.bridge.ts";
 
 interface ToastCommands {
@@ -49,9 +50,6 @@ const make = (title: string, type: string, action = ""): HostToast => {
 };
 
 const PLACEMENTS = ["bottom", "bottom-end", "top", "top-start"] as const;
-
-const button =
-  "rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface";
 
 /**
  * Toast on the forked FSM: the queue is machine state and the host's list is
@@ -105,53 +103,56 @@ export default function ToastFsm() {
   };
 
   return (
-    <section>
-
-      <div class="flex flex-wrap items-center gap-3 mb-4">
-        <button type="button" class={button} onClick={() => show("Saved", "success")}>
-          Success
-        </button>
-        <button type="button" class={button} onClick={() => show("Something broke", "error")}>
-          Error
-        </button>
-        <button type="button" class={button} onClick={() => show("Heads up", "warning", "Undo")}>
-          With an action
-        </button>
-        <button type="button" class={button} onClick={() => toasts.commands().dismissAll()}>
-          el.dismissAll()
-        </button>
-        <button type="button" class={button} onClick={() => setOverlap((value) => !value)}>
-          overlap: {overlap() ? "on" : "off"}
-        </button>
-        <button
-          type="button"
-          class={button}
-          onClick={() => {
-            const at = PLACEMENTS.indexOf(placement() as (typeof PLACEMENTS)[number]);
-            setPlacement(PLACEMENTS[(at + 1) % PLACEMENTS.length] as string);
-          }}
-        >
-          placement: {placement()}
-        </button>
-      </div>
-
-      <div class="text-sm text-muted font-mono tabular-nums">
-        <div>
-          toasts: <span id="toast-count">{items().length}</span>
-        </div>
-        <div>
-          last: <span id="last-action">{last()}</span>
-        </div>
-      </div>
-
-      <spin-toast
-        id="region"
-        ref={toasts.ref}
-        prop:items={items()}
-        prop:overlap={overlap()}
-        prop:placement={placement()}
-        prop:removeDelay={200}
-      />
-    </section>
+    <DemoGrid>
+      <DemoCard
+        title="The queue as host list"
+        width="sm"
+        note="Every clock — the dismissal countdown, the remove delay, the entry beat — is an action; the only upward callback is the per-toast status."
+      >
+        <spin-toast
+          id="region"
+          ref={toasts.ref}
+          prop:items={items()}
+          prop:overlap={overlap()}
+          prop:placement={placement()}
+          prop:removeDelay={200}
+        />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => show("Saved", "success")}>
+            Success
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => show("Something broke", "error")}>
+            Error
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => show("Heads up", "warning", "Undo")}>
+            With an action
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => toasts.commands().dismissAll()}>
+            el.dismissAll()
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => setOverlap((value) => !value)}>
+            overlap: {overlap() ? "on" : "off"}
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => {
+              const at = PLACEMENTS.indexOf(placement() as (typeof PLACEMENTS)[number]);
+              setPlacement(PLACEMENTS[(at + 1) % PLACEMENTS.length] as string);
+            }}
+          >
+            placement: {placement()}
+          </button>
+        </DemoControls>
+        <DemoReadout>
+          <div>
+            toasts: <span id="toast-count">{items().length}</span>
+          </div>
+          <div>
+            last: <span id="last-action">{last()}</span>
+          </div>
+        </DemoReadout>
+      </DemoCard>
+    </DemoGrid>
   );
 }

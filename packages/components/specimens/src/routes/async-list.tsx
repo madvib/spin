@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 import type { LoadDetails, LoadResult } from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { SortDetails } from "../../../src/spin-async-list/async-list.bridge.ts";
@@ -109,9 +110,6 @@ const LAND_SERVER = createServer(LAND, 2);
 const RIFT_SERVER = createServer(RIFT, 2);
 const CREW_SERVER = createServer(CREW, 6, 90);
 
-const button =
-  "rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface";
-
 /**
  * Async list on the forked FSM: the load lifecycle a host drives.
  *
@@ -173,46 +171,39 @@ export default function AsyncListFsm() {
   );
 
   return (
-    <section>
-      <p class="mb-4 text-muted">
-        Three states, and no fetch in any of them. <code>idle</code> holds what the last page produced,{" "}
-        <code>loading</code> and <code>sorting</code> are work in flight, and the machine never sees a promise:
-        the bridge owns the fetch, the abort controller and the sequence that drops a stale resolution, reporting
-        back through success and error. Scroll the crew list to its end — the sentinel loads the next page while
-        there is a cursor.
-      </p>
+    <DemoGrid>
+      <DemoCard
+        title="Auto-reloading on a dependency"
+        width="lg"
+        note="The machine never sees a promise: the bridge owns the fetch, the abort controller and the sequence that drops a stale resolution."
+      >
+        <spin-async-list id="paged" ref={paged.ref} />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => setFragment("land")}>Fragment: land</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => setFragment("rift")}>Fragment: rift</button>
+        </DemoControls>
+      </DemoCard>
 
-      <div class="grid gap-6">
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Auto-reloading on a dependency</h3>
-          <spin-async-list id="paged" ref={paged.ref} />
-          <div class="mt-2 flex flex-wrap items-center gap-3">
-            <button type="button" class={button} onClick={() => setFragment("land")}>Fragment: land</button>
-            <button type="button" class={button} onClick={() => setFragment("rift")}>Fragment: rift</button>
-          </div>
-        </div>
-
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Driven by hand</h3>
-          <spin-async-list id="crew" ref={crew.ref} />
-          <div class="mt-2 flex flex-wrap items-center gap-3">
-            <button type="button" class={button} onClick={() => crew.commands().reload()}>el.reload()</button>
-            <button type="button" class={button} onClick={() => crew.commands().loadMore()}>el.loadMore()</button>
-            <button type="button" class={button} onClick={() => crew.commands().sort({ column: "label", direction: "ascending" })}>el.sort(asc)</button>
-            <button type="button" class={button} onClick={() => crew.commands().sort({ column: "label", direction: "descending" })}>el.sort(desc)</button>
-            <button type="button" class={button} onClick={() => crew.commands().setFilterText("a")}>el.setFilterText("a")</button>
-            <button type="button" class={button} onClick={() => crew.commands().abort()}>el.abort()</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-4 text-sm text-muted font-mono tabular-nums">
-        <div>
+      <DemoCard
+        title="Driven by hand"
+        width="lg"
+        note="Scroll the list to its end — the sentinel loads the next page while there is a cursor."
+      >
+        <spin-async-list id="crew" ref={crew.ref} />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().reload()}>el.reload()</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().loadMore()}>el.loadMore()</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().sort({ column: "label", direction: "ascending" })}>el.sort(asc)</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().sort({ column: "label", direction: "descending" })}>el.sort(desc)</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().setFilterText("a")}>el.setFilterText("a")</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().abort()}>el.abort()</button>
+        </DemoControls>
+        <DemoReadout>
           paged loads: <span id="async-list-loads">{loads()}</span> · failures:{" "}
           <span id="async-list-failures">{failures()}</span> · crew loads:{" "}
           <span id="async-list-crew-loads">{crewLoads()}</span>
-        </div>
-      </div>
-    </section>
+        </DemoReadout>
+      </DemoCard>
+    </DemoGrid>
   );
 }

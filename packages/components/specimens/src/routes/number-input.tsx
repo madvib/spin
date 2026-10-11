@@ -6,6 +6,7 @@ import type {
   NumberInputValueCommit,
   NumberInputValueInvalid,
 } from "../../../src/spin-number-input/number-input.bridge.ts";
+import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
 
 interface NumberInputCommands {
   setValue: (value: number | string) => void;
@@ -114,54 +115,54 @@ export default function NumberInputFsm() {
     },
   );
 
-  const button =
-    "rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface";
-
   return (
-    <section>
-
-      <div class="grid gap-6 sm:grid-cols-2">
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Uncontrolled, with bounds</h3>
-          <spin-number-input id="quantity" ref={single.ref} />
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <button type="button" class={button} onClick={() => setDisabled((value) => !value)}>
-              {disabled() ? "Enable" : "Disable"}
-            </button>
-            <button type="button" class={button} onClick={() => single.commands().setToMin()}>el.setToMin()</button>
-            <button type="button" class={button} onClick={() => single.commands().setToMax()}>el.setToMax()</button>
-            <button type="button" class={button} onClick={() => single.commands().clearValue()}>el.clearValue()</button>
+    <DemoGrid>
+      <DemoCard
+        title="Uncontrolled, with bounds"
+        width="sm"
+        note="The readouts are the host's own and shared: every instance on this page writes the same signals."
+      >
+        <spin-number-input id="quantity" ref={single.ref} />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => setDisabled((value) => !value)}>
+            {disabled() ? "Enable" : "Disable"}
+          </button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setToMin()}>el.setToMin()</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setToMax()}>el.setToMax()</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().clearValue()}>el.clearValue()</button>
+        </DemoControls>
+        <DemoReadout>
+          <div>
+            value: <span id="number-input-value">{value()}</span>
           </div>
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">Controlled value</h3>
-          <spin-number-input id="controlled" ref={controlled.ref} />
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <button type="button" class={button} onClick={() => controlled.commands().increment()}>el.increment()</button>
-            <button type="button" class={button} onClick={() => controlled.commands().decrement()}>el.decrement()</button>
-            <button type="button" class={button} onClick={() => controlled.commands().setValue(75)}>el.setValue(75)</button>
+          <div>
+            committed: <span id="number-input-commit">{committed()}</span>
           </div>
-        </div>
-        <div>
-          <h3 class="mb-2 text-sm font-medium text-text">RTL, fractional step</h3>
-          <spin-number-input id="rtl" ref={rtl.ref} />
-        </div>
-      </div>
+          <div>
+            invalid: <span id="number-input-invalid">{invalid()}</span>
+          </div>
+          <div>
+            focus: <span id="number-input-focus">{focus()}</span>
+          </div>
+        </DemoReadout>
+      </DemoCard>
 
-      <div class="mt-6 grid gap-2 text-sm text-muted">
-        <p>
-          value: <span id="number-input-value" class="font-medium text-text">{value()}</span>
-        </p>
-        <p>
-          committed: <span id="number-input-commit" class="font-medium text-text">{committed()}</span>
-        </p>
-        <p>
-          invalid: <span id="number-input-invalid" class="font-medium text-text">{invalid()}</span>
-        </p>
-        <p>
-          focus: <span id="number-input-focus" class="font-medium text-text">{focus()}</span>
-        </p>
-      </div>
-    </section>
+      <DemoCard
+        title="Controlled value"
+        width="sm"
+        note="Step 5, large 25, small 1: the plain step, Shift's step and Alt's step."
+      >
+        <spin-number-input id="controlled" ref={controlled.ref} />
+        <DemoControls>
+          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().increment()}>el.increment()</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().decrement()}>el.decrement()</button>
+          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().setValue(75)}>el.setValue(75)</button>
+        </DemoControls>
+      </DemoCard>
+
+      <DemoCard title="RTL, fractional step" width="sm" note="Direction rtl, step 0.5, and the wheel is allowed.">
+        <spin-number-input id="rtl" ref={rtl.ref} />
+      </DemoCard>
+    </DemoGrid>
   );
 }
