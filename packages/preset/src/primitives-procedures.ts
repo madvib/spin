@@ -9,6 +9,7 @@ import {
   primitiveComponents,
   primitiveReadsByGroup,
 } from "./rules/primitives/manifest.ts";
+import { componentExamples } from "./rules/primitives/examples-index.ts";
 import { primitivesContract } from "./primitives-contract.ts";
 
 // Re-exported so a consumer can reach the contract and the handlers from one
@@ -18,11 +19,17 @@ export { primitivesContract };
 const os = implement(primitivesContract);
 
 const list = os.primitives.list.handler(() => {
-  return Object.values(primitiveComponents).map((c) => ({
-    name: c.name,
-    tags: [...c.tags],
-    variants: [...c.variants],
-  }));
+  return Object.values(primitiveComponents).map((c) => {
+    const examples = componentExamples[c.name];
+    return {
+      name: c.name,
+      tags: [...c.tags],
+      variants: [...c.variants],
+      ...(examples !== undefined
+        ? { examples: { note: examples.note, rows: [...examples.rows] } }
+        : {}),
+    };
+  });
 });
 
 const contract = os.primitives.contract.handler(({ input }) => {
