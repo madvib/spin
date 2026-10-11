@@ -28,10 +28,25 @@ export interface TreeLoadComplete {
 export const treeView: MachineDef = {
   createBridge: createTreeBridge,
   events: {
-    "expanded-change": { on: "onExpandedChange", detail: (c: TreeExpandedChange) => ({ expandedValue: c.expandedValue }) },
-    "selection-change": { on: "onSelectionChange", detail: (c: TreeSelectionChange) => ({ selectedValue: c.selectedValue }) },
-    "focus-change": { on: "onFocusChange", detail: (c: TreeFocusChange) => ({ focusedValue: c.focusedValue }) },
-    "checked-change": { on: "onCheckedChange", detail: (c: TreeCheckedChange) => ({ checkedValue: c.checkedValue }) },
-    "load-complete": { on: "onLoadComplete", detail: (c: TreeLoadComplete) => ({ value: c.value }) },
+    "expanded-change": {
+      on: "onExpandedChange",
+      detail: (c: TreeExpandedChange) => ({ expandedValue: c.expandedValue }),
+    },
+    "selection-change": {
+      on: "onSelectionChange",
+      detail: (c: TreeSelectionChange) => ({ selectedValue: c.selectedValue }),
+    },
+    "focus-change": {
+      on: "onFocusChange",
+      detail: (c: TreeFocusChange) => ({ focusedValue: c.focusedValue }),
+    },
+    "checked-change": {
+      on: "onCheckedChange",
+      detail: (c: TreeCheckedChange) => ({ checkedValue: c.checkedValue }),
+    },
+    "load-complete": {
+      on: "onLoadComplete",
+      detail: (c: TreeLoadComplete) => ({ value: c.value }),
+    },
   },
 };

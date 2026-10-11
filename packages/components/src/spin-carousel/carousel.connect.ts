@@ -19,7 +19,10 @@
  *    group compute nothing themselves — they send page events.
  */
 
-import type { CarouselContext, CarouselDragStatus } from "./carousel.machine.ts";
+import type {
+  CarouselContext,
+  CarouselDragStatus,
+} from "./carousel.machine.ts";
 import { pageCountFor } from "./carousel.machine.ts";
 
 export interface CarouselSlide {
@@ -171,7 +174,10 @@ export function connectRobotCarousel(
   const slideInView = (index: number): boolean => {
     if (ctx().slidesInView.includes(index)) return true;
     const start = ctx().index * moves();
-    const per = Math.max(1, Math.min(props.slidesPerPage || 1, slides.length - start || 1));
+    const per = Math.max(
+      1,
+      Math.min(props.slidesPerPage || 1, slides.length - start || 1),
+    );
     return index >= start && index < start + per;
   };
 
@@ -188,7 +194,9 @@ export function connectRobotCarousel(
   const applyScroll = (page: number, behavior: ScrollBehavior): void => {
     const el = group();
     if (!el) return;
-    const target = el.querySelector<HTMLElement>(`[data-index="${page * moves()}"]`);
+    const target = el.querySelector<HTMLElement>(
+      `[data-index="${page * moves()}"]`,
+    );
     if (!target) return;
     const axis: "left" | "top" = horizontal ? "left" : "top";
     const from = el.getBoundingClientRect()[axis];
@@ -203,7 +211,9 @@ export function connectRobotCarousel(
     if (key === view.appliedKey) return;
     const first = view.appliedKey === "";
     view.appliedKey = key;
-    requestAnimationFrame(() => applyScroll(ctx().index, first ? "auto" : "smooth"));
+    requestAnimationFrame(() =>
+      applyScroll(ctx().index, first ? "auto" : "smooth")
+    );
   };
   sync();
 
@@ -243,9 +253,15 @@ export function connectRobotCarousel(
   view.readout.value = readout();
 
   const keydown = (event: KeyboardEvent): void => {
-    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
-    const forward = horizontal ? event.key === (rtl ? "ArrowLeft" : "ArrowRight") : event.key === "ArrowDown";
-    const back = horizontal ? event.key === (rtl ? "ArrowRight" : "ArrowLeft") : event.key === "ArrowUp";
+    if (
+      event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey
+    ) return;
+    const forward = horizontal
+      ? event.key === (rtl ? "ArrowLeft" : "ArrowRight")
+      : event.key === "ArrowDown";
+    const back = horizontal
+      ? event.key === (rtl ? "ArrowRight" : "ArrowLeft")
+      : event.key === "ArrowUp";
     if (forward) send({ type: "NEXT" });
     else if (back) send({ type: "PREV" });
     else if (event.key === "Home") send({ type: "GO_TO", index: 0 });
@@ -266,20 +282,28 @@ export function connectRobotCarousel(
     dragStatus: ctx().dragStatus,
     canScrollNext: canNext(),
     canScrollPrev: canPrev(),
-    getProgress: () => (ctx().pageCount > 0 ? ctx().index / ctx().pageCount : 0),
+    getProgress:
+      () => (ctx().pageCount > 0 ? ctx().index / ctx().pageCount : 0),
     getProgressText: () => readout(),
     getProgressRows: () => [view.readout],
-    scrollToIndex: (index: number) => send({ type: "GO_TO", index: Math.floor(index / moves()) }),
+    scrollToIndex: (index: number) =>
+      send({ type: "GO_TO", index: Math.floor(index / moves()) }),
     scrollTo: (page: number) => send({ type: "GO_TO", index: page }),
     scrollNext: () => send({ type: "NEXT" }),
     scrollPrev: () => send({ type: "PREV" }),
     play: () => send({ type: "AUTOPLAY.START" }),
     pause: () => send({ type: "AUTOPLAY.STOP" }),
     isInView: slideInView,
-    refresh: () => send({
-      type: "PAGES.SET",
-      count: pageCountFor(slides.length, moves(), props.slidesPerPage, props.autoSize),
-    }),
+    refresh: () =>
+      send({
+        type: "PAGES.SET",
+        count: pageCountFor(
+          slides.length,
+          moves(),
+          props.slidesPerPage,
+          props.autoSize,
+        ),
+      }),
     getRootProps: () => ({
       id: ownerId,
       role: "region",
@@ -317,16 +341,21 @@ export function connectRobotCarousel(
       // The gesture: pointer capture plus scroll offset, reported out.
       ...(props.allowMouseDrag && horizontal
         ? {
-            "use:drag-scroll": {
-              onDragStart: () => send({ type: "DRAG.START" }),
-              // A press that moved nothing produces no scroll and so no
-              // `scrollend`: the velocity is zero, and the gesture is over.
-              onDragEnd: (velocity: number) => {
-                send({ type: "DRAG.END" });
-                if (velocity === 0) send({ type: "SCROLL.SETTLE", index: settlePage() });
-              },
+          "use:drag-scroll": {
+            onDragStart: () => send({ type: "DRAG.START" }),
+            // A press that moved nothing produces no scroll and so no
+            // `scrollend`: the velocity is zero, and the gesture is over.
+            onDragEnd: (velocity: number) => {
+              send({ type: "DRAG.END" });
+              if (velocity === 0) {
+                send({
+                  type: "SCROLL.SETTLE",
+                  index: settlePage(),
+                });
+              }
             },
-          }
+          },
+        }
         : {}),
       // Layout change is Zag's trackSlideResize: re-measure, re-position.
       "use:resize-observer": {
@@ -381,11 +410,14 @@ export function connectRobotCarousel(
     getAutoplayTriggerProps: () => ({
       id: `${ownerId}:autoplay-trigger`,
       type: "button",
-      "aria-label": props.playing ? "Stop slide rotation" : "Start slide rotation",
+      "aria-label": props.playing
+        ? "Stop slide rotation"
+        : "Start slide rotation",
       "aria-pressed": props.playing,
       "data-orientation": props.orientation,
       "data-playing": props.playing ? "" : undefined,
-      onClick: () => send({ type: props.playing ? "AUTOPLAY.STOP" : "AUTOPLAY.START" }),
+      onClick: () =>
+        send({ type: props.playing ? "AUTOPLAY.STOP" : "AUTOPLAY.START" }),
     }),
     getIndicatorGroupProps: () => ({
       id: `${ownerId}:indicator-group`,
@@ -401,7 +433,9 @@ export function connectRobotCarousel(
       "data-orientation": props.orientation,
       "data-current": indicator.index === ctx().index ? "" : undefined,
       "aria-current": indicator.index === ctx().index,
-      "aria-label": `${label(indicator.index)} — ${slides[indicator.index]?.label ?? `slide ${indicator.index + 1}`}`,
+      "aria-label": `${label(indicator.index)} — ${
+        slides[indicator.index]?.label ?? `slide ${indicator.index + 1}`
+      }`,
       "data-readonly": indicator.readOnly ? "" : undefined,
       onClick: () => {
         if (indicator.readOnly === true) return;

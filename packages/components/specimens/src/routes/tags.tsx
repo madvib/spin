@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
 import type { TagsCommands } from "../../../src/spin-tags-input/tags.bridge.ts";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
+import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
 
 type TagsElement = HTMLElement & {
   label?: string;
@@ -22,7 +22,9 @@ type TagsElement = HTMLElement & {
   blurBehavior?: string;
   /** Host-channel behavior functions (the scope grammar cannot type them). */
   sanitizeValue?: (value: string) => string;
-  validate?: (details: { inputValue: string; value: readonly string[] }) => boolean;
+  validate?: (
+    details: { inputValue: string; value: readonly string[] },
+  ) => boolean;
   translations?: {
     tagAdded?: (value: string) => string;
     tagDeleted?: (value: string) => string;
@@ -106,7 +108,9 @@ export default function TagsFsm() {
       "input-value-change": (event: CustomEvent<{ inputValue: string }>) => {
         setInputValue(event.detail.inputValue);
       },
-      "highlight-change": (event: CustomEvent<{ highlightedValue: number | null }>) => {
+      "highlight-change": (
+        event: CustomEvent<{ highlightedValue: number | null }>,
+      ) => {
         setHighlighted(String(event.detail.highlightedValue));
       },
       "value-invalid": (event: CustomEvent<{ reason: string }>) => {
@@ -137,8 +141,10 @@ export default function TagsFsm() {
             // The scope grammar types props as bool/string/int/string[], so
             // the behavior functions cross as element properties — the
             // bridge reads them off the root.
-            host.sanitizeValue = (raw: string): string => raw.trim().toLowerCase();
-            host.validate = ({ inputValue: raw }: { inputValue: string }) => raw !== "banned";
+            host.sanitizeValue = (raw: string): string =>
+              raw.trim().toLowerCase();
+            host.validate = ({ inputValue: raw }: { inputValue: string }) =>
+              raw !== "banned";
             host.translations = {
               tagAdded: (raw: string): string => `Added ${raw}`,
               tagDeleted: (raw: string): string => `Removed ${raw}`,
@@ -173,31 +179,67 @@ export default function TagsFsm() {
         >
           el.addValue("elm")
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setMaxed((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setMaxed((on) => !on)}
+        >
           {maxed() ? "max: 2" : "max: unlimited"}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setAllowOverflow((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setAllowOverflow((on) => !on)}
+        >
           allowOverflow: {String(allowOverflow())}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setDelimiter(delimiter() === "," ? ";" : ",")}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setDelimiter(delimiter() === "," ? ";" : ",")}
+        >
           delimiter: {delimiter()}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setAllowDuplicates((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setAllowDuplicates((on) => !on)}
+        >
           allowDuplicates: {String(allowDuplicates())}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setEditable((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setEditable((on) => !on)}
+        >
           editable: {String(editable())}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setBlur(blur() === "add" ? "" : "add")}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setBlur(blur() === "add" ? "" : "add")}
+        >
           blurBehavior: {blur() === "add" ? "add" : "none"}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setDisabled((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setDisabled((on) => !on)}
+        >
           {disabled() ? "enable" : "disable"}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setReadOnly((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setReadOnly((on) => !on)}
+        >
           readOnly: {String(readOnly())}
         </button>
-        <button type="button" class={DEMO_BUTTON} onClick={() => setControlled((on) => !on)}>
+        <button
+          type="button"
+          class={DEMO_BUTTON}
+          onClick={() => setControlled((on) => !on)}
+        >
           {controlled() ? "controlled: on" : "controlled: off"}
         </button>
       </DemoControls>
@@ -271,8 +313,7 @@ export default function TagsFsm() {
           invalid: <span id="tags-invalid">{invalid()}</span>
         </div>
         <div class="mt-2 text-xs">
-          events:{" "}
-          <span id="tags-events">{events().join(" · ") || "—"}</span>
+          events: <span id="tags-events">{events().join(" · ") || "—"}</span>
         </div>
       </DemoReadout>
     </DemoCard>

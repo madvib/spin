@@ -6,7 +6,13 @@ import type {
   NumberInputValueCommit,
   NumberInputValueInvalid,
 } from "../../../src/spin-number-input/number-input.bridge.ts";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 
 interface NumberInputCommands {
   setValue: (value: number | string) => void;
@@ -55,9 +61,12 @@ export default function NumberInputFsm() {
       disabled: disabled(),
     }),
     {
-      "value-change": (event: CustomEvent<NumberInputValueChange>) => setValue(event.detail.value),
-      "value-commit": (event: CustomEvent<NumberInputValueCommit>) => setCommitted(event.detail.value),
-      "value-invalid": (event: CustomEvent<NumberInputValueInvalid>) => setInvalid(event.detail.reason),
+      "value-change": (event: CustomEvent<NumberInputValueChange>) =>
+        setValue(event.detail.value),
+      "value-commit": (event: CustomEvent<NumberInputValueCommit>) =>
+        setCommitted(event.detail.value),
+      "value-invalid": (event: CustomEvent<NumberInputValueInvalid>) =>
+        setInvalid(event.detail.reason),
       "focus-change": (event: CustomEvent<NumberInputFocusChange>) =>
         setFocus(event.detail.focused ? "focused" : "blurred"),
     },
@@ -76,11 +85,22 @@ export default function NumberInputFsm() {
     NumberInputCommands
   >(
     "spin-number-input",
-    () => ({ label: "Controlled", value: "40", min: "0", max: "100", step: "5", largeStep: "25", smallStep: "1" }),
+    () => ({
+      label: "Controlled",
+      value: "40",
+      min: "0",
+      max: "100",
+      step: "5",
+      largeStep: "25",
+      smallStep: "1",
+    }),
     {
-      "value-change": (event: CustomEvent<NumberInputValueChange>) => setValue(event.detail.value),
-      "value-commit": (event: CustomEvent<NumberInputValueCommit>) => setCommitted(event.detail.value),
-      "value-invalid": (event: CustomEvent<NumberInputValueInvalid>) => setInvalid(event.detail.reason),
+      "value-change": (event: CustomEvent<NumberInputValueChange>) =>
+        setValue(event.detail.value),
+      "value-commit": (event: CustomEvent<NumberInputValueCommit>) =>
+        setCommitted(event.detail.value),
+      "value-invalid": (event: CustomEvent<NumberInputValueInvalid>) =>
+        setInvalid(event.detail.reason),
       "focus-change": (event: CustomEvent<NumberInputFocusChange>) =>
         setFocus(event.detail.focused ? "focused" : "blurred"),
     },
@@ -109,7 +129,8 @@ export default function NumberInputFsm() {
       allowMouseWheel: true,
     }),
     {
-      "value-change": (event: CustomEvent<NumberInputValueChange>) => setValue(event.detail.value),
+      "value-change": (event: CustomEvent<NumberInputValueChange>) =>
+        setValue(event.detail.value),
       "focus-change": (event: CustomEvent<NumberInputFocusChange>) =>
         setFocus(event.detail.focused ? "focused" : "blurred"),
     },
@@ -124,12 +145,34 @@ export default function NumberInputFsm() {
       >
         <spin-number-input id="quantity" ref={single.ref} />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => setDisabled((value) => !value)}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => setDisabled((value) => !value)}
+          >
             {disabled() ? "Enable" : "Disable"}
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setToMin()}>el.setToMin()</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setToMax()}>el.setToMax()</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().clearValue()}>el.clearValue()</button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().setToMin()}
+          >
+            el.setToMin()
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().setToMax()}
+          >
+            el.setToMax()
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().clearValue()}
+          >
+            el.clearValue()
+          </button>
         </DemoControls>
         <DemoReadout>
           <div>
@@ -154,13 +197,35 @@ export default function NumberInputFsm() {
       >
         <spin-number-input id="controlled" ref={controlled.ref} />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().increment()}>el.increment()</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().decrement()}>el.decrement()</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().setValue(75)}>el.setValue(75)</button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => controlled.commands().increment()}
+          >
+            el.increment()
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => controlled.commands().decrement()}
+          >
+            el.decrement()
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => controlled.commands().setValue(75)}
+          >
+            el.setValue(75)
+          </button>
         </DemoControls>
       </DemoCard>
 
-      <DemoCard title="RTL, fractional step" width="sm" note="Direction rtl, step 0.5, and the wheel is allowed.">
+      <DemoCard
+        title="RTL, fractional step"
+        width="sm"
+        note="Direction rtl, step 0.5, and the wheel is allowed."
+      >
         <spin-number-input id="rtl" ref={rtl.ref} />
       </DemoCard>
     </DemoGrid>

@@ -1,7 +1,16 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
-import type { MenuEntry, MenuRow } from "../../../src/spin-menu/menu.connect.ts";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
+import type {
+  MenuEntry,
+  MenuRow,
+} from "../../../src/spin-menu/menu.connect.ts";
 
 interface MenuCommands {
   open(): void;
@@ -68,9 +77,11 @@ export default function MenuFsm() {
         const row = findRow(ITEMS, value);
         setSelected(row === undefined ? value : row.label);
       },
-      "open-change": (event: CustomEvent<{ open: boolean }>) => setOpen(event.detail.open),
-      "highlight-change": (event: CustomEvent<{ highlightedValue: string | null }>) =>
-        setHighlighted(event.detail.highlightedValue ?? "none"),
+      "open-change": (event: CustomEvent<{ open: boolean }>) =>
+        setOpen(event.detail.open),
+      "highlight-change": (
+        event: CustomEvent<{ highlightedValue: string | null }>,
+      ) => setHighlighted(event.detail.highlightedValue ?? "none"),
     },
   );
 
@@ -83,13 +94,25 @@ export default function MenuFsm() {
       >
         <spin-menu ref={menu.ref} />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => menu.commands().open()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => menu.commands().open()}
+          >
             el.open()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => menu.commands().close()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => menu.commands().close()}
+          >
             el.close()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => menu.commands().setHighlighted("copy")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => menu.commands().setHighlighted("copy")}
+          >
             el.setHighlighted("copy")
           </button>
         </DemoControls>
@@ -110,7 +133,10 @@ export default function MenuFsm() {
 }
 
 /** Walk the item tree for a label, so the status line reads like a host's view. */
-function findRow(entries: readonly MenuEntry[], value: string): MenuRow | undefined {
+function findRow(
+  entries: readonly MenuEntry[],
+  value: string,
+): MenuRow | undefined {
   for (const entry of entries) {
     if ("separator" in entry) continue;
     if ("group" in entry) {

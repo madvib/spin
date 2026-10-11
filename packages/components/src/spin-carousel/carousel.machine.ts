@@ -86,10 +86,12 @@ const clampIndex = (index: number, pageCount: number): number => {
   const last = lastPage(pageCount);
   return index < 0 ? 0 : index > last ? last : Math.trunc(index);
 };
-const movesPer = (ctx: CarouselContext): number => Math.max(1, Math.trunc(ctx.perMove));
+const movesPer = (ctx: CarouselContext): number =>
+  Math.max(1, Math.trunc(ctx.perMove));
 const pageOf = (ctx: CarouselContext, slide: number): number =>
   clampIndex(Math.floor(slide / movesPer(ctx)), ctx.pageCount);
-const rest = (ctx: CarouselContext): CarouselDragStatus => ctx.focused ? "focus" : "idle";
+const rest = (ctx: CarouselContext): CarouselDragStatus =>
+  ctx.focused ? "focus" : "idle";
 const midGesture = (status: CarouselDragStatus): boolean =>
   status === "dragging" || status === "settling";
 
@@ -120,7 +122,10 @@ export const config = {
     // A press inside the carousel stops the rotation, as Zag's own trigger
     // events do: every PAGE.* event there targets `idle`.
     "POINTER.DOWN": { target: "idle" },
-    "VIEWPORT.FOCUS": { target: "idle", actions: [{ assign: "viewportFocus" }] },
+    "VIEWPORT.FOCUS": {
+      target: "idle",
+      actions: [{ assign: "viewportFocus" }],
+    },
     "VIEWPORT.BLUR": { actions: [{ assign: "viewportBlur" }] },
     "AUTOPLAY.START": { target: "autoplay" },
     "AUTOPLAY.STOP": { target: "idle" },
@@ -155,12 +160,18 @@ export const implementations = {
     }),
     goTo: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> =>
       e.type === "GO_TO" ? { index: clampIndex(e.index, ctx.pageCount) } : {},
-    setPageCount: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> => {
+    setPageCount: (
+      ctx: CarouselContext,
+      e: CarouselEvent,
+    ): Partial<CarouselContext> => {
       if (e.type !== "PAGES.SET") return {};
       const pageCount = Math.max(0, Math.trunc(e.count));
       return { pageCount, index: clampIndex(ctx.index, pageCount) };
     },
-    slideView: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> => {
+    slideView: (
+      ctx: CarouselContext,
+      e: CarouselEvent,
+    ): Partial<CarouselContext> => {
       if (e.type !== "SLIDE.VIEW") return {};
       const inView = e.inView === true;
       const slides = inView
@@ -172,7 +183,9 @@ export const implementations = {
       // report during a programmatic scroll describes a slide the carousel
       // is passing THROUGH, and paging to it would aim the scroll back at
       // the waypoint — the two loops each other.
-      if (!inView || ctx.dragStatus !== "settling") return { slidesInView: slides };
+      if (!inView || ctx.dragStatus !== "settling") {
+        return { slidesInView: slides };
+      }
       return {
         slidesInView: slides,
         index: pageOf(ctx, e.index),
@@ -182,9 +195,15 @@ export const implementations = {
     dragStart: (): Partial<CarouselContext> => ({ dragStatus: "dragging" }),
     dragEnd: (): Partial<CarouselContext> => ({ dragStatus: "settling" }),
     // The platform says the scroll stopped, and names the page it measured.
-    settle: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> =>
+    settle: (
+      ctx: CarouselContext,
+      e: CarouselEvent,
+    ): Partial<CarouselContext> =>
       e.type === "SCROLL.SETTLE"
-        ? { index: clampIndex(e.index, ctx.pageCount), ...(ctx.dragStatus === "settling" ? { dragStatus: rest(ctx) } : {}) }
+        ? {
+          index: clampIndex(e.index, ctx.pageCount),
+          ...(ctx.dragStatus === "settling" ? { dragStatus: rest(ctx) } : {}),
+        }
         : {},
     viewportFocus: (ctx: CarouselContext): Partial<CarouselContext> => ({
       focused: true,

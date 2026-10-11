@@ -52,6 +52,7 @@ declare module "solid-js" {
         "prop:selectionMode"?: string;
         "prop:expandOnClick"?: boolean;
         "prop:rename"?: boolean;
+        "prop:defaultExpandedValue"?: readonly string[];
       };
       "spin-dialog": {
         ref?: HTMLElement | ((el: HTMLElement) => void);

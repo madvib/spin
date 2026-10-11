@@ -2,25 +2,27 @@ import type { MachineDef } from "@spin/runtime";
 import { computed, effect, machineTick, scope, signal } from "@spin/runtime";
 import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 import {
-  connectRobotCarousel,
   type CarouselApi,
   type CarouselConnectProps,
   type CarouselSlide,
   type CarouselView,
+  connectRobotCarousel,
 } from "./carousel.connect.ts";
 import {
-  config,
-  implementations,
-  pageCountFor,
   type CarouselAutoplayStatusChange,
   type CarouselContext,
   type CarouselDragStatusChange,
   type CarouselEvent,
   type CarouselIndexChange,
+  config,
+  implementations,
+  pageCountFor,
 } from "./carousel.machine.ts";
 
 const asInt = (value: unknown, fallback: number): number =>
-  typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
+  typeof value === "number" && Number.isFinite(value)
+    ? Math.trunc(value)
+    : fallback;
 
 const slidesOf = (props: Record<string, unknown>): readonly CarouselSlide[] => {
   const raw = props["items"];
@@ -44,7 +46,13 @@ function derive(props: Record<string, unknown>): Derived {
   const perMove = Number.isFinite(raw) && raw > 0 ? raw : slidesPerPage;
   const autoSize = props["autoSize"] === true;
   const slideCount = slidesOf(props).length;
-  return { slidesPerPage, perMove, autoSize, slideCount, pageCount: pageCountFor(slideCount, perMove, slidesPerPage, autoSize) };
+  return {
+    slidesPerPage,
+    perMove,
+    autoSize,
+    slideCount,
+    pageCount: pageCountFor(slideCount, perMove, slidesPerPage, autoSize),
+  };
 }
 
 /**
@@ -63,7 +71,10 @@ export function createCarouselBridge(
 ): { readonly api: CarouselApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
-  const machine = createMachine<CarouselContext, CarouselEvent>(config, implementations);
+  const machine = createMachine<CarouselContext, CarouselEvent>(
+    config,
+    implementations,
+  );
   const view: CarouselView = { appliedKey: "", readout: { value: "" } };
 
   let service: Service<CarouselContext, CarouselEvent> | undefined;
@@ -71,15 +82,23 @@ export function createCarouselBridge(
   const readCallbacks = () => {
     const p = props();
     return {
-      onIndexChange: p["onIndexChange"] as ((d: CarouselIndexChange) => void) | undefined,
-      onDragStatusChange: p["onDragStatusChange"] as ((d: CarouselDragStatusChange) => void) | undefined,
-      onAutoplayStatusChange: p["onAutoplayStatusChange"] as ((d: CarouselAutoplayStatusChange) => void) | undefined,
+      onIndexChange: p["onIndexChange"] as
+        | ((d: CarouselIndexChange) => void)
+        | undefined,
+      onDragStatusChange: p["onDragStatusChange"] as
+        | ((d: CarouselDragStatusChange) => void)
+        | undefined,
+      onAutoplayStatusChange: p["onAutoplayStatusChange"] as
+        | ((d: CarouselAutoplayStatusChange) => void)
+        | undefined,
     };
   };
 
   const authored = (name: string): boolean => {
     const predicate = props()["@@authored"];
-    return typeof predicate === "function" ? (predicate as (n: string) => boolean)(name) : false;
+    return typeof predicate === "function"
+      ? (predicate as (n: string) => boolean)(name)
+      : false;
   };
 
   const ensureService = (): Service<CarouselContext, CarouselEvent> => {
@@ -88,7 +107,9 @@ export function createCarouselBridge(
       const d = derive(p);
       const seeded = Math.max(0, asInt(p["defaultIndex"], 0));
       service = owner.run(() => {
-        const svc = interpret(machine).start(p["autoplay"] === true ? "autoplay" : "idle");
+        const svc = interpret(machine).start(
+          p["autoplay"] === true ? "autoplay" : "idle",
+        );
         Object.assign(svc.state.context, {
           index: Math.min(seeded, Math.max(0, d.pageCount - 1)),
           pageCount: d.pageCount,
@@ -112,7 +133,10 @@ export function createCarouselBridge(
       autoSize: d.autoSize,
       snapType: p["snapType"] === "proximity" ? "proximity" : "mandatory",
       allowMouseDrag: p["allowMouseDrag"] === true,
-      inViewThreshold: Math.min(1, Math.max(0, asInt(p["inViewThreshold"], 60) / 100)),
+      inViewThreshold: Math.min(
+        1,
+        Math.max(0, asInt(p["inViewThreshold"], 60) / 100),
+      ),
       autoplayDelay: Math.max(1, asInt(p["autoplayDelay"], 4000)),
       playing: svc.state.value === "autoplay",
     };
@@ -136,7 +160,10 @@ export function createCarouselBridge(
       cb.onDragStatusChange?.({ status: after.dragStatus, index: after.index });
     }
     if (playing !== before.playing) {
-      cb.onAutoplayStatusChange?.({ status: playing ? "playing" : "stopped", index: after.index });
+      cb.onAutoplayStatusChange?.({
+        status: playing ? "playing" : "stopped",
+        index: after.index,
+      });
     }
     tick(tick() + 1);
     machineTick(machineTick() + 1);
@@ -174,7 +201,10 @@ export function createCarouselBridge(
 
       const outer = p["index"];
       if (authored("index") && typeof outer === "number") {
-        const wanted = Math.min(Math.max(0, Math.trunc(outer)), Math.max(0, d.pageCount - 1));
+        const wanted = Math.min(
+          Math.max(0, Math.trunc(outer)),
+          Math.max(0, d.pageCount - 1),
+        );
         if (context.index !== wanted) {
           context.index = wanted;
           moved = true;
@@ -183,9 +213,16 @@ export function createCarouselBridge(
 
       const slides = p["items"];
       const nextKey = [
-        p["dir"], p["orientation"], d.slidesPerPage, d.autoSize, p["snapType"],
-        p["allowMouseDrag"], p["inViewThreshold"], p["autoplayDelay"],
-        Array.isArray(slides) ? slides.length : 0, Array.isArray(slides) ? slides : null,
+        p["dir"],
+        p["orientation"],
+        d.slidesPerPage,
+        d.autoSize,
+        p["snapType"],
+        p["allowMouseDrag"],
+        p["inViewThreshold"],
+        p["autoplayDelay"],
+        Array.isArray(slides) ? slides.length : 0,
+        Array.isArray(slides) ? slides : null,
       ].join("|");
       if (nextKey !== apiKey) apiKey = nextKey;
 
@@ -193,7 +230,7 @@ export function createCarouselBridge(
         tick(tick() + 1);
         machineTick(machineTick() + 1);
       }
-    }),
+    })
   );
 
   const connected = computed(() => {
@@ -222,7 +259,8 @@ export function createCarouselBridge(
     next: (): void => send({ type: "NEXT" }),
     prev: (): void => send({ type: "PREV" }),
     goTo: (index: number): void => send({ type: "GO_TO", index }),
-    setAutoplay: (on: boolean): void => send({ type: on ? "AUTOPLAY.START" : "AUTOPLAY.STOP" }),
+    setAutoplay: (on: boolean): void =>
+      send({ type: on ? "AUTOPLAY.START" : "AUTOPLAY.STOP" }),
   };
 
   const api = new Proxy({} as CarouselApi, {
@@ -231,7 +269,9 @@ export function createCarouselBridge(
         ? (commands as Record<string | symbol, unknown>)[key]
         : Reflect.get(connected(), key),
     has: (_target, key) => key in commands || Reflect.has(connected(), key),
-    ownKeys: () => [...new Set([...Reflect.ownKeys(connected()), ...Object.keys(commands)])],
+    ownKeys: () => [
+      ...new Set([...Reflect.ownKeys(connected()), ...Object.keys(commands)]),
+    ],
     getOwnPropertyDescriptor: (_target, key) => {
       if (key in commands) {
         return {
@@ -260,15 +300,24 @@ export const carousel: MachineDef = {
   events: {
     "index-change": {
       on: "onIndexChange",
-      detail: (change: CarouselIndexChange) => ({ index: change.index, pageCount: change.pageCount }),
+      detail: (change: CarouselIndexChange) => ({
+        index: change.index,
+        pageCount: change.pageCount,
+      }),
     },
     "drag-status-change": {
       on: "onDragStatusChange",
-      detail: (change: CarouselDragStatusChange) => ({ status: change.status, index: change.index }),
+      detail: (change: CarouselDragStatusChange) => ({
+        status: change.status,
+        index: change.index,
+      }),
     },
     "autoplay-status-change": {
       on: "onAutoplayStatusChange",
-      detail: (change: CarouselAutoplayStatusChange) => ({ status: change.status, index: change.index }),
+      detail: (change: CarouselAutoplayStatusChange) => ({
+        status: change.status,
+        index: change.index,
+      }),
     },
   },
 };

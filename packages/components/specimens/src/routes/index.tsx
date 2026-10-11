@@ -14,9 +14,10 @@ export default function Index() {
     <article class="max-w-[45rem]">
       <h1 class="m-0 text-4xl font-bold tracking-tight">spin · components</h1>
       <p class="mt-6 text-xl text-text-muted">
-        {machines} components, each a machine authored as config — states, conds and
-        assigns as plain data — behind an owned runtime. No third-party interpreter,
-        no adapter, no machine-in-a-black-box.
+        {machines}{" "}
+        components, each a machine authored as config — states, conds and
+        assigns as plain data — behind an owned runtime. No third-party
+        interpreter, no adapter, no machine-in-a-black-box.
       </p>
       <div class="mt-8 flex flex-wrap gap-3">
         <span class="rounded-full border border-solid border-border bg-surface-raised px-3 py-1 text-sm text-text-muted">

@@ -7,7 +7,13 @@ import type {
   ComboboxSelect,
   ComboboxValueChange,
 } from "../../../src/spin-combobox/combobox.bridge.ts";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 
 interface ComboboxCommands {
   syncSelectedItems: () => void;
@@ -84,11 +90,19 @@ export default function ComboboxFsm() {
   const matches = (): Item[] => {
     const needle = query().trim().toLowerCase();
     if (needle.length === 0) return FRAMEWORKS;
-    return FRAMEWORKS.filter((item) => item.label.toLowerCase().includes(needle));
+    return FRAMEWORKS.filter((item) =>
+      item.label.toLowerCase().includes(needle)
+    );
   };
 
   const single = createSpin<
-    { items: Item[]; label: string; placeholder: string; defaultValue: string; multiple: boolean },
+    {
+      items: Item[];
+      label: string;
+      placeholder: string;
+      defaultValue: string;
+      multiple: boolean;
+    },
     ComboboxCommands
   >(
     "spin-combobox",
@@ -121,7 +135,12 @@ export default function ComboboxFsm() {
     ComboboxCommands
   >(
     "spin-combobox",
-    () => ({ items: TOPPINGS, label: "Toppings", multiple: true, closeOnSelect: false }),
+    () => ({
+      items: TOPPINGS,
+      label: "Toppings",
+      multiple: true,
+      closeOnSelect: false,
+    }),
     {
       "value-change": (event: CustomEvent<ComboboxValueChange>) =>
         setToppings(event.detail.value.join(", ") || "none"),
@@ -129,11 +148,21 @@ export default function ComboboxFsm() {
   );
 
   const completing = createSpin<
-    { items: Item[]; label: string; inputBehavior: string; openOnKeyPress: boolean },
+    {
+      items: Item[];
+      label: string;
+      inputBehavior: string;
+      openOnKeyPress: boolean;
+    },
     ComboboxCommands
   >(
     "spin-combobox",
-    () => ({ items: CITIES, label: "City", inputBehavior: "autocomplete", openOnKeyPress: true }),
+    () => ({
+      items: CITIES,
+      label: "City",
+      inputBehavior: "autocomplete",
+      openOnKeyPress: true,
+    }),
     {
       "value-change": (event: CustomEvent<ComboboxValueChange>) =>
         setInline(event.detail.value.join(", ") || "none"),
@@ -145,9 +174,15 @@ export default function ComboboxFsm() {
     ComboboxCommands
   >(
     "spin-combobox",
-    () => ({ items: CITIES, label: "Controlled open", open: panelOpen(), placeholder: "Opens from outside" }),
+    () => ({
+      items: CITIES,
+      label: "Controlled open",
+      open: panelOpen(),
+      placeholder: "Opens from outside",
+    }),
     {
-      "open-change": (event: CustomEvent<ComboboxOpenChange>) => setPanelOpen(event.detail.open),
+      "open-change": (event: CustomEvent<ComboboxOpenChange>) =>
+        setPanelOpen(event.detail.open),
     },
   );
 
@@ -170,31 +205,60 @@ export default function ComboboxFsm() {
           {matches().length} of {FRAMEWORKS.length} rows match “{query()}”.
         </p>
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setOpen(true)}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().setOpen(true)}
+          >
             el.setOpen(true)
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setOpen(false)}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().setOpen(false)}
+          >
             el.setOpen(false)
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().selectValue("deno")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().selectValue("deno")}
+          >
             el.selectValue("deno")
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setValue(["react", "vue"])}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().setValue(["react", "vue"])}
+          >
             el.setValue([...])
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().setInputValue("sve")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().setInputValue("sve")}
+          >
             el.setInputValue("sve")
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().clearValue()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().clearValue()}
+          >
             el.clearValue()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().focus()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().focus()}
+          >
             el.focus()
           </button>
         </DemoControls>
         <DemoReadout>
           <div>
-            value: <span id="combobox-value">{value()}</span> · highlighted:{" "}
+            value: <span id="combobox-value">{value()}</span> · highlighted:
+            {" "}
             <span id="combobox-highlighted">{highlighted()}</span> · typed:{" "}
             <span id="combobox-typed">{typed()}</span>
           </div>
@@ -206,7 +270,11 @@ export default function ComboboxFsm() {
         </DemoReadout>
       </DemoCard>
 
-      <DemoCard title="Multiple, stays open" width="md" note="closeOnSelect is false, so each pick leaves the panel up.">
+      <DemoCard
+        title="Multiple, stays open"
+        width="md"
+        note="closeOnSelect is false, so each pick leaves the panel up."
+      >
         <spin-combobox
           id="toppings"
           ref={multiple.ref}
@@ -220,7 +288,11 @@ export default function ComboboxFsm() {
         </DemoReadout>
       </DemoCard>
 
-      <DemoCard title="Inline autocomplete" width="md" note="inputBehavior autocomplete: the walk completes the row into the field.">
+      <DemoCard
+        title="Inline autocomplete"
+        width="md"
+        note="inputBehavior autocomplete: the walk completes the row into the field."
+      >
         <spin-combobox
           id="cities"
           ref={completing.ref}
@@ -247,7 +319,11 @@ export default function ComboboxFsm() {
           prop:placeholder="Opens from outside"
         />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => setPanelOpen((v) => !v)}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => setPanelOpen((v) => !v)}
+          >
             {panelOpen() ? "close from host" : "open from host"}
           </button>
         </DemoControls>

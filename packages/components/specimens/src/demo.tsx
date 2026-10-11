@@ -1,4 +1,4 @@
-import { Show, type JSX } from "solid-js";
+import { type JSX, Show } from "solid-js";
 
 /**
  * The specimen primitives, on tarkui's pattern: every example is a bounded
@@ -22,16 +22,15 @@ export function DemoCard(props: {
 }) {
   // Arbitrary values on purpose: the utility theme here does not generate
   // the named spacing scale for max-width, only the arbitrary form.
-  const bound =
-    props.width === "xs"
-      ? "max-w-[14rem]"
-      : props.width === "sm"
-        ? "max-w-[18rem]"
-        : props.width === "md"
-          ? "max-w-[24rem]"
-          : props.width === "lg"
-            ? "max-w-[36rem]"
-            : "";
+  const bound = props.width === "xs"
+    ? "max-w-[14rem]"
+    : props.width === "sm"
+    ? "max-w-[18rem]"
+    : props.width === "md"
+    ? "max-w-[24rem]"
+    : props.width === "lg"
+    ? "max-w-[36rem]"
+    : "";
   // A card is half the stage (two per row) unless the demo is wide: `lg` and
   // `full` take the whole row, because a data-dense demo is not a specimen
   // card, it is a page. The component inside stays bounded by `bound`, so
@@ -40,7 +39,9 @@ export function DemoCard(props: {
     ? "flex min-w-0 basis-full flex-col"
     : "flex min-w-0 basis-full flex-col md:basis-[calc(50%-0.75rem)]";
   return (
-    <figure class={`m-0 ${shell} rounded-lg border border-solid border-border bg-surface`}>
+    <figure
+      class={`m-0 ${shell} rounded-lg border border-solid border-border bg-surface`}
+    >
       <figcaption class="flex items-baseline justify-between gap-2 border-b border-border px-4 py-2">
         <span class="text-sm font-medium text-text">{props.title}</span>
       </figcaption>
@@ -48,7 +49,9 @@ export function DemoCard(props: {
         <div class={`w-full ${bound}`}>{props.children}</div>
       </div>
       <Show when={props.note !== undefined}>
-        <div class="border-t border-border px-4 py-2 text-xs text-text-muted">{props.note}</div>
+        <div class="border-t border-border px-4 py-2 text-xs text-text-muted">
+          {props.note}
+        </div>
       </Show>
     </figure>
   );
@@ -60,7 +63,11 @@ export const DEMO_BUTTON =
 
 /** The readout row every demo ends with: mono, tabular, quiet. */
 export function DemoReadout(props: { children: JSX.Element }) {
-  return <div class="mt-4 font-mono text-xs text-text-muted tabular-nums">{props.children}</div>;
+  return (
+    <div class="mt-4 font-mono text-xs text-text-muted tabular-nums">
+      {props.children}
+    </div>
+  );
 }
 
 /** The examples grid: cards wrap, so a lone example fills its row and a
@@ -71,5 +78,7 @@ export function DemoGrid(props: { children: JSX.Element }) {
 
 /** A row of quiet controls. */
 export function DemoControls(props: { children: JSX.Element }) {
-  return <div class="mt-4 flex flex-wrap items-center gap-2">{props.children}</div>;
+  return (
+    <div class="mt-4 flex flex-wrap items-center gap-2">{props.children}</div>
+  );
 }

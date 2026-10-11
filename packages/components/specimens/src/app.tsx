@@ -1,8 +1,19 @@
-import { A, Router, useLocation, type RouteDefinition } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, For, Show, type JSX } from "solid-js";
+import { A, type RouteDefinition, Router, useLocation } from "@solidjs/router";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  Show,
+} from "solid-js";
 import Index from "./routes/index.tsx";
-import { GROUPS, SPECIMENS, type Specimen } from "./specimens.ts";
-import { starterThemes, themeModes, type StarterThemeName } from "@spin/theme/themes";
+import { GROUPS, type Specimen, SPECIMENS } from "./specimens.ts";
+import {
+  type StarterThemeName,
+  starterThemes,
+  themeModes,
+} from "@spin/theme/themes";
 
 /**
  * The spin mark: a spinnaker in full hoist. One filled path for the cloth,
@@ -36,7 +47,8 @@ const NAV_LINK =
 
 const GROUP_LABEL = "px-2 pt-5 pb-1 text-xs font-medium text-text-muted";
 
-const SELECT = "min-w-0 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
+const SELECT =
+  "w-[7rem] shrink-0 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
 
 const ICON_BUTTON =
   "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-transparent bg-transparent p-1 text-sm text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
@@ -47,7 +59,8 @@ const FILTER_ROW =
 /** The theme picker: a real form control, named by the label that wraps it. */
 function ThemePicker() {
   const [theme, setTheme] = createSignal<string>(
-    (typeof localStorage !== "undefined" && localStorage.getItem("spin-theme")) || "default",
+    (typeof localStorage !== "undefined" &&
+      localStorage.getItem("spin-theme")) || "default",
   );
   createEffect(() => {
     document.documentElement.dataset.theme = theme();
@@ -72,20 +85,20 @@ function ModeSwitch() {
   const modes = (): readonly string[] => [
     ...themeModes(
       starterThemes[
-        ((document.documentElement.dataset.theme || "default") as StarterThemeName)
+        (document.documentElement.dataset.theme ||
+          "default") as StarterThemeName
       ],
     ),
   ];
   const [want, setWant] = createSignal<string>(
-    (typeof localStorage !== "undefined" && localStorage.getItem("spin-mode")) || "base",
+    (typeof localStorage !== "undefined" &&
+      localStorage.getItem("spin-mode")) || "base",
   );
   const resolved = (requested: string): string => {
     const available = modes();
     if (requested === "system") {
       return available.includes("dark")
-        ? matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "base"
+        ? matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "base"
         : "base";
     }
     return available.includes(requested) ? requested : "base";
@@ -96,7 +109,9 @@ function ModeSwitch() {
   });
   const next = (): string => {
     const available = modes();
-    const order = available.includes("dark") ? ["base", "dark", "system"] : ["base"];
+    const order = available.includes("dark")
+      ? ["base", "dark", "system"]
+      : ["base"];
     const at = order.indexOf(want());
     return order[(at + 1) % order.length]!;
   };
@@ -120,10 +135,12 @@ function Rail() {
   const filtered = createMemo(() => {
     const q = query().trim().toLowerCase();
     if (q.length === 0) return SPECIMENS;
-    return SPECIMENS.filter((s) => `${s.title} ${s.blurb} ${s.id}`.toLowerCase().includes(q));
+    return SPECIMENS.filter((s) =>
+      `${s.title} ${s.blurb} ${s.id}`.toLowerCase().includes(q)
+    );
   });
   return (
-    <nav class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto pb-10 md:block">
+    <nav class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-[13rem] shrink-0 overflow-y-auto pb-10 md:block">
       <label class={FILTER_ROW}>
         <i class="i-lucide-search icon-sm shrink-0" />
         <span class="sr-only">Filter components</span>
@@ -136,16 +153,29 @@ function Rail() {
       </label>
       <Show
         when={filtered().length > 0}
-        fallback={<p class="px-2 pt-4 text-xs text-text-muted">Nothing matches that.</p>}
+        fallback={
+          <p class="px-2 pt-4 text-xs text-text-muted">Nothing matches that.</p>
+        }
       >
         <For each={GROUPS}>
           {(group) => (
             <Show when={filtered().some((s) => s.group === group)}>
               <h2 class={GROUP_LABEL}>{group}</h2>
               <div class="flex flex-col">
-                <For each={filtered().filter((s) => s.group === group)}>
+                <For
+                  each={filtered().filter((s) =>
+                    s.group === group
+                  )}
+                >
                   {(s) => (
-                    <A href={s.path} class={NAV_LINK} end aria-current={location.pathname === s.path ? "page" : undefined}>
+                    <A
+                      href={s.path}
+                      class={NAV_LINK}
+                      end
+                      aria-current={location.pathname === s.path
+                        ? "page"
+                        : undefined}
+                    >
                       {s.title}
                     </A>
                   )}
@@ -160,8 +190,7 @@ function Rail() {
 }
 
 /** The frame every specimen stands in: a stage, sized to its subject. */
-const STAGE =
-  "rounded-lg border border-solid border-border bg-surface p-6";
+const STAGE = "rounded-lg border border-solid border-border bg-surface p-6";
 
 function Shell(props: { children?: JSX.Element }) {
   const location = useLocation();
@@ -198,12 +227,16 @@ function Shell(props: { children?: JSX.Element }) {
               <article class="max-w-[45rem]">
                 <header class="mb-8 flex flex-col gap-2">
                   <div class="flex items-baseline justify-between gap-4">
-                    <h1 class="m-0 text-2xl font-bold tracking-tight">{s().title}</h1>
+                    <h1 class="m-0 text-2xl font-bold tracking-tight">
+                      {s().title}
+                    </h1>
                     <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
                       {s().id}
                     </span>
                   </div>
-                  <p class="m-0 max-w-screen-md text-md text-text-muted">{s().blurb}</p>
+                  <p class="m-0 max-w-screen-md text-md text-text-muted">
+                    {s().blurb}
+                  </p>
                 </header>
                 <div class={STAGE}>{props.children}</div>
               </article>
@@ -218,7 +251,10 @@ function Shell(props: { children?: JSX.Element }) {
 // One table drives both the routes and the rail: no URL is typed twice.
 const ROUTES: RouteDefinition[] = [
   { path: "/", component: Index },
-  ...SPECIMENS.map((specimen) => ({ path: specimen.path, component: specimen.component })),
+  ...SPECIMENS.map((specimen) => ({
+    path: specimen.path,
+    component: specimen.component,
+  })),
 ];
 
 export function App() {

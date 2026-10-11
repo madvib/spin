@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
+import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
 import type { CarouselSlide } from "../../../src/spin-carousel/carousel.connect.ts";
 
 /** The element's host surface, from its machine-def's commands. */
@@ -14,8 +14,16 @@ interface CarouselCommands {
 const SLIDES: readonly CarouselSlide[] = [
   { value: "one", label: "Slide one", content: "The first slide's content." },
   { value: "two", label: "Slide two", content: "The second slide's content." },
-  { value: "three", label: "Slide three", content: "The third slide's content." },
-  { value: "four", label: "Slide four", content: "The fourth slide's content." },
+  {
+    value: "three",
+    label: "Slide three",
+    content: "The third slide's content.",
+  },
+  {
+    value: "four",
+    label: "Slide four",
+    content: "The fourth slide's content.",
+  },
   { value: "five", label: "Slide five", content: "The fifth slide's content." },
 ];
 
@@ -61,9 +69,12 @@ export default function CarouselFsm() {
       allowMouseDrag: true,
     }),
     {
-      "index-change": (event: CustomEvent<{ index: number }>) => setIndex(event.detail.index),
-      "drag-status-change": (event: CustomEvent<{ status: string }>) => setDrag(event.detail.status),
-      "autoplay-status-change": (event: CustomEvent<{ status: string }>) => setRotation(event.detail.status),
+      "index-change": (event: CustomEvent<{ index: number }>) =>
+        setIndex(event.detail.index),
+      "drag-status-change": (event: CustomEvent<{ status: string }>) =>
+        setDrag(event.detail.status),
+      "autoplay-status-change": (event: CustomEvent<{ status: string }>) =>
+        setRotation(event.detail.status),
     },
   );
 

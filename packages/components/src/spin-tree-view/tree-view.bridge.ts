@@ -1,7 +1,12 @@
 import type { MachineDef } from "@spin/runtime";
 import { computed, effect, machineTick, scope, signal } from "@spin/runtime";
 import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
-import { connectRobotTreeView, type TreeApi, type TreeConnectProps, type TreeNode } from "./tree-view.connect.ts";
+import {
+  connectRobotTreeView,
+  type TreeApi,
+  type TreeConnectProps,
+  type TreeNode,
+} from "./tree-view.connect.ts";
 import {
   config,
   implementations,
@@ -17,8 +22,6 @@ import {
 
 const sameSet = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((v) => b.includes(v));
-
-
 
 /**
  * The tree arrives as JSON text: the scope grammar types props as
@@ -55,18 +58,31 @@ export function createTreeBridge(
 ): { readonly api: TreeApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
-  const machine = createMachine<TreeContext, TreeEvent>(config, implementations);
+  const machine = createMachine<TreeContext, TreeEvent>(
+    config,
+    implementations,
+  );
 
   let service: Service<TreeContext, TreeEvent> | undefined;
 
   const readCallbacks = (): TreeCallbacks => {
     const p = props();
     return {
-      onExpandedChange: p["onExpandedChange"] as ((d: TreeExpandedChange) => void) | undefined,
-      onSelectionChange: p["onSelectionChange"] as ((d: TreeSelectionChange) => void) | undefined,
-      onFocusChange: p["onFocusChange"] as ((d: TreeFocusChange) => void) | undefined,
-      onCheckedChange: p["onCheckedChange"] as ((d: TreeCheckedChange) => void) | undefined,
-      onLoadComplete: p["onLoadComplete"] as ((d: TreeLoadComplete) => void) | undefined,
+      onExpandedChange: p["onExpandedChange"] as
+        | ((d: TreeExpandedChange) => void)
+        | undefined,
+      onSelectionChange: p["onSelectionChange"] as
+        | ((d: TreeSelectionChange) => void)
+        | undefined,
+      onFocusChange: p["onFocusChange"] as
+        | ((d: TreeFocusChange) => void)
+        | undefined,
+      onCheckedChange: p["onCheckedChange"] as
+        | ((d: TreeCheckedChange) => void)
+        | undefined,
+      onLoadComplete: p["onLoadComplete"] as
+        | ((d: TreeLoadComplete) => void)
+        | undefined,
     };
   };
 
@@ -94,15 +110,24 @@ export function createTreeBridge(
    */
   const authored = (name: string): boolean => {
     const predicate = props()["@@authored"];
-    return typeof predicate === "function" ? (predicate as (n: string) => boolean)(name) : false;
+    return typeof predicate === "function"
+      ? (predicate as (n: string) => boolean)(name)
+      : false;
   };
 
-  const controlled = (key: "expandedValue" | "selectedValue" | "checkedValue"): string[] | undefined => {
+  const controlled = (
+    key: "expandedValue" | "selectedValue" | "checkedValue",
+  ): string[] | undefined => {
     const outer = props()[key];
-    return authored(key) && Array.isArray(outer) ? [...(outer as string[])] : undefined;
+    return authored(key) && Array.isArray(outer)
+      ? [...(outer as string[])]
+      : undefined;
   };
 
-  const readProps = (): Pick<TreeContext, "selectionMode" | "expandOnClick" | "rename"> => {
+  const readProps = (): Pick<
+    TreeContext,
+    "selectionMode" | "expandOnClick" | "rename"
+  > => {
     const p = props();
     return {
       selectionMode: p["selectionMode"] === "multiple" ? "multiple" : "single",
@@ -122,8 +147,12 @@ export function createTreeBridge(
     if (!service) {
       const p = props();
       const seed = {
-        expandedValue: Array.isArray(p["defaultExpandedValue"]) ? [...(p["defaultExpandedValue"] as string[])] : [],
-        selectedValue: Array.isArray(p["defaultSelectedValue"]) ? [...(p["defaultSelectedValue"] as string[])] : [],
+        expandedValue: Array.isArray(p["defaultExpandedValue"])
+          ? [...(p["defaultExpandedValue"] as string[])]
+          : [],
+        selectedValue: Array.isArray(p["defaultSelectedValue"])
+          ? [...(p["defaultSelectedValue"] as string[])]
+          : [],
         ...readProps(),
       };
       service = owner.run(() => {
@@ -145,7 +174,9 @@ export function createTreeBridge(
     effect(() => {
       const svc = ensureService();
       let moved = false;
-      for (const key of ["expandedValue", "selectedValue", "checkedValue"] as const) {
+      for (
+        const key of ["expandedValue", "selectedValue", "checkedValue"] as const
+      ) {
         const next = controlled(key);
         if (next && !sameSet(next, svc.state.context[key])) {
           svc.state.context[key] = next;
@@ -156,7 +187,9 @@ export function createTreeBridge(
       // emits (the checkbox part), so it must re-render like a controlled
       // value does.
       const scalars = readProps();
-      const syncScalar = <K extends "selectionMode" | "expandOnClick" | "rename">(
+      const syncScalar = <
+        K extends "selectionMode" | "expandOnClick" | "rename",
+      >(
         key: K,
         value: TreeContext[K],
       ): void => {
@@ -172,7 +205,7 @@ export function createTreeBridge(
         tick(tick() + 1);
         machineTick(machineTick() + 1);
       }
-    }),
+    })
   );
 
   const send = (event: TreeEvent): void => {
@@ -184,7 +217,9 @@ export function createTreeBridge(
       focusedValue: svc.state.context.focusedValue,
     };
     Object.assign(svc.state.context, readProps());
-    for (const key of ["expandedValue", "selectedValue", "checkedValue"] as const) {
+    for (
+      const key of ["expandedValue", "selectedValue", "checkedValue"] as const
+    ) {
       const next = controlled(key);
       if (next) svc.state.context[key] = next;
     }
@@ -224,7 +259,9 @@ export function createTreeBridge(
         // The tree crosses the prop channel as JSON text (the grammar has no
         // recursive type); lazy grafting writes the host's data back the same
         // way it arrived.
-        (root() as unknown as { nodes?: unknown }).nodes = JSON.stringify(nodes);
+        (root() as unknown as { nodes?: unknown }).nodes = JSON.stringify(
+          nodes,
+        );
       },
       id,
       send as (event: { type: string } & Record<string, unknown>) => void,
@@ -242,10 +279,13 @@ export function createTreeBridge(
     },
   });
 
-  return { api, dispose: () => {
-    service?.stop();
-    owner.dispose();
-  } };
+  return {
+    api,
+    dispose: () => {
+      service?.stop();
+      owner.dispose();
+    },
+  };
 }
 
 export const treeView: MachineDef = {
@@ -253,19 +293,27 @@ export const treeView: MachineDef = {
   events: {
     "expanded-change": {
       on: "onExpandedChange",
-      detail: (change: TreeExpandedChange) => ({ expandedValue: change.expandedValue }),
+      detail: (change: TreeExpandedChange) => ({
+        expandedValue: change.expandedValue,
+      }),
     },
     "selection-change": {
       on: "onSelectionChange",
-      detail: (change: TreeSelectionChange) => ({ selectedValue: change.selectedValue }),
+      detail: (change: TreeSelectionChange) => ({
+        selectedValue: change.selectedValue,
+      }),
     },
     "focus-change": {
       on: "onFocusChange",
-      detail: (change: TreeFocusChange) => ({ focusedValue: change.focusedValue }),
+      detail: (change: TreeFocusChange) => ({
+        focusedValue: change.focusedValue,
+      }),
     },
     "checked-change": {
       on: "onCheckedChange",
-      detail: (change: TreeCheckedChange) => ({ checkedValue: change.checkedValue }),
+      detail: (change: TreeCheckedChange) => ({
+        checkedValue: change.checkedValue,
+      }),
     },
     "load-complete": {
       on: "onLoadComplete",

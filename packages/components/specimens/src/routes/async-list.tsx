@@ -1,7 +1,16 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
-import type { LoadDetails, LoadResult } from "../../../src/spin-async-list/async-list.bridge.ts";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
+import type {
+  LoadDetails,
+  LoadResult,
+} from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { SortDetails } from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { SortDescriptor } from "../../../src/spin-async-list/async-list.machine.ts";
@@ -60,7 +69,9 @@ function createServer(source: readonly Row[], pageSize: number, latency = 60) {
       cursor: next < matching.length ? next : null,
     };
   };
-  const sort = (details: SortDetails): SortDescriptor extends never ? never : { items: readonly unknown[] } => {
+  const sort = (
+    details: SortDetails,
+  ): SortDescriptor extends never ? never : { items: readonly unknown[] } => {
     const direction = details.descriptor?.direction === "descending" ? -1 : 1;
     const sorted = [...details.items].sort((left, right) =>
       text(left, "label").localeCompare(text(right, "label")) * direction
@@ -179,8 +190,20 @@ export default function AsyncListFsm() {
       >
         <spin-async-list id="paged" ref={paged.ref} />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => setFragment("land")}>Fragment: land</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => setFragment("rift")}>Fragment: rift</button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => setFragment("land")}
+          >
+            Fragment: land
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => setFragment("rift")}
+          >
+            Fragment: rift
+          </button>
         </DemoControls>
       </DemoCard>
 
@@ -191,15 +214,57 @@ export default function AsyncListFsm() {
       >
         <spin-async-list id="crew" ref={crew.ref} />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().reload()}>el.reload()</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().loadMore()}>el.loadMore()</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().sort({ column: "label", direction: "ascending" })}>el.sort(asc)</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().sort({ column: "label", direction: "descending" })}>el.sort(desc)</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().setFilterText("a")}>el.setFilterText("a")</button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => crew.commands().abort()}>el.abort()</button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => crew.commands().reload()}
+          >
+            el.reload()
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => crew.commands().loadMore()}
+          >
+            el.loadMore()
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() =>
+              crew.commands().sort({ column: "label", direction: "ascending" })}
+          >
+            el.sort(asc)
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() =>
+              crew.commands().sort({
+                column: "label",
+                direction: "descending",
+              })}
+          >
+            el.sort(desc)
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => crew.commands().setFilterText("a")}
+          >
+            el.setFilterText("a")
+          </button>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => crew.commands().abort()}
+          >
+            el.abort()
+          </button>
         </DemoControls>
         <DemoReadout>
-          paged loads: <span id="async-list-loads">{loads()}</span> · failures:{" "}
+          paged loads: <span id="async-list-loads">{loads()}</span> · failures:
+          {" "}
           <span id="async-list-failures">{failures()}</span> · crew loads:{" "}
           <span id="async-list-crew-loads">{crewLoads()}</span>
         </DemoReadout>

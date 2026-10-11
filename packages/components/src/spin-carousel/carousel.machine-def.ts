@@ -37,15 +37,24 @@ export const carousel: MachineDef = {
   events: {
     "index-change": {
       on: "onIndexChange",
-      detail: (change: CarouselIndexChange) => ({ index: change.index, pageCount: change.pageCount }),
+      detail: (change: CarouselIndexChange) => ({
+        index: change.index,
+        pageCount: change.pageCount,
+      }),
     },
     "drag-status-change": {
       on: "onDragStatusChange",
-      detail: (change: CarouselDragStatusChange) => ({ status: change.status, index: change.index }),
+      detail: (change: CarouselDragStatusChange) => ({
+        status: change.status,
+        index: change.index,
+      }),
     },
     "autoplay-status-change": {
       on: "onAutoplayStatusChange",
-      detail: (change: CarouselAutoplayStatusChange) => ({ status: change.status, index: change.index }),
+      detail: (change: CarouselAutoplayStatusChange) => ({
+        status: change.status,
+        index: change.index,
+      }),
     },
   },
 };

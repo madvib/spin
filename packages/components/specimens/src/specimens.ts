@@ -33,7 +33,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "combobox",
     title: "Combobox",
-    blurb: "Input plus listbox: filtering, inline autocomplete, trigger, grouped options.",
+    blurb:
+      "Input plus listbox: filtering, inline autocomplete, trigger, grouped options.",
     path: "/combobox",
     group: "Inputs",
     component: Combobox,
@@ -49,7 +50,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "pin-input",
     title: "Pin input",
-    blurb: "The one-time-code field: per-cell state, paste distribution, completion edge.",
+    blurb:
+      "The one-time-code field: per-cell state, paste distribution, completion edge.",
     path: "/pin-input",
     group: "Inputs",
     component: PinInput,
@@ -57,7 +59,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "tags",
     title: "Tags input",
-    blurb: "Add/remove/edit-in-place: four states, paste splitting, max and overflow.",
+    blurb:
+      "Add/remove/edit-in-place: four states, paste splitting, max and overflow.",
     path: "/tags",
     group: "Inputs",
     component: Tags,
@@ -65,7 +68,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "editable",
     title: "Editable",
-    blurb: "Preview/edit pair with a controlled edit channel, commit/revert, submit-on-blur.",
+    blurb:
+      "Preview/edit pair with a controlled edit channel, commit/revert, submit-on-blur.",
     path: "/editable",
     group: "Inputs",
     component: Editable,
@@ -73,7 +77,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "select",
     title: "Select",
-    blurb: "Three modes with the selection on the root tier; every reflex an action.",
+    blurb:
+      "Three modes with the selection on the root tier; every reflex an action.",
     path: "/select",
     group: "Selection",
     component: Select,
@@ -81,7 +86,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "cascade",
     title: "Cascade select",
-    blurb: "Multi-level selection: the level stack is derived from the highlight.",
+    blurb:
+      "Multi-level selection: the level stack is derived from the highlight.",
     path: "/cascade",
     group: "Selection",
     component: Cascade,
@@ -89,7 +95,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "dialog",
     title: "Dialog",
-    blurb: "Two-state machine; focus-trap, dismissable, and scroll-lock as stdlib actions.",
+    blurb:
+      "Two-state machine; focus-trap, dismissable, and scroll-lock as stdlib actions.",
     path: "/dialog",
     group: "Disclosure",
     component: Dialog,
@@ -97,7 +104,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "menu",
     title: "Menu",
-    blurb: "Hover-intent and long-press are actions; submenus are context, not states.",
+    blurb:
+      "Hover-intent and long-press are actions; submenus are context, not states.",
     path: "/menu",
     group: "Disclosure",
     component: Menu,
@@ -105,7 +113,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "tree-view",
     title: "Tree view",
-    blurb: "The hardest port: per-node state, keyboard nav, expanded state as context.",
+    blurb:
+      "The hardest port: per-node state, keyboard nav, expanded state as context.",
     path: "/tree-view",
     group: "Navigation",
     component: TreeView,
@@ -113,7 +122,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "toast",
     title: "Toast",
-    blurb: "A queue on the owned machine: per-toast lifecycle status, every clock an action.",
+    blurb:
+      "A queue on the owned machine: per-toast lifecycle status, every clock an action.",
     path: "/toast",
     group: "Feedback",
     component: Toast,
@@ -121,7 +131,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "async-list",
     title: "Async list",
-    blurb: "Cursor-paged loading: idle/loading/sorting, fetch as a bridge reflex, sentinel.",
+    blurb:
+      "Cursor-paged loading: idle/loading/sorting, fetch as a bridge reflex, sentinel.",
     path: "/async-list",
     group: "Data",
     component: AsyncList,
@@ -129,7 +140,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "timer",
     title: "Timer",
-    blurb: "Countdown and stopwatch with the clock as a stdlib action, never a machine timer.",
+    blurb:
+      "Countdown and stopwatch with the clock as a stdlib action, never a machine timer.",
     path: "/timer",
     group: "Display",
     component: Timer,
@@ -137,7 +149,8 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "carousel",
     title: "Carousel",
-    blurb: "Drag-scroll, autoplay and intersect as stdlib actions; the machine stays flat.",
+    blurb:
+      "Drag-scroll, autoplay and intersect as stdlib actions; the machine stays flat.",
     path: "/carousel",
     group: "Display",
     component: Carousel,

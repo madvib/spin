@@ -1,6 +1,6 @@
 import { createSignal, onMount } from "solid-js";
 import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.bridge.ts";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoReadout } from "../demo.tsx";
+import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
 
 interface CascadeElement extends HTMLElement {
   /** The tree crosses as JSON text: the scope grammar has no recursive type. */
@@ -72,7 +72,9 @@ const labelOf = (...path: string[]): string => {
   const walk = (nodes: readonly DemoNode[], at: number): string | undefined => {
     for (const node of nodes) {
       if (node.value === path[at]) {
-        return at === path.length - 1 ? node.label : walk(node.children ?? [], at + 1);
+        return at === path.length - 1
+          ? node.label
+          : walk(node.children ?? [], at + 1);
       }
     }
     return undefined;
@@ -107,7 +109,8 @@ export default function CascadeFsm() {
       setChanges((n) => n + 1);
     });
     el.addEventListener("highlight-change", (event) => {
-      const detail = (event as CustomEvent<{ highlightedValue: string[] }>).detail;
+      const detail =
+        (event as CustomEvent<{ highlightedValue: string[] }>).detail;
       setHighlighted(detail.highlightedValue);
     });
     el.addEventListener("open-change", (event) => {
@@ -153,14 +156,20 @@ export default function CascadeFsm() {
       </DemoControls>
       <DemoReadout>
         <div>
-          value: <span id="cascade-value">{value().length === 0 ? "—" : labelOf(...value())}</span>
+          value:{" "}
+          <span id="cascade-value">
+            {value().length === 0 ? "—" : labelOf(...value())}
+          </span>
         </div>
         <div>
-          highlighted: <span id="cascade-highlighted">{highlighted().length === 0 ? "none" : highlighted().join(" / ")}</span>
+          highlighted:{" "}
+          <span id="cascade-highlighted">
+            {highlighted().length === 0 ? "none" : highlighted().join(" / ")}
+          </span>
         </div>
         <div>
-          open: <span id="cascade-open">{open() ? "true" : "false"}</span> · value-change:{" "}
-          <span id="cascade-changes">{changes()}</span>
+          open: <span id="cascade-open">{open() ? "true" : "false"}</span>{" "}
+          · value-change: <span id="cascade-changes">{changes()}</span>
         </div>
       </DemoReadout>
     </DemoCard>

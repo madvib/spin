@@ -1,6 +1,12 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 import type { ToastStatusChange } from "../../../src/spin-toast/toast.bridge.ts";
 
 interface ToastCommands {
@@ -89,7 +95,11 @@ export default function ToastFsm() {
     {
       "status-change": (event: CustomEvent<ToastStatusChange>) => {
         const detail = event.detail;
-        setLast(`${detail.id} → ${detail.status}${detail.src.length > 0 ? ` (${detail.src})` : ""}`);
+        setLast(
+          `${detail.id} → ${detail.status}${
+            detail.src.length > 0 ? ` (${detail.src})` : ""
+          }`,
+        );
         if (detail.status === "unmounted") {
           setItems((prev) => prev.filter((item) => item.id !== detail.id));
         }
@@ -118,26 +128,48 @@ export default function ToastFsm() {
           prop:removeDelay={200}
         />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => show("Saved", "success")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => show("Saved", "success")}
+          >
             Success
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => show("Something broke", "error")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => show("Something broke", "error")}
+          >
             Error
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => show("Heads up", "warning", "Undo")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => show("Heads up", "warning", "Undo")}
+          >
             With an action
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => toasts.commands().dismissAll()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => toasts.commands().dismissAll()}
+          >
             el.dismissAll()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => setOverlap((value) => !value)}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => setOverlap((value) => !value)}
+          >
             overlap: {overlap() ? "on" : "off"}
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
             onClick={() => {
-              const at = PLACEMENTS.indexOf(placement() as (typeof PLACEMENTS)[number]);
+              const at = PLACEMENTS.indexOf(
+                placement() as (typeof PLACEMENTS)[number],
+              );
               setPlacement(PLACEMENTS[(at + 1) % PLACEMENTS.length] as string);
             }}
           >

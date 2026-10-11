@@ -1,6 +1,12 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 
 interface SelectCommands {
   open(): void;
@@ -35,7 +41,8 @@ export default function Select() {
     "spin-select",
     () => ({ items: ITEMS, label: "Runtime" }),
     {
-      "value-change": (e: CustomEvent<{ value: string[] }>) => setSelected(e.detail.value),
+      "value-change": (e: CustomEvent<{ value: string[] }>) =>
+        setSelected(e.detail.value),
       "open-change": (e: CustomEvent<{ open: boolean }>) => {
         if (e.detail.open) setOpenCount((n) => n + 1);
       },
@@ -49,25 +56,48 @@ export default function Select() {
         width="sm"
         note="The host readouts belong to this instance; the multiple one below is seeded and untouched by the commands."
       >
-        <spin-select id="single" ref={single.ref} prop:items={ITEMS} prop:label="Runtime" prop:name="runtime" />
+        <spin-select
+          id="single"
+          ref={single.ref}
+          prop:items={ITEMS}
+          prop:label="Runtime"
+          prop:name="runtime"
+        />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().selectValue("bun")}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().selectValue("bun")}
+          >
             el.selectValue("bun")
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().open()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().open()}
+          >
             el.open()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => single.commands().clearValue()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => single.commands().clearValue()}
+          >
             el.clearValue()
           </button>
         </DemoControls>
         <DemoReadout>
-          value: <span id="select-value">{selected().join(", ") || "none"}</span> · opens:{" "}
-          <span id="select-opens">{openCount()}</span>
+          value:{" "}
+          <span id="select-value">{selected().join(", ") || "none"}</span>{" "}
+          · opens: <span id="select-opens">{openCount()}</span>
         </DemoReadout>
       </DemoCard>
 
-      <DemoCard title="Multiple select" width="sm" note="closeOnSelect is false, so the panel stays up over each pick.">
+      <DemoCard
+        title="Multiple select"
+        width="sm"
+        note="closeOnSelect is false, so the panel stays up over each pick."
+      >
         <spin-select
           id="multi"
           prop:items={ITEMS}

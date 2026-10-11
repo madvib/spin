@@ -1,6 +1,12 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 
 interface PinCommands {
   setValue(values: string[]): void;
@@ -26,7 +32,8 @@ export default function PinInput() {
     "spin-pin-input",
     () => ({ count: 4, label: "Verification code", name: "pin" }),
     {
-      "value-change": (e: CustomEvent<{ value: string[] }>) => setValue(e.detail.value),
+      "value-change": (e: CustomEvent<{ value: string[] }>) =>
+        setValue(e.detail.value),
       "value-complete": () => setCompletions((n) => n + 1),
       "value-invalid": (e: CustomEvent<{ value: string }>) => {
         setRefused(e.detail.value);
@@ -35,11 +42,15 @@ export default function PinInput() {
     },
   );
 
-  const dots = createSpin<{ count: number; mask: boolean; otp: boolean }, PinCommands>(
+  const dots = createSpin<
+    { count: number; mask: boolean; otp: boolean },
+    PinCommands
+  >(
     "spin-pin-input",
     () => ({ count: 6, mask: true, otp: true, label: "Masked, otp" }),
     {
-      "value-change": (e: CustomEvent<{ value: string[] }>) => setDotsValue(e.detail.value.join("")),
+      "value-change": (e: CustomEvent<{ value: string[] }>) =>
+        setDotsValue(e.detail.value.join("")),
     },
   );
 
@@ -79,10 +90,18 @@ export default function PinInput() {
           >
             el.setValueAtIndex(3, "5")
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => pin.commands().clearValue()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => pin.commands().clearValue()}
+          >
             el.clearValue()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => pin.commands().focus()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => pin.commands().focus()}
+          >
             el.focus()
           </button>
           <button
@@ -94,9 +113,9 @@ export default function PinInput() {
           </button>
         </DemoControls>
         <DemoReadout>
-          value: <span id="pin-value">{value().join("") || "none"}</span> · completions:{" "}
-          <span id="pin-completions">{completions()}</span> · refused:{" "}
-          <span id="pin-refused">{refused() || "none"}</span>
+          value: <span id="pin-value">{value().join("") || "none"}</span>{" "}
+          · completions: <span id="pin-completions">{completions()}</span>{" "}
+          · refused: <span id="pin-refused">{refused() || "none"}</span>
         </DemoReadout>
       </DemoCard>
 
@@ -114,8 +133,8 @@ export default function PinInput() {
           prop:label="Masked, otp"
         />
         <DemoReadout>
-          value: <span id="pin-dots-value">{dotsValue() || "none"}</span> · last refused:{" "}
-          <span id="pin-masked">{masked() || "none"}</span>
+          value: <span id="pin-dots-value">{dotsValue() || "none"}</span>{" "}
+          · last refused: <span id="pin-masked">{masked() || "none"}</span>
         </DemoReadout>
       </DemoCard>
     </DemoGrid>

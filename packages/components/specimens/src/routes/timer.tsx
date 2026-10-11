@@ -1,6 +1,12 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 import type { TimerTickChange } from "../../../src/spin-timer/timer.bridge.ts";
 
 interface TimerCommands {
@@ -53,16 +59,29 @@ export default function TimerFsm() {
 
   const auto = createSpin<TimerProps, TimerCommands>(
     "spin-timer",
-    () => ({ startMs: 60_000, targetMs: 0, countdown: true, autoStart: true, interval: 1_000 }),
+    () => ({
+      startMs: 60_000,
+      targetMs: 0,
+      countdown: true,
+      autoStart: true,
+      interval: 1_000,
+    }),
     {
-      tick: (event: CustomEvent<TimerTickChange>) => setCountdown(readout(event)),
+      tick: (event: CustomEvent<TimerTickChange>) =>
+        setCountdown(readout(event)),
       complete: () => setCompletes((n) => n + 1),
     },
   );
 
   const shortTimer = createSpin<TimerProps, TimerCommands>(
     "spin-timer",
-    () => ({ startMs: 1_500, targetMs: 0, countdown: true, autoStart: false, interval: 500 }),
+    () => ({
+      startMs: 1_500,
+      targetMs: 0,
+      countdown: true,
+      autoStart: false,
+      interval: 500,
+    }),
     {
       tick: (event: CustomEvent<TimerTickChange>) => setShort(readout(event)),
       complete: () => setCompletes((n) => n + 1),
@@ -78,19 +97,39 @@ export default function TimerFsm() {
       >
         <spin-timer id="stopwatch" ref={stopwatch.ref} />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().start()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => stopwatch.commands().start()}
+          >
             el.start()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().pause()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => stopwatch.commands().pause()}
+          >
             el.pause()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().resume()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => stopwatch.commands().resume()}
+          >
             el.resume()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().reset()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => stopwatch.commands().reset()}
+          >
             el.reset()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => stopwatch.commands().restart()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => stopwatch.commands().restart()}
+          >
             el.restart()
           </button>
         </DemoControls>

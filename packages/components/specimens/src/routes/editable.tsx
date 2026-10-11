@@ -1,7 +1,16 @@
 import { createSignal } from "solid-js";
 import { createSpin } from "@spin/hooks/solid";
-import type { EditableEditChange, EditableValueChange } from "../../../src/spin-editable/editable.bridge.ts";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import type {
+  EditableEditChange,
+  EditableValueChange,
+} from "../../../src/spin-editable/editable.bridge.ts";
+import {
+  DEMO_BUTTON,
+  DemoCard,
+  DemoControls,
+  DemoGrid,
+  DemoReadout,
+} from "../demo.tsx";
 
 interface EditableCommands {
   setValue: (value: string) => void;
@@ -32,17 +41,29 @@ export default function EditableFsm() {
     EditableCommands
   >(
     "spin-editable",
-    () => ({ label: "Name", defaultValue: "Ada Lovelace", placeholder: "Type a name" }),
+    () => ({
+      label: "Name",
+      defaultValue: "Ada Lovelace",
+      placeholder: "Type a name",
+    }),
     {
-      "value-change": (event: CustomEvent<EditableValueChange>) => setValue(event.detail.value),
+      "value-change": (event: CustomEvent<EditableValueChange>) =>
+        setValue(event.detail.value),
       "value-commit": () => setCommits((n) => n + 1),
       "value-revert": () => setReverts((n) => n + 1),
     },
   );
 
-  const controlled = createSpin<{ label: string; editing: boolean; defaultValue: string }, EditableCommands>(
+  const controlled = createSpin<
+    { label: string; editing: boolean; defaultValue: string },
+    EditableCommands
+  >(
     "spin-editable",
-    () => ({ label: "Controlled edit", editing: edit(), defaultValue: "Grace Hopper" }),
+    () => ({
+      label: "Controlled edit",
+      editing: edit(),
+      defaultValue: "Grace Hopper",
+    }),
     {
       "edit-change": (event: CustomEvent<EditableEditChange>) => {
         setEdit(event.detail.edit);
@@ -51,15 +72,26 @@ export default function EditableFsm() {
     },
   );
 
-  const autoresize = createSpin<{ label: string; autoResize: boolean; placeholder: string }, EditableCommands>(
+  const autoresize = createSpin<
+    { label: string; autoResize: boolean; placeholder: string },
+    EditableCommands
+  >(
     "spin-editable",
-    () => ({ label: "Auto-resizing", autoResize: true, placeholder: "It grows with the text" }),
+    () => ({
+      label: "Auto-resizing",
+      autoResize: true,
+      placeholder: "It grows with the text",
+    }),
     {
-      "edit-change": (event: CustomEvent<EditableEditChange>) => setOutside(`auto-resize: ${event.detail.edit}`),
+      "edit-change": (event: CustomEvent<EditableEditChange>) =>
+        setOutside(`auto-resize: ${event.detail.edit}`),
     },
   );
 
-  const disabled = createSpin<{ label: string; defaultValue: string; disabled: boolean }, EditableCommands>(
+  const disabled = createSpin<
+    { label: string; defaultValue: string; disabled: boolean },
+    EditableCommands
+  >(
     "spin-editable",
     () => ({ label: "Disabled", defaultValue: "not editable", disabled: true }),
   );
@@ -99,23 +131,40 @@ export default function EditableFsm() {
           prop:defaultValue="Grace Hopper"
         />
         <DemoControls>
-          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().edit()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => controlled.commands().edit()}
+          >
             el.edit()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().submit()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => controlled.commands().submit()}
+          >
             el.submit()
           </button>
-          <button type="button" class={DEMO_BUTTON} onClick={() => controlled.commands().cancel()}>
+          <button
+            type="button"
+            class={DEMO_BUTTON}
+            onClick={() => controlled.commands().cancel()}
+          >
             el.cancel()
           </button>
         </DemoControls>
         <DemoReadout>
-          controlled edit: <span id="editable-edit">{edit() ? "edit" : "preview"}</span> · last report:{" "}
-          <span id="editable-outside">{outside()}</span>
+          controlled edit:{" "}
+          <span id="editable-edit">{edit() ? "edit" : "preview"}</span>{" "}
+          · last report: <span id="editable-outside">{outside()}</span>
         </DemoReadout>
       </DemoCard>
 
-      <DemoCard title="Auto-resize" width="md" note="Both parts share one grid cell, so the inactive one is invisible but still laid out.">
+      <DemoCard
+        title="Auto-resize"
+        width="md"
+        note="Both parts share one grid cell, so the inactive one is invisible but still laid out."
+      >
         <spin-editable
           id="autoresize"
           ref={autoresize.ref}
@@ -125,7 +174,11 @@ export default function EditableFsm() {
         />
       </DemoCard>
 
-      <DemoCard title="Disabled" width="md" note="The preview leaves the tab order and the input is disabled.">
+      <DemoCard
+        title="Disabled"
+        width="md"
+        note="The preview leaves the tab order and the input is disabled."
+      >
         <spin-editable
           id="disabled"
           ref={disabled.ref}

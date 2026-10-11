@@ -69,7 +69,9 @@ export type StarterThemeName = keyof typeof starterThemes;
  * never declares one, which is the conflation that produced a `dark` group
  * restating a console base and adding nothing. No field means no claim.
  */
-export function themeModes(theme: ThemeDocument): readonly ("light" | "dark")[] {
+export function themeModes(
+  theme: ThemeDocument,
+): readonly ("light" | "dark")[] {
   const raw = (theme as Record<string, unknown>)["modes"];
   if (!Array.isArray(raw)) return [];
   return raw.filter((entry): entry is "light" | "dark" =>

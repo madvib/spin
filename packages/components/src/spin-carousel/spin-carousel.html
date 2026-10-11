@@ -1,6 +1,7 @@
 <scope>props={ items: { value: string, label: string, content: string }[] = [], index: int = 0, defaultIndex: int = 0, loop: bool = false, orientation: string = "horizontal", dir: string = "ltr", slidesPerPage: int = 1, slidesPerMove: string = "auto", spacing: string = "0px", padding: string = "0px", snapType: string = "mandatory", autoplay: bool = false, autoplayDelay: int = 4000, allowMouseDrag: bool = false, autoSize: bool = false, inViewThreshold: int = 60 } consume={ carousel }</scope>
 
-<div class="relative rounded-lg border border-border bg-surface-raised p-4" {...carousel.getRootProps()}>
+<div class="relative rounded-lg border border-border bg-surface-raised p-4"
+  {...carousel.getRootProps()}>
   <div
     class="flex gap-2 py-1 snap-x snap-mandatory data-[snap-type=proximity]:snap-proximity data-[orientation=vertical]:flex-col data-[orientation=vertical]:snap-y data-[orientation=horizontal]:overflow-x-auto data-[orientation=vertical]:overflow-y-auto scroll-smooth data-[draggable]:cursor-grab data-[draggable]:select-none data-[dragging]:cursor-grabbing data-[dragging]:snap-none data-[dragging]:scroll-auto"
     {...carousel.getItemGroupProps()}
@@ -10,7 +11,8 @@
         class="w-full shrink-0 min-w-0 snap-start data-[snap=center]:snap-center data-[snap=end]:snap-end data-[slides-2]:w-[calc((100%-0.5rem)/2)] data-[slides-3]:w-[calc((100%-1rem)/3)] data-[slides-4]:w-[calc((100%-1.5rem)/4)] data-[slides-5]:w-[calc((100%-2rem)/5)] data-[slides-6]:w-[calc((100%-2.5rem)/6)] data-[auto-size]:w-fit transition-opacity duration-base ease-standard opacity-50 data-[inview]:opacity-100"
         {...carousel.getItemProps({ index: i })}
       >
-        <div class="flex min-h-[9rem] flex-col items-center justify-center rounded-md border border-border bg-surface p-4 text-center">
+        <div
+          class="flex min-h-32 flex-col items-center justify-center rounded-md border border-border bg-surface p-4 text-center">
           <div class="text-sm font-medium text-text">{row.label}</div>
           <div class="text-xs text-muted mt-1">{row.content}</div>
         </div>
@@ -18,21 +20,35 @@
     </template>
   </div>
 
-  <div class="mt-2 h-1 overflow-hidden rounded-full bg-border opacity-0 transition-opacity duration-fast ease-standard pointer-events-none data-[state=playing]:opacity-100" {...carousel.getAutoplayProgressProps()}>
-    <div class="h-full w-full rounded-full bg-primary origin-left scale-x-0 transition-transform duration-fast ease-standard data-[state=playing]:scale-x-100" {...carousel.getAutoplayProgressFillProps()}></div>
+  <div
+    class="mt-2 h-1 overflow-hidden rounded-full bg-border opacity-0 transition-opacity duration-fast ease-standard pointer-events-none data-[state=playing]:opacity-100"
+    {...carousel.getAutoplayProgressProps()}>
+    <div
+      class="h-full w-full rounded-full bg-primary origin-left scale-x-0 transition-transform duration-fast ease-standard data-[state=playing]:scale-x-100"
+      {...carousel.getAutoplayProgressFillProps()}></div>
   </div>
 
   <div class="flex items-center gap-2 mt-4" {...carousel.getControlProps()}>
-    <button type="button" class="p-2 rounded-md border border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed" {...carousel.getPrevTriggerProps()}>‹</button>
-    <div class="flex flex-1 items-center justify-center gap-1" {...carousel.getIndicatorGroupProps()}>
+    <button type="button"
+      class="p-2 rounded-md border border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+      {...carousel.getPrevTriggerProps()}>‹</button>
+    <div class="flex flex-1 items-center justify-center gap-1"
+      {...carousel.getIndicatorGroupProps()}>
       <template for={items} as={row} key={row.value}>
-        <button type="button" class="h-2 w-2 rounded-full border border-border bg-surface transition-all duration-base ease-standard data-[current]:w-4 data-[current]:bg-primary data-[current]:border-transparent data-[focus]:ring-2 data-[focus]:ring-border-strong data-[readonly]:cursor-default" {...carousel.getIndicatorProps({ index: i })}></button>
+        <button type="button"
+          class="h-2 w-2 rounded-full border border-border bg-surface transition-all duration-base ease-standard data-[current]:w-4 data-[current]:bg-primary data-[current]:border-transparent data-[focus]:ring-2 data-[focus]:ring-border-strong data-[readonly]:cursor-default"
+          {...carousel.getIndicatorProps({ index: i })}></button>
       </template>
     </div>
-    <button type="button" class="p-2 rounded-md border border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[playing]:text-primary data-[focus]:ring-2 data-[focus]:ring-border-strong" {...carousel.getAutoplayTriggerProps()}>▶</button>
+    <button type="button"
+      class="p-2 rounded-md border border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[playing]:text-primary data-[focus]:ring-2 data-[focus]:ring-border-strong"
+      {...carousel.getAutoplayTriggerProps()}>▶</button>
     <template for={carousel.getProgressRows()} as={row} key="progress">
-      <span class="text-xs text-muted" {...carousel.getProgressTextProps()}>{row.value}</span>
+      <span class="text-xs text-muted"
+        {...carousel.getProgressTextProps()}>{row.value}</span>
     </template>
-    <button type="button" class="p-2 rounded-md border border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed" {...carousel.getNextTriggerProps()}>›</button>
+    <button type="button"
+      class="p-2 rounded-md border border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+      {...carousel.getNextTriggerProps()}>›</button>
   </div>
 </div>

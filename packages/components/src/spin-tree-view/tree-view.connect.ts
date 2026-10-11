@@ -56,6 +56,8 @@ export interface TreeApi {
   readonly loadingStatus: Record<string, "loading" | "loaded" | "error">;
   readonly nodes: readonly TreeNode[];
   getVisibleRows(): readonly VisibleRow[];
+  /** True when the row opens children — the chevron's visibility. */
+  isBranch(row: VisibleRow): boolean;
   getItemState(row: VisibleRow): TreeItemState;
   getRootProps(): Record<string, unknown>;
   getTreeProps(): Record<string, unknown>;
@@ -90,7 +92,9 @@ interface TreeService {
 type Send = (event: { type: string } & Record<string, unknown>) => void;
 
 /** Host hook for lazy branches: set as a property on the element. */
-type LoadChildren = (value: string) => Promise<readonly TreeNode[]> | readonly TreeNode[] | void;
+type LoadChildren = (
+  value: string,
+) => Promise<readonly TreeNode[]> | readonly TreeNode[] | void;
 
 export function connectRobotTreeView(
   service: TreeService,
@@ -110,13 +114,19 @@ export function connectRobotTreeView(
   /** Flatten the tree to visible rows — the TreeCollection replacement. */
   const flatten = (): readonly VisibleRow[] => {
     const rows: VisibleRow[] = [];
-    const walk = (list: readonly TreeNode[], depth: number, indexPath: number[]): void => {
+    const walk = (
+      list: readonly TreeNode[],
+      depth: number,
+      indexPath: number[],
+    ): void => {
       for (let i = 0; i < list.length; i++) {
         const node = list[i]!;
         const path = [...indexPath, i];
         rows.push({ node, depth, indexPath: path });
         const kids = node.children;
-        if (kids && kids.length > 0 && ctx().expandedValue.includes(node.value)) walk(kids, depth + 1, path);
+        if (
+          kids && kids.length > 0 && ctx().expandedValue.includes(node.value)
+        ) walk(kids, depth + 1, path);
       }
     };
     walk(getNodes(), 0, []);
@@ -151,7 +161,9 @@ export function connectRobotTreeView(
   };
 
   const stateAttrs = (state: TreeItemState): Record<string, unknown> => {
-    const attrs: Record<string, unknown> = { "data-state": state.expanded ? "open" : "closed" };
+    const attrs: Record<string, unknown> = {
+      "data-state": state.expanded ? "open" : "closed",
+    };
     if (state.selected) attrs["data-selected"] = "";
     if (state.focused) attrs["data-focus"] = "";
     if (state.checked) attrs["data-checked"] = "";
@@ -168,7 +180,9 @@ export function connectRobotTreeView(
    */
   const ensureChildren = (value: string): void => {
     const node = flatten().find((row) => row.node.value === value)?.node;
-    if (!node || (node.children !== undefined && node.children.length > 0)) return;
+    if (!node || (node.children !== undefined && node.children.length > 0)) {
+      return;
+    }
     const load = hostProps()["loadChildren"] as LoadChildren | undefined;
     if (typeof load !== "function") return;
     send({ type: "NODE.LOAD_START", value });
@@ -182,8 +196,8 @@ export function connectRobotTreeView(
               item.value === value
                 ? { ...item, children: [...(item.children ?? []), ...loaded] }
                 : item.children
-                  ? { ...item, children: graft(item.children) }
-                  : item,
+                ? { ...item, children: graft(item.children) }
+                : item
             );
           graftInto(graft(current));
         }
@@ -241,7 +255,9 @@ export function connectRobotTreeView(
         if (branch && expanded) {
           send({ type: "BRANCH.TOGGLE", value: row.node.value });
         } else if (!branch) {
-          const parent = [...rows.slice(0, at)].reverse().find((r) => isBranch(r));
+          const parent = [...rows.slice(0, at)].reverse().find((r) =>
+            isBranch(r)
+          );
           const parentValue = parent ? parent.node.value : null;
           if (parentValue !== null) {
             send({ type: "NODE.FOCUS", value: parentValue });
@@ -256,16 +272,21 @@ export function connectRobotTreeView(
         move(rows.length - 1, shift);
         break;
       case "Enter":
-        send(branch && ctx().expandOnClick
-          ? { type: "BRANCH_NODE.CLICK", value: row.node.value }
-          : { type: "NODE.CLICK", value: row.node.value });
+        send(
+          branch && ctx().expandOnClick
+            ? { type: "BRANCH_NODE.CLICK", value: row.node.value }
+            : { type: "NODE.CLICK", value: row.node.value },
+        );
         if (branch && !expanded) ensureChildren(row.node.value);
         break;
       case " ":
         send({ type: "NODE.CLICK", value: row.node.value });
         break;
       case "*":
-        send({ type: "EXPANDED.SET", value: rows.filter(isBranch).map((r) => r.node.value) });
+        send({
+          type: "EXPANDED.SET",
+          value: rows.filter(isBranch).map((r) => r.node.value),
+        });
         break;
       case "F2":
         if (ctx().rename) {
@@ -276,11 +297,16 @@ export function connectRobotTreeView(
         }
         break;
       default:
-        if (props.typeahead && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+        if (
+          props.typeahead && event.key.length === 1 && !event.ctrlKey &&
+          !event.metaKey
+        ) {
           const now = Date.now();
           keys = now - keysAt < 500 ? keys + event.key : event.key;
           keysAt = now;
-          const match = rows.find((r) => r.node.label.toLowerCase().startsWith(keys.toLowerCase()));
+          const match = rows.find((r) =>
+            r.node.label.toLowerCase().startsWith(keys.toLowerCase())
+          );
           if (match) {
             send({ type: "NODE.FOCUS", value: match.node.value });
             focusDom(match.node.value);
@@ -298,9 +324,21 @@ export function connectRobotTreeView(
     // and a lazy branch would never load.
     const wasExpanded = ctx().expandedValue.includes(row.node.value);
     const branch = isBranch(row);
-    send(branch
-      ? { type: "BRANCH_NODE.CLICK", value: row.node.value, shiftKey: event.shiftKey, ctrlKey: event.ctrlKey }
-      : { type: "NODE.CLICK", value: row.node.value, shiftKey: event.shiftKey, ctrlKey: event.ctrlKey });
+    send(
+      branch
+        ? {
+          type: "BRANCH_NODE.CLICK",
+          value: row.node.value,
+          shiftKey: event.shiftKey,
+          ctrlKey: event.ctrlKey,
+        }
+        : {
+          type: "NODE.CLICK",
+          value: row.node.value,
+          shiftKey: event.shiftKey,
+          ctrlKey: event.ctrlKey,
+        },
+    );
     if (branch && !wasExpanded) ensureChildren(row.node.value);
   };
 
@@ -317,8 +355,14 @@ export function connectRobotTreeView(
     loadingStatus: ctx().loadingStatus,
     nodes: getNodes(),
     getVisibleRows: flatten,
+    isBranch,
     getItemState,
-    getRootProps: () => ({ id: ownerId, role: "tree", tabindex: -1, "data-orientation": "vertical" }),
+    getRootProps: () => ({
+      id: ownerId,
+      role: "tree",
+      tabindex: -1,
+      "data-orientation": "vertical",
+    }),
     getTreeProps: () => ({ role: "group", "data-orientation": "vertical" }),
     getLabelProps: () => ({}),
     // The row wrapper carries the treeitem semantics: ONE root node per
@@ -334,7 +378,16 @@ export function connectRobotTreeView(
         "data-path": row.indexPath.join("-"),
         // The checkbox affordance is a mode, so the row carries the mode
         // and the utility on the span selects on it.
-        "data-checkable": getItemState(row).checked || ctx().selectionMode === "multiple" ? "" : undefined,
+        "data-checkable":
+          getItemState(row).checked || ctx().selectionMode === "multiple"
+            ? ""
+            : undefined,
+        // Indentation as a custom property: it is continuous geometry, so
+        // it travels the geometry channel (the recipe's padding reads the
+        // var) rather than as a per-depth utility class. The preset's
+        // arbitrary utilities take `var(...)` and refuse `calc()`, so the
+        // arithmetic happens here, once, where the depth is known.
+        style: { "--tree-indent": `${0.5 + row.depth * 0.875}rem` },
         ...stateAttrs(state),
       };
     },
@@ -345,7 +398,9 @@ export function connectRobotTreeView(
         id: itemId(row.node.value),
         type: "button",
         tabindex: state.focused ? 0 : -1,
-        "aria-controls": state.branch ? `${ownerId}:content:${row.node.value}` : undefined,
+        "aria-controls": state.branch
+          ? `${ownerId}:content:${row.node.value}`
+          : undefined,
         ...stateAttrs(state),
         onClick: click(row),
         onDblclick: dblclick(row),
@@ -398,13 +453,21 @@ export function connectRobotTreeView(
             send({ type: "RENAME.CANCEL" });
             event.preventDefault();
           } else if (event.key === "Enter") {
-            send({ type: "RENAME.SUBMIT", value: row.node.value, label: (event.target as HTMLInputElement).value });
+            send({
+              type: "RENAME.SUBMIT",
+              value: row.node.value,
+              label: (event.target as HTMLInputElement).value,
+            });
             event.preventDefault();
           }
           event.stopPropagation();
         },
         onBlur: (event: FocusEvent) => {
-          send({ type: "RENAME.SUBMIT", value: row.node.value, label: (event.target as HTMLInputElement).value });
+          send({
+            type: "RENAME.SUBMIT",
+            value: row.node.value,
+            label: (event.target as HTMLInputElement).value,
+          });
         },
       };
     },

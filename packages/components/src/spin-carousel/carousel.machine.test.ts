@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert";
 import {
+  type CarouselContext,
+  type CarouselEvent,
   config,
   implementations,
   pageCountFor,
-  type CarouselContext,
-  type CarouselEvent,
 } from "./carousel.machine.ts";
 import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
 
@@ -17,15 +17,22 @@ import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
  * object, so one test's writes cannot reach the next), then the scalar the
  * assigns read. Everything asserted after that is what a host observes.
  */
-function carousel(slideCount: number, loop = false): Service<CarouselContext, CarouselEvent> {
-  const svc = interpret(createMachine<CarouselContext, CarouselEvent>(config, implementations));
+function carousel(
+  slideCount: number,
+  loop = false,
+): Service<CarouselContext, CarouselEvent> {
+  const svc = interpret(
+    createMachine<CarouselContext, CarouselEvent>(config, implementations),
+  );
   svc.start("idle");
   svc.send({ type: "PAGES.SET", count: slideCount });
   svc.state.context.loop = loop;
   return svc;
 }
 
-const contextOf = (svc: Service<CarouselContext, CarouselEvent>): CarouselContext => svc.state.context;
+const contextOf = (
+  svc: Service<CarouselContext, CarouselEvent>,
+): CarouselContext => svc.state.context;
 
 Deno.test("Given a five-slide carousel / When it starts / Then it is idle on page 0 of 5", () => {
   const svc = carousel(5);
@@ -283,5 +290,3 @@ Deno.test("Given a drag / When the viewport blurs / Then the drag status is unto
   assertEquals(contextOf(svc).dragStatus, "dragging");
   assertEquals(contextOf(svc).focused, false);
 });
-
-

@@ -1,4 +1,3 @@
-
 /**
  * Tree-view on the forked FSM — the hard case, deliberately.
  *
@@ -97,7 +96,12 @@ export type TreeEvent =
   | { type: "NODE.HOME" }
   | { type: "NODE.END" }
   | { type: "NODE.CLICK"; value: string; shiftKey?: boolean; ctrlKey?: boolean }
-  | { type: "BRANCH_NODE.CLICK"; value: string; shiftKey?: boolean; ctrlKey?: boolean }
+  | {
+    type: "BRANCH_NODE.CLICK";
+    value: string;
+    shiftKey?: boolean;
+    ctrlKey?: boolean;
+  }
   | { type: "TREE.TYPEAHEAD"; key: string }
   | { type: "NODE.RENAME"; value: string }
   | { type: "RENAME.SUBMIT"; value: string; label: string }
@@ -142,23 +146,47 @@ export const config = {
         "NODE.SELECT": { actions: [{ assign: "selectNode" }] },
         "NODE.DESELECT": { actions: [{ assign: "deselectNode" }] },
         "NODE.CLICK": [
-          { cond: "isMultiToggle", actions: [{ assign: "toggleNodeSelection" }] },
-          { cond: "isRangeExtend", actions: [{ assign: "extendSelectionToNode" }] },
+          {
+            cond: "isMultiToggle",
+            actions: [{ assign: "toggleNodeSelection" }],
+          },
+          {
+            cond: "isRangeExtend",
+            actions: [{ assign: "extendSelectionToNode" }],
+          },
           { actions: [{ assign: "selectNode" }] },
         ],
         "BRANCH_NODE.CLICK": [
-          { cond: "isMultiToggle", actions: [{ assign: "toggleNodeSelection" }] },
-          { cond: "isRangeExtend", actions: [{ assign: "extendSelectionToNode" }] },
-          { cond: "expandOnClick", actions: [{ assign: "selectNode" }, { assign: "toggleBranch" }] },
+          {
+            cond: "isMultiToggle",
+            actions: [{ assign: "toggleNodeSelection" }],
+          },
+          {
+            cond: "isRangeExtend",
+            actions: [{ assign: "extendSelectionToNode" }],
+          },
+          {
+            cond: "expandOnClick",
+            actions: [{ assign: "selectNode" }, { assign: "toggleBranch" }],
+          },
           { actions: [{ assign: "selectNode" }] },
         ],
-        "NODE.RENAME": { target: "renaming", actions: [{ assign: "setRenaming" }] },
+        "NODE.RENAME": {
+          target: "renaming",
+          actions: [{ assign: "setRenaming" }],
+        },
       },
     },
     renaming: {
       on: {
-        "RENAME.SUBMIT": { target: "idle", actions: [{ assign: "submitRename" }] },
-        "RENAME.CANCEL": { target: "idle", actions: [{ assign: "cancelRename" }] },
+        "RENAME.SUBMIT": {
+          target: "idle",
+          actions: [{ assign: "submitRename" }],
+        },
+        "RENAME.CANCEL": {
+          target: "idle",
+          actions: [{ assign: "cancelRename" }],
+        },
       },
     },
   },
@@ -179,7 +207,8 @@ export const implementations = {
         : false,
     isRangeExtend: (ctx: TreeContext, event: TreeEvent) =>
       event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
-        ? Boolean(event.shiftKey) && ctx.selectionMode === "multiple" && ctx.selectedValue.length > 0
+        ? Boolean(event.shiftKey) && ctx.selectionMode === "multiple" &&
+          ctx.selectedValue.length > 0
         : false,
     expandOnClick: (ctx: TreeContext) => ctx.expandOnClick,
   },
@@ -197,16 +226,18 @@ export const implementations = {
     toggleChecked: (ctx: TreeContext, e: TreeEvent) =>
       e.type === "CHECKED.TOGGLE"
         ? {
-            checkedValue: ctx.checkedValue.includes(e.value)
-              ? ctx.checkedValue.filter((v) => v !== e.value)
-              : [...ctx.checkedValue, e.value],
-          }
+          checkedValue: ctx.checkedValue.includes(e.value)
+            ? ctx.checkedValue.filter((v) => v !== e.value)
+            : [...ctx.checkedValue, e.value],
+        }
         : {},
     setChecked: (_ctx: TreeContext, e: TreeEvent) =>
       e.type === "CHECKED.SET" ? { checkedValue: [...e.value] } : {},
     clearChecked: () => ({ checkedValue: [] }),
     setFocused: (ctx: TreeContext, e: TreeEvent) =>
-      e.type === "NODE.FOCUS" && e.value !== ctx.focusedValue ? { focusedValue: e.value, typeahead: "" } : {},
+      e.type === "NODE.FOCUS" && e.value !== ctx.focusedValue
+        ? { focusedValue: e.value, typeahead: "" }
+        : {},
     // No event-type guard: this assign is composed into BRANCH.TOGGLE and
     // BRANCH_NODE.CLICK. An assign that must know WHICH event fired it is a
     // modeling error — split the transitions instead.
@@ -231,7 +262,9 @@ export const implementations = {
     },
     selectNode: (_ctx: TreeContext, e: TreeEvent) => {
       const value = (e as { value: string }).value;
-      return _ctx.selectionMode === "multiple" ? { selectedValue: [value] } : { selectedValue: [value] };
+      return _ctx.selectionMode === "multiple"
+        ? { selectedValue: [value] }
+        : { selectedValue: [value] };
     },
     deselectNode: (ctx: TreeContext, e: TreeEvent) => {
       const value = (e as { value: string }).value;
@@ -251,17 +284,25 @@ export const implementations = {
       return { selectedValue: [...ctx.selectedValue, value] };
     },
     setRenaming: (_ctx: TreeContext, e: TreeEvent) =>
-      e.type === "NODE.RENAME" ? { renamingValue: e.value, focusedValue: e.value } : {},
+      e.type === "NODE.RENAME"
+        ? { renamingValue: e.value, focusedValue: e.value }
+        : {},
     submitRename: (_ctx: TreeContext) => ({ renamingValue: null }),
     cancelRename: () => ({ renamingValue: null }),
     loadStart: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
       if (e.type !== "NODE.LOAD_START") return {};
-      const next: Record<string, "loading" | "loaded" | "error"> = { ...ctx.loadingStatus, [e.value]: "loading" };
+      const next: Record<string, "loading" | "loaded" | "error"> = {
+        ...ctx.loadingStatus,
+        [e.value]: "loading",
+      };
       return { loadingStatus: next };
     },
     loadDone: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
       if (e.type !== "NODE.LOAD_DONE") return {};
-      const next: Record<string, "loading" | "loaded" | "error"> = { ...ctx.loadingStatus, [e.value]: "loaded" };
+      const next: Record<string, "loading" | "loaded" | "error"> = {
+        ...ctx.loadingStatus,
+        [e.value]: "loaded",
+      };
       return { loadingStatus: next };
     },
   },
