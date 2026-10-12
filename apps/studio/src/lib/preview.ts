@@ -32,8 +32,9 @@ export interface PreviewFailure {
 export async function previewCssSafely(
   text: string,
   name: string,
+  markup?: string,
 ): Promise<string | PreviewFailure> {
-  const out = await (await spinClient()).preview.css({ text, name });
+  const out = await (await spinClient()).preview.css({ text, name, markup });
   return out.error !== null ? { error: out.error } : out.css;
 }
 

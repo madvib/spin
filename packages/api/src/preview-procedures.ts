@@ -26,6 +26,16 @@ const PreviewInput = v.object({
   text: v.string(),
   /** The name the preview scopes its `[data-theme]` selector to. */
   name: v.string(),
+  /**
+   * The markup the preview is about to render.
+   *
+   * Uno scans source text for tokens, which is how a real application gets
+   * its CSS — and a preview that passes only a list of utility names emits
+   * utilities and nothing else, so every primitive renders unstyled. Passing
+   * the markup makes the preview honest: the same scanner, the same rules,
+   * the same result a consumer gets.
+   */
+  markup: v.optional(v.string()),
 });
 
 const PreviewOutput = v.object({
@@ -75,7 +85,13 @@ export async function generatePreview(
     const uno = await createGenerator({
       presets: [spinPreset({ themes: { [input.name]: document } })],
     });
-    const { css } = await uno.generate(catalogUtilities(describeCatalog(tree)));
+    // The markup first, so its tokens emit the primitive rules and the
+    // utilities they reference; the catalog's utilities backstop every
+    // utility the explorer can name, which markup alone would not reach.
+    const scanned = uno.generate(
+      `${input.markup ?? ""} ${catalogUtilities(describeCatalog(tree))}`,
+    );
+    const { css } = await scanned;
     return { css, error: null };
   } catch (err) {
     return { css: "", error: err instanceof Error ? err.message : String(err) };

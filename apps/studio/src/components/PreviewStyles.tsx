@@ -6,15 +6,15 @@
  * into the tool around it.
  */
 
-import { Show, createEffect, createResource } from "solid-js";
+import { createEffect, createResource, Show } from "solid-js";
 import { previewCssSafely } from "../lib/preview.ts";
 import { analyzeTheme } from "../lib/theme.ts";
-import { activeName, themeText } from "../lib/store.ts";
+import { activeName, renderedMarkup, themeText } from "../lib/store.ts";
 
 export default function PreviewStyles() {
   const [css] = createResource(
     () => ({ tree: analyzeTheme(themeText()).tree, name: activeName() }),
-    () => previewCssSafely(themeText(), activeName()),
+    () => previewCssSafely(themeText(), activeName(), renderedMarkup()),
   );
 
   // A failure is rendered as a banner on the preview surface, never as a

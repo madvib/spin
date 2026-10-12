@@ -92,6 +92,7 @@ function ThemePicker() {
 }
 
 const CONCERNS = [
+  ["specimen", "Specimens"],
   ["colors", "Color"],
   ["surfaces", "Surfaces"],
   ["spacing", "Spacing"],

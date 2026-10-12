@@ -92,6 +92,28 @@ export function refetchLibrary(): void {
   libraryResource()[1].refetch();
 }
 
+/**
+ * The markup a route is about to render, so the stylesheet can be generated
+ * for it.
+ *
+ * Uno scans source text for tokens — which is how a real application gets its
+ * CSS — so a preview that generates for a list of utility names emits
+ * utilities and nothing else, and every primitive renders unstyled. The route
+ * that owns the markup registers it; the stylesheet generator reads it. One
+ * writer at a time, because one route is mounted at a time.
+ */
+const [markup, setMarkup] = createSignal("");
+
+/** The markup the mounted route renders. */
+export function renderedMarkup(): string {
+  return markup();
+}
+
+/** Declare the markup this route renders. */
+export function registerMarkup(html: string): void {
+  setMarkup(html);
+}
+
 /** The editor text per theme, seeded from disk on first read. */
 const [docs, setDocs] = createSignal<Record<string, string>>({});
 

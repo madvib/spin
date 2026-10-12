@@ -48,11 +48,13 @@ export default function SpacingPage() {
           {(row) => (
             <div class="flex items-center gap-4 bg-surface-raised rounded-lg shadow-sm p-4 border border-border">
               <code class="w-40">{row.path}</code>
-              {/*
+              {
+                /*
                 A class built at runtime never reaches the scanner, so
                 `max-w-screen-${name}` styles nothing. The value is the demo:
                 what a breakpoint is worth is the whole fact about it.
-              */}
+              */
+              }
               <code class="flex-1">{row.value}</code>
               <code class="font-mono text-xs opacity-70">
                 {toPx(row.value) === undefined ? "" : `${toPx(row.value)}px`}
