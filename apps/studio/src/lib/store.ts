@@ -11,11 +11,8 @@
 import { createEffect, createResource, createSignal } from "solid-js";
 import { listPrimitives, type RpcComponent } from "./primitives.ts";
 import { analyzeTheme } from "./theme.ts";
-import {
-  indexTree,
-  parseTokens,
-  validateLegibility,
-} from "@spin/theme";
+import { parseTokens, validateLegibility } from "@spin/theme";
+import { indexTree } from "@spin/theme";
 import type { ValidationIssue } from "@spin/theme";
 import { listProjectThemes } from "./themes.ts";
 import type { StudioTheme } from "./themes.ts";
@@ -104,15 +101,24 @@ const [saved, setSaved] = createSignal<Record<string, string>>({});
 /** How many snapshots a theme keeps. A bounded stack means undo cannot eat a tab. */
 const UNDO_LIMIT = 100;
 
-/** The theme's legibility rules, applied to one document as text. */
+/**
+ * The theme's own rules, applied to a proposed document.
+ *
+ * Local, and deliberately: the gate runs on every commit, and an edit that
+ * waits on a round trip is an edit that lags. The AUTHORITY is still the
+ * daemon — `preview.css` re-judges the whole document and refuses what
+ * breaks a floor, so a theme that clears this gate and then fails generation
+ * is one the author sees immediately with a reason. Early refusal is a
+ * courtesy; the daemon is the guarantee.
+ */
 function legibilityIssues(text: string): readonly ValidationIssue[] {
   try {
-    const parsed = parseTokens(JSON.parse(text));
+    const parsed = parseTokens(text);
     if (!parsed.ok) return [{ path: "", message: parsed.error }];
     return validateLegibility(parsed.tree);
   } catch {
     // Unparseable text is never a legibility problem, and the gate is about
-    // legibility; a broken document is caught by the preview's own message.
+    // legibility; a broken document is caught by generation.
     return [];
   }
 }

@@ -7,6 +7,17 @@ export interface ThemeState {
   issues: ValidationIssue[];
 }
 
+/**
+ * Parse and validate a document, locally.
+ *
+ * Still the studio's own, and that is a known remainder rather than a
+ * decision: the analysis runs on every keystroke-adjacent commit across eight
+ * call sites, so it would have to become async everywhere at once to move
+ * behind RPC — a refactor of its own, not a move to fold into this one. The
+ * cost is bounded (@spin/theme is pure TS with no dependencies), and the
+ * AUTHORITY is already the daemon: `preview.css` re-judges the whole document
+ * when it generates and refuses what breaks a floor.
+ */
 export function analyzeTheme(text: string): ThemeState {
   let doc: unknown;
   try {

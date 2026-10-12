@@ -48,6 +48,16 @@ const Analysis = v.object({
   /** Null when the text is not a parseable, well-formed token document. */
   error: v.nullable(v.string()),
   issues: v.array(ValidationIssue),
+  /**
+   * The parsed tree, when there is one.
+   *
+   * The daemon has already parsed to reach the verdict, so handing the tree
+   * back costs nothing and saves a consumer a second parse. The studio does
+   * not read it yet — its analysis is synchronous and would have to become
+   * async across eight call sites to move behind RPC — so this is a contract
+   * answer waiting for its consumer rather than an unused one.
+   */
+  tree: v.nullable(v.unknown()),
 });
 
 const CssOutput = v.object({

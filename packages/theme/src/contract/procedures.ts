@@ -30,13 +30,14 @@ const os = implement(themeContract);
 
 function analyze(text: string, required?: readonly string[]) {
   const parsed = parseTokens(text);
-  if (!parsed.ok) return { error: parsed.error, issues: [] };
+  if (!parsed.ok) return { error: parsed.error, issues: [], tree: null };
   const report = validateTokens(parsed.tree, {
     required: required ?? requiredPaths(),
   });
   return {
     error: null,
     issues: [...report.issues, ...validateLegibility(parsed.tree)],
+    tree: parsed.tree,
   };
 }
 
