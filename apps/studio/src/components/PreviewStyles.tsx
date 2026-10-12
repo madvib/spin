@@ -14,7 +14,7 @@ import { activeName, themeText } from "../lib/store.ts";
 export default function PreviewStyles() {
   const [css] = createResource(
     () => ({ tree: analyzeTheme(themeText()).tree, name: activeName() }),
-    ({ tree, name }) => (tree ? previewCssSafely(tree, name) : Promise.resolve("")),
+    () => previewCssSafely(themeText(), activeName()),
   );
 
   // A failure is rendered as a banner on the preview surface, never as a

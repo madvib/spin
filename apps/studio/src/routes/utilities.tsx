@@ -20,9 +20,8 @@ export default function UtilitiesPage() {
       .filter(({ utility }) => utility.includes(q));
   });
   const [css] = createResource(
-    () => ({ tree: tree(), name: activeName() }),
-    ({ tree: current, name }) =>
-      current ? previewCssSafely(current, name) : Promise.resolve(""),
+    () => ({ text: themeText(), name: activeName() }),
+    ({ text }) => previewCssSafely(text, activeName()),
   );
   const decls = createMemo(() => {
     const rendered = css();

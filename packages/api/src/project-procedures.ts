@@ -9,6 +9,7 @@
 
 import { implement } from "@orpc/server";
 import { projectContract } from "./project-contract.ts";
+import { generatePreview, previewContract } from "./preview-procedures.ts";
 
 export { initFiles, isWired, PROJECT_DIR } from "./project-contract.ts";
 

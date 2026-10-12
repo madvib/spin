@@ -71,7 +71,10 @@ function ColorControl(props: {
   const [draft, setDraft] = createSignal(props.value);
   return (
     <Show
-      when={hex() !== undefined}
+      // The hex itself, not a boolean: `<Show>` hands its children the `when`
+      // value, and a `!== undefined` test would hand them `true` — which
+      // `String()`-ed into a colour input and rendered black.
+      when={hex()}
       fallback={
         <input
           type="text"

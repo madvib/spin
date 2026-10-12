@@ -5,6 +5,8 @@ import {
   createSpinClient,
   presetContract,
   presetRouter,
+  previewContract,
+  previewRouter,
   primitivesContract,
   primitivesRouter,
   projectContract,
@@ -54,6 +56,12 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     ],
     themeContract,
     themeRouter,
+  ],
+  [
+    "preview",
+    ["preview.css"],
+    previewContract,
+    previewRouter,
   ],
   [
     "project",

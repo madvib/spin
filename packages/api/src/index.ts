@@ -16,9 +16,11 @@ import { themeRouter } from "@spin/theme";
 import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 import { presetRouter } from "@spin/preset";
 import { projectRouter } from "./project-procedures.ts";
+import { previewRouter } from "./preview-procedures.ts";
 
 export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
+export { previewRouter } from "./preview-procedures.ts";
 export {
   initFiles,
   isWired,
@@ -37,6 +39,7 @@ export const router = {
   ...primitivesRouter,
   ...presetRouter,
   ...projectRouter,
+  ...previewRouter,
 };
 
 export const rpcHandler = new RPCHandler(router);
