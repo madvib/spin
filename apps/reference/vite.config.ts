@@ -3,6 +3,7 @@ import { defineConfig, searchForWorkspaceRoot } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
+import { mountSpinApi } from "../../packages/api/src/index.ts";
 import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
@@ -20,6 +21,7 @@ export default defineConfig({
     spin.vite({
       themes: starterThemes,
       presets: [presetIcons({ collections: { lucide } as never })],
+      mount: mountSpinApi,
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the
       // pipeline include admits plain .ts because examples are data

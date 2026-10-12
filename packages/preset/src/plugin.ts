@@ -3,6 +3,22 @@ import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
 import { parseTokens, type ThemeDocument } from "@spin/theme";
+import { onOverlayChange, resolveThemes } from "./session.ts";
+
+/**
+ * The slice of a dev server the overlay lifecycle touches. Structural, so
+ * `@spin/preset` keeps no bundler dependency and the hook stays portable
+ * across unplugin's targets.
+ */
+export interface DevServer {
+  moduleGraph: {
+    urlToModuleMap: Map<string, unknown>;
+    invalidateModule: (mod: object) => void;
+  };
+  ws: { send: (payload: object) => void };
+  httpServer?: { once: (event: string, fn: () => void) => void } | null;
+}
+import { spinPreset } from "./index.ts";
 
 /**
  * The id `load` answers to.
@@ -24,6 +40,13 @@ export interface SpinPluginOptions {
   readonly content?: ContentOptions;
   /** Safelist the catalog so a utility named only as data still resolves. */
   readonly safelist?: boolean;
+  /**
+   * Install middleware on the dev server — the API, the studio bundle, and
+   * later the completion endpoint. The plugin cannot import `@spin/api`
+   * (dependencies point the other way), so the app that runs both passes
+   * this in.
+   */
+  readonly mount?: (server: unknown) => void;
 }
 
 /**
@@ -63,23 +86,25 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
   // is cached and the stylesheet regenerates from it. An overlay change
   // regenerates from the same scan — the content is unchanged, the theme
   // documents behind the rules are not.
-  let cached: { sources: string; safelist: string[] } | null = null;
+  let cachedSources: string | null = null;
 
   async function generate(): Promise<string> {
     const themes = options.themes ?? {};
-    cached ??= {
-      sources: joinContent(await scanContent(options.content ?? {}, root)),
-      safelist: catalogUtilities(themes),
-    };
-    // Imported lazily: this module is re-exported by the preset's index, so
-    // importing it at the top would make the cycle observable at load time.
-    const { spinPreset } = await import("./index.ts");
+    // The walk is expensive and content changes rarely; the safelist is
+    // rebuilt every time because an overlay write can introduce tokens
+    // whose utilities must resolve even though no file changed.
+    cachedSources ??= joinContent(
+      await scanContent(options.content ?? {}, root),
+    );
+    const safelist = catalogUtilities(resolveThemes(themes));
+    // Static: index.ts never imports plugin.ts, so this edge runs one way —
+    // the browser graph stays clean because index.ts carries no `node:`.
     const generator = await createGenerator({
       envMode,
       presets: [...(options.presets ?? []), spinPreset({ themes })],
-      safelist: options.safelist === false ? undefined : cached.safelist,
+      safelist: options.safelist === false ? undefined : safelist,
     });
-    const scanned = await generator.generate(cached.sources);
+    const scanned = await generator.generate(cachedSources);
     return scanned.css;
   }
 
@@ -92,11 +117,45 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
         envMode = config.command === "serve" ? "dev" : "build";
       },
     },
+    // A rollup-shaped hook: unplugin forwards unknown root hooks to vite
+    // untouched, so the dev-server lifecycle lives here rather than
+    // nested under `vite:`, where the rollup conversion drops it.
+    configureServer(server: DevServer) {
+      // An overlay write regenerates the sheet from the same cached
+      // scan — only the rules behind the theme documents change. The
+      // module is a CSS module, so the client swaps the stylesheet in
+      // place rather than reloading the page.
+      const stop = onOverlayChange(() => {
+        const modules = [...server.moduleGraph.urlToModuleMap.values()];
+        const mod = modules
+          .flatMap((entry) => entry instanceof Set ? [...entry] : [entry])
+          .find((node) => node.url === VIRTUAL_ID);
+        if (mod) {
+          server.moduleGraph.invalidateModule(mod);
+          server.ws.send({
+            type: "update",
+            updates: [{
+              // A `js-update`: vite 8 swaps a `<link>` for anything else,
+              // but this module injects its sheet from JS, so only a
+              // re-import re-runs `updateStyle` with the regenerated sheet.
+              type: "js-update",
+              path: VIRTUAL_ID,
+              acceptedPath: VIRTUAL_ID,
+              timestamp: Date.now(),
+            }],
+          });
+        } else {
+          server.ws.send({ type: "full-reload", path: "*" });
+        }
+      });
+      server.httpServer?.once("close", stop);
+      options.mount?.(server);
+    },
     resolveId(id) {
       return id === "uno.css" ? VIRTUAL_ID : null;
     },
     load(id) {
-      if (id !== VIRTUAL_ID) return null;
+      if (id !== VIRTUAL_ID && id.split("?")[0] !== VIRTUAL_ID) return null;
       return generate();
     },
   };
