@@ -52,6 +52,13 @@ import { orGroup } from "./utils/factories.ts";
 import { breakpointEdges, spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
+export {
+  expandBraces,
+  isIncluded,
+  joinContent,
+  scanContent,
+} from "./content.ts";
+export type { ContentMap, ContentOptions } from "./content.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
 export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
