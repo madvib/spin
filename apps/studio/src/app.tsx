@@ -44,13 +44,18 @@ function ModePicker() {
   return (
     <button
       type="button"
+      // A control with no styling is a control that does not exist: no
+      // padding, no hover, and an icon at its inherited `1em` — which on the
+      // studio's dark chrome resolved to black-on-black.
+      class="hover:bg-surface rounded-md p-2 text-text"
       aria-label={`Switch to ${
         activeMode() === "light" ? "dark" : "light"
       } mode`}
+      title={`Switch to ${activeMode() === "light" ? "dark" : "light"} mode`}
       onClick={cycle}
     >
       <span
-        class={`inline-block ${
+        class={`inline-block icon-md ${
           activeMode() === "light" ? "i-lucide-moon" : "i-lucide-sun"
         }`}
         aria-hidden="true"
@@ -132,7 +137,18 @@ export default function App() {
                 <For each={CONCERNS}>
                   {([href, label]) => (
                     <li>
-                      <A href={`/${href}`}>{label}</A>
+                      {
+                        /* `activeClass` is the router's own answer to "where am
+                          I", which is the one thing a nav must say and this
+                          one said nothing: every entry looked identical. */
+                      }
+                      <A
+                        href={`/${href}`}
+                        activeClass="text-text font-semibold underline"
+                        inactiveClass="text-text-muted"
+                      >
+                        {label}
+                      </A>
                     </li>
                   )}
                 </For>
