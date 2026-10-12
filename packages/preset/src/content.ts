@@ -1,4 +1,5 @@
-import { expandGlob } from "@std/fs";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { join } from "node:path";
 
 /**
  * The reference app's Uno config, expressed as data.
@@ -14,15 +15,15 @@ export interface ContentOptions {
   readonly filesystem?: readonly string[];
   /**
    * Which file types the pipeline will extract from. A file whose path
-   * matches no pattern is scanned as text — which is how `.examples.ts`
-   * reaches the generator in a spin app.
+   * matches no pattern is not scanned — which is how `.examples.ts` reaches
+   * the generator in a spin app.
    */
   readonly pipeline?: {
     readonly include?: readonly RegExp[];
   };
 }
 
-/** One file per class it declares, keyed by absolute path. */
+/** One source per file, keyed by path. */
 export type ContentMap = Map<string, string>;
 
 /**
@@ -37,19 +38,96 @@ export function expandBraces(pattern: string): string[] {
   const head = pattern.slice(0, open);
   const tail = pattern.slice(close + 1);
   const alternatives = pattern.slice(open + 1, close).split(",");
-  const rest = expandBraces(tail);
   const expanded = alternatives.flatMap((alt) =>
-    rest.map((suffix) => `${head}${alt}${suffix}`)
+    expandBraces(`${head}${alt}${tail}`)
   );
-  // The group removed, expand what surrounded it.
   return expanded.flatMap((value) => expandBraces(value));
 }
 
 /**
- * True when a path every include pattern ignores.
+ * One path segment as a matcher: `*` crosses anything but a separator, `?`
+ * one character. Everything else is literal.
+ */
+function segmentMatcher(segment: string): RegExp {
+  const source = [...segment]
+    .map((
+      char,
+    ) => (char === "*" ? "[^/]*" : char === "?" ? "[^/]" : escapeRegExp(char)))
+    .join("");
+  return new RegExp(`^${source}$`);
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Every file a glob admits, in directory-read order.
  *
- * The regexes are matched against the path as written, not the basename, so
- * a project whose sources live under `src/` behaves as unintuitively as
+ * `**` descends, `*` and `?` match within one segment. A directory that
+ * cannot be read is skipped rather than thrown on — a node_modules symlink
+ * should not fail a stylesheet.
+ */
+export async function globFiles(pattern: string): Promise<string[]> {
+  const segments = pattern.split("/").filter((part) => part.length > 0);
+  let candidates: string[] = [pattern.startsWith("/") ? "/" : "."];
+  for (const segment of segments) {
+    if (segment === "**") {
+      const descended: string[] = [];
+      for (const candidate of candidates) {
+        const nested = await recurse(candidate);
+        descended.push(candidate, ...nested);
+      }
+      candidates = descended;
+      continue;
+    }
+    const matcher = segmentMatcher(segment);
+    const next: string[] = [];
+    for (const candidate of candidates) {
+      for (const entry of await readdirSafe(candidate)) {
+        if (matcher.test(entry)) next.push(join(candidate, entry));
+      }
+    }
+    candidates = next;
+  }
+  const files: string[] = [];
+  for (const candidate of candidates) {
+    if (await isFile(candidate)) files.push(candidate);
+  }
+  return files;
+}
+
+async function recurse(dir: string): Promise<string[]> {
+  const out: string[] = [];
+  for (const entry of await readdirSafe(dir)) {
+    const path = join(dir, entry);
+    if (await isFile(path)) continue;
+    out.push(path, ...(await recurse(path)));
+  }
+  return out;
+}
+
+async function readdirSafe(dir: string): Promise<string[]> {
+  try {
+    return await readdir(dir);
+  } catch {
+    return [];
+  }
+}
+
+async function isFile(path: string): Promise<boolean> {
+  try {
+    return (await stat(path)).isFile();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when a path matches no include pattern.
+ *
+ * The regexes are matched against the path as written, not the basename,
+ * so a project whose sources live under `src/` behaves as unintuitively as
  * the pipeline it replaces would.
  */
 export function isIncluded(path: string, include: readonly RegExp[]): boolean {
@@ -60,9 +138,9 @@ export function isIncluded(path: string, include: readonly RegExp[]): boolean {
 /**
  * Read every file the globs admit, keyed by path.
  *
- * A file that cannot be read is skipped rather than thrown on: the
- * reference app's globs are curated, but a glob in a user's config is not,
- * and one unreadable node_modules path should not fail a stylesheet.
+ * A file that cannot be read is skipped rather than thrown on: the globs in
+ * a user's config are not curated, and one unreadable path should not fail
+ * a stylesheet.
  */
 export async function scanContent(
   options: ContentOptions,
@@ -71,18 +149,18 @@ export async function scanContent(
   const include = options.pipeline?.include ?? [];
   const files: ContentMap = new Map();
   for (const pattern of options.filesystem ?? []) {
-    const absolute = /^([a-z]:)?\//i.test(pattern) ? pattern : `${root}/${pattern}`;
+    const absolute = /^([a-z]:)?[/\\]/i.test(pattern)
+      ? pattern
+      : join(root, pattern);
     for (const glob of expandBraces(absolute)) {
-      try {
-        for await (const entry of expandGlob(glob)) {
-          if (!entry.isFile) continue;
-          if (!isIncluded(entry.path, include)) continue;
-          if (files.has(entry.path)) continue;
-          files.set(entry.path, await Deno.readTextFile(entry.path));
+      for (const path of await globFiles(glob)) {
+        if (!isIncluded(path, include)) continue;
+        if (files.has(path)) continue;
+        try {
+          files.set(path, await readFile(path, "utf8"));
+        } catch {
+          // Unreadable is a skip, not a failure of the scan.
         }
-      } catch {
-        // A pattern that matches nothing, or a directory that is not
-        // readable, is not a failure of the scan.
       }
     }
   }
@@ -92,12 +170,12 @@ export async function scanContent(
 /**
  * The scan as one string, in the order the glob walk produced it.
  *
- * The order is load-bearing, not incidental: Uno emits a rule where it first
- * met the class, so the walk's order is the sheet's order, and the sheet's
- * order is what decides which of two conflicting utilities on one element
- * wins. Sorting the paths would produce a deterministic sheet that resolves
- * those conflicts differently than this project's app does today, which is
- * a silent visual change for the sake of a nicer key.
+ * The order is load-bearing, not incidental: Uno emits a rule where it
+ * first met the class, so the walk's order is the sheet's order, and the
+ * sheet's order is what decides which of two conflicting utilities on one
+ * element wins. Sorting the paths would produce a deterministic sheet that
+ * resolves those conflicts differently than this project's app does today,
+ * which is a silent visual change for the sake of a nicer key.
  */
 export function joinContent(files: ContentMap): string {
   return [...files.keys()].map((path) => files.get(path)!).join("\n");

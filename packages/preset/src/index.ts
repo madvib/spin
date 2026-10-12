@@ -37,6 +37,7 @@ import transformerDirectives from "@unocss/transformer-directives";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
+import { hasOverlay, resolveThemes } from "./session.ts";
 import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
@@ -53,12 +54,12 @@ import { breakpointEdges, spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
 export {
-  expandBraces,
-  isIncluded,
-  joinContent,
-  scanContent,
-} from "./content.ts";
-export type { ContentMap, ContentOptions } from "./content.ts";
+  clearOverlay,
+  hasOverlay,
+  overlayThemes,
+  resolveThemes,
+  setOverlay,
+} from "./session.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
 export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
@@ -188,9 +189,9 @@ const factory = definePreset(
       : options.primitives === false
       ? []
       : undefined;
-    const documents = options.themes ?? {
-      light: options.theme ?? defaultDocument(),
-    };
+    const documents = resolveThemes(
+      options.themes ?? { light: options.theme ?? defaultDocument() },
+    );
     const trees: Record<string, TokenTree> = {};
     for (const [name, doc] of Object.entries(documents)) {
       const parsed = parseTokens(doc);

@@ -18,7 +18,10 @@ Deno.test("braces expand to one glob per alternative", () => {
 });
 
 Deno.test("a group at the end expands before the rest", () => {
-  assertEquals(expandBraces("pkg/*.{ts,tsx}/deep"), ["pkg/*.ts/deep", "pkg/*.tsx/deep"]);
+  assertEquals(expandBraces("pkg/*.{ts,tsx}/deep"), [
+    "pkg/*.ts/deep",
+    "pkg/*.tsx/deep",
+  ]);
 });
 
 Deno.test("a pattern with no group is itself", () => {
@@ -57,7 +60,10 @@ Deno.test("scanning reads the files the globs name, keyed by path", async () => 
     { filesystem: ["*.{tsx,ts}"], pipeline: { include: PIPELINE_INCLUDE } },
     dir,
   );
-  assertEquals([...scanned.keys()].sort(), [`${dir}/a.examples.ts`, `${dir}/app.tsx`]);
+  assertEquals([...scanned.keys()].sort(), [
+    `${dir}/a.examples.ts`,
+    `${dir}/app.tsx`,
+  ]);
   await Deno.remove(dir, { recursive: true });
 });
 
