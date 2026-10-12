@@ -11,11 +11,13 @@ import {
   bindSpread,
   bindText,
   coerceProps,
+  controllerView,
   define,
   effect,
   on,
   own,
   projectSlots,
+  provideController,
   runAction,
   signal,
   text,
@@ -45,6 +47,8 @@ const RUNTIME = {
   projectSlots,
   signal,
   effect,
+  controllerView,
+  provideController,
 };
 
 const SOURCE = `<scope>props={ items: { label: string }[] = [] }</scope>

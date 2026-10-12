@@ -60,7 +60,37 @@ export interface MachineDef {
    */
   readonly events?: Readonly<Record<string, MachineEventContract>>;
 }
+
+/**
+ * The platform-tier def: a thin layer over what the browser already does.
+ *
+ * Same slot as a MachineDef — markup `consume`s it the same way, commands
+ * install the same way, events map the same way, and the app-controller
+ * surface is identical. The difference is only who owns the state: here the
+ * platform does, and `attach` wires the native behavior to the declared
+ * commands and events. This is the progressive-enhancement tier: no machine,
+ * no bridge machinery, just the adapter that makes the platform's controller
+ * look like ours.
+ */
+export interface ControllerDef {
+  /** Wires the element's native behavior; returns the api markup spreads. */
+  attach(el: Element): object;
+  /** Commands the element installs, as with a machine def. */
+  readonly commands?: readonly string[];
+  /** Authored events, as with a machine def. */
+  readonly events?: Readonly<Record<string, MachineEventContract>>;
+}
+
+/** What a consume name resolves to: a machine def, or a platform adapter. */
+export type ConsumedDef = MachineDef | ControllerDef;
 export { createScopeTable, type Handle, type ScopeTable } from "./scope/table.ts";
+export {
+  controllerOf,
+  controllerView,
+  provideController,
+  type SpinController,
+} from "./scope/controller.ts";
+
 
 export { createAction, runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";
 export { on } from "./directives/use.ts";
@@ -99,6 +129,5 @@ export type {
 export { ParseError } from "./directives/ir.ts";
 
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
-export { component, type ComponentSpec } from "./scope/component.ts";
 export { bindActionProps, bindSpread } from "./directives/spread.ts";
 export { machineTick } from "./core/signal.ts";

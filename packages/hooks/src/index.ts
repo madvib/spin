@@ -49,7 +49,3 @@ export function bindSpinElement<TProps extends object>(
   };
 }
 
-/** Commands the element carries, typed by the caller's element interface. */
-export function commandsOf<T extends object>(el: EventTarget): T {
-  return el as unknown as T;
-}

@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -14,6 +14,12 @@ import type {
 import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { SortDetails } from "../../../src/spin-async-list/async-list.bridge.ts";
 import type { SortDescriptor } from "../../../src/spin-async-list/async-list.machine.ts";
+
+/** The element as a host writes it. */
+interface AsyncListElement extends HTMLElement {
+  load?: unknown;
+  sortFn?: unknown;
+}
 
 interface AsyncListCommands {
   abort(): void;
@@ -144,42 +150,34 @@ export default function AsyncListFsm() {
     setFailures((count) => count + 1);
   };
 
-  const paged = createSpin<
-    {
-      load: (details: LoadDetails) => Promise<LoadResult>;
-      sortFn: (details: SortDetails) => { items: readonly unknown[] };
-      autoReload: boolean;
-      dependencies: readonly unknown[];
-    },
-    AsyncListCommands
-  >(
-    "spin-async-list",
-    () => ({
+  const [pagedEl, setPaged] = createSignal<HTMLElement>();
+  const paged = createSpinComponent<AsyncListCommands>(pagedEl);
+  createEffect(() => {
+    const ctl = paged();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       load: fragment() === "land" ? LAND_SERVER.load : RIFT_SERVER.load,
       sortFn: fragment() === "land" ? LAND_SERVER.sort : RIFT_SERVER.sort,
       autoReload: true,
       dependencies: [fragment()],
-    }),
-    {
+    }, {
       "load-success": onSuccess,
       "load-error": onFailure,
-    },
-  );
+    });
+  });
+;
 
-  const crew = createSpin<
-    {
-      load: (details: LoadDetails) => Promise<LoadResult>;
-      sortFn: (details: SortDetails) => { items: readonly unknown[] };
-    },
-    AsyncListCommands
-  >(
-    "spin-async-list",
-    () => ({ load: CREW_SERVER.load, sortFn: CREW_SERVER.sort }),
-    {
+  const [crewEl, setCrew] = createSignal<HTMLElement>();
+  const crew = createSpinComponent<AsyncListCommands>(crewEl);
+  createEffect(() => {
+    const ctl = crew();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({ load: CREW_SERVER.load, sortFn: CREW_SERVER.sort }, {
       "load-success": () => setCrewLoads((count) => count + 1),
       "load-error": onFailure,
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -188,7 +186,17 @@ export default function AsyncListFsm() {
         width="lg"
         note="The machine never sees a promise: the bridge owns the fetch, the abort controller and the sequence that drops a stale resolution."
       >
-        <spin-async-list id="paged" ref={paged.ref} />
+        <spin-async-list
+          id="paged"
+          ref={(node: HTMLElement) => {
+            setPaged(node);
+            // The loader is read during build: it lands before connect.
+            // (Re-bound reactively below when the fragment changes.)
+            const host = node as AsyncListElement;
+            host.load = LAND_SERVER.load;
+            host.sortFn = LAND_SERVER.sort;
+          }}
+        />
         <DemoControls>
           <button
             type="button"
@@ -212,19 +220,27 @@ export default function AsyncListFsm() {
         width="lg"
         note="Scroll the list to its end — the sentinel loads the next page while there is a cursor."
       >
-        <spin-async-list id="crew" ref={crew.ref} />
+        <spin-async-list
+          id="crew"
+          ref={(node: HTMLElement) => {
+            setCrew(node);
+            const host = node as AsyncListElement;
+            host.load = CREW_SERVER.load;
+            host.sortFn = CREW_SERVER.sort;
+          }}
+        />
         <DemoControls>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => crew.commands().reload()}
+            onClick={() => crew()?.commands.reload()}
           >
             el.reload()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => crew.commands().loadMore()}
+            onClick={() => crew()?.commands.loadMore()}
           >
             el.loadMore()
           </button>
@@ -232,7 +248,7 @@ export default function AsyncListFsm() {
             type="button"
             class={DEMO_BUTTON}
             onClick={() =>
-              crew.commands().sort({ column: "label", direction: "ascending" })}
+              crew()?.commands.sort({ column: "label", direction: "ascending" })}
           >
             el.sort(asc)
           </button>
@@ -240,7 +256,7 @@ export default function AsyncListFsm() {
             type="button"
             class={DEMO_BUTTON}
             onClick={() =>
-              crew.commands().sort({
+              crew()?.commands.sort({
                 column: "label",
                 direction: "descending",
               })}
@@ -250,14 +266,14 @@ export default function AsyncListFsm() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => crew.commands().setFilterText("a")}
+            onClick={() => crew()?.commands.setFilterText("a")}
           >
             el.setFilterText("a")
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => crew.commands().abort()}
+            onClick={() => crew()?.commands.abort()}
           >
             el.abort()
           </button>

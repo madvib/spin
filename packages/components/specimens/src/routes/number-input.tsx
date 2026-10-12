@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import type {
   NumberInputFocusChange,
   NumberInputValueChange,
@@ -13,6 +13,11 @@ import {
   DemoGrid,
   DemoReadout,
 } from "../demo.tsx";
+
+/** The element as a host writes it: seeds are plain property writes. */
+interface NumberInputElement extends HTMLElement {
+  defaultValue?: string;
+}
 
 interface NumberInputCommands {
   setValue: (value: number | string) => void;
@@ -40,27 +45,18 @@ export default function NumberInputFsm() {
   const [focus, setFocus] = createSignal("blurred");
   const [disabled, setDisabled] = createSignal(false);
 
-  const single = createSpin<
-    {
-      label: string;
-      defaultValue: string;
-      min: string;
-      max: string;
-      step: string;
-      disabled: boolean;
-    },
-    NumberInputCommands
-  >(
-    "spin-number-input",
-    () => ({
+  const [singleEl, setSingle] = createSignal<HTMLElement>();
+  const single = createSpinComponent<NumberInputCommands>(singleEl);
+  createEffect(() => {
+    const ctl = single();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       label: "Quantity",
-      defaultValue: "12",
       min: "0",
       max: "20",
       step: "1",
       disabled: disabled(),
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<NumberInputValueChange>) =>
         setValue(event.detail.value),
       "value-commit": (event: CustomEvent<NumberInputValueCommit>) =>
@@ -69,23 +65,16 @@ export default function NumberInputFsm() {
         setInvalid(event.detail.reason),
       "focus-change": (event: CustomEvent<NumberInputFocusChange>) =>
         setFocus(event.detail.focused ? "focused" : "blurred"),
-    },
-  );
+    });
+  });
+;
 
-  const controlled = createSpin<
-    {
-      label: string;
-      value: string;
-      min: string;
-      max: string;
-      step: string;
-      largeStep: string;
-      smallStep: string;
-    },
-    NumberInputCommands
-  >(
-    "spin-number-input",
-    () => ({
+  const [controlledEl, setControlled] = createSignal<HTMLElement>();
+  const controlled = createSpinComponent<NumberInputCommands>(controlledEl);
+  createEffect(() => {
+    const ctl = controlled();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       label: "Controlled",
       value: "40",
       min: "0",
@@ -93,8 +82,7 @@ export default function NumberInputFsm() {
       step: "5",
       largeStep: "25",
       smallStep: "1",
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<NumberInputValueChange>) =>
         setValue(event.detail.value),
       "value-commit": (event: CustomEvent<NumberInputValueCommit>) =>
@@ -103,38 +91,30 @@ export default function NumberInputFsm() {
         setInvalid(event.detail.reason),
       "focus-change": (event: CustomEvent<NumberInputFocusChange>) =>
         setFocus(event.detail.focused ? "focused" : "blurred"),
-    },
-  );
+    });
+  });
+;
 
-  const rtl = createSpin<
-    {
-      label: string;
-      dir: string;
-      defaultValue: string;
-      min: string;
-      max: string;
-      step: string;
-      allowMouseWheel: boolean;
-    },
-    NumberInputCommands
-  >(
-    "spin-number-input",
-    () => ({
+  const [rtlEl, setRtl] = createSignal<HTMLElement>();
+  const rtl = createSpinComponent<NumberInputCommands>(rtlEl);
+  createEffect(() => {
+    const ctl = rtl();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       label: "Amount",
       dir: "rtl",
-      defaultValue: "1.5",
       min: "0",
       max: "5",
       step: "0.5",
       allowMouseWheel: true,
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<NumberInputValueChange>) =>
         setValue(event.detail.value),
       "focus-change": (event: CustomEvent<NumberInputFocusChange>) =>
         setFocus(event.detail.focused ? "focused" : "blurred"),
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -143,7 +123,15 @@ export default function NumberInputFsm() {
         width="sm"
         note="The readouts are the host's own and shared: every instance on this page writes the same signals."
       >
-        <spin-number-input id="quantity" ref={single.ref} />
+        <spin-number-input
+          id="quantity"
+          ref={(node: HTMLElement) => {
+            setSingle(node);
+            // Seeds are read during build: they land before connect.
+            const host = node as NumberInputElement;
+            host.defaultValue = "12";
+          }}
+        />
         <DemoControls>
           <button
             type="button"
@@ -155,21 +143,21 @@ export default function NumberInputFsm() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().setToMin()}
+            onClick={() => single()?.commands.setToMin()}
           >
             el.setToMin()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().setToMax()}
+            onClick={() => single()?.commands.setToMax()}
           >
             el.setToMax()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().clearValue()}
+            onClick={() => single()?.commands.clearValue()}
           >
             el.clearValue()
           </button>
@@ -195,26 +183,26 @@ export default function NumberInputFsm() {
         width="sm"
         note="Step 5, large 25, small 1: the plain step, Shift's step and Alt's step."
       >
-        <spin-number-input id="controlled" ref={controlled.ref} />
+        <spin-number-input id="controlled" ref={setControlled} />
         <DemoControls>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => controlled.commands().increment()}
+            onClick={() => controlled()?.commands.increment()}
           >
             el.increment()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => controlled.commands().decrement()}
+            onClick={() => controlled()?.commands.decrement()}
           >
             el.decrement()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => controlled.commands().setValue(75)}
+            onClick={() => controlled()?.commands.setValue(75)}
           >
             el.setValue(75)
           </button>
@@ -226,7 +214,13 @@ export default function NumberInputFsm() {
         width="sm"
         note="Direction rtl, step 0.5, and the wheel is allowed."
       >
-        <spin-number-input id="rtl" ref={rtl.ref} />
+        <spin-number-input
+          id="rtl"
+          ref={(node: HTMLElement) => {
+            setRtl(node);
+            (node as NumberInputElement).defaultValue = "1.5";
+          }}
+        />
       </DemoCard>
     </DemoGrid>
   );

@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -74,25 +74,18 @@ export default function ToastFsm() {
   const [overlap, setOverlap] = createSignal(false);
   const [placement, setPlacement] = createSignal<string>("bottom");
 
-  const toasts = createSpin<
-    {
-      items: HostToast[];
-      overlap: boolean;
-      placement: string;
-      removeDelay: number;
-      label: string;
-    },
-    ToastCommands
-  >(
-    "spin-toast",
-    () => ({
+  const [toastsEl, setToasts] = createSignal<HTMLElement>();
+  const toasts = createSpinComponent<ToastCommands>(toastsEl);
+  createEffect(() => {
+    const ctl = toasts();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       items: items(),
       overlap: overlap(),
       placement: placement(),
       removeDelay: 200,
       label: "Notifications",
-    }),
-    {
+    }, {
       "status-change": (event: CustomEvent<ToastStatusChange>) => {
         const detail = event.detail;
         setLast(
@@ -104,8 +97,9 @@ export default function ToastFsm() {
           setItems((prev) => prev.filter((item) => item.id !== detail.id));
         }
       },
-    },
-  );
+    });
+  });
+;
 
   const show = (title: string, type: string, action = ""): void => {
     const item = make(title, type, action);
@@ -121,7 +115,7 @@ export default function ToastFsm() {
       >
         <spin-toast
           id="region"
-          ref={toasts.ref}
+          ref={setToasts}
           prop:items={items()}
           prop:overlap={overlap()}
           prop:placement={placement()}
@@ -152,7 +146,7 @@ export default function ToastFsm() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => toasts.commands().dismissAll()}
+            onClick={() => toasts()?.commands.dismissAll()}
           >
             el.dismissAll()
           </button>

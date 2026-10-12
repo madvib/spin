@@ -1,47 +1,48 @@
-import { createEffect, createSignal, onCleanup, type Accessor } from "solid-js";
-import { bindSpinElement } from "./index.ts";
+import { createMemo, type Accessor } from "solid-js";
+import { spinComponentCtl, type SpinComponentCtl } from "./controller.ts";
+
+export { spinComponentCtl };
 
 /**
- * Solid adapter. Solid needs the least help — custom elements work natively
- * with `ref=` and `on:`-style listeners — so this is the thin typed version:
- * props written reactively, one listener binding per event, commands as a
- * stable accessor.
+ * Solid adapter: `createSpinComponent(el)` is the app controller's
+ * instrument.
+ *
+ * The element is a locator, not a product — the host already owns it. What
+ * this adds is the component's controller surface (`{ commands, state,
+ * bind }`), reached through the same context markup consumes. Whether a
+ * machine or the platform owns the component's state is invisible here: the
+ * surface is the same.
+ *
+ * The ctl is available the moment the host holds the element — `bind` writes
+ * props and subscribes events without waiting for anything, which is what
+ * lets a seed land before the component's build reads it. `commands` and
+ * `state` resolve through the component's registered controller once it has
+ * connected; the accessor re-derives when the element changes.
+ *
+ * State reads are the component's own signals, so reading
+ * `ctl.state().<field>()` inside a tracking scope subscribes to that
+ * component's moves — no polling, no synthetic events.
  *
  * ```tsx
- * const dialog = createSpin("spin-dialog", () => ({ role: "dialog" }), {
- *   "open-change": (e) => setOpen((e as CustomEvent).detail.open),
- * })
- * <spin-dialog ref={dialog.ref} />
- * dialog.commands().show()
+ * const [drawerEl, setDrawerEl] = createSignal<HTMLElement>();
+ * const drawer = createSpinComponent(drawerEl);
+ * // Props bind at ref time, so seeds land before the build reads them.
+ * createEffect(() => drawer()?.bind({ open: open() }, { "open-change": (e) => setOpen(e.detail.open) }));
+ * <spin-drawer ref={setDrawerEl} />
+ * drawer()?.commands.show();
  * ```
  */
 
-export interface CreateSpinResult<TCommands extends object = object> {
-  /** Spread onto the element's ref. */
-  readonly ref: (node: Element) => void;
-  readonly commands: Accessor<TCommands>;
-}
+export type SpinComponentCtlAccessor<TCommands extends object = object> =
+  Accessor<SpinComponentCtl<TCommands> | undefined>;
 
-export function createSpin<TProps extends object, TCommands extends object = object>(
-  _tag: string,
-  props: Accessor<TProps>,
-  on?: Readonly<Record<string, (event: CustomEvent) => void>>,
-): CreateSpinResult<TCommands> {
-  const [commands, setCommands] = createSignal<TCommands>({} as TCommands);
-  let unbind: (() => void) | undefined;
-
-  const ref = (node: Element): void => {
-    setCommands(() => node as TCommands);
-    unbind = bindSpinElement(node, { props: props(), on });
-  };
-
-  createEffect(() => {
-    // Re-write on every change of any prop read (the accessor's deps).
-    const element = commands() as unknown;
-    if (element instanceof Element) bindSpinElement(element, { props: props() });
+export function createSpinComponent<TCommands extends object = object>(
+  el: () => Element | null | undefined,
+): SpinComponentCtlAccessor<TCommands> {
+  return createMemo(() => {
+    const node = el();
+    return node === null || node === undefined
+      ? undefined
+      : spinComponentCtl<TCommands>(node);
   });
-
-  onCleanup(() => unbind?.());
-
-  return { ref, commands };
 }

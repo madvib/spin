@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import type { TagsCommands } from "../../../src/spin-tags-input/tags.bridge.ts";
 import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
 
@@ -84,12 +84,14 @@ export default function TagsFsm() {
     setEvents((prev) => [line, ...prev].slice(0, 6));
   };
 
-  const tags = createSpin<TagsProps, TagsCommands>(
-    "spin-tags-input",
-    () => ({
+  const [tagsEl, setTagsEl] = createSignal<HTMLElement>();
+  const tags = createSpinComponent<TagsCommands>(tagsEl);
+  createEffect(() => {
+    const ctl = tags();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       label: "Skills",
       placeholder: "Add a skill",
-      defaultValue: SEED,
       delimiter: delimiter(),
       allowDuplicates: allowDuplicates(),
       allowOverflow: allowOverflow(),
@@ -99,8 +101,7 @@ export default function TagsFsm() {
       blurBehavior: blur(),
       ...(maxed() ? { max: 2 } : {}),
       ...(controlled() ? { value: value() } : {}),
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
         setValue([...event.detail.value]);
         setCount(event.detail.value.length);
@@ -117,8 +118,9 @@ export default function TagsFsm() {
         setInvalid(event.detail.reason);
         note(`value-invalid: ${event.detail.reason}`);
       },
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoCard
@@ -136,7 +138,9 @@ export default function TagsFsm() {
         <spin-tags-input
           id="tags-input"
           ref={(node: HTMLElement) => {
-            tags.ref(node);
+            setTagsEl(node);
+            // The seed is read during build, so it lands before connect.
+            (node as TagsElement).defaultValue = SEED;
             const host = node as TagsElement;
             // The scope grammar types props as bool/string/int/string[], so
             // the behavior functions cross as element properties — the
@@ -167,7 +171,7 @@ export default function TagsFsm() {
           type="button"
           id="tags-add-value"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().addValue("kept")}
+          onClick={() => tags()?.commands.addValue("kept")}
         >
           el.addValue("kept")
         </button>
@@ -175,7 +179,7 @@ export default function TagsFsm() {
           type="button"
           id="tags-add-elm"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().addValue("elm")}
+          onClick={() => tags()?.commands.addValue("elm")}
         >
           el.addValue("elm")
         </button>
@@ -248,49 +252,49 @@ export default function TagsFsm() {
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().setValue(["deno", "fresh", "jsr"])}
+          onClick={() => tags()?.commands.setValue(["deno", "fresh", "jsr"])}
         >
           el.setValue(["deno", "fresh", "jsr"])
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().addValue("elm")}
+          onClick={() => tags()?.commands.addValue("elm")}
         >
           el.addValue("elm")
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().setValueAtIndex(0, "rewritten")}
+          onClick={() => tags()?.commands.setValueAtIndex(0, "rewritten")}
         >
           el.setValueAtIndex(0, "rewritten")
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().clearValue()}
+          onClick={() => tags()?.commands.clearValue()}
         >
           el.clearValue()
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().setInputValue("typed")}
+          onClick={() => tags()?.commands.setInputValue("typed")}
         >
           el.setInputValue("typed")
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().clearInputValue()}
+          onClick={() => tags()?.commands.clearInputValue()}
         >
           el.clearInputValue()
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => tags.commands().focus()}
+          onClick={() => tags()?.commands.focus()}
         >
           el.focus()
         </button>

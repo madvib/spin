@@ -1,5 +1,6 @@
-import { effect, inserted, machineTick, signal, untrack } from "../core/signal.ts";
+import { effect, machineTick, signal, untrack } from "../core/signal.ts";
 import { ACTIONS, runAction } from "../actions/index.ts";
+import { runInElement } from "../scope/element.ts";
 import { toStyleString } from "../core/style.ts";
 
 /**
@@ -20,7 +21,8 @@ export function bindActionProps(
 ): void {
   let last: Record<string, unknown> = {};
   effect(() => {
-    inserted();
+    // The signal the reads touch is what re-runs this — machineTick for a
+    // machine move, a scope read for a host write.
     machineTick();
     const props = read();
     for (const name of Object.keys(last)) {
@@ -55,7 +57,7 @@ export function bindActionProps(
 /**
  * Reactive spread application from a live reader.
  *
- * Same lifecycle as bindActionProps (inserted + machineTick), but `on*`
+ * Same lifecycle as bindActionProps (machineTick-driven), but `on*`
  * function values attach as event listeners instead of being skipped —
  * the bag owns its handlers. Listener names are the lowercased slice(2)
  * of the key; a camelCase name (`onFocus`) is already the DOM spelling.
@@ -71,7 +73,8 @@ export function bindSpread(
   const latest = signal<Record<string, unknown>>({});
   const attachedActions = new Set<string>();
   effect(() => {
-    inserted();
+    // The signal the reads touch is what re-runs this — machineTick for a
+    // machine move, a scope read for a host write.
     machineTick();
     const props = read();
     for (const name of Object.keys(last)) {
@@ -138,13 +141,19 @@ export function bindSpread(
       const action = (ACTIONS as Record<string, unknown>)[name.slice(4)];
       if (typeof action !== "function") continue;
       attachedActions.add(name);
-      untrack(() =>
-        runAction(el, action as never, () => {
-          const entry = latest()[name];
-          // A function entry is a live read the machine wants re-evaluated;
-          // anything else is the param itself.
-          return typeof entry === "function" ? entry() : entry;
-        }),
+      // Re-enter the element's scope: this effect can re-run long after the
+      // build (a host prop write, a machine move), and a bag that first
+      // carries its `use:` key on that later run would attach its action
+      // with no active scope — which `own` (inside runAction) refuses.
+      runInElement(el, () =>
+        untrack(() =>
+          runAction(el, action as never, () => {
+            const entry = latest()[name];
+            // A function entry is a live read the machine wants re-evaluated;
+            // anything else is the param itself.
+            return typeof entry === "function" ? entry() : entry;
+          }),
+        ),
       );
     }
   });

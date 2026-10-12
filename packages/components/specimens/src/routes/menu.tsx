@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -11,6 +11,12 @@ import type {
   MenuEntry,
   MenuRow,
 } from "../../../src/spin-menu/menu.connect.ts";
+
+/** The element as a host writes it: seeds are plain property writes. */
+interface MenuElement extends HTMLElement {
+  items?: string;
+  label?: string;
+}
 
 interface MenuCommands {
   open(): void;
@@ -68,10 +74,12 @@ export default function MenuFsm() {
   const [highlighted, setHighlighted] = createSignal("none");
   const [open, setOpen] = createSignal(false);
 
-  const menu = createSpin<{ items: string; label: string }, MenuCommands>(
-    "spin-menu",
-    () => ({ items: JSON.stringify(ITEMS), label: "File actions" }),
-    {
+  const [menuEl, setMenu] = createSignal<HTMLElement>();
+  const menu = createSpinComponent<MenuCommands>(menuEl);
+  createEffect(() => {
+    const ctl = menu();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({}, {
       select: (event: CustomEvent<{ value: string }>) => {
         const value = event.detail.value;
         const row = findRow(ITEMS, value);
@@ -82,8 +90,9 @@ export default function MenuFsm() {
       "highlight-change": (
         event: CustomEvent<{ highlightedValue: string | null }>,
       ) => setHighlighted(event.detail.highlightedValue ?? "none"),
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -92,26 +101,34 @@ export default function MenuFsm() {
         width="md"
         note="Hover-intent, long-press and the close delay are actions on the trigger; a submenu is another instance a parent opens by writing its `open` prop."
       >
-        <spin-menu ref={menu.ref} />
+        <spin-menu
+          ref={(node: HTMLElement) => {
+            setMenu(node);
+            // Seeds are read during build: they land before connect.
+            const host = node as MenuElement;
+            host.items = JSON.stringify(ITEMS);
+            host.label = "File actions";
+          }}
+        />
         <DemoControls>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => menu.commands().open()}
+            onClick={() => menu()?.commands.open()}
           >
             el.open()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => menu.commands().close()}
+            onClick={() => menu()?.commands.close()}
           >
             el.close()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => menu.commands().setHighlighted("copy")}
+            onClick={() => menu()?.commands.setHighlighted("copy")}
           >
             el.setHighlighted("copy")
           </button>

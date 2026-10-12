@@ -19,11 +19,6 @@ import {
 
 export { computed, effect, signal, trigger };
 
-/** Bumped after every component build appends. Lets cross-element context
- * resolve once insertion makes DOM parents real: wiring-time reads happen
- * detached in fragments and would otherwise miss forever. */
-export const inserted = signal(0);
-
 /** Bumped after every processed machine event. Bindings that read machine
  * state through paths that do not themselves track (plain-mutated context,
  * snapshot getters) subscribe to this instead. */

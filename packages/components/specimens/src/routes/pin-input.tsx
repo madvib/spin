@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -28,10 +28,12 @@ export default function PinInput() {
   const [dotsValue, setDotsValue] = createSignal("");
   const [disabled, setDisabled] = createSignal(false);
 
-  const pin = createSpin<{ count: number }, PinCommands>(
-    "spin-pin-input",
-    () => ({ count: 4, label: "Verification code", name: "pin" }),
-    {
+  const [pinEl, setPin] = createSignal<HTMLElement>();
+  const pin = createSpinComponent<PinCommands>(pinEl);
+  createEffect(() => {
+    const ctl = pin();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({ count: 4, label: "Verification code", name: "pin" }, {
       "value-change": (e: CustomEvent<{ value: string[] }>) =>
         setValue(e.detail.value),
       "value-complete": () => setCompletions((n) => n + 1),
@@ -39,20 +41,21 @@ export default function PinInput() {
         setRefused(e.detail.value);
         setMasked(e.detail.value);
       },
-    },
-  );
+    });
+  });
+;
 
-  const dots = createSpin<
-    { count: number; mask: boolean; otp: boolean },
-    PinCommands
-  >(
-    "spin-pin-input",
-    () => ({ count: 6, mask: true, otp: true, label: "Masked, otp" }),
-    {
+  const [dotsEl, setDots] = createSignal<HTMLElement>();
+  const dots = createSpinComponent<PinCommands>(dotsEl);
+  createEffect(() => {
+    const ctl = dots();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({ count: 6, mask: true, otp: true, label: "Masked, otp" }, {
       "value-change": (e: CustomEvent<{ value: string[] }>) =>
         setDotsValue(e.detail.value.join("")),
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -67,7 +70,7 @@ export default function PinInput() {
       >
         <spin-pin-input
           id="pin"
-          ref={pin.ref}
+          ref={setPin}
           prop:count={4}
           prop:label="Verification code"
           prop:defaultValue={["1", "2"]}
@@ -79,28 +82,28 @@ export default function PinInput() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => pin.commands().setValue(["9", "8", "7"])}
+            onClick={() => pin()?.commands.setValue(["9", "8", "7"])}
           >
             el.setValue(["9", "8", "7"])
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => pin.commands().setValueAtIndex(3, "5")}
+            onClick={() => pin()?.commands.setValueAtIndex(3, "5")}
           >
             el.setValueAtIndex(3, "5")
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => pin.commands().clearValue()}
+            onClick={() => pin()?.commands.clearValue()}
           >
             el.clearValue()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => pin.commands().focus()}
+            onClick={() => pin()?.commands.focus()}
           >
             el.focus()
           </button>
@@ -126,7 +129,7 @@ export default function PinInput() {
       >
         <spin-pin-input
           id="dots"
-          ref={dots.ref}
+          ref={setDots}
           prop:count={6}
           prop:mask={true}
           prop:otp={true}

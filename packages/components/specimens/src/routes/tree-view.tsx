@@ -1,4 +1,5 @@
-import { createSignal, onMount } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import { DEMO_BUTTON, DemoCard, DemoControls, DemoGrid, DemoReadout } from "../demo.tsx";
 
 type TreeElement = HTMLElement & {
@@ -77,25 +78,32 @@ export default function TreeViewFsm() {
   // authored-prop predicate sees it), so the machine follows it.
   const [controlled, setControlled] = createSignal(false);
   const [multi, setMulti] = createSignal(false);
-  let el: TreeElement | undefined;
+  const [treeViewEl, setTreeViewEl] = createSignal<HTMLElement>();
+  const treeView = createSpinComponent(treeViewEl);
 
-  onMount(() => {
-    if (!el) return;
-    el.addEventListener("expanded-change", (e) => {
-      setExpanded([
-        ...(e as CustomEvent<{ expandedValue: string[] }>).detail.expandedValue,
-      ]);
+  // The app controller: props down, the tree's events up. The status line is
+  // the component's own keydown — a host listener, not a machine event, so
+  // it stays on the element.
+  createEffect(() => {
+    const node = treeViewEl();
+    if (node === undefined) return undefined;
+    node.addEventListener("keydown", (event) => {
+      setStatus(`key: ${(event as KeyboardEvent).key}`);
     });
-    el.addEventListener("selection-change", (e) => {
-      setSelected([
-        ...(e as CustomEvent<{ selectedValue: string[] }>).detail.selectedValue,
-      ]);
-    });
-    // The status line reports the last key the machine answered, so a
-    // reader sees the keyboard path they are exercising.
-    el.addEventListener("keydown", (e) => {
-      setStatus(`key: ${(e as KeyboardEvent).key}`);
-    });
+    const ctl = treeView();
+    if (ctl === undefined) return undefined;
+    return ctl.bind(
+      {
+        nodes: JSON.stringify(TREE),
+        selectionMode: multi() ? "multiple" : "single",
+      },
+      {
+        "expanded-change": (event: CustomEvent<{ expandedValue: string[] }>) =>
+          setExpanded([...event.detail.expandedValue]),
+        "selection-change": (event: CustomEvent<{ selectedValue: string[] }>) =>
+          setSelected([...event.detail.selectedValue]),
+      },
+    );
   });
 
   return (
@@ -112,12 +120,12 @@ export default function TreeViewFsm() {
         <span class="text-xs text-text-muted">spin-runtime</span>
       </div>
       <spin-tree-view
-        prop:selectionMode={multi() ? "multiple" : "single"}
         prop:defaultExpandedValue={["src", "components"]}
         ref={(node) => {
-          el = node as TreeElement;
-          el.nodes = JSON.stringify(TREE);
-          el.loadChildren = loadChildren;
+          setTreeViewEl(node);
+          // Lazy loading crosses the property channel: the bridge calls the
+          // host's function when a branch has no children key.
+          (node as TreeElement).loadChildren = loadChildren;
         }}
       />
       <DemoControls>
@@ -135,7 +143,8 @@ export default function TreeViewFsm() {
             const next = !controlled();
             setControlled(next);
             // A real host write: property, not attribute.
-            if (el) el.expandedValue = next ? ["src", "components"] : [];
+            const node = treeViewEl();
+            if (node) (node as TreeElement).expandedValue = next ? ["src", "components"] : [];
           }}
         >
           {controlled()

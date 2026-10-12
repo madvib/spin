@@ -197,6 +197,7 @@ export function createMenuBridge(
         moved = true;
       }
       const outer = controlledOpen();
+
       if (outer !== undefined) {
         const isOpen = svc.state.value === "open";
         if (outer !== isOpen) {
@@ -204,7 +205,7 @@ export function createMenuBridge(
           // that inside this effect would subscribe it to every machine move
           // — each one would then re-impose the authored prop over the menu's
           // own events.
-          untrack(() => svc.send({ type: outer ? "CONTROLLED_OPEN" : "CONTROLLED_CLOSE" }));
+              untrack(() => svc.send({ type: outer ? "CONTROLLED_OPEN" : "CONTROLLED_CLOSE" }));
           moved = true;
         }
       }

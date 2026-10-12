@@ -126,18 +126,14 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
             `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
-            `  const ${bridge} = watch(${name}, () => ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
+            `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
+            `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
+            `    : { api: ${name}.attach(el), dispose() {} });\n` +
             `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
+            // The controller surface for app controllers: the api's reads as
+            // reactive state, the declared commands as calls.
+            `  provideController(el, () => controllerView(${bridge}.api, ${name}.commands));\n` +
             `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
-            // Hosts poll state off the element, so the api's reads land
-            // there too: every non-function member the element does not
-            // already carry becomes a forwarding getter. Declared props,
-            // commands, and platform members all win the name.
-            `  for (const key of new Set(Object.keys(${bridge}.api))) {\n` +
-            `    if (typeof ${bridge}.api[key] !== "function" && !(key in el)) {\n` +
-            `      Object.defineProperty(el, key, { get: () => ${bridge}.api[key], configurable: true });\n` +
-            `    }\n` +
-            `  }\n` +
             `  own(() => ${bridge}.dispose());`
           );
         } catch {
@@ -148,7 +144,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
       const runtimeImport = hasConsume
-        ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots } from "@spin/runtime";`
+        ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots, controllerView, provideController } from "@spin/runtime";`
         : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)

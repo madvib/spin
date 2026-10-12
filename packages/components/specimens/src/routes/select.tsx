@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -37,17 +37,20 @@ export default function Select() {
   const [selected, setSelected] = createSignal<string[]>([]);
   const [openCount, setOpenCount] = createSignal(0);
 
-  const single = createSpin<{ items: typeof ITEMS }, SelectCommands>(
-    "spin-select",
-    () => ({ items: ITEMS, label: "Runtime" }),
-    {
+  const [singleEl, setSingle] = createSignal<HTMLElement>();
+  const single = createSpinComponent<SelectCommands>(singleEl);
+  createEffect(() => {
+    const ctl = single();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({ items: ITEMS, label: "Runtime" }, {
       "value-change": (e: CustomEvent<{ value: string[] }>) =>
         setSelected(e.detail.value),
       "open-change": (e: CustomEvent<{ open: boolean }>) => {
         if (e.detail.open) setOpenCount((n) => n + 1);
       },
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -58,7 +61,7 @@ export default function Select() {
       >
         <spin-select
           id="single"
-          ref={single.ref}
+          ref={setSingle}
           prop:items={ITEMS}
           prop:label="Runtime"
           prop:name="runtime"
@@ -67,21 +70,21 @@ export default function Select() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().selectValue("bun")}
+            onClick={() => single()?.commands.selectValue("bun")}
           >
             el.selectValue("bun")
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().open()}
+            onClick={() => single()?.commands.open()}
           >
             el.open()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().clearValue()}
+            onClick={() => single()?.commands.clearValue()}
           >
             el.clearValue()
           </button>

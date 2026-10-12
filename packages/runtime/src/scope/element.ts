@@ -85,6 +85,29 @@ type PropStore = Map<string, Signal>;
  */
 const authoredProps = new WeakMap<HTMLElement, Set<string>>();
 
+/** Each element's connection scope, so work that runs later — a binding
+ * re-applying after the element left the build — still enters it. */
+const elementScopes = new WeakMap<HTMLElement, OwnerScope>();
+
+/** The scope of the element that owns `node`: a recipe's markup renders
+ * inside its custom element, so a bag spread on an inner node belongs to that
+ * element's scope. */
+function scopeOf(node: Element): OwnerScope | undefined {
+  for (let current: Element | null = node; current !== null; current = current.parentElement) {
+    const owner = elementScopes.get(current as HTMLElement);
+    if (owner !== undefined) return owner;
+  }
+  return undefined;
+}
+
+/** Runs `fn` inside the owning element's scope, so what it creates is owned
+ * and disposed with the element. Outside an element (a detached fragment)
+ * there is no scope to enter, and `fn` runs as-is. */
+export function runInElement<T>(el: Element, fn: () => T): T {
+  const owner = scopeOf(el);
+  return owner === undefined ? fn() : owner.run(fn);
+}
+
 function authoredFor(el: HTMLElement): Set<string> {
   let set = authoredProps.get(el);
   if (!set) authoredProps.set(el, set = new Set());
@@ -154,6 +177,7 @@ export function define(tag: string, spec: ElementSpec): void {
       // and `dispose` is idempotent, so ordering here is not load-bearing.
       const owner = scope();
       this.#scope = owner;
+      elementScopes.set(this, owner);
       const table = createScopeTable(owner);
       this.#table = table;
       owner.run(() => {

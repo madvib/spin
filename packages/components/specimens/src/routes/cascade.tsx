@@ -1,4 +1,5 @@
-import { createSignal, onMount } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.bridge.ts";
 import { DEMO_BUTTON, DemoCard, DemoControls, DemoGrid, DemoReadout } from "../demo.tsx";
 
@@ -98,24 +99,32 @@ export default function CascadeFsm() {
   const [highlighted, setHighlighted] = createSignal<string[]>([]);
   const [open, setOpen] = createSignal(false);
   const [changes, setChanges] = createSignal(0);
-  let el: CascadeElement | undefined;
+  const [cascadeEl, setCascadeEl] = createSignal<HTMLElement>();
+  const cascade = createSpinComponent<CascadeCommands>(cascadeEl);
 
-  onMount(() => {
-    if (!el) return;
-    el.addEventListener("value-change", (event) => {
-      const detail = (event as CustomEvent<{ value: string[][] }>).detail;
-      const next = detail.value[0];
-      setValue(next === undefined ? [] : next);
-      setChanges((n) => n + 1);
-    });
-    el.addEventListener("highlight-change", (event) => {
-      const detail =
-        (event as CustomEvent<{ highlightedValue: string[] }>).detail;
-      setHighlighted(detail.highlightedValue);
-    });
-    el.addEventListener("open-change", (event) => {
-      setOpen((event as CustomEvent<{ open: boolean }>).detail.open);
-    });
+  // The app controller: props down (the collection arrives as JSON text, the
+  // scope grammar having no recursive type), events up with cleanup.
+  createEffect(() => {
+    const ctl = cascade();
+    if (ctl === undefined) return undefined;
+    return ctl.bind(
+      {
+        label: "Location",
+        name: "location",
+      },
+      {
+        "value-change": (event: CustomEvent<{ value: string[][] }>) =>
+          {
+            const next = event.detail.value[0];
+            setValue(next === undefined ? [] : next);
+            setChanges((n) => n + 1);
+          },
+        "highlight-change": (event: CustomEvent<{ highlightedValue: string[] }>) =>
+          setHighlighted(event.detail.highlightedValue),
+        "open-change": (event: CustomEvent<{ open: boolean }>) =>
+          setOpen(event.detail.open),
+      },
+    );
   });
 
   return (
@@ -127,30 +136,23 @@ export default function CascadeFsm() {
     >
       <spin-cascade-select
         ref={(node: HTMLElement) => {
-          el = node as CascadeElement;
-          el.collection = JSON.stringify(TREE);
-          el.label = "Location";
-          el.name = "location";
+          setCascadeEl(node);
+          // The collection is read during build: it lands before connect.
+          (node as CascadeElement).collection = JSON.stringify(TREE);
         }}
       />
       <DemoControls>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => {
-            const commands = el as unknown as CascadeCommands | undefined;
-            commands?.setOpen(true);
-          }}
+          onClick={() => cascade()?.commands.setOpen(true)}
         >
           el.setOpen(true)
         </button>
         <button
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => {
-            const commands = el as unknown as CascadeCommands | undefined;
-            commands?.setValue([["asia", "india", "haryana"]]);
-          }}
+          onClick={() => cascade()?.commands.setValue([["asia", "india", "haryana"]])}
         >
           el.setValue([…])
         </button>

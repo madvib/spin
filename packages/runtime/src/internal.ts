@@ -41,5 +41,4 @@ export {
   type OwnerScope,
 } from "./core/signal.ts";
 export { load } from "./directives/load.ts";
-export { component } from "./scope/component.ts";
 export { bindActionProps, bindSpread } from "./directives/spread.ts";

@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
 import type { CarouselSlide } from "../../../src/spin-carousel/carousel.connect.ts";
 
@@ -47,36 +47,32 @@ export default function CarouselFsm() {
   const [rotation, setRotation] = createSignal("stopped");
   const [loop, setLoop] = createSignal(false);
   const [playing] = createSignal(false);
+  const [carouselEl, setCarouselEl] = createSignal<HTMLElement>();
 
-  const carousel = createSpin<
-    {
-      items: readonly CarouselSlide[];
-      defaultIndex: number;
-      loop: boolean;
-      autoplay: boolean;
-      autoplayDelay: number;
-      allowMouseDrag: boolean;
-    },
-    CarouselCommands
-  >(
-    "spin-carousel",
-    () => ({
-      items: SLIDES,
-      defaultIndex: 0,
-      loop: loop(),
-      autoplay: playing(),
-      autoplayDelay: 2500,
-      allowMouseDrag: true,
-    }),
-    {
-      "index-change": (event: CustomEvent<{ index: number }>) =>
-        setIndex(event.detail.index),
-      "drag-status-change": (event: CustomEvent<{ status: string }>) =>
-        setDrag(event.detail.status),
-      "autoplay-status-change": (event: CustomEvent<{ status: string }>) =>
-        setRotation(event.detail.status),
-    },
-  );
+  const carousel = createSpinComponent<CarouselCommands>(carouselEl);
+  createEffect(() => {
+    const ctl = carousel();
+    return ctl
+      ? ctl.bind(
+          {
+            items: SLIDES,
+            defaultIndex: 0,
+            loop: loop(),
+            autoplay: playing(),
+            autoplayDelay: 2500,
+            allowMouseDrag: true,
+          },
+          {
+            "index-change": (event: CustomEvent<{ index: number }>) =>
+              setIndex(event.detail.index),
+            "drag-status-change": (event: CustomEvent<{ status: string }>) =>
+              setDrag(event.detail.status),
+            "autoplay-status-change": (event: CustomEvent<{ status: string }>) =>
+              setRotation(event.detail.status),
+          },
+        )
+      : undefined;
+  });
 
   return (
     <DemoCard
@@ -89,7 +85,7 @@ export default function CarouselFsm() {
           id="carousel-prev"
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => carousel.commands().prev()}
+          onClick={() => carousel()?.commands.prev()}
         >
           el.prev()
         </button>
@@ -97,7 +93,7 @@ export default function CarouselFsm() {
           id="carousel-next"
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => carousel.commands().next()}
+          onClick={() => carousel()?.commands.next()}
         >
           el.next()
         </button>
@@ -105,7 +101,7 @@ export default function CarouselFsm() {
           id="carousel-goto"
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => carousel.commands().goTo(4)}
+          onClick={() => carousel()?.commands.goTo(4)}
         >
           el.goTo(4)
         </button>
@@ -113,7 +109,7 @@ export default function CarouselFsm() {
           id="carousel-play"
           type="button"
           class={DEMO_BUTTON}
-          onClick={() => carousel.commands().setAutoplay(!playing())}
+          onClick={() => carousel()?.commands.setAutoplay(!playing())}
         >
           {playing() ? "el.setAutoplay(false)" : "el.setAutoplay(true)"}
         </button>
@@ -129,7 +125,7 @@ export default function CarouselFsm() {
           drag the track →
         </button>
       </DemoControls>
-      <spin-carousel ref={carousel.ref} />
+      <spin-carousel ref={setCarouselEl} />
       <DemoReadout>
         <span class="mr-4">
           index: <span id="carousel-index">{index()}</span>

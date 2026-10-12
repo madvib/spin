@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -23,19 +23,22 @@ interface DialogCommands {
  * scroll-lock effect in the component. The machine is open/closed;
  * `focus-trap`, `dismissable`, and `scroll-lock` are stdlib actions attached
  * through the content bag. The hook gives the host props down, events up,
- * and `dialog.commands()` for the imperative calls.
+ * and `dialog()?.commands` for the imperative calls.
  */
 export default function DialogFsm() {
   const [status, setStatus] = createSignal("closed");
   // The hook: props down, events up, commands reachable. No ref bookkeeping.
-  const dialog = createSpin<{ role: string }, DialogCommands>(
-    "spin-dialog",
-    () => ({ role: "dialog" }),
-    {
+  const [dialogEl, setDialog] = createSignal<HTMLElement>();
+  const dialog = createSpinComponent<DialogCommands>(dialogEl);
+  createEffect(() => {
+    const ctl = dialog();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({ role: "dialog" }, {
       "open-change": (e: CustomEvent<{ open: boolean }>) =>
         setStatus(e.detail.open ? "open" : "closed"),
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -44,7 +47,7 @@ export default function DialogFsm() {
         width="sm"
         note="The machine is open/closed; focus-trap, dismissable and scroll-lock are stdlib actions in the content bag, not code in the host."
       >
-        <spin-dialog ref={dialog.ref}>
+        <spin-dialog ref={setDialog}>
           <div slot="title" class="text-lg font-semibold text-text">
             Slotted title
           </div>
@@ -53,14 +56,14 @@ export default function DialogFsm() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => dialog.commands().show()}
+            onClick={() => dialog()?.commands.show()}
           >
             el.show()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => dialog.commands().hide("api")}
+            onClick={() => dialog()?.commands.hide("api")}
           >
             el.hide("api")
           </button>

@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import type {
   ComboboxHighlightChange,
   ComboboxInputValueChange,
@@ -95,25 +95,18 @@ export default function ComboboxFsm() {
     );
   };
 
-  const single = createSpin<
-    {
-      items: Item[];
-      label: string;
-      placeholder: string;
-      defaultValue: string;
-      multiple: boolean;
-    },
-    ComboboxCommands
-  >(
-    "spin-combobox",
-    () => ({
+  const [singleEl, setSingle] = createSignal<HTMLElement>();
+  const single = createSpinComponent<ComboboxCommands>(singleEl);
+  createEffect(() => {
+    const ctl = single();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       items: matches(),
       label: "Framework",
       placeholder: "Search a framework",
       defaultValue: "svelte",
       multiple: false,
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<ComboboxValueChange>) =>
         setValue(event.detail.value.join(", ") || "none"),
       "highlight-change": (event: CustomEvent<ComboboxHighlightChange>) =>
@@ -127,64 +120,60 @@ export default function ComboboxFsm() {
         if (event.detail.open) setOpens((n) => n + 1);
       },
       select: (_event: CustomEvent<ComboboxSelect>) => setSelects((n) => n + 1),
-    },
-  );
+    });
+  });
+;
 
-  const multiple = createSpin<
-    { items: Item[]; label: string; multiple: boolean; closeOnSelect: boolean },
-    ComboboxCommands
-  >(
-    "spin-combobox",
-    () => ({
+  const [multipleEl, setMultiple] = createSignal<HTMLElement>();
+  const multiple = createSpinComponent<ComboboxCommands>(multipleEl);
+  createEffect(() => {
+    const ctl = multiple();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       items: TOPPINGS,
       label: "Toppings",
       multiple: true,
       closeOnSelect: false,
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<ComboboxValueChange>) =>
         setToppings(event.detail.value.join(", ") || "none"),
-    },
-  );
+    });
+  });
+;
 
-  const completing = createSpin<
-    {
-      items: Item[];
-      label: string;
-      inputBehavior: string;
-      openOnKeyPress: boolean;
-    },
-    ComboboxCommands
-  >(
-    "spin-combobox",
-    () => ({
+  const [completingEl, setCompleting] = createSignal<HTMLElement>();
+  const completing = createSpinComponent<ComboboxCommands>(completingEl);
+  createEffect(() => {
+    const ctl = completing();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       items: CITIES,
       label: "City",
       inputBehavior: "autocomplete",
       openOnKeyPress: true,
-    }),
-    {
+    }, {
       "value-change": (event: CustomEvent<ComboboxValueChange>) =>
         setInline(event.detail.value.join(", ") || "none"),
-    },
-  );
+    });
+  });
+;
 
-  const controlled = createSpin<
-    { items: Item[]; label: string; open: boolean; placeholder: string },
-    ComboboxCommands
-  >(
-    "spin-combobox",
-    () => ({
+  const [controlledEl, setControlled] = createSignal<HTMLElement>();
+  const controlled = createSpinComponent<ComboboxCommands>(controlledEl);
+  createEffect(() => {
+    const ctl = controlled();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({
       items: CITIES,
       label: "Controlled open",
       open: panelOpen(),
       placeholder: "Opens from outside",
-    }),
-    {
+    }, {
       "open-change": (event: CustomEvent<ComboboxOpenChange>) =>
         setPanelOpen(event.detail.open),
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -195,7 +184,7 @@ export default function ComboboxFsm() {
       >
         <spin-combobox
           id="frameworks"
-          ref={single.ref}
+          ref={setSingle}
           prop:items={matches()}
           prop:label="Framework"
           prop:placeholder="Search a framework"
@@ -208,49 +197,49 @@ export default function ComboboxFsm() {
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().setOpen(true)}
+            onClick={() => single()?.commands.setOpen(true)}
           >
             el.setOpen(true)
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().setOpen(false)}
+            onClick={() => single()?.commands.setOpen(false)}
           >
             el.setOpen(false)
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().selectValue("deno")}
+            onClick={() => single()?.commands.selectValue("deno")}
           >
             el.selectValue("deno")
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().setValue(["react", "vue"])}
+            onClick={() => single()?.commands.setValue(["react", "vue"])}
           >
             el.setValue([...])
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().setInputValue("sve")}
+            onClick={() => single()?.commands.setInputValue("sve")}
           >
             el.setInputValue("sve")
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().clearValue()}
+            onClick={() => single()?.commands.clearValue()}
           >
             el.clearValue()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => single.commands().focus()}
+            onClick={() => single()?.commands.focus()}
           >
             el.focus()
           </button>
@@ -277,7 +266,7 @@ export default function ComboboxFsm() {
       >
         <spin-combobox
           id="toppings"
-          ref={multiple.ref}
+          ref={setMultiple}
           prop:items={TOPPINGS}
           prop:label="Toppings"
           prop:multiple={true}
@@ -295,7 +284,7 @@ export default function ComboboxFsm() {
       >
         <spin-combobox
           id="cities"
-          ref={completing.ref}
+          ref={setCompleting}
           prop:items={CITIES}
           prop:label="City"
           prop:inputBehavior="autocomplete"
@@ -312,7 +301,7 @@ export default function ComboboxFsm() {
       >
         <spin-combobox
           id="controlled"
-          ref={controlled.ref}
+          ref={setControlled}
           prop:items={CITIES}
           prop:label="Controlled open"
           prop:open={panelOpen()}

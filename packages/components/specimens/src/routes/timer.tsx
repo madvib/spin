@@ -1,5 +1,5 @@
-import { createSignal } from "solid-js";
-import { createSpin } from "@spin/hooks/solid";
+import { createEffect, createSignal } from "solid-js";
+import { createSpinComponent } from "@spin/hooks/solid";
 import {
   DEMO_BUTTON,
   DemoCard,
@@ -19,6 +19,15 @@ interface TimerCommands {
 
 /** Every prop a timer takes, all of them optional: the scope grammar's
  * defaults are the machine's, and an omitted prop is not an authored one. */
+/** The element as a host writes it: seeds are plain property writes. */
+interface TimerElement extends HTMLElement {
+  startMs?: number;
+  targetMs?: number;
+  countdown?: boolean;
+  autoStart?: boolean;
+  interval?: number;
+}
+
 interface TimerProps {
   readonly startMs?: number;
   readonly targetMs?: number;
@@ -48,45 +57,42 @@ export default function TimerFsm() {
   const [short, setShort] = createSignal("00:00:01");
   const [completes, setCompletes] = createSignal(0);
 
-  const stopwatch = createSpin<TimerProps, TimerCommands>(
-    "spin-timer",
-    () => ({ startMs: 0, countdown: false, autoStart: false, interval: 250 }),
-    {
+  const [stopwatchEl, setStopwatch] = createSignal<HTMLElement>();
+  const stopwatch = createSpinComponent<TimerCommands>(stopwatchEl);
+  createEffect(() => {
+    const ctl = stopwatch();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({}, {
       tick: (event: CustomEvent<TimerTickChange>) => setValue(readout(event)),
       complete: () => setCompletes((n) => n + 1),
-    },
-  );
+    });
+  });
+;
 
-  const auto = createSpin<TimerProps, TimerCommands>(
-    "spin-timer",
-    () => ({
-      startMs: 60_000,
-      targetMs: 0,
-      countdown: true,
-      autoStart: true,
-      interval: 1_000,
-    }),
-    {
+  const [autoEl, setAuto] = createSignal<HTMLElement>();
+  const auto = createSpinComponent<TimerCommands>(autoEl);
+  createEffect(() => {
+    const ctl = auto();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({}, {
       tick: (event: CustomEvent<TimerTickChange>) =>
         setCountdown(readout(event)),
       complete: () => setCompletes((n) => n + 1),
-    },
-  );
+    });
+  });
+;
 
-  const shortTimer = createSpin<TimerProps, TimerCommands>(
-    "spin-timer",
-    () => ({
-      startMs: 1_500,
-      targetMs: 0,
-      countdown: true,
-      autoStart: false,
-      interval: 500,
-    }),
-    {
+  const [shortTimerEl, setShortTimer] = createSignal<HTMLElement>();
+  const shortTimer = createSpinComponent<TimerCommands>(shortTimerEl);
+  createEffect(() => {
+    const ctl = shortTimer();
+    if (ctl === undefined) return undefined;
+    return ctl.bind({}, {
       tick: (event: CustomEvent<TimerTickChange>) => setShort(readout(event)),
       complete: () => setCompletes((n) => n + 1),
-    },
-  );
+    });
+  });
+;
 
   return (
     <DemoGrid>
@@ -95,40 +101,50 @@ export default function TimerFsm() {
         width="md"
         note="The interval is a stdlib action; the tick's arithmetic is pure assigns."
       >
-        <spin-timer id="stopwatch" ref={stopwatch.ref} />
+        <spin-timer
+          id="stopwatch"
+          ref={(node: HTMLElement) => {
+            setStopwatch(node);
+            const host = node as TimerElement;
+            host.startMs = 0;
+            host.countdown = false;
+            host.autoStart = false;
+            host.interval = 250;
+          }}
+        />
         <DemoControls>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => stopwatch.commands().start()}
+            onClick={() => stopwatch()?.commands.start()}
           >
             el.start()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => stopwatch.commands().pause()}
+            onClick={() => stopwatch()?.commands.pause()}
           >
             el.pause()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => stopwatch.commands().resume()}
+            onClick={() => stopwatch()?.commands.resume()}
           >
             el.resume()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => stopwatch.commands().reset()}
+            onClick={() => stopwatch()?.commands.reset()}
           >
             el.reset()
           </button>
           <button
             type="button"
             class={DEMO_BUTTON}
-            onClick={() => stopwatch.commands().restart()}
+            onClick={() => stopwatch()?.commands.restart()}
           >
             el.restart()
           </button>
@@ -144,7 +160,17 @@ export default function TimerFsm() {
         width="md"
         note="autoStart seeds the running phase, so the clock is already going."
       >
-        <spin-timer id="auto" ref={auto.ref} />
+        <spin-timer
+          id="auto"
+          ref={(node: HTMLElement) => {
+            setAuto(node);
+            const host = node as TimerElement;
+            host.startMs = 60_000;
+            host.countdown = true;
+            host.autoStart = true;
+            host.interval = 1_000;
+          }}
+        />
         <DemoReadout>
           auto countdown: <span id="timer-countdown">{countdown()}</span>
         </DemoReadout>
@@ -155,7 +181,17 @@ export default function TimerFsm() {
         width="sm"
         note="A countdown runs its bar from full to empty and completes on its own."
       >
-        <spin-timer id="short" ref={shortTimer.ref} />
+        <spin-timer
+          id="short"
+          ref={(node: HTMLElement) => {
+            setShortTimer(node);
+            const host = node as TimerElement;
+            host.startMs = 1_500;
+            host.countdown = true;
+            host.autoStart = false;
+            host.interval = 500;
+          }}
+        />
         <DemoReadout>
           short: <span id="timer-short">{short()}</span>
         </DemoReadout>
