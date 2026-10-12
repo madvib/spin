@@ -9,6 +9,8 @@
  * package cannot do.
  */
 
+import { sample } from "./sample-copy.ts";
+
 export interface AlertExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -60,8 +62,8 @@ export const ALERT_EXAMPLES: readonly AlertExample[] = [
     name: "Title and description",
     html: row(
       `          <alert role="status" variant="accent">
-            <strong>Backup complete</strong>
-            <p>Your files were saved to the cloud.</p>
+            <strong>${sample.note.title}</strong>
+            <p>${sample.note.body}</p>
           </alert>`,
     ),
   },
@@ -70,7 +72,7 @@ export const ALERT_EXAMPLES: readonly AlertExample[] = [
     html: row(
       `          <alert role="status" variant="accent" class="flex items-center gap-2">
             <i class="i-lucide-info"></i>
-            <span>Your files were saved to the cloud.</span>
+            <span>${sample.note.body}</span>
           </alert>`,
     ),
   },

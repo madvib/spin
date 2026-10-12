@@ -10,6 +10,8 @@
  * package cannot do.
  */
 
+import { sample } from "./sample-copy.ts";
+
 export interface CardExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -31,15 +33,16 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-header>
-              <card-title>Card Title</card-title>
-              <card-description>Card Description</card-description>
-              <card-action>New</card-action>
+              <card-title>${sample.product.name}</card-title>
+              <card-description>${sample.product.notes}</card-description>
+              <card-action>In season</card-action>
             </card-header>
             <card-content>
-              <p>Card content. Seven parts, each its own tag.</p>
+              <p>${sample.product.origin}. ${sample.product.process}. Roasted
+              this week and shipped the next.</p>
             </card-content>
             <card-footer>
-              <button>Save</button><button class="ghost">Cancel</button>
+              <button>${sample.actions.primary}</button><button class="ghost">${sample.actions.secondary}</button>
             </card-footer>
           </card>`,
     ),
@@ -49,8 +52,7 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-content>
-              <p>A card needs no header or footer to be a card: a raised
-              surface with room to breathe is already grouping.</p>
+              <p>${sample.article.body[0]}</p>
             </card-content>
           </card>`,
     ),
