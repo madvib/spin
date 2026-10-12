@@ -34,6 +34,18 @@ Deno.test("an overlay wins over disk while it is set", () => {
   assertEquals(resolved.acme.primary, "#b91c1c");
 });
 
+Deno.test("a theme the overlay does not name still resolves from disk", () => {
+  reset();
+  setOverlay(editing);
+  const both = {
+    acme: { primary: "#0369a1" },
+    other: { primary: "#15803d" },
+  } as unknown as Record<string, ThemeDocument>;
+  const resolved = resolveThemes(both);
+  assertEquals(resolved.acme.primary, "#b91c1c");
+  assertEquals(resolved.other.primary, "#15803d");
+});
+
 Deno.test("clearing the overlay restores disk as the source", () => {
   reset();
   setOverlay(editing);
@@ -48,7 +60,7 @@ Deno.test("an overlay can name a document disk does not have", () => {
     string,
     ThemeDocument
   >);
-  assertEquals(Object.keys(resolveThemes(disk)), ["brand"]);
+  assertEquals(Object.keys(resolveThemes(disk)).sort(), ["acme", "brand"]);
   reset();
 });
 

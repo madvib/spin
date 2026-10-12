@@ -90,5 +90,10 @@ export function hasOverlay(): boolean {
 export function resolveThemes(
   documents: Record<string, ThemeDocument>,
 ): Record<string, ThemeDocument> {
-  return hasOverlay() ? overlayThemes() : documents;
+  // Per-theme merge, not replacement: the overlay holds the themes being
+  // edited and disk holds the rest. A studio editing `acme` must not blank
+  // the `default` the app beside it is rendering — the browser proved it
+  // does when the overlay wins wholesale.
+  if (!hasOverlay()) return documents;
+  return { ...documents, ...overlayThemes() };
 }

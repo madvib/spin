@@ -84,3 +84,26 @@ Deno.test("joining preserves walk order", () => {
   ]);
   assertEquals(joinContent(files), "B\nA\nC");
 });
+
+Deno.test("an excluded path is never scanned, even when included", () => {
+  const include = [/\.(tsx|ts)($|\?)/];
+  const exclude = [/components\/demos\//];
+  assert(!isIncluded("src/components/demos/ValueInput.tsx", include, exclude));
+  assert(isIncluded("src/routes/colors.tsx", include, exclude));
+});
+
+Deno.test("scanning skips what the pipeline excludes", async () => {
+  const dir = await Deno.makeTempDir();
+  await Deno.mkdir(`${dir}/demos`);
+  await Deno.writeTextFile(`${dir}/app.tsx`, "APP");
+  await Deno.writeTextFile(`${dir}/demos/skip.tsx`, "SKIP");
+  const scanned = await scanContent(
+    {
+      filesystem: ["**/*.tsx"],
+      pipeline: { include: [/\.tsx($|\?)/], exclude: [/\/demos\//] },
+    },
+    dir,
+  );
+  assertEquals([...scanned.keys()], [`${dir}/app.tsx`]);
+  await Deno.remove(dir, { recursive: true });
+});

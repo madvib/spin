@@ -2,28 +2,29 @@ import { resolve } from "node:path";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import { nitro } from "nitro/vite";
 import { solidStart } from "@solidjs/start/config";
-import UnoCSS from "@unocss/vite";
 import presetIcons from "@unocss/preset-icons";
-import { spinPreset } from "../../packages/preset/src/index.ts";
+import { spin } from "../../packages/preset/src/plugin.ts";
+import { mountSpinApp } from "../../packages/api/src/index.ts";
 import studioTheme from "./theme.json" with { type: "json" };
-/**
- * The daemon's port in development. The dev task pins it; this file's only
- * other caller is a human who ran the daemon themselves and can set the env
- * var. A second free port would be discovered in production, not here.
- */
-const DAEMON_PORT = process.env.SPIN_DAEMON_PORT ?? "7463";
 export default defineConfig({
   plugins: [
-    UnoCSS({
-      presets: [
-        presetIcons(),
-        // The chrome is themed by the studio's own static theme. Project
-        // themes are injected at runtime by the preview surface, so editing one
-        // cannot restyle the tool doing the editing.
-        spinPreset({ themes: { studio: studioTheme } }),
-      ],
+    spin.vite({
+      // The chrome is themed by the studio's own static theme. Project
+      // themes are injected at runtime by the preview surface, so editing one
+      // cannot restyle the tool doing the editing.
+      themes: { studio: studioTheme },
+      presets: [presetIcons()],
+      // The project under edit. In development that is the fixture app;
+      // a consumer's own config points this at their project root.
+      mount: mountSpinApp(
+        resolve(import.meta.dirname, "../../examples/fixture-app"),
+      ),
       content: {
+        filesystem: ["src/**/*.{tsx,ts}"],
         pipeline: {
+          include: [
+            /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
+          ],
           exclude: [
             /components\/demos\//,
             /\/routes\//,
@@ -101,7 +102,6 @@ export default defineConfig({
         searchForWorkspaceRoot(process.cwd()),
         "/__uno.css",
         "/__uno.css?inline",
-        "/@unocss",
       ],
     },
   },

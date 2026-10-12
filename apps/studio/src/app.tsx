@@ -201,6 +201,27 @@ export default function App() {
               >
                 Save
               </button>
+              {
+                /* The running app is the primary specimen: a theme edit
+                  re-themes it live through the overlay, so this opens the
+                  app the project actually ships rather than a second copy
+                  of the specimen wall. */
+              }
+              <a
+                // Served from the user's dev server the app is `/` on the
+                // same origin; standalone studio-dev takes `?app=` instead,
+                // because the app is a second server with a floating port.
+                href={
+                  new URLSearchParams(location.search).get("app") ?? "/"
+                }
+                target="_blank"
+                rel="noopener"
+                aria-label="View in app"
+                title="View in app"
+                class="bg-surface-raised border-border rounded-md border p-2"
+              >
+                View in app
+              </a>
             </div>
             {
               /* The preview carries the project's theme. Everything above is

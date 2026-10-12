@@ -8,7 +8,6 @@
  */
 
 import { startDaemon } from "./daemon.ts";
-import { join } from "node:path";
 
 /**
  * `--port 0` asks the OS for a free port and prints what it got: the one
@@ -30,6 +29,3 @@ const daemon = startDaemon({
   hostname: hostFlag === -1 ? undefined : Deno.args[hostFlag + 1] as string,
 });
 console.log(`${daemon.url} — serving ${root}`);
-// The discovery document already holds the address; printing it is for the
-// developer who just typed the command.
-console.log(`wrote ${join(root, "spin-connection.json")}`);

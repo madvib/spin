@@ -12,6 +12,8 @@ import { RPCHandler } from "@orpc/server/fetch";
 import type { RouterClient } from "@orpc/server";
 import { RPCLink } from "@orpc/client/fetch";
 import { createORPCClient } from "@orpc/client";
+import { Hono } from "hono";
+import { setProjectRoot } from "./project-procedures.ts";
 import { themeRouter } from "@spin/theme";
 import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 import { presetRouter } from "@spin/preset";
@@ -100,37 +102,115 @@ interface ServerResponse {
 }
 
 /**
- * Mount the daemon's router on a dev server.
+ * Mount the app on a dev server's middleware stack.
  *
- * This is what makes the studio, the API, and the app one process. The
- * plugin cannot import this package — dependencies point the other way —
- * so the plugin takes a `mount` and the app that wants both passes this.
+ * Curried on the project root so the app config reads as one line:
+ * `mount: mountSpinApp(root)`. The returned host matches the plugin's
+ * `mount` option. Same origin, so no CORS handlers: the split that needed
+ * them — studio on one port, daemon on another — is gone.
  */
-export function mountSpinApi(
-  server: MiddlewareHost,
-  options?: { prefix?: `/${string}` },
-): void {
-  const prefix = options?.prefix ?? "/rpc";
-  server.middlewares.use((req, res, next) => {
-    const url = req.url ?? "/";
-    if (!url.startsWith(prefix)) return next();
-    void (async () => {
-      const parts: BlobPart[] = [];
-      for await (const chunk of req) parts.push(chunk as BlobPart);
-      const request = new Request(new URL(url, "http://localhost"), {
-        method: req.method,
-        headers: req.headers as HeadersInit,
-        ...(req.method !== "GET" && req.method !== "HEAD"
-          ? { body: parts.length ? new Blob(parts) : undefined }
-          : {}),
+export function mountSpinApp(root: string): (
+  host: { server: unknown; root: string },
+) => void {
+  const resolveRoot = (fallback: string): string => root || fallback;
+  return ({ server, root: fallback }) => {
+    const app = createSpinApp({ root: resolveRoot(fallback) });
+    const middlewares = (server as MiddlewareHost).middlewares;
+    middlewares.use((req, res, next) => {
+      const url = req.url ?? "/";
+      if (!url.startsWith("/__spin")) return next();
+      void (async () => {
+        const parts: BlobPart[] = [];
+        for await (const chunk of req) parts.push(chunk as BlobPart);
+        const request = new Request(new URL(url, "http://localhost"), {
+          method: req.method,
+          headers: req.headers as unknown as HeadersInit,
+          ...(req.method !== "GET" && req.method !== "HEAD"
+            ? { body: parts.length ? new Blob(parts) : undefined }
+            : {}),
+        });
+        const response = await app.fetch(request);
+        res.statusCode = response.status;
+        response.headers.forEach((value: string, name: string) =>
+          res.setHeader(name, value)
+        );
+        res.end(new Uint8Array(await response.arrayBuffer()));
+      })().catch(() => {
+        res.statusCode = 500;
+        res.end();
       });
-      const { response } = await handleApiRequest(request, { prefix });
-      res.statusCode = response.status;
-      response.headers.forEach((value, name) => res.setHeader(name, value));
-      res.end(new Uint8Array(await response.arrayBuffer()));
-    })().catch(() => {
-      res.statusCode = 500;
-      res.end();
     });
+  };
+}
+
+/** Options for the app the dev server mounts. */
+export interface SpinAppOptions {
+  /** The project root the filesystem procedures serve. */
+  readonly root: string;
+  /** Where the procedures live. `/__spin/rpc` in dev, `/rpc` standalone. */
+  readonly base?: `/${string}`;
+  /**
+   * The studio's built bundle, served beside the procedures. Absent in
+   * development, where the studio runs on its own server.
+   */
+  readonly studioDir?: string;
+}
+
+/**
+ * The app a dev server mounts: every procedure under the base path, the
+ * studio bundle beside it when one is built.
+ *
+ * One Hono app, every host — the standalone daemon mounts this same app,
+ * so dev and `spin daemon` never drift. No CORS: the app, the API, and the
+ * studio are one origin, and the handlers that echoed loopback origins are
+ * gone with the split.
+ */
+export function createSpinApp(options: SpinAppOptions): Hono {
+  // The base IS the RPC mount path: `/__spin/rpc` in dev, `/rpc`
+  // standalone. One string, so the app and the client that dials it can
+  // never disagree about where the procedures live.
+  const base = options.base ?? "/__spin/rpc";
+  setProjectRoot(options.root);
+  const app = new Hono().basePath(base);
+  // Cross-origin, loopback only: standalone studio-dev POSTs the overlay
+  // from a second server on another port. Mounted, everything is one
+  // origin and this never fires. A wildcard would let any page call
+  // procedures that write to disk; the browser is the only client that
+  // sends a forged Origin it does not own, and loopback is this machine.
+  app.use("/*", async (c, next) => {
+    await next();
+    const origin = c.req.header("origin") ?? "";
+    if (origin === "") return;
+    try {
+      const { hostname } = new URL(origin);
+      if (
+        hostname === "localhost" || hostname === "127.0.0.1" ||
+        hostname === "::1" || hostname === "[::1]"
+      ) {
+        c.res.headers.set("access-control-allow-origin", origin);
+        c.res.headers.set("access-control-allow-methods", "GET, POST, OPTIONS");
+        c.res.headers.set("access-control-allow-headers", "content-type");
+      }
+    } catch {
+      // Not a URL, not our caller.
+    }
   });
+  app.options("/*", (c) => c.body(null, 204));
+  // The studio bundle, if one was built. Served beside the procedures so
+  // the tool and the API it talks to are one origin by construction.
+  const studioRoot = base.replace(/\/rpc$/, "");
+  if (options.studioDir !== undefined) {
+    const dir = options.studioDir;
+    app.use(`${studioRoot}/studio/*`, async (c, next) => {
+      const { serveStatic } = await import("hono/deno");
+      await serveStatic({ root: dir })(c, next);
+    });
+  }
+  app.all("/*", async (c) => {
+    const { matched, response } = await rpcHandler.handle(c.req.raw, {
+      prefix: base,
+    });
+    return matched ? response : c.notFound();
+  });
+  return app;
 }

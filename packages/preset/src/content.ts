@@ -20,6 +20,8 @@ export interface ContentOptions {
    */
   readonly pipeline?: {
     readonly include?: readonly RegExp[];
+    /** Paths matching here are never scanned, even when included above. */
+    readonly exclude?: readonly RegExp[];
   };
 }
 
@@ -130,7 +132,12 @@ async function isFile(path: string): Promise<boolean> {
  * so a project whose sources live under `src/` behaves as unintuitively as
  * the pipeline it replaces would.
  */
-export function isIncluded(path: string, include: readonly RegExp[]): boolean {
+export function isIncluded(
+  path: string,
+  include: readonly RegExp[],
+  exclude: readonly RegExp[] = [],
+): boolean {
+  if (exclude.some((pattern) => pattern.test(path))) return false;
   if (include.length === 0) return true;
   return include.some((pattern) => pattern.test(path));
 }
@@ -147,6 +154,7 @@ export async function scanContent(
   root: string,
 ): Promise<ContentMap> {
   const include = options.pipeline?.include ?? [];
+  const exclude = options.pipeline?.exclude ?? [];
   const files: ContentMap = new Map();
   for (const pattern of options.filesystem ?? []) {
     const absolute = /^([a-z]:)?[/\\]/i.test(pattern)
@@ -154,7 +162,7 @@ export async function scanContent(
       : join(root, pattern);
     for (const glob of expandBraces(absolute)) {
       for (const path of await globFiles(glob)) {
-        if (!isIncluded(path, include)) continue;
+        if (!isIncluded(path, include, exclude)) continue;
         if (files.has(path)) continue;
         try {
           files.set(path, await readFile(path, "utf8"));

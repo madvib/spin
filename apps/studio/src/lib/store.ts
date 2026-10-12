@@ -15,6 +15,7 @@ import { parseTokens, validateLegibility } from "@spin/theme";
 import { indexTree } from "@spin/theme";
 import type { ValidationIssue } from "@spin/theme";
 import { listProjectThemes } from "./themes.ts";
+import { spinClient, spinClientAt } from "./client.ts";
 import type { StudioTheme } from "./themes.ts";
 
 /**
@@ -249,7 +250,37 @@ export function setThemeText(next: string): boolean {
     },
   }));
   setDocs((prev) => ({ ...prev, [name]: next }));
+  void pushOverlay(name, next);
   return true;
+}
+
+/**
+ * The running app re-themes on every committed edit.
+ *
+ * Fire-and-forget: the editor already moved and the overlay is a preview
+ * channel, not a write — a failed push leaves the text intact and the next
+ * edit retries. Unparseable text never reaches the cell; the document the
+ * app shows is always one the preset can generate from.
+ */
+async function pushOverlay(name: string, text: string): Promise<void> {
+  let document: unknown;
+  try {
+    document = JSON.parse(text);
+  } catch {
+    return;
+  }
+  try {
+    // The overlay belongs to the process showing it. Mounted, that is this
+    // origin; standalone, it is the app `?app=` names — a second server
+    // with its own cell, which this origin's overlay would never reach.
+    const base = new URLSearchParams(location.search).get("app");
+    const client = base !== null
+      ? await spinClientAt(new URL("/__spin/rpc", base).toString())
+      : await spinClient();
+    await client.overlay.set({ themes: { [name]: document } });
+  } catch {
+    // Preview channel only; the text is the source of truth.
+  }
 }
 
 /** Whether an undo is available. */
@@ -276,6 +307,7 @@ export function undo(): void {
     },
   }));
   setDocs((prev) => ({ ...prev, [name]: previous }));
+  void pushOverlay(name, previous);
 }
 
 export function redo(): void {
@@ -292,6 +324,7 @@ export function redo(): void {
     },
   }));
   setDocs((prev) => ({ ...prev, [name]: next }));
+  void pushOverlay(name, next);
 }
 
 /** Discards the editor text since the last write. */
@@ -299,6 +332,7 @@ export function revertToSaved(name: string): void {
   const snapshot = saved()[name];
   if (snapshot === undefined) return;
   setDocs((prev) => ({ ...prev, [name]: snapshot }));
+  void pushOverlay(name, snapshot);
 }
 
 /** Marks the active theme written. The caller persists; this updates state. */

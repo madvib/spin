@@ -20,6 +20,11 @@ export interface DevServer {
 }
 import { spinPreset } from "./index.ts";
 
+// The Deno global the plugin defaults its root from. Declared, not
+// imported: bundler consumers typecheck this file without Deno types, and
+// `configResolved` overwrites the default before anything generates.
+declare const Deno: { cwd(): string } | undefined;
+
 /**
  * The id `load` answers to.
  *
@@ -44,9 +49,12 @@ export interface SpinPluginOptions {
    * Install middleware on the dev server — the API, the studio bundle, and
    * later the completion endpoint. The plugin cannot import `@spin/api`
    * (dependencies point the other way), so the app that runs both passes
-   * this in.
+   * this in. Receives the server and the project root the plugin resolved,
+   * so the mount can point filesystem procedures at the project.
    */
-  readonly mount?: (server: unknown) => void;
+  readonly mount?: (
+    host: { server: unknown; root: string },
+  ) => void;
 }
 
 /**
@@ -80,7 +88,10 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  * content, and any extra presets such as icons.
  */
 export const spin = createUnplugin<SpinPluginOptions>((options) => {
-  let root = Deno.cwd();
+  // `configResolved` sets this before anything generates; the default only
+  // covers non-vite hosts. Guarded because the studio typechecks this file
+  // without Deno types, and an unguarded reference is a build break there.
+  let root = typeof Deno !== "undefined" ? Deno.cwd() : process.cwd();
   let envMode: "dev" | "build" = "build";
   // The walk is the expensive half and content changes rarely, so the scan
   // is cached and the stylesheet regenerates from it. An overlay change
@@ -149,7 +160,7 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
         }
       });
       server.httpServer?.once("close", stop);
-      options.mount?.(server);
+      options.mount?.({ server, root });
     },
     resolveId(id) {
       return id === "uno.css" ? VIRTUAL_ID : null;

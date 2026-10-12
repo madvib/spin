@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DISCOVERY_FILE, startDaemon } from "@spin/api/daemon";
+import { startDaemon } from "@spin/api/daemon";
 import { parseTokens, themeModes, validateTokens } from "@spin/theme";
 import { createSpinClient, type SpinClient } from "@spin/api";
 
@@ -250,32 +250,16 @@ describe("daemon project.themes over HTTP", () => {
     );
   });
 
-  it("publishes discovery so a client can find the port", async () => {
-    // A client cannot guess a port it was never told. The daemon writes one,
-    // and it is gone on close.
-    const bound = new URL(daemon.url).port;
-    const doc = JSON.parse(readFileSync(join(dir, DISCOVERY_FILE), "utf8")) as {
-      port: number;
-      path: string;
-    };
-    assertEquals(doc.port, Number(bound), "discovery names the bound port");
-    assertEquals(doc.path, "/rpc");
-  });
-
-  it("refuses a cross-origin caller whose origin is not this machine", async () => {
-    // A wildcard CORS header on a daemon that writes to disk is a remote
-    // write for any page that can reach the port; loopback scoping is what
-    // makes that impossible.
-    const remote = await fetch(daemon.url + "/project/themes/list", {
-      method: "OPTIONS",
-      headers: { origin: "https://evil.example" },
+  it("serves the same app the dev server mounts", async () => {
+    // One Hono app, every host: the daemon's procedures answer at the same
+    // path the middleware claims, so a client written against one works
+    // against the other without a second address to discover.
+    const res = await fetch(daemon.url + "/overlay/get", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ json: {} }),
     });
-    assertEquals(remote.status, 403, "a non-loopback origin is refused");
-    const own = await fetch(daemon.url + "/project/themes/list", {
-      method: "OPTIONS",
-      headers: { origin: "http://localhost:5193" },
-    });
-    assertEquals(own.status, 204, "the studio's own origin is accepted");
+    assertEquals(res.status, 200, "the daemon answers its own procedures");
   });
 
   it("refuses a name that escapes the themes directory", async () => {
