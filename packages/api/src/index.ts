@@ -21,6 +21,7 @@ import { previewRouter } from "./preview-procedures.ts";
 export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
 export { previewRouter } from "./preview-procedures.ts";
+export { previewContract } from "./preview-procedures.ts";
 export {
   initFiles,
   isWired,
