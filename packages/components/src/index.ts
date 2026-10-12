@@ -23,6 +23,7 @@ export { editable } from "./spin-editable/editable.machine-def.ts";
 export { menu } from "./spin-menu/menu.machine-def.ts";
 export { numberInput } from "./spin-number-input/number-input.machine-def.ts";
 export { pinInput } from "./spin-pin-input/pin-input.machine-def.ts";
+export { popover } from "./spin-popover/popover.controller-def.ts";
 export { select } from "./spin-select/select.machine-def.ts";
 export { tags } from "./spin-tags-input/tags.machine-def.ts";
 export { timer } from "./spin-timer/timer.machine-def.ts";

@@ -22,6 +22,7 @@ import "./spin-dialog/spin-dialog.html";
 import "./spin-editable/spin-editable.html";
 import "./spin-menu/spin-menu.html";
 import "./spin-number-input/spin-number-input.html";
+import "./spin-popover/spin-popover.html";
 import "./spin-pin-input/spin-pin-input.html";
 import "./spin-select/spin-select.html";
 import "./spin-tags-input/spin-tags-input.html";

@@ -14,6 +14,7 @@
     "./menu": "./src/spin-menu/spin-menu.html",
     "./number-input": "./src/spin-number-input/spin-number-input.html",
     "./pin-input": "./src/spin-pin-input/spin-pin-input.html",
+    "./popover": "./src/spin-popover/spin-popover.html",
     "./select": "./src/spin-select/spin-select.html",
     "./tags-input": "./src/spin-tags-input/spin-tags-input.html",
     "./timer": "./src/spin-timer/spin-timer.html",

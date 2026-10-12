@@ -115,13 +115,27 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         // and the tag); the consume name is the export (camel). Resolve the
         // path through the same dash mapping the attribute spellings use, or
         // a camelCase consume name never finds its def and the element
-        // silently mounts without its machine.
+        // silently mounts without its machine. A `.controller-def.ts` is the
+        // platform tier: same slot, no machine.
         const defStem = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-        const defFile = path.join(dir, `${defStem}.machine-def.ts`);
-        try {
-          await fs.access(defFile);
-          const defMod = `./${defStem}.machine-def.ts`;
-          consumeImports.push(`import { ${name} } from ${JSON.stringify(defMod)};`);
+        const stems = [`${defStem}.machine-def.ts`, `${defStem}.controller-def.ts`];
+        let defMod: string | undefined;
+        for (const stem of stems) {
+          try {
+            await fs.access(path.join(dir, stem));
+            defMod = `./${stem}`;
+            break;
+          } catch {
+            // Next stem.
+          }
+        }
+        if (defMod === undefined) {
+          // No def file: consume name is inert.
+          continue;
+        }
+        {
+          const found = defMod;
+          consumeImports.push(`import { ${name} } from ${JSON.stringify(found)};`);
           const bridge = `${name}Bridge`;
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
@@ -136,8 +150,6 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
             `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
             `  own(() => ${bridge}.dispose());`
           );
-        } catch {
-          // No machine-def file: consume name is inert.
         }
       }
       const hasConsume = consumeCalls.length > 0;

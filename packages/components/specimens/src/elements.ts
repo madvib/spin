@@ -315,6 +315,13 @@ declare module "solid-js" {
         "prop:open"?: boolean;
         "prop:closeOnSelect"?: boolean;
       };
+      "spin-popover": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        "prop:label"?: string;
+      };
       "spin-toast": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

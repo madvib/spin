@@ -8,6 +8,7 @@ import Editable from "./routes/editable.tsx";
 import Menu from "./routes/menu.tsx";
 import NumberInput from "./routes/number-input.tsx";
 import PinInput from "./routes/pin-input.tsx";
+import Popover from "./routes/popover.tsx";
 import Select from "./routes/select.tsx";
 import Tags from "./routes/tags.tsx";
 import Timer from "./routes/timer.tsx";
@@ -82,6 +83,14 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/select",
     group: "Selection",
     component: Select,
+  },
+  {
+    id: "popover",
+    title: "Popover",
+    blurb: "Platform-owned: native popover behind the same app-controller handle as a machine.",
+    path: "/popover",
+    group: "Disclosure",
+    component: Popover,
   },
   {
     id: "cascade",
