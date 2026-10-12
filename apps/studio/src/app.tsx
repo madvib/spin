@@ -119,11 +119,11 @@ export default function App() {
           }
           <div
             data-theme={STUDIO_THEME}
-            class="flex flex-col h-screen bg-surface"
+            class="stack h-screen bg-surface"
           >
             <nav
               aria-label="Studio"
-              class="flex items-center gap-4 p-4 bg-surface-raised shrink-0"
+              class="row shrink-0 bg-surface-raised p-4"
             >
               <A href="/">
                 <span class="flex items-center gap-4">
@@ -134,7 +134,7 @@ export default function App() {
                   <span>Spin</span>
                 </span>
               </A>
-              <ul class="flex flex-1 items-center justify-center gap-4">
+              <ul class="row flex-1 justify-center">
                 <For each={CONCERNS}>
                   {([href, label]) => (
                     <li>
@@ -156,12 +156,9 @@ export default function App() {
               </ul>
               <ThemePicker />
             </nav>
-            <div class="flex items-center gap-4 p-4 shrink-0 border-b border-border">
-              <span>
-                Editing <code>{activeName()}</code> {
-                  /* The daemon reports the path relative to its project, so
-                     nothing here carries the machine it ran on. */
-                }
+            <div class="row shrink-0 border-b border-border p-4">
+              <span class="flex-1">
+                Editing <code>{activeName()}</code>{" "}
                 {activePath() ?? "…"} · previewing {activeMode()}
               </span>
               <button
@@ -185,7 +182,7 @@ export default function App() {
                 <i class="i-lucide-redo-2 icon-md" />
               </button>
               <p
-                class="text-red-600 text-sm"
+                class="text-sm text-red-600"
                 hidden={lastRefusal() === undefined}
               >
                 Edit refused: {lastRefusal() ?? ""}
@@ -212,7 +209,7 @@ export default function App() {
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
-              class="flex flex-col flex-1 min-h-0"
+              class="stack min-h-0 flex-1"
             >
               <PreviewStyles />
               <Suspense>{props.children}</Suspense>

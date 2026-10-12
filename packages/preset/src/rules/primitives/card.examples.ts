@@ -52,7 +52,7 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-content>
-              <p>${sample.article.body[0]}</p>
+              <p>${sample.article.paragraphs[0]}</p>
             </card-content>
           </card>`,
     ),
