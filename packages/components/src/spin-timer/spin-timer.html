@@ -9,13 +9,13 @@
       <template for={timer.getUnits()} as={unit} key={unit.type}>
         <div class="flex w-10 flex-col items-center gap-0.5" {...timer.getItemProps({ type: unit.type })}>
           <span
-            class="text-2xl font-semibold leading-none tabular-nums text-text transition-colors duration-fast ease-decelerate"
+            class="text-2xl font-semibold leading-1 tabular-nums text-text transition-colors duration-fast ease-decelerate"
             {...timer.getItemValueProps({ type: unit.type })}
           >{timer.formattedTime[unit.type]}</span>
           <span class="text-xs text-muted transition-colors duration-fast ease-decelerate" {...timer.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
         </div>
         <span
-          class="pt-1 text-lg leading-none text-muted transition-colors duration-fast ease-decelerate data-[state=running]:text-primary"
+          class="pt-1 text-lg leading-1 text-muted transition-colors duration-fast ease-decelerate data-[state=running]:text-primary"
           aria-hidden="true"
           {...timer.getSeparatorProps({ after: unit.type })}
         >:</span>

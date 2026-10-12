@@ -36,8 +36,8 @@ export function DemoCard(props: {
   // card, it is a page. The component inside stays bounded by `bound`, so
   // the card never becomes a slab.
   const shell = props.width === "full" || props.width === "lg"
-    ? "flex min-w-0 basis-full flex-col"
-    : "flex min-w-0 basis-full flex-col md:basis-[calc(50%-0.75rem)]";
+    ? "flex min-w-0 flex-col md:col-span-2"
+    : "flex min-w-0 flex-col";
   return (
     <figure
       class={`m-0 ${shell} rounded-lg border border-solid border-border bg-surface`}
@@ -73,7 +73,9 @@ export function DemoReadout(props: { children: JSX.Element }) {
 /** The examples grid: cards wrap, so a lone example fills its row and a
  * pair sits two-up. The card grows; the component inside stays bounded. */
 export function DemoGrid(props: { children: JSX.Element }) {
-  return <div class="flex flex-wrap gap-6">{props.children}</div>;
+  // A two-column grid on md+: a lone example takes one column (a card, not a
+  // slab), a pair sits two-up, and a `lg`/`full` demo spans both.
+  return <div class="grid gap-6 md:grid-cols-2">{props.children}</div>;
 }
 
 /** A row of quiet controls. */

@@ -28,9 +28,15 @@ export function claimedClasses(css: string): Set<string> {
   return out;
 }
 
-/** The escaped class selector for a utility. */
+/** The escaped class selector for a utility.
+ *
+ * The escape set is the characters a utility's own grammar can produce:
+ * a variant separator (`:`), a fraction slash (`/`), and a dotted step name
+ * (`0.5`, `1.5`). An unescaped dot in a selector is a CSS class-name
+ * separator, so `.p-0.5` would read as "class p-0 then class 5" — the rule
+ * exists and the oracle would call it missing. */
 export function selectorFor(utility: string): string {
-  return `.${utility.replace(/([:/])/g, "\\$1")}`;
+  return `.${utility.replace(/([.:/])/g, "\\$1")}`;
 }
 
 /** Whether a sheet claims this class. */

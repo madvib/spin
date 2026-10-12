@@ -1,5 +1,5 @@
 import { createSignal, onMount } from "solid-js";
-import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
+import { DEMO_BUTTON, DemoCard, DemoControls, DemoGrid, DemoReadout } from "../demo.tsx";
 
 type TreeElement = HTMLElement & {
   nodes?: string;
@@ -99,9 +99,10 @@ export default function TreeViewFsm() {
   });
 
   return (
-    <DemoCard
+    <DemoGrid>
+      <DemoCard
       title="Per-node state, ~30 events, lazy branches"
-      width="lg"
+      width="md"
       note="A hard machine as config plus pure assigns and a view layer that owns flattening. The status line is the last key the machine answered."
     >
       <div class="mb-2 flex items-center gap-2 px-1">
@@ -148,5 +149,6 @@ export default function TreeViewFsm() {
         <div>{status()}</div>
       </DemoReadout>
     </DemoCard>
+    </DemoGrid>
   );
 }

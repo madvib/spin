@@ -5,7 +5,7 @@ import {
   WIDTH_KEYWORDS,
 } from "../utils/vocabulary.ts";
 import { arbitraryValue } from "../utils/factories.ts";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { lengthOf, type ThemeContext, tokenOf } from "../utils/lookup.ts";
 
 /**
  * The sizing names that do not depend on the theme.
@@ -45,7 +45,7 @@ export function sizingRules(): Rule[] {
         // not pretend to be one. Emitted as written, or not at all.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { width: literal };
-        const token = tokenOf(ctx, "spacing", name);
+        const token = lengthOf(ctx, name);
         if (token) return { width: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { width: fraction };
@@ -61,7 +61,7 @@ export function sizingRules(): Rule[] {
         // As `w-`: the escape hatch, and the only height that is not a token.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { height: literal };
-        const token = tokenOf(ctx, "spacing", name);
+        const token = lengthOf(ctx, name);
         if (token) return { height: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { height: fraction };
@@ -121,7 +121,7 @@ export function sizingRules(): Rule[] {
 
         // And the spacing scale, so an exact measure is one step away rather
         // than an inline style.
-        const step = tokenOf(ctx, "spacing", name);
+        const step = lengthOf(ctx, name);
         if (step) return { [prop]: step };
 
         return undefined;

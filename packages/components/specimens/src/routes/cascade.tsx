@@ -1,6 +1,6 @@
 import { createSignal, onMount } from "solid-js";
 import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.bridge.ts";
-import { DEMO_BUTTON, DemoCard, DemoControls, DemoReadout } from "../demo.tsx";
+import { DEMO_BUTTON, DemoCard, DemoControls, DemoGrid, DemoReadout } from "../demo.tsx";
 
 interface CascadeElement extends HTMLElement {
   /** The tree crosses as JSON text: the scope grammar has no recursive type. */
@@ -119,7 +119,8 @@ export default function CascadeFsm() {
   });
 
   return (
-    <DemoCard
+    <DemoGrid>
+      <DemoCard
       title="Location"
       width="md"
       note="The component carries a hidden input that submits as location when it sits in a form."
@@ -173,5 +174,6 @@ export default function CascadeFsm() {
         </div>
       </DemoReadout>
     </DemoCard>
+    </DemoGrid>
   );
 }

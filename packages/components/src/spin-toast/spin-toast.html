@@ -1,7 +1,7 @@
 <scope>props={ placement: string = "bottom", overlap: bool = false, max: int = 24, gap: int = 16, offsets: string = "1rem", removeDelay: int = 200, hotkey: string = "", pauseOnPageIdle: bool = true, label: string = "Notifications", closable: bool = true, items: { id: string, title: string, description: string, type: string, duration: int, priority: int, action: string }[] = [] } consume={ toast }</scope>
 
 <div
-  class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col [gap:var(--toast-gap,1rem)] px-4 data-[side=top]:[top:var(--toast-offset,1rem)] data-[side=bottom]:[bottom:var(--toast-offset,1rem)] data-[align=start]:[left:var(--toast-offset,1rem)] data-[align=end]:[right:var(--toast-offset,1rem)] data-[align=center]:left-1/2 data-[align=center]:-translate-x-1/2"
+  class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col [gap:var(--toast-gap,1rem)] px-4 data-[side=top]:[top:var(--toast-offset,1rem)] data-[side=bottom]:[bottom:var(--toast-offset,1rem)] data-[align=start]:[left:var(--toast-offset,1rem)] data-[align=end]:[right:var(--toast-offset,1rem)] data-[align=center]:left-1/2 data-[align=center]:right-1/2"
   {...toast.getGroupProps()}
 >
   <template for={toast.getToasts()} as={row} key={row.id}>
@@ -13,7 +13,7 @@
         <span
           aria-hidden="true"
           data-type={row.type}
-          class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate data-[type=success]:text-semantic-success data-[type=warning]:text-semantic-warning data-[type=error]:text-semantic-error data-[type=info]:text-accent data-[type=loading]:animate-spin"
+          class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate data-[type=success]:text-semantic-success data-[type=warning]:text-semantic-warning data-[type=error]:text-semantic-error data-[type=info]:text-accent"
         >&#9679;</span>
         <div class="min-w-0 flex-1">
           <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>

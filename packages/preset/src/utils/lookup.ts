@@ -92,3 +92,23 @@ export function tokenOf(
   if (direct !== undefined) return direct;
   return extendedTheme(ctx, [group, ...extraKeys], name);
 }
+
+/**
+ * A length for a spacing step.
+ *
+ * The token when the theme can name it, and the grid unit scaled when the
+ * step name carries a dot: a dot is not legal in a custom property, so
+ * `--spacing-0.5` can never exist and `p-0.5` has to be the unit times the
+ * number. Same shape a fraction resolves to — one number times one unit —
+ * so a half step and a half fraction read alike.
+ */
+export function lengthOf(
+  ctx: ThemeContext | undefined,
+  name: string,
+): string | undefined {
+  if (/^\d*\.\d+$/.test(name)) {
+    const unit = tokenOf(ctx, "spacing", "unit");
+    return unit === undefined ? undefined : `calc(${unit} * ${name})`;
+  }
+  return tokenOf(ctx, "spacing", name);
+}

@@ -27,6 +27,7 @@
     "@spin/lint": "./packages/lint/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
     "@spin/components": "./packages/components/src/index.ts",
+    "@std/fs/walk": "jsr:@std/fs@^1.0.0/walk",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
     "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",
@@ -50,14 +51,15 @@
     "test": "deno test --allow-read --allow-net packages/",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "check": "deno check packages/",
+    "check": "deno check packages/ && deno task -f check:classes",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
     "visual": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env oracles/visual/check.ts",
     "serve": "deno run -A serve.ts",
     "demo:tree": "node node_modules/vite/bin/vite.js packages/components/demo",
     "coverage": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null || true; deno coverage coverage --lcov || true; node tooling/coverage-summary.mjs coverage/lcov.info",
     "coverage:html": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null && deno coverage coverage --html",
-    "coverage:commit": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage $(git diff --name-only HEAD --diff-filter=AM -- '*.ts' | grep -v node_modules | tr '\n' ' ') && deno coverage coverage --detailed"
+    "coverage:commit": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage $(git diff --name-only HEAD --diff-filter=AM -- '*.ts' | grep -v node_modules | tr '\n' ' ') && deno coverage coverage --detailed",
+    "check:classes": "deno run -A tooling/uno-class-check.ts"
   },
   "fmt": {
     "exclude": [

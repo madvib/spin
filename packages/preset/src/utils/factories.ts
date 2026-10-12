@@ -1,7 +1,7 @@
 import type { Rule } from "@unocss/core";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
 import type { ThemeRef, ThemeRefGroup } from "@spin/theme";
-import { extendedTheme, groupOf, type ThemeContext } from "./lookup.ts";
+import { extendedTheme, lengthOf, type ThemeContext } from "./lookup.ts";
 
 /**
  * An alternation of a group's names, for autocomplete templates.
@@ -31,9 +31,8 @@ export function spacingRule(
   return [
     pattern,
     ([, name = ""]: string[], ctx?: ThemeContext) => {
-      const path = groupOf(ctx, "spacing")[name];
-      const ref = path ? path : extendedTheme(ctx, ["spacing"], name);
-      if (!ref) return undefined;
+      const ref = lengthOf(ctx, name);
+      if (ref === undefined) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },
     { autocomplete },
@@ -180,7 +179,7 @@ export function insetRule(
       if (literal !== undefined) {
         return Object.fromEntries(props.map((prop) => [prop, literal]));
       }
-      const token = groupOf(ctx, "spacing")[name];
+      const token = lengthOf(ctx, name);
       const ref = token ? token : FRACTIONS[name] ?? INSET_KEYWORDS[name] ??
         extendedTheme(ctx, ["spacing"], name);
       if (!ref) return undefined;
