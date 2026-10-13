@@ -109,12 +109,18 @@ interface ServerResponse {
  * `mount` option. Same origin, so no CORS handlers: the split that needed
  * them — studio on one port, daemon on another — is gone.
  */
-export function mountSpinApp(root: string): (
+export function mountSpinApp(
+  root: string,
+  options?: { studioDir?: string },
+): (
   host: { server: unknown; root: string },
 ) => void {
   const resolveRoot = (fallback: string): string => root || fallback;
   return ({ server, root: fallback }) => {
-    const app = createSpinApp({ root: resolveRoot(fallback) });
+    const app = createSpinApp({
+      root: resolveRoot(fallback),
+      studioDir: options?.studioDir,
+    });
     const middlewares = (server as MiddlewareHost).middlewares;
     middlewares.use((req, res, next) => {
       const url = req.url ?? "/";
@@ -223,9 +229,54 @@ export function createSpinApp(options: SpinAppOptions): Hono {
   // the tool and the API it talks to are one origin by construction.
   if (options.studioDir !== undefined) {
     const dir = options.studioDir;
-    outer.use(`${sideRoot}/studio/*`, async (c, next) => {
-      const { serveStatic } = await import("hono/deno");
-      await serveStatic({ root: dir })(c, next);
+    const prefix = `${sideRoot}/studio`;
+    outer.use(`${prefix}/*`, async (c, next) => {
+      // Directories fall through to the index fallback below: hono's
+      // serveStatic neither returns nor calls `next()` for a directory
+      // path, which hangs the chain with an unfinalized context.
+      // `c.req.path` is the route-relative path inside the mount, so
+      // compare against the file tail rather than the full URL.
+      const tail = c.req.path.split("/").pop() ?? "";
+      if (tail === "" || !tail.includes(".")) return next();
+      // Served directly, not through hono's serveStatic: on a miss it
+      // neither returns nor calls `next()`, which hangs the chain with an
+      // unfinalized context instead of falling through to the index
+      // fallback below. A miss here is a fallthrough, not a failure.
+      const { readFile, stat } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      const rel = c.req.path.replace(prefix, "");
+      try {
+        const probe = await stat(join(dir, rel));
+        if (!probe.isFile()) return next();
+        const body = await readFile(join(dir, rel));
+        const mime = rel.endsWith(".js")
+          ? "text/javascript"
+          : rel.endsWith(".css")
+          ? "text/css"
+          : rel.endsWith(".html")
+          ? "text/html"
+          : rel.endsWith(".json")
+          ? "application/json"
+          : rel.endsWith(".svg")
+          ? "image/svg+xml"
+          : "application/octet-stream";
+        return c.body(body, 200, { "content-type": mime });
+      } catch {
+        return next();
+      }
+    });
+    // The bundle is one page: every studio route serves the same entry,
+    // and the client router takes it from there. Read directly — the
+    // middleware form with an overridden path never finalizes the context.
+    outer.get(`${prefix}/*`, async (c) => {
+      const { readFile } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      try {
+        const html = await readFile(join(dir, "index.html"), "utf8");
+        return c.html(html);
+      } catch {
+        return c.notFound();
+      }
     });
   }
   return outer;

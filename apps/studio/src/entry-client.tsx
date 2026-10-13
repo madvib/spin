@@ -1,6 +1,7 @@
 // @refresh reload
-import { mount, StartClient } from "@solidjs/start/client";
+import { render } from "solid-js/web";
 import { injectShortcuts } from "./lib/layout.ts";
+import App from "./app.tsx";
 
 // The semantic layer ships through the preset preflight, not an injected tag.
 // `entry-client` therefore mounts and nothing else: there is no second,
@@ -9,4 +10,4 @@ import { injectShortcuts } from "./lib/layout.ts";
 // The one addition is the app's own layout shortcuts, which are dogfooded here
 // and promoted to the preset only once the composition is proven.
 injectShortcuts();
-mount(() => <StartClient />, document.getElementById("app")!);
+render(() => <App />, document.getElementById("app")!);

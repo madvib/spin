@@ -16,8 +16,7 @@
     "allowJs": true,
     "types": [
       "vite/client",
-      "node",
-      "@solidjs/start/env"
+      "node"
     ],
     "paths": {
       "~/*": [

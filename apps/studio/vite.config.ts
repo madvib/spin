@@ -1,12 +1,14 @@
 import { resolve } from "node:path";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
-import { nitro } from "nitro/vite";
-import { solidStart } from "@solidjs/start/config";
+import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import studioTheme from "./theme.json" with { type: "json" };
 export default defineConfig({
+  // Built to be served under `/__spin/studio/`: absolute asset paths would
+  // escape the mount and 404 behind the middleware.
+  base: "/__spin/studio/",
   plugins: [
     spin.vite({
       // The chrome is themed by the studio's own static theme. Project
@@ -32,13 +34,10 @@ export default defineConfig({
         },
       },
     }),
-    // The studio is an authenticated tool, not a page: nothing here is
-    // crawlable and nothing needs a server-rendered first paint. Rendering on
-    // the server would mean the page cannot load without the daemon answering
-    // an HTTP fetch mid-render, which couples the studio's uptime to a process
-    // the client can equally well talk to. Client-only is the boring shape.
-    solidStart({ ssr: false }),
-    nitro(),
+    // The studio is a static bundle served by the middleware: no SSR,
+    // no server functions, no second process. The browser dials the same
+    // origin the bundle was served from, which is the whole point.
+    solid(),
   ],
   resolve: {
     alias: [

@@ -21,31 +21,20 @@ import type { StudioTheme } from "./themes.ts";
 /**
  * Every theme on disk at load. Refresh is explicit: the user picks it up.
  *
- * Lazy, because this module also loads on the server: a resource created at
- * module scope runs during SSR, where there is no request context for it to
- * resolve under. Creating it on first read keeps the browser the only place
- * it ever runs.
+ * Module scope, because there is no server: the studio is a static bundle,
+ * so the browser is the only place this ever runs.
  */
-let registryCache:
-  | ReturnType<
-    typeof createResource<Awaited<ReturnType<typeof listProjectThemes>>>
-  >
-  | undefined;
+const [registryData, { refetch: refetchResource }] = createResource(
+  listProjectThemes,
+);
 
-function registryResource() {
-  if (registryCache === undefined) {
-    registryCache = createResource(listProjectThemes);
-  }
-  return registryCache;
-}
-
-/** The registry resource, created on first read. */
+/** The registry, or `undefined` before it answers. */
 export function registry() {
-  return registryResource()[0]();
+  return registryData();
 }
 
 export function refetchThemes(): void {
-  registryResource()[1].refetch();
+  refetchResource();
 }
 
 /**
@@ -68,29 +57,19 @@ createEffect(() => {
  * The component registry, read once and shared.
  *
  * The side list and the component page both need it, and a resource per
- * caller would fetch the payload twice for one page load. Created lazily so
- * it never runs under SSR.
+ * caller would fetch the payload twice for one page load.
  */
-let libraryCache:
-  | ReturnType<
-    typeof createResource<Awaited<ReturnType<typeof listPrimitives>>>
-  >
-  | undefined;
+const [libraryData, { refetch: refetchLibraryResource }] = createResource(
+  listPrimitives,
+);
 
-function libraryResource() {
-  if (libraryCache === undefined) {
-    libraryCache = createResource(listPrimitives);
-  }
-  return libraryCache;
-}
-
-/** Every component the daemon knows, or `undefined` before it answers. */
+/** Every component the API knows, or `undefined` before it answers. */
 export function library(): readonly RpcComponent[] | undefined {
-  return libraryResource()[0]();
+  return libraryData();
 }
 
 export function refetchLibrary(): void {
-  libraryResource()[1].refetch();
+  refetchLibraryResource();
 }
 
 /**

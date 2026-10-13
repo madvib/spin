@@ -13,7 +13,15 @@ import { activeName, renderedMarkup, themeText } from "../lib/store.ts";
 
 export default function PreviewStyles() {
   const [css] = createResource(
-    () => ({ tree: analyzeTheme(themeText()).tree, name: activeName() }),
+    // The markup is a key, not just an argument: it arrives after first
+    // render, and a resource keyed only on theme would generate for an
+    // empty page and never refetch once the route registers what it
+    // renders. Every specimen would sit unstyled.
+    () => ({
+      tree: analyzeTheme(themeText()).tree,
+      name: activeName(),
+      markup: renderedMarkup(),
+    }),
     () => previewCssSafely(themeText(), activeName(), renderedMarkup()),
   );
 

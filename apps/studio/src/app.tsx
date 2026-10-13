@@ -9,8 +9,16 @@
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
-import { A, Router } from "@solidjs/router";
-import { FileRoutes } from "@solidjs/start/router";
+import { A, Route, Router } from "@solidjs/router";
+import ColorsPage from "./routes/colors.tsx";
+import ComponentsLayout from "./routes/components.tsx";
+import ComponentPage from "./routes/components/[name].tsx";
+import OverviewPage from "./routes/index.tsx";
+import MotionPage from "./routes/motion.tsx";
+import SpacingPage from "./routes/spacing.tsx";
+import SpecimenPage from "./routes/specimen.tsx";
+import SurfacesPage from "./routes/surfaces.tsx";
+import UtilitiesPage from "./routes/utilities.tsx";
 import { createResource, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
@@ -110,6 +118,9 @@ export default function App() {
 
   return (
     <Router
+      // The bundle is served under `/__spin/studio/`; dev serves at `/`.
+      // Vite injects the build's base here, so one line covers both.
+      base={import.meta.env.BASE_URL.replace(/\/$/, "")}
       root={(props) => (
         <MetaProvider>
           <Title>spin theme studio</Title>
@@ -237,7 +248,16 @@ export default function App() {
         </MetaProvider>
       )}
     >
-      <FileRoutes />
+      <Route path="/" component={OverviewPage} />
+      <Route path="/specimen" component={SpecimenPage} />
+      <Route path="/colors" component={ColorsPage} />
+      <Route path="/surfaces" component={SurfacesPage} />
+      <Route path="/spacing" component={SpacingPage} />
+      <Route path="/motion" component={MotionPage} />
+      <Route path="/components" component={ComponentsLayout}>
+        <Route path="/:name" component={ComponentPage} />
+      </Route>
+      <Route path="/utilities" component={UtilitiesPage} />
     </Router>
   );
 }

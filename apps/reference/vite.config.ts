@@ -21,7 +21,11 @@ export default defineConfig({
     spin.vite({
       themes: starterThemes,
       presets: [presetIcons({ collections: { lucide } as never })],
-      mount: mountSpinApp(here),
+      // The studio bundle, built by `apps/studio/deno task build`. Absent
+      // until built — the mount skips it rather than failing the server.
+      mount: mountSpinApp(here, {
+        studioDir: resolve(here, "../studio/dist"),
+      }),
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the
       // pipeline include admits plain .ts because examples are data

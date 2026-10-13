@@ -15,12 +15,12 @@ import { createSpinClient, type SpinClient } from "@spin/api";
 /**
  * The API base, absolute against the page's own origin so it follows
  * whatever port the dev server took. Built at call time, not module scope:
- * this module also loads under SSR, where there is no `location`, and the
- * studio renders on the client only.
+ * the studio is a static bundle with no server, and the address follows
+ * the page that loaded it.
  */
 function rpcUrl(): string {
-  // Under SSR `location.origin` is the string "null": the studio renders on
-  // the client only, so fall back to the page URL rather than a dead origin.
+  // A `file://` preview or an opaque origin reports `"null"`: fall back
+  // to the page URL rather than a dead origin.
   const origin = location.origin === "null" ? location.href : location.origin;
   return new URL("/__spin/rpc", origin).toString();
 }
