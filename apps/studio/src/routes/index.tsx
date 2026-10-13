@@ -1,5 +1,6 @@
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
+import { Alert } from "../components/spin.tsx";
 import { analyzeTheme, rootDescription } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
 import {
@@ -55,37 +56,68 @@ export default function OverviewPage() {
   return (
     <div class="flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       <h1 class="text-2xl">{activeName()}</h1>
-      <p>
+      <p class="text-text-muted">
         {themeSummaries().find((summary) => summary.name === activeName())
           ?.file ?? "packages/theme/src/themes"} ·{" "}
         {rootDescription(themeText())}
       </p>
-      <Show when={report().issues.length > 0}>
-        <ul>
-          <For each={report().issues}>
-            {(issue) => <li>{issue}</li>}
-          </For>
-        </ul>
+      {
+        /* The verdict is the answer to the only question this page is asked:
+           does the theme hold together? It comes first and says so either
+           way, because a silent readiness signal is a signal nobody reads. */
+      }
+      <Show
+        when={report().issues.length === 0}
+        fallback={
+          <Alert variant="danger">
+            {report().issues.length} issue
+            {report().issues.length === 1 ? "" : "s"}{" "}
+            · the first is what to fix before anything looks wrong
+          </Alert>
+        }
+      >
+        <Alert variant="success">
+          Ties together — every legibility check passes in the {activeMode()}
+          {" "}
+          mode
+        </Alert>
       </Show>
       <h2 class="text-xl">Palette</h2>
       <div class="flex flex-wrap gap-4">
-        <For each={colors().slice(0, 12)}>
-          {(row) => (
-            <div
-              class={`h-8 w-16 bg-${
-                row.path.split(".").slice(1).join("-").toLowerCase()
-              }`}
-            />
-          )}
+        <For each={colors()}>
+          {(row) => {
+            const suffix = row.path.split(".").slice(1).join("-")
+              .toLowerCase();
+            return (
+              <div class="stack-sm-sm items-start">
+                <div
+                  class={`h-16 w-24 rounded-md shadow-sm bg-${suffix}`}
+                />
+                <code class="text-xs">{suffix}</code>
+              </div>
+            );
+          }}
         </For>
       </div>
       <h2 class="text-xl">Type</h2>
-      <For each={families()}>
-        {(row) => {
-          const name = row.path.split(".").slice(2).join("-");
-          return <p class={`font-${name}`}>Agile foxes jump quickly.</p>;
-        }}
-      </For>
+      {
+        /* One specimen per family, each named. Three identical sentences
+           with no header is three sentences nobody reads — the name is what
+           makes the comparison a decision. */
+      }
+      <div class="stack">
+        <For each={families()}>
+          {(row) => {
+            const name = row.path.split(".").slice(2).join("-");
+            return (
+              <div class="stack-sm-sm">
+                <code class="text-xs">{name}</code>
+                <p class={`font-${name} text-lg`}>Agile foxes jump quickly.</p>
+              </div>
+            );
+          }}
+        </For>
+      </div>
       <h2 class="text-xl">Spacing</h2>
       <div class="flex items-end gap-4">
         <For each={steps()}>

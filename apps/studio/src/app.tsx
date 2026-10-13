@@ -218,11 +218,9 @@ export default function App() {
                 />
               </button>
               <Show when={lastRefusal() !== undefined}>
-                <Alert
-                  variant="danger"
-                  class="text-sm"
-                  text={`Edit refused: ${lastRefusal()}`}
-                />
+                <Alert variant="danger" class="text-sm">
+                  {`Edit refused: ${lastRefusal()}`}
+                </Alert>
               </Show>
               <button
                 type="button"

@@ -127,36 +127,42 @@ async function checkEditRethemesApp(
   app: string,
   results: Verdict[],
 ): Promise<void> {
-  // The studio commits a real token edit through its own UI first.
+  // 1. From disk: an earlier run that died mid-probe would otherwise leave
+  //    its edit in the overlay, and the probe would measure a change that
+  //    already happened.
+  await page.goto(`${app}/`);
+  await page.eval(
+    `fetch("/__spin/rpc/overlay/clear", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })`,
+  );
+  await page.eval(`new Promise((r) => setTimeout(r, 1500))`);
+  await page.eval("location.reload()");
+  await page.eval(`new Promise((r) => setTimeout(r, 2000))`);
+  const before = await page.eval<string>(
+    `(() => { const t = document.querySelector("[data-theme]"); return t ? getComputedStyle(t).getPropertyValue("--color-primary").trim() : null; })()`,
+  );
+
+  // 2. The studio commits a real token edit through its own UI.
   await page.goto(`${studio}/colors?app=${encodeURIComponent(app)}`);
   const edited = await page.eval<string>(
-    `(async () => { const inputs = [...document.querySelectorAll('input[type="color"]')]; if (!inputs.length) return "no-inputs"; const input = inputs[0]; input.value = "#b91c1c"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); await new Promise((r) => setTimeout(r, 1200)); return "edited"; })()`,
+    `(async () => { const inputs = [...document.querySelectorAll('input[type="color"]')]; if (!inputs.length) return "no-inputs"; const input = inputs[0]; input.value = "#b91c1c"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); await new Promise((r) => setTimeout(r, 1500)); return "edited"; })()`,
   );
-  // The editor's own document, post-edit — already retinted by the commit
-  // above. Carried across the navigation because the app origin has no
-  // project of its own to read one from.
+  // The editor's own document, post-edit — already retinted by the commit.
   const editedDoc = await page.eval<string>(
     `(async () => { const store = await import("/src/lib/store.ts"); return store.themeText(); })()`,
   );
-  // Then the no-reload proof runs without any navigation in between: the
-  // tab boots on the app, stamps itself, writes the overlay, and reads.
-  // A navigation would wipe the stamp and frame the write for a reload.
+
+  // 3. Then the no-reload proof, with no navigation in between: the tab boots
+  //    on the app, stamps itself, writes, and reads.
   await page.goto(`${app}/`);
   await page.eval(
     `localStorage.setItem("spin-theme", "default"); window.__stamp = "not-reloaded"`,
   );
-  await page.eval(`new Promise((r) => setTimeout(r, 1200))`);
-  const before = await page.eval<string>(
-    `(() => { const t = document.querySelector("[data-theme]"); return t ? getComputedStyle(t).getPropertyValue("--color-primary").trim() : null; })()`,
-  );
-  // Raw fetch, not the studio module: this tab is on the app origin
-  // and `/src/lib/client.ts` only exists on the studio. Same HTTP call
-  // the client makes — the channel, byte for byte.
+  await page.eval(`new Promise((r) => setTimeout(r, 1500))`);
   const pushExpr = `(async () => { const doc = JSON.parse(${
     JSON.stringify(editedDoc)
   }); await fetch("/__spin/rpc/overlay/set", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ json: { themes: { default: doc } } }) }); return "pushed"; })()`;
   const pushed = await page.eval<string>(pushExpr);
-  await page.eval(`new Promise((r) => setTimeout(r, 2000))`);
+  await page.eval(`new Promise((r) => setTimeout(r, 2500))`);
   const after = await page.eval<{ p: string | null; stamp: string }>(
     `(() => { const t = document.querySelector("[data-theme]"); return { p: t ? getComputedStyle(t).getPropertyValue("--color-primary").trim() : null, stamp: window.__stamp ?? "reloaded" }; })()`,
   );
@@ -170,9 +176,7 @@ async function checkEditRethemesApp(
   );
   // Leave the app clean for the next run.
   await page.eval(
-    `fetch(${
-      JSON.stringify(app + "/__spin/rpc/overlay/clear")
-    }, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })`,
+    `fetch("/__spin/rpc/overlay/clear", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })`,
   );
 }
 
@@ -186,7 +190,7 @@ async function checkSaveClearsDirty(
   const flow = await page.eval<string>(
     `(async () => {
       const rpc = (proc, input) => fetch("/__spin/rpc" + proc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ json: input }) }).then((x) => x.json()).then((b) => b.json);
-      const original = (await rpc("/project/themes/read", { name: "acme" })).text;
+      const original = (await rpc("/project/themes/read", { name: "default" })).text;
       const inputs = [...document.querySelectorAll('input[type="color"]')];
       if (!inputs.length) return "no-inputs RESTORED=yes";
       const input = inputs[0];
@@ -195,12 +199,12 @@ async function checkSaveClearsDirty(
       input.dispatchEvent(new Event("change", { bubbles: true }));
       await new Promise((r) => setTimeout(r, 1200));
       const save = [...document.querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "Save");
-      if (!save || save.disabled) { await rpc("/project/themes/write", { name: "acme", text: original }); return "cannot-save RESTORED=yes"; }
+      if (!save || save.disabled) { await rpc("/project/themes/write", { name: "default", text: original }); return "cannot-save RESTORED=yes"; }
       save.click();
       await new Promise((r) => setTimeout(r, 2000));
       const after = [...document.querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "Save");
       const state = await rpc("/overlay/get", {});
-      await rpc("/project/themes/write", { name: "acme", text: original });
+      await rpc("/project/themes/write", { name: "default", text: original });
       await rpc("/overlay/clear", {});
       return "saveDisabled=" + (after ? after.disabled : "?") + " dirty=" + JSON.stringify(state.dirty) + " RESTORED=yes";
     })()`,
@@ -226,7 +230,7 @@ async function checkRegistrySeats(
   verdict(
     results,
     "registry seats a project theme",
-    probe.editing.includes("acme") && !probe.buildError,
+    probe.editing.includes("default") && !probe.buildError,
     probe.editing,
   );
 }

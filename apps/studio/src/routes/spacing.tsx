@@ -4,6 +4,7 @@ import { groupTokens } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
 import { editToken } from "../lib/editing";
 import ScaleBar from "../components/demos/ScaleBar";
+import { Card } from "../components/spin.tsx";
 
 function toPx(value: string): number | undefined {
   if (value.trim() === "0") return 0;
@@ -46,7 +47,7 @@ export default function SpacingPage() {
       <div class="flex flex-col gap-2">
         <For each={breakpoints()}>
           {(row) => (
-            <div class="flex items-center gap-4 bg-surface-raised rounded-lg shadow-sm p-4 border border-border">
+            <Card class="split p-4">
               <code class="w-40">{row.path}</code>
               {
                 /*
@@ -59,7 +60,7 @@ export default function SpacingPage() {
               <code class="font-mono text-xs opacity-70">
                 {toPx(row.value) === undefined ? "" : `${toPx(row.value)}px`}
               </code>
-            </div>
+            </Card>
           )}
         </For>
       </div>

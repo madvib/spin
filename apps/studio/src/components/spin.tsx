@@ -12,8 +12,10 @@
  *    which showed up as 48 errors on `createResource` for one added tag.
  * 2. `createElement` is not exported by solid-js 1.9 at all — neither typed
  *    nor at runtime — so a wrapper around it is not available.
- * 3. `innerHTML`, which is how the reference app already renders example
- *    markup, and the only one that compiles. Text is escaped on the way in.
+ * 3. `Dynamic`, which renders the tag properly, keeps children, and puts the
+ *    classes on the element that owns them. The earlier attempt wrapped the
+ *    tag in a span, which meant `class="split p-4"` landed on the wrapper
+ *    and every card's contents sat outside the card the theme drew.
  *
  * Native elements — `button`, `select`, `label`, `input`, `details`, `table`,
  * `meter`, `progress`, `kbd`, `hr` — need none of this and are used directly
@@ -25,59 +27,45 @@
  * fix, and it is a follow-up rather than something to fold into a chrome pass.
  */
 
+import { Dynamic } from "solid-js/web";
+
 /** What a bound element accepts: its own attributes plus the tone. */
 export interface SpinProps {
   /** `variant` is how alert and badge choose their tone. */
   variant?: string;
   /** Extra classes, the same way a utility class would apply. */
   class?: string;
-  /** A body, when it is not passed as `text`. */
-  children?: string;
+  /** The element's contents. */
+  children?: unknown;
+  /** Or a plain body, when there is no markup to pass. */
+  text?: string;
 }
 
-/** Escapes text for interpolation into markup. */
-function escape(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-/**
- * Renders a spin tag from a text body.
- *
- * A span rather than the tag itself: an `<alert>` in the studio's chrome is
- * a message, and putting the rule's base on a host span keeps the markup
- * valid for the browser's parser either way.
- */
-function spinTag(tag: string, props: SpinProps, text: string) {
-  const variant = props.variant === undefined
-    ? ""
-    : ` variant="${escape(props.variant)}"`;
-  const classes = props.class === undefined
-    ? ""
-    : ` class="${escape(props.class)}"`;
+function spinTag(tag: string, props: SpinProps) {
+  const { text, children, ...rest } = props;
+  // `Dynamic` is the honest escape: it renders an arbitrary tag with the
+  // props and children it was given, so a spin element behaves exactly like
+  // the native one it stands beside. The earlier attempt went through
+  // `innerHTML`, which could not carry children, and the attempt before that
+  // wrapped the tag in a span, which put the classes on the wrapper.
   return (
-    <span
-      class={props.class}
-      innerHTML={`<${tag}${variant}${classes}>${escape(text)}</${tag}>`}
-    />
+    <Dynamic component={tag} {...rest}>
+      {children ?? text}
+    </Dynamic>
   );
 }
 
 /** A status message with the alert rule's base and tone. */
-export function Alert(props: SpinProps & { text: string }) {
-  return spinTag("alert", props, props.text);
+export function Alert(props: SpinProps) {
+  return spinTag("alert", props);
 }
 
-/** A card surface — the panel a token row or a section sits on. */
-export function Card(props: SpinProps & { text?: string }) {
-  return spinTag("card", props, props.text ?? "");
+/** A card surface — the panel a section sits on. */
+export function Card(props: SpinProps) {
+  return spinTag("card", props);
 }
 
-/** A small tone label — a swatch's role name, a token's type. */
-export function Badge(props: SpinProps & { text: string }) {
-  return spinTag("badge", props, props.text);
+/** A small tone label — a process, a ratio, a token's type. */
+export function Badge(props: SpinProps) {
+  return spinTag("badge", props);
 }
-
-export { escape as escapeMarkup };

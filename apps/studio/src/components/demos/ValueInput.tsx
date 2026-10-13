@@ -49,6 +49,8 @@ export default function ValueInput(props: {
   value: string;
   type: string;
   onCommit: (value: string) => boolean;
+  /** The control's id, so the token's path is its label. */
+  id?: string;
 }) {
   return (
     <Switch fallback={<TextControl {...props} />}>
@@ -66,6 +68,7 @@ export default function ValueInput(props: {
 function ColorControl(props: {
   value: string;
   onCommit: (value: string) => boolean;
+  id?: string;
 }) {
   const hex = () => asHex(props.value);
   const [draft, setDraft] = createSignal(props.value);
@@ -94,7 +97,11 @@ function ColorControl(props: {
       {(current) => (
         <>
           <input
+            id={props.id}
             type="color"
+            // A sized swatch, not a stretched field: inside a flex row the
+            // picker would otherwise claim the space the hex readout needs.
+            class="h-8 w-12 shrink-0 rounded-sm"
             value={String(current())}
             onChange={(event) => {
               // A refused commit reports it, and the control goes back to
@@ -104,7 +111,7 @@ function ColorControl(props: {
               }
             }}
           />
-          <code>{props.value}</code>
+          <code class="text-sm">{props.value}</code>
         </>
       )}
     </Show>
@@ -115,12 +122,14 @@ function ColorControl(props: {
 function DimensionInput(props: {
   dimension: { n: number; unit: string };
   onCommit: (value: string) => boolean;
+  id?: string;
 }) {
   const unit = () => props.dimension.unit;
   return (
     <input
       type="number"
       // The scale's own quantum, in the scale's own unit.
+      id={props.id}
       step={unit() === "px" ? 1 : 0.0625}
       min={0}
       class="p-2 border-border rounded-md border w-24 text-sm"
