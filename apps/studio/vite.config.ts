@@ -5,10 +5,11 @@ import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import studioTheme from "./theme.json" with { type: "json" };
-export default defineConfig({
-  // Built to be served under `/__spin/studio/`: absolute asset paths would
-  // escape the mount and 404 behind the middleware.
-  base: "/__spin/studio/",
+export default defineConfig(({ command }) => ({
+  // The bundle is served under `/__spin/studio/`: absolute asset paths
+  // would escape the mount and 404 behind the middleware. Dev serves at
+  // `/` so routes resolve without the prefix.
+  base: command === "build" ? "/__spin/studio/" : "/",
   plugins: [
     spin.vite({
       // The chrome is themed by the studio's own static theme. Project
@@ -104,4 +105,4 @@ export default defineConfig({
       ],
     },
   },
-});
+}));
