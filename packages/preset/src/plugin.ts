@@ -59,6 +59,11 @@ export interface SpinPluginOptions {
   readonly mount?: (
     host: { server: unknown; root: string },
   ) => void;
+  /**
+   * Where the mounted app lives. The overlay script the plugin injects has
+   * to dial it, so the two halves cannot disagree about the address.
+   */
+  readonly apiBase?: string;
 }
 
 /**
@@ -176,11 +181,15 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
       // trace of the editing session.
       transformIndexHtml(html) {
         if (envMode !== "dev") return html;
+        const studioBase = (options.apiBase ?? "/__spin").replace(/\/rpc$/, "");
         return html.replace(
           "</body>",
+          // The launcher tells you as much while you work elsewhere: an
+          // expanded style tag blinking on in another document is a thing
+          // you learn to ignore.
           `<script type="module">
-import { spinUnsavedBadge } from "/__spin/badge.js";
-spinUnsavedBadge();
+import { spinOverlay } from "/__spin/overlay.js";
+spinOverlay("${studioBase}/rpc");
 <\/script>
 </body>`,
         );

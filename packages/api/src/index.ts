@@ -14,6 +14,7 @@ import { RPCLink } from "@orpc/client/fetch";
 import { createORPCClient } from "@orpc/client";
 import { Hono } from "hono";
 import { setProjectRoot } from "./project-procedures.ts";
+import { OVERLAY_SCRIPT } from "./overlay-client.ts";
 import { themeRouter } from "@spin/theme";
 import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 import { presetRouter } from "@spin/preset";
@@ -222,8 +223,8 @@ export function createSpinApp(options: SpinAppOptions): Hono {
   // studio. Served from here so the badge and the state it reads are one
   // origin by construction.
   outer.get(
-    `${sideRoot}/badge.js`,
-    (c) => c.body(BADGE_JS, 200, { "content-type": "text/javascript" }),
+    `${sideRoot}/overlay.js`,
+    (c) => c.body(OVERLAY_SCRIPT, 200, { "content-type": "text/javascript" }),
   );
   // The studio bundle, if one was built. Served beside the procedures so
   // the tool and the API it talks to are one origin by construction.
@@ -281,44 +282,3 @@ export function createSpinApp(options: SpinAppOptions): Hono {
   }
   return outer;
 }
-
-/**
- * The badge: polls the overlay state and shows a tag while any theme
- * differs from disk. Unstyled by the project on purpose — fixed position,
- * system font, high contrast — so a broken theme cannot hide the signal
- * that would recover it.
- */
-const BADGE_JS = `export function spinUnsavedBadge(base = "/__spin/rpc") {
-  const tag = document.createElement("a");
-  tag.href = base.replace(/\\/rpc$/, "/studio");
-  tag.target = "_blank";
-  tag.rel = "noopener";
-  tag.textContent = "Unsaved theme changes";
-  tag.style.cssText = "position:fixed;bottom:12px;right:12px;z-index:2147483647;"
-    + "display:none;background:#b91c1c;color:#fff;font:600 13px/1.4 system-ui,sans-serif;"
-    + "padding:8px 12px;border-radius:8px;text-decoration:none;"
-    + "box-shadow:0 2px 8px rgba(0,0,0,.35);";
-  document.body.appendChild(tag);
-  async function poll() {
-    try {
-      const res = await fetch(base + "/overlay/get", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: "{}",
-      });
-      const body = await res.json();
-      const dirty = body?.json?.dirty ?? [];
-      tag.style.display = dirty.length > 0 ? "block" : "none";
-      if (dirty.length > 0) {
-        tag.textContent =
-          "Unsaved theme changes: " + dirty.join(", ");
-      }
-    } catch {
-      // The API is unreachable; the badge stays hidden rather than
-      // crying wolf about state it cannot read.
-    }
-    setTimeout(poll, 2000);
-  }
-  poll();
-}
-`;

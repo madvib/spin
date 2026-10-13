@@ -19,9 +19,10 @@ import SpacingPage from "./routes/spacing.tsx";
 import SpecimenPage from "./routes/specimen.tsx";
 import SurfacesPage from "./routes/surfaces.tsx";
 import UtilitiesPage from "./routes/utilities.tsx";
-import { createResource, For, Show, Suspense } from "solid-js";
+import { createEffect, createResource, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
+import { Alert } from "./components/spin.tsx";
 import { listProjectThemes, saveTheme } from "./lib/themes.ts";
 import {
   canRedo,
@@ -46,46 +47,65 @@ import {
  */
 const STUDIO_THEME = "studio";
 
+/**
+ * The mode control.
+ *
+ * A two-button group with pressed state rather than a cycling icon: the
+ * current mode is a choice with two answers, and pressing the one you are
+ * not on is the affordance a tool needs. One control drives both the
+ * chrome and the preview — working in dark means the whole studio is
+ * dark, and the preview still declares the edited theme's own dark values.
+ */
 function ModePicker() {
-  const cycle = () =>
-    setActiveMode(activeMode() === "light" ? "dark" : "light");
   return (
-    <button
-      type="button"
-      // A control with no styling is a control that does not exist: no
-      // padding, no hover, and an icon at its inherited `1em` — which on the
-      // studio's dark chrome resolved to black-on-black.
-      class="hover:bg-surface rounded-md p-2 text-text"
-      aria-label={`Switch to ${
-        activeMode() === "light" ? "dark" : "light"
-      } mode`}
-      title={`Switch to ${activeMode() === "light" ? "dark" : "light"} mode`}
-      onClick={cycle}
-    >
-      <span
-        class={`inline-block icon-md ${
-          activeMode() === "light" ? "i-lucide-moon" : "i-lucide-sun"
-        }`}
-        aria-hidden="true"
-      />
-    </button>
+    <div class="row-sm" role="group" aria-label="Color mode">
+      <button
+        type="button"
+        class="bare"
+        aria-pressed={activeMode() === "light"}
+        onClick={() => setActiveMode("light")}
+      >
+        <span class="inline-block icon-md i-lucide-sun" aria-hidden="true" />
+        Light
+      </button>
+      <button
+        type="button"
+        class="bare"
+        aria-pressed={activeMode() === "dark"}
+        onClick={() => setActiveMode("dark")}
+      >
+        <span class="inline-block icon-md i-lucide-moon" aria-hidden="true" />
+        Dark
+      </button>
+    </div>
   );
 }
 
 /**
  * The project theme picker.
  *
- * Lists what is on disk in the project's themes directory — not what the studio
- * shipped with. The selected theme drives the preview surface only.
+ * Lists what is on disk in the project's themes directory — not what the
+ * studio shipped with. The selected theme drives the preview surface only;
+ * a `<label>` names it rather than a bare floating select.
  */
 function ThemePicker() {
   const [themes] = createResource(listProjectThemes);
+  let select: HTMLSelectElement | undefined;
+  // The options arrive after the select does, and the browser answers an
+  // option list it just filled by selecting the first one — so the picker
+  // read `console` while the editor was editing `default`. Writing the value
+  // once both are settled is the only thing that keeps them honest.
+  createEffect(() => {
+    if (select !== undefined && themes() !== undefined) {
+      select.value = activeName();
+    }
+  });
   return (
-    <div class="flex items-center gap-4">
+    <div class="row-sm">
       <label for="theme-picker">Theme</label>
       <select
+        ref={select}
         id="theme-picker"
-        value={activeName()}
         onChange={(event) => setActiveName(event.currentTarget.value)}
       >
         <Show when={themes()} fallback={<option>loading…</option>}>
@@ -130,20 +150,19 @@ export default function App() {
           }
           <div
             data-theme={STUDIO_THEME}
+            data-mode={activeMode()}
             class="stack h-screen bg-surface"
           >
             <nav
               aria-label="Studio"
               class="row shrink-0 bg-surface-raised p-4"
             >
-              <A href="/">
-                <span class="flex items-center gap-4">
-                  <span
-                    class="inline-block i-lucide-loader-pinwheel"
-                    aria-hidden="true"
-                  />
-                  <span>Spin</span>
-                </span>
+              <A href="/" class="row-sm font-semibold">
+                <span
+                  class="inline-block icon-lg i-lucide-loader-pinwheel text-text"
+                  aria-hidden="true"
+                />
+                <span>Spin</span>
               </A>
               <ul class="row flex-1 justify-center">
                 <For each={CONCERNS}>
@@ -174,30 +193,37 @@ export default function App() {
               </span>
               <button
                 type="button"
+                class="bare"
                 onClick={() => undo()}
                 disabled={!canUndo()}
                 aria-label="Undo"
                 title="Undo"
-                class="hover:bg-surface rounded-md p-2 disabled:opacity-40"
               >
-                <i class="i-lucide-undo-2 icon-md" />
+                <span
+                  class="inline-block icon-md i-lucide-undo-2"
+                  aria-hidden="true"
+                />
               </button>
               <button
                 type="button"
+                class="bare"
                 onClick={() => redo()}
                 disabled={!canRedo()}
                 aria-label="Redo"
                 title="Redo"
-                class="hover:bg-surface rounded-md p-2 disabled:opacity-40"
               >
-                <i class="i-lucide-redo-2 icon-md" />
+                <span
+                  class="inline-block icon-md i-lucide-redo-2"
+                  aria-hidden="true"
+                />
               </button>
-              <p
-                class="text-sm text-red-600"
-                hidden={lastRefusal() === undefined}
-              >
-                Edit refused: {lastRefusal() ?? ""}
-              </p>
+              <Show when={lastRefusal() !== undefined}>
+                <Alert
+                  variant="danger"
+                  class="text-sm"
+                  text={`Edit refused: ${lastRefusal()}`}
+                />
+              </Show>
               <button
                 type="button"
                 onClick={async () => {
@@ -206,9 +232,7 @@ export default function App() {
                   if (written.error === null) markSaved(name);
                 }}
                 disabled={!isDirty(activeName())}
-                aria-label="Save to disk"
                 title="Save to disk"
-                class="bg-surface-raised border-border rounded-md border p-2 disabled:opacity-40"
               >
                 Save
               </button>
@@ -227,7 +251,7 @@ export default function App() {
                 rel="noopener"
                 aria-label="View in app"
                 title="View in app"
-                class="bg-surface-raised border-border rounded-md border p-2"
+                class="button secondary"
               >
                 View in app
               </a>
