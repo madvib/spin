@@ -91,6 +91,39 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  * `spin()` composes the preset itself; a consumer only names themes,
  * content, and any extra presets such as icons.
  */
+/**
+ * Every `spin/*.json` at the root, parsed.
+ *
+ * A file that doesn't parse is skipped rather than thrown on: a half
+ * written theme in an editor would otherwise break the whole stylesheet,
+ * and one bad theme should not cost the app its other themes.
+ */
+async function themesFromDisk(
+  root: string,
+): Promise<Record<string, ThemeDocument>> {
+  const { readdir, readFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  let names: string[];
+  try {
+    names = (await readdir(join(root, "spin"))).filter((name) =>
+      name.endsWith(".json")
+    );
+  } catch {
+    return {};
+  }
+  const themes: Record<string, ThemeDocument> = {};
+  for (const name of names) {
+    try {
+      themes[name.slice(0, -".json".length)] = JSON.parse(
+        await readFile(join(root, "spin", name), "utf8"),
+      );
+    } catch {
+      // Skipped: see above.
+    }
+  }
+  return themes;
+}
+
 export const spin = createUnplugin<SpinPluginOptions>((options) => {
   // `configResolved` sets this before anything generates; the default only
   // covers non-vite hosts. Guarded because the studio typechecks this file
@@ -104,7 +137,12 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
   let cachedSources: string | null = null;
 
   async function generate(): Promise<string> {
-    const themes = options.themes ?? {};
+    // No `themes` option means the project owns them: `spin/*.json` at the
+    // root, the shape a real app has. Reading them on every generate is
+    // cheap — a handful of small files — and means a theme added while the
+    // server is running is live on the next edit rather than needing a
+    // restart.
+    const themes = options.themes ?? await themesFromDisk(root);
     noteDiskDocuments(themes);
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens

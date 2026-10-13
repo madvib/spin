@@ -4,7 +4,6 @@ import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
-import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
@@ -19,7 +18,10 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      themes: starterThemes,
+      // No `themes`: the project owns them. `spin/*.json` at this root —
+      // the same files the studio edits — so a theme change in the studio
+      // re-themes this app and nothing has to be re-imported.
+
       presets: [presetIcons({ collections: { lucide } as never })],
       // The studio bundle, built by `apps/studio/deno task build`. Absent
       // until built — the mount skips it rather than failing the server.

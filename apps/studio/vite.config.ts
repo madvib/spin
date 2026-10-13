@@ -17,11 +17,11 @@ export default defineConfig(({ command }) => ({
       // cannot restyle the tool doing the editing.
       themes: { studio: studioTheme },
       presets: [presetIcons()],
-      // The project under edit. In development that is the fixture app;
-      // a consumer's own config points this at their project root.
-      mount: mountSpinApp(
-        resolve(import.meta.dirname, "../../examples/fixture-app"),
-      ),
+      // The project under edit. In development that is the reference
+      // app: a real spin app with `spin/*.json` on disk, which is the
+      // same themes it renders — so what the studio edits is what the
+      // app shows.
+      mount: mountSpinApp(resolve(import.meta.dirname, "../../apps/reference")),
       content: {
         filesystem: ["src/**/*.{tsx,ts}"],
         pipeline: {
