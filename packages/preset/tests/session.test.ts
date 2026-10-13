@@ -2,6 +2,8 @@ import { assert, assertEquals } from "@std/assert";
 import {
   clearOverlay,
   hasOverlay,
+  noteDiskDocuments,
+  overlayDirty,
   overlayThemes,
   resolveThemes,
   setOverlay,
@@ -83,4 +85,37 @@ Deno.test("reading the overlay hands back a copy too", () => {
   read.acme.primary = "#000000";
   assertEquals(resolveThemes(disk).acme.primary, "#b91c1c");
   reset();
+});
+
+Deno.test("a theme matching disk reads clean", () => {
+  reset();
+  const doc = { primary: "#0369a1" } as unknown as ThemeDocument;
+  noteDiskDocuments({ acme: doc });
+  setOverlay({ acme: { primary: "#0369a1" } } as unknown as Record<
+    string,
+    ThemeDocument
+  >);
+  assertEquals(overlayDirty(), []);
+});
+
+Deno.test("a theme differing from disk reads dirty", () => {
+  reset();
+  noteDiskDocuments({
+    acme: { primary: "#0369a1" },
+  } as unknown as Record<string, ThemeDocument>);
+  setOverlay({ acme: { primary: "#b91c1c" } } as unknown as Record<
+    string,
+    ThemeDocument
+  >);
+  assertEquals(overlayDirty(), ["acme"]);
+});
+
+Deno.test("an overlaid theme disk never had reads dirty", () => {
+  reset();
+  noteDiskDocuments({});
+  setOverlay({ brand: { primary: "#b91c1c" } } as unknown as Record<
+    string,
+    ThemeDocument
+  >);
+  assertEquals(overlayDirty(), ["brand"]);
 });

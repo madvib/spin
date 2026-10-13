@@ -3,7 +3,11 @@ import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
 import { parseTokens, type ThemeDocument } from "@spin/theme";
-import { onOverlayChange, resolveThemes } from "./session.ts";
+import {
+  noteDiskDocuments,
+  onOverlayChange,
+  resolveThemes,
+} from "./session.ts";
 
 /**
  * The slice of a dev server the overlay lifecycle touches. Structural, so
@@ -101,6 +105,7 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
 
   async function generate(): Promise<string> {
     const themes = options.themes ?? {};
+    noteDiskDocuments(themes);
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens
     // whose utilities must resolve even though no file changed.
@@ -126,6 +131,21 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
       configResolved(config: { root: string; command: string }) {
         root = config.root;
         envMode = config.command === "serve" ? "dev" : "build";
+      },
+      // Dev-only chrome: a badge in the user's app while the overlay
+      // differs from disk. `transformIndexHtml` runs in build too, so the
+      // tag is emitted only while serving — a production build carries no
+      // trace of the editing session.
+      transformIndexHtml(html) {
+        if (envMode !== "dev") return html;
+        return html.replace(
+          "</body>",
+          `<script type="module">
+import { spinUnsavedBadge } from "/__spin/badge.js";
+spinUnsavedBadge();
+<\/script>
+</body>`,
+        );
       },
     },
     // A rollup-shaped hook: unplugin forwards unknown root hooks to vite

@@ -13,6 +13,8 @@ import type { ThemeDocument } from "@spin/theme";
 interface OverlayCell {
   overlay: Record<string, ThemeDocument>;
   listeners: Set<() => void>;
+  /** The disk documents, noted by whoever generates from them. */
+  disk: Record<string, ThemeDocument>;
 }
 
 const CELL_KEY = "__spin_theme_overlay__";
@@ -22,7 +24,11 @@ function cell(): OverlayCell {
     string,
     OverlayCell | undefined
   >;
-  return (globals[CELL_KEY] ??= { overlay: {}, listeners: new Set() });
+  return (globals[CELL_KEY] ??= {
+    overlay: {},
+    listeners: new Set(),
+    disk: {},
+  });
 }
 
 /**
@@ -79,6 +85,53 @@ export function overlayThemes(): Record<string, ThemeDocument> {
  */
 export function hasOverlay(): boolean {
   return Object.keys(cell().overlay).length > 0;
+}
+
+/**
+ * Note the disk documents, from whoever generates from them.
+ *
+ * The plugin calls this on every generate with the same documents it
+ * passes the preset, so the cell always compares the overlay against what
+ * "saved" currently means — including after a save rewrites disk.
+ */
+export function noteDiskDocuments(
+  documents: Record<string, ThemeDocument>,
+): void {
+  cell().disk = documents;
+}
+
+/**
+ * Refresh one noted document after a save rewrites it.
+ *
+ * The plugin re-notes everything on every generate, but no generate runs
+ * on a save — without this, a save would leave the badge lit until the
+ * next edit, which is the exact lie the badge exists to prevent.
+ */
+export function noteDiskDocument(name: string, text: string): void {
+  try {
+    cell().disk = {
+      ...cell().disk,
+      [name]: JSON.parse(text) as ThemeDocument,
+    };
+  } catch {
+    // Unparseable text never reached disk as a document; leave the note.
+  }
+}
+
+/**
+ * The overlaid names whose documents differ from disk.
+ *
+ * Compared structurally, not by identity: the overlay holds a copy, so a
+ * write followed by no edit still reads dirty until the comparison says
+ * otherwise.
+ */
+export function overlayDirty(): string[] {
+  const { overlay, disk } = cell();
+  return Object.keys(overlay).filter((name) => {
+    const onDisk = disk[name];
+    if (onDisk === undefined) return true;
+    return JSON.stringify(overlay[name]) !== JSON.stringify(onDisk);
+  });
 }
 
 /**

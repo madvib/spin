@@ -56,6 +56,9 @@ export type { CatalogSection } from "./catalog.ts";
 export {
   clearOverlay,
   hasOverlay,
+  noteDiskDocument,
+  noteDiskDocuments,
+  overlayDirty,
   overlayThemes,
   resolveThemes,
   setOverlay,

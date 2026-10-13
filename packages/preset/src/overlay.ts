@@ -14,6 +14,7 @@ import { implement } from "@orpc/server";
 import {
   clearOverlay,
   hasOverlay,
+  overlayDirty,
   overlayThemes,
   setOverlay,
 } from "./session.ts";
@@ -38,9 +39,17 @@ export const overlayContract = oc.tag("overlay").router({
       ),
     /** Close the overlay, putting disk back in charge. */
     clear: oc.output(OpenState),
-    /** What the overlay holds now, and whether it is the live source. */
+    /**
+     * What the overlay holds now, whether it is the live source, and which
+     * of its themes differ from disk. The app badge and the studio's save
+     * state both read this — one source, so they cannot disagree.
+     */
     get: oc.output(
-      v.object({ open: v.boolean(), themes: ThemeDocuments }),
+      v.object({
+        open: v.boolean(),
+        themes: ThemeDocuments,
+        dirty: v.array(v.string()),
+      }),
     ),
   },
 });
@@ -60,6 +69,7 @@ export const overlayRouter = os.router({
     get: os.overlay.get.handler(() => ({
       open: hasOverlay(),
       themes: overlayThemes(),
+      dirty: overlayDirty(),
     })),
   },
 });

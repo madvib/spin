@@ -165,6 +165,10 @@ export const projectRouter = os.router({
             input.text,
             "utf8",
           );
+          // Disk moved under the overlay: refresh the noted document so
+          // the dirty comparison — and the badge reading it — clears.
+          const { noteDiskDocument } = await import("@spin/preset");
+          noteDiskDocument(input.name, input.text);
           return { error: null };
         } catch (err) {
           return { error: err instanceof Error ? err.message : String(err) };

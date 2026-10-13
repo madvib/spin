@@ -158,8 +158,8 @@ export default function App() {
             </nav>
             <div class="row shrink-0 border-b border-border p-4">
               <span class="flex-1">
-                Editing <code>{activeName()}</code>{" "}
-                {activePath() ?? "…"} · previewing {activeMode()}
+                Editing <code>{activeName()}</code> {activePath() ?? "…"}{" "}
+                · previewing {activeMode()}
               </span>
               <button
                 type="button"
@@ -211,9 +211,7 @@ export default function App() {
                 // Served from the user's dev server the app is `/` on the
                 // same origin; standalone studio-dev takes `?app=` instead,
                 // because the app is a second server with a floating port.
-                href={
-                  new URLSearchParams(location.search).get("app") ?? "/"
-                }
+                href={new URLSearchParams(location.search).get("app") ?? "/"}
                 target="_blank"
                 rel="noopener"
                 aria-label="View in app"

@@ -171,7 +171,9 @@ export function createSpinApp(options: SpinAppOptions): Hono {
   // never disagree about where the procedures live.
   const base = options.base ?? "/__spin/rpc";
   setProjectRoot(options.root);
-  const app = new Hono().basePath(base);
+  // No `basePath` here: the outer app routes this app at `base`, and
+  // composing the two would prefix every procedure twice.
+  const app = new Hono();
   // Cross-origin, loopback only: standalone studio-dev POSTs the overlay
   // from a second server on another port. Mounted, everything is one
   // origin and this never fires. A wildcard would let any page call
@@ -196,21 +198,76 @@ export function createSpinApp(options: SpinAppOptions): Hono {
     }
   });
   app.options("/*", (c) => c.body(null, 204));
-  // The studio bundle, if one was built. Served beside the procedures so
-  // the tool and the API it talks to are one origin by construction.
-  const studioRoot = base.replace(/\/rpc$/, "");
-  if (options.studioDir !== undefined) {
-    const dir = options.studioDir;
-    app.use(`${studioRoot}/studio/*`, async (c, next) => {
-      const { serveStatic } = await import("hono/deno");
-      await serveStatic({ root: dir })(c, next);
-    });
-  }
   app.all("/*", async (c) => {
     const { matched, response } = await rpcHandler.handle(c.req.raw, {
       prefix: base,
     });
     return matched ? response : c.notFound();
   });
-  return app;
+  // Everything beside the procedures lives on the outer app, because
+  // `basePath` prefixes every route of the inner one: the badge and the
+  // studio bundle sit next to the RPC mount, not under it.
+  const outer = new Hono();
+  outer.route(base, app);
+  const sideRoot = base.replace(/\/rpc$/, "");
+  // The unsaved-changes badge the plugin injects into the user's app in
+  // dev. A static module, not a procedure: it polls `overlay.get` and
+  // toggles a fixed-position tag, so unsaved work is visible outside the
+  // studio. Served from here so the badge and the state it reads are one
+  // origin by construction.
+  outer.get(
+    `${sideRoot}/badge.js`,
+    (c) => c.body(BADGE_JS, 200, { "content-type": "text/javascript" }),
+  );
+  // The studio bundle, if one was built. Served beside the procedures so
+  // the tool and the API it talks to are one origin by construction.
+  if (options.studioDir !== undefined) {
+    const dir = options.studioDir;
+    outer.use(`${sideRoot}/studio/*`, async (c, next) => {
+      const { serveStatic } = await import("hono/deno");
+      await serveStatic({ root: dir })(c, next);
+    });
+  }
+  return outer;
 }
+
+/**
+ * The badge: polls the overlay state and shows a tag while any theme
+ * differs from disk. Unstyled by the project on purpose — fixed position,
+ * system font, high contrast — so a broken theme cannot hide the signal
+ * that would recover it.
+ */
+const BADGE_JS = `export function spinUnsavedBadge(base = "/__spin/rpc") {
+  const tag = document.createElement("a");
+  tag.href = base.replace(/\\/rpc$/, "/studio");
+  tag.target = "_blank";
+  tag.rel = "noopener";
+  tag.textContent = "Unsaved theme changes";
+  tag.style.cssText = "position:fixed;bottom:12px;right:12px;z-index:2147483647;"
+    + "display:none;background:#b91c1c;color:#fff;font:600 13px/1.4 system-ui,sans-serif;"
+    + "padding:8px 12px;border-radius:8px;text-decoration:none;"
+    + "box-shadow:0 2px 8px rgba(0,0,0,.35);";
+  document.body.appendChild(tag);
+  async function poll() {
+    try {
+      const res = await fetch(base + "/overlay/get", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      const body = await res.json();
+      const dirty = body?.json?.dirty ?? [];
+      tag.style.display = dirty.length > 0 ? "block" : "none";
+      if (dirty.length > 0) {
+        tag.textContent =
+          "Unsaved theme changes: " + dirty.join(", ");
+      }
+    } catch {
+      // The API is unreachable; the badge stays hidden rather than
+      // crying wolf about state it cannot read.
+    }
+    setTimeout(poll, 2000);
+  }
+  poll();
+}
+`;
