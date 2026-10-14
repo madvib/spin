@@ -28,10 +28,12 @@ export default defineConfig(({ command }) => ({
           include: [
             /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
           ],
-          exclude: [
-            /components\/demos\//,
-            /\/routes\//,
-          ],
+          // Demos are the component viewer's content, rendered as markup
+          // strings and registered through the preview surface's own scan —
+          // a route's markup on screen would be scanned twice. Everything
+          // else, routes included, is this app's own chrome: excluding
+          // `/routes/` meant no route's markup reached the chrome sheet, so
+          // `<h1>` on a page never got a heading rule.
         },
       },
     }),

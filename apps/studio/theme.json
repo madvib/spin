@@ -285,6 +285,10 @@
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
         "$description": "Code, identifiers, tabular figures."
+      },
+      "heading": {
+        "$value": "Georgia, ui-serif, Cambria, serif",
+        "$description": "Headings, and anything that leads the document."
       }
     },
     "size": {

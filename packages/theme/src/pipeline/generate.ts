@@ -177,6 +177,22 @@ export function generateThemeCss(
   const indent = opts.indent ?? "  ";
   const chunks: string[] = [];
 
+  // The root theme first, so a later scoped block overrides it: the same
+  // specificity rule that makes a theme swap a selector swap.
+  if (opts.rootTheme !== undefined && themes[opts.rootTheme] !== undefined) {
+    for (
+      const block of collectBlocks(
+        themes[opts.rootTheme] as TokenTree,
+        ":root",
+        opts.prefix,
+        ':root[data-mode="dark"]',
+      )
+    ) {
+      if (block.declarations.length === 0) continue;
+      chunks.push(renderBlock(block, indent));
+    }
+  }
+
   for (const name of Object.keys(themes)) {
     const tree = themes[name] as TokenTree;
     const selector = `[data-theme="${name}"]`;

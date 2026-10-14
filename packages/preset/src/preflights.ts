@@ -111,7 +111,14 @@ function assemble(
       name: "theme/variables",
       layer: "theme",
       order: LAYER.theme,
-      getCSS: () => generateThemeCss(input.trees),
+      getCSS: () =>
+        generateThemeCss(input.trees, {
+          // The first theme is the one the app boots with, so its custom
+          // properties are also written at `:root` — where `body {}` can
+          // read them. Without it an app's base type silently falls back to
+          // the browser default.
+          rootTheme: Object.keys(input.trees)[0],
+        }),
     },
     ...base,
     // Motion is unconditional: a component that names a keyframe must never

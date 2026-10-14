@@ -11,6 +11,7 @@
 import { MetaProvider, Title } from "@solidjs/meta";
 import { A, Route, Router } from "@solidjs/router";
 import ColorsPage from "./routes/colors.tsx";
+import TypePage from "./routes/type.tsx";
 import ComponentsLayout from "./routes/components.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
@@ -273,6 +274,7 @@ export default function App() {
       <Route path="/" component={OverviewPage} />
       <Route path="/specimen" component={SpecimenPage} />
       <Route path="/colors" component={ColorsPage} />
+      <Route path="/type" component={TypePage} />
       <Route path="/surfaces" component={SurfacesPage} />
       <Route path="/spacing" component={SpacingPage} />
       <Route path="/motion" component={MotionPage} />

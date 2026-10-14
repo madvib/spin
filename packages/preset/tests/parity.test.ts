@@ -1,4 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
+import { readFileSync } from "node:fs";
 import { spin } from "../src/plugin.ts";
 import { starterThemes } from "@spin/theme/themes";
 import presetIcons from "@unocss/preset-icons";
@@ -102,4 +103,25 @@ Deno.test("a project without themes in config reads spin/*.json from disk", asyn
     "the disk theme's primary lands in the sheet",
   );
   await Deno.remove(root, { recursive: true });
+});
+
+Deno.test("the boot theme's variables are declared at :root", () => {
+  // A custom property cannot inherit upward. Scoped only to `[data-theme]`,
+  // the variables are invisible to `body {}` — so the typography primitives'
+  // own base rule falls back to the browser's default font, which is how a
+  // studio chrome ends up rendering in Times. The first theme is the one the
+  // app boots with, so it is also written at root.
+  const sheet = readFileSync(
+    new URL("./fixtures/reference-golden.css", import.meta.url),
+    "utf8",
+  );
+  const root = sheet.match(/:root \{([^}]*)\}/)?.[1] ?? "";
+  assert(
+    root.includes("--color-primary:"),
+    "the root block carries the boot theme's variables",
+  );
+  assert(
+    root.includes("--font-family-sans:"),
+    "which is what lets `body {}` resolve a font-family at all",
+  );
 });

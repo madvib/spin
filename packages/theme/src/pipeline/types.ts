@@ -139,6 +139,17 @@ export interface CssOptions {
   prefix?: string;
   /** One indent level. Defaults to two spaces. */
   indent?: string;
+  /**
+   * A theme whose variables are also written under `:root`.
+   *
+   * A custom property cannot inherit upward, so variables scoped only to
+   * `[data-theme]` are invisible to the `body {}` rules the typography
+   * primitives emit — which leaves an app's base type falling back to the
+   * browser default, and a studio whose chrome renders in Times. Naming a
+   * root theme fixes the base without giving every theme a `:root` block
+   * that would collide on shared names.
+   */
+  rootTheme?: string;
 }
 
 /**
