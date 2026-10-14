@@ -230,81 +230,79 @@ export default function App() {
                 </For>
               </ul>
               <ThemePicker />
-            </nav>
-            <div class="row shrink-0 border-b border-border p-4">
               {
-                /* The active theme, stated once and small. The file it lives in
-                  is what the picker already offers, so repeating it here
-                  bought a line and nothing else. */
+                /* Undo, redo and save are editing controls, not a status bar.
+                  They had a row of their own, which in the drawer was half
+                  the screen for two icons and a button. */
               }
-              <span class="flex-1 truncate">
-                <code class="text-text-muted text-xs">
-                  {activePath() ?? "…"}
-                </code>
-              </span>
-              <button
-                type="button"
-                class="bare"
-                onClick={() => undo()}
-                disabled={!canUndo()}
-                aria-label="Undo"
-                title="Undo"
-              >
-                <span
-                  class="inline-block icon-md i-lucide-undo-2"
-                  aria-hidden="true"
-                />
-              </button>
-              <button
-                type="button"
-                class="bare"
-                onClick={() => redo()}
-                disabled={!canRedo()}
-                aria-label="Redo"
-                title="Redo"
-              >
-                <span
-                  class="inline-block icon-md i-lucide-redo-2"
-                  aria-hidden="true"
-                />
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="bare"
+                  onClick={() => undo()}
+                  disabled={!canUndo()}
+                  aria-label="Undo"
+                  title="Undo"
+                >
+                  <span
+                    class="inline-block icon-md i-lucide-undo-2"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  class="bare"
+                  onClick={() => redo()}
+                  disabled={!canRedo()}
+                  aria-label="Redo"
+                  title="Redo"
+                >
+                  <span
+                    class="inline-block icon-md i-lucide-redo-2"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const name = activeName();
+                    const written = await saveTheme(name, themeText());
+                    if (written.error === null) markSaved(name);
+                  }}
+                  disabled={!isDirty(activeName())}
+                  title="Save to disk"
+                >
+                  Save
+                </button>
+                {
+                  /* The running app is the primary specimen: a theme edit
+                    re-themes it live through the overlay, so this opens the
+                    app the project actually ships. */
+                }
+                <a
+                  // Same origin from the user's dev server; standalone
+                  // studio-dev takes `?app=`, because the app is a second
+                  // server with a floating port.
+                  href={new URLSearchParams(location.search).get("app") ?? "/"}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="View in app"
+                  title="View in app"
+                  class="button secondary whitespace-nowrap"
+                >
+                  View in app
+                </a>
+              </div>
+              {
+                /* A refused edit says why, next to the button that would have
+                  applied it, rather than in a row of its own. */
+              }
               <Show when={lastRefusal() !== undefined}>
-                <alert variant="danger" class="text-sm">
-                  Edit refused: {lastRefusal()}
+                <alert variant="danger" class="text-xs">
+                  {lastRefusal()}
                 </alert>
               </Show>
-              <button
-                type="button"
-                onClick={async () => {
-                  const name = activeName();
-                  const written = await saveTheme(name, themeText());
-                  if (written.error === null) markSaved(name);
-                }}
-                disabled={!isDirty(activeName())}
-                title="Save to disk"
-              >
-                Save
-              </button>
-              {
-                /* The running app is the primary specimen: a theme edit
-                  re-themes it live through the overlay, so this opens the
-                  app the project actually ships rather than a second copy
-                  of the specimen wall. */
-              }
-              <a
-                // Served from the user's dev server the app is `/` on the
-                // same origin; standalone studio-dev takes `?app=` instead,
-                // because the app is a second server with a floating port.
-                href={new URLSearchParams(location.search).get("app") ?? "/"}
-                target="_blank"
-                rel="noopener"
-                aria-label="View in app"
-                title="View in app"
-                class="button secondary whitespace-nowrap"
-              >
-                View in app
-              </a>
-            </div>
+            </nav>
             {
               /* The preview carries the project's theme. Everything above is
                 chrome and stays on the studio's own. */
