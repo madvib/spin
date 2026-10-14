@@ -32,7 +32,7 @@ export default function App() {
               <A href="/" class="no-underline font-semibold">
                 Basecamp Roastery
               </A>
-              <ul class="flex flex-row items-center gap-4 flex-1 justify-center list-none">
+              <ul class="row-list flex-1 justify-center">
                 <For each={LINKS}>
                   {([href, label]) => (
                     <li>
