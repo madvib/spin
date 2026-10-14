@@ -118,7 +118,10 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     rows: DETAILS_EXAMPLES,
   },
   dialog: { id: "dialog", note: dialogFixtureNote, rows: DIALOG_EXAMPLES },
-  divider: { id: "divider", note: hrFixtureNote, rows: HR_EXAMPLES },
+  // Keyed `hr`, which is the manifest's name and the element's tag. It was
+  // filed as `divider`, so the studio's lookup missed and the rule never
+  // appeared in the specimen wall.
+  hr: { id: "hr", note: hrFixtureNote, rows: HR_EXAMPLES },
   fieldset: {
     id: "fieldset",
     note: fieldsetFixtureNote,

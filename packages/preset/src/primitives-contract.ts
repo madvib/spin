@@ -40,6 +40,13 @@ const ComponentSummary = v.object({
   name: v.string(),
   tags: v.array(v.string()),
   variants: v.array(v.string()),
+  /**
+   * The custom properties this component reads, so one call carries both the
+   * vocabulary and what it spends. A specimen wall that knows which tokens
+   * each component reads answers "what does this edit change" without a round
+   * trip per component.
+   */
+  reads: v.array(v.string()),
   examples: v.optional(ComponentExamples),
 });
 

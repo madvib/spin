@@ -22,6 +22,9 @@ export interface RpcComponent {
   readonly name: string;
   readonly tags: readonly string[];
   readonly variants: readonly string[];
+  /** The custom properties this component reads, so one call carries both
+   * the vocabulary and what it spends. */
+  readonly reads: readonly string[];
   readonly examples?: {
     readonly note: string;
     readonly rows: readonly RpcExample[];

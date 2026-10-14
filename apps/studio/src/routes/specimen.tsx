@@ -1,34 +1,67 @@
 /**
- * The specimen gallery: what a theme looks like applied to real components.
+ * The specimen wall — every primitive the preset ships, rendered in the
+ * theme being edited.
  *
- * Until this existed the studio said "previewing acme" and previewed
- * nothing — the styled surface held the token editor, so the only thing a
- * theme changed was the rows you were editing it in. A theme studio whose
- * whole promise is "make it yours" has to answer the question that is
- * actually being asked: what does MY button look like.
+ * Three things this page owes a theme author:
  *
- * The markup is the preset's own examples, read over RPC, which means two
- * things that matter. First, the specimens are real: they are the same rows
- * the reference app and the docs site render, so a theme that looks right
- * here looks right everywhere. Second, nothing here is a copy — a new example
- * in the preset appears here without this file changing.
+ *   **The whole vocabulary, not the authored subset.** A component whose
+ *   examples nobody has written still has tags and variants, and those still
+ *   carry the rule — so its rows are generated from them. A page that filters
+ *   on "has examples" loses components nobody knew were missing: `<hr>` was in
+ *   that state, filed under the wrong key, for the whole of its life.
  *
- * Everything renders inside the app's `data-theme`/`data-mode` wrapper, so an
- * edit to any token re-themes every specimen at once, live.
+ *   **What each component spends.** The manifest already records the custom
+ *   properties a component reads, so the group states them beside the rows.
+ *   Judging a theme edit needs to know what it moved.
+ *
+ *   **The variants, named.** A variant is part of the vocabulary, and a wall
+ *   that shows only the base teaches the base alone.
  */
 
-import { createEffect, createMemo, For, Match, Switch } from "solid-js";
+import { createEffect, createMemo, For, Match, Show, Switch } from "solid-js";
 import { library, registerMarkup } from "../lib/store.ts";
 
+interface Row {
+  readonly name: string;
+  html: string;
+}
+
+/** What a component contributes to the wall. */
+interface Group {
+  readonly name: string;
+  readonly note: string;
+  readonly tags: readonly string[];
+  readonly variants: readonly string[];
+  readonly reads: readonly string[];
+  readonly rows: readonly Row[];
+}
+
+/**
+ * A row for a tag nobody has written an example for.
+ *
+ * The tag is shown applied to itself, which renders the component's base
+ * rule and nothing else — the honest minimum. An authored example always
+ * wins; this is the floor, not a substitute.
+ */
+function generatedRows(tags: readonly string[]): readonly Row[] {
+  return tags.map((tag) => ({
+    name: tag,
+    html: `<${tag} aria-label="${tag}">${tag}</${tag}>`,
+  }));
+}
+
 /** A component's examples, as one group on the page. */
-function SpecimenGroup(props: {
-  name: string;
-  note: string;
-  rows: readonly { readonly name: string; readonly html: string }[];
-}) {
+function SpecimenGroup(props: Group) {
   return (
     <section class="border-border rounded-lg border bg-surface-raised p-4">
-      <h2 class="text-lg capitalize">{props.name.replace(/-/g, " ")}</h2>
+      <div class="split">
+        <h2 class="text-lg capitalize">{props.name.replace(/-/g, " ")}</h2>
+        <div class="flex flex-wrap justify-end gap-1">
+          <For each={[...props.reads]}>
+            {(token) => <code class="text-text-muted text-xs">{token}</code>}
+          </For>
+        </div>
+      </div>
       <p class="text-text-muted mt-1 text-sm">{props.note}</p>
       <div class="mt-4 flex flex-col gap-6">
         <For each={[...props.rows]}>
@@ -43,25 +76,41 @@ function SpecimenGroup(props: {
           )}
         </For>
       </div>
+      <Show
+        when={props.variants.length > 0}
+        fallback={
+          <p class="text-text-muted mt-4 text-sm">
+            Tags: {[...props.tags].join(", ")}
+          </p>
+        }
+      >
+        <p class="text-text-muted mt-4 text-sm">
+          Variants: {[...props.variants].join(", ")}
+        </p>
+      </Show>
     </section>
   );
 }
 
 export default function SpecimenPage() {
-  // The components that have examples, which is every primitive except the
-  // utility-shaped ones. A component with no specimens is absent rather than
-  // present-and-empty, so the page cannot render a heading with nothing under
-  // it.
-  // A memo, not a plain call: the registry arrives after first render, and a
-  // const would snapshot `undefined` and show "loading" forever.
-  const groups = createMemo(() =>
-    (library() ?? [])
-      .filter((component) => component.examples !== undefined)
-      .map((component) => ({
-        name: component.name,
-        note: component.examples?.note ?? "",
-        rows: component.examples?.rows ?? [],
-      }))
+  // Every component the preset ships, authored rows where they exist and
+  // generated rows where they do not. A memo, not a plain call: the registry
+  // arrives after first render, and a const would snapshot `undefined` and
+  // show "loading" forever.
+  const groups = createMemo<readonly Group[]>(() =>
+    (library() ?? []).map((component) => ({
+      name: component.name,
+      note: component.examples?.note ?? "",
+      tags: component.tags,
+      variants: component.variants,
+      reads: component.reads,
+      rows: component.examples !== undefined
+        ? component.examples.rows.map((row) => ({
+          name: row.name,
+          html: row.html,
+        }))
+        : generatedRows(component.tags),
+    }))
   );
 
   // Register what this route renders, so the stylesheet is generated for it.
@@ -80,13 +129,7 @@ export default function SpecimenPage() {
         fallback={
           <div class="mt-6 flex flex-col gap-8">
             <For each={groups()}>
-              {(group) => (
-                <SpecimenGroup
-                  name={group.name}
-                  note={group.note}
-                  rows={group.rows}
-                />
-              )}
+              {(group) => <SpecimenGroup {...group} />}
             </For>
           </div>
         }

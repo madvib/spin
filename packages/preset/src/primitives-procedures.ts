@@ -25,6 +25,7 @@ const list = os.primitives.list.handler(() => {
       name: c.name,
       tags: [...c.tags],
       variants: [...c.variants],
+      reads: [...c.reads],
       ...(examples !== undefined
         ? { examples: { note: examples.note, rows: [...examples.rows] } }
         : {}),
