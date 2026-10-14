@@ -7,7 +7,6 @@
  * swatches, and the studio's judgements should be made against copy.
  */
 
-import { Alert, Badge, Card } from "../components/spin.tsx";
 export default function Story() {
   return (
     <div class="stack-lg max-w-3xl mx-auto p-8">
@@ -18,7 +17,7 @@ export default function Story() {
           here and the coast.
         </p>
       </header>
-      <Card class="stack p-6">
+      <card class="stack p-6">
         <h2 class="text-xl">The week</h2>
         <table>
           <thead>
@@ -46,11 +45,11 @@ export default function Story() {
             </tr>
           </tbody>
         </table>
-      </Card>
-      <Alert variant="warning">
+      </card>
+      <alert variant="warning">
         Roasts are Tuesdays, shipping Wednesdays. Orders placed before Monday
         are in the following week's batch.
-      </Alert>
+      </alert>
     </div>
   );
 }

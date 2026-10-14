@@ -44,6 +44,7 @@
   },
   "include": [
     "src",
+    "../../packages/preset/src/solid.d.ts",
     "vite.config.ts"
   ]
 }

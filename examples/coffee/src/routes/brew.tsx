@@ -7,7 +7,6 @@
  */
 
 import { For } from "solid-js";
-import { Alert, Badge, Card } from "../components/spin.tsx";
 
 interface Method {
   readonly name: string;
@@ -52,10 +51,10 @@ export default function Brew() {
       </header>
       <For each={METHODS}>
         {(method) => (
-          <Card class="stack p-6">
+          <card class="stack p-6">
             <div class="split">
               <h2 class="text-xl">{method.name}</h2>
-              <Badge variant="accent">{method.ratio}</Badge>
+              <badge variant="accent">{method.ratio}</badge>
             </div>
             <ol class="stack-sm text-text-muted">
               <For each={method.steps}>
@@ -69,7 +68,7 @@ export default function Brew() {
               </div>
               <progress value={method.strength} aria-label="Strength" />
             </div>
-          </Card>
+          </card>
         )}
       </For>
     </div>

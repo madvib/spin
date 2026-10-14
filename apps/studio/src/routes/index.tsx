@@ -1,6 +1,5 @@
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { Alert } from "../components/spin.tsx";
 import { analyzeTheme, rootDescription } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
 import {
@@ -69,18 +68,18 @@ export default function OverviewPage() {
       <Show
         when={report().issues.length === 0}
         fallback={
-          <Alert variant="danger">
+          <alert variant="danger">
             {report().issues.length} issue
             {report().issues.length === 1 ? "" : "s"}{" "}
             · the first is what to fix before anything looks wrong
-          </Alert>
+          </alert>
         }
       >
-        <Alert variant="success">
+        <alert variant="success">
           Ties together — every legibility check passes in the {activeMode()}
           {" "}
           mode
-        </Alert>
+        </alert>
       </Show>
       <h2 class="text-xl">Palette</h2>
       <div class="flex flex-wrap gap-4">

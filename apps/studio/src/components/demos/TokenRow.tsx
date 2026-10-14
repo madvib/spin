@@ -18,7 +18,6 @@
 import { Show } from "solid-js";
 import type { TokenRow } from "../../lib/tokens";
 import ValueInput from "./ValueInput.tsx";
-import { Card } from "../spin.tsx";
 
 /** `color.neutral.50` → `neutral-50`, the utility suffix a swatch spends. */
 function tokenSuffix(path: string): string {
@@ -38,7 +37,7 @@ export default function TokenRow_({
 }) {
   const id = `token-${row.path}`;
   return (
-    <Card class="split p-4">
+    <card class="split p-4">
       <div class="row-sm">
         <Show when={swatch}>
           <div
@@ -57,6 +56,6 @@ export default function TokenRow_({
           onCommit={(value) => onEdit(row.path.split("."), value)}
         />
       </div>
-    </Card>
+    </card>
   );
 }

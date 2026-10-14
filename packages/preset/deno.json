@@ -42,7 +42,8 @@
     "./rules/primitives/icon.examples.ts": "./src/rules/primitives/icon.examples.ts",
     "./rules/primitives/table.examples.ts": "./src/rules/primitives/table.examples.ts",
     "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts",
-    "./config": "./src/config.ts"
+    "./config": "./src/config.ts",
+    "./solid": "./src/solid.d.ts"
   },
   "imports": {
     "@spin/preset": "./src/index.ts",

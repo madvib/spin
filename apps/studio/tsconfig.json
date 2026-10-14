@@ -28,6 +28,9 @@
       "@spin/preset": [
         "../../packages/preset/src/index.ts"
       ],
+      "@spin/solid": [
+        "../../packages/preset/src/solid.d.ts"
+      ],
       "@unocss/core": [
         "./node_modules/@unocss/core/dist/index.d.mts"
       ],
@@ -44,6 +47,7 @@
   },
   "include": [
     "src",
+    "../../packages/preset/src/solid.d.ts",
     "vite.config.ts"
   ]
 }

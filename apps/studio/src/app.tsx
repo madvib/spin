@@ -22,7 +22,7 @@ import UtilitiesPage from "./routes/utilities.tsx";
 import { createEffect, createResource, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
-import { Alert } from "./components/spin.tsx";
+
 import { listProjectThemes, saveTheme } from "./lib/themes.ts";
 import {
   canRedo,
@@ -218,9 +218,9 @@ export default function App() {
                 />
               </button>
               <Show when={lastRefusal() !== undefined}>
-                <Alert variant="danger" class="text-sm">
-                  {`Edit refused: ${lastRefusal()}`}
-                </Alert>
+                <alert variant="danger" class="text-sm">
+                  Edit refused: {lastRefusal()}
+                </alert>
               </Show>
               <button
                 type="button"

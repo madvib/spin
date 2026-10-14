@@ -8,7 +8,6 @@
  */
 
 import { For } from "solid-js";
-import { Alert, Badge, Card } from "../components/spin.tsx";
 
 interface Bean {
   readonly origin: string;
@@ -56,9 +55,9 @@ export default function Menu() {
       <div class="flex flex-wrap gap-6">
         <For each={BEANS}>
           {(bean) => (
-            <Card class="flex flex-col gap-4 p-6 w-72">
+            <card class="flex flex-col gap-4 p-6 w-72">
               <div class="row-sm">
-                <Badge variant="accent">{bean.process}</Badge>
+                <badge variant="accent">{bean.process}</badge>
               </div>
               <h2 class="text-xl">{bean.origin}</h2>
               <p class="text-text-muted">{bean.notes}</p>
@@ -66,7 +65,7 @@ export default function Menu() {
                 <strong>{bean.price}</strong>
                 <button type="button">Add to box</button>
               </div>
-            </Card>
+            </card>
           )}
         </For>
       </div>
