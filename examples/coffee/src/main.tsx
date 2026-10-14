@@ -16,5 +16,12 @@
 import { render } from "solid-js/web";
 import App from "./app.tsx";
 import "uno.css";
+// The fonts, managed as dependencies: three faces, one display, one body,
+// one mono. In the product this is what the studio's font picker writes and
+// what the download step installs — a variable face, the weights the theme
+// asks for, and nothing else.
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/inter";
+import "@fontsource/cascadia-code";
 
 render(() => <App />, document.getElementById("app")!);

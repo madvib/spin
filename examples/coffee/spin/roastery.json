@@ -307,8 +307,16 @@
         "$description": "Long-form editorial text."
       },
       "mono": {
-        "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
-        "$description": "Code, identifiers, tabular figures."
+        "$value": "Cascadia Code, ui-monospace, monospace",
+        "$description": "Code and identifiers."
+      },
+      "heading": {
+        "$value": "Fraunces Variable, Georgia, serif",
+        "$description": "The display face."
+      },
+      "body": {
+        "$value": "Inter Variable, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text."
       }
     },
     "size": {

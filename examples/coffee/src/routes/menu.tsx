@@ -10,6 +10,7 @@
 import { For } from "solid-js";
 
 interface Bean {
+  readonly image: string;
   readonly origin: string;
   readonly notes: string;
   readonly process: string;
@@ -18,24 +19,28 @@ interface Bean {
 
 const BEANS: readonly Bean[] = [
   {
+    image: "/beans/ethiopia.svg",
     origin: "Ethiopia Guji",
     notes: "Apricot, jasmine, black tea",
     process: "Washed",
     price: "$19",
   },
   {
+    image: "/beans/colombia.svg",
     origin: "Colombia Huila",
     notes: "Cocoa, walnut, orange peel",
     process: "Honey",
     price: "$17",
   },
   {
+    image: "/beans/sumatra.svg",
     origin: "Sumatra Lintong",
     notes: "Cedar, tobacco, molasses",
     process: "Wet-hulled",
     price: "$18",
   },
   {
+    image: "/beans/guatemala.svg",
     origin: "Guatemala Huehuetenango",
     notes: "Apple, caramel, almond",
     process: "Washed",
@@ -56,6 +61,13 @@ export default function Menu() {
         <For each={BEANS}>
           {(bean) => (
             <card class="flex flex-col gap-4 p-6 w-72">
+              <img
+                src={bean.image}
+                alt=""
+                class="rounded-md"
+                width="240"
+                height="160"
+              />
               <div class="flex items-center gap-2">
                 <badge variant="accent">{bean.process}</badge>
               </div>

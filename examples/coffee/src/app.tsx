@@ -27,10 +27,16 @@ export default function App() {
       <Title>Basecamp Roastery</Title>
       <Router
         root={(props: ParentProps) => (
-          <div data-theme="roastery" class="flex flex-col gap-4 min-h-screen bg-surface">
+          <div
+            data-theme="roastery"
+            class="flex flex-col gap-4 min-h-screen bg-surface"
+          >
             <nav class="flex flex-row items-center gap-4 bg-surface-raised border-b border-border p-4">
-              <A href="/" class="no-underline font-semibold">
-                Basecamp Roastery
+              <A href="/" class="row-sm no-underline">
+                <img src="/mark.svg" alt="" width="28" height="28" />
+                <span class="font-heading font-semibold">
+                  Basecamp Roastery
+                </span>
               </A>
               <ul class="row-list flex-1 justify-center">
                 <For each={LINKS}>

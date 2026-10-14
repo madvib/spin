@@ -15,6 +15,7 @@
  */
 
 import type { Rule } from "@unocss/core";
+import { proseTokens } from "./primitives/shared.ts";
 
 export function listRules(): Rule[] {
   return [
@@ -22,12 +23,17 @@ export function listRules(): Rule[] {
     [
       /^row-list$/,
       function* (_m, ctx) {
+        const t = proseTokens(ctx);
         yield {
           display: "flex",
           "align-items": "center",
           "list-style-type": "none",
           margin: "0",
           padding: "0",
+          // A gap is part of being a row: without it the items touch, and
+          // the utility that claims to lay a list out leaves the author to
+          // remember a second one.
+          ...(t.spacing4 !== undefined ? { "column-gap": t.spacing4 } : {}),
         };
         // The reset is the point, and it has to be scoped: an unscoped
         // `li + li` would take the rhythm off every list on the page. The
