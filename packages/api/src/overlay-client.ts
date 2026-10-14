@@ -13,8 +13,15 @@
  */
 
 export const OVERLAY_SCRIPT =
-  `export function spinOverlay(base = "/__spin/rpc") {
-  const studioPath = base.replace(/\\/rpc$/, "") + "/studio/";
+  `export function spinOverlay(base = "/__spin/rpc", studio) {
+  // Where the studio runs. Mounted, it is built and served beside the API on
+  // this origin - which has no hot reload, because a built bundle never
+  // does. A studio checkout on its own dev server keeps its own modules, so
+  // a caller working on the studio points at it here and the iframe loads it
+  // across origins, where its reload works.
+  const studioPath = studio === undefined
+    ? base.replace(/\\/rpc$/, "") + "/studio/"
+    : studio.replace(/\\/$/, "") + "/";
   const css = [
     ".spin-fab{position:fixed;right:16px;bottom:16px;z-index:2147483646;",
     "display:flex;align-items:center;gap:8px;padding:10px 14px;",
@@ -62,7 +69,9 @@ export const OVERLAY_SCRIPT =
     '<button type="button" data-act="mode" title="Drawer (30% width)">&#9702;</button>',
     '<button type="button" data-act="close" title="Close the studio">&times;</button>',
     "</div>",
-    '<iframe title="Spin theme studio" src="' + studioPath + '"></iframe>',
+    '<iframe title="Spin theme studio" src="' + studioPath +
+      (studioPath.indexOf("?") === -1 ? "?" : "&") + "app=" +
+      encodeURIComponent(location.origin) + '"></iframe>',
   ].join("");
 
   let open = false;

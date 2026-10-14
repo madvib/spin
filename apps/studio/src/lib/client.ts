@@ -19,6 +19,15 @@ import { createSpinClient, type SpinClient } from "@spin/api";
  * the page that loaded it.
  */
 function rpcUrl(): string {
+  // The studio is a UI; the project it edits is a host. Mounted, that host is
+  // this origin. Loaded on its own dev server — which is how you work on the
+  // studio with a host app — it is named by `?app=`, and every call goes
+  // there, not just the overlay write. Without this the studio would edit
+  // whatever project its own checkout happens to mount.
+  const named = new URLSearchParams(location.search).get("app");
+  if (named !== null) {
+    return new URL("/__spin/rpc", new URL(named)).toString();
+  }
   // A `file://` preview or an opaque origin reports `"null"`: fall back
   // to the page URL rather than a dead origin.
   const origin = location.origin === "null" ? location.href : location.origin;

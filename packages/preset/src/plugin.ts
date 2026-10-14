@@ -64,6 +64,18 @@ export interface SpinPluginOptions {
    * to dial it, so the two halves cannot disagree about the address.
    */
   readonly apiBase?: string;
+  /**
+   * A studio running on its own dev server, loaded by the overlay instead of
+   * the bundle mounted beside the API.
+   *
+   * A built bundle has no hot reload, so working on the studio itself
+   * against a host app is a rebuild, a restart and a cache clear per edit.
+   * Pointing this at a studio dev server lets that server keep its modules,
+   * and the iframe loads it across origins — the same `?app=` arrangement the
+   * two-server studio already uses. Absent, the mounted bundle is used, which
+   * is what a consumer without a studio checkout wants.
+   */
+  readonly studioUrl?: string;
 }
 
 /**
@@ -189,7 +201,11 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
           // you learn to ignore.
           `<script type="module">
 import { spinOverlay } from "/__spin/overlay.js";
-spinOverlay("${studioBase}/rpc");
+spinOverlay("${studioBase}/rpc"${
+            options.studioUrl === undefined
+              ? ""
+              : `, ${JSON.stringify(options.studioUrl)}`
+          });
 <\/script>
 </body>`,
         );
