@@ -19,7 +19,16 @@ import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
 import SurfacesPage from "./routes/surfaces.tsx";
 import UtilitiesPage from "./routes/utilities.tsx";
-import { createEffect, createResource, For, Show, Suspense } from "solid-js";
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+  Suspense,
+} from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 
@@ -130,6 +139,24 @@ const CONCERNS = [
 ] as const;
 
 export default function App() {
+  // The concern list collapses on a narrow viewport — the studio runs in an
+  // iframe at drawer width, where eight entries are either a three-row stack
+  // or a horizontal scroll. Both are worse than one button that opens them.
+  //
+  // A `matchMedia` rather than `md:` variants: `.hidden` and `.md:flex` are
+  // the same specificity, so which one wins is a property of the sheet's
+  // emission order rather than of the markup. It resolved wrong, and left
+  // the nav empty at full width.
+  const [navOpen, setNavOpen] = createSignal(false);
+  const [narrow, setNarrow] = createSignal(false);
+  onMount(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => setNarrow(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    onCleanup(() => query.removeEventListener("change", sync));
+  });
+
   // The path is the daemon's answer, project-relative: it states the layout
   // of a project rather than of the machine the studio happens to run on.
   const [themes] = createResource(listProjectThemes);
@@ -155,7 +182,7 @@ export default function App() {
           >
             <nav
               aria-label="Studio"
-              class="row shrink-0 bg-surface-raised p-4"
+              class="flex flex-wrap items-center gap-4 shrink-0 bg-surface-raised p-4"
             >
               <A href="/" class="row-sm font-semibold">
                 <span
@@ -164,7 +191,25 @@ export default function App() {
                 />
                 <span>Spin</span>
               </A>
-              <ul class="row flex-1 justify-center">
+              <Show when={narrow()}>
+                <button
+                  type="button"
+                  class="bare"
+                  aria-expanded={navOpen()}
+                  aria-label="Concerns"
+                  onClick={() => setNavOpen((open) => !open)}
+                >
+                  <span
+                    class="inline-block icon-md i-lucide-menu"
+                    aria-hidden="true"
+                  />
+                </button>
+              </Show>
+              <ul
+                class={narrow() && !navOpen()
+                  ? "hidden"
+                  : "row-list flex-1 justify-center"}
+              >
                 <For each={CONCERNS}>
                   {([href, label]) => (
                     <li>
@@ -187,9 +232,15 @@ export default function App() {
               <ThemePicker />
             </nav>
             <div class="row shrink-0 border-b border-border p-4">
-              <span class="flex-1">
-                Editing <code>{activeName()}</code> {activePath() ?? "…"}{" "}
-                · previewing {activeMode()}
+              {
+                /* The active theme, stated once and small. The file it lives in
+                  is what the picker already offers, so repeating it here
+                  bought a line and nothing else. */
+              }
+              <span class="flex-1 truncate">
+                <code class="text-text-muted text-xs">
+                  {activePath() ?? "…"}
+                </code>
               </span>
               <button
                 type="button"
@@ -249,7 +300,7 @@ export default function App() {
                 rel="noopener"
                 aria-label="View in app"
                 title="View in app"
-                class="button secondary"
+                class="button secondary whitespace-nowrap"
               >
                 View in app
               </a>
