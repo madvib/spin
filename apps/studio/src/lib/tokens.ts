@@ -72,3 +72,39 @@ export function groupTokens(
       };
     });
 }
+
+/**
+ * Every custom property the theme declares, keyed by the variable it emits.
+ *
+ * A readout that names a component's tokens has to name the thing the user
+ * edits — the token path — not `--color-primary`, which is the emitted
+ * variable and therefore output. Showing output in an editor is a category
+ * error: it looks actionable and is not.
+ *
+ * Built from the live tree rather than by inverting the name, because a
+ * segment can contain a hyphen and a reverse mapping would be ambiguous.
+ */
+export function tokenPathsByVar(
+  tree: TokenTree,
+): ReadonlyMap<string, string> {
+  const out = new Map<string, string>();
+  for (const leaf of Object.values(indexTree(tree).leaves)) {
+    out.set(cssVarName(leaf.path), leaf.path.join("."));
+  }
+  return out;
+}
+
+/** Which editor route owns a token path, so a readout can link to it. */
+export function editorRouteFor(path: string): string {
+  for (const [section, prefixes] of Object.entries(SECTION_PREFIXES)) {
+    if (
+      prefixes.some((prefix) =>
+        prefix.every((segment, i) => path.split(".")[i] === segment)
+      )
+    ) {
+      return `/${section}`;
+    }
+  }
+  return "/";
+}
+

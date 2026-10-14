@@ -17,7 +17,6 @@ import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
-import SpecimenPage from "./routes/specimen.tsx";
 import SurfacesPage from "./routes/surfaces.tsx";
 import UtilitiesPage from "./routes/utilities.tsx";
 import { createEffect, createResource, For, Show, Suspense } from "solid-js";
@@ -121,7 +120,6 @@ function ThemePicker() {
 }
 
 const CONCERNS = [
-  ["specimen", "Specimens"],
   ["colors", "Color"],
   ["type", "Type"],
   ["surfaces", "Surfaces"],
@@ -273,7 +271,6 @@ export default function App() {
       )}
     >
       <Route path="/" component={OverviewPage} />
-      <Route path="/specimen" component={SpecimenPage} />
       <Route path="/colors" component={ColorsPage} />
       <Route path="/type" component={TypePage} />
       <Route path="/surfaces" component={SurfacesPage} />

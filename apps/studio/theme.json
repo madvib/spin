@@ -268,7 +268,31 @@
       "$value": "4rem"
     },
     "$type": "dimension",
-    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
+    "3": {
+      "$value": "0.75rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    }
   },
   "font": {
     "$description": "Typography: which face, how large, how heavy, and how open the tracking sits.",
@@ -335,7 +359,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -545,7 +569,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -569,7 +593,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"

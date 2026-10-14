@@ -42,8 +42,8 @@ const METHODS: readonly Method[] = [
 
 export default function Brew() {
   return (
-    <div class="stack-lg max-w-4xl mx-auto p-8">
-      <header class="stack">
+    <div class="flex flex-col gap-8 max-w-4xl mx-auto p-8">
+      <header class="flex flex-col gap-4">
         <h1 class="text-3xl">Brewing</h1>
         <p class="text-text-muted">
           Two methods, the settings we use, and what to watch for.
@@ -51,22 +51,26 @@ export default function Brew() {
       </header>
       <For each={METHODS}>
         {(method) => (
-          <card class="stack p-6">
-            <div class="split">
+          <card class="flex flex-col gap-4 p-6">
+            <div class="flex items-center justify-between gap-4">
               <h2 class="text-xl">{method.name}</h2>
               <badge variant="accent">{method.ratio}</badge>
             </div>
-            <ol class="stack-sm text-text-muted">
+            <ol class="flex flex-col gap-2 text-text-muted">
               <For each={method.steps}>
                 {(step) => <li>{step}</li>}
               </For>
             </ol>
-            <div class="stack-sm">
-              <div class="split">
-                <span>Strength</span>
-                <code>{method.ratio}</code>
-              </div>
+            <div class="flex flex-col gap-2">
               <progress value={method.strength} aria-label="Strength" />
+              {
+                /* The ratio was already a badge in the header. Repeating it
+                  under a label that says the other thing entirely is how this
+                  flex flex-row items-center gap-4 came to read "Strength 1:16". */
+              }
+              <p class="text-text-muted text-sm">
+                Strength {Math.round(method.strength * 100)}%
+              </p>
             </div>
           </card>
         )}

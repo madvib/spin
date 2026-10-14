@@ -14,9 +14,11 @@
  */
 
 import { createMemo, createResource, For, Show } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { primitivesTokens } from "../../lib/primitives.ts";
-import { library } from "../../lib/store.ts";
+import { activeMode, library, themeText } from "../../lib/store.ts";
+import { analyzeTheme } from "../../lib/theme.ts";
+import { editorRouteFor, tokenPathsByVar } from "../../lib/tokens.ts";
 
 export default function ComponentPage() {
   const params = useParams();
@@ -37,8 +39,19 @@ export default function ComponentPage() {
   // workspace packages, so the RPC client's types do not resolve under tsc —
   // the values are right at runtime, and a cast states the shape the daemon
   // sends. The real fix is a `paths` entry, not this cast.
-  const groups = () =>
-    Object.entries(tokens()?.reads ?? {}) as [string, string[]][];
+  // The contract names the variables a component reads; the live theme
+  // says which token path each one is, so the readout is editable identity
+  // rather than emitted output.
+  const tokenEntries = () => {
+    const tree = analyzeTheme(themeText()).tree;
+    if (tree === undefined) return [];
+    const byVar = tokenPathsByVar(tree);
+    const vars = Object.values(tokens()?.reads ?? {}).flat() as string[];
+    const paths = vars
+      .map((variable) => byVar.get(variable))
+      .filter((path): path is string => path !== undefined);
+    return [...new Set(paths)].map((path) => ({ path }));
+  };
   const rows = () => found()?.examples?.rows ?? [];
 
   return (
@@ -94,24 +107,27 @@ export default function ComponentPage() {
               </For>
             </Show>
 
-            <Show when={groups().length > 0}>
-              <h2 class="mt-6 text-xl">Tokens used</h2>
-              <For each={groups()}>
-                {([group, reads]) => (
-                  <div class="mt-2">
-                    <h3 class="text-sm font-medium">{group}</h3>
-                    <ul class="mt-1 flex flex-wrap gap-2">
-                      <For each={[...reads]}>
-                        {(token) => (
-                          <li>
-                            <code class="text-xs">{token}</code>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
-                  </div>
-                )}
-              </For>
+            {
+              /* Tokens this component reads, as paths. A path is the thing
+                 the editor can edit and a `--variable` is not, so each entry
+                 links to the editor that owns it. */
+            }
+            <Show when={tokenEntries().length > 0}>
+              <h2 class="mt-6 text-xl">Tokens this reads</h2>
+              <ul class="mt-2 flex flex-wrap gap-2">
+                <For each={tokenEntries()}>
+                  {({ path }) => (
+                    <li>
+                      <A
+                        href={editorRouteFor(path)}
+                        class="text-xs hover:underline"
+                      >
+                        <code>{path}</code>
+                      </A>
+                    </li>
+                  )}
+                </For>
+              </ul>
             </Show>
           </div>
         )}

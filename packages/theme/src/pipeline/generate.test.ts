@@ -125,6 +125,7 @@ const DARK: TokenTree = [
   },
 ];
 
+import { starterThemes } from "../themes/index.ts";
 Deno.test("generateCss emits a custom property per token, named by its dotted path", () => {
   const css = generateCss(LIGHT);
   const root = blockWithSelector(css, ":root");
@@ -401,4 +402,34 @@ Deno.test("generateTypes declares exactly the custom properties generateCss emit
 
   assert(emitted.size > 0, "the fixture should emit at least one property");
   assertEquals(asNames, [...emitted].sort());
+});
+
+Deno.test("every shipped theme declares the whole spacing scale", () => {
+  // The utility vocabulary is dense — `p-1`..`p-16` — so a scale with holes
+  // makes every step inside a hole a class that silently does nothing. The
+  // shipped themes used to declare 0,1,2,4,8,16, which meant `p-3`, `p-5`,
+  // `p-6`, `gap-6` and friends emitted no rule at all, in the studio, the
+  // reference and the example app alike, with nothing to say so.
+  const REQUIRED = [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "10",
+    "12",
+    "16",
+    "20",
+    "24",
+  ];
+  for (const [name, theme] of Object.entries(starterThemes)) {
+    const scale = theme.spacing as Record<string, unknown>;
+    const declared = Object.keys(scale).filter((key) => !key.startsWith("$"));
+    const missing = REQUIRED.filter((step) => !declared.includes(step));
+    assertEquals(missing, [], `${name} is missing spacing steps`);
+  }
 });

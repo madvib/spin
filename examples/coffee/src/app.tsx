@@ -27,12 +27,12 @@ export default function App() {
       <Title>Basecamp Roastery</Title>
       <Router
         root={(props: ParentProps) => (
-          <div data-theme="roastery" class="stack min-h-screen bg-surface">
-            <nav class="row bg-surface-raised border-b border-border p-4">
+          <div data-theme="roastery" class="flex flex-col gap-4 min-h-screen bg-surface">
+            <nav class="flex flex-row items-center gap-4 bg-surface-raised border-b border-border p-4">
               <A href="/" class="no-underline font-semibold">
                 Basecamp Roastery
               </A>
-              <ul class="row flex-1 justify-center">
+              <ul class="flex flex-row items-center gap-4 flex-1 justify-center list-none">
                 <For each={LINKS}>
                   {([href, label]) => (
                     <li>

@@ -45,8 +45,8 @@ const BEANS: readonly Bean[] = [
 
 export default function Menu() {
   return (
-    <div class="stack-lg max-w-5xl mx-auto p-8">
-      <header class="stack">
+    <div class="flex flex-col gap-8 max-w-5xl mx-auto p-8">
+      <header class="flex flex-col gap-4">
         <h1 class="text-3xl">This week's beans</h1>
         <p class="text-text-muted">
           Four origins, roasted Tuesday and shipped Wednesday.
@@ -56,12 +56,12 @@ export default function Menu() {
         <For each={BEANS}>
           {(bean) => (
             <card class="flex flex-col gap-4 p-6 w-72">
-              <div class="row-sm">
+              <div class="flex items-center gap-2">
                 <badge variant="accent">{bean.process}</badge>
               </div>
               <h2 class="text-xl">{bean.origin}</h2>
               <p class="text-text-muted">{bean.notes}</p>
-              <div class="split mt-auto">
+              <div class="flex items-center justify-between gap-4 mt-auto">
                 <strong>{bean.price}</strong>
                 <button type="button">Add to box</button>
               </div>

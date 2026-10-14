@@ -268,7 +268,31 @@
       "$value": "4rem"
     },
     "$type": "dimension",
-    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
+    "3": {
+      "$value": "0.75rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    }
   },
   "font": {
     "$description": "Typography: which face, how large, how heavy, and how open the tracking sits.",
