@@ -25,7 +25,7 @@
 import { createMemo, For, Show } from "solid-js";
 import { analyzeTheme } from "../lib/theme.ts";
 import { activeMode, themeText } from "../lib/store.ts";
-import ValueInput from "../components/demos/ValueInput.tsx";
+import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { editToken } from "../lib/editing.ts";
 
@@ -148,25 +148,38 @@ export default function TypePage() {
 
       <section class="stack mt-12 mb-16 px-8">
         <h2 class="text-xl">Which face each element claims</h2>
+        <p class="max-w-screen-md text-text-muted">
+          {"Every element reads a face, and any of them can read a different one from its siblings. <h1> claiming the display face while <h2> and <h3> take the body face is a decision this table makes. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
+        </p>
         <table>
           <thead>
             <tr>
               <th>Element</th>
-              <th>Claims</th>
+              <th>Face</th>
               <th>Why</th>
             </tr>
           </thead>
           <tbody>
             <For each={TAG_MAP}>
-              {({ tag, face, note }) => (
+              {(entry) => (
                 <tr>
                   <td>
-                    <code>{`<${tag}>`}</code>
+                    <code>{`<${entry.tag}>`}</code>
                   </td>
                   <td>
-                    <span class={`font-${face}`}>{face}</span>
+                    <select
+                      value={faceFor(entry.tag, entry.face)}
+                      onChange={(event) =>
+                        setFace(entry.tag, event.currentTarget.value)}
+                    >
+                      <For each={FACES}>
+                        {(face) => (
+                          <option value={face.slot}>{face.slot}</option>
+                        )}
+                      </For>
+                    </select>
                   </td>
-                  <td class="text-text-muted">{note}</td>
+                  <td class="text-text-muted">{entry.note}</td>
                 </tr>
               )}
             </For>
@@ -192,16 +205,23 @@ function FamilyCard(props: { slot: string; role: string; sample: string }) {
       <p class={`font-${props.slot} text-2xl leading-tight`}>
         {props.sample}
       </p>
-      <Show when={row() !== undefined}>
-        <div class="split border-border border-t pt-4">
-          <code class="text-sm">{row()!.value}</code>
-          <ValueInput
-            value={row()!.value}
-            type={row()!.type}
-            onCommit={(value) => editToken(row()!.path.split("."), value)}
-          />
-        </div>
-      </Show>
+      {
+        /* The stack is output. Under it, the decision: which family this slot
+           spends, chosen from the catalogue rather than typed as a comma
+           separated list. */
+      }
+      <div class="border-border border-t pt-4">
+        <code class="text-text-muted text-xs">{row()?.value ?? "—"}</code>
+        <FontPicker
+          slot={props.slot}
+          value={row()?.value ?? ""}
+          onPick={(stack) =>
+            editToken(
+              (row()?.path ?? `font.family.${props.slot}`).split("."),
+              stack,
+            )}
+        />
+      </div>
     </card>
   );
 }
@@ -221,4 +241,29 @@ function ScaleRow(props: { step: string }) {
       </div>
     </div>
   );
+}
+
+/** The faces a theme can assign, and the sentence that shows each off. */
+const FACES = [
+  { slot: "heading" },
+  { slot: "body" },
+  { slot: "serif" },
+  { slot: "mono" },
+] as const;
+
+/** The face an element claims: its own token if set, else its default. */
+function faceFor(tag: string, fallback: string): string {
+  const rows = familyRows();
+  const own = rows.find((row) => row.path === `font.element.${tag}`);
+  return own?.value ?? fallback;
+}
+
+/**
+ * Write the face an element claims.
+ *
+ * `font.element.<tag>` names a slot in `font.family`, and the rule prefers
+ * it — so `<h1>` can claim a face while the other headings keep theirs.
+ */
+function setFace(tag: string, slot: string): void {
+  editToken(["font", "element", tag], slot);
 }

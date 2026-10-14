@@ -33,9 +33,13 @@ function headingRule(
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      // The element's own claim, then the shared heading face. A theme that
+      // maps `<h1>` to a face of its own moves `<h1>` and nothing else.
+      const face = t.element?.[tag];
+      const family = face !== undefined ? slot(face, t) : t.heading;
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
-        ...(t.heading !== undefined ? { "font-family": t.heading } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
         ...rhythm(t),
         ...(t.spacing4 !== undefined
           ? { "margin-block-start": t.spacing4 }
@@ -98,3 +102,15 @@ function headingRules(mode: Mode): Rule[] {
 }
 
 export { headingRule, headingRules };
+
+/** A family slot resolved from a named face, for a per-element override. */
+function slot(face: string, t: Tokens): string | undefined {
+  const families: Record<string, string | undefined> = {
+    heading: t.heading,
+    body: t.body,
+    sans: t.sans,
+    serif: t.serif,
+    mono: t.mono,
+  };
+  return families[face];
+}

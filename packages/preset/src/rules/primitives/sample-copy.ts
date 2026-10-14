@@ -62,7 +62,8 @@ export const sample = {
 
   note: {
     title: "Next box ships Wednesday",
-    body: "Two bags of Ethiopia Guji, ground for pour-over. Changes can be made until Tuesday.",
+    body:
+      "Two bags of Ethiopia Guji, ground for pour-over. Changes can be made until Tuesday.",
   },
 
   nav: {

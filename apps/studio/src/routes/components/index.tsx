@@ -20,8 +20,8 @@ export default function ComponentsIndex() {
     <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-8">
       <h1 class="text-2xl">Components</h1>
       <p class="max-w-screen-md text-text-muted">
-        Every primitive the preset ships. Pick one to see its variants, what
-        it reads, and where to change it.
+        Every primitive the preset ships. Pick one to see its variants, what it
+        reads, and where to change it.
       </p>
       <Switch
         fallback={

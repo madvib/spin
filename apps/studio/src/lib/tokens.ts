@@ -107,4 +107,3 @@ export function editorRouteFor(path: string): string {
   }
   return "/";
 }
-

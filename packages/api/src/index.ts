@@ -20,6 +20,7 @@ import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 import { presetRouter } from "@spin/preset";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
+import { fontsRouter } from "./fonts-procedures.ts";
 import { overlayRouter } from "@spin/preset";
 
 export { themeRouter } from "@spin/theme";
@@ -46,6 +47,7 @@ export const router = {
   ...projectRouter,
   ...previewRouter,
   ...overlayRouter,
+  ...fontsRouter,
 };
 
 export const rpcHandler = new RPCHandler(router);
