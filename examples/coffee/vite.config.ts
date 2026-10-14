@@ -23,7 +23,7 @@ export default defineConfig({
     spin.vite({
       presets: [presetIcons({ collections: { lucide } as never })],
       apiBase: "/__spin",
-      mount: mountSpinApp(here, { studioDir: resolve(here, "../studio/dist") }),
+      mount: mountSpinApp(here, { studioDir: resolve(here, "../../apps/studio/dist") }),
       content: {
         filesystem: ["src/**/*.{tsx,ts}"],
         pipeline: {
