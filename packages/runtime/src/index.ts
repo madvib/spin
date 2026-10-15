@@ -12,7 +12,7 @@ export {
 
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
-export { ids, type IdFn } from "./component/ids.ts";
+export { focuser, ids, type IdFn } from "./component/ids.ts";
 export { defineComponent } from "./component/synthesize.ts";
 export {
   type ChannelDef,

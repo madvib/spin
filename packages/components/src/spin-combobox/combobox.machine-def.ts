@@ -1,20 +1,15 @@
-import type { MachineDef } from "@spin/runtime";
-import { createComboboxBridge } from "./combobox.bridge.ts";
+import { combobox } from "./combobox.def.ts";
 import type {
   ComboboxHighlightChange,
   ComboboxInputValueChange,
   ComboboxOpenChange,
   ComboboxSelect,
   ComboboxValueChange,
-} from "./combobox.bridge.ts";
+} from "./combobox.def.ts";
 
 /**
- * The combobox's seam: the bridge, the element's imperative commands and the
- * CustomEvents the host reads.
- *
- * `machine`/`connect` are inert placeholders — the def's `createBridge` routes
- * straight to the fork, which is what makes this interpreter a drop-in behind
- * the `<name>.machine-def.ts` contract the plugin consumes.
+ * The combobox's seam: the synthesized bridge, the element's imperative
+ * commands and the CustomEvents the host reads.
  *
  * Events are faithful to Zag's callbacks: `value-change` carries
  * `onValueChange` with the new keys and the items they resolve to,
@@ -25,57 +20,11 @@ import type {
  * landed on.
  */
 
+export { combobox };
 export type {
   ComboboxHighlightChange,
   ComboboxInputValueChange,
   ComboboxOpenChange,
   ComboboxSelect,
   ComboboxValueChange,
-};
-
-export const combobox: MachineDef = {
-  createBridge: createComboboxBridge,
-  commands: [
-    "syncSelectedItems",
-    "setHighlightValue",
-    "clearHighlightValue",
-    "selectValue",
-    "setValue",
-    "setInputValue",
-    "clearValue",
-    "focus",
-    "setOpen",
-  ],
-  events: {
-    "value-change": {
-      on: "onValueChange",
-      detail: (change: ComboboxValueChange) => ({ value: change.value, items: change.items }),
-    },
-    "highlight-change": {
-      on: "onHighlightChange",
-      detail: (change: ComboboxHighlightChange) => ({
-        highlightedValue: change.highlightedValue,
-        highlightedItem: change.highlightedItem,
-      }),
-    },
-    "input-value-change": {
-      on: "onInputValueChange",
-      detail: (change: ComboboxInputValueChange) => ({
-        inputValue: change.inputValue,
-        reason: change.reason,
-      }),
-    },
-    "open-change": {
-      on: "onOpenChange",
-      detail: (change: ComboboxOpenChange) => ({
-        open: change.open,
-        reason: change.reason,
-        value: change.value,
-      }),
-    },
-    select: {
-      on: "onSelect",
-      detail: (change: ComboboxSelect) => ({ value: change.value, itemValue: change.itemValue }),
-    },
-  },
 };

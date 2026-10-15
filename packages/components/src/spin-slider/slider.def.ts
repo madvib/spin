@@ -87,6 +87,8 @@ type Ctx = SliderContext;
 
 const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
 
+const slotIndex = (slot: unknown): number => (slot as { readonly index: number }).index;
+
 /** The view reflex: after a keyboard move the focused thumb takes focus. */
 const focusThumb = (id: (part: string, slot?: number) => string, index: number): void => {
   if (typeof document === "undefined") return;
@@ -115,6 +117,17 @@ const trackValue = (
   return valueOfPercent(context, Math.min(1, Math.max(0, percent)));
 };
 
+/** Thumb slots are a pure function of the thumb count: cache per length so
+ * the recipe's iteration never re-stamps. Lengths are small; the map is bounded. */
+const thumbIndexCache = new Map<number, readonly { readonly index: number }[]>();
+const thumbIndexes = (length: number): readonly { readonly index: number }[] => {
+  const hit = thumbIndexCache.get(length);
+  if (hit !== undefined) return hit;
+  const made = Array.from({ length }, (_, index) => ({ index }));
+  thumbIndexCache.set(length, made);
+  return made;
+};
+
 const minProp = (raw: unknown): number => numProp(raw) ?? 0;
 const maxProp = (raw: unknown): number => numProp(raw) ?? 100;
 const stepProp = (raw: unknown): number => numProp(raw) ?? 1;
@@ -127,7 +140,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   name: "slider",
   config,
   implementations,
-  startState: "idle",
+  start: "idle",
   seed: (props) => {
     const seeded = (valuesProp(
       typeof props["value"] === "string" || Array.isArray(props["value"])
@@ -331,26 +344,26 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   },
   slots: {
     thumb: {
-      indexes: (context) => (asCtx(context).value as number[]).map((_, index) => ({ index })),
+      indexes: (context) => thumbIndexes((asCtx(context).value as number[]).length),
       sig: (scope) => {
         const context = asCtx(scope.context);
-        const value = (context.value as number[])[scope.slot.index] ?? context.min;
+        const value = (context.value as number[])[slotIndex(scope.slot)] ?? context.min;
         return [value, context.focusedIndex, scope.state, scope.props["disabled"], scope.props["orientation"], scope.props["dir"]].join("|");
       },
       attrs: (scope) => {
         const context = asCtx(scope.context);
-        const value = (context.value as number[])[scope.slot.index] ?? context.min;
-        const range = thumbRange(context, scope.slot.index);
+        const value = (context.value as number[])[slotIndex(scope.slot)] ?? context.min;
+        const range = thumbRange(context, slotIndex(scope.slot));
         const percent = percentOf(context, value);
-        const focused = scope.state === "focus" && context.focusedIndex === scope.slot.index;
-        const dragging = scope.state === "dragging" && context.focusedIndex === scope.slot.index;
+        const focused = scope.state === "focus" && context.focusedIndex === slotIndex(scope.slot);
+        const dragging = scope.state === "dragging" && context.focusedIndex === slotIndex(scope.slot);
         const vertical = scope.props["orientation"] === "vertical";
         return {
-          id: scope.id("thumb", scope.slot.index),
+          id: scope.id("thumb", slotIndex(scope.slot)),
           dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "thumb",
-          "data-index": String(scope.slot.index),
+          "data-index": String(slotIndex(scope.slot)),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           "data-orientation": scope.props["orientation"],
           "data-focus": scope.attr(focused),
@@ -381,7 +394,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
             (event.currentTarget as Capturable | null)?.setPointerCapture?.(event.pointerId);
             scope.send({
               type: "THUMB_POINTER_DOWN",
-              index: scope.slot.index,
+              index: slotIndex(scope.slot),
               offset: midpoint === null
                 ? undefined
                 : (vertical ? event.clientY - midpoint.y : event.clientX - midpoint.x),
@@ -403,7 +416,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
           },
           onFocus: () => {
             if (!isInteractive(asCtx(scope.context))) return;
-            scope.send({ type: "FOCUS", index: scope.slot.index });
+            scope.send({ type: "FOCUS", index: slotIndex(scope.slot) });
           },
           onKeydown: (event: KeyboardEvent) => {
             if (event.defaultPrevented) return;
@@ -414,7 +427,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
               event.preventDefault();
               event.stopPropagation();
               scope.send({ type, step: large });
-              focusThumb(scope.id, scope.slot.index);
+              focusThumb(scope.id, slotIndex(scope.slot));
               return true;
             };
             const horizontal = scope.props["orientation"] === "horizontal";
@@ -453,13 +466,13 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     hiddenInput: {
       id: "input",
       indexes: (context) => (asCtx(context).value as number[]).map((_, index) => ({ index })),
-      sig: (scope) => [scope.props["name"], (asCtx(scope.context).value as number[])[scope.slot.index], scope.slot.index].join("|"),
+      sig: (scope) => [scope.props["name"], (asCtx(scope.context).value as number[])[slotIndex(scope.slot)], slotIndex(scope.slot)].join("|"),
       attrs: (scope) => {
         const context = asCtx(scope.context);
-        const value = (context.value as number[])[scope.slot.index] ?? context.min;
+        const value = (context.value as number[])[slotIndex(scope.slot)] ?? context.min;
         const name = scope.props["name"] as string;
         return {
-          id: scope.id("input", scope.slot.index),
+          id: scope.id("input", slotIndex(scope.slot)),
           name: name.length > 0 ? ((context.value as number[]).length > 1 ? `${name}[]` : name) : undefined,
           form: undefined,
           type: "text",

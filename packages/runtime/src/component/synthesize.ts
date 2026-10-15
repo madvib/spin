@@ -6,19 +6,35 @@
  * declare sends, events declare watches. */
 
 import { dataAttr, keyed, memo, type BagMemo } from "./bags.ts";
-import { ids } from "./ids.ts";
+import { focuser, ids } from "./ids.ts";
 import { defineBridge, pickCallback, type BridgeHooks, type BridgeService } from "./bridge.ts";
-import type { ComponentDef } from "./define.ts";
+import type { ComponentDef, PartScope, SlotScope } from "./define.ts";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
 const parseProp = <C extends object, E extends { type: string }>(
   def: ComponentDef<C, E>,
   props: () => Record<string, unknown>,
+  cache?: Map<string, { raw: unknown; parsed: unknown }>,
 ): Record<string, unknown> => {
   const raw = props();
   const out: Record<string, unknown> = {};
   for (const [name, channel] of Object.entries(def.channels)) {
-    out[name] = channel.parse(raw[name]);
+    // Parsed props memoize on the raw prop's identity: a collection parse
+    // builds row objects, and a fresh array per read would look like a new
+    // item tree — re-rendering every row and orphaning in-flight gestures.
+    const input = raw[name];
+    if (cache !== undefined) {
+      const hit = cache.get(name);
+      if (hit !== undefined && hit.raw === input) {
+        out[name] = hit.parsed;
+        continue;
+      }
+      const parsed = channel.parse(input);
+      cache.set(name, { raw: input, parsed });
+      out[name] = parsed;
+      continue;
+    }
+    out[name] = channel.parse(input);
   }
   return out;
 };
@@ -34,7 +50,20 @@ export function defineComponent<
     id: string,
   ) => { readonly api: Api; dispose(): void };
 } {
-  const hooks = (): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
+  // Parsed props memoize on the raw prop's identity across bridges: the key
+  // is the raw value itself, so two elements never share a parse unless they
+  // hold the identical prop — in which case sharing is correct.
+  const parsedCache = new Map<string, { raw: unknown; parsed: unknown }>();
+  const parse = (props: () => Record<string, unknown>): Record<string, unknown> =>
+    parseProp(def, props, parsedCache);
+  const hooks = (
+    id: string,
+  ): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
+    const names = ids(def.name, id);
+    const focusPart = (part: string, slot?: unknown): void => {
+      if (typeof document === "undefined") return;
+      document.getElementById(names(part, slot))?.focus({ preventScroll: true });
+    };
     const bagMemos = new Map<string, ReturnType<typeof memo>>();
     const bagFor = (part: string): ReturnType<typeof memo> => {
       let found = bagMemos.get(part);
@@ -49,17 +78,22 @@ export function defineComponent<
       a.length === b.length && a.every((value, index) => value === b[index]);
 
     return {
-      seed: (props) => def.seed(parseProp(def, props)) as Partial<C>,
+      seed: (props, authored) => def.seed(parse(props), authored) as Partial<C>,
       sync: (svc, props, authored, send) => {
         let moved = false;
-        const parsed = parseProp(def, props);
+        const parsed = parse(props);
         for (const [name, channel] of Object.entries(def.channels)) {
           if (channel.controlled !== true) continue;
           if (!authored(name)) continue;
           const outer = parsed[name];
-          // A failed parse never alternates: null is "unparseable", not a value.
-          if (outer === null || outer === undefined) continue;
-          const current = ((svc.state.context as object) as Record<string, unknown>)[name];
+          // A failed parse never alternates — unless the channel declares
+          // null a value (a nullable clear), not a failure.
+          if (outer === null && channel.nullable !== true) continue;
+          if (outer === undefined) continue;
+          const context = (svc.state.context as object) as Record<string, unknown>;
+          const current = channel.current !== undefined
+            ? channel.current(context, svc.state.value)
+            : context[name];
           const same = channel.equal ?? ((a, b) => a === b);
           if (!same(current, outer)) {
             send(channel.event(outer as never) as E);
@@ -69,32 +103,48 @@ export function defineComponent<
         return moved;
       },
       kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
-      refresh: (svc, props) => {
-        if (def.scalars === undefined) return;
-        const parsed = parseProp(def, props);
+      refresh: (svc, props, authored) => {
+        if (def.scalars === undefined && def.scalarsOf === undefined) return;
+        const parsed = parse(props);
+        if (def.scalarsOf !== undefined) {
+          Object.assign(svc.state.context, def.scalarsOf(parsed, authored));
+          return;
+        }
         const merge: Record<string, unknown> = {};
         // Nullish parses never merge: scalar channels default at parse,
         // so nullish means "prop absent, parse nullable" (largeStep before
         // its step-dependent default) — never a value the context holds.
-        for (const name of def.scalars) {
+        for (const name of def.scalars ?? []) {
           if (parsed[name] !== null && parsed[name] !== undefined) merge[name] = parsed[name];
         }
         Object.assign(svc.state.context, merge);
       },
-      notify: (svc, callbacks, kind) => {
+      notify: (svc, callbacks, kind, event, before, parsed) => {
         const context = (svc.state.context as object) as Record<string, unknown>;
         const state = svc.state.value;
         const fns = callbacks as Record<string, (...args: readonly unknown[]) => void>;
-        for (const [name, event] of Object.entries(def.events)) {
+        for (const [name, defEvent] of Object.entries(def.events)) {
           // Commit gestures fire `on: "commit"` events every time (a
           // keyboard commit at a bound still ends the gesture); moves fire
           // only what changed.
-          if (event.on === "commit" && kind !== "commit") continue;
-          const watched = event.watch(context, state);
+          if (defEvent.on === "commit" && kind !== "commit") continue;
+          const watched = defEvent.watch(context, state);
           const last = lastWatched.get(name);
           lastWatched.set(name, watched);
-          if (event.on !== "commit" && last !== undefined && sameWatch(last, watched)) continue;
-          fns[event.prop]?.(event.detail(watched));
+          if (defEvent.select !== undefined) {
+            // Event-gated reports (invokeOnSelect): the send's outcome
+            // against the pre-send context; a refused guard reports nothing.
+            if (event === undefined || before === undefined) continue;
+            const payload = defEvent.select(
+              event as { readonly type: string } & Record<string, unknown>,
+              (before as object) as Record<string, unknown>,
+              context,
+            );
+            if (payload !== null) fns[defEvent.prop]?.(payload);
+            continue;
+          }
+          if (defEvent.on !== "commit" && last !== undefined && sameWatch(last, watched)) continue;
+          fns[defEvent.prop]?.(defEvent.detail(watched, event, parsed));
         }
       },
       readCallbacks: (props) => {
@@ -106,9 +156,29 @@ export function defineComponent<
         }
         return out;
       },
-      readConnectProps: (props) => parseProp(def, props),
+      readConnectProps: (props) => parse(props),
+      reconcile: (svc, state, parsed, authored, send) => {
+        if (def.reconcile === undefined) return false;
+        return def.reconcile({
+          context: (svc.state.context as object) as Record<string, unknown>,
+          state,
+          parsed,
+          authored,
+          send: send as (event: { type: string } & Record<string, unknown>) => void,
+        });
+      },
+      settled: ({ event, before, after }) => {
+        if (def.settled === undefined) return;
+        def.settled({
+          event: event as { readonly type: string } & Record<string, unknown>,
+          before: (before as object) as Record<string, unknown>,
+          after: (after as object) as Record<string, unknown>,
+          id: names,
+          focus: focusPart,
+        });
+      },
       connect: (service, readProps, id) => {
-        const names = ids(def.name, id);
+        const focusHere = focuser(ids(def.name, id));
         const segments = new Map<string, string>();
         for (const [key, partDef] of Object.entries(def.parts)) {
           segments.set(key, partDef.id ?? key);
@@ -116,19 +186,26 @@ export function defineComponent<
         for (const [key, slotDef] of Object.entries(def.slots ?? {})) {
           segments.set(key, slotDef.id ?? key);
         }
-        const resolveId = (part: string, slot?: number): string =>
+        const resolveId = (part: string, slot?: unknown): string =>
           names(segments.get(part) ?? part, slot);
         const api: Record<string, unknown> = {};
         for (const [name, command] of Object.entries(def.commands)) {
+          if (command.view !== undefined) {
+            const view = command.view;
+            api[name] = (...args: readonly unknown[]) => view({ args, id: names, focus: focusHere });
+            continue;
+          }
+          const send = command.event;
           api[name] = (...args: readonly unknown[]) => service.send(
-          command.event(args, (service.context as object) as Record<string, unknown>) as E,
-        );
+            send(args, (service.context as object) as Record<string, unknown>) as E,
+          );
         }
         for (const [name, reader] of Object.entries(def.readers ?? {})) {
           Object.defineProperty(api, name, {
             get: () => reader.read(
               (service.context as object) as Record<string, unknown>,
               service.state,
+              readProps(),
             ),
             enumerable: true,
           });
@@ -138,45 +215,64 @@ export function defineComponent<
             (service.context as object) as Record<string, unknown>,
             service.state,
             args,
+            readProps(),
           );
+        }
+        function liveScope(extra: { readonly slot: unknown }): SlotScope;
+        function liveScope(): PartScope;
+        function liveScope(extra?: { readonly slot: unknown }): PartScope | SlotScope {
+          // Live views, not snapshots: a closure cached by row (or by part)
+          // keeps reading through these, so it never goes stale — while the
+          // bag memo still bounds rebuilds by signature. Proxies cost a
+          // lookup per read; bags build rarely, handlers fire rarely.
+          const props = new Proxy({} as Record<string, unknown>, {
+            get: (_target, key: string) => readProps()[key],
+            has: (_target, key: string) => key in readProps(),
+          });
+          const context = new Proxy({} as Record<string, unknown>, {
+            get: (_target, key: string) =>
+              ((service.context as object) as Record<string, unknown>)[key],
+            has: (_target, key: string) =>
+              key in ((service.context as object) as Record<string, unknown>),
+          });
+          const scope: Record<string, unknown> = {
+            props,
+            context,
+            id: resolveId,
+            send: service.send as (event: { type: string } & Record<string, unknown>) => void,
+            attr: dataAttr,
+            ...extra,
+          };
+          Object.defineProperty(scope, "state", {
+            get: () => service.state,
+            enumerable: true,
+          });
+          return scope as unknown as PartScope | SlotScope;
         }
         for (const [part, partDef] of Object.entries(def.parts)) {
           const method = `get${part[0]?.toUpperCase() ?? ""}${part.slice(1)}Props`;
-          api[method] = () => {
-            const scope = {
-              props: readProps(),
-              context: (service.context as object) as Record<string, unknown>,
-              state: service.state,
-              id: resolveId,
-              send: service.send as (event: { type: string } & Record<string, unknown>) => void,
-              attr: dataAttr,
-            };
-            return bagFor(part)(partDef.sig(scope), () => partDef.attrs(scope));
+          api[method] = (...callArgs: readonly unknown[]) => {
+            const scope = liveScope();
+            return bagFor(part)(partDef.sig(scope, callArgs[0]), () => partDef.attrs(scope, callArgs[0]));
           };
         }
         for (const [slotName, slotDef] of Object.entries(def.slots ?? {})) {
           const cap = `${slotName[0]?.toUpperCase() ?? ""}${slotName.slice(1)}`;
-          const slotMemos = new WeakMap<{ readonly index: number }, BagMemo>();
-          api[`get${cap}Props`] = (slot: { readonly index: number }) => {
-            const scope = {
-              props: readProps(),
-              context: (service.context as object) as Record<string, unknown>,
-              state: service.state,
-              id: resolveId,
-              send: service.send as (event: { type: string } & Record<string, unknown>) => void,
-              attr: dataAttr,
-              slot,
-            };
-            return keyed(slotMemos, slot, slotDef.sig(scope), () => slotDef.attrs(scope));
+          const slotMemos = new WeakMap<object, BagMemo>();
+          api[`get${cap}Props`] = (slot: object, ...callArgs: readonly unknown[]) => {
+            const scope = liveScope({ slot });
+            return keyed(slotMemos, slot, slotDef.sig(scope, callArgs[0]), () => slotDef.attrs(scope, callArgs[0]));
           };
-          // Stable identities per length: a fresh array identity re-stamps rows.
-          let count = -1;
-          let cached: readonly { readonly index: number }[] = [];
+          // Stable identities: a fresh identity per read re-stamps rows.
+          // Rows/blocks memoize on the collection's identity upstream, so
+          // this caches per source array, not per length.
+          let source: readonly unknown[] | undefined;
+          let cached: readonly unknown[] = [];
           api[`get${cap}Indexes`] = () => {
             const context = (service.context as object) as Record<string, unknown>;
-            const next = slotDef.indexes(context);
-            if (next.length !== count) {
-              count = next.length;
+            const next = slotDef.indexes(context, readProps());
+            if (next !== source) {
+              source = next;
               cached = next;
             }
             return cached;
@@ -192,11 +288,14 @@ export function defineComponent<
     _root: () => Element,
     id: string,
   ): { readonly api: Api; dispose(): void } => {
+    const startState = typeof def.start === "function"
+      ? def.start(parse(props))
+      : (def.start ?? "idle");
     const bridged = defineBridge(
       {
         config: def.config,
         implementations: def.implementations,
-        startState: def.startState,
+        startState,
         hooks,
       },
       props,

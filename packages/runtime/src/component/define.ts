@@ -30,6 +30,12 @@ export interface ControlledDef {
   /** Equality against the machine's current value. Default `===` — array
    * channels declare their own (a fresh parse never `===`s). */
   readonly equal?: (current: unknown, outer: unknown) => boolean;
+  /** A parsed null alternates (clears) rather than skipping: nullable text
+   * channels where null is a value, not a failed parse. */
+  readonly nullable?: true;
+  /** Reads the channel's current value: context field by default, derived
+   * state otherwise (open-ness lives in the phase, not the context). */
+  readonly current?: (context: Record<string, unknown>, state: string) => unknown;
 }
 
 export type ChannelDef = PropDef | ControlledDef;
@@ -40,7 +46,7 @@ export interface PartScope {
   readonly props: Record<string, unknown>;
   readonly context: Record<string, unknown>;
   readonly state: string;
-  readonly id: (part: string, slot?: number) => string;
+  readonly id: (part: string, slot?: unknown) => string;
   readonly send: (event: { type: string } & Record<string, unknown>) => void;
   readonly attr: (value: boolean) => string | undefined;
 }
@@ -50,33 +56,46 @@ export interface PartDef {
    * the `valueText` method family). Default: the key. */
   readonly id?: string;
   /** The bag: attributes, aria, node reflexes (`onLoad`, `use:observe`).
-   * Keys are bag entries; values may read the scope. */
-  readonly attrs: (scope: PartScope) => Record<string, unknown>;
-  /** The memo signature: every scope field `attrs` reads, joined. A stale
-   * signature is a stale bag — the framework cannot infer this. */
-  readonly sig: (scope: PartScope) => string;
+   * Keys are bag entries; values may read the scope. Receives the recipe's
+   * argument when the part takes one (`getTriggerProps({ focusable })`). */
+  readonly attrs: (scope: PartScope, arg?: unknown) => Record<string, unknown>;
+  /** The memo signature: every scope field `attrs` reads, joined — the
+   * recipe argument included. A stale signature is a stale bag; the
+   * framework cannot infer this. */
+  readonly sig: (scope: PartScope, arg?: unknown) => string;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
  * stable identities (a thumb index, a row key) — the memo dies with the
  * slot it came from, so a slot object must be identity-stable per index. */
 export interface SlotScope extends PartScope {
-  readonly slot: { readonly index: number };
+  /** The slot identity: a thumb index, a row, a block. Stable per
+   * collection identity — the memo dies with the slot it came from. */
+  readonly slot: unknown;
 }
 
 export interface SlotDef {
   /** The id segment when it differs from the slot key. Default: the key. */
   readonly id?: string;
-  /** The slot identities, for the recipe's iteration. Must return stable
-   * identities per length — a fresh array identity re-stamps rows. */
-  readonly indexes: (context: Record<string, unknown>) => readonly { readonly index: number }[];
-  readonly attrs: (scope: SlotScope) => Record<string, unknown>;
-  readonly sig: (scope: SlotScope) => string;
+  /** The slot identities, for the recipe's iteration: rows, blocks, thumb
+   * indexes. Must return stable identities — a fresh identity per read
+   * re-stamps rows. Receives parsed props: the collection lives there. */
+  readonly indexes: (
+    context: Record<string, unknown>,
+    props: Record<string, unknown>,
+  ) => readonly unknown[];
+  readonly attrs: (scope: SlotScope, arg?: unknown) => Record<string, unknown>;
+  readonly sig: (scope: SlotScope, arg?: unknown) => string;
 }
 
 export interface ReaderDef {
-  /** A state projection: receives live context + state, returns the value. */
-  readonly read: (context: Record<string, unknown>, state: string) => unknown;
+  /** A state projection: live context + state + parsed props (the
+   * collection lives in props, not context — rows never enter the machine). */
+  readonly read: (
+    context: Record<string, unknown>,
+    state: string,
+    props: Record<string, unknown>,
+  ) => unknown;
 }
 
 export interface MethodDef {
@@ -87,41 +106,102 @@ export interface MethodDef {
     context: Record<string, unknown>,
     state: string,
     args: readonly unknown[],
+    props: Record<string, unknown>,
   ) => unknown;
 }
 
-export interface CommandDef {
-  /** Commands are pure sends: name + event from args and live context.
-   * The context read keeps `setThumbValue`-style splices in the def
-   * without a hand-written api method. */
-  readonly event: (
-    args: readonly unknown[],
-    context: Record<string, unknown>,
-  ) => { type: string } & Record<string, unknown>;
-}
+export type CommandDef =
+  | {
+    /** A sending command: name + event from args and live context.
+     * The context read keeps `setThumbValue`-style splices in the def
+     * without a hand-written api method. */
+    readonly event: (
+      args: readonly unknown[],
+      context: Record<string, unknown>,
+    ) => { type: string } & Record<string, unknown>;
+    readonly view?: undefined;
+  }
+  | {
+    /** A view-only command (node focus with no machine move): the api
+     * method runs this with the part ids instead of sending. */
+    readonly event?: undefined;
+    readonly view: (args: {
+      readonly args: readonly unknown[];
+      readonly id: (part: string, slot?: unknown) => string;
+      readonly focus: (part: string, slot?: unknown) => void;
+    }) => void;
+  };
 
 export interface EventDef {
   /** The callback prop name on the props surface (the def maps it to a CustomEvent). */
   readonly prop: string;
   /** Values the framework snapshots per notify; a change fires the event. */
   readonly watch: (context: Record<string, unknown>, state: string) => readonly unknown[];
-  /** Maps the changed values to the event detail. */
-  readonly detail: (watched: readonly unknown[]) => Record<string, unknown>;
+  /** Maps the changed values to the event detail. Receives the triggering
+   * event (undefined from the sync effect) and the parsed props — the
+   * collection lives in props, so row-resolving details read it here. */
+  readonly detail: (
+    watched: readonly unknown[],
+    event?: { readonly type: string },
+    props?: Record<string, unknown>,
+  ) => Record<string, unknown>;
   /** Which sends fire this event: every move, or commits (release +
    * keyboard commit) only. Default `"move"`. */
   readonly on?: "move" | "commit";
+  /** Event-gated reports (Zag's `invokeOnSelect`): evaluated per send with
+   * the before/after contexts; a null return reports nothing (a guard the
+   * machine refused). When present, `watch` still advances the cursor. */
+  readonly select?: (
+    event: { readonly type: string } & Record<string, unknown>,
+    before: Record<string, unknown>,
+    after: Record<string, unknown>,
+  ) => Record<string, unknown> | null;
 }
 export interface ComponentDef<C extends object, E extends { type: string }> {
   readonly name: string;
   readonly config: Config<C, E>;
   readonly implementations: Implementations<C, E>;
-  readonly startState: string;
-  /** Seed the machine context from parsed props before start. */
-  readonly seed: (props: Record<string, unknown>) => Record<string, unknown>;
+  /** The start state, or its computation from parsed props (an authored
+   * `open` starts the panel up). Absent, the machine's own initial. */
+  readonly start?: string | ((props: Record<string, unknown>) => string);
+  /** Seed the machine context from parsed props before start. A coerced
+   * default is never a write: `closeOnSelect` defaults from the mode unless
+   * the host authored it. */
+  readonly seed: (
+    props: Record<string, unknown>,
+    authored: (name: string) => boolean,
+  ) => Record<string, unknown>;
+  /** Derived context sync inside the owned effect (collection order/labels
+   * re-homed over a changed item tree). Reads parsed props, may assign
+   * derived caches directly and send re-homing events. Returns true when
+   * the machine must notify. */
+  readonly reconcile?: (args: {
+    readonly context: Record<string, unknown>;
+    readonly state: string;
+    readonly parsed: Record<string, unknown>;
+    readonly authored: (name: string) => boolean;
+    readonly send: (event: { type: string } & Record<string, unknown>) => void;
+  }) => boolean;
+  /** Post-send view reflexes (the panel's opening owes the field its
+   * focus). View-side only: focus management, never state. */
+  readonly settled?: (args: {
+    readonly event: { readonly type: string } & Record<string, unknown>;
+    readonly before: Record<string, unknown>;
+    readonly after: Record<string, unknown>;
+    readonly id: (part: string, slot?: number) => string;
+    readonly focus: (part: string, slot?: number) => void;
+  }) => void;
   readonly channels: Record<string, ChannelDef>;
   /** Channel names merged into machine context before every send, so an
    * assign or a cond never reads a stale scalar. Default: none. */
   readonly scalars?: readonly string[];
+  /** Scalar computation with authored access (a coerced default is never a
+   * write: `closeOnSelect` defaults from the mode unless the host authored
+   * it). Absent, the `scalars` names merge verbatim. */
+  readonly scalarsOf?: (
+    parsed: Record<string, unknown>,
+    authored: (name: string) => boolean,
+  ) => Record<string, unknown>;
   /** Event types that end the gesture: notify runs as a commit for these,
    * a move otherwise. Default: every send notifies as a move. */
   readonly commitEvents?: readonly string[];

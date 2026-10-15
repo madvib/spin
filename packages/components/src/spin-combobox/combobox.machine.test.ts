@@ -1,15 +1,18 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createComboboxBridge } from "./combobox.bridge.ts";
+import { combobox } from "./combobox.def.ts";
+const createComboboxBridge = combobox.createBridge;
 import type {
+  ComboboxApi,
+  ComboboxBlock,
   ComboboxHighlightChange,
   ComboboxInputValueChange,
   ComboboxOpenChange,
+  ComboboxRow,
   ComboboxSelect,
   ComboboxValueChange,
-} from "./combobox.bridge.ts";
-import type { ComboboxBlock, ComboboxApi, ComboboxRow } from "./combobox.connect.ts";
+} from "./combobox.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

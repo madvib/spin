@@ -30,7 +30,7 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
   name: "avatar",
   config,
   implementations,
-  startState: "loading",
+  start: "loading",
   seed: (props) => ({
     src: textProp(typeof props["src"] === "string" ? props["src"] : props["defaultSrc"]),
   }),
