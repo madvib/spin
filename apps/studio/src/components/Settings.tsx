@@ -68,7 +68,7 @@ export function ModePicker() {
  * studio shipped with. The selected theme drives the preview surface only;
  * a `<label>` names it rather than a bare floating select.
  */
-export function ThemePicker() {
+export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
   let select: HTMLSelectElement | undefined;
   // The options arrive after the select does, and the browser answers an
   // option list it just filled by selecting the first one — so the picker
@@ -79,25 +79,27 @@ export function ThemePicker() {
       select.value = activeName();
     }
   });
+  const selectEl = (
+    <select
+      ref={select}
+      id={props.compact ? "theme-picker-compact" : "theme-picker"}
+      class="min-w-0 flex-1"
+      aria-label="Theme"
+      onChange={(event) => setActiveName(event.currentTarget.value)}
+    >
+      <Show when={projectThemes()} fallback={<option>loading…</option>}>
+        <For each={projectThemes()}>
+          {(theme) => <option value={theme.name}>{theme.name}</option>}
+        </For>
+      </Show>
+    </select>
+  );
+  if (props.compact === true) return selectEl;
   return (
     <div class="stack-sm">
       <div class="row-sm">
-        <label for="theme-picker">
-          Theme
-        </label>
-        <select
-          ref={select}
-          id="theme-picker"
-          class="min-w-0 flex-1"
-          aria-label="Theme"
-          onChange={(event) => setActiveName(event.currentTarget.value)}
-        >
-          <Show when={projectThemes()} fallback={<option>loading…</option>}>
-            <For each={projectThemes()}>
-              {(theme) => <option value={theme.name}>{theme.name}</option>}
-            </For>
-          </Show>
-        </select>
+        <label for="theme-picker">Theme</label>
+        {selectEl}
       </div>
       <ModePicker />
       <div class="row-sm" role="group" aria-label="Drawer edge">

@@ -834,6 +834,24 @@ export function claimedElements(): Set<string> {
   return out;
 }
 
+/**
+ * Tags that carry a visual base. Derived, not listed: a component paints
+ * when it spends a color or font token. Spacing-only contracts are boxes —
+ * their classes ARE the styling, and flagging them bans layout itself.
+ */
+export function paintedElements(): Set<string> {
+  const out = new Set<string>();
+  for (const component of Object.values(primitiveContracts)) {
+    const paints = component.reads.some((token) => {
+      const name = token.replace(/^--+/, "");
+      return name.startsWith("color-") || name.startsWith("font-");
+    });
+    if (!paints) continue;
+    for (const tag of component.tags) out.add(tag);
+  }
+  return out;
+}
+
 /** Every class name the primitives define, across all components. */
 export function primitiveVariants(): Set<string> {
   const out = new Set<string>();

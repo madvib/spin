@@ -87,6 +87,7 @@ export type {
 } from "./rules/primitives/manifest.ts";
 export {
   claimedElements,
+  paintedElements,
   primitiveComponents,
   primitiveContracts,
   primitiveReadsByGroup,

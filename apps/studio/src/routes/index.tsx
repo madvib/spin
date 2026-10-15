@@ -97,14 +97,7 @@ export default function OverviewPage() {
 
   return (
     <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
-      {
-        /* The verdict is the answer to the only question this page is asked:
-           does the theme hold together? It comes first and says so either
-           way, because a silent readiness signal is one nobody reads. */
-      }
-      <Show
-        when={report().issues.length > 0}
-      >
+      <Show when={report().issues.length > 0}>
         <alert variant="danger" class="mb-4">
           {report().issues.length} issue
           {report().issues.length === 1 ? "" : "s"}{" "}
@@ -112,38 +105,17 @@ export default function OverviewPage() {
         </alert>
       </Show>
 
-      <header class="stack mb-6 max-w-screen-md">
+      <header class="row-sm mb-6 max-w-screen-md">
         <h1 class="font-heading text-3xl">{activeName()}</h1>
-        <p class="text-text-muted">{rootDescription(themeText())}</p>
-        <p class="text-text-muted text-sm">
-          {active()?.file ?? "packages/theme/src/themes"}{" "}
-          · switching themes in the picker swaps this whole page
-        </p>
+        <span class="text-text-muted text-sm">
+          {counts().color} colors · {counts().space} style tokens ·{" "}
+          {(library() ?? []).length} components
+        </span>
+        <span class="flex-1" />
+        <ThemePicker compact />
       </header>
+      <p>{rootDescription(themeText())}</p>
 
-      {
-        /*
-        Choosing what to edit is this page's job, so the theme picker and
-        the mode control live here rather than in the chrome. The rail stays
-        glyphs; the decision with a name on it lives where there is room to
-        name it.
-      */
-      }
-      <section
-        id="settings"
-        class="stack mb-6 max-w-screen-md rounded-lg border border-border bg-surface-raised p-4"
-      >
-        <h2 class="text-xl">Studio</h2>
-        <p class="text-sm text-text-muted">
-          Where the drawer docks. The theme above is the project under edit, not
-          a preference — switching it swaps this whole page.
-        </p>
-        <ThemePicker />
-      </section>
-      {
-        /* The handful of tokens whose change is visible everywhere, each a
-           link into the editor that owns it. Six of them, not thirty. */
-      }
       <section class="stack mb-6">
         <h2 class="text-xl">What moves everything</h2>
         <div class="flex flex-wrap gap-4">
@@ -170,24 +142,57 @@ export default function OverviewPage() {
         </div>
       </section>
 
-      {
-        /* Counts, so the scale of what is behind each link is visible before
-           clicking it. */
-      }
-      <section class="flex flex-wrap gap-8">
-        <A href="/colors" class="stack-sm no-underline">
-          <strong class="text-3xl">{counts().color}</strong>
-          <span class="text-text-muted text-sm">colour tokens</span>
-        </A>
-        <A href="/surfaces" class="stack-sm no-underline">
-          <strong class="text-3xl">{counts().space}</strong>
-          <span class="text-text-muted text-sm">space, radius, shadow</span>
-        </A>
-        <A href="/components" class="stack-sm no-underline">
-          <strong class="text-3xl">{(library() ?? []).length}</strong>
-          <span class="text-text-muted text-sm">components to see it in</span>
-        </A>
+      <section class="stack-sm mb-6 max-w-screen-md">
+        <h2 class="text-xl">Scale</h2>
+        <SpacingStrip />
       </section>
+
+      <details class="stack-sm max-w-screen-md rounded-lg border border-border p-4">
+        <summary class="cursor-pointer text-sm text-text-muted">
+          Studio preferences
+        </summary>
+        <ThemePicker full />
+      </details>
     </div>
+  );
+}
+
+/**
+ * The spacing scale as one strip: bars grow with the step, so the curve is
+ * visible before any value is touched. Editing the whole scale is the next
+ * pass; this pass earns the slot by showing the shape.
+ */
+function SpacingStrip() {
+  const tree = createMemo(() => analyzeTheme(themeText()).tree);
+  const steps = createMemo(() => {
+    const state = tree();
+    if (state === undefined) return [];
+    return groupTokens(state, [["spacing"]], activeMode());
+  });
+  const max = createMemo(() =>
+    Math.max(1, ...steps().map((step) => parseFloat(step.value) || 0))
+  );
+  return (
+    <A href="/spacing" class="no-underline">
+      <div class="flex items-end gap-2" aria-label="Spacing scale">
+        <For each={steps()}>
+          {(step) => (
+            <div class="stack-sm items-center" title={step.path}>
+              <div
+                class="w-8 rounded-sm bg-primary"
+                style={{
+                  height: `${
+                    Math.max(4, ((parseFloat(step.value) || 0) / max()) * 64)
+                  }px`,
+                }}
+              />
+              <span class="text-text-muted text-xs">
+                {step.path.split(".").pop()}
+              </span>
+            </div>
+          )}
+        </For>
+      </div>
+    </A>
   );
 }

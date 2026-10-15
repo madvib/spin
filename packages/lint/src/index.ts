@@ -15,12 +15,16 @@
 
 import { CSS_WIDE_COLORS, indexTree, scaffoldTheme } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
-import { claimedElements, primitiveVariants } from "@spin/preset";
+import {
+  claimedElements,
+  paintedElements,
+  primitiveVariants,
+} from "@spin/preset";
+import { describeCatalog } from "@spin/preset";
 import {
   claimedElements as animationClaims,
   primitiveVariants as animationVariants,
 } from "@spin/animation";
-import { describeCatalog } from "@spin/preset";
 
 /**
  * The subset of the oxlint/ESLint node shape these rules touch. Declared
@@ -110,17 +114,23 @@ function rawColor(tree?: TokenTree): RegExp {
 }
 
 /** The primitives' vocabulary: tags they claim and classes they define. */
-function primitiveVocab(): { claims: Set<string>; variants: Set<string> } {
+function primitiveVocab(): {
+  claims: Set<string>;
+  painted: Set<string>;
+  variants: Set<string>;
+} {
   // The animation layer is vocabulary too: `animate-spin` is a real class,
   // not an unknown utility, and a lint that flagged it would be wrong.
   return {
     claims: new Set([...animationClaims(), ...claimedElements()]),
+    painted: paintedElements(),
     variants: new Set([...animationVariants(), ...primitiveVariants()]),
   };
 }
 
 let cached: {
   claims: Set<string>;
+  painted: Set<string>;
   variants: Set<string>;
   utilities: Set<string>;
   rawColor: RegExp;
@@ -163,7 +173,7 @@ const semanticOwnership: GateRule = {
     schema: [],
     messages: {
       utility:
-        "`<{{tag}}>` is styled by the theme. Drop `{{cls}}`; use a variant or wrap the element instead.",
+        "`<{{tag}}>` carries its own base. Drop `{{cls}}`; add a variant to the primitive or move it to the parent.",
     },
   },
   create(context) {
@@ -172,7 +182,7 @@ const semanticOwnership: GateRule = {
         const raw = stringValue(node);
         if (!isClassAttribute(node) || raw === undefined) return;
         const tag = tagOf(node);
-        if (tag === undefined || !vocab().claims.has(tag)) return;
+        if (tag === undefined || !vocab().painted.has(tag)) return;
         for (const cls of classTokens(raw)) {
           if (vocab().variants.has(cls)) continue;
           context.report({ node, messageId: "utility", data: { tag, cls } });
@@ -260,7 +270,7 @@ const noHandwrittenTokens: GateRule = {
     schema: [],
     messages: {
       handwritten:
-        "`var(--{{token}})` is generated output, not an API. Read the theme: `groupOf(ctx, \"{{group}}\")[\"{{step}}\"]`.",
+        '`var(--{{token}})` is generated output, not an API. Read the theme: `groupOf(ctx, "{{group}}")["{{step}}"]`.',
     },
   },
   create(context) {
