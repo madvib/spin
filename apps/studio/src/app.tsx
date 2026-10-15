@@ -17,12 +17,21 @@ import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
 import StylePage from "./routes/style.tsx";
 import ComponentsLayout from "./routes/components.tsx";
+import ComponentsIndex from "./routes/components/index.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
 import { createResource, createSignal, For, Show, Suspense } from "solid-js";
+import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
+import {
+  CONCERNS,
+  FOOT,
+  MARK,
+  ROUTES,
+  type RoutePath,
+} from "./lib/routes.ts";
 
 import { listProjectThemes, saveTheme } from "./lib/themes.ts";
 import {
@@ -62,7 +71,7 @@ const [hostMode, setHostMode] = createSignal<"drawer" | "modal">(
 // layout re-branches in place, which is the whole reason the toggles feel
 // instant instead of rebooting the studio.
 if (typeof window !== "undefined") {
-  window.addEventListener("message", (event) => {
+  globalThis.addEventListener("message", (event) => {
     if (event.data === "spin:mode-drawer") setHostMode("drawer");
     if (event.data === "spin:mode-modal") setHostMode("modal");
   });
@@ -73,18 +82,65 @@ export function inDrawer(): boolean {
   return hostMode() === "drawer";
 }
 
-// Each concern's glyph is a whole utility class rather than an icon name
-// joined at runtime: the scanner reads source text, so the literal has to
-// appear in the file to be emitted. `i-lucide-${icon}` styles nothing.
-const CONCERNS = [
-  ["colors", "Color", "i-lucide-palette"],
-  ["type", "Type", "i-lucide-type"],
-  ["icons", "Icons", "i-lucide-shapes"],
-  ["motion", "Motion", "i-lucide-zap"],
-  ["spacing", "Spacing", "i-lucide-ruler"],
-  ["style", "Style", "i-lucide-layers"],
-  ["components", "Elements", "i-lucide-blocks"],
-] as const;
+// The rail reads the route table rather than keeping its own copy of the
+// paths: a concern the rail offers and a route the router serves are the
+// same fact, stated once. Each glyph is still a whole utility class in
+// `routes.ts` rather than a name joined at runtime, because the scanner
+// reads source text and `i-lucide-${icon}` styles nothing.
+
+/**
+ * The page each route renders.
+ *
+ * Keyed by the path, exhaustively: a route in the table with no page under
+ * it is a missing key and fails the build, and a page under a path the table
+ * does not serve is an extra key and fails it too. The paths themselves are
+ * not written here at all — `ROUTES` is the only place they live.
+ */
+const PAGES = {
+  "/": OverviewPage,
+  "/preferences": PreferencesPage,
+  "/icons": IconsPage,
+  "/colors": ColorsPage,
+  "/type": TypePage,
+  "/style": StylePage,
+  "/spacing": SpacingPage,
+  "/motion": MotionPage,
+  "/components": ComponentsLayout,
+} satisfies Record<RoutePath, Component>;
+
+type RouteEntry = (typeof ROUTES)[number];
+
+/**
+ * The paths a route's children become, as types.
+ *
+ * Derived from the table rather than spelled out: `""` under `/components`
+ * is `/components`, `/:name` under it is `/components/:name`, and the pages
+ * both need are enforced by the record below instead of by someone
+ * remembering which child is which. Distributed over the union, so one
+ * route's children cannot leak into another's paths.
+ */
+type ChildPath = RouteEntry extends {
+  children: readonly (infer Child)[];
+} ? `${RouteEntry["path"]}${Child & string}` : never;
+
+/** The page each child pattern renders, keyed by the path it becomes. */
+const CHILDREN = {
+  "/components": ComponentsIndex,
+  "/components/:name": ComponentPage,
+} satisfies Record<ChildPath, Component>;
+
+/**
+ * A child's page, read by the path it becomes under its parent.
+ *
+ * The key is the whole path — `/components/:name`, not `:name` — so two
+ * routes could each carry a `:id` without them sharing a page. The cast is
+ * safe in the direction it covers: the record's keys are exactly the
+ * composite paths this table declares, so a child with no page under it is a
+ * missing key at build time and a lookup that misses cannot be reached.
+ */
+function childPage(path: string, child: string): Component {
+  return CHILDREN[`${path}${child}` as ChildPath];
+}
 
 export default function App() {
   // The path is the daemon's answer, project-relative: it states the layout
@@ -108,11 +164,11 @@ export default function App() {
           <div
             data-theme={STUDIO_THEME}
             data-mode="light"
+            class="flex bg-surface"
             // A row, not a stack: the rail takes an edge and the preview
             // takes the rest. In the drawer the rail mirrors to the outer
             // edge — the host's drawer is right-anchored, so a left rail
             // traps the content between chrome and the viewport edge.
-            class="flex bg-surface"
             classList={{
               "h-screen": !inDrawer(),
               "min-h-full": inDrawer(),
@@ -139,28 +195,28 @@ export default function App() {
               }}
             >
               <A
-                href="/"
+                href={MARK.path}
                 class="row-sm mb-2 shrink-0 justify-center font-semibold"
-                title="Overview"
+                title={MARK.label}
               >
                 <span
-                  class="inline-block icon-md shrink-0 i-lucide-loader-pinwheel text-text"
+                  class={`inline-block icon-md shrink-0 ${MARK.icon} text-text`}
                   aria-hidden="true"
                 />
               </A>
               <ul class="flow-list stack-sm shrink-0 items-center">
                 <For each={CONCERNS}>
-                  {([href, label, icon]) => (
+                  {(route) => (
                     <li>
                       <A
-                        href={`/${href}`}
+                        href={route.path}
                         activeClass="text-text font-semibold underline"
                         inactiveClass="text-text"
                         class="row-sm justify-center"
-                        title={label}
+                        title={route.label}
                       >
                         <span
-                          class={`inline-block shrink-0 icon-md ${icon}`}
+                          class={`inline-block shrink-0 icon-md ${route.icon}`}
                           aria-hidden="true"
                         />
                       </A>
@@ -213,14 +269,14 @@ export default function App() {
                   />
                 </button>
                 <A
-                  href="/preferences"
+                  href={FOOT.path}
                   activeClass="text-text font-semibold underline"
                   inactiveClass="text-text"
                   class="row-sm justify-center"
-                  title="Settings"
+                  title={FOOT.label}
                 >
                   <span
-                    class="inline-block icon-md i-lucide-settings"
+                    class={`inline-block icon-md ${FOOT.icon}`}
                     aria-hidden="true"
                   />
                 </A>
@@ -247,7 +303,7 @@ export default function App() {
                     onClick={() => {
                       const next = inDrawer() ? "modal" : "drawer";
                       setHostMode(next);
-                      window.parent.postMessage(
+                      globalThis.parent.postMessage(
                         next === "modal" ? "spin:modal" : "spin:drawer",
                         "*",
                       );
@@ -263,7 +319,7 @@ export default function App() {
                     class="bare shrink-0 text-text"
                     aria-label="Close"
                     title="Close"
-                    onClick={() => window.parent.postMessage("spin:close", "*")}
+                    onClick={() => globalThis.parent.postMessage("spin:close", "*")}
                   >
                     <span
                       class="inline-block icon-md i-lucide-x"
@@ -279,17 +335,26 @@ export default function App() {
         </MetaProvider>
       )}
     >
-      <Route path="/" component={OverviewPage} />
-      <Route path="/preferences" component={PreferencesPage} />
-      <Route path="/icons" component={IconsPage} />
-      <Route path="/colors" component={ColorsPage} />
-      <Route path="/type" component={TypePage} />
-      <Route path="/style" component={StylePage} />
-      <Route path="/spacing" component={SpacingPage} />
-      <Route path="/motion" component={MotionPage} />
-      <Route path="/components" component={ComponentsLayout}>
-        <Route path="/:name" component={ComponentPage} />
-      </Route>
+      {
+        /* The router renders the same table the rail and the links read, so
+          a route cannot exist without the rail being able to name it, and a
+          path cannot be written here that the table has not declared. A
+          route's children come from its entry: the index (`""`) and the
+          detail pattern (`/:name`) are both children, and both are pages the
+          record above must have. */
+      }
+      <For each={ROUTES}>
+        {(route) => (
+          <Route path={route.path} component={PAGES[route.path]}>
+            {("children" in route ? route.children : []).map((child) => (
+              <Route
+                path={child}
+                component={childPage(route.path, child)}
+              />
+            ))}
+          </Route>
+        )}
+      </For>
     </Router>
   );
 }

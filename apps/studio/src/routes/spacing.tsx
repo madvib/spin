@@ -1,18 +1,10 @@
 import { createMemo, For } from "solid-js";
 import { analyzeTheme } from "../lib/theme";
-import { groupTokens } from "../lib/tokens";
+import { groupTokens, toPx } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
 import { editToken } from "../lib/editing";
 import ScaleBar from "../components/demos/ScaleBar";
 
-function toPx(value: string): number | undefined {
-  if (value.trim() === "0") return 0;
-  const rem = value.trim().match(/^(-?[\d.]+)rem$/);
-  if (rem) return Number(rem[1]) * 16;
-  const px = value.trim().match(/^(-?[\d.]+)px$/);
-  if (px) return Number(px[1]);
-  return undefined;
-}
 
 /**
  * Spacing — the scale, as lengths.

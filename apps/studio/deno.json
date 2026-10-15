@@ -2,9 +2,14 @@
   "tasks": {
     "dev": "vite dev",
     "build": "vite build",
+    "test": "deno test --allow-read src/",
     "typecheck": "tsc --noEmit",
     "screenshots": "deno run -A ./visual/shot.ts",
     "check": "deno run -A ./visual/check.ts"
+  },
+  "imports": {
+    "@spin/theme": "../../packages/theme/src/index.ts",
+    "@std/assert": "jsr:@std/assert@^1.0.0"
   },
   "lint": {
     "rules": {

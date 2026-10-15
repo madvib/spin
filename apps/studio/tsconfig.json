@@ -55,5 +55,12 @@
     "src",
     "../../packages/preset/src/solid.d.ts",
     "vite.config.ts"
+  ],
+  "exclude": [
+    // Deno's own tests: they run under `deno test`, which type-checks them
+    // against Deno's types and the import map. tsc has neither, so including
+    // them here would fail the build on `Deno.test` while proving nothing the
+    // test task does not already prove.
+    "src/**/*.test.ts"
   ]
 }
