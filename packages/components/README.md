@@ -2,23 +2,17 @@
 
 Elements and the machines that earn one.
 
-## A machine is for modes
+## A machine is for states JS manages
 
-A component gets a machine when it has **distinct modes with different legal
-events** — open/closed, edit/preview, loading/idle/sorting, a submenu open
-inside a menu. The mode decides which events mean anything, and that decision
-is what config-first authoring makes reviewable.
+No JS and no states is pure CSS. The platform owns the machine and JS only
+maps (native input value, details open, dialog showModal) is an enhanced
+native. Anything else — JS managing states — is a machine, however simple.
+Simple never means platform on its own.
 
-A component does **not** get a machine when its entire behavior is one mode of
-derived values:
-
-- scroll offsets, overflow flags, thumb sizes → measurement + custom properties
-- image load status → an `observe` action
-- a continuous value under pointer capture → signals + pointer actions
-- a page index, a step index → pure derivation
-
-Those are signals, actions, and DOM writes. Wrapping them in states adds a
-layer that cannot make a decision the values do not already make.
+That includes single-state guarded machines (steps validates forward
+motion, pagination clamps pages) and continuous-value machines (a slider
+thumb under pointer capture, a dial turning through degrees): the guards
+and the gesture phases are states no one else holds.
 
 ## The primitives own the widgets
 

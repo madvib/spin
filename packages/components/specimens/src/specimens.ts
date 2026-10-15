@@ -13,6 +13,7 @@ import Splitter from "./routes/splitter.tsx";
 import Steps from "./routes/steps.tsx";
 import Pagination from "./routes/pagination.tsx";
 import AngleSlider from "./routes/angle-slider.tsx";
+import ToggleGroup from "./routes/toggle-group.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -65,6 +66,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/signature-pad",
     group: "Inputs",
     component: SignaturePad,
+  },
+  {
+    id: "toggle-group",
+    title: "Toggle group",
+    blurb:
+      "Exclusive or multiple toggles: click to press, arrows to rove.",
+    path: "/toggle-group",
+    group: "Inputs",
+    component: ToggleGroup,
   },
   {
     id: "angle-slider",
