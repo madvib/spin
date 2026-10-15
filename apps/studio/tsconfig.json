@@ -25,6 +25,12 @@
       "@spin/theme": [
         "../../packages/theme/src/index.ts"
       ],
+      "@spin/theme/theme-types": [
+        "../../packages/theme/src/theme-types.d.ts"
+      ],
+      "@spin/api": [
+        "../../packages/api/src/index.ts"
+      ],
       "@spin/preset": [
         "../../packages/preset/src/index.ts"
       ],

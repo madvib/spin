@@ -21,6 +21,7 @@ import { presetRouter } from "@spin/preset";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
+import { iconsRouter } from "./icons-procedures.ts";
 import { overlayRouter } from "@spin/preset";
 
 export { themeRouter } from "@spin/theme";
@@ -38,6 +39,7 @@ export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
 export { presetRouter } from "@spin/preset";
 export { presetContract } from "@spin/preset";
+export { iconsContract } from "./icons-procedures.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */
 export const router = {
@@ -48,6 +50,7 @@ export const router = {
   ...previewRouter,
   ...overlayRouter,
   ...fontsRouter,
+  ...iconsRouter,
 };
 
 export const rpcHandler = new RPCHandler(router);

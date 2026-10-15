@@ -4,6 +4,13 @@ import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
+import carbon from "@iconify-json/carbon/icons.json" with { type: "json" };
+import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
+import materialSymbols from "@iconify-json/material-symbols/icons.json" with {
+  type: "json",
+};
+import ph from "@iconify-json/ph/icons.json" with { type: "json" };
+import tabler from "@iconify-json/tabler/icons.json" with { type: "json" };
 import studioTheme from "./theme.json" with { type: "json" };
 export default defineConfig(({ command }) => ({
   // The bundle is served under `/__spin/studio/`: absolute asset paths
@@ -19,7 +26,22 @@ export default defineConfig(({ command }) => ({
       // The studio mounts its own API for dev, and must not then inject a
       // launcher into itself: that is a FAB opening the studio over the studio.
       launcher: false,
-      presets: [presetIcons()],
+      // The five collections the icons page reads and the chrome spends from:
+      // the same catalogues the API serves, so a utility the page copies
+      // resolves against what the studio actually ships. A rule per glyph is
+      // generated only for a name somebody wrote down — the page renders
+      // inline SVG and safelists none of the 44k.
+      presets: [
+        presetIcons({
+          collections: {
+            lucide,
+            "material-symbols": materialSymbols,
+            tabler,
+            carbon,
+            ph,
+          } as never,
+        }),
+      ],
       // The project under edit. In development that is the reference
       // app: a real spin app with `spin/*.json` on disk, which is the
       // same themes it renders — so what the studio edits is what the

@@ -14,6 +14,7 @@ import ColorsPage from "./routes/colors.tsx";
 import TypePage from "./routes/type.tsx";
 import ComponentsLayout from "./routes/components.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
+import IconsPage from "./routes/icons.tsx";
 import OverviewPage from "./routes/index.tsx";
 import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
@@ -57,6 +58,15 @@ import {
 const STUDIO_THEME = "studio";
 
 /**
+ * Whether the viewport is at drawer width.
+ *
+ * Module scope because the rail's chrome — not just the shell — reads it to
+ * fold its own labels away, and a signal defined inside `App` would put the
+ * pickers' interesting half behind the shell.
+ */
+const [narrow, setNarrow] = createSignal(false);
+
+/**
  * The mode control.
  *
  * A two-button group with pressed state rather than a cycling icon: the
@@ -67,24 +77,36 @@ const STUDIO_THEME = "studio";
  */
 function ModePicker() {
   return (
-    <div class="row-sm" role="group" aria-label="Color mode">
+    <div
+      class="flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Color mode"
+    >
       <button
         type="button"
-        class="bare"
+        class="bare row-sm whitespace-nowrap"
         aria-pressed={activeMode() === "light"}
+        aria-label="Light"
         onClick={() => setActiveMode("light")}
       >
-        <span class="inline-block icon-md i-lucide-sun" aria-hidden="true" />
-        Light
+        <span
+          class="inline-block icon-md i-lucide-sun shrink-0"
+          aria-hidden="true"
+        />
+        <span classList={{ hidden: narrow() }}>Light</span>
       </button>
       <button
         type="button"
-        class="bare"
+        class="bare row-sm whitespace-nowrap"
         aria-pressed={activeMode() === "dark"}
+        aria-label="Dark"
         onClick={() => setActiveMode("dark")}
       >
-        <span class="inline-block icon-md i-lucide-moon" aria-hidden="true" />
-        Dark
+        <span
+          class="inline-block icon-md i-lucide-moon shrink-0"
+          aria-hidden="true"
+        />
+        <span classList={{ hidden: narrow() }}>Dark</span>
       </button>
     </div>
   );
@@ -110,45 +132,55 @@ function ThemePicker() {
     }
   });
   return (
-    <div class="row-sm">
-      <label for="theme-picker">Theme</label>
-      <select
-        ref={select}
-        id="theme-picker"
-        onChange={(event) => setActiveName(event.currentTarget.value)}
-      >
-        <Show when={themes()} fallback={<option>loading…</option>}>
-          <For each={themes()}>
-            {(theme) => <option value={theme.name}>{theme.name}</option>}
-          </For>
-        </Show>
-      </select>
+    <div class="stack-sm">
+      <div class="row-sm">
+        <label for="theme-picker" classList={{ hidden: narrow }}>
+          Theme
+        </label>
+        <select
+          ref={select}
+          id="theme-picker"
+          class="min-w-0 flex-1"
+          aria-label="Theme"
+          onChange={(event) => setActiveName(event.currentTarget.value)}
+        >
+          <Show when={themes()} fallback={<option>loading…</option>}>
+            <For each={themes()}>
+              {(theme) => <option value={theme.name}>{theme.name}</option>}
+            </For>
+          </Show>
+        </select>
+      </div>
       <ModePicker />
     </div>
   );
 }
 
+// Each concern's glyph is a whole utility class rather than an icon name
+// joined at runtime: the scanner reads source text, so the literal has to
+// appear in the file to be emitted. `i-lucide-${icon}` styles nothing.
 const CONCERNS = [
-  ["colors", "Color"],
-  ["type", "Type"],
-  ["surfaces", "Surfaces"],
-  ["spacing", "Spacing"],
-  ["motion", "Motion"],
-  ["components", "Components"],
-  ["utilities", "Utilities"],
+  ["colors", "Color", "i-lucide-palette"],
+  ["type", "Type", "i-lucide-type"],
+  ["surfaces", "Surfaces", "i-lucide-layers"],
+  ["spacing", "Spacing", "i-lucide-ruler"],
+  ["motion", "Motion", "i-lucide-zap"],
+  ["components", "Components", "i-lucide-blocks"],
+  ["utilities", "Utilities", "i-lucide-wrench"],
+  ["icons", "Icons", "i-lucide-shapes"],
 ] as const;
 
 export default function App() {
-  // The concern list collapses on a narrow viewport — the studio runs in an
-  // iframe at drawer width, where eight entries are either a three-row stack
-  // or a horizontal scroll. Both are worse than one button that opens them.
+  // The rail is the concern list at every width: on a narrow viewport the
+  // labels fold away and the rail keeps the glyphs, so a concern is still
+  // one tap and the page beside the rail keeps its own width. The overlay
+  // the drawer used to open is gone — a rail that narrows beats a drawer
+  // that covers the thing it navigates.
   //
   // A `matchMedia` rather than `md:` variants: `.hidden` and `.md:flex` are
   // the same specificity, so which one wins is a property of the sheet's
   // emission order rather than of the markup. It resolved wrong, and left
   // the nav empty at full width.
-  const [navOpen, setNavOpen] = createSignal(false);
-  const [narrow, setNarrow] = createSignal(false);
   onMount(() => {
     const query = window.matchMedia("(max-width: 767px)");
     const sync = () => setNarrow(query.matches);
@@ -178,42 +210,34 @@ export default function App() {
           <div
             data-theme={STUDIO_THEME}
             data-mode={activeMode()}
-            class="stack h-screen bg-surface"
+            // A row, not a stack: the rail takes the left edge and the
+            // preview takes the rest, which is the whole change.
+            class="flex h-screen bg-surface"
           >
             <nav
               aria-label="Studio"
-              class="relative flex flex-wrap items-center gap-2 bg-surface-raised p-3 shrink-0"
+              class="flex min-h-0 shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-3"
+              classList={{ "w-[17rem]": !narrow(), "w-20": narrow() }}
             >
-              <A href="/" class="row-sm font-semibold">
+              <A
+                href="/"
+                class="row-sm shrink-0 font-semibold"
+                classList={{ "justify-center": narrow() }}
+              >
                 <span
-                  class="inline-block icon-lg i-lucide-loader-pinwheel text-text"
+                  class="inline-block icon-lg shrink-0 i-lucide-loader-pinwheel text-text"
                   aria-hidden="true"
                 />
-                <span>Spin</span>
-              </A>
-              <Show when={narrow()}>
-                <button
-                  type="button"
-                  class="bare"
-                  aria-expanded={navOpen()}
-                  aria-label="Concerns"
-                  onClick={() => setNavOpen((open) => !open)}
+                <span
+                  class="whitespace-nowrap"
+                  classList={{ hidden: narrow() }}
                 >
-                  <span
-                    class="inline-block icon-md i-lucide-menu text-text"
-                    aria-hidden="true"
-                  />
-                </button>
-              </Show>
-              <ul
-                classList={{
-                  "absolute inset-x-0 top-full z-20 m-0 hidden bg-surface-raised p-3 shadow-lg":
-                    narrow() && !navOpen(),
-                  "row-list flex-1 justify-center": !narrow(),
-                }}
-              >
+                  Spin
+                </span>
+              </A>
+              <ul class="flow-list stack-sm shrink-0">
                 <For each={CONCERNS}>
-                  {([href, label]) => (
+                  {([href, label, icon]) => (
                     <li>
                       {
                         /* `activeClass` is the router's own answer to "where am
@@ -224,86 +248,116 @@ export default function App() {
                         href={`/${href}`}
                         activeClass="text-text font-semibold underline"
                         inactiveClass="text-text-muted"
+                        class="row-sm"
+                        classList={{ "justify-center": narrow() }}
+                        title={label}
                       >
-                        {label}
+                        <span
+                          class={`inline-block shrink-0 icon-md ${icon}`}
+                          aria-hidden="true"
+                        />
+                        <span
+                          class="whitespace-nowrap"
+                          classList={{ hidden: narrow() }}
+                        >
+                          {label}
+                        </span>
                       </A>
                     </li>
                   )}
                 </For>
               </ul>
-              <ThemePicker />
               {
-                /* Undo, redo and save are editing controls, not a status bar.
-                  They had a row of their own, which in the drawer was half
-                  the screen for two icons and a button. */
+                /* The rail's bottom: the pickers and the edit controls stay
+                  reachable at any rail width, pinned so a short concern list
+                  never lets them float mid-rail. */
               }
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  class="bare"
-                  onClick={() => undo()}
-                  disabled={!canUndo()}
-                  aria-label="Undo"
-                  title="Undo"
-                >
-                  <span
-                    class="inline-block icon-md i-lucide-undo-2"
-                    aria-hidden="true"
-                  />
-                </button>
-                <button
-                  type="button"
-                  class="bare"
-                  onClick={() => redo()}
-                  disabled={!canRedo()}
-                  aria-label="Redo"
-                  title="Redo"
-                >
-                  <span
-                    class="inline-block icon-md i-lucide-redo-2"
-                    aria-hidden="true"
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const name = activeName();
-                    const written = await saveTheme(name, themeText());
-                    if (written.error === null) markSaved(name);
-                  }}
-                  disabled={!isDirty(activeName())}
-                  title="Save to disk"
-                >
-                  Save
-                </button>
+              <div class="stack-sm mt-auto shrink-0">
+                <ThemePicker />
                 {
-                  /* The running app is the primary specimen: a theme edit
-                    re-themes it live through the overlay, so this opens the
-                    app the project actually ships. */
+                  /* Undo, redo and save are editing controls, not a status
+                    bar: they belong beside the pickers in the rail, and the
+                    row wraps when the rail is narrow rather than growing
+                    past it. */
                 }
-                <a
-                  // Same origin from the user's dev server; standalone
-                  // studio-dev takes `?app=`, because the app is a second
-                  // server with a floating port.
-                  href={new URLSearchParams(location.search).get("app") ?? "/"}
-                  target="_blank"
-                  rel="noopener"
-                  aria-label="View in app"
-                  title="View in app"
-                  class="button secondary whitespace-nowrap"
-                >
-                  View in app
-                </a>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    class="bare shrink-0"
+                    onClick={() => undo()}
+                    disabled={!canUndo()}
+                    aria-label="Undo"
+                    title="Undo"
+                  >
+                    <span
+                      class="inline-block icon-md i-lucide-undo-2"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    class="bare shrink-0"
+                    onClick={() => redo()}
+                    disabled={!canRedo()}
+                    aria-label="Redo"
+                    title="Redo"
+                  >
+                    <span
+                      class="inline-block icon-md i-lucide-redo-2"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const name = activeName();
+                      const written = await saveTheme(name, themeText());
+                      if (written.error === null) markSaved(name);
+                    }}
+                    disabled={!isDirty(activeName())}
+                    title="Save to disk"
+                    class="shrink-0"
+                  >
+                    <span
+                      class="inline-block icon-md i-lucide-save"
+                      aria-hidden="true"
+                    />
+                    <span classList={{ hidden: narrow() }}>Save</span>
+                  </button>
+                  {
+                    /* The running app is the primary specimen: a theme edit
+                      re-themes it live through the overlay, so this opens the
+                      app the project actually ships. */
+                  }
+                  <a
+                    // Same origin from the user's dev server; standalone
+                    // studio-dev takes `?app=`, because the app is a second
+                    // server with a floating port.
+                    href={new URLSearchParams(location.search).get("app") ??
+                      "/"}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="View in app"
+                    title="View in app"
+                    class="button secondary whitespace-nowrap shrink-0"
+                  >
+                    <span
+                      class="inline-block icon-md i-lucide-external-link"
+                      aria-hidden="true"
+                    />
+                    <span classList={{ hidden: narrow() }}>View in app</span>
+                  </a>
+                </div>
+                {
+                  /* A refused edit says why, next to the button that would
+                    have applied it, rather than in a row of its own. */
+                }
+                <Show when={lastRefusal() !== undefined}>
+                  <alert variant="danger" class="text-xs">
+                    {lastRefusal()}
+                  </alert>
+                </Show>
               </div>
-              {
-                /* A refused edit says why, next to the button that would have
-                  applied it, rather than in a row of its own. */
-              }
-              <Show when={lastRefusal() !== undefined}>
-                <alert variant="danger" class="text-xs">
-                  {lastRefusal()}
-                </alert>
-              </Show>
             </nav>
             {
               /* The preview carries the project's theme. Everything above is
@@ -312,7 +366,7 @@ export default function App() {
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
-              class="stack min-h-0 flex-1"
+              class="stack min-h-0 min-w-0 flex-1"
             >
               <PreviewStyles />
               <Suspense>{props.children}</Suspense>
@@ -322,6 +376,7 @@ export default function App() {
       )}
     >
       <Route path="/" component={OverviewPage} />
+      <Route path="/icons" component={IconsPage} />
       <Route path="/colors" component={ColorsPage} />
       <Route path="/type" component={TypePage} />
       <Route path="/surfaces" component={SurfacesPage} />

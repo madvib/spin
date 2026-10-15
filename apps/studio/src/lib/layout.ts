@@ -33,8 +33,8 @@ export const SHORTCUT_STYLESHEET = `
 .row-sm { display: flex; align-items: center; gap: var(--spacing-2); }
 .split { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-4); }
 .panel {
-  background-color: var(--surface-raised, transparent);
-  border: var(--border-width, 1px) solid var(--border, transparent);
+  background-color: var(--color-surface-raised, transparent);
+  border: var(--border-width, 1px) solid var(--color-border, transparent);
   border-radius: var(--radius-md, 0);
   padding: var(--spacing-6, var(--spacing-4));
 }
