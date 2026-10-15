@@ -38,6 +38,13 @@ export interface CarouselItem {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "card": { ref?: HTMLElement | ((el: HTMLElement) => void); children?: JSX.Element; class?: string; };
+      "card-header": { children?: JSX.Element; class?: string; };
+      "card-title": { children?: JSX.Element; class?: string; };
+      "card-description": { children?: JSX.Element; class?: string; };
+      "card-action": { children?: JSX.Element; class?: string; };
+      "card-content": { children?: JSX.Element; class?: string; };
+      "card-footer": { children?: JSX.Element; class?: string; };
       "spin-tree-view": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

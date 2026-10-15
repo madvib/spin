@@ -1,12 +1,10 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import {
-  DEMO_BUTTON,
-  DemoCard,
-  DemoControls,
-  DemoGrid,
-  DemoReadout,
-} from "../demo.tsx";
+import { DEMO_BUTTON } from "../demo-button.ts";
+import { DemoCard } from "../demo-card.tsx";
+import { DemoControls } from "../demo-controls.tsx";
+import { DemoGrid } from "../demo-grid.tsx";
+import { DemoReadout } from "../demo-readout.tsx";
 
 interface SelectCommands {
   open(): void;

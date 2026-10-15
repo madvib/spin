@@ -1,7 +1,11 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
 import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.bridge.ts";
-import { DEMO_BUTTON, DemoCard, DemoControls, DemoGrid, DemoReadout } from "../demo.tsx";
+import { DEMO_BUTTON } from "../demo-button.ts";
+import { DemoCard } from "../demo-card.tsx";
+import { DemoControls } from "../demo-controls.tsx";
+import { DemoGrid } from "../demo-grid.tsx";
+import { DemoReadout } from "../demo-readout.tsx";
 
 interface CascadeElement extends HTMLElement {
   /** The tree crosses as JSON text: the scope grammar has no recursive type. */

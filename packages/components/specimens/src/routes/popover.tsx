@@ -1,6 +1,10 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import { DemoCard, DemoControls, DEMO_BUTTON, DemoGrid, DemoReadout } from "../demo.tsx";
+import { DemoCard } from "../demo-card.tsx";
+import { DemoControls } from "../demo-controls.tsx";
+import { DEMO_BUTTON } from "../demo-button.ts";
+import { DemoGrid } from "../demo-grid.tsx";
+import { DemoReadout } from "../demo-readout.tsx";
 
 interface PopoverCommands {
   show(): void;

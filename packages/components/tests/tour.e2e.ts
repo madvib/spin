@@ -120,15 +120,22 @@ Deno.test("spin-tour e2e", async () => {
         "greet",
         "step-change carries the id",
       );
-      // The spotlight frames the first target (128x64 at 476,307) padded by 8.
+      // The spotlight frames the first target padded by 8: measured against
+      // the live target, not hardcoded, so demo layout can move.
       const spot = await page.evaluate(() => {
         const style = document.querySelector("#tour [id$=':spotlight']")?.getAttribute("style") ?? "";
         const x = style.match(/--tour-x:\s*([\d.]+)px/);
         const w = style.match(/--tour-w:\s*([\d.]+)px/);
-        return { x: x === null ? null : Number(x[1]), w: w === null ? null : Number(w[1]) };
+        const target = document.querySelector("#tour-one")?.getBoundingClientRect();
+        return {
+          x: x === null ? null : Number(x[1]),
+          w: w === null ? null : Number(w[1]),
+          left: target === undefined ? null : Math.round(target.left),
+          width: target === undefined ? null : Math.round(target.width),
+        };
       });
-      assert.equal(spot.x, 468, "the spotlight's x is the target's left minus the padding");
-      assert.equal(spot.w, 144, "and its width is the target's width plus the padding");
+      assert.equal(spot.x, (spot.left ?? 0) - 8, "the spotlight's x is the target's left minus the padding");
+      assert.equal(spot.w, (spot.width ?? 0) + 16, "and its width is the target's width plus the padding");
     });
 
     await step("next advances and re-frames the second target", async () => {
@@ -146,9 +153,13 @@ Deno.test("spin-tour e2e", async () => {
       const spot = await page.evaluate(() => {
         const style = document.querySelector("#tour [id$=':spotlight']")?.getAttribute("style") ?? "";
         const x = style.match(/--tour-x:\s*([\d.]+)px/);
-        return x === null ? null : Number(x[1]);
+        const target = document.querySelector("#tour-two")?.getBoundingClientRect();
+        return {
+          x: x === null ? null : Number(x[1]),
+          left: target === undefined ? null : Math.round(target.left),
+        };
       });
-      assert.equal(spot, 608, "the spotlight moved to the second target");
+      assert.equal(spot.x, (spot.left ?? 0) - 8, "the spotlight moved to the second target");
       assert.equal(await page.locator("#tour-state").textContent(), "second", "the channel carries the new id");
     });
 

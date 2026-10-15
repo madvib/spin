@@ -1,10 +1,8 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import {
-  DemoCard,
-  DemoGrid,
-  DemoReadout,
-} from "../demo.tsx";
+import { DemoCard } from "../demo-card.tsx";
+import { DemoGrid } from "../demo-grid.tsx";
+import { DemoReadout } from "../demo-readout.tsx";
 
 interface NavCommands {
   show(value: string): void;

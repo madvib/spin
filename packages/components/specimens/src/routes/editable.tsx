@@ -4,13 +4,11 @@ import type {
   EditableEditChange,
   EditableValueChange,
 } from "../../../src/spin-editable/editable.bridge.ts";
-import {
-  DEMO_BUTTON,
-  DemoCard,
-  DemoControls,
-  DemoGrid,
-  DemoReadout,
-} from "../demo.tsx";
+import { DEMO_BUTTON } from "../demo-button.ts";
+import { DemoCard } from "../demo-card.tsx";
+import { DemoControls } from "../demo-controls.tsx";
+import { DemoGrid } from "../demo-grid.tsx";
+import { DemoReadout } from "../demo-readout.tsx";
 
 interface EditableCommands {
   setValue: (value: string) => void;

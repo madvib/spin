@@ -6,13 +6,11 @@ import type {
   NumberInputValueCommit,
   NumberInputValueInvalid,
 } from "../../../src/spin-number-input/number-input.bridge.ts";
-import {
-  DEMO_BUTTON,
-  DemoCard,
-  DemoControls,
-  DemoGrid,
-  DemoReadout,
-} from "../demo.tsx";
+import { DEMO_BUTTON } from "../demo-button.ts";
+import { DemoCard } from "../demo-card.tsx";
+import { DemoControls } from "../demo-controls.tsx";
+import { DemoGrid } from "../demo-grid.tsx";
+import { DemoReadout } from "../demo-readout.tsx";
 
 /** The element as a host writes it: seeds are plain property writes. */
 interface NumberInputElement extends HTMLElement {
