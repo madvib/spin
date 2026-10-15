@@ -65,6 +65,10 @@ export interface TreeApi {
   getItemProps(row: VisibleRow): Record<string, unknown>;
   getBranchControlProps(row: VisibleRow): Record<string, unknown>;
   getBranchIndicatorProps(row: VisibleRow): Record<string, unknown>;
+  /** The row's icon slot: which glyph a branch/leaf wears. */
+  getItemIconProps(row: VisibleRow): Record<string, unknown>;
+  /** The indent rail: the vertical guide at this row's parent column. */
+  getRailProps(row: VisibleRow): Record<string, unknown>;
   getBranchTextProps(row: VisibleRow): Record<string, unknown>;
   getBranchContentProps(row: VisibleRow): Record<string, unknown>;
   getCheckboxProps(row: VisibleRow): Record<string, unknown>;
@@ -144,8 +148,11 @@ export function connectRobotTreeView(
   // Branch convention: `children: []` is a leaf; the key's ABSENCE is a
   // loadable branch. Lazy nodes declare no children at all, so a missing
   // key is what distinguishes "loads later" from "has none".
-  const isBranch = (row: VisibleRow): boolean =>
-    row.node.children === undefined || row.node.children.length > 0;
+  const isBranch = (row: VisibleRow): boolean => {
+    const children = row.node.children;
+    if (children === undefined) return loadChildrenHost !== undefined;
+    return children.length > 0;
+  };
 
   const getItemState = (row: VisibleRow): TreeItemState => {
     const c = ctx();
@@ -178,13 +185,20 @@ export function connectRobotTreeView(
    * machine owns the loading marker. Send LOAD_DONE whatever the host does,
    * so a rejected load clears the spinner rather than sticking.
    */
+  /** The host's lazy loader, when one is wired. A missing children key is a
+   * lazy branch only when this exists; without it, a leaf is a leaf. */
+  const loadChildrenHost = (): LoadChildren | undefined => {
+    const load = hostProps()["loadChildren"] as LoadChildren | undefined;
+    return typeof load === "function" ? load : undefined;
+  };
+
   const ensureChildren = (value: string): void => {
     const node = flatten().find((row) => row.node.value === value)?.node;
     if (!node || (node.children !== undefined && node.children.length > 0)) {
       return;
     }
-    const load = hostProps()["loadChildren"] as LoadChildren | undefined;
-    if (typeof load !== "function") return;
+    const load = loadChildrenHost();
+    if (load === undefined) return;
     send({ type: "NODE.LOAD_START", value });
     void (async () => {
       try {
@@ -387,7 +401,19 @@ export function connectRobotTreeView(
         // var) rather than as a per-depth utility class. The preset's
         // arbitrary utilities take `var(...)` and refuse `calc()`, so the
         // arithmetic happens here, once, where the depth is known.
-        style: { "--tree-indent": `${0.5 + row.depth * 0.875}rem` },
+        // Indentation and the rail as custom properties: continuous geometry
+        // travels the geometry channel, and the arithmetic happens here where
+        // the depth is known — the preset's arbitrary utilities take
+        // `var(...)` and refuse `calc()`, which is why the indent was flat.
+        // The rail sits one column left of this row's indent: the parent's
+        // chevron column, where its children's rails belong.
+        style: {
+          "--tree-indent": `${row.depth * 0.875}rem`,
+          "--tree-rail": `${Math.max(0, row.depth - 1) * 0.875}rem`,
+          // The row indents by margin, so its width must shrink by the same
+          // amount or the fill runs past the card's edge.
+          "--tree-w": `calc(100% - ${row.depth * 14}px)`,
+        },
         ...stateAttrs(state),
       };
     },
@@ -410,10 +436,24 @@ export function connectRobotTreeView(
     },
     getBranchIndicatorProps: (row) => ({
       "aria-hidden": true,
-      // The bag owns the affordance's visibility — a group variant here
-      // compiles to a selector lightningcss rejects as a dangling combinator.
-      hidden: !isBranch(row),
+      // `data-branch`, not `hidden`: the span carries `flex`, and an
+      // author `display` beats the UA's `[hidden]` rule — which is how
+      // arrows drew on leaves. A group variant here would compile to a
+      // selector lightningcss rejects as a dangling combinator.
+      "data-branch": isBranch(row) ? "" : undefined,
       ...stateAttrs(getItemState(row)),
+    }),
+    getItemIconProps: (row) => {
+      const state = getItemState(row);
+      const kind = !state.branch ? "leaf" : state.expanded ? "branch-open" : "branch-closed";
+      return { "aria-hidden": true, "data-kind": kind };
+    },
+    getRailProps: (row) => ({
+      // One column left of this row's own indent — the parent's chevron
+      // column, which is where its children's rails belong. Depth 0 has
+      // no parent to draw a rail for.
+      "aria-hidden": true,
+      hidden: row.depth === 0,
     }),
     getBranchTextProps: () => ({}),
     getBranchContentProps: (row) => ({
@@ -427,7 +467,15 @@ export function connectRobotTreeView(
         role: "checkbox",
         tabindex: -1,
         "aria-checked": state.checked,
+        // The checked fact only. The row's own state (expanded, selected)
+        // must not reach this element: piped through it, every expanded
+        // parent rendered as a checked box.
+        "data-checked": state.checked ? "" : undefined,
         "data-state": state.checked ? "checked" : "unchecked",
+        // The row's own mode: the box is a mode affordance, so the recipe's
+        // utility selects on it (a `hidden` attribute loses to the box's
+        // `flex` display, which is how boxes drew in single mode).
+        "data-mode": ctx().selectionMode,
         hidden: ctx().selectionMode !== "multiple",
         onClick: (event: MouseEvent) => {
           if (event.defaultPrevented) return;

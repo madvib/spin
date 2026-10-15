@@ -14,7 +14,7 @@
           aria-hidden="true"
           data-type={row.type}
           class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate data-[type=success]:text-semantic-success data-[type=warning]:text-semantic-warning data-[type=error]:text-semantic-error data-[type=info]:text-accent"
-        >&#9679;</span>
+        ><span class="i-lucide-circle text-[0.4rem]" aria-hidden="true"></span></span>
         <div class="min-w-0 flex-1">
           <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>
           <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
@@ -28,7 +28,7 @@
           type="button"
           class="shrink-0 rounded-md p-1 text-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text focus-visible:ring-2 focus-visible:ring-border-strong"
           {...toast.getCloseTriggerProps(row)}
-        >&#10005;</button>
+        ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
       </div>
     </div>
   </template>

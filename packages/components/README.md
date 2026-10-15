@@ -34,7 +34,6 @@ sync, press tracking, focus-visible) is never machine material.
 | ------------- | ------------------------------------------------------------- |
 | `combobox`    | closed.idle / closed.focused / open.interacting / open.suggesting |
 | `cascade`     | open/closed with the level stack derived from the highlight    |
-| `dialog`      | open/closed; focus-trap, dismissable, scroll-lock are actions  |
 | `menu`        | idle/dragging-free navigation with submenus as context         |
 | `editable`    | preview/edit; commit vs revert decided by the closing event    |
 | `async-list`  | idle/loading/sorting; the fetch is a bridge-owned reflex       |

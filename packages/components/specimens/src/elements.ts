@@ -54,13 +54,6 @@ declare module "solid-js" {
         "prop:rename"?: boolean;
         "prop:defaultExpandedValue"?: readonly string[];
       };
-      "spin-dialog": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        children?: JSX.Element;
-        role?: string;
-        defaultOpen?: boolean;
-        modal?: boolean;
-      };
       "spin-menu": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
@@ -95,6 +88,83 @@ declare module "solid-js" {
         "prop:initialSortDescriptor"?: unknown;
         "prop:dependencies"?: readonly unknown[];
         "prop:autoReload"?: boolean;
+      };
+      "spin-date-input": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        value?: string;
+        defaultValue?: string;
+        granularity?: string;
+        hourCycle?: number;
+        min?: string;
+        max?: string;
+        name?: string;
+        disabled?: boolean;
+        "prop:label"?: string;
+        "prop:defaultValue"?: string;
+        "prop:name"?: string;
+      };
+      "spin-tour": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        steps?: string;
+        "prop:steps"?: string;
+      };
+      "spin-navigation-menu": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        items?: string;
+        "prop:items"?: string;
+      };
+      "spin-file-upload": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        accept?: string;
+        multiple?: string;
+        "max-files"?: string;
+        "max-size"?: string;
+        "min-size"?: string;
+        disabled?: string;
+        "prop:label"?: string;
+        "prop:accept"?: string;
+        "prop:multiple"?: string;
+        "prop:maxSize"?: number;
+      };
+      "spin-floating-panel": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        defaultOpen?: boolean;
+        open?: boolean;
+        stage?: string;
+        draggable?: boolean;
+        resizable?: boolean;
+        "prop:label"?: string;
+        "prop:defaultOpen"?: boolean;
+      };
+      "spin-date-picker": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        value?: string;
+        defaultValue?: string;
+        placeholder?: string;
+        selectionMode?: string;
+        open?: boolean;
+        min?: string;
+        max?: string;
+        "prop:label"?: string;
+        "prop:defaultValue"?: string;
+        "prop:selectionMode"?: string;
+        "prop:placeholder"?: string;
       };
       "spin-pin-input": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
@@ -321,6 +391,26 @@ declare module "solid-js" {
         id?: string;
         label?: string;
         "prop:label"?: string;
+      };
+      "spin-tooltip": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        tip?: string;
+        "prop:label"?: string;
+        "prop:tip"?: string;
+      };
+      "spin-hover-card": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        label?: string;
+        heading?: string;
+        body?: string;
+        "prop:label"?: string;
+        "prop:heading"?: string;
+        "prop:body"?: string;
       };
       "spin-toast": {
         ref?: HTMLElement | ((el: HTMLElement) => void);

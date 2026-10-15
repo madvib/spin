@@ -9,7 +9,7 @@
   </div>
 
   <div
-    class="relative w-full rounded-md border border-border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate data-[autoresize]:inline-grid data-[focus]:ring-2 data-[focus]:ring-border-strong data-[invalid]:border-border-strong data-[invalid]:ring-2 data-[invalid]:ring-border-strong data-[disabled]:opacity-60"
+    class="relative rounded-md border border-border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate data-[autoresize]:inline-grid data-[autoresize]:w-fit data-[focus]:ring-2 data-[focus]:ring-border-strong data-[invalid]:border-border-strong data-[invalid]:ring-2 data-[invalid]:ring-border-strong data-[disabled]:opacity-60"
     {...editable.getAreaProps()}
   >
     <span
@@ -26,14 +26,14 @@
     <button
       class="hidden size-6 items-center justify-center rounded-md border border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[state=preview]:inline-flex data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
       {...editable.getEditTriggerProps()}
-    ><span aria-hidden="true">&#9998;</span></button>
+    ><span class="i-lucide-pencil text-xs" aria-hidden="true"></span></button>
     <button
       class="hidden size-6 items-center justify-center rounded-md border border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[state=edit]:inline-flex data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
       {...editable.getSubmitTriggerProps()}
-    ><span aria-hidden="true">&#10003;</span></button>
+    ><span class="i-lucide-check text-xs" aria-hidden="true"></span></button>
     <button
       class="hidden size-6 items-center justify-center rounded-md border border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[state=edit]:inline-flex data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
       {...editable.getCancelTriggerProps()}
-    ><span aria-hidden="true">&#10005;</span></button>
+    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
   </div>
 </div>

@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
-import { effect, signal } from "../core/signal.ts";
+import { effect, machineTick, signal } from "../core/signal.ts";
 import { bindFor } from "./for.ts";
 
 const { document } = parseHTML("<!doctype html><html><body></body></html>");
@@ -76,4 +76,41 @@ Deno.test("rows stay after preceding siblings (anchor-relative placement)", () =
   assertEquals(order(), ["Options", "b", "a", "for"]);
   items([...items(), "c"]);
   assertEquals(order(), ["Options", "b", "a", "c", "for"]);
+});
+
+/**
+ * A list that re-derives from a machine move re-syncs when the move's
+ * signal flips.
+ *
+ * The items thunk reads a machine-shaped object (a plain object the owner
+ * mutates in place, exactly like a bridge's context) — no signal of its
+ * own. The machine-move signal is what re-runs the for, the same signal
+ * the bag spreads read. This test fails if the for stops reading it: the
+ * list would freeze at its first rows.
+ */
+Deno.test("the for re-syncs on the machine-move signal", () => {
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const anchor = document.createComment("for");
+  host.appendChild(anchor);
+  const ctx = { rows: ["a"] as readonly string[] };
+  bindFor<string>({
+    anchor,
+    items: () => {
+      machineTick();
+      return ctx.rows;
+    },
+    key: (item) => item,
+    render: (row) => {
+      const el = document.createElement("div");
+      el.textContent = row;
+      return { nodes: [el] };
+    },
+  });
+  assertEquals(host.querySelectorAll("div").length, 1, "the seeded row renders");
+
+  // A machine move: the context object mutates, and the move signal flips.
+  ctx.rows = ["a", "b"];
+  machineTick(machineTick() + 1);
+  assertEquals(host.querySelectorAll("div").length, 2, "the new row renders from the move");
 });

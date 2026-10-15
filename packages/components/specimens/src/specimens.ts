@@ -3,8 +3,13 @@ import AsyncList from "./routes/async-list.tsx";
 import Carousel from "./routes/carousel.tsx";
 import Cascade from "./routes/cascade.tsx";
 import Combobox from "./routes/combobox.tsx";
-import Dialog from "./routes/dialog.tsx";
+import DateInput from "./routes/date-input.tsx";
+import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
+import HoverCard from "./routes/hover-card.tsx";
+import FloatingPanel from "./routes/floating-panel.tsx";
+import NavigationMenu from "./routes/navigation-menu.tsx";
+import FileUpload from "./routes/file-upload.tsx";
 import Menu from "./routes/menu.tsx";
 import NumberInput from "./routes/number-input.tsx";
 import PinInput from "./routes/pin-input.tsx";
@@ -12,7 +17,9 @@ import Popover from "./routes/popover.tsx";
 import Select from "./routes/select.tsx";
 import Tags from "./routes/tags.tsx";
 import Timer from "./routes/timer.tsx";
+import Tour from "./routes/tour.tsx";
 import Toast from "./routes/toast.tsx";
+import Tooltip from "./routes/tooltip.tsx";
 import TreeView from "./routes/tree-view.tsx";
 
 /** One component under test, plus the route that shows it. */
@@ -76,6 +83,22 @@ export const SPECIMENS: readonly Specimen[] = [
     component: Editable,
   },
   {
+    id: "date-input",
+    title: "Date input",
+    blurb: "Per-segment date editing: typed digits, arrows, month-aware day limits.",
+    path: "/date-input",
+    group: "Inputs",
+    component: DateInput,
+  },
+  {
+    id: "date-picker",
+    title: "Date picker",
+    blurb: "Calendar panel: open/closed, day/month/year views, single/range selection.",
+    path: "/date-picker",
+    group: "Inputs",
+    component: DatePicker,
+  },
+  {
     id: "select",
     title: "Select",
     blurb:
@@ -93,6 +116,38 @@ export const SPECIMENS: readonly Specimen[] = [
     component: Popover,
   },
   {
+    id: "tooltip",
+    title: "Tooltip",
+    blurb: "Platform-owned: hover dwell opens a native popover panel; focus opens at once.",
+    path: "/tooltip",
+    group: "Disclosure",
+    component: Tooltip,
+  },
+  {
+    id: "hover-card",
+    title: "Hover card",
+    blurb: "Platform-owned: dwell opens a rich panel that stays over either side.",
+    path: "/hover-card",
+    group: "Disclosure",
+    component: HoverCard,
+  },
+  {
+    id: "floating-panel",
+    title: "Floating panel",
+    blurb: "Draggable, resizable panel with stage modes; the gestures are actions.",
+    path: "/floating-panel",
+    group: "Disclosure",
+    component: FloatingPanel,
+  },
+  {
+    id: "file-upload",
+    title: "File upload",
+    blurb: "Validated dropzone: accept, size bounds, and count cap split the drop.",
+    path: "/file-upload",
+    group: "Inputs",
+    component: FileUpload,
+  },
+  {
     id: "cascade",
     title: "Cascade select",
     blurb:
@@ -100,15 +155,6 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/cascade",
     group: "Selection",
     component: Cascade,
-  },
-  {
-    id: "dialog",
-    title: "Dialog",
-    blurb:
-      "Two-state machine; focus-trap, dismissable, and scroll-lock as stdlib actions.",
-    path: "/dialog",
-    group: "Disclosure",
-    component: Dialog,
   },
   {
     id: "menu",
@@ -120,6 +166,14 @@ export const SPECIMENS: readonly Specimen[] = [
     component: Menu,
   },
   {
+    id: "navigation-menu",
+    title: "Navigation menu",
+    blurb: "Hover-dwell top-level menu with a value channel; the panel rides the item's hover.",
+    path: "/navigation-menu",
+    group: "Navigation",
+    component: NavigationMenu,
+  },
+  {
     id: "tree-view",
     title: "Tree view",
     blurb:
@@ -127,6 +181,14 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/tree-view",
     group: "Navigation",
     component: TreeView,
+  },
+  {
+    id: "tour",
+    title: "Tour",
+    blurb: "Spotlight onboarding: each step resolves, scrolls, then frames its target.",
+    path: "/tour",
+    group: "Onboarding",
+    component: Tour,
   },
   {
     id: "toast",
@@ -167,7 +229,14 @@ export const SPECIMENS: readonly Specimen[] = [
 ];
 
 /** The nav groups in display order. */
-export const GROUPS: readonly string[] = [
+/**
+ * The rail's group order. The canonical sequence is explicit (it is the
+ * nav's reading order, not the specimens array's), but a group that is
+ * NOT listed still renders — derived from the specimens that use it, in
+ * first-appearance order. A hand-kept list alone silently drops a whole
+ * group from the rail: `tour` shipped with `Onboarding` and vanished.
+ */
+const GROUP_ORDER: readonly string[] = [
   "Inputs",
   "Selection",
   "Disclosure",
@@ -176,3 +245,11 @@ export const GROUPS: readonly string[] = [
   "Data",
   "Display",
 ];
+
+export const GROUPS: readonly string[] = (() => {
+  const known = new Set(GROUP_ORDER);
+  const seen = new Set<string>();
+  for (const specimen of SPECIMENS) seen.add(specimen.group);
+  const rest = [...seen].filter((group) => !known.has(group));
+  return [...GROUP_ORDER, ...rest];
+})();

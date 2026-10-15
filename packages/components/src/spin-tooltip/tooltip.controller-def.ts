@@ -1,0 +1,108 @@
+import { signal, type ControllerDef } from "@spin/runtime";
+import type { AnchorGeometry } from "@spin/runtime/actions";
+
+/**
+ * Tooltip on the platform: the browser owns open/closed, the top layer,
+ * light-dismiss, and Escape. There is no machine here — `attach` wires the
+ * native popover behavior to the declared commands and events, and the
+ * surface comes from the `tooltip` primitive's CSS.
+ *
+ * The delays Zag holds as opening/closing states are the `hover-delay`
+ * action on the trigger bag: dwell opens, absence closes, and the attach
+ * maps both reports onto the native methods. Focus opens immediately and
+ * blur closes — keyboard users never wait out a hover clock. Touch never
+ * opens: a tooltip that opens on tap steals the tap the trigger wanted.
+ *
+ * The panel positions against the trigger through the `anchor` action,
+ * which reports geometry the bag carries as custom properties. Placement
+ * is a suggestion the viewport can veto; the flip reports alongside the
+ * geometry so the origin utility can follow.
+ */
+
+export interface TooltipOpenChange {
+  readonly open: boolean;
+}
+
+export interface TooltipApi {
+  readonly open: boolean;
+  show(): void;
+  hide(): void;
+  getTriggerProps(): Record<string, unknown>;
+  getContentProps(): Record<string, unknown>;
+}
+
+function panelOf(el: Element): HTMLElement | null {
+  return el.querySelector("[popover]") as HTMLElement | null;
+}
+
+export function attachTooltip(el: Element): TooltipApi {
+  const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
+
+  const emit = (open: boolean): void => {
+    el.dispatchEvent(new CustomEvent("open-change", { detail: { open }, bubbles: true }));
+  };
+
+  // The `toggle` event does not bubble, but a capture listener on the
+  // element still sees it on the way down — the popover proof's shape.
+  el.addEventListener("toggle", (event) => {
+    emit((event as ToggleEvent).newState === "open");
+  }, true);
+
+  const show = (): void => {
+    const panel = panelOf(el);
+    if (panel === null || panel.matches(":popover-open")) return;
+    panel.showPopover();
+  };
+  const hide = (): void => {
+    const panel = panelOf(el);
+    if (panel === null || !panel.matches(":popover-open")) return;
+    panel.hidePopover();
+  };
+
+  const triggerId = `${el.id || "tooltip"}:trigger`;
+  const panelId = `${el.id || "tooltip"}:panel`;
+  const geometry = signal<AnchorGeometry>({ x: 0, y: 0, w: 0, h: 0, placement: "bottom" });
+  return {
+    get open(): boolean {
+      return readOpen();
+    },
+    show,
+    hide,
+    getTriggerProps: () => ({
+      id: triggerId,
+      "aria-describedby": panelId,
+      "data-state": readOpen() ? "open" : "closed",
+      "use:hover-delay": {
+        onOpen: show,
+        onClose: hide,
+      },
+      onFocus: show,
+      onBlur: hide,
+    }),
+    getContentProps: () => ({
+      id: panelId,
+      popover: "",
+      role: "tooltip",
+      "data-placement": geometry().placement,
+      style: {
+        "--anchor-x": `${geometry().x}px`,
+        "--anchor-y": `${geometry().y}px`,
+        "--anchor-w": `${geometry().w}px`,
+      },
+      "use:anchor": {
+        onGeometry: (next: AnchorGeometry) => geometry(next),
+      },
+    }),
+  };
+}
+
+export const tooltip: ControllerDef = {
+  attach: attachTooltip,
+  commands: ["show", "hide"],
+  events: {
+    "open-change": {
+      on: "onOpenChange",
+      detail: (change: TooltipOpenChange) => ({ open: change.open }),
+    },
+  },
+};

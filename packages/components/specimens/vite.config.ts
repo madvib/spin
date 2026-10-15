@@ -28,6 +28,7 @@ export default defineConfig({
       "@spin/components": at("../src/index.ts"),
       "@spin/runtime/fsm": at("../../runtime/src/machine/fsm/machine.ts"),
       "@spin/runtime/load": at("../../runtime/src/directives/load.ts"),
+      "@spin/runtime/actions": at("../../runtime/src/actions/index.ts"),
       "@spin/runtime": at("../../runtime/src/index.ts"),
       // Subpath aliases only — no base `@spin/hooks` entry: a base entry
       // prefix-collides with the subpaths (`<file>/solid`) and wins.

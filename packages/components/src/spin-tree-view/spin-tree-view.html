@@ -2,14 +2,22 @@
 
 <div class="rounded-lg border border-border bg-surface-raised p-1" {...treeView.getRootProps()}>
   <template for={treeView.getVisibleRows()} as={row} key={row.node.value}>
-    <div class="group" {...treeView.getItemProps(row)}>
+    <div class="relative" {...treeView.getItemProps(row)}>
+      <span class="pointer-events-none absolute inset-y-0 w-px bg-border [left:var(--tree-rail,0px)]" aria-hidden="true" {...treeView.getRailProps(row)}></span>
       <button
-        class="bare flex w-full items-center gap-2 rounded-md py-1 pe-2 [padding-inline-start:var(--tree-indent,0.5rem)] text-left text-sm text-text transition-colors duration-fast ease-standard hover:bg-surface data-[selected]:bg-surface data-[selected]:font-medium data-[focus]:ring-1 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:pointer-events-none"
+        class="relative flex min-h-0 items-center gap-1.5 rounded-sm border-0 bg-transparent py-1 pe-2 ps-1 text-left text-sm text-text transition-colors duration-fast ease-standard hover:bg-surface data-[highlighted]:bg-surface data-[selected]:bg-surface-sunken data-[focus]:ring-1 data-[focus]:ring-border-strong data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [width:var(--tree-w,100%)] [margin-inline-start:var(--tree-indent,0px)]"
         {...treeView.getBranchControlProps(row)}
       >
-        <span aria-hidden="true" class="flex size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard data-[state=open]:rotate-90" {...treeView.getBranchIndicatorProps(row)}>›</span>
-        <span aria-hidden="true" class="size-1 shrink-0 rounded-full bg-border-strong data-[state=open]:bg-primary" {...treeView.getCheckboxProps(row)}></span>
-        <span class="min-w-0 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
+        <span class="hidden size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard data-[branch]:inline-flex data-[state=open]:rotate-90" {...treeView.getBranchIndicatorProps(row)}>
+          <span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span>
+        </span>
+        <span class="hidden size-3.5 shrink-0 items-center justify-center rounded-xs border border-border-strong text-on-primary transition-colors duration-fast ease-standard data-[checked]:border-primary data-[checked]:bg-primary data-[mode=multiple]:inline-flex" {...treeView.getCheckboxProps(row)}>
+          <span class="i-lucide-check text-[0.6rem]" aria-hidden="true"></span>
+        </span>
+        <span class="i-lucide-folder shrink-0 text-sm text-primary data-[kind=leaf]:hidden data-[kind=branch-open]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
+        <span class="i-lucide-folder-open shrink-0 text-sm text-primary data-[kind=leaf]:hidden data-[kind=branch-closed]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
+        <span class="i-lucide-file shrink-0 text-sm text-muted data-[kind=branch-open]:hidden data-[kind=branch-closed]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
+        <span class="min-w-0 flex-1 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
         <span class="ms-auto shrink-0 text-xs text-muted" {...treeView.getLoadingProps(row)}>…</span>
       </button>
       <input

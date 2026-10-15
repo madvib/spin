@@ -57,6 +57,23 @@ const ICON_BUTTON =
 const FILTER_ROW =
   "mt-2 flex items-center gap-2 border-b border-border px-2 pb-2 text-xs text-text-muted";
 
+/**
+ * The rail's contract, in the browser.
+ *
+ * The nav iterates a group list; a group no specimen claims renders an
+ * empty heading, and a specimen whose group is not listed renders NO
+ * link — `tour` shipped that way (route present, nav silent). This
+ * publishes the specimen table so the e2e can assert one nav link per
+ * specimen and no group heading without links, which is the drift the
+ * table cannot check against a list it shares.
+ */
+// Unconditional: the e2e guard checks the built app, where import.meta.env
+// is production.
+createEffect(() => {
+  const rail = SPECIMENS.map((s) => ({ id: s.id, path: s.path, group: s.group }));
+  (window as unknown as { __rail?: unknown }).__rail = rail;
+});
+
 /** The theme picker: a real form control, named by the label that wraps it. */
 function ThemePicker() {
   const [theme, setTheme] = createSignal<string>(

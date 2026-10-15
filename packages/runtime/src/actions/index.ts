@@ -17,6 +17,9 @@
 import { createAction } from "./action.ts";
 import type { ElementAction } from "./action.ts";
 import { formControl } from "./form-control.ts";
+import { anchor } from "./anchor.ts";
+import { drag } from "./drag.ts";
+import { hoverDelay } from "./hover-delay.ts";
 import { observe } from "./observe.ts";
 import { scrollIntoView } from "./scroll-into-view.ts";
 import { interactOutside } from "../../../components/src/spin-editable/actions/interact-outside.action.ts";
@@ -26,10 +29,12 @@ import { infiniteScroll } from "./infinite-scroll.ts";
 import { toastRegion, toastRow, toastTimer } from "../../../components/src/spin-toast/actions/toast-actions.ts";
 
 export { runAction, createAction } from "./action.ts";
+export type { DragDelta, DragParam, DragPress } from "./drag.ts";
 export type { ElementAction } from "./action.ts";
+export type { AnchorGeometry, AnchorParam, AnchorPlacement } from "./anchor.ts";
+export type { HoverDelayParam } from "./hover-delay.ts";
 export type { ObserveParam } from "./observe.ts";
 
-/** Listen with automatic removal on destroy. */
 function listen(
   target: EventTarget,
   type: string,
@@ -398,6 +403,9 @@ export const resizeObserver: ElementAction<ResizeObserverParam | undefined> = cr
  */
 export const ACTIONS = {
   "focus-trap": focusTrap,
+  anchor,
+  drag,
+  "hover-delay": hoverDelay,
   dismissable,
   autoplay,
   "hover-intent": hoverIntent,

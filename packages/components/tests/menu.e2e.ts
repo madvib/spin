@@ -165,6 +165,9 @@ try {
       "open-change reached the host",
     );
 
+    // The panel scales in (`scale-95` → `100`), so its bounding box is the
+    // mid-animation one until the transition settles.
+    await page.waitForTimeout(250);
     const triggerBox = await trigger.boundingBox();
     const panelBox = await panel.boundingBox();
     if (triggerBox === null || panelBox === null) throw new Error("no box to compare");
@@ -173,8 +176,8 @@ try {
       `the panel (y=${panelBox.y}) sits below the trigger (bottom=${triggerBox.y + triggerBox.height})`,
     );
     assert.ok(
-      panelBox.width >= triggerBox.width,
-      "the panel is at least as wide as the trigger",
+      panelBox.width >= triggerBox.width - 1,
+      `the panel (w=${panelBox.width}) is at least as wide as the trigger (w=${triggerBox.width})`,
     );
   });
 

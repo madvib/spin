@@ -17,11 +17,11 @@ import { spinComponentCtl, type SpinComponentCtl } from "./controller.ts";
  * that wants to seed a component writes the prop before it connects.
  *
  * ```tsx
- * const el = useRef<HTMLDialogElement>(null);
- * const dialog = useSpinComponent<DialogCommands>(el);
- * useEffect(() => dialog?.bind({ open }, { "open-change": (e) => setOpen(e.detail.open) }), [open]);
- * return <spin-dialog ref={el} />;
- * dialog?.commands.show();
+ * const el = useRef<HTMLElement>(null);
+ * const popover = useSpinComponent<PopoverCommands>(el);
+ * useEffect(() => popover?.bind({ label: "Open" }, { "open-change": (e) => setOpen(e.detail.open) }), [open]);
+ * return <spin-popover ref={el} />;
+ * popover?.commands.show();
  * ```
  */
 

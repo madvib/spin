@@ -16,11 +16,11 @@
       <button
         class="grid h-5 w-5 place-items-center rounded-sm border border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text data-[invalid]:text-text"
         {...combobox.getClearTriggerProps()}
-      ><span aria-hidden="true">&#10005;</span></button>
+      ><span aria-hidden="true"><span class="i-lucide-x text-xs" aria-hidden="true"></span></span></button>
       <button
         class="grid h-6 w-6 place-items-center rounded-md border border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text data-[disabled]:cursor-not-allowed"
         {...combobox.getTriggerProps()}
-      ><span aria-hidden="true" class="text-xs transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180" {...combobox.getTriggerIndicatorProps()}>&#9662;</span></button>
+      ><span aria-hidden="true" class="text-xs transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180" {...combobox.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span></button>
     </div>
 
     <div
@@ -45,7 +45,7 @@
                     aria-hidden="true"
                     class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[state=checked]:scale-100 data-[state=checked]:opacity-100"
                     {...combobox.getItemIndicatorProps(row)}
-                  >&#10003;</span>
+                  ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
                 </div>
               </template>
             </div>

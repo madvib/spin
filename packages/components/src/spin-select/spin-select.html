@@ -20,7 +20,7 @@
         aria-hidden="true"
         class="shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180"
         {...select.getTriggerIndicatorProps()}
-      >&#9662;</span>
+      ><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
     </button>
     <button
       type="button"
@@ -28,7 +28,7 @@
       tabindex="-1"
       class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text"
       {...select.getClearTriggerProps()}
-    >&#10005;</button>
+    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
   </div>
 
   <div
@@ -51,7 +51,7 @@
               aria-hidden="true"
               class="shrink-0 text-xs text-primary opacity-0 transition-opacity duration-fast ease-decelerate data-[state=checked]:opacity-100"
               {...select.getItemIndicatorProps(row)}
-            >&#10003;</span>
+            ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
           </div>
         </template>
       </div>

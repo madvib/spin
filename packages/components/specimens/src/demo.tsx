@@ -58,8 +58,16 @@ export function DemoCard(props: {
 }
 
 /** The quiet control: bare, mono, label-sized. */
+/**
+ * The demo control: a real button, not a ghost.
+ *
+ * It was a mono 12px muted outline that only lit on hover — unreadable at
+ * rest on a dark surface, and the reason the demo pages read as "lots of
+ * little details missing". The readouts stay mono and quiet; a control you
+ * are meant to press gets a surface, a border, 14px, and a focus ring.
+ */
 export const DEMO_BUTTON =
-  "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "inline-flex min-h-0 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-strong";
 
 /** The readout row every demo ends with: mono, tabular, quiet. */
 export function DemoReadout(props: { children: JSX.Element }) {

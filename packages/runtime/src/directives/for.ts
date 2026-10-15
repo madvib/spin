@@ -1,4 +1,5 @@
 import { effect, own, untrack } from "../core/signal.ts";
+import { machineTick } from "../core/signal.ts";
 import { scope } from "../core/signal.ts";
 
 export interface RenderedItem {
@@ -123,6 +124,11 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
   };
 
   effect(() => {
+    // machineTick is the machine-move signal the bags read too (see
+    // bindSpread); without this read the effect subscribes only through
+    // whatever the items thunk touches, and a list that re-derives from
+    // a machine move never re-syncs.
+    machineTick();
     const v = items();
     if (v !== last) {
       last = v;
