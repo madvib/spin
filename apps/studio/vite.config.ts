@@ -16,6 +16,9 @@ export default defineConfig(({ command }) => ({
       // themes are injected at runtime by the preview surface, so editing one
       // cannot restyle the tool doing the editing.
       themes: { studio: studioTheme },
+      // The studio mounts its own API for dev, and must not then inject a
+      // launcher into itself: that is a FAB opening the studio over the studio.
+      launcher: false,
       presets: [presetIcons()],
       // The project under edit. In development that is the reference
       // app: a real spin app with `spin/*.json` on disk, which is the

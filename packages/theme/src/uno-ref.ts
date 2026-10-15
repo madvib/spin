@@ -56,6 +56,10 @@ export const REF_SPECS: readonly RefSpec[] = [
   // the name is the prefix's own last segment — `focus.width` is `width`.
   { key: "focusWidth", prefix: ["focus", "width"], depth: 0 },
   { key: "focusOffset", prefix: ["focus", "offset"], depth: 0 },
+  // Per-element type overrides: `font.element.h1` is a group whose leaves
+  // are the properties one element moves. Depth 2 addresses the property,
+  // so `font.element.h1.size` is `size` under `h1`.
+  { key: "fontElement", prefix: ["font", "element"], depth: 2 },
 ];
 
 /** A uno theme whose every value is the reference it came from. */

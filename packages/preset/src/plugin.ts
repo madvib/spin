@@ -76,6 +76,14 @@ export interface SpinPluginOptions {
    * is what a consumer without a studio checkout wants.
    */
   readonly studioUrl?: string;
+  /**
+   * Inject the overlay launcher into the app's document. Default true.
+   *
+   * The studio mounts its own API for the dev case, and without this the
+   * plugin injects the launcher into the studio itself — a FAB that opens
+   * the studio over the studio. The studio is the tool, not its own target.
+   */
+  readonly launcher?: boolean;
 }
 
 /**
@@ -193,6 +201,7 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
       // trace of the editing session.
       transformIndexHtml(html) {
         if (envMode !== "dev") return html;
+        if (options.launcher === false) return html;
         const studioBase = (options.apiBase ?? "/__spin").replace(/\/rpc$/, "");
         return html.replace(
           "</body>",

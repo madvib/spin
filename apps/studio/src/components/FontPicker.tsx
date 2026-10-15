@@ -39,6 +39,9 @@ export default function FontPicker(props: {
 }) {
   const fonts = useCatalog();
   const [query, setQuery] = createSignal("");
+  // Closed until the field is used. An always-open list over the page it sits
+  // on is a wall, and it covers the very specimens the user is judging.
+  const [open, setOpen] = createSignal(false);
 
   const matches = () => searchCatalog(fonts() ?? [], query(), 24);
 
@@ -49,61 +52,70 @@ export default function FontPicker(props: {
           type="search"
           placeholder="Search 2,103 families…"
           value={query()}
-          onInput={(event) => setQuery(event.currentTarget.value)}
+          onInput={(event) => {
+            setQuery(event.currentTarget.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          // A deferred close: the click that would choose a family has to
+          // land before the field loses focus, and an immediate close eats it.
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setOpen(false);
+          }}
         />
-        <span class="text-text-muted text-xs">
-          {props.value || "none assigned"}
-        </span>
       </div>
-      <Show
-        when={fonts() !== undefined}
-        fallback={<p class="text-sm text-text-muted">loading catalogue…</p>}
-      >
-        <div class="max-h-40 overflow-y-auto">
-          <div class="flex flex-wrap gap-2">
-            <For each={matches()}>
-              {(font) => (
-                <button
-                  type="button"
-                  classList={{
-                    "border-primary text-text": props.value.includes(
-                      font.family,
-                    ),
-                    "border-border text-text-muted": !props.value.includes(
-                      font.family,
-                    ),
-                  }}
-                  class="rounded-md border bg-surface-raised px-3 py-2 text-left hover:border-primary"
-                  onClick={() =>
-                    props.onPick(
-                      `"${font.family}", ${
-                        font.category.includes("serif")
-                          ? "Georgia, serif"
-                          : font.category.includes("mono")
-                          ? "ui-monospace, monospace"
-                          : "ui-sans-serif, system-ui, sans-serif"
-                      }`,
-                      font.id,
-                    )}
-                >
-                  <span class="flex flex-col items-start">
-                    <strong
-                      class="text-sm"
-                      style={{ "font-family": `"${font.family}"` }}
-                    >
-                      {font.family}
-                    </strong>
-                    <span class="text-xs">
-                      {font.variable
-                        ? `variable · ${font.weights.length} weights`
-                        : font.weights.join(" ")}
+      <Show when={open()}>
+        <Show
+          when={fonts() !== undefined}
+          fallback={<p class="text-sm text-text-muted">loading catalogue…</p>}
+        >
+          <div class="absolute inset-x-0 top-1 z-10 max-h-56 overflow-y-auto rounded-md border border-border bg-surface-raised p-2 shadow-lg">
+            <div class="flex flex-wrap gap-2">
+              <For each={matches()}>
+                {(font) => (
+                  <button
+                    type="button"
+                    classList={{
+                      "border-primary text-text": props.value.includes(
+                        font.family,
+                      ),
+                      "border-border text-text-muted": !props.value.includes(
+                        font.family,
+                      ),
+                    }}
+                    class="rounded-md border bg-surface-raised px-3 py-2 text-left hover:border-primary"
+                    onClick={() =>
+                      props.onPick(
+                        `"${font.family}", ${
+                          font.category.includes("serif")
+                            ? "Georgia, serif"
+                            : font.category.includes("mono")
+                            ? "ui-monospace, monospace"
+                            : "ui-sans-serif, system-ui, sans-serif"
+                        }`,
+                        font.id,
+                      )}
+                  >
+                    <span class="flex flex-col items-start">
+                      <strong
+                        class="text-sm"
+                        style={{ "font-family": `"${font.family}"` }}
+                      >
+                        {font.family}
+                      </strong>
+                      <span class="text-xs">
+                        {font.variable
+                          ? `variable · ${font.weights.length} weights`
+                          : font.weights.join(" ")}
+                      </span>
                     </span>
-                  </span>
-                </button>
-              )}
-            </For>
+                  </button>
+                )}
+              </For>
+            </div>
           </div>
-        </div>
+        </Show>
       </Show>
     </div>
   );

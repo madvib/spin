@@ -33,18 +33,26 @@ function headingRule(
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      // The element's own claim, then the shared heading face. A theme that
-      // maps `<h1>` to a face of its own moves `<h1>` and nothing else.
-      const face = t.element?.[tag];
-      const family = face !== undefined ? slot(face, t) : t.heading;
+      // The element's own claim, then the shared tokens. A theme that maps
+      // `<h1>` to a face, or a size, of its own moves `<h1>` and nothing
+      // else — which is the whole point of an override.
+      const own = ownType(t, tag);
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
-        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(own.face !== undefined ? { "font-family": own.face } : {}),
+        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.lineHeight !== undefined
+          ? { "line-height": own.lineHeight }
+          : {}),
+        ...(own.tracking !== undefined
+          ? { "letter-spacing": own.tracking }
+          : {}),
         ...rhythm(t),
         ...(t.spacing4 !== undefined
           ? { "margin-block-start": t.spacing4 }
           : {}),
-        ...type(t),
+        ...(own.size === undefined && own.weight === undefined ? type(t) : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -103,8 +111,20 @@ function headingRules(mode: Mode): Rule[] {
 
 export { headingRule, headingRules };
 
-/** A family slot resolved from a named face, for a per-element override. */
-function slot(face: string, t: Tokens): string | undefined {
+/** The type an element claims for itself, with its face resolved. */
+function ownType(
+  t: Tokens,
+  tag: string,
+): {
+  face?: string;
+  size?: string;
+  weight?: string;
+  lineHeight?: string;
+  tracking?: string;
+} {
+  const entry = t.element?.[tag];
+  if (entry === undefined) return {};
+  const declared = typeof entry === "string" ? { face: entry } : entry;
   const families: Record<string, string | undefined> = {
     heading: t.heading,
     body: t.body,
@@ -112,5 +132,15 @@ function slot(face: string, t: Tokens): string | undefined {
     serif: t.serif,
     mono: t.mono,
   };
-  return families[face];
+  return {
+    ...(declared.face !== undefined
+      ? { face: families[declared.face] ?? declared.face }
+      : {}),
+    ...(declared.size !== undefined ? { size: declared.size } : {}),
+    ...(declared.weight !== undefined ? { weight: declared.weight } : {}),
+    ...(declared.lineHeight !== undefined
+      ? { lineHeight: declared.lineHeight }
+      : {}),
+    ...(declared.tracking !== undefined ? { tracking: declared.tracking } : {}),
+  };
 }

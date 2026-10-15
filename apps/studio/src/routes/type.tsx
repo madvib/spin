@@ -56,18 +56,62 @@ const FAMILY_SLOTS = [
 
 /** Which face each element claims. The assignment is the design decision. */
 const TAG_MAP = [
-  { tag: "h1", face: "heading", note: "the document's one opening claim" },
-  { tag: "h2", face: "heading", note: "a section" },
-  { tag: "h3", face: "heading", note: "a sub-section" },
-  { tag: "h4", face: "heading", note: "a group" },
-  { tag: "h5", face: "heading", note: "a sub-group" },
-  { tag: "h6", face: "heading", note: "a run of related items" },
-  { tag: "p", face: "body", note: "a paragraph" },
-  { tag: "blockquote", face: "serif", note: "quoted editorial text" },
-  { tag: "code", face: "mono", note: "inline code" },
-  { tag: "pre", face: "mono", note: "a block of code" },
-  { tag: "kbd", face: "mono", note: "a key the reader presses" },
+  {
+    tag: "h1",
+    face: "heading",
+    size: "3xl",
+    weight: "bold",
+    note: "the document's one opening claim",
+  },
+  {
+    tag: "h2",
+    face: "heading",
+    size: "2xl",
+    weight: "semibold",
+    note: "a section",
+  },
+  {
+    tag: "h3",
+    face: "heading",
+    size: "xl",
+    weight: "semibold",
+    note: "a sub-section",
+  },
+  {
+    tag: "h4",
+    face: "heading",
+    size: "lg",
+    weight: "semibold",
+    note: "a group",
+  },
+  {
+    tag: "h5",
+    face: "heading",
+    size: "md",
+    weight: "semibold",
+    note: "a sub-group",
+  },
+  {
+    tag: "h6",
+    face: "heading",
+    size: "sm",
+    weight: "semibold",
+    note: "a run of related items",
+  },
+  { tag: "p", face: "body", size: "md", note: "a paragraph" },
+  {
+    tag: "blockquote",
+    face: "serif",
+    size: "md",
+    note: "quoted editorial text",
+  },
+  { tag: "code", face: "mono", size: "sm", note: "inline code" },
+  { tag: "pre", face: "mono", size: "sm", note: "a block of code" },
+  { tag: "kbd", face: "mono", size: "sm", note: "a key the reader presses" },
 ] as const;
+
+/** The weights a user can set an element to, as the theme's scale names them. */
+const WEIGHTS = ["400", "500", "600", "700", "800"] as const;
 
 /** The scale, largest first, so it reads as a decision rather than a list. */
 const SCALE = ["3xl", "2xl", "xl", "lg", "md", "sm", "xs", "2xs"] as const;
@@ -155,7 +199,10 @@ export default function TypePage() {
           <thead>
             <tr>
               <th>Element</th>
+              <th>Set at</th>
               <th>Face</th>
+              <th>Size</th>
+              <th>Weight</th>
               <th>Why</th>
             </tr>
           </thead>
@@ -166,16 +213,60 @@ export default function TypePage() {
                   <td>
                     <code>{`<${entry.tag}>`}</code>
                   </td>
+                  {
+                    /* The preview is the row's own specimen: the element, empty,
+                      so it takes whatever this row decides and nothing from the
+                      copy beside it. */
+                  }
+                  <td>
+                    <span class={previewClass(entry.tag)}>
+                      {"Aa Bb Cc"}
+                    </span>
+                  </td>
                   <td>
                     <select
                       value={faceFor(entry.tag, entry.face)}
                       onChange={(event) =>
-                        setFace(entry.tag, event.currentTarget.value)}
+                        setType(entry.tag, {
+                          face: event.currentTarget.value,
+                        })}
                     >
                       <For each={FACES}>
                         {(face) => (
                           <option value={face.slot}>{face.slot}</option>
                         )}
+                      </For>
+                    </select>
+                  </td>
+                  {
+                    /* Size and weight are per-element, so they are overrides
+                      rather than tokens: minting a token for one element's size
+                      would be a theme file per heading. They land in the same
+                      `font.element.<tag>` group the face already uses. */
+                  }
+                  <td>
+                    <input
+                      type="text"
+                      inputmode="decimal"
+                      placeholder={tagSize(entry.tag) ?? "scale"}
+                      value={sizeFor(entry.tag) ?? ""}
+                      onInput={(event) => setType(entry.tag, {
+                        size: event.currentTarget.value || undefined,
+                      })}
+                    />
+                  </td>
+                  <td>
+                    <select
+                      value={weightFor(entry.tag) ?? (tagWeight(entry.tag)) ??
+                        ""}
+                      onChange={(event) =>
+                        setType(entry.tag, {
+                          weight: event.currentTarget.value || undefined,
+                        })}
+                    >
+                      <option value="">scale</option>
+                      <For each={WEIGHTS}>
+                        {(weight) => <option value={weight}>{weight}</option>}
                       </For>
                     </select>
                   </td>
@@ -266,4 +357,73 @@ function faceFor(tag: string, fallback: string): string {
  */
 function setFace(tag: string, slot: string): void {
   editToken(["font", "element", tag], slot);
+}
+
+/** What one element may override about its type. Mirrors the preset's own. */
+interface ElementType {
+  face?: string;
+  size?: string;
+  weight?: string;
+  lineHeight?: string;
+  tracking?: string;
+}
+
+/** The class that shows an element's own type on the preview. */
+function previewClass(tag: string): string {
+  return `font-${
+    faceFor(tag, tag === "h1" ? "heading" : "body").replace(/[^a-z]/g, "")
+  }`;
+}
+
+/** The size an element claims for itself, as the theme stores it. */
+function sizeFor(tag: string): string | undefined {
+  return elementTypeFor(tag).size;
+}
+
+/** The weight an element claims for itself. */
+function weightFor(tag: string): string | undefined {
+  return elementTypeFor(tag).weight;
+}
+
+/** The whole override one element carries, whatever shape it was written in. */
+function elementTypeFor(tag: string): ElementType {
+  const rows = familyRows();
+  const own = rows.find((row) => row.path === `font.element.${tag}`);
+  if (own === undefined) return {};
+  try {
+    const parsed = JSON.parse(own.value) as ElementType & { face: string };
+    return parsed;
+  } catch {
+    // The earlier shape: a bare slot name.
+    return { face: own.value };
+  }
+}
+
+/**
+ * Write one element's override.
+ *
+ * `font.element.<tag>` holds the whole thing, so a face change keeps the
+ * size the user already set — a write per property would drop the others.
+ */
+function setType(tag: string, change: Partial<ElementType>): void {
+  const next: ElementType = { ...elementTypeFor(tag), ...change };
+  const own = familyRows().find((row) => row.path === `font.element.${tag}`);
+  const fields: Record<string, string> = {};
+  if (next.face !== undefined) fields.face = next.face;
+  if (next.size !== undefined) fields.size = next.size;
+  if (next.weight !== undefined) fields.weight = String(next.weight);
+  editToken(["font", "element", tag], JSON.stringify(fields));
+  void own;
+}
+
+/** The scale weight a heading level states, for the field's placeholder. */
+function tagWeight(tag: string): string {
+  const row = TAG_MAP.find((entry) => entry.tag === tag);
+  return row && "weight" in row ? String(row.weight) : "";
+}
+
+/** The scale size an element states, for its placeholder. */
+function tagSize(tag: string): string {
+  const row = TAG_MAP.find((entry) => entry.tag === tag);
+  return row ? row.size : "";
 }

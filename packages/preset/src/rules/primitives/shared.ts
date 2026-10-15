@@ -80,6 +80,16 @@ export type Entry = [property: string, value: string | undefined];
  * build script, which is the worst place to find one.
  */
 
+/** What one element may override about its type. */
+export interface ElementType {
+  /** A slot in `font.family`, or a stack already resolved. */
+  readonly face?: string;
+  readonly size?: string;
+  readonly weight?: string;
+  readonly lineHeight?: string;
+  readonly tracking?: string;
+}
+
 export interface Tokens {
   readonly spacing1: string | undefined;
   readonly spacing2: string | undefined;
@@ -116,8 +126,15 @@ export interface Tokens {
   /** The editorial face: `font.family.serif`. */
   readonly serif: string | undefined;
   readonly heading: string | undefined;
-  /** Per-element face overrides, keyed by tag. Values name a family slot. */
-  readonly element: Record<string, string> | undefined;
+  /**
+   * Per-element overrides, keyed by tag.
+   *
+   * `{ face: "heading", size: "3.5rem", weight: 700 }` moves exactly the
+   * properties it names and leaves the rest to the shared tokens. A face may
+   * also be written as the slot name alone, which is the earlier shape and
+   * still reads.
+   */
+  readonly element: Record<string, ElementType | string> | undefined;
 }
 
 export function proseTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
@@ -164,7 +181,9 @@ export function proseTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
     // A per-element face map, keyed by tag. `<h1>` may claim a different
     // face from `<h2>`, and a theme that wants that says so here rather than
     // by copying six families. The value names a slot in `font.family`.
-    element: t?.font?.element as Record<string, string> | undefined,
+    element: t?.font?.element as
+      | Record<string, ElementType | string>
+      | undefined,
   };
 }
 
