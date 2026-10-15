@@ -99,7 +99,7 @@ function EasingRow(props: { row: TokenRow }) {
         <code class="font-mono text-sm">{props.row.path}</code>
         <EasingCurve value={props.row.value} />
       </div>
-      <div class="shrink-0 w-56">
+      <div class="shrink-0 w-[14rem]">
         <ValueInput
           value={props.row.value}
           type={props.row.type}

@@ -106,7 +106,7 @@ export default function OverviewPage() {
       </Show>
 
       <header class="row-sm mb-6 max-w-screen-md">
-        <h1 class="font-heading text-3xl">{activeName()}</h1>
+        <h1 class="text-3xl">{activeName()}</h1>
         <span class="text-text-muted text-sm">
           {counts().color} colors · {counts().space} style tokens ·{" "}
           {(library() ?? []).length} components
@@ -123,7 +123,7 @@ export default function OverviewPage() {
             {({ token, label, note }) => (
               <A
                 href={`/${token.path.startsWith("font") ? "type" : "colors"}`}
-                class="stack-sm w-56 rounded-lg border border-border bg-surface-raised p-4 no-underline"
+                class="stack-sm w-[14rem] rounded-lg border border-border bg-surface-raised p-4 no-underline"
               >
                 <span class="flex items-center gap-3">
                   <span

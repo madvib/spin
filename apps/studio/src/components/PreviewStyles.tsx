@@ -63,7 +63,7 @@ export default function PreviewStyles() {
   return (
     <Show when={failure() !== undefined}>
       {(message) => (
-        <p class="bg-red-100 border-red-500 text-red-900 m-4 rounded border p-3 text-sm">
+        <p class="bg-semantic-error border-semantic-error text-on-semantic-error m-4 rounded-md border p-3 text-sm">
           This theme does not build: {message()}
         </p>
       )}

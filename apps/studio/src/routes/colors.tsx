@@ -142,7 +142,7 @@ function RoleRow(props: { row: TokenRow }) {
         style={{ background: `var(${props.row.variable})` }}
         aria-hidden="true"
       />
-      <span class="min-w-32 flex-1 truncate font-medium">
+      <span class="min-w-[8rem] flex-1 truncate font-medium">
         {props.row.path.split(".").slice(1).join(" ")}
       </span>
       <select

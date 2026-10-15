@@ -196,16 +196,16 @@ const SUBHEAD =
 function BrandMark() {
   return (
     <svg
-      class="group/mark block h-[1.25rem] w-[1.25rem] shrink-0 text-primary"
+      class="block h-[1.25rem] w-[1.25rem] shrink-0 text-primary"
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
       <path
-        class="fill-current transition-transform duration-slow ease-standard origin-bottom group-hover/mark:-translate-y-px"
+        class="fill-current"
         d="M5 4 C 12 4 19 9 20 20 L 5 20 Z"
       />
       <path
-        class="stroke-current transition-opacity duration-slow ease-standard opacity-0 group-hover/mark:opacity-100"
+        class="stroke-current"
         d="M5 4 L5 20"
         stroke-width="1.25"
         stroke-linecap="round"

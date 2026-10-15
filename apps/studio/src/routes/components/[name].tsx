@@ -65,7 +65,7 @@ export default function ComponentPage() {
             fallback={
               <div>
                 <h1 class="text-2xl capitalize">{params.name}</h1>
-                <p class="text-sm text-slate-500">Loading…</p>
+                <p class="text-sm text-text-muted">Loading…</p>
               </div>
             }
           >
@@ -78,7 +78,7 @@ export default function ComponentPage() {
         {(component) => (
           <div>
             <h1 class="text-2xl capitalize">{component.name}</h1>
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-text-muted">
               {component.examples?.note ?? ""}
             </p>
 
@@ -96,10 +96,10 @@ export default function ComponentPage() {
             >
               <For each={[...rows()]}>
                 {(row) => (
-                  <section class="mt-4 border-t border-slate-200 pt-3">
+                  <section class="mt-4 border-t border-border pt-3">
                     <h3 class="text-sm font-medium">{row.name}</h3>
                     <div
-                      class="mt-2 flex flex-wrap items-center gap-2 rounded border border-dashed border-slate-300 p-3"
+                      class="mt-2 flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border p-3"
                       innerHTML={row.html}
                     />
                   </section>

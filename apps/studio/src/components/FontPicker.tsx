@@ -70,7 +70,7 @@ export default function FontPicker(props: {
           when={fonts() !== undefined}
           fallback={<p class="text-sm text-text-muted">loading catalogue…</p>}
         >
-          <div class="absolute inset-x-0 top-1 z-10 max-h-56 overflow-y-auto rounded-md border border-border bg-surface-raised p-2 shadow-lg">
+          <div class="absolute inset-x-0 top-1 z-10 max-h-[14rem] overflow-y-auto rounded-md border border-border bg-surface-raised p-2 shadow-lg">
             <div class="flex flex-wrap gap-2">
               <For each={matches()}>
                 {(font) => (

@@ -154,7 +154,7 @@ export default function IconsPage() {
           </For>
           <input
             type="search"
-            class="min-w-48 flex-1"
+            class="min-w-[12rem] flex-1"
             placeholder={`Search ${catalog()?.length ?? "…"} glyph names…`}
             value={query()}
             onInput={(event) => setQuery(event.currentTarget.value)}

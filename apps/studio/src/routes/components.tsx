@@ -17,7 +17,7 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
     <div class="drawer-scroll flex flex-1 min-h-0">
       <nav
         aria-label="Components"
-        class="flex w-44 shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4"
+        class="flex w-[11rem] shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4"
       >
         <h2 class="text-sm font-semibold">Components</h2>
         <Switch
@@ -39,10 +39,10 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
           }
         >
           <Match when={library() === undefined}>
-            <p class="text-sm text-slate-500">loading…</p>
+            <p class="text-sm text-text-muted">loading…</p>
           </Match>
           <Match when={(library() ?? []).length === 0}>
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-text-muted">
               No components. Is the daemon running?
             </p>
           </Match>

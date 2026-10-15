@@ -339,7 +339,7 @@ function ScaleRow(props: { step: string }) {
       <p class={`text-${props.step}`}>
         {HEADING}
       </p>
-      <div class="stack-sm-sm shrink-0 items-end text-right">
+      <div class="stack-sm shrink-0 items-end text-right">
         <code class="text-text-muted text-xs">{`font.size.${props.step}`}</code>
         <code class="text-sm">{row()?.value ?? "—"}</code>
       </div>

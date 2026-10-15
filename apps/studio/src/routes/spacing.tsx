@@ -76,7 +76,7 @@ export default function SpacingPage() {
           <For each={breakpoints()}>
             {(row) => (
               <div class="split panel">
-                <code class="w-40">{row.path}</code>
+                <code class="w-[10rem]">{row.path}</code>
                 {
                   /*
                   A class built at runtime never reaches the scanner, so
