@@ -16,7 +16,7 @@ export default defineConfig(({ command }) => ({
       // themes are injected at runtime by the preview surface, so editing one
       // cannot restyle the tool doing the editing.
       themes: { studio: studioTheme },
-      presets: [presetIcons()],
+      presets: [presetIcons({ extraProperties: { display: "inline-block", flex: "none" } })],
       // The project under edit. In development that is the reference
       // app: a real spin app with `spin/*.json` on disk, which is the
       // same themes it renders — so what the studio edits is what the

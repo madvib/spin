@@ -22,7 +22,7 @@ export default defineConfig({
       // the same files the studio edits — so a theme change in the studio
       // re-themes this app and nothing has to be re-imported.
 
-      presets: [presetIcons({ collections: { lucide } as never })],
+      presets: [presetIcons({ collections: { lucide } as never, extraProperties: { display: "inline-block", flex: "none" } })],
       // The studio bundle, built by `apps/studio/deno task build`. Absent
       // until built — the mount skips it rather than failing the server.
       mount: mountSpinApp(here, {

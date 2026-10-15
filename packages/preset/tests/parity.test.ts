@@ -29,7 +29,12 @@ const PLUGIN_INCLUDE = [
 function referencePlugin(): ViteOptions {
   const options = spin.vite({
     themes: starterThemes,
-    presets: [presetIcons({ collections: { lucide } } as never)],
+    presets: [
+      presetIcons({
+        collections: { lucide } as never,
+        extraProperties: { display: "inline-block", flex: "none" },
+      }),
+    ],
     content: {
       filesystem: [
         `${repo}packages/preset/src/rules/primitives/*.examples.ts`,

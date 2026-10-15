@@ -18,7 +18,7 @@ export default defineConfig({
     solid(),
     UnoCSS({
       presets: [
-        presetIcons({ collections: { lucide } as never }),
+        presetIcons({ collections: { lucide } as never, extraProperties: { display: "inline-block", flex: "none" } }),
         spinPreset({ themes: starterThemes }),
       ],
     }),

@@ -54,7 +54,7 @@ for (const root of SOURCES) {
 const uno = await createGenerator({
   presets: [
     spinPreset({ themes: starterThemes }),
-    presetIcons({ collections: { lucide } as never }),
+    presetIcons({ collections: { lucide } as never, extraProperties: { display: "inline-block", flex: "none" } }),
   ],
 });
 

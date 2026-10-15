@@ -20,7 +20,7 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      presets: [presetIcons({ collections: { lucide } as never })],
+      presets: [presetIcons({ collections: { lucide } as never, extraProperties: { display: "inline-block", flex: "none" } })],
       apiBase: "/__spin",
       // While building the studio itself: load it from its own dev server, so
       // an edit there reloads the overlay instead of needing a rebuild, a
