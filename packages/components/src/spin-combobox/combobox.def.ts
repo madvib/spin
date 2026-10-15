@@ -1062,11 +1062,11 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     },
     "open-change": {
       prop: "onOpenChange",
-      watch: (context, state) => [isOpenPhase(state), ...asCtx(context).value],
-      detail: (watched, event) => ({
+      watch: (_context, state) => [isOpenPhase(state)],
+      detail: (watched, event, _props, context) => ({
         open: watched[0] as boolean,
         reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ?? "script",
-        value: [...(watched.slice(1) as string[])],
+        value: [...((context as Record<string, unknown> | undefined)?.["value"] as string[] ?? [])],
       }),
     },
     select: {

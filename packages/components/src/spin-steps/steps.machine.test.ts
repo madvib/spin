@@ -1,9 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createStepsBridge } from "./steps.bridge.ts";
-import type { StepsComplete } from "./steps.bridge.ts";
-import type { StepsApi } from "./steps.connect.ts";
+import { steps } from "./steps.def.ts";
+const createStepsBridge = steps.createBridge;
+import type { StepsComplete } from "./steps.def.ts";
+import type { StepsApi } from "./steps.def.ts";
 import type { StepsInvalid, StepsStepChange } from "./steps.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

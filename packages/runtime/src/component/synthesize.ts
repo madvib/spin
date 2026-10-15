@@ -144,7 +144,7 @@ export function defineComponent<
             continue;
           }
           if (defEvent.on !== "commit" && last !== undefined && sameWatch(last, watched)) continue;
-          fns[defEvent.prop]?.(defEvent.detail(watched, event, parsed));
+          fns[defEvent.prop]?.(defEvent.detail(watched, event, parsed, context));
         }
       },
       readCallbacks: (props) => {
@@ -179,6 +179,9 @@ export function defineComponent<
       },
       connect: (service, readProps, id) => {
         const focusHere = focuser(ids(def.name, id));
+        const dispatch = (event: { type: string } & Record<string, unknown>): void => {
+          service.send((def.dispatch !== undefined ? def.dispatch(event, readProps()) : event) as E);
+        };
         const segments = new Map<string, string>();
         for (const [key, partDef] of Object.entries(def.parts)) {
           segments.set(key, partDef.id ?? key);
@@ -196,8 +199,8 @@ export function defineComponent<
             continue;
           }
           const send = command.event;
-          api[name] = (...args: readonly unknown[]) => service.send(
-            send(args, (service.context as object) as Record<string, unknown>) as E,
+          api[name] = (...args: readonly unknown[]) => dispatch(
+            send(args, (service.context as object) as Record<string, unknown>) as unknown as { type: string } & Record<string, unknown>,
           );
         }
         for (const [name, reader] of Object.entries(def.readers ?? {})) {
@@ -240,7 +243,7 @@ export function defineComponent<
             props,
             context,
             id: resolveId,
-            send: service.send as (event: { type: string } & Record<string, unknown>) => void,
+            send: dispatch,
             attr: dataAttr,
             ...extra,
           };

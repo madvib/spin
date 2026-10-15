@@ -140,12 +140,15 @@ export interface EventDef {
   /** Values the framework snapshots per notify; a change fires the event. */
   readonly watch: (context: Record<string, unknown>, state: string) => readonly unknown[];
   /** Maps the changed values to the event detail. Receives the triggering
-   * event (undefined from the sync effect) and the parsed props — the
-   * collection lives in props, so row-resolving details read it here. */
+   * event (undefined from the sync effect), the parsed props (the collection
+   * lives in props, so row-resolving details read it here), and the live
+   * context — the watch carries ONLY the fire condition; current values for
+   * the payload come from here, so an unrelated move never reports. */
   readonly detail: (
     watched: readonly unknown[],
     event?: { readonly type: string },
     props?: Record<string, unknown>,
+    context?: Record<string, unknown>,
   ) => Record<string, unknown>;
   /** Which sends fire this event: every move, or commits (release +
    * keyboard commit) only. Default `"move"`. */
@@ -184,6 +187,13 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     readonly authored: (name: string) => boolean;
     readonly send: (event: { type: string } & Record<string, unknown>) => void;
   }) => boolean;
+  /** Event enrichment pre-send (host validators ride navigation events:
+   * functions cannot cross the scope channel, so the machine's guards read
+   * them off the event). Applied to every gesture and command send. */
+  readonly dispatch?: (
+    event: { type: string } & Record<string, unknown>,
+    props: Record<string, unknown>,
+  ) => { type: string } & Record<string, unknown>;
   /** Post-send view reflexes (the panel's opening owes the field its
    * focus). View-side only: focus management, never state. */
   readonly settled?: (args: {
