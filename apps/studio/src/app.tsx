@@ -126,7 +126,7 @@ export default function App() {
                 title="Overview"
               >
                 <span
-                  class="inline-block icon-lg shrink-0 i-lucide-loader-pinwheel text-text"
+                  class="inline-block icon-md shrink-0 i-lucide-loader-pinwheel text-text"
                   aria-hidden="true"
                 />
               </A>

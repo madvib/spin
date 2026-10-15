@@ -52,11 +52,11 @@ function Swatch(props: { row: TokenRow }) {
         style={{ background: `var(${props.row.variable})` }}
         title={props.row.path}
       >
-        <span class="sr-only">{props.row.path}</span>
+        <span class="visually-hidden">{props.row.path}</span>
         <input
           id={id}
           type="color"
-          class="sr-only"
+          class="visually-hidden"
           value={props.row.value}
           onChange={(event) =>
             editToken(props.row.path.split("."), event.currentTarget.value)}

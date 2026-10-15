@@ -11,8 +11,24 @@
  * needs every backtick doubled, and doing that inline made the outer string
  * impossible to read or repair.
  */
+import lucideSet from "@iconify-json/lucide/icons.json" with { type: "json" };
 
-export const OVERLAY_SCRIPT =
+/**
+ * One lucide glyph as an inline SVG string, read from the set — never
+ * hand-copied. The toolbar lives in the host document, where icon classes
+ * never resolve (the preset never scans this string) and font entities
+ * render as tofu, so the set's own path data travels with the script.
+ */
+function toolbarIcon(name: "panel-right" | "x"): string {
+  const icon = (lucideSet.icons as Record<string, { body: string } | undefined>)[name];
+  if (!icon) throw new Error(`overlay toolbar is missing lucide:${name}`);
+  return `<svg width='14' height='14' viewBox='0 0 24 24' aria-hidden='true'>${icon.body.replaceAll('"', "'")}</svg>`;
+}
+
+const MODE_ICON = toolbarIcon("panel-right");
+const CLOSE_ICON = toolbarIcon("x");
+
+const OVERLAY_SCRIPT_TEMPLATE =
   `export function spinOverlay(base = "/__spin/rpc", studio) {
   // Where the studio runs. Mounted, it is built and served beside the API on
   // this origin - which has no hot reload, because a built bundle never
@@ -41,8 +57,6 @@ export const OVERLAY_SCRIPT =
   fab.innerHTML = '<span aria-hidden="true">&#10024;</span><span>Theme</span>';
 
   const dot = document.createElement("span");
-  dot.className = "absolute top-[-4px] right-[-4px] hidden h-2 w-2 " +
-    "rounded-full bg-semantic-error border-2 border-surface";
 
   const host = document.createElement("div");
   host.className = "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
@@ -50,24 +64,14 @@ export const OVERLAY_SCRIPT =
   host.dataset.mode = "modal";
   host.innerHTML = [
     '<div class="absolute top-2 right-2 flex gap-2">',
-    // Inline SVG, not an entity: the toolbar lives in the host document,
-    // whose fonts the studio does not control, and a missing glyph renders
-    // as the tofu the drawer screenshot showed. A 14px stroke square reads
-    // as "dock to the side" at any font.
     '<button type="button" data-act="mode" title="Drawer (38% width)" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
       'text-text inline-flex items-center justify-center cursor-pointer">' +
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
-      'stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-      '<rect x="3" y="4" width="18" height="16" rx="2"/>' +
-      '<line x1="15" y1="4" x2="15" y2="20"/></svg></button>',
+      "__SPIN_MODE_ICON__</button>",
     '<button type="button" data-act="close" title="Close the studio" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
       'text-text inline-flex items-center justify-center cursor-pointer">' +
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
-      'stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-      '<line x1="6" y1="6" x2="18" y2="18"/>' +
-      '<line x1="18" y1="6" x2="6" y2="18"/></svg></button>',
+      "__SPIN_CLOSE_ICON__</button>",
     "</div>",
     '<iframe title="Spin theme studio" data-spin-studio ' +
       'class="block h-full w-full border-none" src="' + studioPath +
@@ -138,3 +142,10 @@ export const OVERLAY_SCRIPT =
   poll();
 }
 `;
+/**
+ * The served script: the template with the set's glyphs composed in.
+ * Export name unchanged, so index.ts needs no edit.
+ */
+export const OVERLAY_SCRIPT: string = OVERLAY_SCRIPT_TEMPLATE
+  .replaceAll("__SPIN_MODE_ICON__", MODE_ICON)
+  .replaceAll("__SPIN_CLOSE_ICON__", CLOSE_ICON);

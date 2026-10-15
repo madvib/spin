@@ -113,9 +113,7 @@ export default function OverviewPage() {
         }
       >
         <alert variant="success" class="mb-4">
-          Ties together — every legibility check passes in the {activeMode()}
-          {" "}
-          mode
+          Ties together — every base-value contrast floor passes
         </alert>
       </Show>
 
