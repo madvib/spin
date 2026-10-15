@@ -99,14 +99,16 @@ export interface ReaderDef {
 }
 
 export interface MethodDef {
-  /** An indexed read (`getThumbValue(index)`): live context + state + args.
-   * For per-slot numbers the recipe could compute from context, but hosts
-   * and tests call these directly — they stay on the api. */
+  /** An indexed read (`getThumbValue(index)`): live context + state + args
+   * + parsed props + part ids. For per-slot numbers the recipe could compute
+   * from context, but hosts and tests call these directly — they stay on
+   * the api. */
   readonly call: (
     context: Record<string, unknown>,
     state: string,
     args: readonly unknown[],
     props: Record<string, unknown>,
+    id: (part: string, slot?: unknown) => string,
   ) => unknown;
 }
 

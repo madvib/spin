@@ -216,6 +216,7 @@ export function defineComponent<
             service.state,
             args,
             readProps(),
+            resolveId,
           );
         }
         function liveScope(extra: { readonly slot: unknown }): SlotScope;
