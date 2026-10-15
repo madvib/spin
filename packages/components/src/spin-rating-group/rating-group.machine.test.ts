@@ -1,9 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createRatingGroupBridge } from "./rating-group.bridge.ts";
-import type { RatingGroupHoverChange } from "./rating-group.bridge.ts";
-import type { RatingGroupApi } from "./rating-group.connect.ts";
+import { ratingGroup } from "./rating-group.def.ts";
+const createRatingGroupBridge = ratingGroup.createBridge;
+import type { RatingGroupHoverChange } from "./rating-group.def.ts";
+import type { RatingGroupApi } from "./rating-group.def.ts";
 import type { RatingGroupValueChange } from "./rating-group.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
