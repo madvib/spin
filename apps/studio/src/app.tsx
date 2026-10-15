@@ -107,7 +107,7 @@ export default function App() {
           }
           <div
             data-theme={STUDIO_THEME}
-            data-mode={activeMode()}
+            data-mode="light"
             // A row, not a stack: the rail takes an edge and the preview
             // takes the rest. In the drawer the rail mirrors to the outer
             // edge — the host's drawer is right-anchored, so a left rail
