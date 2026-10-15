@@ -200,7 +200,7 @@ export default function App() {
                   onClick={() => setNavOpen((open) => !open)}
                 >
                   <span
-                    class="inline-block icon-md i-lucide-menu"
+                    class="inline-block icon-md i-lucide-menu text-text"
                     aria-hidden="true"
                   />
                 </button>
