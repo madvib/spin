@@ -13,6 +13,18 @@ export {
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
 export { ids, type IdFn } from "./component/ids.ts";
+export { defineComponent } from "./component/synthesize.ts";
+export {
+  type ChannelDef,
+  type CommandDef,
+  type ComponentDef,
+  type ControlledDef,
+  type EventDef,
+  type PartDef,
+  type PartScope,
+  type PropDef,
+  type PropParser,
+} from "./component/define.ts";
 export {
   authoredProps,
   defineBridge,
