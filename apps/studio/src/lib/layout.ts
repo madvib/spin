@@ -26,6 +26,7 @@
  * it styles nothing and looks like it worked.
  */
 export const SHORTCUT_STYLESHEET = `
+.drawer-flow .drawer-scroll { overflow-y: visible; flex: none; min-height: auto; }
 .stack { display: flex; flex-direction: column; gap: var(--spacing-4); }
 .stack-sm { display: flex; flex-direction: column; gap: var(--spacing-2); }
 .stack-lg { display: flex; flex-direction: column; gap: var(--spacing-8); }

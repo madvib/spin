@@ -2,8 +2,10 @@ import { createEffect, createResource, For, Show } from "solid-js";
 import {
   activeMode,
   activeName,
+  dockSide,
   setActiveMode,
   setActiveName,
+  setDockSide,
 } from "../lib/store.ts";
 import { listProjectThemes } from "../lib/themes.ts";
 
@@ -98,6 +100,39 @@ export function ThemePicker() {
         </select>
       </div>
       <ModePicker />
+      <div class="row-sm" role="group" aria-label="Drawer edge">
+        <span>Drawer</span>
+        <button
+          type="button"
+          class="bare row-sm whitespace-nowrap"
+          aria-pressed={dockSide() === "left"}
+          onClick={() => {
+            setDockSide("left");
+            window.parent.postMessage("spin:side-left", "*");
+          }}
+        >
+          <span
+            class="inline-block icon-md i-lucide-panel-left"
+            aria-hidden="true"
+          />
+          <span>Left</span>
+        </button>
+        <button
+          type="button"
+          class="bare row-sm whitespace-nowrap"
+          aria-pressed={dockSide() === "right"}
+          onClick={() => {
+            setDockSide("right");
+            window.parent.postMessage("spin:side-right", "*");
+          }}
+        >
+          <span
+            class="inline-block icon-md i-lucide-panel-right"
+            aria-hidden="true"
+          />
+          <span>Right</span>
+        </button>
+      </div>
     </div>
   );
 }

@@ -127,8 +127,24 @@ function legibilityIssues(text: string): readonly ValidationIssue[] {
 
 const [activeName, setActiveName] = createSignal("default");
 const [activeMode, setActiveMode] = createSignal("light");
+const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
+  typeof localStorage !== "undefined" &&
+    localStorage.getItem("spin-dock-side") === "left"
+    ? "left"
+    : "right",
+);
 
-export { activeMode, activeName, setActiveMode, setActiveName };
+export { activeMode, activeName, dockSide, setActiveMode, setActiveName };
+
+/** The drawer edge. Persisted: a handedness choice, not a session one. */
+export function setDockSide(side: "left" | "right"): void {
+  setDockSideSignal(side);
+  try {
+    localStorage.setItem("spin-dock-side", side);
+  } catch {
+    // Private mode: the session keeps it.
+  }
+}
 
 /** Seed the editor from the registry entry when it first becomes visible. */
 function seed(name: string): string | undefined {

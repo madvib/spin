@@ -14,7 +14,7 @@ import { library } from "../lib/store.ts";
  */
 export default function ComponentsLayout(props: { children?: JSX.Element }) {
   return (
-    <div class="flex flex-1 min-h-0">
+    <div class="drawer-scroll flex flex-1 min-h-0">
       <nav
         aria-label="Components"
         class="flex w-44 shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4"

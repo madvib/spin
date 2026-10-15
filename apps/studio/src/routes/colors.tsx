@@ -22,13 +22,26 @@ import { editToken } from "../lib/editing.ts";
  * a family of one is a name for a color with no relatives, and the palette
  * reads better with them together than scattered under a junk heading.
  */
+/**
+ * Hues group by family; roles group by job. A role is a reference to a hue,
+ * not a color to pick, so surface/text/border/on-* read as one Roles family
+ * with reference pickers, not swatches mixed into the hues.
+ */
+const ROLE_HEADS = new Set([
+  "surface",
+  "text",
+  "border",
+  "on",
+  "link",
+  "field",
+  "focus",
+]);
 function familyOf(path: string): string {
   const segments = path.split(".").slice(1);
   if (segments.length > 1) {
     const [head] = segments;
-    // surface-*, text-*, on-* and border stay out: they are roles, and their
-    // families are the surfaces and the text pages' problem.
     if (head === "neutral" || head === "semantic") return head;
+    if (ROLE_HEADS.has(head)) return "roles";
   }
   return "accents";
 }
@@ -86,7 +99,7 @@ export default function ColorsPage() {
   });
 
   return (
-    <div class="flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
+    <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       <h1 class="text-2xl">Colors</h1>
       <p>Every color token. Editing writes to the active mode.</p>
       <For each={families()}>

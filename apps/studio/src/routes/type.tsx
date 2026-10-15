@@ -153,7 +153,7 @@ function sizeOf(
 
 export default function TypePage() {
   return (
-    <div class="min-h-0 min-w-0 flex-1 overflow-y-auto">
+    <div class="drawer-scroll min-h-0 min-w-0 flex-1 overflow-y-auto">
       <header class="stack px-8 pt-8">
         <h1 class="text-3xl">Type</h1>
         <p class="max-w-screen-md text-text-muted">

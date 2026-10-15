@@ -96,7 +96,7 @@ export default function OverviewPage() {
   });
 
   return (
-    <div class="flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
+    <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       {
         /* The verdict is the answer to the only question this page is asked:
            does the theme hold together? It comes first and says so either
@@ -133,7 +133,11 @@ export default function OverviewPage() {
         id="settings"
         class="stack mb-6 max-w-screen-md rounded-lg border border-border bg-surface-raised p-4"
       >
-        <h2 class="text-xl">Settings</h2>
+        <h2 class="text-xl">Studio</h2>
+        <p class="text-sm text-text-muted">
+          Where the drawer docks. The theme above is the project under edit, not
+          a preference — switching it swaps this whole page.
+        </p>
         <ThemePicker />
       </section>
       {

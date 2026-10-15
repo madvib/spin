@@ -30,6 +30,7 @@ import {
   activeName,
   canRedo,
   canUndo,
+  dockSide,
   isDirty,
   markSaved,
   redo,
@@ -112,8 +113,13 @@ export default function App() {
             // takes the rest. In the drawer the rail mirrors to the outer
             // edge — the host's drawer is right-anchored, so a left rail
             // traps the content between chrome and the viewport edge.
-            class="flex h-screen bg-surface"
-            classList={{ "flex-row-reverse": inDrawer() }}
+            class="flex bg-surface"
+            classList={{
+              "h-screen": !inDrawer(),
+              "min-h-full": inDrawer(),
+              "flex-row-reverse": inDrawer() && dockSide() === "right",
+              "drawer-flow": inDrawer(),
+            }}
           >
             {
               /*
@@ -128,7 +134,10 @@ export default function App() {
             <nav
               aria-label="Studio"
               class="flex min-h-0 w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto border-border bg-surface-raised py-2"
-              classList={{ "border-r": !inDrawer(), "border-l": inDrawer() }}
+              classList={{
+                "border-r": !inDrawer() || dockSide() === "left",
+                "border-l": inDrawer() && dockSide() === "right",
+              }}
             >
               <A
                 href="/"

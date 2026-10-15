@@ -35,7 +35,7 @@ export default function UtilitiesPage() {
   });
 
   return (
-    <div class="flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
+    <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       <h1 class="text-2xl">Utilities</h1>
       <p>Search every generated utility against the active theme.</p>
       <input

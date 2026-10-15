@@ -39,7 +39,7 @@ export default function MotionPage() {
   });
 
   return (
-    <div class="flex-1 overflow-y-auto p-4 min-h-0 min-w-0 stack">
+    <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0 stack">
       <div>
         <h1 class="text-2xl">Motion</h1>
         <p>

@@ -72,12 +72,21 @@ export const OVERLAY_SCRIPT =
     fab.style.display = next ? "none" : "flex";
     fab.setAttribute("aria-expanded", String(next));
   }
+  let side = "right";
+  try {
+    side = localStorage.getItem("spin-dock-side") === "left" ? "left" : "right";
+  } catch {
+    // Private mode keeps the default.
+  }
   function setMode(mode) {
     host.dataset.mode = mode;
+    const edge = side === "left"
+      ? "top:0;left:0;bottom:0;"
+      : "top:0;right:0;bottom:0;";
     host.setAttribute(
       "style",
       mode === "drawer"
-        ? "position:fixed;top:0;right:0;bottom:0;z-index:50;width:38%;" +
+        ? "position:fixed;" + edge + "z-index:50;width:38%;" +
           "min-width:480px;display:" + (open ? "block" : "none") + ";overflow:hidden;"
         : "position:fixed;inset:8px;z-index:50;display:" + (open ? "block" : "none") +
           ";overflow:hidden;",
@@ -90,6 +99,10 @@ export const OVERLAY_SCRIPT =
       );
     }
   }
+  function setSide(next) {
+    side = next;
+    setMode(host.dataset.mode);
+  }
   // The studio owns its toggles and talks back: close and mode switch
   // arrive on the window (postMessage never fires on the document), and
   // the shell obeys without chrome of its own. No iframe reload — the
@@ -99,6 +112,9 @@ export const OVERLAY_SCRIPT =
       if (event.data === "spin:close") setOpen(false);
       if (event.data === "spin:drawer" || event.data === "spin:modal") {
         setMode(event.data === "spin:drawer" ? "drawer" : "modal");
+      }
+      if (event.data === "spin:side-left" || event.data === "spin:side-right") {
+        setSide(event.data === "spin:side-left" ? "left" : "right");
       }
     }
   });
