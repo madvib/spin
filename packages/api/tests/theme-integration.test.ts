@@ -187,6 +187,21 @@ describe("the theme surface over RPC, against the fixture app", () => {
       true,
       "the theme's own name scopes the variables",
     );
+
+    it("scopes preview utilities under the preview host", async () => {
+      // The preview sheet is injected into the studio's own document, so its
+      // utilities must not restyle the chrome around it: a studio row using
+      // grid-cols-4 lost its responsive variant to the preview's own later
+      // grid-cols-4, which is the same specificity winning by order.
+      const text = (await themeText("acme")).text as string;
+      const out = await preview(text, "acme", "<div>hi</div>");
+      assertEquals(out.error, null, "the stylesheet generates");
+      assertEquals(
+        out.css.includes(":where(.spin-preview) .grid-cols-4"),
+        true,
+        "utilities carry the host scope",
+      );
+    });
   });
 
   it("keeps the reported path relative to the project", async () => {

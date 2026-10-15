@@ -43,7 +43,17 @@ export default function PreviewStyles() {
     if (!tag) {
       tag = document.createElement("style");
       tag.id = "spin-preview";
-      document.head.appendChild(tag);
+      // Before the chrome's own stylesheet, not after it: the preview
+      // scope is zero-specificity, so ties fall to the later sheet — and
+      // the later sheet must be the tool's, not the specimen's.
+      const first = document.head.querySelector(
+        'link[rel="stylesheet"], style:not(#spin-preview)',
+      );
+      if (first?.parentNode === document.head) {
+        document.head.insertBefore(tag, first);
+      } else {
+        document.head.appendChild(tag);
+      }
     }
     // A failed generation leaves the last good stylesheet in place and says
     // so, rather than wiping the preview to nothing.

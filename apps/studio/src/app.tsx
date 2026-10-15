@@ -118,7 +118,7 @@ export default function App() {
             >
               <A
                 href="/"
-                class="row-sm shrink-0 justify-center font-semibold"
+                class="row-sm mb-2 shrink-0 justify-center font-semibold"
                 title="Overview"
               >
                 <span
@@ -190,19 +190,6 @@ export default function App() {
                     aria-hidden="true"
                   />
                 </button>
-                <a
-                  href={new URLSearchParams(location.search).get("app") ?? "/"}
-                  target="_blank"
-                  rel="noopener"
-                  aria-label="View in app"
-                  title="View in app"
-                  class="row-sm shrink-0 justify-center text-text-muted"
-                >
-                  <span
-                    class="inline-block icon-md i-lucide-external-link"
-                    aria-hidden="true"
-                  />
-                </a>
                 <A
                   href="/#settings"
                   activeClass="text-text font-semibold underline"
@@ -224,7 +211,7 @@ export default function App() {
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
-              class="flex min-h-0 min-w-0 flex-1 flex-col"
+              class="spin-preview flex min-h-0 min-w-0 flex-1 flex-col"
             >
               <PreviewStyles />
               <Suspense>{props.children}</Suspense>
