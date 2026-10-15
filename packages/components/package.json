@@ -9,6 +9,7 @@
     "./carousel": "./src/spin-carousel/spin-carousel.html",
     "./cascade-select": "./src/spin-cascade-select/spin-cascade-select.html",
     "./combobox": "./src/spin-combobox/spin-combobox.html",
+    "./listbox": "./src/spin-listbox/spin-listbox.html",
     "./date-input": "./src/spin-date-input/spin-date-input.html",
     "./date-picker": "./src/spin-date-picker/spin-date-picker.html",
     "./editable": "./src/spin-editable/spin-editable.html",

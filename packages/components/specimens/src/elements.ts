@@ -38,6 +38,29 @@ export interface CarouselItem {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "spin-listbox": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:items"?: readonly { value: string; label: string; disabled?: boolean; group?: string }[];
+        "prop:label"?: string;
+        "prop:value"?: string;
+        "prop:defaultValue"?: string;
+        "prop:highlightedValue"?: string;
+        "prop:defaultHighlightedValue"?: string;
+        "prop:multiple"?: boolean;
+        "prop:selectOnHighlight"?: boolean;
+        "prop:loopFocus"?: boolean;
+        "prop:selectionBehavior"?: string;
+        "prop:composite"?: boolean;
+        "prop:orientation"?: string;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+        "prop:invalid"?: boolean;
+        "prop:required"?: boolean;
+        "prop:name"?: string;
+        "prop:form"?: string;
+      };
       "card": { ref?: HTMLElement | ((el: HTMLElement) => void); children?: JSX.Element; class?: string; };
       "card-header": { children?: JSX.Element; class?: string; };
       "card-title": { children?: JSX.Element; class?: string; };

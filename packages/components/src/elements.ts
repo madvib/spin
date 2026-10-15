@@ -20,6 +20,7 @@ import "./spin-cascade-select/spin-cascade-select.html";
 import "./spin-date-input/spin-date-input.html";
 import "./spin-date-picker/spin-date-picker.html";
 import "./spin-combobox/spin-combobox.html";
+import "./spin-listbox/spin-listbox.html";
 import "./spin-editable/spin-editable.html";
 import "./spin-file-upload/spin-file-upload.html";
 import "./spin-floating-panel/spin-floating-panel.html";

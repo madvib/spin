@@ -3,6 +3,7 @@ import AsyncList from "./routes/async-list.tsx";
 import Carousel from "./routes/carousel.tsx";
 import Cascade from "./routes/cascade.tsx";
 import Combobox from "./routes/combobox.tsx";
+import Listbox from "./routes/listbox.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -38,6 +39,15 @@ export interface Specimen {
  * component is added in one place and its URL is never typed twice.
  */
 export const SPECIMENS: readonly Specimen[] = [
+  {
+    id: "listbox",
+    title: "Listbox",
+    blurb:
+      "Single-state selection: focus defaults, arrow walk, typeahead, grouped options.",
+    path: "/listbox",
+    group: "Inputs",
+    component: Listbox,
+  },
   {
     id: "combobox",
     title: "Combobox",
