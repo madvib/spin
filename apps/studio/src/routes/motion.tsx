@@ -1,6 +1,7 @@
 import { createMemo, For, Show } from "solid-js";
 import PlayRig from "../components/demos/PlayRig";
 import ValueInput from "../components/demos/ValueInput";
+import { durationUtility } from "../lib/overview";
 import { analyzeTheme } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
 import type { TokenRow } from "../lib/tokens";
@@ -76,9 +77,7 @@ function DurationRow(props: { row: TokenRow }) {
     <div class="split panel">
       <code class="font-mono text-sm">{props.row.path}</code>
       <div class="min-w-0 flex-1">
-        <PlayRig
-          utility={`duration-${props.row.path.split(".").slice(2).join("-")}`}
-        />
+        <PlayRig utility={durationUtility(props.row.path)} />
       </div>
       <div class="shrink-0 w-24">
         <ValueInput

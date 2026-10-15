@@ -10,6 +10,7 @@
 
 import { createEffect, createResource, createSignal } from "solid-js";
 import { listPrimitives, type RpcComponent } from "./primitives.ts";
+import { paletteChips, type Chip } from "./overview.ts";
 import { analyzeTheme } from "./theme.ts";
 import { parseTokens, validateLegibility } from "@spin/theme";
 import { indexTree } from "@spin/theme";
@@ -375,11 +376,6 @@ export function activeComponents(): string[] | undefined {
   return undefined;
 }
 
-export interface ThemeSwatch {
-  name: string;
-  value: string;
-}
-
 export interface ThemeSummary {
   name: string;
   file: string;
@@ -387,7 +383,15 @@ export interface ThemeSummary {
   dirty: boolean;
   valid: boolean;
   issues: string[];
-  swatches: ThemeSwatch[];
+  /**
+   * The palette as chips, in the mode being shown.
+   *
+   * The same curated rows the overview's palette card uses, because a strip
+   * of the colours a theme is *for* is a different question from "which
+   * tokens happen to be colours" — and answering the second one twice, here
+   * and on the card, is how the two answers start to disagree.
+   */
+  swatches: Chip[];
 }
 
 /** One card per theme on disk, with its editor state attached. */
@@ -410,19 +414,7 @@ export function themeSummaries(): ThemeSummary[] {
           `${issue.path || "(document)"}: ${issue.message}`
         ),
       ],
-      swatches: leaves
-        .filter((leaf) => {
-          const rest = leaf.path.slice(1).join(".");
-          return (
-            ["primary", "secondary", "accent"].includes(rest) ||
-            leaf.path[1] === "semantic"
-          );
-        })
-        .slice(0, 8)
-        .map((leaf) => ({
-          name: leaf.path.slice(1).join("-").toLowerCase(),
-          value: String(leaf.value),
-        })),
+      swatches: paletteChips(text, activeMode()),
     };
   });
 }
