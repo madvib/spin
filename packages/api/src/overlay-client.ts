@@ -59,9 +59,10 @@ export const OVERLAY_SCRIPT =
       'text-text inline-flex items-center justify-center text-sm cursor-pointer">' +
       '&times;</button>',
     "</div>",
-    '<iframe title="Spin theme studio" class="block h-full w-full border-none" src="' + studioPath +
+    '<iframe title="Spin theme studio" data-spin-studio ' +
+      'class="block h-full w-full border-none" src="' + studioPath +
       (studioPath.indexOf("?") === -1 ? "?" : "&") + "app=" +
-      encodeURIComponent(location.origin) + '"></iframe>',
+      encodeURIComponent(location.origin) + "&mode=" + host.dataset.mode + '"></iframe>',
   ].join("");
 
 
@@ -79,6 +80,8 @@ export const OVERLAY_SCRIPT =
   host.querySelector('[data-act="mode"]').addEventListener("click", function () {
     // Drawer mode is a class swap on the same element: edge-anchored and
     // narrow, or inset all round. No attribute the stylesheet selects on.
+    // The studio reads the mode from its own URL, so the frame reloads with
+    // the new mode rather than the two disagreeing about the layout.
     const drawer = host.dataset.mode !== "drawer";
     host.dataset.mode = drawer ? "drawer" : "modal";
     host.className = drawer
@@ -86,6 +89,12 @@ export const OVERLAY_SCRIPT =
         "overflow-hidden border-l border-border bg-surface"
       : "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
         "shadow-lg border border-border bg-surface";
+    const frame = host.querySelector("[data-spin-studio]");
+    if (frame) {
+      const url = new URL(frame.getAttribute("src"), location.origin);
+      url.searchParams.set("mode", host.dataset.mode);
+      frame.setAttribute("src", url.toString());
+    }
     setOpen(open);
     host.querySelector('[data-act="mode"]').title =
       drawer ? "Modal (full screen)" : "Drawer (30% width)";

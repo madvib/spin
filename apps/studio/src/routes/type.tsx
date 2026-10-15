@@ -29,6 +29,7 @@ import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { DISPLAY, HEADING, PARAGRAPH } from "../lib/specimen-copy.ts";
 import { editToken } from "../lib/editing.ts";
+import { inDrawer } from "../app.tsx";
 
 /** The four family slots, and the sentence that shows each one off. */
 const FAMILY_SLOTS = [
@@ -292,7 +293,14 @@ function FamilyCard(props: { slot: string; role: string; sample: string }) {
   const row = () => tokenFor(rows(), props.slot);
   return (
     <card class="stack p-6">
-      <div class="split">
+      {
+        /*
+        In the drawer the token name and the role stack: a `split` at 340px
+        squeezes the role into a sliver beside a name that cannot wrap, which
+        is the cramming the drawer screenshot showed.
+      */
+      }
+      <div classList={{ split: !inDrawer(), "stack-sm": inDrawer() }}>
         <code class="text-text-muted text-sm">
           {`font.family.${props.slot}`}
         </code>

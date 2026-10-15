@@ -119,15 +119,16 @@ function ModePicker() {
  * studio shipped with. The selected theme drives the preview surface only;
  * a `<label>` names it rather than a bare floating select.
  */
+const [projectThemes] = createResource(listProjectThemes);
+
 function ThemePicker() {
-  const [themes] = createResource(listProjectThemes);
   let select: HTMLSelectElement | undefined;
   // The options arrive after the select does, and the browser answers an
   // option list it just filled by selecting the first one — so the picker
   // read `console` while the editor was editing `default`. Writing the value
   // once both are settled is the only thing that keeps them honest.
   createEffect(() => {
-    if (select !== undefined && themes() !== undefined) {
+    if (select !== undefined && projectThemes() !== undefined) {
       select.value = activeName();
     }
   });
@@ -144,8 +145,8 @@ function ThemePicker() {
           aria-label="Theme"
           onChange={(event) => setActiveName(event.currentTarget.value)}
         >
-          <Show when={themes()} fallback={<option>loading…</option>}>
-            <For each={themes()}>
+          <Show when={projectThemes()} fallback={<option>loading…</option>}>
+            <For each={projectThemes()}>
               {(theme) => <option value={theme.name}>{theme.name}</option>}
             </For>
           </Show>
@@ -153,6 +154,146 @@ function ThemePicker() {
       </div>
       <ModePicker />
     </div>
+  );
+}
+
+/**
+ * Whether the studio runs in the host's drawer.
+ *
+ * The overlay names `mode=` in the iframe URL, so the studio lays itself
+ * out for the edge it occupies rather than guessing from its own width: a
+ * drawer is narrow because the host made it narrow, and the pages get a
+ * different layout there rather than a squeezed one.
+ */
+function hostMode(): "drawer" | "modal" {
+  return new URLSearchParams(location.search).get("mode") === "drawer"
+    ? "drawer"
+    : "modal";
+}
+
+/** Whether the studio runs in the host's drawer. Pages lay out for it. */
+export function inDrawer(): boolean {
+  return hostMode() === "drawer";
+}
+
+/**
+ * The editing bar above every page.
+ *
+ * The rail is glyphs only, so the theme picker, the mode control, undo,
+ * redo, save and view-in-app live here, beside the content they act on.
+ * In the drawer the bar scrolls sideways rather than wrapping into the
+ * page; in the modal it breathes.
+ */
+function StudioHeader() {
+  const drawer = () => hostMode() === "drawer";
+  return (
+    <header
+      class="flex shrink-0 items-center gap-2 border-b border-border bg-surface px-3 py-2"
+      classList={{ "overflow-x-auto": drawer() }}
+    >
+      {
+        /*
+        In the drawer the theme select is a bare control: the label costs a
+        row and the header has one, so the select names itself via aria.
+        The mode pair collapses to the active glyph — switching modes is a
+        modal job, and the drawer keeps the one tap that matters.
+      */
+      }
+      <Show
+        when={drawer()}
+        fallback={<ThemePicker />}
+      >
+        <select
+          class="min-w-0 max-w-28 shrink-0"
+          aria-label="Theme"
+          value={activeName()}
+          onChange={(event) => setActiveName(event.currentTarget.value)}
+        >
+          <For each={projectThemes() ?? []}>
+            {(theme) => <option value={theme.name}>{theme.name}</option>}
+          </For>
+        </select>
+        <button
+          type="button"
+          class="bare shrink-0"
+          aria-label={activeMode() === "light" ? "Dark" : "Light"}
+          title={activeMode() === "light" ? "Dark" : "Light"}
+          onClick={() =>
+            setActiveMode(activeMode() === "light" ? "dark" : "light")}
+        >
+          <span
+            class={`inline-block icon-md shrink-0 ${
+              activeMode() === "light" ? "i-lucide-moon" : "i-lucide-sun"
+            }`}
+            aria-hidden="true"
+          />
+        </button>
+      </Show>
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          class="bare shrink-0"
+          onClick={() => undo()}
+          disabled={!canUndo()}
+          aria-label="Undo"
+          title="Undo"
+        >
+          <span
+            class="inline-block icon-md i-lucide-undo-2"
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          class="bare shrink-0"
+          onClick={() => redo()}
+          disabled={!canRedo()}
+          aria-label="Redo"
+          title="Redo"
+        >
+          <span
+            class="inline-block icon-md i-lucide-redo-2"
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          onClick={async () => {
+            const name = activeName();
+            const written = await saveTheme(name, themeText());
+            if (written.error === null) markSaved(name);
+          }}
+          disabled={!isDirty(activeName())}
+          title="Save to disk"
+          class="shrink-0"
+        >
+          <span
+            class="inline-block icon-md i-lucide-save"
+            aria-hidden="true"
+          />
+          <span>Save</span>
+        </button>
+        <a
+          href={new URLSearchParams(location.search).get("app") ?? "/"}
+          target="_blank"
+          rel="noopener"
+          aria-label="View in app"
+          title="View in app"
+          class="button secondary whitespace-nowrap shrink-0"
+        >
+          <span
+            class="inline-block icon-md i-lucide-external-link"
+            aria-hidden="true"
+          />
+          <span>View in app</span>
+        </a>
+      </div>
+      <Show when={lastRefusal() !== undefined}>
+        <alert variant="danger" class="text-xs">
+          {lastRefusal()}
+        </alert>
+      </Show>
+    </header>
   );
 }
 
@@ -214,28 +355,31 @@ export default function App() {
             // preview takes the rest, which is the whole change.
             class="flex h-screen bg-surface"
           >
+            {
+              /*
+              The rail is an edge strip, not a panel: glyphs only, no labels,
+              no pickers, no buttons. Everything that was getting in the way
+              — the theme picker, the save button, the mode control — lives
+              in the page header beside the content it acts on, where there
+              is room to name it. A 17rem panel with eight entries is a second
+              page competing with the first; a 5rem strip is a margin.
+            */
+            }
             <nav
               aria-label="Studio"
-              class="flex min-h-0 shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-3"
-              classList={{ "w-[17rem]": !narrow(), "w-20": narrow() }}
+              class="flex min-h-0 w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-border bg-surface-raised py-3"
             >
               <A
                 href="/"
-                class="row-sm shrink-0 font-semibold"
-                classList={{ "justify-center": narrow() }}
+                class="row-sm shrink-0 justify-center font-semibold"
+                title="Overview"
               >
                 <span
                   class="inline-block icon-lg shrink-0 i-lucide-loader-pinwheel text-text"
                   aria-hidden="true"
                 />
-                <span
-                  class="whitespace-nowrap"
-                  classList={{ hidden: narrow() }}
-                >
-                  Spin
-                </span>
               </A>
-              <ul class="flow-list stack-sm shrink-0">
+              <ul class="flow-list stack-sm shrink-0 items-center">
                 <For each={CONCERNS}>
                   {([href, label, icon]) => (
                     <li>
@@ -248,116 +392,18 @@ export default function App() {
                         href={`/${href}`}
                         activeClass="text-text font-semibold underline"
                         inactiveClass="text-text-muted"
-                        class="row-sm"
-                        classList={{ "justify-center": narrow() }}
+                        class="row-sm justify-center"
                         title={label}
                       >
                         <span
                           class={`inline-block shrink-0 icon-md ${icon}`}
                           aria-hidden="true"
                         />
-                        <span
-                          class="whitespace-nowrap"
-                          classList={{ hidden: narrow() }}
-                        >
-                          {label}
-                        </span>
                       </A>
                     </li>
                   )}
                 </For>
               </ul>
-              {
-                /* The rail's bottom: the pickers and the edit controls stay
-                  reachable at any rail width, pinned so a short concern list
-                  never lets them float mid-rail. */
-              }
-              <div class="stack-sm mt-auto shrink-0">
-                <ThemePicker />
-                {
-                  /* Undo, redo and save are editing controls, not a status
-                    bar: they belong beside the pickers in the rail, and the
-                    row wraps when the rail is narrow rather than growing
-                    past it. */
-                }
-                <div class="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    class="bare shrink-0"
-                    onClick={() => undo()}
-                    disabled={!canUndo()}
-                    aria-label="Undo"
-                    title="Undo"
-                  >
-                    <span
-                      class="inline-block icon-md i-lucide-undo-2"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    class="bare shrink-0"
-                    onClick={() => redo()}
-                    disabled={!canRedo()}
-                    aria-label="Redo"
-                    title="Redo"
-                  >
-                    <span
-                      class="inline-block icon-md i-lucide-redo-2"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const name = activeName();
-                      const written = await saveTheme(name, themeText());
-                      if (written.error === null) markSaved(name);
-                    }}
-                    disabled={!isDirty(activeName())}
-                    title="Save to disk"
-                    class="shrink-0"
-                  >
-                    <span
-                      class="inline-block icon-md i-lucide-save"
-                      aria-hidden="true"
-                    />
-                    <span classList={{ hidden: narrow() }}>Save</span>
-                  </button>
-                  {
-                    /* The running app is the primary specimen: a theme edit
-                      re-themes it live through the overlay, so this opens the
-                      app the project actually ships. */
-                  }
-                  <a
-                    // Same origin from the user's dev server; standalone
-                    // studio-dev takes `?app=`, because the app is a second
-                    // server with a floating port.
-                    href={new URLSearchParams(location.search).get("app") ??
-                      "/"}
-                    target="_blank"
-                    rel="noopener"
-                    aria-label="View in app"
-                    title="View in app"
-                    class="button secondary whitespace-nowrap shrink-0"
-                  >
-                    <span
-                      class="inline-block icon-md i-lucide-external-link"
-                      aria-hidden="true"
-                    />
-                    <span classList={{ hidden: narrow() }}>View in app</span>
-                  </a>
-                </div>
-                {
-                  /* A refused edit says why, next to the button that would
-                    have applied it, rather than in a row of its own. */
-                }
-                <Show when={lastRefusal() !== undefined}>
-                  <alert variant="danger" class="text-xs">
-                    {lastRefusal()}
-                  </alert>
-                </Show>
-              </div>
             </nav>
             {
               /* The preview carries the project's theme. Everything above is
@@ -366,9 +412,10 @@ export default function App() {
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
-              class="stack min-h-0 min-w-0 flex-1"
+              class="flex min-h-0 min-w-0 flex-1 flex-col"
             >
               <PreviewStyles />
+              <StudioHeader />
               <Suspense>{props.children}</Suspense>
             </div>
           </div>
