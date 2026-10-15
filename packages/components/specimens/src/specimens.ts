@@ -8,6 +8,7 @@ import ColorPicker from "./routes/color-picker.tsx";
 import ImageCropper from "./routes/image-cropper.tsx";
 import SignaturePad from "./routes/signature-pad.tsx";
 import RatingGroup from "./routes/rating-group.tsx";
+import Slider from "./routes/slider.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -60,6 +61,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/signature-pad",
     group: "Inputs",
     component: SignaturePad,
+  },
+  {
+    id: "slider",
+    title: "Slider",
+    blurb:
+      "Ranged input: press to jump, drag the thumb, arrows to step.",
+    path: "/slider",
+    group: "Inputs",
+    component: Slider,
   },
   {
     id: "rating-group",

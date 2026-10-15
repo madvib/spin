@@ -25,6 +25,7 @@ import "./spin-color-picker/spin-color-picker.html";
 import "./spin-image-cropper/spin-image-cropper.html";
 import "./spin-signature-pad/spin-signature-pad.html";
 import "./spin-rating-group/spin-rating-group.html";
+import "./spin-slider/spin-slider.html";
 import "./spin-editable/spin-editable.html";
 import "./spin-file-upload/spin-file-upload.html";
 import "./spin-floating-panel/spin-floating-panel.html";
