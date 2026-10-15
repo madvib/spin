@@ -19,6 +19,7 @@ import StylePage from "./routes/style.tsx";
 import ComponentsLayout from "./routes/components.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
+import PreferencesPage from "./routes/preferences.tsx";
 import { createResource, createSignal, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
@@ -212,7 +213,7 @@ export default function App() {
                   />
                 </button>
                 <A
-                  href="/#settings"
+                  href="/preferences"
                   activeClass="text-text font-semibold underline"
                   inactiveClass="text-text"
                   class="row-sm justify-center"
@@ -279,6 +280,7 @@ export default function App() {
       )}
     >
       <Route path="/" component={OverviewPage} />
+      <Route path="/preferences" component={PreferencesPage} />
       <Route path="/icons" component={IconsPage} />
       <Route path="/colors" component={ColorsPage} />
       <Route path="/type" component={TypePage} />

@@ -13,7 +13,7 @@
  */
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { ThemePicker } from "../components/Settings.tsx";
+import { ModePicker, ThemePicker } from "../components/Settings.tsx";
 import { analyzeTheme, rootDescription } from "../lib/theme.ts";
 import { groupTokens } from "../lib/tokens.ts";
 import {
@@ -98,7 +98,7 @@ export default function OverviewPage() {
   return (
     <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       <Show when={report().issues.length > 0}>
-        <alert variant="danger" class="mb-4">
+        <alert variant="danger">
           {report().issues.length} issue
           {report().issues.length === 1 ? "" : "s"}{" "}
           · the first is what to fix before anything looks wrong
@@ -113,11 +113,12 @@ export default function OverviewPage() {
         </span>
         <span class="flex-1" />
         <ThemePicker compact />
+        <ModePicker />
       </header>
       <p>{rootDescription(themeText())}</p>
 
       <section class="stack mb-6">
-        <h2 class="text-xl">What moves everything</h2>
+        <h2 class="text-xl">Foundations</h2>
         <div class="flex flex-wrap gap-4">
           <For each={keyTokens()}>
             {({ token, label, note }) => (
@@ -143,16 +144,14 @@ export default function OverviewPage() {
       </section>
 
       <section class="stack-sm mb-6 max-w-screen-md">
-        <h2 class="text-xl">Scale</h2>
+        <h2 class="text-xl">Spacing</h2>
+        <p class="text-sm text-text-muted">
+          Every gap, inset, and measure in the theme, smallest to largest.
+          Reshape the curve on the spacing page — this is what it looks like
+          now.
+        </p>
         <SpacingStrip />
       </section>
-
-      <details class="stack-sm max-w-screen-md rounded-lg border border-border p-4">
-        <summary class="cursor-pointer text-sm text-text-muted">
-          Studio preferences
-        </summary>
-        <ThemePicker full />
-      </details>
     </div>
   );
 }
