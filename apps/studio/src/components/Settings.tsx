@@ -33,7 +33,7 @@ export function ModePicker() {
     >
       <button
         type="button"
-        class="bare row-sm whitespace-nowrap"
+        class="bare row-sm whitespace-nowrap text-text"
         aria-pressed={activeMode() === "light"}
         aria-label="Light"
         onClick={() => setActiveMode("light")}
@@ -46,7 +46,7 @@ export function ModePicker() {
       </button>
       <button
         type="button"
-        class="bare row-sm whitespace-nowrap"
+        class="bare row-sm whitespace-nowrap text-text"
         aria-pressed={activeMode() === "dark"}
         aria-label="Dark"
         onClick={() => setActiveMode("dark")}
@@ -106,7 +106,7 @@ export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
         <span>Drawer</span>
         <button
           type="button"
-          class="bare row-sm whitespace-nowrap"
+          class="bare row-sm whitespace-nowrap text-text"
           aria-pressed={dockSide() === "left"}
           onClick={() => {
             setDockSide("left");
@@ -121,7 +121,7 @@ export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
         </button>
         <button
           type="button"
-          class="bare row-sm whitespace-nowrap"
+          class="bare row-sm whitespace-nowrap text-text"
           aria-pressed={dockSide() === "right"}
           onClick={() => {
             setDockSide("right");

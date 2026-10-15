@@ -163,8 +163,14 @@ export default function App() {
           }
           <div
             data-theme={STUDIO_THEME}
-            data-mode="light"
-            class="flex bg-surface"
+            // The studio's theme, never the project's, but the picker's mode:
+            // a chrome that stayed light around a dark pane split every label
+            // from its paper.
+            data-mode={activeMode()}
+            // Declared, not inherited: <html> is stamped light in index.html
+            // and never changes, so a themed host that stays quiet inherits
+            // the document root's ink instead of its own.
+            class="flex bg-surface text-text"
             // A row, not a stack: the rail takes an edge and the preview
             // takes the rest. In the drawer the rail mirrors to the outer
             // edge — the host's drawer is right-anchored, so a left rail
@@ -289,7 +295,9 @@ export default function App() {
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
-              class="flex min-h-0 min-w-0 flex-1 flex-col"
+              // Same debt as the chrome's: <html> is stamped light, so a
+              // label that only inherits keeps that ink on a dark surface.
+              class="flex min-h-0 min-w-0 flex-1 flex-col text-text"
             >
               <Show
                 when={new URLSearchParams(location.search).get("app") !== null}
