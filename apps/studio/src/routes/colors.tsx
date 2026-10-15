@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import { generateScale } from "@spin/theme";
 import { inDrawer } from "../app.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
@@ -27,22 +27,14 @@ import { editToken } from "../lib/editing.ts";
  * not a color to pick, so surface/text/border/on-* read as one Roles family
  * with reference pickers, not swatches mixed into the hues.
  */
-const ROLE_HEADS = new Set([
-  "surface",
-  "text",
-  "border",
-  "on",
-  "link",
-  "field",
-  "focus",
-]);
+const ROLE_EXACT = new Set(["surface", "text", "border", "link", "field"]);
+const ROLE_PREFIXES = ["surface-", "text-", "border-", "on-", "focus-"];
 function familyOf(path: string): string {
-  const segments = path.split(".").slice(1);
-  if (segments.length > 1) {
-    const [head] = segments;
-    if (head === "neutral" || head === "semantic") return head;
-    if (ROLE_HEADS.has(head)) return "roles";
-  }
+  const leaf = path.split(".").slice(1).join(".");
+  if (leaf === "neutral" || leaf.startsWith("neutral.")) return "neutral";
+  if (leaf === "semantic" || leaf.startsWith("semantic.")) return "semantic";
+  if (ROLE_EXACT.has(leaf)) return "roles";
+  if (ROLE_PREFIXES.some((prefix) => leaf.startsWith(prefix))) return "roles";
   return "accents";
 }
 
@@ -84,45 +76,95 @@ function Swatch(props: { row: TokenRow }) {
 
 export default function ColorsPage() {
   const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const families = createMemo(() => {
+  const split = createMemo(() => {
     const current = tree();
-    if (!current) return [];
+    if (!current) return { hues: [], roles: [] };
     const rows = groupTokens(current, [["color"]], activeMode());
-    const byFamily = new Map<string, TokenRow[]>();
+    const hues: TokenRow[] = [];
+    const roles: TokenRow[] = [];
     for (const row of rows) {
-      const family = familyOf(row.path);
-      const list = byFamily.get(family) ?? [];
-      list.push(row);
-      byFamily.set(family, list);
+      (familyOf(row.path) === "roles" ? roles : hues).push(row);
     }
-    return [...byFamily.entries()];
+    return { hues, roles };
   });
 
   return (
     <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       <h1 class="text-2xl">Colors</h1>
-      <p>Every color token. Editing writes to the active mode.</p>
-      <For each={families()}>
-        {([family, rows]) => (
-          <section class="stack-sm mb-6">
-            <h2 class="text-xl capitalize">{family}</h2>
-            <div
-              class="grid gap-3"
-              classList={{
-                "grid-cols-3": inDrawer(),
-                "grid-cols-4": !inDrawer(),
-                "sm:grid-cols-6": !inDrawer(),
-                "lg:grid-cols-8": !inDrawer(),
-              }}
-            >
-              <For each={rows}>
-                {(row) => <Swatch row={row} />}
-              </For>
-            </div>
-          </section>
-        )}
-      </For>
+      <p>
+        What exists, then what it is for. Editing writes to the active mode.
+      </p>
+      <section class="stack-sm mb-6" aria-label="Hues">
+        <h2 class="text-xl">Hues</h2>
+        <div
+          class="grid gap-3"
+          classList={{
+            "grid-cols-3": inDrawer(),
+            "grid-cols-4": !inDrawer(),
+            "sm:grid-cols-6": !inDrawer(),
+            "lg:grid-cols-8": !inDrawer(),
+          }}
+        >
+          <For each={split().hues}>{(row) => <Swatch row={row} />}</For>
+        </div>
+      </section>
+      <section class="stack-sm mb-6 max-w-screen-md" aria-label="Surfaces">
+        <h2 class="text-xl">Surfaces</h2>
+        <p class="text-sm text-text-muted">
+          Each row points at a hue above — the reference is the value.
+        </p>
+        <For each={split().roles}>{(row) => <RoleRow row={row} />}</For>
+      </section>
       <RampBuilder />
+    </div>
+  );
+}
+
+/**
+ * One role: the job named, the current hue as a chip, the picker as a list
+ * of hues. No hex field — a role holds a reference, and the control makes
+ * anything else unrepresentable instead of validated.
+ */
+function RoleRow(props: { row: TokenRow }) {
+  const tree = createMemo(() => analyzeTheme(themeText()).tree);
+  const hues = createMemo(() => {
+    const current = tree();
+    if (!current) return [];
+    return groupTokens(current, [["color"]], activeMode()).filter(
+      (row) => familyOf(row.path) !== "roles",
+    );
+  });
+  const target = () => props.row.value.match(/^\{(.+)\}$/)?.[1] ?? null;
+  return (
+    <div class="row-sm rounded-md border border-border p-2">
+      <span
+        class="h-8 w-12 shrink-0 rounded-sm border border-border"
+        style={{ background: `var(${props.row.variable})` }}
+        aria-hidden="true"
+      />
+      <span class="min-w-32 flex-1 truncate font-medium">
+        {props.row.path.split(".").slice(1).join(" ")}
+      </span>
+      <select
+        class="min-w-0 flex-1"
+        aria-label={`${props.row.path} points at`}
+        value={target() ?? ""}
+        onChange={(event) => {
+          const next = event.currentTarget.value;
+          if (next) editToken(props.row.path.split("."), `{${next}}`);
+        }}
+      >
+        <Show when={target() === null}>
+          <option value="">a raw value — pick a hue to reference</option>
+        </Show>
+        <For each={hues()}>
+          {(hue) => (
+            <option value={hue.path} selected={hue.path === target()}>
+              {hue.path.split(".").slice(1).join(" ")}
+            </option>
+          )}
+        </For>
+      </select>
     </div>
   );
 }

@@ -12,14 +12,13 @@ import { MetaProvider, Title } from "@solidjs/meta";
 import { A, Route, Router } from "@solidjs/router";
 import ColorsPage from "./routes/colors.tsx";
 import TypePage from "./routes/type.tsx";
-import ComponentsLayout from "./routes/components.tsx";
-import ComponentPage from "./routes/components/[name].tsx";
 import IconsPage from "./routes/icons.tsx";
-import OverviewPage from "./routes/index.tsx";
 import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
-import SurfacesPage from "./routes/surfaces.tsx";
-import UtilitiesPage from "./routes/utilities.tsx";
+import StylePage from "./routes/style.tsx";
+import ComponentsLayout from "./routes/components.tsx";
+import ComponentPage from "./routes/components/[name].tsx";
+import OverviewPage from "./routes/index.tsx";
 import { createResource, createSignal, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
@@ -79,12 +78,11 @@ export function inDrawer(): boolean {
 const CONCERNS = [
   ["colors", "Color", "i-lucide-palette"],
   ["type", "Type", "i-lucide-type"],
-  ["surfaces", "Surfaces", "i-lucide-layers"],
-  ["spacing", "Spacing", "i-lucide-ruler"],
-  ["motion", "Motion", "i-lucide-zap"],
-  ["components", "Components", "i-lucide-blocks"],
-  ["utilities", "Utilities", "i-lucide-wrench"],
   ["icons", "Icons", "i-lucide-shapes"],
+  ["motion", "Motion", "i-lucide-zap"],
+  ["spacing", "Spacing", "i-lucide-ruler"],
+  ["style", "Style", "i-lucide-layers"],
+  ["components", "Elements", "i-lucide-blocks"],
 ] as const;
 
 export default function App() {
@@ -284,13 +282,12 @@ export default function App() {
       <Route path="/icons" component={IconsPage} />
       <Route path="/colors" component={ColorsPage} />
       <Route path="/type" component={TypePage} />
-      <Route path="/surfaces" component={SurfacesPage} />
+      <Route path="/style" component={StylePage} />
       <Route path="/spacing" component={SpacingPage} />
       <Route path="/motion" component={MotionPage} />
       <Route path="/components" component={ComponentsLayout}>
         <Route path="/:name" component={ComponentPage} />
       </Route>
-      <Route path="/utilities" component={UtilitiesPage} />
     </Router>
   );
 }

@@ -6,7 +6,7 @@ import { activeMode, themeText } from "../lib/store";
 import { editToken } from "../lib/editing";
 
 /**
- * The surfaces page.
+ * The style page.
  *
  * A border colour is a thing you see, so the page shows it: a filled bar
  * next to its row, a rounded square per radius step, a card lifted by each
@@ -38,7 +38,7 @@ const GROUPS: Array<{ title: string; blurb: string; groups: string[][] }> = [
   },
 ];
 
-export default function SurfacesPage() {
+export default function StylePage() {
   const tree = createMemo(() => analyzeTheme(themeText()).tree);
   const sections = createMemo(() => {
     const current = tree();
@@ -52,7 +52,7 @@ export default function SurfacesPage() {
   return (
     <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0 stack">
       <div>
-        <h1 class="text-2xl">Surfaces</h1>
+        <h1 class="text-2xl">Style</h1>
         <p>
           Corners, edges, elevation, and layering of boxes in space. Each row
           shows what its value looks like beside the control that sets it.
