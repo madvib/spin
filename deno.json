@@ -42,6 +42,7 @@
     "@unocss/preset-tagify": "npm:@unocss/preset-tagify@66.10.5",
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",
+    "@zag-js/color-utils": "npm:@zag-js/color-utils@^1.44.0",
     "@spin/runtime/load": "./packages/runtime/src/directives/load.ts",
     "@spin/runtime/fsm": "./packages/runtime/src/machine/fsm/machine.ts",
     "@spin/hooks": "./packages/hooks/src/index.ts",

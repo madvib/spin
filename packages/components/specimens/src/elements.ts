@@ -38,6 +38,26 @@ export interface CarouselItem {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "spin-color-picker": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:label"?: string;
+        "prop:value"?: string;
+        "prop:defaultValue"?: string;
+        "prop:format"?: string;
+        "prop:defaultFormat"?: string;
+        "prop:open"?: boolean;
+        "prop:defaultOpen"?: boolean;
+        "prop:inline"?: boolean;
+        "prop:closeOnSelect"?: boolean;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+        "prop:invalid"?: boolean;
+        "prop:required"?: boolean;
+        "prop:name"?: string;
+        "prop:swatches"?: string;
+      };
       "spin-listbox": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

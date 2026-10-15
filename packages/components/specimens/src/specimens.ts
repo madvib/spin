@@ -4,6 +4,7 @@ import Carousel from "./routes/carousel.tsx";
 import Cascade from "./routes/cascade.tsx";
 import Combobox from "./routes/combobox.tsx";
 import Listbox from "./routes/listbox.tsx";
+import ColorPicker from "./routes/color-picker.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -39,6 +40,15 @@ export interface Specimen {
  * component is added in one place and its URL is never typed twice.
  */
 export const SPECIMENS: readonly Specimen[] = [
+  {
+    id: "color-picker",
+    title: "Color picker",
+    blurb:
+      "Trigger panel: saturation-brightness area, hue and alpha sliders, hex input, swatches.",
+    path: "/color-picker",
+    group: "Inputs",
+    component: ColorPicker,
+  },
   {
     id: "listbox",
     title: "Listbox",

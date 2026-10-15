@@ -19,6 +19,7 @@ export { carousel } from "./spin-carousel/carousel.machine-def.ts";
 export { cascade } from "./spin-cascade-select/cascade.machine-def.ts";
 export { combobox } from "./spin-combobox/combobox.machine-def.ts";
 export { listbox } from "./spin-listbox/listbox.machine-def.ts";
+export { colorPicker } from "./spin-color-picker/color-picker.machine-def.ts";
 export { dateInput } from "./spin-date-input/date-input.machine-def.ts";
 export { datePicker } from "./spin-date-picker/date-picker.machine-def.ts";
 export { editable } from "./spin-editable/editable.machine-def.ts";
