@@ -20,6 +20,7 @@
     "./pagination": "./src/spin-pagination/spin-pagination.html",
     "./angle-slider": "./src/spin-angle-slider/spin-angle-slider.html",
     "./toggle-group": "./src/spin-toggle-group/spin-toggle-group.html",
+    "./avatar": "./src/spin-avatar/spin-avatar.html",
     "./date-input": "./src/spin-date-input/spin-date-input.html",
     "./date-picker": "./src/spin-date-picker/spin-date-picker.html",
     "./editable": "./src/spin-editable/spin-editable.html",

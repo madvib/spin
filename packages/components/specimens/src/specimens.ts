@@ -14,6 +14,7 @@ import Steps from "./routes/steps.tsx";
 import Pagination from "./routes/pagination.tsx";
 import AngleSlider from "./routes/angle-slider.tsx";
 import ToggleGroup from "./routes/toggle-group.tsx";
+import Avatar from "./routes/avatar.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -66,6 +67,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/signature-pad",
     group: "Inputs",
     component: SignaturePad,
+  },
+  {
+    id: "avatar",
+    title: "Avatar",
+    blurb:
+      "Image with fallback: loads, errors, and reloads on src change.",
+    path: "/avatar",
+    group: "Display",
+    component: Avatar,
   },
   {
     id: "toggle-group",
