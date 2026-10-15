@@ -54,8 +54,14 @@ export interface BridgeHooks<
     authored: (name: string) => boolean,
     send: (event: E) => void,
   ): boolean;
-  /** Report what moved since the last notify. Cursors live in the hooks closure. */
-  notify(svc: Service<C, E>, callbacks: Callbacks): void;
+  /** Report what moved. `defineBridge` threads the kind: commit sends fire
+   * `on: "commit"` events, moves fire the rest. Cursors live in the hooks closure. */
+  notify(svc: Service<C, E>, callbacks: Callbacks, kind: "move" | "commit"): void;
+  /** Classify the send: commit sends fire `on: "commit"` events, moves fire
+   * `on: "move"` (unset) events. Absent, every send notifies as a move. */
+  kind?(event: E): "move" | "commit";
+  /** Merge parsed props into machine context before a send. Absent, sends go direct. */
+  refresh?(svc: Service<C, E>, props: () => Record<string, unknown>): void;
   readCallbacks(props: () => Record<string, unknown>): Callbacks;
   readConnectProps(props: () => Record<string, unknown>): ConnectProps;
   connect(service: BridgeService<C, E>, readProps: () => ConnectProps, id: string): Api;
@@ -119,6 +125,9 @@ export function defineBridge<
     service = owner.run(() => {
       const svc = interpret(machine).start(spec.startState);
       Object.assign(svc.state.context, hooks.seed(props, authored));
+      // Prime the watch cursors: the first notify must report a MOVE, not
+      // the seed. The sink swallows the callbacks; the cursors still advance.
+      hooks.notify(svc, {} as Callbacks, "move");
       return svc;
     });
     return service;
@@ -126,8 +135,9 @@ export function defineBridge<
 
   const send = (event: E): void => {
     const svc = ensureService();
+    hooks.refresh?.(svc, props);
     svc.send(event);
-    hooks.notify(svc, hooks.readCallbacks(props));
+    hooks.notify(svc, hooks.readCallbacks(props), hooks.kind?.(event) ?? "move");
     tick(tick() + 1);
     machineTick(machineTick() + 1);
   };
@@ -155,7 +165,7 @@ export function defineBridge<
     effect(() => {
       const svc = ensureService();
       const moved = untrack(() => hooks.sync(svc, props, authored, (event) => svc.send(event)));
-      if (moved) hooks.notify(svc, hooks.readCallbacks(props));
+      if (moved) hooks.notify(svc, hooks.readCallbacks(props), "commit");
     }),
   );
 

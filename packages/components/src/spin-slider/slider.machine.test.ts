@@ -1,8 +1,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createSliderBridge } from "./slider.bridge.ts";
-import type { SliderApi } from "./slider.connect.ts";
+import { slider } from "./slider.def.ts";
+const createSliderBridge = slider.createBridge;
+import type { SliderApi } from "./slider.def.ts";
 import type {
   SliderFocusChange,
   SliderValueChange,

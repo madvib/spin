@@ -239,7 +239,11 @@ export const config = {
             { assign: "setPointerValue" },
           ],
         },
-        FOCUS: { target: "focus", actions: [{ assign: "setFocusedIndex" }] },
+        FOCUS: {
+          target: "focus",
+          cond: "interactive",
+          actions: [{ assign: "setFocusedIndex" }],
+        },
         THUMB_POINTER_DOWN: {
           target: "dragging",
           actions: [
@@ -293,6 +297,7 @@ export const config = {
 
 export const implementations = {
   conds: {
+    interactive: (ctx: SliderContext): boolean => isInteractive(ctx),
     hasIndex: (_ctx: SliderContext, event: SliderEvent): boolean =>
       event.type === "SET_VALUE" && event.index !== undefined && event.index !== null,
   },
