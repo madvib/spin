@@ -105,26 +105,27 @@ export default function OverviewPage() {
         </alert>
       </Show>
 
-      <header class="row-sm mb-6 max-w-screen-md">
+      <header class="mb-6 flex max-w-screen-md min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
         <h1 class="text-3xl">{activeName()}</h1>
         <span class="text-text-muted text-sm">
           {counts().color} colors · {counts().space} style tokens ·{" "}
           {(library() ?? []).length} components
         </span>
-        <span class="flex-1" />
-        <ThemePicker compact />
+        <span class="min-w-[12rem] flex-1 basis-32">
+          <ThemePicker compact />
+        </span>
         <ModePicker />
       </header>
-      <p>{rootDescription(themeText())}</p>
+      <p class="max-w-screen-md">{rootDescription(themeText())}</p>
 
       <section class="stack mb-6">
         <h2 class="text-xl">Foundations</h2>
-        <div class="flex flex-wrap gap-4">
+        <div class="grid max-w-screen-md grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-4">
           <For each={keyTokens()}>
             {({ token, label, note }) => (
               <A
                 href={`/${token.path.startsWith("font") ? "type" : "colors"}`}
-                class="stack-sm w-[14rem] rounded-lg border border-border bg-surface-raised p-4 no-underline"
+                class="stack-sm min-w-0 rounded-lg border border-border bg-surface-raised p-4 no-underline"
               >
                 <span class="flex items-center gap-3">
                   <span
@@ -172,8 +173,8 @@ function SpacingStrip() {
     Math.max(1, ...steps().map((step) => parseFloat(step.value) || 0))
   );
   return (
-    <A href="/spacing" class="no-underline">
-      <div class="flex items-end gap-2" aria-label="Spacing scale">
+    <A href="/spacing" class="block max-w-full no-underline">
+      <div class="flex max-w-full items-end gap-2 overflow-x-auto pb-1" aria-label="Spacing scale">
         <For each={steps()}>
           {(step) => (
             <div class="stack-sm items-center" title={step.path}>
