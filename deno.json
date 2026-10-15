@@ -10,7 +10,6 @@
     "./packages/lint",
     "./packages/api",
     "./apps/studio",
-    "./packages/components/specimens",
     "./packages/hooks",
     "./apps/reference",
     "./examples/coffee",
