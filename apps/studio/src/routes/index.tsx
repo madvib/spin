@@ -1,198 +1,114 @@
-/**
- * Overview — the theme's dashboard.
- *
- * The question this page exists to answer is "does this theme hold
- * together, and what would changing it move?" So it leads with the verdict
- * and the identity, and it stops. A wall of thirty swatches answers a
- * different question — "what is `color.neutral.300` worth?" — and that
- * question is what the Color page is for, reached by one link.
- *
- * What stays: the verdict, who the theme is, the handful of tokens whose
- * change is visible everywhere, and counts that tell you how much is behind
- * each link. Everything else is a click away rather than a scroll away.
- */
-import { createMemo, For, Show } from "solid-js";
-import { A } from "@solidjs/router";
-import { ModePicker, ThemePicker } from "../components/Settings.tsx";
-import { analyzeTheme, rootDescription } from "../lib/theme.ts";
-import { groupTokens } from "../lib/tokens.ts";
-import {
-  activeMode,
-  activeName,
-  library,
-  themeSummaries,
-  themeText,
-} from "../lib/store.ts";
-
-/** The tokens whose change is felt everywhere, with the face that shows them. */
-const KEY_TOKENS = [
-  {
-    path: ["color", "primary"],
-    label: "Primary",
-    note: "actions and emphasis",
-  },
-  { path: ["color", "surface"], label: "Surface", note: "the page itself" },
-  { path: ["color", "text"], label: "Text", note: "everything you read" },
-  { path: ["color", "border"], label: "Border", note: "every edge" },
-  {
-    path: ["font", "family", "heading"],
-    label: "Headings",
-    note: "the display face",
-  },
-  { path: ["font", "family", "body"], label: "Body", note: "paragraphs" },
-] as const;
-
-/** Token path to the label and note that name it, for the read-out. */
-const TOKEN_LOOKUP = new Map<string, { label: string; note: string }>(
-  KEY_TOKENS.map((
-    token,
-  ) => [token.path.join("."), { label: token.label, note: token.note }]),
-);
+import { createSignal, For, Show } from "solid-js";
+import { ModePicker } from "../components/Settings.tsx";
+import { activeName, registry, setActiveName } from "../lib/store.ts";
+import { copyTheme, removeTheme } from "../lib/themes.ts";
 
 export default function OverviewPage() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const report = createMemo(() => {
-    const state = analyzeTheme(themeText());
-    return {
-      issues: [
-        ...(state.error ? [state.error] : []),
-        ...state.issues.map((issue) =>
-          `${issue.path || "(document)"}: ${issue.message}`
-        ),
-      ],
-    };
-  });
-  const active = () =>
-    themeSummaries().find((summary) => summary.name === activeName());
+  const [open, setOpen] = createSignal(false);
+  const [name, setName] = createSignal("");
+  const [source, setSource] = createSignal<string>("starter");
+  const [confirming, setConfirming] = createSignal<string | null>(null);
 
-  const keyTokens = createMemo(() => {
-    const state = tree();
-    if (state === undefined) return [];
-    return groupTokens(
-      state,
-      KEY_TOKENS.map((token) => [...token.path]),
-      activeMode(),
-    )
-      .map((token) => {
-        const found = TOKEN_LOOKUP.get(token.path);
-        return found === undefined ? undefined : { token, ...found };
-      })
-      .filter((entry): entry is NonNullable<typeof entry> =>
-        entry !== undefined
-      );
-  });
+  async function create(): Promise<void> {
+    const next = name().trim();
+    if (!next) return;
+    const { error } = await copyTheme(source(), next);
+    if (error === null) {
+      setOpen(false);
+      setName("");
+      setActiveName(next);
+    }
+  }
 
-  const counts = createMemo(() => {
-    const state = tree();
-    if (state === undefined) return { color: 0, space: 0 };
-    return {
-      color: groupTokens(state, [["color"]], activeMode()).length,
-      space: groupTokens(
-        state,
-        [["spacing"], ["radius"], ["shadow"]],
-        activeMode(),
-      ).length,
-    };
-  });
+  async function remove(theme: string): Promise<void> {
+    if (confirming() !== theme) {
+      setConfirming(theme);
+      return;
+    }
+    const { error } = await removeTheme(theme);
+    if (error === null) setConfirming(null);
+  }
 
   return (
     <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
-      <Show when={report().issues.length > 0}>
-        <alert variant="danger">
-          {report().issues.length} issue
-          {report().issues.length === 1 ? "" : "s"}{" "}
-          · the first is what to fix before anything looks wrong
-        </alert>
-      </Show>
-
       <header class="mb-6 flex max-w-screen-md min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-        <h1 class="text-3xl">{activeName()}</h1>
-        <span class="text-text-muted text-sm">
-          {counts().color} colors · {counts().space} style tokens ·{" "}
-          {(library() ?? []).length} components
-        </span>
-        <span class="min-w-[12rem] flex-1 basis-32">
-          <ThemePicker compact />
-        </span>
+        <h1 class="text-3xl">Themes</h1>
+        <span class="flex-1" />
         <ModePicker />
+        <button type="button" onClick={() => setOpen(true)}>
+          New theme
+        </button>
       </header>
-      <p class="max-w-screen-md">{rootDescription(themeText())}</p>
 
-      <section class="stack mb-6">
-        <h2 class="text-xl">Foundations</h2>
-        <div class="grid max-w-screen-md grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-4">
-          <For each={keyTokens()}>
-            {({ token, label, note }) => (
-              <A
-                href={`/${token.path.startsWith("font") ? "type" : "colors"}`}
-                class="stack-sm min-w-0 rounded-lg border border-border bg-surface-raised p-4 no-underline"
+      <section class="stack-sm mb-6 max-w-screen-md" aria-label="Themes">
+        <For each={registry() ?? []}>
+          {(theme) => (
+            <div
+              class="row-sm rounded-lg border border-border p-3"
+              classList={{
+                "bg-surface-raised": theme.name !== activeName(),
+                "border-primary": theme.name === activeName(),
+              }}
+            >
+              <button
+                type="button"
+                class="bare min-w-0 flex-1 text-left font-medium"
+                onClick={() => setActiveName(theme.name)}
+                aria-current={theme.name === activeName()}
+                title="Switch to this theme"
               >
-                <span class="flex items-center gap-3">
-                  <span
-                    class="h-10 w-10 shrink-0 rounded-md border border-border"
-                    style={`background: var(${token.variable})`}
-                  />
-                  <span class="flex flex-col">
-                    <strong class="text-sm">{label}</strong>
-                    <code class="text-text-muted text-xs">{token.path}</code>
-                  </span>
-                </span>
-                <span class="text-text-muted text-xs">{note}</span>
-              </A>
-            )}
-          </For>
-        </div>
-      </section>
-
-      <section class="stack-sm mb-6 max-w-screen-md">
-        <h2 class="text-xl">Spacing</h2>
-        <p class="text-sm text-text-muted">
-          Every gap, inset, and measure in the theme, smallest to largest.
-          Reshape the curve on the spacing page — this is what it looks like
-          now.
-        </p>
-        <SpacingStrip />
-      </section>
-    </div>
-  );
-}
-
-/**
- * The spacing scale as one strip: bars grow with the step, so the curve is
- * visible before any value is touched. Editing the whole scale is the next
- * pass; this pass earns the slot by showing the shape.
- */
-function SpacingStrip() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const steps = createMemo(() => {
-    const state = tree();
-    if (state === undefined) return [];
-    return groupTokens(state, [["spacing"]], activeMode());
-  });
-  const max = createMemo(() =>
-    Math.max(1, ...steps().map((step) => parseFloat(step.value) || 0))
-  );
-  return (
-    <A href="/spacing" class="block max-w-full no-underline">
-      <div class="flex max-w-full items-end gap-2 overflow-x-auto pb-1" aria-label="Spacing scale">
-        <For each={steps()}>
-          {(step) => (
-            <div class="stack-sm items-center" title={step.path}>
-              <div
-                class="w-8 rounded-sm bg-primary"
-                style={{
-                  height: `${
-                    Math.max(4, ((parseFloat(step.value) || 0) / max()) * 64)
-                  }px`,
-                }}
-              />
-              <span class="text-text-muted text-xs">
-                {step.path.split(".").pop()}
-              </span>
+                {theme.name}
+              </button>
+              <Show when={theme.name !== activeName()}>
+                <button
+                  type="button"
+                  class="bare shrink-0 text-sm"
+                  title="Delete this theme"
+                  onClick={() => remove(theme.name)}
+                >
+                  {confirming() === theme.name ? "Confirm?" : "Delete"}
+                </button>
+              </Show>
             </div>
           )}
         </For>
-      </div>
-    </A>
+      </section>
+
+      <Show when={open()}>
+        <dialog
+          aria-label="New theme"
+          ref={(el) => {
+            requestAnimationFrame(() => {
+              if (el.isConnected && !el.open) el.showModal();
+            });
+          }}
+          onClose={() => setOpen(false)}
+        >
+          <input
+            type="text"
+            placeholder="Name"
+            value={name()}
+            onInput={(event) => setName(event.currentTarget.value)}
+          />
+          <select
+            value={source()}
+            onChange={(event) => setSource(event.currentTarget.value)}
+            title="Source theme"
+          >
+            <For each={registry() ?? []}>
+              {(theme) => <option value={theme.name}>{theme.name}</option>}
+            </For>
+          </select>
+          <footer>
+            <button type="button" onClick={create}>
+              Create
+            </button>
+            <button type="button" onClick={() => setOpen(false)}>
+              Cancel
+            </button>
+          </footer>
+        </dialog>
+      </Show>
+    </div>
   );
 }

@@ -61,3 +61,20 @@ export async function loadProjectTheme(
   const read = await (await spinClient()).project.themes.read({ name });
   return read.text ?? undefined;
 }
+
+/** Duplicates a theme on disk. The copy's name is the new theme's name. */
+export async function copyTheme(
+  from: string,
+  to: string,
+): Promise<{ error: string | null }> {
+  const copied = await (await spinClient()).project.themes.copy({ from, to });
+  return { error: copied.error ?? null };
+}
+
+/** Deletes a theme from disk. The caller confirms; this does not ask. */
+export async function removeTheme(
+  name: string,
+): Promise<{ error: string | null }> {
+  const removed = await (await spinClient()).project.themes.remove({ name });
+  return { error: removed.error ?? null };
+}
