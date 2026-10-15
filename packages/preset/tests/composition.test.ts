@@ -98,9 +98,12 @@ Deno.test("the primitives ship because the theme enables them", async () => {
     !/background-color:\s*var\(--color-primary\)/.test(baseRule),
     "the base must not spend the primary fill",
   );
+  // But the TYPE is not paint: a control reads as a control whether or not it
+  // is painted, so the weight and the tracking stay on the base and travel
+  // with a recipe that paints itself using utilities rather than a variant.
   assert(
-    !/font-weight/.test(baseRule),
-    "the base must not spend the button character",
+    /font-weight:\s*var\(--button-weight\)/.test(baseRule),
+    "the base must spend the button's type character",
   );
   const filled = css.slice(css.indexOf(".filled"));
   assert(

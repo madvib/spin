@@ -61,10 +61,10 @@
     "dev:studio": "cd apps/studio && deno task dev",
     "studio-check": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env oracles/studio/check.ts",
     "demo:tree": "node node_modules/vite/bin/vite.js packages/components/demo",
-    "coverage": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null || true; deno coverage coverage --lcov || true; node tooling/coverage-summary.mjs coverage/lcov.info",
+    "coverage": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null || true; deno coverage coverage --lcov || true; node scripts/coverage-summary.mjs coverage/lcov.info",
     "coverage:html": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null && deno coverage coverage --html",
     "coverage:commit": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage $(git diff --name-only HEAD --diff-filter=AM -- '*.ts' | grep -v node_modules | tr '\n' ' ') && deno coverage coverage --detailed",
-    "check:classes": "deno run -A tooling/uno-class-check.ts"
+    "check:classes": "deno run -A scripts/uno-class-check.ts"
   },
   "fmt": {
     "exclude": [

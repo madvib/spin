@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, themeOf } from "../../utils/lookup.ts";
-import { spend, spentEntries } from "./shared.ts";
+import { type Entry, spend, spentEntries } from "./shared.ts";
 
 /**
  * The button as generated rules.
@@ -95,10 +95,24 @@ const CHARACTER_STEPS: readonly CharacterStep[] = [
   "shadow-hover",
 ];
 
-/** The character steps the painted looks spend — all but the hover shadow. */
-const PAINT_CHARACTER = CHARACTER_STEPS.filter((step) =>
-  step !== "shadow-hover"
+/**
+ * The character steps that are TYPE, not paint: the weight, case and tracking
+ * that make a control read as a control. These live on the base rule, because
+ * they are not a look a document opts into — a `<button>` is a control whether
+ * or not it is painted, and a recipe that paints itself with utilities rather
+ * than with a variant still has to look like a button.
+ */
+const TYPE_CHARACTER = CHARACTER_STEPS.filter((step) =>
+  step === "weight" || step === "case" || step === "tracking"
 );
+
+/**
+ * The character steps that are PAINT: the resting and hovered elevations.
+ * These travel with the paint, because a shadow on a control that asked for no
+ * fill is a box hanging off an invisible button, and in a theme whose shadow is
+ * a hard offset that is exactly what it looks like.
+ */
+const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
 
 /** The character step the hover rule spends. */
 const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) =>
@@ -145,12 +159,11 @@ const VARIANTS: Record<PaintedVariant, {
   filled: {
     selector: `${BUTTON}.filled, ${BUTTON}[variant~="filled"]`,
     body: (ctx) => ({
-      // The painted look spends the button's CHARACTER — weight, case,
-      // tracking and the resting shadow. The base does not, because a
-      // paint-free control is chrome and chrome carries no opinion: the
-      // theme's bold tracked face on a link-styled button is the same tax
-      // the opt-out used to pay back.
-      ...spend(ctx, "button", CHARACTER_PROPERTY, ...PAINT_CHARACTER),
+      // Only the PAINT travels here — the type character (weight, case,
+      // tracking) is on the base rule, because it is what makes a control
+      // read as a control and a recipe painting itself with utilities still
+      // needs it.
+      ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
       "background-color": themeOf(ctx)?.colors?.["primary"],
       // The ink sits in the base's ink slot rather than `color`, so a filled
       // control keeps the on-primary ink a hover utility may otherwise beat.
@@ -318,6 +331,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const fontFamily = themeOf(ctx)?.fontFamily?.["sans"];
         const fontSize = themeOf(ctx)?.fontSize?.["md"];
         const radius = themeOf(ctx)?.radius?.["md"];
+        const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
         const duration = themeOf(ctx)?.motionDuration?.["fast"];
         const easing = themeOf(ctx)?.motionEasing?.["standard"];
         // The base. An array body because the rule states `transition-property`
@@ -356,6 +370,16 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["font-size", fontSize],
           ["border-radius", radius],
           ["line-height", "1"],
+          ...(fontSize !== undefined && spacing2 !== undefined &&
+              borderWidth !== undefined
+            ? ([[
+              "min-height",
+              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+            ]] as Entry[])
+            : []),
+          ...spentEntries(
+            spend(ctx, "button", CHARACTER_PROPERTY, ...TYPE_CHARACTER),
+          ),
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
           [
@@ -519,20 +543,17 @@ export function buttonRules(roots: readonly string[]): Rule[] {
       const rule: Rule = [
         new RegExp(`^${variant}$`),
         function* (_m, ctx) {
-          // Every painted variant spends the character. The base does not, so
-          // paint is asked for and the look travels with it: a bare
-          // `<button>` is chrome with no opinion, and every control that
-          // reaches for `filled`/`secondary`/`outline` looks like a control.
+          // The resting elevation travels with the paint. The type character
+          // does not — it is on the base rule, so a control painted with
+          // utilities instead of a variant still reads as a control.
           yield {
             [ctx.symbols.selector]: () => def.selector,
-            ...spend(ctx, "button", CHARACTER_PROPERTY, ...PAINT_CHARACTER),
+            ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
             ...def.body(ctx),
           };
-          // The hovered shadow, likewise per painted variant. Where a variant
-          // restates the whole hover it wins — ghost and outline re-spend the
-          // shadow as none, because their paints ask for no elevation. The
-          // rest get the derived one, so a painted control still steps up its
-          // elevation on hover the way it did when the base spent it.
+          // The hovered elevation, likewise. Where a variant restates the
+          // whole hover it wins — ghost and outline re-spend the shadow as
+          // none, because their paints ask for no elevation.
           yield {
             [ctx.symbols.selector]: () =>
               hover?.selector ??

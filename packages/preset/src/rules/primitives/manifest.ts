@@ -257,11 +257,16 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       // it unconditionally and no global scale step serves it — a global
       // would have to mean "control", not "everything".
       //
-      // weight, case, tracking — the button's type, spent by every PAINTED
-      // variant. The type scale could name them, but "my buttons are bold and
+      // weight, case, tracking — the button's type, spent in the base rule
+      // always. The type scale could name them, but "my buttons are bold and
       // my prose is not" is a real product need, so the button keeps its own
-      // say — and because a paint-free button is chrome, the say travels with
-      // the paint rather than being imposed on the element.
+      // say. These are TYPE rather than paint, so they stay on the base and
+      // travel with a control painted by utilities as surely as by a variant.
+      //
+      // shadow, shadow-hover — the resting and the hovered elevation, and
+      // these ARE paint: they travel with `filled` and the other looks,
+      // because a shadow on a control that asked for no fill is a box hanging
+      // off an invisible button.
       { path: "button.weight", type: "fontWeight", value: "600" },
       { path: "button.case", type: "textTransform", value: "none" },
       { path: "button.tracking", type: "dimension", value: "0em" },
