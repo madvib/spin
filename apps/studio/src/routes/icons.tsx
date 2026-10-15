@@ -43,6 +43,7 @@ import {
   searchIcons,
 } from "../lib/icons.ts";
 import { activeMode, themeText } from "../lib/store.ts";
+import { inDrawer } from "../app.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens } from "../lib/tokens.ts";
 
@@ -189,7 +190,10 @@ export default function IconsPage() {
         </Show>
       </div>
 
-      <div class="flex min-h-0 flex-1">
+      <div
+        class="flex min-h-0 flex-1"
+        classList={{ "flex-col": inDrawer(), "flex-row": !inDrawer() }}
+      >
         <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4">
           <Switch
             fallback={
@@ -234,7 +238,20 @@ export default function IconsPage() {
           </Switch>
         </div>
 
-        <aside class="stack-sm w-72 shrink-0 overflow-y-auto bg-surface-raised p-4">
+        {
+          /*
+          In the drawer the sizes stack below the grid: a w-72 aside beside
+          a 300px grid crushes both into slivers, which is the breakage the
+          drawer screenshot showed.
+        */
+        }
+        <aside
+          class="stack-sm shrink-0 overflow-y-auto bg-surface-raised p-4"
+          classList={{
+            "w-full border-t border-border": inDrawer(),
+            "w-72": !inDrawer(),
+          }}
+        >
           <h2 class="text-sm font-semibold">Glyph sizes</h2>
           <p class="text-sm text-text-muted">
             The theme's <code>icon</code>{" "}

@@ -98,9 +98,12 @@ export default function App() {
           <div
             data-theme={STUDIO_THEME}
             data-mode={activeMode()}
-            // A row, not a stack: the rail takes the left edge and the
-            // preview takes the rest, which is the whole change.
+            // A row, not a stack: the rail takes an edge and the preview
+            // takes the rest. In the drawer the rail mirrors to the outer
+            // edge — the host's drawer is right-anchored, so a left rail
+            // traps the content between chrome and the viewport edge.
             class="flex h-screen bg-surface"
+            classList={{ "flex-row-reverse": inDrawer() }}
           >
             {
               /*
@@ -114,7 +117,8 @@ export default function App() {
             }
             <nav
               aria-label="Studio"
-              class="flex min-h-0 w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-border bg-surface-raised py-2"
+              class="flex min-h-0 w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto border-border bg-surface-raised py-2"
+              classList={{ "border-r": !inDrawer(), "border-l": inDrawer() }}
             >
               <A
                 href="/"
@@ -133,7 +137,7 @@ export default function App() {
                       <A
                         href={`/${href}`}
                         activeClass="text-text font-semibold underline"
-                        inactiveClass="text-text-muted"
+                        inactiveClass="text-text"
                         class="row-sm justify-center"
                         title={label}
                       >
@@ -193,7 +197,7 @@ export default function App() {
                 <A
                   href="/#settings"
                   activeClass="text-text font-semibold underline"
-                  inactiveClass="text-text-muted"
+                  inactiveClass="text-text"
                   class="row-sm justify-center"
                   title="Settings"
                 >

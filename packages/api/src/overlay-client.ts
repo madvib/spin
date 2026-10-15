@@ -50,14 +50,24 @@ export const OVERLAY_SCRIPT =
   host.dataset.mode = "modal";
   host.innerHTML = [
     '<div class="absolute top-2 right-2 flex gap-2">',
+    // Inline SVG, not an entity: the toolbar lives in the host document,
+    // whose fonts the studio does not control, and a missing glyph renders
+    // as the tofu the drawer screenshot showed. A 14px stroke square reads
+    // as "dock to the side" at any font.
     '<button type="button" data-act="mode" title="Drawer (38% width)" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
-      'text-text inline-flex items-center justify-center text-sm cursor-pointer">' +
-      '&#9702;</button>',
+      'text-text inline-flex items-center justify-center cursor-pointer">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+      '<rect x="3" y="4" width="18" height="16" rx="2"/>' +
+      '<line x1="15" y1="4" x2="15" y2="20"/></svg></button>',
     '<button type="button" data-act="close" title="Close the studio" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
-      'text-text inline-flex items-center justify-center text-sm cursor-pointer">' +
-      '&times;</button>',
+      'text-text inline-flex items-center justify-center cursor-pointer">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+      '<line x1="6" y1="6" x2="18" y2="18"/>' +
+      '<line x1="18" y1="6" x2="6" y2="18"/></svg></button>',
     "</div>",
     '<iframe title="Spin theme studio" data-spin-studio ' +
       'class="block h-full w-full border-none" src="' + studioPath +
