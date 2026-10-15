@@ -29,6 +29,7 @@ import "./spin-slider/spin-slider.html";
 import "./spin-splitter/spin-splitter.html";
 import "./spin-steps/spin-steps.html";
 import "./spin-pagination/spin-pagination.html";
+import "./spin-angle-slider/spin-angle-slider.html";
 import "./spin-editable/spin-editable.html";
 import "./spin-file-upload/spin-file-upload.html";
 import "./spin-floating-panel/spin-floating-panel.html";

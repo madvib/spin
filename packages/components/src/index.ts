@@ -27,6 +27,7 @@ export { slider } from "./spin-slider/slider.machine-def.ts";
 export { splitter } from "./spin-splitter/splitter.machine-def.ts";
 export { steps } from "./spin-steps/steps.machine-def.ts";
 export { pagination } from "./spin-pagination/pagination.machine-def.ts";
+export { angleSlider } from "./spin-angle-slider/angle-slider.machine-def.ts";
 export { dateInput } from "./spin-date-input/date-input.machine-def.ts";
 export { datePicker } from "./spin-date-picker/date-picker.machine-def.ts";
 export { editable } from "./spin-editable/editable.machine-def.ts";

@@ -1,0 +1,29 @@
+<scope>props={ label: string = "Angle", name: string = "", step: string = "", largeStep: string = "", defaultValue: string = "", value: string = "", disabled: bool = false, readOnly: bool = false, invalid: bool = false, required: bool = false } consume={ angleSlider }</scope>
+
+<div class="w-full" {...angleSlider.getRootProps()}>
+  <div class="mb-3 flex items-baseline justify-between gap-2">
+    <label
+      class="block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50"
+      {...angleSlider.getLabelProps()}>{label}</label>
+    <span class="rounded-md border border-border bg-surface-sunken px-2 py-0.5 font-mono text-sm tabular-nums text-text" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>{angleSlider.valueAsDegree}</span>
+  </div>
+
+  <div
+    class="relative mx-auto h-40 w-40 touch-none rounded-full border border-solid border-border bg-surface-raised select-none"
+    {...angleSlider.getControlProps()}
+  >
+    <div class="pointer-events-none absolute inset-0" {...angleSlider.getMarkerGroupProps()}>
+      <template for={angleSlider.getMarkers()} as={row} key={row}>
+        <span
+          class="absolute -ml-px -mt-2 h-4 w-px bg-border-strong transition-colors duration-fast ease-decelerate data-[state=at-value]:bg-primary"
+          {...angleSlider.getMarkerProps({ value: row })}
+        ></span>
+      </template>
+    </div>
+    <span
+      class="absolute h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm transition-transform duration-fast ease-decelerate hover:scale-110 data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50"
+      {...angleSlider.getThumbProps()}
+    ></span>
+  </div>
+  <input {...angleSlider.getHiddenInputProps()} />
+</div>

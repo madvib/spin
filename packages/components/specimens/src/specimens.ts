@@ -12,6 +12,7 @@ import Slider from "./routes/slider.tsx";
 import Splitter from "./routes/splitter.tsx";
 import Steps from "./routes/steps.tsx";
 import Pagination from "./routes/pagination.tsx";
+import AngleSlider from "./routes/angle-slider.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -64,6 +65,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/signature-pad",
     group: "Inputs",
     component: SignaturePad,
+  },
+  {
+    id: "angle-slider",
+    title: "Angle slider",
+    blurb:
+      "Circular dial: press to jump, drag to turn, arrows to step.",
+    path: "/angle-slider",
+    group: "Inputs",
+    component: AngleSlider,
   },
   {
     id: "pagination",

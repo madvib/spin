@@ -18,6 +18,7 @@
     "./splitter": "./src/spin-splitter/spin-splitter.html",
     "./steps": "./src/spin-steps/spin-steps.html",
     "./pagination": "./src/spin-pagination/spin-pagination.html",
+    "./angle-slider": "./src/spin-angle-slider/spin-angle-slider.html",
     "./date-input": "./src/spin-date-input/spin-date-input.html",
     "./date-picker": "./src/spin-date-picker/spin-date-picker.html",
     "./editable": "./src/spin-editable/spin-editable.html",
