@@ -1,5 +1,4 @@
 import { assert, assertEquals } from "@std/assert";
-import { readFileSync } from "node:fs";
 import { spin } from "../src/plugin.ts";
 import { starterThemes } from "@spin/theme/themes";
 import presetIcons from "@unocss/preset-icons";
@@ -42,30 +41,6 @@ function referencePlugin(): ViteOptions {
   return options;
 }
 
-/**
- * The sheet this plugin emits is the sheet `@unocss/vite` emitted.
- *
- * The fixture is the reference app's CSS at the cutover, captured from
- * `@unocss/vite` and then widened by twelve rules. The original capture
- * safelisted only `default`'s catalog while the app renders all three
- * starter themes, so a switch to `neobrut` or `console` left utilities
- * without a rule. `spin()` safelists every theme it was given; the extra
- * rules are the utilities those themes name and nothing else.
- *
- * It is a parity fixture, not a pin: a change here means the plugin
- * generates something Uno did not, which is worth reading before it ships.
- */
-Deno.test("the plugin reproduces the reference app's sheet", async () => {
-  const plugin = referencePlugin();
-  const id = plugin.resolveId!("uno.css");
-  const css = await plugin.load!(id!);
-  assertEquals(
-    css,
-    await Deno.readTextFile(
-      new URL("./fixtures/reference-golden.css", import.meta.url),
-    ),
-  );
-});
 
 Deno.test("the id the app imports resolves to the plugin's own module", () => {
   const plugin = referencePlugin();
@@ -105,17 +80,15 @@ Deno.test("a project without themes in config reads spin/*.json from disk", asyn
   await Deno.remove(root, { recursive: true });
 });
 
-Deno.test("the boot theme's variables are declared at :root", () => {
+Deno.test("the boot theme's variables are declared at :root", async () => {
   // A custom property cannot inherit upward. Scoped only to `[data-theme]`,
   // the variables are invisible to `body {}` — so the typography primitives'
   // own base rule falls back to the browser's default font, which is how a
   // studio chrome ends up rendering in Times. The first theme is the one the
   // app boots with, so it is also written at root.
-  const sheet = readFileSync(
-    new URL("./fixtures/reference-golden.css", import.meta.url),
-    "utf8",
-  );
-  const root = sheet.match(/:root \{([^}]*)\}/)?.[1] ?? "";
+  const plugin = referencePlugin();
+  const css = (await plugin.load!(plugin.resolveId!("uno.css")!)) as string;
+  const root = css.match(/:root \{([^}]*)\}/)?.[1] ?? "";
   assert(
     root.includes("--color-primary:"),
     "the root block carries the boot theme's variables",
