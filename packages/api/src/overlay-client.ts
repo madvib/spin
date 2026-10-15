@@ -84,14 +84,17 @@ export const OVERLAY_SCRIPT =
     );
     const frame = host.querySelector("[data-spin-studio]");
     if (frame) {
-      const url = new URL(frame.getAttribute("src"), location.origin);
-      url.searchParams.set("mode", mode);
-      frame.setAttribute("src", url.toString());
+      frame.contentWindow?.postMessage(
+        "spin:mode-" + host.dataset.mode,
+        "*",
+      );
     }
   }
-  // The studio owns its toggles and talks back through messages: close and
-  // mode switch arrive here, and the shell obeys without chrome of its own.
-  document.addEventListener("message", function (event) {
+  // The studio owns its toggles and talks back: close and mode switch
+  // arrive on the window (postMessage never fires on the document), and
+  // the shell obeys without chrome of its own. No iframe reload — the
+  // studio re-branches its own layout on the mode message.
+  window.addEventListener("message", function (event) {
     if (event.source === host.querySelector("[data-spin-studio]")?.contentWindow) {
       if (event.data === "spin:close") setOpen(false);
       if (event.data === "spin:drawer" || event.data === "spin:modal") {

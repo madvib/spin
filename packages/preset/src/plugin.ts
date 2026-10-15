@@ -1,6 +1,4 @@
 import { createGenerator, type Preset } from "@unocss/core";
-import presetIcons from "@unocss/preset-icons";
-import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
@@ -182,7 +180,7 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
     // the browser graph stays clean because index.ts carries no `node:`.
     const generator = await createGenerator({
       envMode,
-      presets: [...(options.presets ?? []), presetIcons({ collections: { lucide } } as never), spinPreset({ themes })],
+      presets: [...(options.presets ?? []), spinPreset({ themes })],
       safelist: options.safelist === false ? undefined : safelist,
     });
     const scanned = await generator.generate(cachedSources);

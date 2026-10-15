@@ -20,7 +20,7 @@ import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
 import SurfacesPage from "./routes/surfaces.tsx";
 import UtilitiesPage from "./routes/utilities.tsx";
-import { createResource, For, Show, Suspense } from "solid-js";
+import { createResource, createSignal, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 
@@ -51,10 +51,20 @@ const STUDIO_THEME = "studio";
  * drawer is narrow because the host made it narrow, and the pages get a
  * different layout there rather than a squeezed one.
  */
-function hostMode(): "drawer" | "modal" {
-  return new URLSearchParams(location.search).get("mode") === "drawer"
+const [hostMode, setHostMode] = createSignal<"drawer" | "modal">(
+  new URLSearchParams(location.search).get("mode") === "drawer"
     ? "drawer"
-    : "modal";
+    : "modal",
+);
+
+// The host shell announces mode switches without reloading the frame: the
+// layout re-branches in place, which is the whole reason the toggles feel
+// instant instead of rebooting the studio.
+if (typeof window !== "undefined") {
+  window.addEventListener("message", (event) => {
+    if (event.data === "spin:mode-drawer") setHostMode("drawer");
+    if (event.data === "spin:mode-modal") setHostMode("modal");
+  });
 }
 
 /** Whether the studio runs in the host's drawer. Pages lay out for it. */
@@ -226,11 +236,14 @@ export default function App() {
                     class="bare shrink-0 text-text"
                     aria-label={inDrawer() ? "Modal" : "Drawer"}
                     title={inDrawer() ? "Modal" : "Drawer"}
-                    onClick={() =>
+                    onClick={() => {
+                      const next = inDrawer() ? "modal" : "drawer";
+                      setHostMode(next);
                       window.parent.postMessage(
-                        inDrawer() ? "spin:modal" : "spin:drawer",
+                        next === "modal" ? "spin:modal" : "spin:drawer",
                         "*",
-                      )}
+                      );
+                    }}
                   >
                     <span
                       class="inline-block icon-md i-lucide-panel-right"
