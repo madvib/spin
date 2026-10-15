@@ -22,75 +22,78 @@ export const OVERLAY_SCRIPT =
   const studioPath = studio === undefined
     ? base.replace(/\\/rpc$/, "") + "/studio/"
     : studio.replace(/\\/$/, "") + "/";
-  const css = [
-    ".spin-fab{position:fixed;right:16px;bottom:16px;z-index:2147483646;",
-    "display:flex;align-items:center;gap:8px;padding:10px 14px;",
-    "border:none;border-radius:999px;background:var(--color-primary,#3f3f46);",
-    "color:var(--color-on-primary,#fff);box-shadow:0 4px 16px rgba(0,0,0,.28);",
-    "cursor:pointer;font:500 13px/1.4 system-ui,sans-serif;}",
-    ".spin-fab:hover{filter:brightness(1.12);}",
-    ".spin-fab-dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;",
-    "border-radius:999px;background:#b91c1c;border:2px solid var(--color-surface,#fff);display:none;}",
-    ".spin-fab-dot[data-dirty='true']{display:block;}",
-    ".spin-host{position:fixed;inset:10px;z-index:2147483645;display:none;",
-    "border-radius:12px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.45);",
-    "border:1px solid var(--color-border,#e5e7eb);background:var(--color-surface,#fff);}",
-    ".spin-host[data-mode='drawer']{inset:0 0 0 auto;width:30%;min-width:340px;",
-    "border-radius:0;border-right:none;}",
-    ".spin-host[data-open='true']{display:block;}",
-    ".spin-host iframe{width:100%;height:100%;border:none;display:block;}",
-    ".spin-toolbar{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:10;}",
-    ".spin-toolbar button{width:32px;height:32px;border-radius:8px;",
-    "border:1px solid var(--color-border,#e5e7eb);background:var(--color-surface-raised,#fff);",
-    "color:var(--color-text,#111);cursor:pointer;display:inline-flex;",
-    "align-items:center;justify-content:center;font-size:14px;}",
-  ].join("\\n");
-
-  const style = document.createElement("style");
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  const dot = document.createElement("span");
-  dot.className = "spin-fab-dot";
+  // The chrome is utilities, not authored CSS: the classes resolve against
+  // the user's own sheet, so the launcher reads the theme it edits and no
+  // hex value lives here to drift from it. The safelist in spin() keeps
+  // these emitted even though no project file names them.
+  // Every class below is provable against the generator: token steps the
+  // theme guarantees (rounded-full, shadow-lg, h-8), static keywords
+  // (fixed, border-none, cursor-pointer), and bracket literals only
+  // where the grammar forbids a token (w-30pct). A class the theme does
+  // not declare emits nothing, so the script names nothing unprovable.
   const fab = document.createElement("button");
   fab.type = "button";
-  fab.className = "spin-fab";
+  fab.className = "fixed bottom-4 right-4 z-modal flex items-center gap-2 " +
+    "rounded-full border-none bg-primary px-4 py-2 text-on-primary " +
+    "shadow-lg cursor-pointer text-sm font-medium";
   fab.setAttribute("aria-label", "Open the theme studio");
   fab.setAttribute("aria-expanded", "false");
   fab.innerHTML = '<span aria-hidden="true">&#10024;</span><span>Theme</span>';
-  fab.appendChild(dot);
+
+  const dot = document.createElement("span");
+  dot.className = "absolute top-[-4px] right-[-4px] hidden h-2 w-2 " +
+    "rounded-full bg-semantic-error border-2 border-surface";
 
   const host = document.createElement("div");
-  host.className = "spin-host";
-  host.dataset.open = "false";
+  host.className = "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
+    "shadow-lg border border-border bg-surface";
   host.dataset.mode = "modal";
   host.innerHTML = [
-    '<div class="spin-toolbar">',
-    '<button type="button" data-act="mode" title="Drawer (30% width)">&#9702;</button>',
-    '<button type="button" data-act="close" title="Close the studio">&times;</button>',
+    '<div class="absolute top-2 right-2 flex gap-2">',
+    '<button type="button" data-act="mode" title="Drawer (30% width)" ' +
+      'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
+      'text-text inline-flex items-center justify-center text-sm cursor-pointer">' +
+      '&#9702;</button>',
+    '<button type="button" data-act="close" title="Close the studio" ' +
+      'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
+      'text-text inline-flex items-center justify-center text-sm cursor-pointer">' +
+      '&times;</button>',
     "</div>",
-    '<iframe title="Spin theme studio" src="' + studioPath +
+    '<iframe title="Spin theme studio" class="block h-full w-full border-none" src="' + studioPath +
       (studioPath.indexOf("?") === -1 ? "?" : "&") + "app=" +
       encodeURIComponent(location.origin) + '"></iframe>',
   ].join("");
 
+
   let open = false;
   function setOpen(next) {
     open = next;
-    host.dataset.open = String(next);
+    // hidden is the utility, so open state is a class, not an attribute
+    // the stylesheet must select on.
+    host.classList.toggle("hidden", !next);
+    fab.classList.toggle("hidden", next);
     fab.setAttribute("aria-expanded", String(next));
   }
   fab.addEventListener("click", function () { setOpen(!open); });
   host.querySelector('[data-act="close"]').addEventListener("click", function () { setOpen(false); });
   host.querySelector('[data-act="mode"]').addEventListener("click", function () {
+    // Drawer mode is a class swap on the same element: edge-anchored and
+    // narrow, or inset all round. No attribute the stylesheet selects on.
     const drawer = host.dataset.mode !== "drawer";
     host.dataset.mode = drawer ? "drawer" : "modal";
+    host.className = drawer
+      ? "fixed inset-y-0 right-0 z-modal hidden w-[30%] min-w-[340px] " +
+        "overflow-hidden border-l border-border bg-surface"
+      : "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
+        "shadow-lg border border-border bg-surface";
+    setOpen(open);
     host.querySelector('[data-act="mode"]').title =
       drawer ? "Modal (full screen)" : "Drawer (30% width)";
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && open) setOpen(false);
   });
+  fab.appendChild(dot);
   document.body.appendChild(host);
   document.body.appendChild(fab);
 
@@ -103,7 +106,8 @@ export const OVERLAY_SCRIPT =
       });
       const body = await res.json();
       const dirty = body && body.json ? body.json.dirty : [];
-      dot.dataset.dirty = String(dirty.length > 0);
+      // The dot's visibility is the hidden utility, not a data attribute.
+      dot.classList.toggle("hidden", dirty.length === 0);
       fab.title = dirty.length > 0
         ? "Unsaved theme changes: " + dirty.join(", ")
         : "Open the theme studio";
