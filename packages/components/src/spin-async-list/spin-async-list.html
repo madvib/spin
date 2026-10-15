@@ -7,12 +7,12 @@
         class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
         aria-label="Sort ascending"
         {...asyncList.getSortTriggerProps({ column: "name", direction: "ascending" })}
-      >A&rarr;Z</button>
+      ><span aria-hidden="true">A</span><span class="i-lucide-arrow-right text-xs" aria-hidden="true"></span><span aria-hidden="true">Z</span></button>
       <button
         class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
         aria-label="Sort descending"
         {...asyncList.getSortTriggerProps({ column: "name", direction: "descending" })}
-      >Z&rarr;A</button>
+      ><span aria-hidden="true">Z</span><span class="i-lucide-arrow-right text-xs" aria-hidden="true"></span><span aria-hidden="true">A</span></button>
     </div>
     <div class="flex items-center gap-2">
       <input

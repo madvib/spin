@@ -558,7 +558,10 @@ export function connectRobotColorPicker(
         id: `${areaId}:background`,
         "data-disabled": dataAttr(props.disabled),
         "data-readonly": dataAttr(props.readOnly),
-        style: { "--picker-area": colorOf().toString("css") },
+        style: {
+          "--picker-area": colorOf().toString("css"),
+          backgroundColor: "var(--picker-area)",
+        },
       }));
     },
     getAreaThumbProps: (slots?: AreaSlotProps) => {

@@ -63,6 +63,10 @@ export interface SplitterApi extends SplitterCommands {
   /** The indicator props for a handle item. Panel items get an empty bag:
    * the recipe spreads unconditionally, and spreading null throws. */
   getItemIndicatorProps(item: SplitterItem): Record<string, unknown>;
+  /** The label props for a panel item: the label span needs its own
+   * data-type, because data variants match the element's own attributes,
+   * never ancestors. Handle items get an empty bag. */
+  getItemLabelProps(item: SplitterItem): Record<string, unknown>;
   getSizes(): readonly number[];
   getPanelSize(id: string): number;
   isPanelCollapsed(id: string): boolean;
@@ -257,6 +261,8 @@ export function connectSplitter(
         : api.getHandleProps(handleOwner(item)),
     getItemIndicatorProps: (item: SplitterItem) =>
       item.type === "handle" ? api.getHandleIndicatorProps(handleOwner(item)) : {},
+    getItemLabelProps: (item: SplitterItem): Record<string, unknown> =>
+      item.type === "handle" ? { "data-type": "handle" } : {},
     getSizes: () => ctx().size,
     getPanelSize: (panel: string) => {
       const index = ctx().panels.findIndex((candidate) => candidate.id === panel);

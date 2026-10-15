@@ -27,7 +27,7 @@ const PANELS = [
  * the machine, and pointer measurement plus handle focus in the view.
  */
 export default function Splitter() {
-  const [sizes, setSizes] = createSignal("50, 50");
+  const [sizes, setSizes] = createSignal("33, 33, 33");
 
   const [groupEl, setGroup] = createSignal<HTMLElement>();
   const group = createSpinComponent<SplitterCommands>(groupEl);

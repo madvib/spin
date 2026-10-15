@@ -1,6 +1,6 @@
 <scope>props={ label: string = "pagination", count: string = "", pageSize: string = "", defaultPageSize: string = "", page: string = "", defaultPage: string = "", siblingCount: string = "", boundaryCount: string = "" } consume={ pagination }</scope>
 
-<nav class="flex w-full flex-wrap items-center gap-1" {...pagination.getRootProps()}>
+<nav class="flex w-full flex-nowrap items-center gap-1 overflow-x-auto" {...pagination.getRootProps()}>
   <button
     type="button"
     class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"

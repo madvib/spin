@@ -30,7 +30,16 @@
           class="relative h-40 w-full rounded-md border border-solid border-border"
           {...colorPicker.getAreaProps()}
         >
-          <div class="absolute inset-0 rounded-md" {...colorPicker.getAreaBackgroundProps()}></div>
+          <div class="absolute inset-0 rounded-md" {...colorPicker.getAreaBackgroundProps()}>
+            <div
+              class="absolute inset-0 rounded-md"
+              style="background-image: linear-gradient(to right, #fff, rgba(255, 255, 255, 0))"
+            ></div>
+            <div
+              class="absolute inset-0 rounded-md"
+              style="background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0))"
+            ></div>
+          </div>
           <div
             class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg transition-transform duration-fast ease-decelerate"
             {...colorPicker.getAreaThumbProps()}

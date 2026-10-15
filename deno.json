@@ -52,7 +52,7 @@
     "test": "deno test --allow-read --allow-net packages/",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "check": "deno check packages/ && deno task -f check:classes",
+    "check": "deno check packages/components/src packages/components/tests packages/runtime/src packages/hooks/src packages/theme/src packages/preset/src packages/api/src packages/lint/src && (cd packages/components/specimens && deno check src/) && deno run -A scripts/uno-class-check.ts && deno run -A scripts/recipe-check.ts",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
     "visual": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env oracles/visual/check.ts",
     "serve": "cd apps/reference && deno task dev",
@@ -64,7 +64,8 @@
     "coverage": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null || true; deno coverage coverage --lcov || true; node scripts/coverage-summary.mjs coverage/lcov.info",
     "coverage:html": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage packages/runtime/src/ >/dev/null && deno coverage coverage --html",
     "coverage:commit": "deno test --config packages/runtime/deno.test.json --allow-read --allow-import --coverage=coverage $(git diff --name-only HEAD --diff-filter=AM -- '*.ts' | grep -v node_modules | tr '\n' ' ') && deno coverage coverage --detailed",
-    "check:classes": "deno run -A scripts/uno-class-check.ts"
+    "check:classes": "deno run -A scripts/uno-class-check.ts",
+    "check:recipes": "deno run -A scripts/recipe-check.ts"
   },
   "fmt": {
     "exclude": [

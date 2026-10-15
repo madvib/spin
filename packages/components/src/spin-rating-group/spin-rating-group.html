@@ -11,7 +11,7 @@
   >
     <template for={ratingGroup.getItems()} as={row} key={row}>
       <span
-        class="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-xl text-muted transition-all duration-fast ease-decelerate hover:scale-110 data-[highlighted]:text-primary data-[checked]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[readonly]:cursor-default"
+        class="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-xl text-muted transition-all duration-fast ease-decelerate hover:scale-110 data-[highlighted]:text-semantic-warning data-[checked]:text-semantic-warning data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[readonly]:cursor-default"
         {...ratingGroup.getItemProps({ index: row })}
       ><span aria-hidden="true">★</span></span>
     </template>
