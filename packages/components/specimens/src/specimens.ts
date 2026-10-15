@@ -9,6 +9,7 @@ import ImageCropper from "./routes/image-cropper.tsx";
 import SignaturePad from "./routes/signature-pad.tsx";
 import RatingGroup from "./routes/rating-group.tsx";
 import Slider from "./routes/slider.tsx";
+import Splitter from "./routes/splitter.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -61,6 +62,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/signature-pad",
     group: "Inputs",
     component: SignaturePad,
+  },
+  {
+    id: "splitter",
+    title: "Splitter",
+    blurb:
+      "Resizable panels: drag a handle, arrows to nudge, Enter to collapse.",
+    path: "/splitter",
+    group: "Layout",
+    component: Splitter,
   },
   {
     id: "slider",

@@ -15,6 +15,7 @@
     "./signature-pad": "./src/spin-signature-pad/spin-signature-pad.html",
     "./rating-group": "./src/spin-rating-group/spin-rating-group.html",
     "./slider": "./src/spin-slider/spin-slider.html",
+    "./splitter": "./src/spin-splitter/spin-splitter.html",
     "./date-input": "./src/spin-date-input/spin-date-input.html",
     "./date-picker": "./src/spin-date-picker/spin-date-picker.html",
     "./editable": "./src/spin-editable/spin-editable.html",
