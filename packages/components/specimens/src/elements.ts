@@ -58,6 +58,18 @@ declare module "solid-js" {
         "prop:zoomStep"?: string;
         "prop:disabled"?: boolean;
       };
+      "spin-steps": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:label"?: string;
+        "prop:count"?: number;
+        "prop:titles"?: unknown;
+        "prop:linear"?: boolean;
+        "prop:orientation"?: string;
+        "prop:defaultStep"?: string;
+        "prop:step"?: string;
+      };
       "spin-splitter": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
