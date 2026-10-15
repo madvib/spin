@@ -132,7 +132,7 @@ export default function App() {
             }
             <nav
               aria-label="Studio"
-              class="flex min-h-0 w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto border-border bg-surface-raised py-2"
+              class="flex min-h-0 w-12 shrink-0 flex-col items-center gap-1 overflow-hidden border-border bg-surface-raised py-2"
               classList={{
                 "border-r": !inDrawer() || dockSide() === "left",
                 "border-l": inDrawer() && dockSide() === "right",
@@ -168,7 +168,7 @@ export default function App() {
                   )}
                 </For>
               </ul>
-              <div class="stack-sm mt-auto shrink-0 items-center">
+              <div class="stack-sm shrink-0 items-center border-t border-border pt-2">
                 <button
                   type="button"
                   class="bare shrink-0 text-text"

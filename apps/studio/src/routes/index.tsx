@@ -44,10 +44,10 @@ export default function OverviewPage() {
         <For each={registry() ?? []}>
           {(theme) => (
             <div
-              class="row-sm rounded-lg border border-border p-3"
+              class="row-sm rounded-lg border bg-surface-raised p-3"
               classList={{
-                "bg-surface-raised": theme.name !== activeName(),
-                "border-primary": theme.name === activeName(),
+                "border-border": theme.name !== activeName(),
+                "border-primary border-2": theme.name === activeName(),
               }}
             >
               <button
