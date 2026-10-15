@@ -58,6 +58,18 @@ declare module "solid-js" {
         "prop:zoomStep"?: string;
         "prop:disabled"?: boolean;
       };
+      "spin-pagination": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:count"?: number;
+        "prop:pageSize"?: string;
+        "prop:defaultPageSize"?: string;
+        "prop:page"?: string;
+        "prop:defaultPage"?: string;
+        "prop:siblingCount"?: string;
+        "prop:boundaryCount"?: string;
+      };
       "spin-steps": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

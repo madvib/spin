@@ -11,6 +11,7 @@ import RatingGroup from "./routes/rating-group.tsx";
 import Slider from "./routes/slider.tsx";
 import Splitter from "./routes/splitter.tsx";
 import Steps from "./routes/steps.tsx";
+import Pagination from "./routes/pagination.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -63,6 +64,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/signature-pad",
     group: "Inputs",
     component: SignaturePad,
+  },
+  {
+    id: "pagination",
+    title: "Pagination",
+    blurb:
+      "Paged nav: arrows walk, numbers jump, ellipses mark the gaps.",
+    path: "/pagination",
+    group: "Navigation",
+    component: Pagination,
   },
   {
     id: "steps",
