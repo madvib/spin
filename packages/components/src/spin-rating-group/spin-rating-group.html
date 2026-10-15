@@ -1,0 +1,20 @@
+<scope>props={ label: string = "Rating", name: string = "", form: string = "", count: int = 5, allowHalf: bool = false, disabled: bool = false, readOnly: bool = false, required: bool = false, defaultValue: string = "", value: string = "" } consume={ ratingGroup }</scope>
+
+<div class="w-full" {...ratingGroup.getRootProps()}>
+  <label
+    class="mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50"
+    {...ratingGroup.getLabelProps()}>{label}</label>
+
+  <div
+    class="flex items-center gap-1"
+    {...ratingGroup.getControlProps()}
+  >
+    <template for={ratingGroup.getItems()} as={row} key={row}>
+      <span
+        class="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-xl text-muted transition-all duration-fast ease-decelerate hover:scale-110 data-[highlighted]:text-primary data-[checked]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[readonly]:cursor-default"
+        {...ratingGroup.getItemProps({ index: row })}
+      ><span aria-hidden="true">★</span></span>
+    </template>
+  </div>
+  <input {...ratingGroup.getHiddenInputProps()} />
+</div>
