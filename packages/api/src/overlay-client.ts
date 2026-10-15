@@ -11,24 +11,7 @@
  * needs every backtick doubled, and doing that inline made the outer string
  * impossible to read or repair.
  */
-import lucideSet from "@iconify-json/lucide/icons.json" with { type: "json" };
-
-/**
- * One lucide glyph as an inline SVG string, read from the set — never
- * hand-copied. The toolbar lives in the host document, where icon classes
- * never resolve (the preset never scans this string) and font entities
- * render as tofu, so the set's own path data travels with the script.
- */
-function toolbarIcon(name: "panel-right" | "x"): string {
-  const icon = (lucideSet.icons as Record<string, { body: string } | undefined>)[name];
-  if (!icon) throw new Error(`overlay toolbar is missing lucide:${name}`);
-  return `<svg width='14' height='14' viewBox='0 0 24 24' aria-hidden='true'>${icon.body.replaceAll('"', "'")}</svg>`;
-}
-
-const MODE_ICON = toolbarIcon("panel-right");
-const CLOSE_ICON = toolbarIcon("x");
-
-const OVERLAY_SCRIPT_TEMPLATE =
+export const OVERLAY_SCRIPT =
   `export function spinOverlay(base = "/__spin/rpc", studio) {
   // Where the studio runs. Mounted, it is built and served beside the API on
   // this origin - which has no hot reload, because a built bundle never
@@ -67,11 +50,11 @@ const OVERLAY_SCRIPT_TEMPLATE =
     '<button type="button" data-act="mode" title="Drawer (38% width)" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
       'text-text inline-flex items-center justify-center cursor-pointer">' +
-      "__SPIN_MODE_ICON__</button>",
+      '<span class="inline-block icon-md i-lucide-panel-right" aria-hidden="true"></span></button>',
     '<button type="button" data-act="close" title="Close the studio" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
       'text-text inline-flex items-center justify-center cursor-pointer">' +
-      "__SPIN_CLOSE_ICON__</button>",
+      '<span class="inline-block icon-md i-lucide-x" aria-hidden="true"></span></button>',
     "</div>",
     '<iframe title="Spin theme studio" data-spin-studio ' +
       'class="block h-full w-full border-none" src="' + studioPath +
@@ -142,10 +125,3 @@ const OVERLAY_SCRIPT_TEMPLATE =
   poll();
 }
 `;
-/**
- * The served script: the template with the set's glyphs composed in.
- * Export name unchanged, so index.ts needs no edit.
- */
-export const OVERLAY_SCRIPT: string = OVERLAY_SCRIPT_TEMPLATE
-  .replaceAll("__SPIN_MODE_ICON__", MODE_ICON)
-  .replaceAll("__SPIN_CLOSE_ICON__", CLOSE_ICON);

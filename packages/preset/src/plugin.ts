@@ -1,4 +1,6 @@
 import { createGenerator, type Preset } from "@unocss/core";
+import presetIcons from "@unocss/preset-icons";
+import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
@@ -105,69 +107,8 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
       }
     }
   }
-  // The overlay launcher's classes: `overlay-client.ts` names them in a
-  // string the scanner never reads, so they are listed here once and the
-  // sheet carries them in every app. A class added there is added here, or
-  // the launcher renders unstyled.
-  for (const utility of OVERLAY_UTILITIES) names.add(utility);
   return [...names];
 }
-
-/**
- * Every utility `overlay-client.ts` names. One list, beside the generator
- * that consumes it, so the script and the sheet cannot disagree.
- */
-const OVERLAY_UTILITIES: readonly string[] = [
-  "fixed",
-  "absolute",
-  "inset-2",
-  "inset-y-0",
-  "right-0",
-  "right-2",
-  "right-4",
-  "top-2",
-  "bottom-4",
-  "z-modal",
-  "z-10",
-  "hidden",
-  "block",
-  "flex",
-  "inline-flex",
-  "items-center",
-  "justify-center",
-  "gap-2",
-  "h-2",
-  "h-8",
-  "h-full",
-  "w-2",
-  "w-8",
-  "w-full",
-  "w-[38%]",
-  "min-w-[480px]",
-  "top-[-4px]",
-  "right-[-4px]",
-  "px-4",
-  "py-2",
-  "rounded-full",
-  "rounded-lg",
-  "border",
-  "border-2",
-  "border-l",
-  "border-none",
-  "border-border",
-  "border-surface",
-  "bg-primary",
-  "bg-surface",
-  "bg-surface-raised",
-  "bg-semantic-error",
-  "text-on-primary",
-  "text-text",
-  "text-sm",
-  "font-medium",
-  "shadow-lg",
-  "overflow-hidden",
-  "cursor-pointer",
-];
 
 /**
  * The plugin that replaces `@unocss/vite` in a spin app.
@@ -241,7 +182,7 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
     // the browser graph stays clean because index.ts carries no `node:`.
     const generator = await createGenerator({
       envMode,
-      presets: [...(options.presets ?? []), spinPreset({ themes })],
+      presets: [...(options.presets ?? []), presetIcons({ collections: { lucide } } as never), spinPreset({ themes })],
       safelist: options.safelist === false ? undefined : safelist,
     });
     const scanned = await generator.generate(cachedSources);

@@ -153,7 +153,7 @@ export default function App() {
               <div class="stack-sm mt-auto shrink-0 items-center">
                 <button
                   type="button"
-                  class="bare shrink-0"
+                  class="bare shrink-0 text-text"
                   onClick={() => undo()}
                   disabled={!canUndo()}
                   aria-label="Undo"
@@ -166,7 +166,7 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  class="bare shrink-0"
+                  class="bare shrink-0 text-text"
                   onClick={() => redo()}
                   disabled={!canRedo()}
                   aria-label="Redo"
@@ -179,7 +179,7 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  class="bare shrink-0"
+                  class="bare shrink-0 text-text"
                   onClick={async () => {
                     const name = activeName();
                     const written = await saveTheme(name, themeText());
