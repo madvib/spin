@@ -7,6 +7,7 @@
  */
 
 import { CdpSocket } from "./cdp.ts";
+import { PROFILE_PREFIX, claimProfile, reapStaleProfiles } from "./profiles.ts";
 
 export interface LaunchedChromium {
   readonly socket: CdpSocket;
@@ -149,7 +150,10 @@ async function launch(
   options: LaunchOptions,
   dropSandbox: boolean,
 ): Promise<LaunchedChromium> {
-  const profile = await Deno.makeTempDir({ prefix: "spin-visual-oracle-" });
+  // Leaked profiles accumulate ~320 MB each when a run dies before close().
+  await reapStaleProfiles();
+  const profile = await Deno.makeTempDir({ prefix: PROFILE_PREFIX });
+  await claimProfile(profile, Deno.pid);
   const stop = () => {
     try {
       child.kill("SIGKILL");
