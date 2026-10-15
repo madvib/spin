@@ -103,17 +103,12 @@ export default function OverviewPage() {
            way, because a silent readiness signal is one nobody reads. */
       }
       <Show
-        when={report().issues.length === 0}
-        fallback={
-          <alert variant="danger" class="mb-4">
-            {report().issues.length} issue
-            {report().issues.length === 1 ? "" : "s"}{" "}
-            · the first is what to fix before anything looks wrong
-          </alert>
-        }
+        when={report().issues.length > 0}
       >
-        <alert variant="success" class="mb-4">
-          Ties together — every base-value contrast floor passes
+        <alert variant="danger" class="mb-4">
+          {report().issues.length} issue
+          {report().issues.length === 1 ? "" : "s"}{" "}
+          · the first is what to fix before anything looks wrong
         </alert>
       </Show>
 
