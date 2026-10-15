@@ -50,7 +50,7 @@ export const OVERLAY_SCRIPT =
   host.dataset.mode = "modal";
   host.innerHTML = [
     '<div class="absolute top-2 right-2 flex gap-2">',
-    '<button type="button" data-act="mode" title="Drawer (30% width)" ' +
+    '<button type="button" data-act="mode" title="Drawer (38% width)" ' +
       'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
       'text-text inline-flex items-center justify-center text-sm cursor-pointer">' +
       '&#9702;</button>',
@@ -85,7 +85,7 @@ export const OVERLAY_SCRIPT =
     const drawer = host.dataset.mode !== "drawer";
     host.dataset.mode = drawer ? "drawer" : "modal";
     host.className = drawer
-      ? "fixed inset-y-0 right-0 z-modal hidden w-[30%] min-w-[340px] " +
+      ? "fixed inset-y-0 right-0 z-modal hidden w-[38%] min-w-[480px] " +
         "overflow-hidden border-l border-border bg-surface"
       : "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
         "shadow-lg border border-border bg-surface";
@@ -97,7 +97,7 @@ export const OVERLAY_SCRIPT =
     }
     setOpen(open);
     host.querySelector('[data-act="mode"]').title =
-      drawer ? "Modal (full screen)" : "Drawer (30% width)";
+      drawer ? "Modal (full screen)" : "Drawer (38% width)";
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && open) setOpen(false);

@@ -11,9 +11,9 @@
  * change is visible everywhere, and counts that tell you how much is behind
  * each link. Everything else is a click away rather than a scroll away.
  */
-
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
+import { ThemePicker } from "../components/Settings.tsx";
 import { analyzeTheme, rootDescription } from "../lib/theme.ts";
 import { groupTokens } from "../lib/tokens.ts";
 import {
@@ -128,6 +128,21 @@ export default function OverviewPage() {
         </p>
       </header>
 
+      {
+        /*
+        Choosing what to edit is this page's job, so the theme picker and
+        the mode control live here rather than in the chrome. The rail stays
+        glyphs; the decision with a name on it lives where there is room to
+        name it.
+      */
+      }
+      <section
+        id="settings"
+        class="stack mb-6 max-w-screen-md rounded-lg border border-border bg-surface-raised p-4"
+      >
+        <h2 class="text-xl">Settings</h2>
+        <ThemePicker />
+      </section>
       {
         /* The handful of tokens whose change is visible everywhere, each a
            link into the editor that owns it. Six of them, not thirty. */
