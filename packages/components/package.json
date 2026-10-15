@@ -11,6 +11,7 @@
     "./combobox": "./src/spin-combobox/spin-combobox.html",
     "./listbox": "./src/spin-listbox/spin-listbox.html",
     "./color-picker": "./src/spin-color-picker/spin-color-picker.html",
+    "./image-cropper": "./src/spin-image-cropper/spin-image-cropper.html",
     "./date-input": "./src/spin-date-input/spin-date-input.html",
     "./date-picker": "./src/spin-date-picker/spin-date-picker.html",
     "./editable": "./src/spin-editable/spin-editable.html",

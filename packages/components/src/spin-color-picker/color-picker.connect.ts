@@ -544,7 +544,7 @@ export function connectRobotColorPicker(
           "data-readonly": dataAttr(props.readOnly),
           "data-channel-x": x,
           "data-channel-y": y,
-          "--picker-area": color.toString("css"),
+          style: { "--picker-area": color.toString("css") },
           onPointerdown: (event: PointerEvent) => areaDrag.onPointerDown(event, slots),
           onPointermove: (event: PointerEvent) => areaDrag.onPointerMove(event),
           onPointerup: () => areaDrag.onPointerUp(),
@@ -558,7 +558,7 @@ export function connectRobotColorPicker(
         id: `${areaId}:background`,
         "data-disabled": dataAttr(props.disabled),
         "data-readonly": dataAttr(props.readOnly),
-        "--picker-area": colorOf().toString("css"),
+        style: { "--picker-area": colorOf().toString("css") },
       }));
     },
     getAreaThumbProps: (slots?: AreaSlotProps) => {
@@ -613,9 +613,13 @@ export function connectRobotColorPicker(
           "aria-valuetext": `${x} ${xv}, ${y} ${yv}`,
           "aria-disabled": props.disabled ? "true" : undefined,
           "data-disabled": dataAttr(props.disabled),
-          "--picker-x": `${xp * 100}%`,
-          "--picker-y": `${yp * 100}%`,
-          "--picker-color": color.toString("css"),
+          style: { "--picker-x": `${xp * 100}%`,
+            "--picker-y": `${yp * 100}%`,
+            "--picker-color": color.toString("css"),
+            left: "var(--picker-x, 50%)",
+            top: "var(--picker-y, 50%)",
+            transform: "translate(-50%, -50%)",
+            background: "var(--picker-color)" },
           onFocus: () => send({ type: "AREA.ACTIVATE" }),
           onKeydown: onAreaKeydown,
         }),
@@ -654,7 +658,8 @@ export function connectRobotColorPicker(
           role: "group",
           "data-channel": slots.channel,
           "data-orientation": orientation,
-          "--picker-track": colorOf().toString("css"),
+          style: { "--picker-track": colorOf().toString("css"),
+            background: "var(--picker-track)" },
         }),
       );
     },
@@ -703,8 +708,12 @@ export function connectRobotColorPicker(
           "data-channel": slots.channel,
           "data-disabled": dataAttr(props.disabled),
           "data-orientation": orientation,
-          "--picker-offset": `${offset * 100}%`,
-          "--picker-color": color.toString("css"),
+          style: { "--picker-offset": `${offset * 100}%`,
+            "--picker-color": color.toString("css"),
+            left: "var(--picker-offset, 0%)",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            background: "var(--picker-color)" },
           onFocus: () =>
             send({ type: "CHANNEL_SLIDER.ACTIVATE", channel: slots.channel }),
           onKeydown: (event: KeyboardEvent) => onChannelKeydown(event, slots.channel),
@@ -831,7 +840,7 @@ export function connectRobotColorPicker(
           "data-state": state.checked ? "checked" : "unchecked",
           "data-value": slots.value,
           "data-disabled": dataAttr(state.disabled),
-          "--picker-swatch": slots.value,
+          style: { "--picker-swatch": slots.value },
           onClick: () => {
             if (state.disabled || readProps().readOnly) return;
             send({ type: "SWATCH_TRIGGER.CLICK", value: slots.value });
@@ -852,7 +861,7 @@ export function connectRobotColorPicker(
       return keyed(swatchBags, slotKey([slots.value]), [state.checked].join("|"), () => ({
         "data-state": state.checked ? "checked" : "unchecked",
         "data-value": slots.value,
-        "--picker-swatch": slots.value,
+        style: { "--picker-swatch": slots.value },
       }));
     },
   };

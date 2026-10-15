@@ -22,6 +22,7 @@ import "./spin-date-picker/spin-date-picker.html";
 import "./spin-combobox/spin-combobox.html";
 import "./spin-listbox/spin-listbox.html";
 import "./spin-color-picker/spin-color-picker.html";
+import "./spin-image-cropper/spin-image-cropper.html";
 import "./spin-editable/spin-editable.html";
 import "./spin-file-upload/spin-file-upload.html";
 import "./spin-floating-panel/spin-floating-panel.html";

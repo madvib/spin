@@ -5,6 +5,7 @@ import Cascade from "./routes/cascade.tsx";
 import Combobox from "./routes/combobox.tsx";
 import Listbox from "./routes/listbox.tsx";
 import ColorPicker from "./routes/color-picker.tsx";
+import ImageCropper from "./routes/image-cropper.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -40,6 +41,15 @@ export interface Specimen {
  * component is added in one place and its URL is never typed twice.
  */
 export const SPECIMENS: readonly Specimen[] = [
+  {
+    id: "image-cropper",
+    title: "Image cropper",
+    blurb:
+      "Viewport selection: drag to move, handles to resize, wheel to zoom.",
+    path: "/image-cropper",
+    group: "Inputs",
+    component: ImageCropper,
+  },
   {
     id: "color-picker",
     title: "Color picker",

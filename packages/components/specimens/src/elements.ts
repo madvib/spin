@@ -38,6 +38,26 @@ export interface CarouselItem {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "spin-image-cropper": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:src"?: string;
+        "prop:alt"?: string;
+        "prop:aspectRatio"?: string;
+        "prop:cropShape"?: string;
+        "prop:minWidth"?: string;
+        "prop:minHeight"?: string;
+        "prop:maxWidth"?: string;
+        "prop:maxHeight"?: string;
+        "prop:fixedCropArea"?: boolean;
+        "prop:zoom"?: string;
+        "prop:defaultZoom"?: string;
+        "prop:rotation"?: string;
+        "prop:defaultRotation"?: string;
+        "prop:zoomStep"?: string;
+        "prop:disabled"?: boolean;
+      };
       "spin-color-picker": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
