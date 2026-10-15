@@ -17,9 +17,9 @@
  *   and `<p>` claiming `body` is a mapping, and it should be legible at a
  *   glance rather than inferred from which specimens happened to be on screen.
  *
- * The specimens are the roastery copy, the same concrete subject the
- * primitives use: a real paragraph at real size says whether the h3 reads as
- * a step down from the h2, which `Agile foxes jump quickly` cannot.
+ * The specimens are the studio's own neutral copy, the same in every
+ * project, so two themes are compared on the same reading rather than on
+ * whoever wrote the sample.
  */
 
 import { createMemo, For, Show } from "solid-js";
@@ -27,6 +27,7 @@ import { analyzeTheme } from "../lib/theme.ts";
 import { activeMode, themeText } from "../lib/store.ts";
 import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
+import { DISPLAY, HEADING, PARAGRAPH } from "../lib/specimen-copy.ts";
 import { editToken } from "../lib/editing.ts";
 
 /** The four family slots, and the sentence that shows each one off. */
@@ -34,13 +35,12 @@ const FAMILY_SLOTS = [
   {
     slot: "heading",
     role: "Headings, and anything that leads",
-    sample: "A roast day is a constraint, not a preference",
+    sample: DISPLAY,
   },
   {
     slot: "body",
     role: "Paragraphs, and UI copy",
-    sample:
-      "Roasts are Tuesdays, shipping Wednesdays. Orders placed before Monday are in the following week's batch.",
+    sample: PARAGRAPH,
   },
   {
     slot: "serif",
@@ -219,8 +219,11 @@ export default function TypePage() {
                       copy beside it. */
                   }
                   <td>
-                    <span class={previewClass(entry.tag)}>
-                      {"Aa Bb Cc"}
+                    <span
+                      class={previewClass(entry.tag)}
+                      style={previewStyle(entry.tag)}
+                    >
+                      {entry.tag === "p" ? "Aa Bb Cc" : "Aa"}
                     </span>
                   </td>
                   <td>
@@ -245,15 +248,17 @@ export default function TypePage() {
                       `font.element.<tag>` group the face already uses. */
                   }
                   <td>
-                    <input
-                      type="text"
-                      inputmode="decimal"
-                      placeholder={tagSize(entry.tag) ?? "scale"}
+                    <select
                       value={sizeFor(entry.tag) ?? ""}
-                      onInput={(event) => setType(entry.tag, {
+                      onChange={(event) => setType(entry.tag, {
                         size: event.currentTarget.value || undefined,
                       })}
-                    />
+                    >
+                      <option value="">scale</option>
+                      <For each={SIZE_STEPS}>
+                        {(step) => <option value={step}>{step}</option>}
+                      </For>
+                    </select>
                   </td>
                   <td>
                     <select
@@ -324,7 +329,7 @@ function ScaleRow(props: { step: string }) {
   return (
     <div class="split border-border border-b py-6 last:border-b-0">
       <p class={`text-${props.step}`}>
-        A roast day is a constraint, not a preference.
+        {HEADING}
       </p>
       <div class="stack-sm-sm shrink-0 items-end text-right">
         <code class="text-text-muted text-xs">{`font.size.${props.step}`}</code>
@@ -366,13 +371,6 @@ interface ElementType {
   weight?: string;
   lineHeight?: string;
   tracking?: string;
-}
-
-/** The class that shows an element's own type on the preview. */
-function previewClass(tag: string): string {
-  return `font-${
-    faceFor(tag, tag === "h1" ? "heading" : "body").replace(/[^a-z]/g, "")
-  }`;
 }
 
 /** The size an element claims for itself, as the theme stores it. */
@@ -426,4 +424,53 @@ function tagWeight(tag: string): string {
 function tagSize(tag: string): string {
   const row = TAG_MAP.find((entry) => entry.tag === tag);
   return row ? row.size : "";
+}
+
+/** The size scale a theme declares, as steps rather than freeform text. */
+const SIZE_STEPS = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl"] as const;
+
+/** The weight scale, read the same way. */
+const WEIGHT_STEPS = ["regular", "medium", "semibold", "bold"] as const;
+
+/** A step's custom property, so a preview renders at the theme's own size. */
+const SIZE_VAR: Record<string, string> = {
+  "2xs": "--font-size-2xs",
+  xs: "--font-size-xs",
+  sm: "--font-size-sm",
+  md: "--font-size-md",
+  lg: "--font-size-lg",
+  xl: "--font-size-xl",
+  "2xl": "--font-size-2xl",
+  "3xl": "--font-size-3xl",
+};
+
+/** A step's weight custom property. */
+const WEIGHT_VAR: Record<string, string> = {
+  regular: "--font-weight-regular",
+  medium: "--font-weight-medium",
+  semibold: "--font-weight-semibold",
+  bold: "--font-weight-bold",
+};
+
+/**
+ * The style a row's preview renders at.
+ *
+ * The element's own override wins, else the scale step it sits on, read as
+ * the custom property the theme declared. A preview rendering at a fixed
+ * size is a label, and this whole page exists to judge size.
+ */
+function previewStyle(tag: string): Record<string, string> {
+  const own = elementTypeFor(tag);
+  const style: Record<string, string> = {};
+  const size = own.size ?? SIZE_VAR[tagSize(tag) ?? ""] ?? SIZE_VAR.lg;
+  style["font-size"] = size.startsWith("--") ? `var(${size})` : size;
+  const weight = own.weight ?? WEIGHT_VAR[tagWeight(tag) ?? ""] ?? "";
+  if (weight !== "") style["font-weight"] = `var(${weight})`;
+  return style;
+}
+
+/** The class that renders the preview in the face its row names. */
+function previewClass(tag: string): string {
+  const slot = faceFor(tag, tag.startsWith("h") ? "heading" : "body");
+  return `font-${slot.replace(/[^a-z]/g, "")}`;
 }

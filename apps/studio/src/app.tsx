@@ -182,7 +182,7 @@ export default function App() {
           >
             <nav
               aria-label="Studio"
-              class="flex flex-wrap items-center gap-4 shrink-0 bg-surface-raised p-4"
+              class="relative flex flex-wrap items-center gap-2 bg-surface-raised p-3 shrink-0"
             >
               <A href="/" class="row-sm font-semibold">
                 <span
@@ -206,9 +206,11 @@ export default function App() {
                 </button>
               </Show>
               <ul
-                class={narrow() && !navOpen()
-                  ? "hidden"
-                  : "row-list flex-1 justify-center"}
+                classList={{
+                  "absolute inset-x-0 top-full z-20 m-0 hidden bg-surface-raised p-3 shadow-lg":
+                    narrow() && !navOpen(),
+                  "row-list flex-1 justify-center": !narrow(),
+                }}
               >
                 <For each={CONCERNS}>
                   {([href, label]) => (
