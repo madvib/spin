@@ -14,15 +14,10 @@
  * Fails loud naming the step; silent on success.
  */
 
-import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { runComponentSuite, step } from "./harness.ts";
+import { type Page } from "npm:playwright-core";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5223;
-const URL = `http://127.0.0.1:${PORT}/editable`;
 
 /** Part ids are the machine's scheme: `editable:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="editable:${id}:${part}"]`;
@@ -41,79 +36,8 @@ const DISABLED_PREVIEW = at("disabled", "preview");
 const readout = async (page: Page, id: string): Promise<string> =>
   (await page.locator(`#${id}`).textContent()) ?? "";
 
-/** Runs a named step, rethrowing any failure prefixed with the step name. */
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      if ((await fetch(URL)).ok) return child;
-    } catch {
-      // server not ready yet
-    }
-    await delay(100);
-  }
-  const stderr = new TextDecoder().decode(await new Response(child.stderr).arrayBuffer());
-  try {
-    child.kill();
-  } catch {
-    // already exited
-  }
-  throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
-}
-
-Deno.test("spin-editable e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] })
-    );
-
-    const page = await browser.newPage();
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector(FREE_PREVIEW, { state: "attached", timeout: 5000 });
-    });
-
+Deno.test("spin-editable e2e", () =>
+  runComponentSuite({ port: 5223, route: "/editable", ready: FREE_PREVIEW }, async ({ page }) => {
     await step("renders the initial editable", async () => {
       assert.equal(await page.locator(FREE_AREA).getAttribute("data-state"), "preview", "the field starts in preview");
       assert.equal(await page.locator(FREE_PREVIEW).textContent(), "Ada Lovelace", "the preview carries the value");
@@ -261,14 +185,4 @@ Deno.test("spin-editable e2e", async () => {
       assert.equal(commits, 2, "two uncontrolled commits so far");
       assert.equal(reverts, 2, "two reverts so far");
     });
-  } finally {
-    await browser?.close();
-    try {
-      server.kill();
-    } catch {
-      // already exited
-    }
-  }
-
-  assert.deepEqual(pageErrors, [], `page errors detected: ${pageErrors.join(", ")}`);
-});
+  }));

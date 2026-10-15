@@ -12,15 +12,10 @@
  * Fails loud naming the step; silent on success.
  */
 
-import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
+import { runComponentSuite, step } from "./harness.ts";
 import { chromium, type Browser } from "npm:playwright-core";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5215;
-const URL = `http://127.0.0.1:${PORT}/tags`;
 
 /** Parts are addressed by the machine's id scheme: `tags-input:<id>:<part>`. */
 const ROOT_PART = "spin-tags-input > div";
@@ -37,87 +32,16 @@ const TAG_TEXT = `${TAG_PREVIEW} > span.truncate`;
 const DELETE_TRIGGER = '[id$=":delete-btn"]';
 const TAG_INPUT = '[id*=":tag:"][id$=":input"]:not([hidden])';
 
-/** Runs a named step, rethrowing any failure prefixed with the step name. */
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      if ((await fetch(URL)).ok) return child;
-    } catch {
-      // server not ready yet
-    }
-    await delay(100);
-  }
-  const stderr = new TextDecoder().decode(await new Response(child.stderr).arrayBuffer());
-  try {
-    child.kill();
-  } catch {
-    // already exited
-  }
-  throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
-}
-
-Deno.test("spin-tags-input e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
-
-    const page = await browser.newPage();
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    /** The tag chips in order, by their text. */
-    const tags = async (): Promise<string[]> =>
-      page.locator(TAG_TEXT).allTextContents();
-    const readout = async (id: string): Promise<string> =>
-      (await page.locator(`#${id}`).textContent()) ?? "";
-    const press = async (key: string): Promise<void> => {
-      await page.keyboard.press(key);
-    };
-
-    await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector(INPUT, { state: "attached", timeout: 5000 });
-    });
-
+Deno.test("spin-tags-input e2e", () =>
+  runComponentSuite({ port: 5215, route: "/tags", ready: INPUT }, async ({ page }) => {
+  /** The tag chips in order, by their text. */
+  const tags = async (): Promise<string[]> =>
+    page.locator(TAG_TEXT).allTextContents();
+  const readout = async (id: string): Promise<string> =>
+    (await page.locator(`#${id}`).textContent()) ?? "";
+  const press = async (key: string): Promise<void> => {
+    await page.keyboard.press(key);
+  };
     await step("renders the seeded tags and the empty field", async () => {
       assert.deepEqual(await tags(), ["react", "solid"], "the seed renders as chips");
       assert.equal(
@@ -393,16 +317,4 @@ Deno.test("spin-tags-input e2e", async () => {
       );
       await page.getByRole("button", { name: "readOnly: true" }).click();
     });
-
-    await step("no page errors", async () => {
-      assert.deepEqual(pageErrors, [], `page errors detected: ${pageErrors.join(", ")}`);
-    });
-  } finally {
-    if (browser) await browser.close();
-    try {
-      server.kill();
-    } catch {
-      // server already exited
-    }
-  }
-});
+  }));

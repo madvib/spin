@@ -12,15 +12,9 @@
  * Fails loud naming the step; silent on success.
  */
 
-import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { delay, runComponentSuite, step } from "./harness.ts";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5217;
-const URL = `http://127.0.0.1:${PORT}/timer`;
 
 /** Parts are addressed by the machine's id scheme: `timer:<id>:<part>`. */
 const byId = (id: string): string => `[id="${id}"]`;
@@ -37,111 +31,40 @@ const fill = (area: string): string => `${area} > div:nth-child(2) > div`;
 /** The track the fill lives in. */
 const track = (area: string): string => `${area} > div:nth-child(2)`;
 
-/** Runs a named step, rethrowing any failure prefixed with the step name. */
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      if ((await fetch(URL)).ok) return child;
-    } catch {
-      // server not ready yet
-    }
-    await delay(100);
-  }
-  const stderr = new TextDecoder().decode(await new Response(child.stderr).arrayBuffer());
-  try {
-    child.kill();
-  } catch {
-    // already exited
-  }
-  throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
-}
-
-Deno.test("spin-timer e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
-
-    const page = await browser.newPage();
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    const text = async (selector: string): Promise<string> =>
-      (await page.locator(selector).textContent()) ?? "";
-    const state = async (root: string): Promise<string | null> =>
-      page.locator(root).getAttribute("data-state");
-    const width = async (selector: string): Promise<number> =>
-      page.locator(selector).evaluate((node: HTMLElement) => node.getBoundingClientRect().width);
-    /** Waits until the unit's digits differ from `before`, proving the clock ran. */
-    const digitsChanged = async (selector: string, before: string): Promise<void> => {
-      await page.waitForFunction(
-        (args: { selector: string; before: string }) =>
-          document.querySelector(args.selector)?.textContent !== args.before,
-        { selector, before },
-        { timeout: 6000 },
-      );
-    };
-    /** The host's readout and the area's digits, read in one frame so no tick
-     * can land between them. */
-    const readAloud = async (readoutId: string, areaId: string): Promise<{
-      readout: string;
-      digits: string;
-    }> => {
-      const seen = await page.evaluate((args: { readoutId: string; areaId: string }) => {
-        const unit = (part: string): string =>
-          document.querySelector(`[id="timer:${args.areaId}:item-value:${part}"]`)?.textContent ?? "";
-        return {
-          readout: document.querySelector(`#${args.readoutId}`)?.textContent ?? "",
-          // The units the area renders: a run under a day has no days row.
-          digits: `${unit("hours")}:${unit("minutes")}:${unit("seconds")}`,
-        };
-      }, { readoutId, areaId });
-      return seen;
-    };
-
-    await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector(STOPWATCH_ROOT, { state: "attached", timeout: 5000 });
-    });
-
+Deno.test("spin-timer e2e", () =>
+  runComponentSuite({ port: 5217, route: "/timer", ready: STOPWATCH_ROOT }, async ({ page }) => {
+  const text = async (selector: string): Promise<string> =>
+    (await page.locator(selector).textContent()) ?? "";
+  const state = async (root: string): Promise<string | null> =>
+    page.locator(root).getAttribute("data-state");
+  const width = async (selector: string): Promise<number> =>
+    page.locator(selector).evaluate((node: HTMLElement) => node.getBoundingClientRect().width);
+  /** Waits until the unit's digits differ from `before`, proving the clock ran. */
+  const digitsChanged = async (selector: string, before: string): Promise<void> => {
+    await page.waitForFunction(
+      (args: { selector: string; before: string }) =>
+        document.querySelector(args.selector)?.textContent !== args.before,
+      { selector, before },
+      { timeout: 6000 },
+    );
+  };
+  /** The host's readout and the area's digits, read in one frame so no tick
+   * can land between them. */
+  const readAloud = async (readoutId: string, areaId: string): Promise<{
+    readout: string;
+    digits: string;
+  }> => {
+    const seen = await page.evaluate((args: { readoutId: string; areaId: string }) => {
+      const unit = (part: string): string =>
+        document.querySelector(`[id="timer:${args.areaId}:item-value:${part}"]`)?.textContent ?? "";
+      return {
+        readout: document.querySelector(`#${args.readoutId}`)?.textContent ?? "",
+        // The units the area renders: a run under a day has no days row.
+        digits: `${unit("hours")}:${unit("minutes")}:${unit("seconds")}`,
+      };
+    }, { readoutId, areaId });
+    return seen;
+  };
     await step("renders the timer contract", async () => {
       assert.equal(await page.locator(STOPWATCH_AREA).getAttribute("role"), "timer", "the area is a timer");
       assert.equal(
@@ -254,16 +177,4 @@ Deno.test("spin-timer e2e", async () => {
       assert.equal(await width(fill(SHORT_AREA)), 0, "and the bar empties with it");
       assert.equal(await text("#timer-completes"), "1", "the host's complete callback fired once");
     });
-
-    await step("no page errors", async () => {
-      assert.deepEqual(pageErrors, [], `page errors detected: ${pageErrors.join(", ")}`);
-    });
-  } finally {
-    if (browser) await browser.close();
-    try {
-      server.kill();
-    } catch {
-      // server already exited
-    }
-  }
-});
+  }));

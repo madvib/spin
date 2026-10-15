@@ -9,63 +9,10 @@
  * the stage cycle, the escape close, and the imperative commands.
  */
 
-import { join } from "node:path";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { runComponentSuite, step } from "./harness.ts";
+import { type Page } from "npm:playwright-core";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5236;
-const PAGE_URL = `http://127.0.0.1:${PORT}/floating-panel`;
-
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app once; the suite serves the result. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const server = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      const res = await fetch(PAGE_URL);
-      if (res.ok) return server;
-    } catch {
-      // Not up yet.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-  server.kill();
-  throw new Error(`preview server never answered on ${PORT}`);
-}
 
 const READOUT = "#panel-state";
 const POSITIONER = "#panel [role='dialog']";
@@ -110,28 +57,8 @@ async function gesture(page: Page, selector: string, dx: number, dy: number): Pr
   await page.waitForTimeout(300);
 }
 
-Deno.test("spin-floating-panel e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
-
-    const page: Page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await step("load page", async () => {
-      await page.goto(PAGE_URL, { waitUntil: "load" });
-      // The trigger, not the positioner: the positioner is a zero-box
-      // relative container, which Playwright's visibility wait never sees.
-      // A generous timeout — the first load of the half-megabyte bundle on
-      // a cold cache has been observed past five seconds.
-      await page.waitForSelector(TRIGGER, { timeout: 30000 });
-    });
-
+Deno.test("spin-floating-panel e2e", () =>
+  runComponentSuite({ port: 5236, route: "/floating-panel", ready: TRIGGER, timeoutMs: 30000 }, async ({ page }) => {
     await step("the seeded panel opens and reports its state", async () => {
       assert.equal(await posState(page), "open", "defaultOpen seeds the panel open");
       assert.equal(await page.locator(READOUT).textContent(), "open", "and the readout follows the seed");
@@ -210,13 +137,4 @@ Deno.test("spin-floating-panel e2e", async () => {
       await page.getByRole("button", { name: "el.close()" }).click();
       assert.equal(await posState(page), "closed", "close closes");
     });
-
-    await step("no page errors", () => {
-      assert.deepEqual(pageErrors, [], `page errors: ${pageErrors.join("; ")}`);
-      return Promise.resolve();
-    });
-  } finally {
-    await browser?.close();
-    server.kill();
-  }
-});
+  }));

@@ -13,15 +13,9 @@
  * Fails loud naming the step; silent on success.
  */
 
-import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { runComponentSuite, step } from "./harness.ts";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5248;
-const URL = `http://127.0.0.1:${PORT}/color-picker`;
 
 /** Part ids are the machine's scheme: `color-picker:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="color-picker:${id}:${part}"]`;
@@ -32,83 +26,16 @@ const AREA_THUMB = at("brand", "area-thumb");
 const HUE_THUMB = at("brand", "thumb:hue");
 const INLINE_CONTENT = at("inline", "content");
 
-/** Runs a named step, rethrowing any failure prefixed with the step name. */
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
-  for (let i = 0; i < 50; i += 1) {
-    try {
-      if ((await fetch(URL)).ok) return child;
-    } catch {
-      // server not ready yet
-    }
-    await delay(100);
-  }
-  const stderr = new TextDecoder().decode(await new Response(child.stderr).arrayBuffer());
-  try {
-    child.kill();
-  } catch {
-    // already exited
-  }
-  throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
-}
-
-Deno.test("spin-color-picker e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
-
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector(TRIGGER, { state: "attached", timeout: 5000 });
-      assert.equal(
-        await page.locator(TRIGGER).getAttribute("aria-expanded"),
-        "false",
-        "the panel starts closed",
-      );
-    });
-
+Deno.test("spin-color-picker e2e", () =>
+  runComponentSuite({ port: 5248, route: "/color-picker", ready: TRIGGER,
+    settle: async (page) => {
+    assert.equal(
+      await page.locator(TRIGGER).getAttribute("aria-expanded"),
+      "false",
+      "the panel starts closed",
+    );
+    },
+  }, async ({ page }) => {
     await step("trigger opens the panel", async () => {
       await page.locator(TRIGGER).click();
       assert.equal(
@@ -175,12 +102,4 @@ Deno.test("spin-color-picker e2e", async () => {
         "the inline panel reports open",
       );
     });
-
-    await step("no page errors", async () => {
-      assert.deepEqual(pageErrors, [], `page errors: ${pageErrors.join("; ")}`);
-    });
-  } finally {
-    await browser?.close();
-    server.kill();
-  }
-});
+  }));

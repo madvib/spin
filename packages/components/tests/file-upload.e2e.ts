@@ -9,63 +9,10 @@
  * row removal, and the imperative clear.
  */
 
-import { join } from "node:path";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { runComponentSuite, step } from "./harness.ts";
+import { type Page } from "npm:playwright-core";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5237;
-const PAGE_URL = `http://127.0.0.1:${PORT}/file-upload`;
-
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app once; the suite serves the result. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const server = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      const res = await fetch(PAGE_URL);
-      if (res.ok) return server;
-    } catch {
-      // Not up yet.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-  server.kill();
-  throw new Error(`preview server never answered on ${PORT}`);
-}
 
 const READOUT = "#upload-value";
 const DROPZONE = "#upload [role='button']";
@@ -91,24 +38,8 @@ const rowTexts = (page: Page): Promise<string[]> =>
     [...document.querySelectorAll("#upload [role='listitem']")].map((node) => node.textContent ?? "")
   );
 
-Deno.test("spin-file-upload e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
-
-    const page: Page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await step("load page", async () => {
-      await page.goto(PAGE_URL, { waitUntil: "load" });
-      await page.waitForSelector(DROPZONE, { timeout: 30000 });
-    });
-
+Deno.test("spin-file-upload e2e", () =>
+  runComponentSuite({ port: 5237, route: "/file-upload", ready: DROPZONE }, async ({ page }) => {
     await step("the dropzone renders with its input wired", async () => {
       const accept = await page.evaluate(() =>
         document.querySelector("#upload input[type='file']")?.getAttribute("accept")
@@ -179,13 +110,4 @@ Deno.test("spin-file-upload e2e", async () => {
         "and blur returns to idle",
       );
     });
-
-    await step("no page errors", () => {
-      assert.deepEqual(pageErrors, [], `page errors: ${pageErrors.join("; ")}`);
-      return Promise.resolve();
-    });
-  } finally {
-    await browser?.close();
-    server.kill();
-  }
-});
+  }));

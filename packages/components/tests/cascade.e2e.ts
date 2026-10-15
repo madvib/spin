@@ -17,75 +17,16 @@
  * match.
  */
 
-import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { delay, runComponentSuite, step } from "./harness.ts";
+import { type Page } from "npm:playwright-core";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5214;
-const URL = `http://127.0.0.1:${PORT}/cascade`;
 
 /** Parts are addressed by the machine's id scheme: `cascade:<id>:<part>`. */
 const ROOT_EL = "spin-cascade-select";
 const TRIGGER = `${ROOT_EL} [role="combobox"]`;
 const CONTENT = `${ROOT_EL} [role="listbox"]`;
 const LEVEL = `${ROOT_EL} [role="group"]`;
-
-/** Runs a named step, rethrowing any failure prefixed with the step name. */
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      if ((await fetch(URL)).ok) return child;
-    } catch {
-      // server not ready yet
-    }
-    await delay(100);
-  }
-  const stderr = new TextDecoder().decode(await new Response(child.stderr).arrayBuffer());
-  try {
-    child.kill();
-  } catch {
-    // already exited
-  }
-  throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
-}
 
 /** Presses the trigger at its own coordinates: it re-measures its geometry on
  *  every machine move, so a press aimed at a box captured before the pointer
@@ -113,24 +54,8 @@ async function pressRow(page: Page, selector: string): Promise<void> {
   await page.mouse.click(settled.x + settled.width / 2, settled.y + settled.height / 2);
 }
 
-Deno.test("spin-cascade-select e2e", async () => {
-  await step("build", buildDemo);
-  const server = await step("serve", startServer);
-  const pageErrors: string[] = [];
-  let browser: Browser | undefined;
-
-  try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
-
-    const page = await browser.newPage();
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await step("load page", async () => {
-      await page.goto(URL, { waitUntil: "load" });
-      await page.waitForSelector(TRIGGER, { timeout: 5000 });
-    });
-
+Deno.test("spin-cascade-select e2e", () =>
+  runComponentSuite({ port: 5214, route: "/cascade", ready: TRIGGER }, async ({ page }) => {
     const trigger = page.locator(TRIGGER);
     const owner = ((await trigger.getAttribute("id")) ?? "").replace(/:trigger$/, "");
     assert.notEqual(owner, "", "the trigger carries its part id");
@@ -371,16 +296,4 @@ Deno.test("spin-cascade-select e2e", async () => {
       assert.equal(await page.locator("#cascade-open").textContent(), "false", "the outside press closed it");
       assert.equal(await panelOpen(), false, "and it is hidden");
     });
-
-    await step("no page errors", async () => {
-      assert.deepEqual(pageErrors, [], `page errors detected: ${pageErrors.join(", ")}`);
-    });
-  } finally {
-    if (browser) await browser.close();
-    try {
-      server.kill();
-    } catch {
-      // server already exited
-    }
-  }
-});
+  }));
