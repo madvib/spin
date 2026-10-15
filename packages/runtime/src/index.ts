@@ -11,6 +11,17 @@ export {
 } from "./core/signal.ts";
 
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
+export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
+export { ids, type IdFn } from "./component/ids.ts";
+export {
+  authoredProps,
+  defineBridge,
+  pickCallback,
+  textProp,
+  type BridgeService,
+  type BridgeHooks,
+  type BridgeSpec,
+} from "./component/bridge.ts";
 /**
  * The machine-def contract: what a `<name>.machine-def.ts` module provides.
  *

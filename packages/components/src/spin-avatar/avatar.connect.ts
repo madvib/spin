@@ -1,4 +1,4 @@
-import { dataAttr } from "../spin-select/select.shared.ts";
+import { dataAttr, ids, memo, type BridgeService } from "@spin/runtime";
 import type { AvatarContext, AvatarStatus } from "./avatar.machine.ts";
 
 /**
@@ -31,34 +31,7 @@ export interface AvatarApi extends AvatarCommands {
 }
 
 /** The service the connect reads: the fork's, narrowed to what it needs. */
-export interface AvatarService {
-  readonly context: AvatarContext;
-  /** The machine's state: loading, error, or loaded. */
-  readonly state: string;
-  send(event: { type: string } & Record<string, unknown>): void;
-}
-
-export interface BagMemo {
-  sig: string;
-  bag: Record<string, unknown>;
-}
-
-/** A bag cached until the signature of the fields it reads moves. One memo
- * holds the single bag of one part (there is one root, one image, one
- * fallback per element), so a single slot is the whole cache. */
-function memo(): (
-  sig: string,
-  build: () => Record<string, unknown>,
-) => Record<string, unknown> {
-  let sig = "";
-  let bag: Record<string, unknown> | undefined;
-  return (next, build) => {
-    if (bag !== undefined && sig === next) return bag;
-    sig = next;
-    bag = build();
-    return bag;
-  };
-}
+export type AvatarService = BridgeService<AvatarContext, { type: string } & Record<string, unknown>>;
 
 export function connectAvatar(
   service: AvatarService,
@@ -69,9 +42,10 @@ export function connectAvatar(
   // on every assign, so a destructured copy would freeze the first read.
   const ctx = (): AvatarContext => service.context;
   const send = service.send;
-  const rootId = `avatar:${id}`;
-  const imageId = `avatar:${id}:image`;
-  const fallbackId = `avatar:${id}:fallback`;
+  const partId = ids("avatar", id);
+  const rootId = partId("root");
+  const imageId = partId("image");
+  const fallbackId = partId("fallback");
 
   const rootBag = memo();
   const imageBag = memo();
