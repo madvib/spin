@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, themeOf } from "../../utils/lookup.ts";
-import { type Entry, spend, spentEntries } from "./shared.ts";
+import { spend, spentEntries } from "./shared.ts";
 
 /**
  * The button as generated rules.
@@ -95,8 +95,8 @@ const CHARACTER_STEPS: readonly CharacterStep[] = [
   "shadow-hover",
 ];
 
-/** The character step the base rule spends — all but the hover shadow. */
-const BASE_CHARACTER = CHARACTER_STEPS.filter((step) =>
+/** The character steps the painted looks spend — all but the hover shadow. */
+const PAINT_CHARACTER = CHARACTER_STEPS.filter((step) =>
   step !== "shadow-hover"
 );
 
@@ -104,9 +104,6 @@ const BASE_CHARACTER = CHARACTER_STEPS.filter((step) =>
 const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) =>
   step === "shadow-hover"
 );
-
-/** The resting shadow step, re-spent by the active and disabled rules. */
-const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
 
 /**
  * The variant names, in the order they are offered.
@@ -117,7 +114,7 @@ const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
  * another, which is the whole point of deriving rather than listing.
  */
 const VARIANT_NAMES = [
-  "bare",
+  "filled",
   "secondary",
   "outline",
   "ghost",
@@ -145,33 +142,20 @@ const VARIANTS: Record<PaintedVariant, {
   selector: string;
   body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
 }> = {
-  bare: {
-    selector: `${BUTTON}.bare, ${BUTTON}[variant~="bare"]`,
-    body: () => ({
-      background: "none",
-      border: "none",
-      padding: "0",
-      "box-shadow": "none",
-      cursor: "pointer",
-      // The character is part of the paint, so the opt-out takes it back:
-      // without these resets a bare button still reads as its theme's
-      // control — bold, tracked, uppercase in the loud starters — while
-      // looking like chrome.
-      "font-weight": "normal",
-      "text-transform": "none",
-      "letter-spacing": "normal",
-      // The base states a minimum height for the control's touch target;
-      // a bare button is chrome — a link that happens to be a button — and
-      // a 34px floor on every chrome control is a tax the app pays for a
-      // default it did not choose.
-      "min-height": "0",
-      // No `font: inherit`, no `color: inherit`: the selector is
-      // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
-      // single class utility — the opt-out would freeze the ink and the face
-      // of the very control that opts out to paint itself. Dropping them
-      // leaves the paint-free base (no fill, no edge, no shadow, no padding)
-      // and lets utilities decide the rest; an author who wants the page's
-      // ink spells `text-text`.
+  filled: {
+    selector: `${BUTTON}.filled, ${BUTTON}[variant~="filled"]`,
+    body: (ctx) => ({
+      // The painted look spends the button's CHARACTER — weight, case,
+      // tracking and the resting shadow. The base does not, because a
+      // paint-free control is chrome and chrome carries no opinion: the
+      // theme's bold tracked face on a link-styled button is the same tax
+      // the opt-out used to pay back.
+      ...spend(ctx, "button", CHARACTER_PROPERTY, ...PAINT_CHARACTER),
+      "background-color": themeOf(ctx)?.colors?.["primary"],
+      // The ink sits in the base's ink slot rather than `color`, so a filled
+      // control keeps the on-primary ink a hover utility may otherwise beat.
+      color: themeOf(ctx)?.colors?.["on-primary"],
+      "border-color": themeOf(ctx)?.colors?.["on-primary"],
     }),
   },
   secondary: {
@@ -309,10 +293,6 @@ const VARIANT_HOVER: Record<string, {
       color: themeOf(ctx)?.colors?.["primary"],
     }),
   },
-  bare: {
-    selector: `${BUTTON}.bare:hover:not(:disabled):not([aria-busy="true"])`,
-    body: () => ({ "box-shadow": "none", background: "none", border: "none" }),
-  },
 };
 
 /**
@@ -338,14 +318,23 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const fontFamily = themeOf(ctx)?.fontFamily?.["sans"];
         const fontSize = themeOf(ctx)?.fontSize?.["md"];
         const radius = themeOf(ctx)?.radius?.["md"];
-        const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
-        const primary = themeOf(ctx)?.colors?.["primary"];
-        const onPrimary = themeOf(ctx)?.colors?.["on-primary"];
         const duration = themeOf(ctx)?.motionDuration?.["fast"];
         const easing = themeOf(ctx)?.motionEasing?.["standard"];
         // The base. An array body because the rule states `transition-property`
         // three times and the last one wins; reproducing it keeps the computed
         // value (transform only) rather than "fixing" it into a colour transition.
+        //
+        // The base is PAINT-FREE: no fill, no edge, no ink, no character and no
+        // minimum height. A raw `<button>` is chrome — the element a document
+        // already has — so the default book a UA stylesheet would give it is
+        // kept, and paint is asked for: `filled` for the theme's primary,
+        // `secondary`/`outline`/`ghost` for the quieter looks, or utilities for
+        // anything else. A control that reaches for paint gets a hover utility
+        // like `hover:bg-surface` for free, because a class now outranks a
+        // state rule rather than being outranked by the opt-out's reset.
+        //
+        // `[type="reset"]` still paints `secondary` by what the browser means
+        // by a reset button, and `filled` beats it on specificity.
         yield [
           [ctx.symbols.selector, () => BUTTON],
           ["align-items", "center"],
@@ -367,21 +356,6 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["font-size", fontSize],
           ["border-radius", radius],
           ["line-height", "1"],
-          ...(fontSize !== undefined && spacing2 !== undefined &&
-              borderWidth !== undefined
-            ? ([[
-              "min-height",
-              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
-            ]] as Entry[])
-            : []),
-          ...spentEntries(
-            spend(ctx, "button", CHARACTER_PROPERTY, ...BASE_CHARACTER),
-          ),
-          ...(borderWidth !== undefined && onPrimary !== undefined
-            ? ([["border", `${borderWidth} solid ${onPrimary}`]] as Entry[])
-            : []),
-          ["background-color", primary],
-          ["color", onPrimary],
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
           [
@@ -393,7 +367,10 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["transition-duration", duration],
           ["transition-timing-function", easing],
         ];
-        // Hover is theme-defined feedback: the shadow step and the opt-in lift.
+        // Hover is theme-defined feedback: the opt-in lift, and nothing else.
+        // The hovered shadow is NOT here — a shadow on a control that asked
+        // for no paint is a box hanging off an invisible button, and it is
+        // spent by the painted variants instead, where it belongs.
         // A theme that states no lift gets no transform — the no-movement
         // default the variable fallbacks declared, kept by omission rather
         // than by spelling zero.
@@ -402,7 +379,6 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:hover:not(:disabled):not([aria-busy="true"])`,
-          ...spend(ctx, "button", CHARACTER_PROPERTY, ...HOVER_CHARACTER),
           ...(liftX !== undefined && liftY !== undefined
             ? { transform: `translate(${liftX}, ${liftY})` }
             : {}),
@@ -411,7 +387,6 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:active:not(:disabled):not([aria-busy="true"])`,
-          ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
           transform: "translate(0, 0)",
         };
         // The ring, drawn on focus-visible so a mouse press leaves none. Its
@@ -451,7 +426,6 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:disabled, ${BUTTON}[aria-disabled="true"]`,
-          ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
           opacity: 0.55,
           cursor: "not-allowed",
           transform: "none",
@@ -545,16 +519,27 @@ export function buttonRules(roots: readonly string[]): Rule[] {
       const rule: Rule = [
         new RegExp(`^${variant}$`),
         function* (_m, ctx) {
+          // Every painted variant spends the character. The base does not, so
+          // paint is asked for and the look travels with it: a bare
+          // `<button>` is chrome with no opinion, and every control that
+          // reaches for `filled`/`secondary`/`outline` looks like a control.
           yield {
             [ctx.symbols.selector]: () => def.selector,
+            ...spend(ctx, "button", CHARACTER_PROPERTY, ...PAINT_CHARACTER),
             ...def.body(ctx),
           };
-          if (hover !== undefined) {
-            yield {
-              [ctx.symbols.selector]: () => hover.selector,
-              ...hover.body(ctx),
-            };
-          }
+          // The hovered shadow, likewise per painted variant. Where a variant
+          // restates the whole hover it wins — ghost and outline re-spend the
+          // shadow as none, because their paints ask for no elevation. The
+          // rest get the derived one, so a painted control still steps up its
+          // elevation on hover the way it did when the base spent it.
+          yield {
+            [ctx.symbols.selector]: () =>
+              hover?.selector ??
+              `${def.selector}:hover:not(:disabled):not([aria-busy="true"])`,
+            ...spend(ctx, "button", CHARACTER_PROPERTY, ...HOVER_CHARACTER),
+            ...hover?.body(ctx),
+          };
         },
         { layer: "primitives", autocomplete: variant },
       ];

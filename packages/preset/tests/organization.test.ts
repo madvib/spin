@@ -368,7 +368,9 @@ let spinOnlyGenerator: Promise<UnoGenerator> | undefined;
 
 function spinOnly(): Promise<UnoGenerator> {
   return spinOnlyGenerator ??= createGenerator({
-    presets: [spinPreset({ themes: { default: theme }, wind4: false })],
+    presets: [
+      spinPreset({ themes: { default: theme }, wind4: false }),
+    ],
   });
 }
 

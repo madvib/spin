@@ -209,10 +209,10 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   button: {
     tags: ["button", "span"],
     variants: [
-      "bare",
       "button-icon",
       "contrast",
       "danger",
+      "filled",
       "ghost",
       "icon",
       "outline",
@@ -257,10 +257,11 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       // it unconditionally and no global scale step serves it — a global
       // would have to mean "control", not "everything".
       //
-      // weight, case, tracking — the button's type, spent in the base rule
-      // always. The type scale could name them, but "my buttons are bold and
+      // weight, case, tracking — the button's type, spent by every PAINTED
+      // variant. The type scale could name them, but "my buttons are bold and
       // my prose is not" is a real product need, so the button keeps its own
-      // say.
+      // say — and because a paint-free button is chrome, the say travels with
+      // the paint rather than being imposed on the element.
       { path: "button.weight", type: "fontWeight", value: "600" },
       { path: "button.case", type: "textTransform", value: "none" },
       { path: "button.tracking", type: "dimension", value: "0em" },

@@ -2,8 +2,10 @@
  * Button examples — the markup a consumer writes, beside the rule that
  * styles it.
  *
- * A bare `<button>` carries the base; variants and sizes are classes on the
- * tag. There is no `btn` class and never was one — the tag is the opt-in.
+ * A plain `<button>` carries the base, and the base is paint-free — chrome is
+ * the default. Variants and sizes are classes on the tag, and `filled` asks
+ * for the theme's primary paint. There is no `btn` class and never was one —
+ * the tag is the opt-in.
  * Every class used here resolves against the preset's own catalog; the
  * self-resolution test fails the suite if an example demonstrates what the
  * package cannot do.
@@ -22,13 +24,14 @@ ${inner}
         </div>`;
 
 export const buttonFixtureNote =
-  "A working button with no class at all: the tag carries the base. Variants change the tone, sm and lg change the size, `bare` opts out of paint for chrome.";
+  "A working button with no class at all: the tag carries the base, and the base is paint-free — chrome is the default. Variants ask for paint, sm and lg change the size, and `filled` is the theme's primary look.";
 
 export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
     name: "Variants",
     html: row(
       `          <button>default</button>
+          <button class="filled">filled</button>
           <button class="secondary">secondary</button>
           <button class="outline">outline</button>
           <button class="contrast">contrast</button>
@@ -37,10 +40,10 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
     ),
   },
   {
-    name: "Bare variant",
+    name: "Paint is asked for",
     html: row(
-      `          <button class="bare text-text">bare</button>
-          <button>default</button>`,
+      `          <button class="filled">filled</button>
+          <button>chrome</button>`,
     ),
   },
   {

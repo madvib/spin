@@ -40,7 +40,9 @@ type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
 /** Generate a document, keeping the per-token rule data for inspection. */
 async function generate(markup: string, extra: Options = {}): Promise<Result> {
   const uno = await createGenerator({
-    presets: [spinPreset({ themes: { light: theme }, ...extra })],
+    presets: [
+      spinPreset({ themes: { light: theme }, ...extra }),
+    ],
   });
   return await uno.generate(markup, { extendedInfo: true });
 }
