@@ -20,7 +20,7 @@ import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
 import SurfacesPage from "./routes/surfaces.tsx";
 import UtilitiesPage from "./routes/utilities.tsx";
-import { createResource, For, Suspense } from "solid-js";
+import { createResource, For, Show, Suspense } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 
@@ -217,6 +217,40 @@ export default function App() {
               data-mode={activeMode()}
               class="spin-preview flex min-h-0 min-w-0 flex-1 flex-col"
             >
+              <Show
+                when={new URLSearchParams(location.search).get("app") !== null}
+              >
+                <div class="flex shrink-0 items-center justify-end gap-1 border-b border-border bg-surface px-2 py-1">
+                  <button
+                    type="button"
+                    class="bare shrink-0 text-text"
+                    aria-label={inDrawer() ? "Modal" : "Drawer"}
+                    title={inDrawer() ? "Modal" : "Drawer"}
+                    onClick={() =>
+                      window.parent.postMessage(
+                        inDrawer() ? "spin:modal" : "spin:drawer",
+                        "*",
+                      )}
+                  >
+                    <span
+                      class="inline-block icon-md i-lucide-panel-right"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    class="bare shrink-0 text-text"
+                    aria-label="Close"
+                    title="Close"
+                    onClick={() => window.parent.postMessage("spin:close", "*")}
+                  >
+                    <span
+                      class="inline-block icon-md i-lucide-x"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+              </Show>
               <PreviewStyles />
               <Suspense>{props.children}</Suspense>
             </div>

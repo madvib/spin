@@ -30,76 +30,79 @@ export const OVERLAY_SCRIPT =
   // (fixed, border-none, cursor-pointer), and bracket literals only
   // where the grammar forbids a token (w-30pct). A class the theme does
   // not declare emits nothing, so the script names nothing unprovable.
+  // Positioning only: three fixed elements the user's sheet never has to
+  // know. Everything the eye sees — the toggles, the chrome — lives in the
+  // studio frame, where utilities resolve.
   const fab = document.createElement("button");
   fab.type = "button";
-  fab.className = "fixed bottom-4 right-4 z-modal flex items-center gap-2 " +
-    "rounded-full border-none bg-primary px-4 py-2 text-on-primary " +
-    "shadow-lg cursor-pointer text-sm font-medium";
+  fab.setAttribute(
+    "style",
+    "position:fixed;right:16px;bottom:16px;z-index:50;display:flex;" +
+      "align-items:center;gap:8px;padding:8px 16px;border:none;border-radius:999px;" +
+      "font:inherit;cursor:pointer;",
+  );
   fab.setAttribute("aria-label", "Open the theme studio");
   fab.setAttribute("aria-expanded", "false");
-  fab.innerHTML = '<span aria-hidden="true">&#10024;</span><span>Theme</span>';
+  fab.textContent = "Theme";
 
   const dot = document.createElement("span");
+  dot.setAttribute(
+    "style",
+    "display:none;width:8px;height:8px;border-radius:999px;background:#b91c1c;",
+  );
+  fab.appendChild(dot);
 
   const host = document.createElement("div");
-  host.className = "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
-    "shadow-lg border border-border bg-surface";
+  host.setAttribute(
+    "style",
+    "position:fixed;inset:8px;z-index:50;display:none;overflow:hidden;",
+  );
   host.dataset.mode = "modal";
   host.innerHTML = [
-    '<div class="absolute top-2 right-2 flex gap-2">',
-    '<button type="button" data-act="mode" title="Drawer (38% width)" ' +
-      'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
-      'text-text inline-flex items-center justify-center cursor-pointer">' +
-      '<span class="inline-block icon-md i-lucide-panel-right" aria-hidden="true"></span></button>',
-    '<button type="button" data-act="close" title="Close the studio" ' +
-      'class="h-8 w-8 rounded-lg border border-border bg-surface-raised ' +
-      'text-text inline-flex items-center justify-center cursor-pointer">' +
-      '<span class="inline-block icon-md i-lucide-x" aria-hidden="true"></span></button>',
-    "</div>",
     '<iframe title="Spin theme studio" data-spin-studio ' +
-      'class="block h-full w-full border-none" src="' + studioPath +
+      'style="display:block;width:100%;height:100%;border:none" src="' + studioPath +
       (studioPath.indexOf("?") === -1 ? "?" : "&") + "app=" +
       encodeURIComponent(location.origin) + "&mode=" + host.dataset.mode + '"></iframe>',
   ].join("");
 
-
   let open = false;
   function setOpen(next) {
     open = next;
-    // hidden is the utility, so open state is a class, not an attribute
-    // the stylesheet must select on.
-    host.classList.toggle("hidden", !next);
-    fab.classList.toggle("hidden", next);
+    host.style.display = next ? "block" : "none";
+    fab.style.display = next ? "none" : "flex";
     fab.setAttribute("aria-expanded", String(next));
   }
-  fab.addEventListener("click", function () { setOpen(!open); });
-  host.querySelector('[data-act="close"]').addEventListener("click", function () { setOpen(false); });
-  host.querySelector('[data-act="mode"]').addEventListener("click", function () {
-    // Drawer mode is a class swap on the same element: edge-anchored and
-    // narrow, or inset all round. No attribute the stylesheet selects on.
-    // The studio reads the mode from its own URL, so the frame reloads with
-    // the new mode rather than the two disagreeing about the layout.
-    const drawer = host.dataset.mode !== "drawer";
-    host.dataset.mode = drawer ? "drawer" : "modal";
-    host.className = drawer
-      ? "fixed inset-y-0 right-0 z-modal hidden w-[38%] min-w-[480px] " +
-        "overflow-hidden border-l border-border bg-surface"
-      : "fixed inset-2 z-modal hidden rounded-lg overflow-hidden " +
-        "shadow-lg border border-border bg-surface";
+  function setMode(mode) {
+    host.dataset.mode = mode;
+    host.setAttribute(
+      "style",
+      mode === "drawer"
+        ? "position:fixed;top:0;right:0;bottom:0;z-index:50;width:38%;" +
+          "min-width:480px;display:" + (open ? "block" : "none") + ";overflow:hidden;"
+        : "position:fixed;inset:8px;z-index:50;display:" + (open ? "block" : "none") +
+          ";overflow:hidden;",
+    );
     const frame = host.querySelector("[data-spin-studio]");
     if (frame) {
       const url = new URL(frame.getAttribute("src"), location.origin);
-      url.searchParams.set("mode", host.dataset.mode);
+      url.searchParams.set("mode", mode);
       frame.setAttribute("src", url.toString());
     }
-    setOpen(open);
-    host.querySelector('[data-act="mode"]').title =
-      drawer ? "Modal (full screen)" : "Drawer (38% width)";
+  }
+  // The studio owns its toggles and talks back through messages: close and
+  // mode switch arrive here, and the shell obeys without chrome of its own.
+  document.addEventListener("message", function (event) {
+    if (event.source === host.querySelector("[data-spin-studio]")?.contentWindow) {
+      if (event.data === "spin:close") setOpen(false);
+      if (event.data === "spin:drawer" || event.data === "spin:modal") {
+        setMode(event.data === "spin:drawer" ? "drawer" : "modal");
+      }
+    }
   });
+  fab.addEventListener("click", function () { setOpen(!open); });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && open) setOpen(false);
   });
-  fab.appendChild(dot);
   document.body.appendChild(host);
   document.body.appendChild(fab);
 
@@ -112,8 +115,7 @@ export const OVERLAY_SCRIPT =
       });
       const body = await res.json();
       const dirty = body && body.json ? body.json.dirty : [];
-      // The dot's visibility is the hidden utility, not a data attribute.
-      dot.classList.toggle("hidden", dirty.length === 0);
+      dot.style.display = dirty.length === 0 ? "none" : "block";
       fab.title = dirty.length > 0
         ? "Unsaved theme changes: " + dirty.join(", ")
         : "Open the theme studio";
