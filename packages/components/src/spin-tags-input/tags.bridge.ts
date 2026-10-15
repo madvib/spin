@@ -192,10 +192,28 @@ export function createTagsBridge(
 
   let seedValue: readonly string[] = [];
 
+  /** Strings travel the prop channel as JSON text (see the slider bridge:
+   * the grammar coerces `= []` to `["[]"]`). Null when nothing arrived. */
+  const parseStrings = (raw: unknown): string[] | null => {
+    if (Array.isArray(raw)) {
+      const clean = (raw as unknown[]).filter((item): item is string => typeof item === "string");
+      return clean.some((item) => item === "[]") && clean.length === 1 ? [] : clean;
+    }
+    if (typeof raw !== "string") return null;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.every((item) => typeof item === "string")
+        ? [...(parsed as string[])]
+        : null;
+    } catch {
+      return null;
+    }
+  };
+
   const ensureService = (): Service<TagsContext, TagsEvent> => {
     if (service) return service;
     const p = props();
-    const seed = Array.isArray(p["defaultValue"]) ? [...(p["defaultValue"] as string[])] : [];
+    const seed = parseStrings(p["defaultValue"]) ?? [];
     const seedInput = typeof p["defaultInputValue"] === "string" ? p["defaultInputValue"] : "";
     service = owner.run(() => {
       // Seeded through events, not a write: the fork's initial context IS
@@ -215,8 +233,7 @@ export function createTagsBridge(
 
   const controlledValue = (): string[] | undefined => {
     if (!authored("value")) return undefined;
-    const outer = props()["value"];
-    return Array.isArray(outer) ? [...(outer as string[])] : undefined;
+    return parseStrings(props()["value"]) ?? undefined;
   };
 
   const controlledInputValue = (): string | undefined => {

@@ -2,7 +2,7 @@
 
 <div class="w-full" {...timer.getRootProps()}>
   <div
-    class="rounded-lg border border-border bg-surface-raised px-4 py-3 shadow-sm transition-all duration-fast ease-decelerate data-[state=paused]:opacity-70"
+    class="rounded-lg border border-solid border-border bg-surface-raised px-4 py-3 shadow-sm transition-all duration-fast ease-decelerate data-[state=paused]:opacity-70"
     {...timer.getAreaProps()}
   >
     <div class="flex items-start justify-center gap-1">
@@ -29,23 +29,23 @@
 
   <div class="mt-2 flex flex-wrap items-center justify-center gap-2" {...timer.getControlProps()}>
     <button
-      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=idle]:inline-flex"
+      class="hidden rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=idle]:inline-flex"
       {...timer.getActionTriggerProps({ action: "start" })}
     >Start</button>
     <button
-      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=running]:inline-flex"
+      class="hidden rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=running]:inline-flex"
       {...timer.getActionTriggerProps({ action: "pause" })}
     >Pause</button>
     <button
-      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=paused]:inline-flex"
+      class="hidden rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=paused]:inline-flex"
       {...timer.getActionTriggerProps({ action: "resume" })}
     >Resume</button>
     <button
-      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=running]:inline-flex data-[state=paused]:inline-flex"
+      class="hidden rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong data-[state=running]:inline-flex data-[state=paused]:inline-flex"
       {...timer.getActionTriggerProps({ action: "reset" })}
     >Reset</button>
     <button
-      class="rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
+      class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
       {...timer.getActionTriggerProps({ action: "restart" })}
     >Restart</button>
   </div>

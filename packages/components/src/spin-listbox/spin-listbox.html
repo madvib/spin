@@ -12,7 +12,7 @@
   >{listbox.valueAsString}</span>
 
   <div
-    class="max-h-60 overflow-y-auto rounded-lg border border-border bg-surface-raised p-1 shadow-sm transition-colors duration-fast ease-decelerate data-[disabled]:opacity-60 data-[empty]:hidden"
+    class="max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-sm transition-colors duration-fast ease-decelerate data-[disabled]:opacity-60 data-[empty]:hidden"
     {...listbox.getContentProps()}
   >
     <template for={listbox.getBlocks()} as={block} key={block.id}>

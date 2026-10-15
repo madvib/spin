@@ -9,45 +9,41 @@
   <div class="relative flex items-center gap-2" {...colorPicker.getControlProps()}>
     <button
       type="button"
-      class="grid h-7 w-10 place-items-center rounded-md border border-border bg-surface-raised transition-colors duration-fast ease-decelerate data-[disabled]:cursor-not-allowed data-[disabled]:opacity-60"
+      class="grid h-7 w-10 place-items-center rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate data-[disabled]:cursor-not-allowed data-[disabled]:opacity-60"
       {...colorPicker.getTriggerProps()}
-    ><span aria-hidden="true" class="h-4 w-8 rounded-sm border border-border" style="background: {colorPicker.valueAsString}"> </span></button>
+    ><span aria-hidden="true" class="h-4 w-8 rounded-sm border border-solid border-border" style="background: {colorPicker.valueAsString}"> </span></button>
     <span
       class="font-mono text-sm text-text transition-colors duration-fast ease-decelerate"
       {...colorPicker.getValueTextProps()}
     >{colorPicker.valueAsString}</span>
     <button
       type="button"
-      class="grid h-7 w-7 place-items-center rounded-md border border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text"
+      class="grid h-7 w-7 place-items-center rounded-md border border-solid border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text"
       {...colorPicker.getEyeDropperTriggerProps()}
     ><span class="i-lucide-pipette text-sm" aria-hidden="true"></span></button>
     <div
-      class="absolute left-0 top-full z-dropdown mt-1 w-full max-w-[16rem] origin-top rounded-lg border border-border bg-surface-raised p-3 shadow-lg transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0"
+      class="absolute left-0 top-full z-dropdown mt-1 w-full max-w-[16rem] origin-top rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0"
       {...colorPicker.getPositionerProps()}
     >
       <div class="flex flex-col gap-3" {...colorPicker.getContentProps()}>
         <div
-          class="relative h-40 w-full rounded-md border border-border"
-          style="--picker-area: {colorPicker.valueAsString}"
+          class="relative h-40 w-full rounded-md border border-solid border-border"
           {...colorPicker.getAreaProps()}
         >
           <div class="absolute inset-0 rounded-md" {...colorPicker.getAreaBackgroundProps()}></div>
           <div
-            class="absolute h-4 w-4 rounded-full border-2 border-on-primary shadow-lg transition-transform duration-fast ease-decelerate"
-            style="left: var(--picker-x, 50%); top: var(--picker-y, 50%); transform: translate(-50%, -50%); background: var(--picker-color)"
+            class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg transition-transform duration-fast ease-decelerate"
             {...colorPicker.getAreaThumbProps()}
           ></div>
         </div>
         <div class="flex items-center gap-2" {...colorPicker.getChannelSliderProps({ channel: "hue" })}>
           <span class="w-12 text-xs text-muted" {...colorPicker.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
           <div
-            class="relative h-3 flex-1 rounded-full border border-border"
-            style="background: var(--picker-track)"
+            class="relative h-3 flex-1 rounded-full border border-solid border-border"
             {...colorPicker.getChannelSliderTrackProps({ channel: "hue" })}
           >
             <div
-              class="absolute h-4 w-4 rounded-full border-2 border-on-primary shadow-lg"
-              style="left: var(--picker-offset, 0%); top: 50%; transform: translate(-50%, -50%); background: var(--picker-color)"
+              class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
               {...colorPicker.getChannelSliderThumbProps({ channel: "hue" })}
             ></div>
           </div>
@@ -56,13 +52,11 @@
         <div class="flex items-center gap-2" {...colorPicker.getChannelSliderProps({ channel: "alpha" })}>
           <span class="w-12 text-xs text-muted" {...colorPicker.getChannelSliderLabelProps({ channel: "alpha" })}>Alpha</span>
           <div
-            class="relative h-3 flex-1 rounded-full border border-border"
-            style="background: var(--picker-track)"
+            class="relative h-3 flex-1 rounded-full border border-solid border-border"
             {...colorPicker.getChannelSliderTrackProps({ channel: "alpha" })}
           >
             <div
-              class="absolute h-4 w-4 rounded-full border-2 border-on-primary shadow-lg"
-              style="left: var(--picker-offset, 100%); top: 50%; transform: translate(-50%, -50%); background: var(--picker-color)"
+              class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
               {...colorPicker.getChannelSliderThumbProps({ channel: "alpha" })}
             ></div>
           </div>
@@ -70,11 +64,11 @@
         </div>
         <div class="flex items-center gap-2">
           <input
-            class="h-7 w-full rounded-md border border-border bg-surface px-2 font-mono text-sm text-text transition-colors duration-fast ease-decelerate"
+            class="h-7 w-full rounded-md border border-solid border-border bg-surface px-2 font-mono text-sm text-text transition-colors duration-fast ease-decelerate"
             {...colorPicker.getChannelInputProps({ channel: "hex" })}
           />
           <select
-            class="h-7 rounded-md border border-border bg-surface-raised px-1 text-xs text-text"
+            class="h-7 rounded-md border border-solid border-border bg-surface-raised px-1 text-xs text-text"
             {...colorPicker.getFormatSelectProps()}
           >
             <option value="hex">hex</option>

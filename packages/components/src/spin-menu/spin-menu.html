@@ -2,13 +2,13 @@
 
 <div class="relative inline-block">
   <div class="relative" {...menu.getContextTriggerProps()}>
-    <button class="group inline-flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface" {...menu.getTriggerProps()}>
+    <button class="group inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors duration-fast hover:bg-surface" {...menu.getTriggerProps()}>
       <span class="truncate">{label}</span>
       <span aria-hidden="true" class="text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180" {...menu.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
     </button>
   </div>
   <div class="absolute z-dropdown origin-top-left transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 [left:var(--menu-anchor-x,0px)] [top:var(--menu-anchor-y,100%)] [min-width:var(--menu-anchor-w,11rem)]" {...menu.getPositionerProps()}>
-    <div class="rounded-lg border border-border bg-surface-raised p-1 shadow-lg" {...menu.getContentProps()}>
+    <div class="rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg" {...menu.getContentProps()}>
       <template for={menu.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...menu.getItemGroupProps(block)}>
           <span class="block px-2 pb-1 text-xs font-medium text-muted" {...menu.getItemGroupLabelProps(block)}>{block.label}</span>

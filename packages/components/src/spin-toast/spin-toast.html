@@ -9,7 +9,7 @@
       class="pointer-events-auto absolute inset-x-0 origin-bottom data-[side=top]:origin-top data-[side=bottom]:bottom-0 [transform:translateY(var(--toast-y,0px))] [scale:var(--toast-scale,1)] [z-index:var(--toast-z,0)] [opacity:var(--toast-opacity,1)] transition-all duration-fast ease-decelerate data-[state=closed]:pointer-events-none"
       {...toast.getToastProps(row)}
     >
-      <div class="flex items-start gap-3 rounded-lg border border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate data-[paused]:bg-surface">
+      <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate data-[paused]:bg-surface">
         <span
           aria-hidden="true"
           data-type={row.type}
@@ -20,7 +20,7 @@
           <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
           <button
             type="button"
-            class="mt-2 rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
+            class="mt-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
             {...toast.getActionTriggerProps(row)}
           >{row.action}</button>
         </div>

@@ -3,7 +3,7 @@
 <div class="relative w-full max-w-[20rem]">
   <label class="mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50" for={datePicker.getTriggerProps().id}>{label}</label>
 
-  <button type="button" class="flex h-7 w-full items-center justify-between gap-2 rounded-md border border-border bg-surface px-2 text-sm text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface-raised data-[state=open]:ring-2 data-[state=open]:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...datePicker.getTriggerProps()}>
+  <button type="button" class="flex h-7 w-full items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface-raised data-[state=open]:ring-2 data-[state=open]:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...datePicker.getTriggerProps()}>
     <span class="flex min-w-0 items-center gap-1">
       <template for={datePicker.getValueTextRows()} as={row} key={row.value}>
         <span class="truncate">{row.text}</span>

@@ -4,35 +4,35 @@
   <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
     <div class="flex items-center gap-1">
       <button
-        class="rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
+        class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
         aria-label="Sort ascending"
         {...asyncList.getSortTriggerProps({ column: "name", direction: "ascending" })}
       >A&rarr;Z</button>
       <button
-        class="rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
+        class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
         aria-label="Sort descending"
         {...asyncList.getSortTriggerProps({ column: "name", direction: "descending" })}
       >Z&rarr;A</button>
     </div>
     <div class="flex items-center gap-2">
       <input
-        class="h-7 w-36 rounded-md border border-border bg-surface px-2 text-sm text-text transition-colors duration-fast ease-decelerate placeholder:text-muted focus-visible:ring-2 focus-visible:ring-border-strong"
+        class="h-7 w-36 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text transition-colors duration-fast ease-decelerate placeholder:text-muted focus-visible:ring-2 focus-visible:ring-border-strong"
         aria-label="Filter"
         {...asyncList.getFilterInputProps()}
       />
       <button
-        class="hidden rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[filled]:inline-flex focus-visible:ring-2 focus-visible:ring-border-strong"
+        class="hidden rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[filled]:inline-flex focus-visible:ring-2 focus-visible:ring-border-strong"
         {...asyncList.getClearFilterProps()}
       >Clear</button>
       <button
-        class="rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[state=loading]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
+        class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[state=loading]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
         {...asyncList.getReloadProps()}
       >Reload</button>
     </div>
   </div>
 
   <div
-    class="relative max-h-60 overflow-y-auto rounded-lg border border-border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate data-[empty]:shadow-none"
+    class="relative max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate data-[empty]:shadow-none"
     {...asyncList.getListProps()}
   >
     <div class="relative p-1">
@@ -56,13 +56,13 @@
 
   <div class="mt-2 flex justify-center">
     <button
-      class="hidden rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50 data-[more]:inline-flex focus-visible:ring-2 focus-visible:ring-border-strong"
+      class="hidden rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50 data-[more]:inline-flex focus-visible:ring-2 focus-visible:ring-border-strong"
       {...asyncList.getLoadMoreProps()}
     >Load more</button>
   </div>
 
   <div
-    class="mt-2 hidden rounded-md border border-border bg-surface px-3 py-2 text-sm text-text transition-colors duration-fast ease-decelerate data-[state=error]:block"
+    class="mt-2 hidden rounded-md border border-solid border-border bg-surface px-3 py-2 text-sm text-text transition-colors duration-fast ease-decelerate data-[state=error]:block"
     {...asyncList.getErrorProps()}
   >Something went wrong.</div>
 </div>

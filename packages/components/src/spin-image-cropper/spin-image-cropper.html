@@ -2,7 +2,7 @@
 
 <div class="w-full" {...imageCropper.getRootProps()}>
   <div
-    class="relative h-60 w-full touch-none overflow-hidden rounded-lg border border-border bg-surface-sunken select-none transition-colors duration-fast ease-decelerate"
+    class="relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken select-none transition-colors duration-fast ease-decelerate"
     {...imageCropper.getViewportProps()}
   >
     <img
@@ -11,7 +11,7 @@
       {...imageCropper.getImageProps()}
     />
     <div
-      class="absolute rounded-sm border-2 border-primary shadow-lg transition-shadow duration-fast ease-decelerate"
+      class="absolute rounded-sm border-2 border-solid border-primary shadow-lg transition-shadow duration-fast ease-decelerate"
       {...imageCropper.getSelectionProps()}
     >
       <div class="pointer-events-none absolute inset-0" {...imageCropper.getGridProps({ axis: "horizontal" })}>
@@ -24,7 +24,7 @@
       </div>
       <template for={imageCropper.handles} as={row} key={row}>
         <div
-          class="absolute h-3 w-3 rounded-sm border border-on-primary bg-primary data-[position=nw]:left-0 data-[position=nw]:top-0 data-[position=n]:left-1/2 data-[position=n]:top-0 data-[position=ne]:right-0 data-[position=ne]:top-0 data-[position=e]:right-0 data-[position=e]:top-1/2 data-[position=se]:bottom-0 data-[position=se]:right-0 data-[position=s]:bottom-0 data-[position=s]:left-1/2 data-[position=sw]:bottom-0 data-[position=sw]:left-0 data-[position=w]:left-0 data-[position=w]:top-1/2"
+          class="absolute h-3 w-3 rounded-sm border border-solid border-on-primary bg-primary data-[position=nw]:left-0 data-[position=nw]:top-0 data-[position=n]:left-1/2 data-[position=n]:top-0 data-[position=ne]:right-0 data-[position=ne]:top-0 data-[position=e]:right-0 data-[position=e]:top-1/2 data-[position=se]:bottom-0 data-[position=se]:right-0 data-[position=s]:bottom-0 data-[position=s]:left-1/2 data-[position=sw]:bottom-0 data-[position=sw]:left-0 data-[position=w]:left-0 data-[position=w]:top-1/2"
           {...imageCropper.getHandleProps({ position: row })}
         ></div>
       </template>

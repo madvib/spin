@@ -86,9 +86,12 @@ function isAbortError(error: unknown): boolean {
 }
 
 /** An array off the prop channel, whatever actually arrived. The grammar's
- * `string[]` coerces an attribute; a property write lands verbatim. */
+ * `string[]` coerces a `= []` default to `["[]"]`; a property write lands
+ * verbatim. The lone artifact entry is dropped here, once, for every
+ * reader. */
 function asArray(raw: unknown): readonly unknown[] {
   if (!Array.isArray(raw)) return [];
+  if (raw.length === 1 && raw[0] === "[]") return [];
   const out: unknown[] = [];
   for (const entry of raw) out.push(entry);
   return out;

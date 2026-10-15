@@ -56,6 +56,8 @@ export interface SelectCallbacks {
  * JSON, neither of which survives a framework's string attribute. */
 const parseKeys = (raw: unknown): string[] => {
   if (Array.isArray(raw)) {
+    // The lone `"[]"` is the grammar's `= []` coercion artifact, not a key.
+    if (raw.length === 1 && raw[0] === "[]") return [];
     return raw.filter((value): value is string => typeof value === "string");
   }
   if (typeof raw !== "string") return [];

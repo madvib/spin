@@ -1,17 +1,17 @@
 <scope>props={ nodes: string = "[]", defaultExpandedValue: string[] = [], expandedValue: string[] = [], selectedValue: string[] = [], selectionMode: string = "single", expandOnClick: bool = true, typeahead: bool = true, loadChildren: string = "", rename: bool = true } consume={ treeView }</scope>
 
-<div class="rounded-lg border border-border bg-surface-raised p-1" {...treeView.getRootProps()}>
+<div class="rounded-lg border border-solid border-border bg-surface-raised p-1" {...treeView.getRootProps()}>
   <template for={treeView.getVisibleRows()} as={row} key={row.node.value}>
     <div class="relative" {...treeView.getItemProps(row)}>
       <span class="pointer-events-none absolute inset-y-0 w-px bg-border [left:var(--tree-rail,0px)]" aria-hidden="true" {...treeView.getRailProps(row)}></span>
       <button
-        class="relative flex min-h-0 items-center gap-1.5 rounded-sm border-0 bg-transparent py-1 pe-2 ps-1 text-left text-sm text-text transition-colors duration-fast ease-standard hover:bg-surface data-[highlighted]:bg-surface data-[selected]:bg-surface-sunken data-[focus]:ring-1 data-[focus]:ring-border-strong data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [width:var(--tree-w,100%)] [margin-inline-start:var(--tree-indent,0px)]"
+        class="relative flex min-h-0 items-center gap-1.5 rounded-sm border-0 border-solid bg-transparent py-1 pe-2 ps-1 text-left text-sm text-text transition-colors duration-fast ease-standard hover:bg-surface data-[highlighted]:bg-surface data-[selected]:bg-surface-sunken data-[focus]:ring-1 data-[focus]:ring-border-strong data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [width:var(--tree-w,100%)] [margin-inline-start:var(--tree-indent,0px)]"
         {...treeView.getBranchControlProps(row)}
       >
         <span class="hidden size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard data-[branch]:inline-flex data-[state=open]:rotate-90" {...treeView.getBranchIndicatorProps(row)}>
           <span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span>
         </span>
-        <span class="hidden size-3.5 shrink-0 items-center justify-center rounded-xs border border-border-strong text-on-primary transition-colors duration-fast ease-standard data-[checked]:border-primary data-[checked]:bg-primary data-[mode=multiple]:inline-flex" {...treeView.getCheckboxProps(row)}>
+        <span class="hidden size-3.5 shrink-0 items-center justify-center rounded-xs border border-solid border-border-strong text-on-primary transition-colors duration-fast ease-standard data-[checked]:border-primary data-[checked]:bg-primary data-[mode=multiple]:inline-flex" {...treeView.getCheckboxProps(row)}>
           <span class="i-lucide-check text-[0.6rem]" aria-hidden="true"></span>
         </span>
         <span class="i-lucide-folder shrink-0 text-sm text-primary data-[kind=leaf]:hidden data-[kind=branch-open]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
@@ -21,7 +21,7 @@
         <span class="ms-auto shrink-0 text-xs text-muted" {...treeView.getLoadingProps(row)}>…</span>
       </button>
       <input
-        class="ms-6 w-[calc(100%-1.5rem)] rounded-md border border-border-strong bg-surface px-2 py-1 text-sm text-text"
+        class="ms-6 w-[calc(100%-1.5rem)] rounded-md border border-solid border-border-strong bg-surface px-2 py-1 text-sm text-text"
         {...treeView.getRenameInputProps(row)}
       />
     </div>
