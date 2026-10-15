@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "exports": {
     ".": "./src/index.ts",
+    "./plugin": "./src/plugin.ts",
+    "./session": "./src/session.ts",
+    "./content": "./src/content.ts",
     "./rules/primitives/manifest.ts": "./src/rules/primitives/manifest.ts",
     "./rules/primitives/derive.ts": "./src/rules/primitives/derive.ts",
     "./organization.ts": "./src/organization.ts",
@@ -38,7 +41,9 @@
     "./rules/primitives/hr.examples.ts": "./src/rules/primitives/hr.examples.ts",
     "./rules/primitives/icon.examples.ts": "./src/rules/primitives/icon.examples.ts",
     "./rules/primitives/table.examples.ts": "./src/rules/primitives/table.examples.ts",
-    "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts"
+    "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts",
+    "./config": "./src/config.ts",
+    "./solid": "./src/solid.d.ts"
   },
   "imports": {
     "@spin/preset": "./src/index.ts",
@@ -52,6 +57,7 @@
     "magic-string": "npm:magic-string@^1.4.1",
     "@spin/theme/base": "../theme/src/base/index.ts",
     "@spin/animation": "../animation/src/index.ts",
+    "unplugin": "npm:unplugin@^3.4.0",
     "valibot": "npm:valibot@^1.0.0",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",
     "@orpc/server": "npm:@orpc/server@^1.0.0",
@@ -61,7 +67,7 @@
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0"
   },
   "tasks": {
-    "test": "deno test --allow-read src/ tests/",
+    "test": "deno test --allow-read --allow-write --allow-env --allow-sys --allow-run src/ tests/",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "codegen": "deno run -A src/rules/primitives/derive.ts && deno fmt src/rules/primitives/manifest.ts"

@@ -111,7 +111,13 @@ export interface Tokens {
   readonly weightBold: string | undefined;
   readonly mono: string | undefined;
   readonly sans: string | undefined;
+  /** The body face: what `font.family.body` says, or the sans it falls to. */
+  readonly body: string | undefined;
+  /** The editorial face: `font.family.serif`. */
+  readonly serif: string | undefined;
   readonly heading: string | undefined;
+  /** Per-element face overrides, keyed by tag. Values name a family slot. */
+  readonly element: Record<string, string> | undefined;
 }
 
 export function proseTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
@@ -148,11 +154,17 @@ export function proseTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
     weightBold: t?.fontWeight?.["bold"],
     mono: family?.["mono"],
     sans: family?.["body"] ?? family?.["sans"],
+    body: family?.["body"] ?? family?.["sans"],
+    serif: family?.["serif"],
     // The heading face is a fallback chain, not a step: a theme may name a
     // heading face, then a body face, and fall through to the sans face. The
     // chain is resolved here rather than spelled as a nested `var()` because a
     // rule reads values, not variable names.
     heading: family?.["heading"] ?? family?.["body"] ?? family?.["sans"],
+    // A per-element face map, keyed by tag. `<h1>` may claim a different
+    // face from `<h2>`, and a theme that wants that says so here rather than
+    // by copying six families. The value names a slot in `font.family`.
+    element: t?.font?.element as Record<string, string> | undefined,
   };
 }
 

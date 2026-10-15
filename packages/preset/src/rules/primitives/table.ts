@@ -197,7 +197,7 @@ function headerRule(mode: Mode): Rule {
       // digit than to the text start, and that is what the author means by
       // the element anyway.
       yield {
-        [ctx.symbols.selector]: () => "th[scope=\"col\"][data-align=\"end\"]",
+        [ctx.symbols.selector]: () => 'th[scope="col"][data-align="end"]',
         "text-align": "end",
       };
     },
@@ -219,7 +219,9 @@ function captionRule(mode: Mode): Rule {
         ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
         "text-align": "start",
-        ...(t.spacing2 !== undefined ? { "padding-block-end": t.spacing2 } : {}),
+        ...(t.spacing2 !== undefined
+          ? { "padding-block-end": t.spacing2 }
+          : {}),
       };
     },
     { layer: "primitives", autocomplete: "caption" },

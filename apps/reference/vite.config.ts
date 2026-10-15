@@ -1,52 +1,49 @@
 import { resolve } from "node:path";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import solid from "vite-plugin-solid";
-import UnoCSS from "@unocss/vite";
 import presetIcons from "@unocss/preset-icons";
-import { describeCatalog, spinPreset } from "../../packages/preset/src/index.ts";
-import { parseTokens } from "../../packages/theme/src/index.ts";
-import { starterThemes } from "../../packages/theme/src/themes/index.ts";
+import { spin } from "../../packages/preset/src/plugin.ts";
+import { mountSpinApp } from "../../packages/api/src/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
 
-// The reference renders package examples directly in Solid, so the module
-// graph carries every class a PRIMITIVE example wears. The UTILITIES pages
-// are different: a rail, a scale step and a swatch choose their class from
-// the catalog at RUNTIME, so the scanner never sees them — `pl-8` and
-// `bg-secondary` exist only as values, and without a rule the specimen
-// renders unstyled and looks like a broken utility. Safelisting the catalog
-// is the drift-free equivalent of the old content dir: the sheet is
-// generated from the same source the pages are, so a utility the catalog
-// names always has a rule to demonstrate it with.
-const parsed = parseTokens(
-  starterThemes.default as unknown as Parameters<typeof parseTokens>[0],
-);
-if (!parsed.ok) throw new Error(parsed.error);
-const utilitySafelist = describeCatalog(parsed.tree).flatMap((section) =>
-  section.utilities
-);
+/**
+ * `spin.vite` is the whole toolchain: it globs, generates, and safelists
+ * the catalog so the utilities the pages choose from the catalog at
+ * runtime still have a rule to demonstrate them with.
+ */
 
 export default defineConfig({
   plugins: [
     solid(),
-    UnoCSS({
-      presets: [
-        presetIcons({ collections: { lucide } as never }),
-        spinPreset({ themes: starterThemes }),
-      ],
-      safelist: utilitySafelist,
+    spin.vite({
+      // No `themes`: the project owns them. `spin/*.json` at this root —
+      // the same files the studio edits — so a theme change in the studio
+      // re-themes this app and nothing has to be re-imported.
+
+      presets: [presetIcons({ collections: { lucide } as never })],
+      // The studio bundle, built by `apps/studio/deno task build`. Absent
+      // until built — the mount skips it rather than failing the server.
+      mount: mountSpinApp(here, {
+        studioDir: resolve(here, "../studio/dist"),
+      }),
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the
       // pipeline include admits plain .ts because examples are data
       // modules, not components.
       content: {
         filesystem: [
-          resolve(here, "../../packages/preset/src/rules/primitives/*.examples.ts"),
+          resolve(
+            here,
+            "../../packages/preset/src/rules/primitives/*.examples.ts",
+          ),
           resolve(here, "src/**/*.{tsx,ts}"),
         ],
         pipeline: {
-          include: [/\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/],
+          include: [
+            /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
+          ],
         },
       },
     }),

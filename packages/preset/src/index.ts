@@ -37,29 +37,41 @@ import transformerDirectives from "@unocss/transformer-directives";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
+import { hasOverlay, resolveThemes } from "./session.ts";
 import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { spinShortcuts } from "./shortcuts.ts";
-import { elementExtractor, typeExtractor, variantExtractor } from "./extractors.ts";
+import {
+  elementExtractor,
+  typeExtractor,
+  variantExtractor,
+} from "./extractors.ts";
 import { themeRef } from "@spin/theme";
 import { wind4Layers, type Wind4Options } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
-import { spinVariants, breakpointEdges } from "./variants/index.ts";
+import { breakpointEdges, spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
 export type { CatalogSection } from "./catalog.ts";
+export {
+  clearOverlay,
+  hasOverlay,
+  noteDiskDocument,
+  noteDiskDocuments,
+  overlayDirty,
+  overlayThemes,
+  resolveThemes,
+  setOverlay,
+} from "./session.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
-export {
-  requiredRolesFor,
-  scaffold,
-  scaffoldDocument,
-} from "./roles.ts";
+export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
+export { overlayContract, overlayRouter } from "./overlay.ts";
 export {
-  wind4Exclusions,
-  wind4Layers,
   type Wind4Exclusion,
+  wind4Exclusions,
   type Wind4Layers,
+  wind4Layers,
   type Wind4Options,
 } from "./wind4.ts";
 
@@ -181,9 +193,9 @@ const factory = definePreset(
       : options.primitives === false
       ? []
       : undefined;
-    const documents = options.themes ?? {
-      light: options.theme ?? defaultDocument(),
-    };
+    const documents = resolveThemes(
+      options.themes ?? { light: options.theme ?? defaultDocument() },
+    );
     const trees: Record<string, TokenTree> = {};
     for (const [name, doc] of Object.entries(documents)) {
       const parsed = parseTokens(doc);
@@ -209,7 +221,6 @@ const factory = definePreset(
     // property, so the variant needs the literal width the theme declared.
     const edges = breakpointEdges(Object.values(trees));
     const wind4 = wind4Layer(options.wind4);
-
 
     return {
       name: "spin",

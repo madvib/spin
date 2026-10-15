@@ -10,6 +10,7 @@ import { divideRules } from "./divide.ts";
 import { gridRules } from "./grid.ts";
 import { interactivityRules } from "./interactivity.ts";
 import { layoutRules } from "./layout.ts";
+import { listRules } from "./list.ts";
 import { opacityRules } from "./opacity.ts";
 import { overflowRules } from "./overflow.ts";
 import { positionRules } from "./position.ts";
@@ -25,6 +26,7 @@ import { typographyRules } from "./typography.ts";
 export function spinRules(roots: readonly string[], mode: Mode): Rule[] {
   return [
     ...layoutRules(),
+    ...listRules(),
     ...displayRules(),
     ...gridRules(),
     ...opacityRules(),

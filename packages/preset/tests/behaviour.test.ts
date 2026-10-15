@@ -591,7 +591,10 @@ Deno.test("no component's type out-sizes the page's own heading", () => {
     if (match) sizeOf[step] = Number(match[1]) * 16;
   }
   const heading = sizeOf["2xl"];
-  assert(heading !== undefined && heading > 0, "the ladder must state the h2 step");
+  assert(
+    heading !== undefined && heading > 0,
+    "the ladder must state the h2 step",
+  );
   for (const [name, contract] of Object.entries(primitiveContracts)) {
     if (EXEMPT.has(name)) continue;
     for (const read of contract.reads) {

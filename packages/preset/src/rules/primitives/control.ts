@@ -161,12 +161,14 @@ function checkboxRule(): Rule {
         });
       }
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role])::before',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role])::before',
         ...mark,
       };
 
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):focus-visible',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):focus-visible',
         ...(focusWidth !== undefined && focusRing !== undefined
           ? { outline: `${focusWidth} solid ${focusRing}` }
           : {}),
@@ -187,12 +189,16 @@ function checkboxRule(): Rule {
           `inset 0 1px 0 0 rgba(0, 0, 0, calc(${depth} * 0.1))`,
         ].join(", "),
       };
-      yield { [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):checked', ...on };
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):indeterminate',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):checked',
         ...on,
       };
-
+      yield {
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):indeterminate',
+        ...on,
+      };
 
       // A 45°-rotated square has its visual mass below its geometric centre,
       // so a tick drawn inside it reads as sitting low in the box unless the
@@ -200,7 +206,8 @@ function checkboxRule(): Rule {
       // element: `translate` would be animated by the state transition and
       // fight the clip-path's own.
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):checked::before',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):checked::before',
         opacity: "1",
         ...(borderWidth !== undefined
           ? { translate: `0 -${borderWidth}` }
@@ -209,7 +216,8 @@ function checkboxRule(): Rule {
       };
       // The mixed mark is a bar, not a tick: no rotation, and it sits higher.
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):indeterminate::before',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):indeterminate::before',
         opacity: "1",
         rotate: "0deg",
         scale: "1 0.5",
@@ -217,7 +225,8 @@ function checkboxRule(): Rule {
       };
 
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"]:not([role]):disabled',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):disabled',
         cursor: "not-allowed",
         // The depth goes with the interaction: a box you cannot press should
         // not have the shadows that say it can be.
@@ -366,7 +375,8 @@ function switchRule(): Rule {
         });
       }
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]::before',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]::before',
         ...thumb,
       };
 
@@ -383,11 +393,13 @@ function switchRule(): Rule {
         ...(onPrimary !== undefined ? { color: onPrimary } : {}),
       };
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:checked',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]:checked',
         ...onGrid,
       };
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:checked::before',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]:checked::before',
         // Opaque on, because the track behind it is now the primary and the
         // thumb has to sit on it as a solid object rather than tint it.
         opacity: "1",
@@ -395,14 +407,16 @@ function switchRule(): Rule {
       };
 
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:focus-visible',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]:focus-visible',
         ...(focusWidth !== undefined && focusRing !== undefined
           ? { outline: `${focusWidth} solid ${focusRing}` }
           : {}),
         ...(focusOffset !== undefined ? { "outline-offset": focusOffset } : {}),
       };
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:disabled',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]:disabled',
         cursor: "not-allowed",
         // The depth goes with the interaction, as it does on the checkbox.
         "box-shadow": "none",
@@ -411,13 +425,15 @@ function switchRule(): Rule {
       // An indeterminate switch has no middle position to sit at, so the grid
       // halves rather than choosing one for it.
       yield {
-        [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]:indeterminate',
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]:indeterminate',
         "grid-template-columns": "0.5fr 1fr 0.5fr",
       };
       // Unset colours must not leave the thumb invisible against the track.
       if (text === undefined && muted !== undefined) {
         yield {
-          [ctx.symbols.selector]: () => 'input[type="checkbox"][role="switch"]::before',
+          [ctx.symbols.selector]: () =>
+            'input[type="checkbox"][role="switch"]::before',
           "background-color": muted,
         };
       }
@@ -425,4 +441,3 @@ function switchRule(): Rule {
     { layer: "primitives", autocomplete: "switch" },
   ];
 }
-

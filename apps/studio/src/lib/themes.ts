@@ -26,12 +26,12 @@ export interface StudioTheme {
 /**
  * Every theme in the project's themes directory.
  *
- * Server-side: this reads the filesystem, which the browser cannot do. The
- * result is serialised to the client, which is where the editing state lives.
+ * Plain browser functions: the dev server mounts the API on the same
+ * origin, so the browser dials it directly. No server round trip, and no
+ * second process that would need its own project root.
  */
 export async function listProjectThemes(): Promise<StudioTheme[]> {
-  "use server";
-  const listed = await spinClient().project.themes.list({});
+  const listed = await (await spinClient()).project.themes.list({});
   return listed.map((theme) => ({
     name: theme.name,
     text: theme.text,
@@ -39,11 +39,25 @@ export async function listProjectThemes(): Promise<StudioTheme[]> {
   }));
 }
 
+/**
+ * Write one theme to disk. The studio's save is explicit: nothing persists
+ * until the author says so, and this is the only call that changes disk.
+ */
+export async function saveTheme(
+  name: string,
+  text: string,
+): Promise<{ error: string | null }> {
+  const written = await (await spinClient()).project.themes.write({
+    name,
+    text,
+  });
+  return { error: written.error ?? null };
+}
+
 /** Re-reads one theme from disk, discarding unsaved edits to it. */
 export async function loadProjectTheme(
   name: string,
 ): Promise<string | undefined> {
-  "use server";
-  const read = await spinClient().project.themes.read({ name });
+  const read = await (await spinClient()).project.themes.read({ name });
   return read.text ?? undefined;
 }

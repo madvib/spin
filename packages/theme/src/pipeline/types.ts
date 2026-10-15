@@ -65,6 +65,15 @@ export interface TokenLeaf {
   type: TokenType;
   /** `$value`. Aliases are kept as written: `'{color.primary}'`. */
   value: unknown;
+  /**
+   * Per-mode values, keyed by mode name — `{ dark: "#60a5fa" }`.
+   *
+   * A token that varies by mode carries its variants beside its base value
+   * rather than in a second `dark` tree, because a reader of the token should
+   * see every value it has in one place. Mode-eligibility is validated, not
+   * implied: only the closed set of groups that may vary carries `$modes`.
+   */
+  modes?: Record<string, unknown>;
   description?: string;
 }
 
@@ -130,6 +139,17 @@ export interface CssOptions {
   prefix?: string;
   /** One indent level. Defaults to two spaces. */
   indent?: string;
+  /**
+   * A theme whose variables are also written under `:root`.
+   *
+   * A custom property cannot inherit upward, so variables scoped only to
+   * `[data-theme]` are invisible to the `body {}` rules the typography
+   * primitives emit — which leaves an app's base type falling back to the
+   * browser default, and a studio whose chrome renders in Times. Naming a
+   * root theme fixes the base without giving every theme a `:root` block
+   * that would collide on shared names.
+   */
+  rootTheme?: string;
 }
 
 /**

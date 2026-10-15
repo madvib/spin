@@ -88,7 +88,7 @@ export type { ThemeRef, ThemeRefGroup } from "./uno-ref.ts";
 
 // Procedures: the typed interface, owned by the module that implements it.
 export { themeContract } from "./contract/contract.ts";
-export { setProjectRoot, themeRouter } from "./contract/procedures.ts";
+export { themeRouter } from "./contract/procedures.ts";
 
 // Colour reading and contrast — what validation depends on.
 export {
@@ -103,3 +103,5 @@ export {
 
 // Colour authoring — the toolbox for composing new colours.
 export { generateScale, invertColor, mixColors } from "./authoring/color.ts";
+
+export { supportsDark, themeModes, valuesInMode } from "./modes.ts";

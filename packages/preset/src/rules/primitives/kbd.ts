@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { claim, proseTokens, type Mode } from "./shared.ts";
+import { claim, type Mode, proseTokens } from "./shared.ts";
 
 /** Keyboard input: a keycap for a key on the keyboard. */
 function kbdRule(mode: Mode): Rule {

@@ -1,60 +1,60 @@
 /**
- * The spin daemon: the production path for every client.
+ * The spin daemon: the standalone entry for consumers without a bundler.
  *
- * One Hono app, three hosts. The CLI talks to it over a socket, the MCP
- * server mounts or proxies it, vent mounts `app` as a sub-router, and the
- * studio points its RPC client at it. Nothing here is dev tooling: the only
- * vite process in the system is the studio's own, and the daemon never sees
- * it.
+ * One Hono app, every host: this mounts the same `createSpinApp` the dev
+ * server mounts, so standalone and dev never drift. The daemon binds
+ * loopback by default, because it writes to disk and a socket open to the
+ * network is a remote write to a developer's project for anyone who can
+ * reach the port.
  *
- * The app owns NOTHING procedural — it mounts `@spin/api`'s router at `/rpc`
- * and serves it. A request the router does not claim falls through to a 404,
- * so the daemon is a pure RPC surface with no pages and no UI of its own.
+ * There is intentionally no CORS, no discovery file, and no port
+ * negotiation. Same-origin in dev made all three dead: the client dials a
+ * relative `/__spin/rpc`, fixed at config time, and a consumer that needs
+ * the address reads it from the process that started it.
  */
 
-import { Hono } from "hono";
-import { handleApiRequest } from "./index.ts";
-import { setProjectRoot } from "@spin/theme";
+import { createSpinApp } from "./index.ts";
 
 /** A daemon pointed at a project: its root, which it never leaves. */
 export interface DaemonOptions {
   /** The project root. All theme reads and writes resolve under it. */
   readonly root: string;
+  /**
+   * The address to bind. Defaults to loopback, because the daemon writes to
+   * disk and a socket open to the network is a remote write to a developer's
+   * project for anyone who can reach the port. Widening this is an explicit
+   * decision, not a default.
+   */
+  readonly hostname?: string;
+}
+
+/** A started daemon: its app, its address, and how to stop it. */
+export interface Daemon {
+  /** The RPC URL, including the port that was actually bound. */
+  readonly url: string;
+  /** Stop serving. */
+  close(): void;
 }
 
 /**
- * The daemon app. The `root` is captured for the filesystem procedures the
- * daemon implements against `@spin/api`'s contract; text→text procedures
- * never see it, and the theme package never imports this file.
+ * Start the daemon: bind a port and serve the shared app.
+ *
+ * Binding comes before advertising because `port: 0` asks the OS for a free
+ * port and the advertised number must be the one that was actually bound.
  */
-export function createDaemonApp(options: DaemonOptions) {
-  // The single write of the process: the daemon is pointed at a project once,
-  // at startup, and every filesystem procedure reads from that. Hosting it in
-  // vent means vent's mount owns this call instead.
-  setProjectRoot(options.root);
-  const app = new Hono();
-
-  app.all("/rpc/*", async (c) => {
-    const { matched, response } = await handleApiRequest(c.req.raw, {
-      prefix: "/rpc",
-    });
-    return matched ? response : c.notFound();
-  });
-
-  app.notFound((c) => c.text("no procedure claims this path", 404));
-  return app;
-}
-
-/**
- * Serve the daemon on a port. The entry file calls this; tests call it on
- * port 0 and read the address back. One shape, two callers.
- */
-export function serveDaemon(
-  app: ReturnType<typeof createDaemonApp>,
-  port: number,
-): Deno.HttpServer<Deno.NetAddr> {
-  return Deno.serve(
-    { port, onListen: () => {} },
+export function startDaemon(
+  options: DaemonOptions & { readonly port?: number },
+): Daemon {
+  const app = createSpinApp({ root: options.root, base: "/rpc" });
+  const server = Deno.serve(
+    { hostname: options.hostname ?? "127.0.0.1", port: options.port ?? 7463 },
     (request) => app.fetch(request),
   );
+  const bound = (server.addr as Deno.NetAddr).port;
+  return {
+    url: `http://localhost:${bound}/rpc`,
+    close() {
+      server.shutdown();
+    },
+  };
 }

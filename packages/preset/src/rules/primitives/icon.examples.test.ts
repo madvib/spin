@@ -27,13 +27,15 @@ const STRUCTURAL: Record<string, true> = {
 const isKnown = (cls: string, known: Set<string>): boolean =>
   known.has(cls) || STRUCTURAL[cls] === true || cls.startsWith("i-");
 
-
 describe("icon examples resolve", () => {
   for (const example of ICON_EXAMPLES) {
     it(example.name, () => {
       const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
         .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
-      const known = new Set([...primitiveVariants(), ...Object.keys(STRUCTURAL)]);
+      const known = new Set([
+        ...primitiveVariants(),
+        ...Object.keys(STRUCTURAL),
+      ]);
       for (const cls of classes) {
         assert(
           isKnown(cls, known),

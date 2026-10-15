@@ -19,7 +19,7 @@ export interface ModeExample {
 }
 
 export const modeFixtureNote =
-  "One button that cycles a theme's modes: `class=\"mode\"` adds the icon-step face to the button base and dims the control when there is nothing to cycle.";
+  'One button that cycles a theme\'s modes: `class="mode"` adds the icon-step face to the button base and dims the control when there is nothing to cycle.';
 
 export const MODE_EXAMPLES: readonly ModeExample[] = [
   {
@@ -30,13 +30,15 @@ export const MODE_EXAMPLES: readonly ModeExample[] = [
   },
   {
     name: "Disabled",
-    html: `<button type="button" class="mode" disabled aria-label="Use dark mode">
+    html:
+      `<button type="button" class="mode" disabled aria-label="Use dark mode">
   <i class="i-lucide-moon icon-md"></i>
 </button>`,
   },
   {
     name: "Aria-disabled",
-    html: `<button type="button" class="mode" aria-disabled="true" aria-label="Use dark mode">
+    html:
+      `<button type="button" class="mode" aria-disabled="true" aria-label="Use dark mode">
   <i class="i-lucide-moon icon-md"></i>
 </button>`,
   },

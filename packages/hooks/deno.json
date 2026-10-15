@@ -7,6 +7,7 @@
     "./solid": "./src/solid.ts"
   },
   "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.0",
     "react": "npm:react@^19.0.0",
     "solid-js": "npm:solid-js@^1.9.0"
   }

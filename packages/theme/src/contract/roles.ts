@@ -156,7 +156,11 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#ffffff",
     doc: "Text on an error fill.",
-    floor: { fg: "color.on-semantic-error", bg: "color.semantic.error", min: 4.5 },
+    floor: {
+      fg: "color.on-semantic-error",
+      bg: "color.semantic.error",
+      min: 4.5,
+    },
   },
   {
     // Non-text indicator, so it needs the 3:1 floor rather than the text floor

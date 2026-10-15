@@ -1,9 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import {
-  indexTree,
-  parseTokens,
-  resolveAliases,
-} from "@spin/theme";
+import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import {
   primitiveComponents,
   primitiveContracts,
@@ -92,9 +88,11 @@ Deno.test("variants a component defines reach the lint's vocabulary", () => {
   // rejected for using a class the theme itself ships.
   const all = primitiveVariants();
   for (const variant of ["striped", "secondary", "contrast", "card-narrow"]) {
-    if (!all.has(variant)) throw new Error(
-      `--${variant} is defined by a component but missing from the lint vocabulary`,
-    );
+    if (!all.has(variant)) {
+      throw new Error(
+        `--${variant} is defined by a component but missing from the lint vocabulary`,
+      );
+    }
   }
 });
 

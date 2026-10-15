@@ -40,7 +40,6 @@ import type { ThemeDocument } from "./index.ts";
 const RESET_CSS =
   "*, ::before, ::after { box-sizing: border-box; border-width: 0; }";
 
-
 /**
  * The motion floor, applied once rather than copied into every component that
  * animates. A component that needs to do more than stop — a busy spinner that
@@ -63,7 +62,6 @@ export const LAYER = {
   reset: -100,
   theme: -90,
 } as const;
-
 
 export interface PreflightInput {
   /** Parsed token trees, keyed by theme name. */
@@ -91,7 +89,6 @@ interface Assembled extends PreflightProvider {
 function assemble(
   input: PreflightInput,
 ): Assembled[] {
-
   const base = basePreflights(input.documents.light ?? {}).map((provider) => ({
     ...provider,
     layer: "theme",
@@ -114,7 +111,18 @@ function assemble(
       name: "theme/variables",
       layer: "theme",
       order: LAYER.theme,
-      getCSS: () => generateThemeCss(input.trees),
+      getCSS: () => {
+        // The first theme is the one the app boots with, so its custom
+        // properties are also written at `:root` — where `body {}` can
+        // read them. Without it an app's base type silently falls back to
+        // the browser default. An empty tree set has no boot theme, and
+        // omitting the key is what says so (a `| undefined` value is not
+        // assignable to the optional one under exactOptionalPropertyTypes).
+        const boot = Object.keys(input.trees)[0];
+        return generateThemeCss(input.trees, boot === undefined
+          ? {}
+          : { rootTheme: boot });
+      },
     },
     ...base,
     // Motion is unconditional: a component that names a keyframe must never

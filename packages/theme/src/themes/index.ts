@@ -41,6 +41,8 @@ export const consoleTheme = console_ as ThemeDocument;
  * already declares a theme, not a theme of its own. `supportedModes` is how a
  * consumer finds out which modes a starter answers to.
  */
+export { supportsDark, themeModes } from "../modes.ts";
+
 export const starterThemes = {
   default: defaultTheme,
   neobrut: neobrutTheme,
@@ -61,31 +63,3 @@ export type StarterThemeName = keyof typeof starterThemes;
  * `dark` group renders one way; a theme with one renders that way and another
  * under `[data-mode="dark"]`. `[]` means "one rendering", not "no dark".
  */
-/**
- * The modes a theme serves, as declared.
- *
- * Read from the root `modes` field, never derived from the `dark` group's
- * presence: existence could not tell a base-that-is-dark from a theme that
- * never declares one, which is the conflation that produced a `dark` group
- * restating a console base and adding nothing. No field means no claim.
- */
-export function themeModes(
-  theme: ThemeDocument,
-): readonly ("light" | "dark")[] {
-  const raw = (theme as Record<string, unknown>)["modes"];
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((entry): entry is "light" | "dark" =>
-    entry === "light" || entry === "dark"
-  );
-}
-
-/**
- * Whether a theme renders both ways.
- *
- * Named rather than left to the caller to infer from `themeModes`, because
- * "does this theme support dark" is the question a switcher actually asks and
- * it should not have to know that the answer lives in a declared field.
- */
-export function supportsDark(theme: ThemeDocument): boolean {
-  return themeModes(theme).includes("dark");
-}

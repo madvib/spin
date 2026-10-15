@@ -30,13 +30,14 @@ const os = implement(themeContract);
 
 function analyze(text: string, required?: readonly string[]) {
   const parsed = parseTokens(text);
-  if (!parsed.ok) return { error: parsed.error, issues: [] };
+  if (!parsed.ok) return { error: parsed.error, issues: [], tree: null };
   const report = validateTokens(parsed.tree, {
     required: required ?? requiredPaths(),
   });
   return {
     error: null,
     issues: [...report.issues, ...validateLegibility(parsed.tree)],
+    tree: parsed.tree,
   };
 }
 
@@ -127,99 +128,7 @@ const themeTypes = os.theme.types.handler(({ input }) => {
  * filesystem procedures, and a test that never sets it gets the refusal it
  * deserves rather than a cwd it never asked for.
  */
-let projectRoot: string | undefined;
-
-export function setProjectRoot(root: string): void {
-  projectRoot = root;
-}
-
-function rootOrThrow(): string {
-  if (projectRoot === undefined) {
-    throw new Error(
-      "project.themes is implemented by the daemon: no project root is set",
-    );
-  }
-  return projectRoot;
-}
-
 export const themeRouter = os.router({
-  project: {
-    themes: {
-      list: os.project.themes.list.handler(async () => {
-        const { readdir, readFile } = await import("node:fs/promises");
-        const { join } = await import("node:path");
-        const root = rootOrThrow();
-        let entries: string[];
-        try {
-          entries = await readdir(join(root, "themes"));
-        } catch {
-          return [];
-        }
-        const themes: Array<{ name: string; text: string; file: string }> = [];
-        for (const entry of entries.sort()) {
-          if (!entry.endsWith(".json")) continue;
-          const file = join(root, "themes", entry);
-          themes.push({
-            name: entry.replace(/\.json$/, ""),
-            text: await readFile(file, "utf8"),
-            file,
-          });
-        }
-        return themes;
-      }),
-      read: os.project.themes.read.handler(async ({ input }) => {
-        const { readFile } = await import("node:fs/promises");
-        const { join } = await import("node:path");
-        try {
-          return {
-            text: await readFile(
-              join(rootOrThrow(), "themes", `${input.name}.json`),
-              "utf8",
-            ),
-          };
-        } catch {
-          return { text: null };
-        }
-      }),
-      write: os.project.themes.write.handler(async ({ input }) => {
-        const { writeFile } = await import("node:fs/promises");
-        const { join } = await import("node:path");
-        try {
-          await writeFile(
-            join(rootOrThrow(), "themes", `${input.name}.json`),
-            input.text,
-            "utf8",
-          );
-          return { error: null };
-        } catch (err) {
-          return { error: err instanceof Error ? err.message : String(err) };
-        }
-      }),
-      remove: os.project.themes.remove.handler(async ({ input }) => {
-        const { rm } = await import("node:fs/promises");
-        const { join } = await import("node:path");
-        try {
-          await rm(join(rootOrThrow(), "themes", `${input.name}.json`));
-          return { error: null };
-        } catch (err) {
-          return { error: err instanceof Error ? err.message : String(err) };
-        }
-      }),
-      copy: os.project.themes.copy.handler(async ({ input }) => {
-        const { copyFile, readFile } = await import("node:fs/promises");
-        const { join } = await import("node:path");
-        try {
-          const from = join(rootOrThrow(), "themes", `${input.from}.json`);
-          // Read first so a missing source is an error, not an empty file.
-          await readFile(from, "utf8");
-          await copyFile(from, join(rootOrThrow(), "themes", `${input.to}.json`));
-          return { error: null };
-        } catch (err) {
-          return { error: err instanceof Error ? err.message : String(err) };
-        }
-      }),
-    },
-  },
   theme: {
     analyze: analyzeTheme,
     css: themeCss,

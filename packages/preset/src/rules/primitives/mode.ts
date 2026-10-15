@@ -55,7 +55,9 @@ function modeDisabled(mode: Mode): Rule {
       void ctx;
       yield {
         [ctx.symbols.selector]: () =>
-          `${claim(mode, "button")}.mode:disabled, ${claim(mode, "button")}.mode[aria-disabled="true"]`,
+          `${claim(mode, "button")}.mode:disabled, ${
+            claim(mode, "button")
+          }.mode[aria-disabled="true"]`,
         // A disabled switcher is a statement, not a control: the theme
         // serves one mode, so there is nothing to cycle. Opacity says
         // inert, the a11y layer's cursor says unusable, and the element

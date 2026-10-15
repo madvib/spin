@@ -14,15 +14,15 @@ export const BORDER_STYLE_NAMES: readonly string[] = Object.keys(BORDER_STYLES);
  * exactly this way while `BORDER_SIDES` carried `b` the whole time — so the
  * pattern cannot be spelled out by hand here.
  */
-const SIDE_ALTERNATION =
-  Object.keys(BORDER_SIDES).filter((side) => side !== "").join("");
+const SIDE_ALTERNATION = Object.keys(BORDER_SIDES).filter((side) => side !== "")
+  .join("");
 const WIDTH_ALTERNATION = Object.keys(BORDER_WIDTHS)
   .filter((width) => width !== "")
   .join("|");
 
 /** `border`, `border-b`, `border-t-2`: every side the tables declare. */
 export const BORDER_SIDE_PATTERN = new RegExp(
-  `^border(?:-([${SIDE_ALTERNATION}]))?(?:-(${WIDTH_ALTERNATION}))?$`
+  `^border(?:-([${SIDE_ALTERNATION}]))?(?:-(${WIDTH_ALTERNATION}))?$`,
 );
 
 /** The side names the pattern accepts, for the catalog. */

@@ -1,0 +1,664 @@
+{
+  "$extensions": {
+    "spin": {
+      "id": "roastery"
+    }
+  },
+  "color": {
+    "$type": "color",
+    "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
+    "primary": {
+      "$value": "#7c2d12",
+      "$description": "Brand accent: primary actions, links, focus rings.",
+      "$modes": {
+        "dark": "#fdba74"
+      }
+    },
+    "secondary": {
+      "$value": "#a16207",
+      "$description": "Brand accent: secondary actions and highlights.",
+      "$modes": {
+        "dark": "#fde047"
+      }
+    },
+    "accent": {
+      "$value": "#0f766e",
+      "$description": "Brand accent: supporting emphasis, distinct from primary.",
+      "$modes": {
+        "dark": "#2dd4bf"
+      }
+    },
+    "neutral": {
+      "50": {
+        "$value": "#faf9f7",
+        "$modes": {
+          "dark": "#0b1120"
+        }
+      },
+      "100": {
+        "$value": "#f0ede8",
+        "$modes": {
+          "dark": "#111827"
+        }
+      },
+      "200": {
+        "$value": "#e2ddd5",
+        "$modes": {
+          "dark": "#1f2937"
+        }
+      },
+      "300": {
+        "$value": "#c9c2b6",
+        "$modes": {
+          "dark": "#334155"
+        }
+      },
+      "400": {
+        "$value": "#9a9184",
+        "$modes": {
+          "dark": "#475569"
+        }
+      },
+      "500": {
+        "$value": "#6f675c",
+        "$modes": {
+          "dark": "#64748b"
+        }
+      },
+      "600": {
+        "$value": "#544d45",
+        "$modes": {
+          "dark": "#94a3b8"
+        }
+      },
+      "700": {
+        "$value": "#3d3833",
+        "$modes": {
+          "dark": "#cbd5e1"
+        }
+      },
+      "800": {
+        "$value": "#2a2622",
+        "$modes": {
+          "dark": "#e2e8f0"
+        }
+      },
+      "900": {
+        "$value": "#1c1917",
+        "$modes": {
+          "dark": "#f8fafc"
+        }
+      },
+      "$description": "The grey ramp, 50 (lightest) through 900 (darkest)."
+    },
+    "semantic": {
+      "$description": "Status colors. Named by meaning, never by hue.",
+      "success": {
+        "$value": "#15803d",
+        "$modes": {
+          "dark": "#4ade80"
+        }
+      },
+      "warning": {
+        "$value": "#a16207",
+        "$modes": {
+          "dark": "#fbbf24"
+        }
+      },
+      "error": {
+        "$value": "#b91c1c",
+        "$modes": {
+          "dark": "#f87171"
+        }
+      },
+      "info": {
+        "$value": "#0369a1",
+        "$modes": {
+          "dark": "#38bdf8"
+        }
+      }
+    },
+    "surface": {
+      "$value": "#faf9f7",
+      "$description": "Page background.",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "surface-sunken": {
+      "$value": "{color.neutral.100}",
+      "$description": "Background of elements that sit below the page: table stripes, inset wells.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$description": "Background of elements that sit above the page: cards, popovers, menus.",
+      "$modes": {
+        "dark": "#111827"
+      }
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Default body text.",
+      "$modes": {
+        "dark": "#f8fafc"
+      }
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "Secondary text: captions, helper copy, placeholders.",
+      "$modes": {
+        "dark": "#94a3b8"
+      }
+    },
+    "border": {
+      "$value": "{color.neutral.200}",
+      "$description": "Default hairline and divider.",
+      "$modes": {
+        "dark": "#1f2937"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$type": "color",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "on-danger": {
+      "$value": "#ffffff",
+      "$type": "color",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "focus-ring": {
+      "$value": "{color.primary}",
+      "$modes": {
+        "dark": "#60a5fa"
+      }
+    },
+    "link": {
+      "$value": "{color.primary}",
+      "$description": "Links read against body text, so they follow the primary.",
+      "$modes": {
+        "dark": "#7dd3fc"
+      }
+    },
+    "on-secondary": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "on-accent": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "field": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "A field's own surface. Distinct from `surface`, so a control reads as an inset object rather than a hole in the page, and distinct from `surface-raised`, so a card on a field is still two things.",
+      "$modes": {
+        "dark": "#1f2937"
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "#94a3b8",
+      "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance.",
+      "$modes": {
+        "dark": "#475569"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#0b1120"
+      }
+    }
+  },
+  "spacing": {
+    "0": {
+      "$value": "0"
+    },
+    "1": {
+      "$value": "0.25rem"
+    },
+    "2": {
+      "$value": "0.5rem"
+    },
+    "4": {
+      "$value": "1rem"
+    },
+    "8": {
+      "$value": "2rem"
+    },
+    "16": {
+      "$value": "4rem"
+    },
+    "$type": "dimension",
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
+    "3": {
+      "$value": "0.75rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    }
+  },
+  "font": {
+    "$description": "Typography: which face, how large, how heavy, and how open the tracking sits.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text."
+      },
+      "serif": {
+        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$description": "Long-form editorial text."
+      },
+      "mono": {
+        "$value": "Cascadia Code, ui-monospace, monospace",
+        "$description": "Code and identifiers."
+      },
+      "heading": {
+        "$value": "Fraunces Variable, Georgia, serif",
+        "$description": "The display face."
+      },
+      "body": {
+        "$value": "Inter Variable, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text."
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "2xs": {
+        "$value": "0.625rem"
+      },
+      "xs": {
+        "$value": "0.75rem"
+      },
+      "sm": {
+        "$value": "0.875rem"
+      },
+      "md": {
+        "$value": "1rem"
+      },
+      "lg": {
+        "$value": "1.125rem"
+      },
+      "xl": {
+        "$value": "1.25rem"
+      },
+      "2xl": {
+        "$value": "1.5rem"
+      },
+      "3xl": {
+        "$value": "1.875rem"
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    },
+    "letter-spacing": {
+      "$type": "dimension",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "tighter": {
+        "$value": "-0.05em",
+        "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
+      },
+      "tight": {
+        "$value": "-0.025em",
+        "$description": "A heading at reading size, where the face's own sidebearings already crowd the word."
+      },
+      "normal": {
+        "$value": "0em",
+        "$description": "Body copy and anything unlabelled. The ramp's middle is a decision, not its absence."
+      },
+      "wide": {
+        "$value": "0.025em",
+        "$description": "The small uppercase label that reads as a clump of strokes at text size."
+      },
+      "wider": {
+        "$value": "0.05em",
+        "$description": "An eyebrow or category mark set above the copy it introduces."
+      },
+      "widest": {
+        "$value": "0.1em",
+        "$description": "A single word carrying a whole section. Past this the word stops being a word."
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Corner rounding, from square to fully round.",
+    "none": {
+      "$value": "0"
+    },
+    "sm": {
+      "$value": "0.125rem"
+    },
+    "md": {
+      "$value": "0.25rem"
+    },
+    "lg": {
+      "$value": "0.5rem"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "opacity": {
+    "0": {
+      "$value": 0,
+      "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
+    },
+    "10": {
+      "$value": 0.1,
+      "$description": "A ghost: present in the DOM, gone from the eye. Reserved for decoration."
+    },
+    "20": {
+      "$value": 0.2,
+      "$description": "Disabled. Low enough to stop a control being pressed, high enough to keep its label readable beside live controls."
+    },
+    "30": {
+      "$value": 0.3,
+      "$description": "A disabled control on a dark surface, where the same fraction reads lighter than it does on a light one."
+    },
+    "40": {
+      "$value": 0.4,
+      "$description": "The dimmed step: a placeholder image, a track before it is filled, a hint of content."
+    },
+    "50": {
+      "$value": 0.5,
+      "$description": "Half. The step most rules ask for, so it is the one a theme is most likely to have an opinion about."
+    },
+    "60": {
+      "$value": 0.6,
+      "$description": "Muted but still read: text on a disabled field that the reader is expected to transcribe."
+    },
+    "70": {
+      "$value": 0.7,
+      "$description": "Secondary content that must survive a projector or a bright room."
+    },
+    "80": {
+      "$value": 0.8,
+      "$description": "A hair under full strength: the hover state of something that should feel nearly solid."
+    },
+    "90": {
+      "$value": 0.9,
+      "$description": "Almost opaque. The step for a scrim that must dim what is behind it without appearing to."
+    },
+    "100": {
+      "$value": 1,
+      "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation, as CSS box-shadow values.",
+    "sm": {
+      "$value": "0 1px 2px 0 rgba(15, 23, 42, 0.06)"
+    },
+    "md": {
+      "$value": "0 4px 12px -2px rgba(15, 23, 42, 0.10)"
+    },
+    "lg": {
+      "$value": "0 12px 32px -8px rgba(15, 23, 42, 0.16)"
+    }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Viewport widths where layout steps change.",
+    "sm": {
+      "$value": "40rem"
+    },
+    "md": {
+      "$value": "48rem"
+    },
+    "lg": {
+      "$value": "64rem"
+    },
+    "xl": {
+      "$value": "80rem"
+    }
+  },
+  "z-index": {
+    "$type": "number",
+    "$description": "Stacking order. Layer, never a magic number at the call site.",
+    "base": {
+      "$value": 0
+    },
+    "dropdown": {
+      "$value": 1000
+    },
+    "modal": {
+      "$value": 2000
+    },
+    "toast": {
+      "$value": 3000
+    }
+  },
+  "motion": {
+    "$description": "How things move and how long it takes.",
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": "150ms"
+      },
+      "base": {
+        "$value": "250ms"
+      },
+      "slow": {
+        "$value": "400ms"
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "linear": {
+        "$value": "linear"
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.2, 0, 0, 1)"
+      },
+      "decelerate": {
+        "$value": "cubic-bezier(0, 0, 0, 1)"
+      },
+      "accelerate": {
+        "$value": "cubic-bezier(0.3, 0, 1, 1)"
+      }
+    }
+  },
+  "button": {
+    "$type": "dimension",
+    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "weight": {
+      "$type": "fontWeight",
+      "$description": "The button's own weight. A control carries more weight than the prose around it.",
+      "$value": "600"
+    },
+    "case": {
+      "$value": "none",
+      "$type": "textTransform"
+    },
+    "tracking": {
+      "$type": "dimension",
+      "$description": "Label tracking. Slightly tight, because a 600-weight label in a small control needs the width back.",
+      "$value": "-0.01em"
+    },
+    "shadow": {
+      "$type": "shadow",
+      "$description": "The resting elevation. A control with no shadow sits on the page rather than in it.",
+      "$value": "0 1px 2px 0 rgba(15, 23, 42, 0.08)"
+    },
+    "shadow-hover": {
+      "$type": "shadow",
+      "$description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
+      "$value": "0 4px 12px -2px rgba(15, 23, 42, 0.14)"
+    }
+  },
+  "border": {
+    "$type": "dimension",
+    "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
+    "width": {
+      "$value": "1px",
+      "$description": "The hairline every control and surface draws with."
+    },
+    "width-2": {
+      "$value": "2px",
+      "$description": "The emphasis edge: a control that must read as selected rather than merely bordered."
+    },
+    "width-4": {
+      "$value": "4px",
+      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+    },
+    "width-8": {
+      "$value": "8px",
+      "$description": "The frame. A block drawn rather than outlined."
+    }
+  },
+  "focus": {
+    "$type": "dimension",
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs.",
+    "width": {
+      "$value": "1px",
+      "$modes": {
+        "dark": "2px"
+      }
+    },
+    "offset": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      }
+    }
+  },
+  "icon": {
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.875rem"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "1.125rem"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "1.5rem"
+    }
+  },
+  "badge": {
+    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "edge": {
+      "$type": "dimension",
+      "$value": "{border.width}",
+      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
+    },
+    "pill": {
+      "$type": "boolean",
+      "$value": true,
+      "$description": "Fully round reads as a pill; false squares it into a tag."
+    }
+  },
+  "checkbox": {
+    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
+    "depth": {
+      "$type": "number",
+      "$value": 1.5
+    }
+  },
+  "switch": {
+    "$description": "How physical a switch is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
+    "depth": {
+      "$type": "number",
+      "$value": 1.5
+    }
+  },
+  "$description": "Carries a `dark` group, so this one theme answers to both modes.",
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "modes": [
+    "light",
+    "dark"
+  ]
+}

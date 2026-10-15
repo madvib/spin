@@ -47,8 +47,7 @@ export function spacingRule(
  * shape, and the browser agrees.
  */
 const NUMBER = String.raw`-?(?:\d+(?:\.\d+)?|\.\d+)`;
-const UNIT =
-  "(?:px|rem|em|ex|ch|cap|ic|lh|rlh|cm|mm|in|pt|pc|q|" +
+const UNIT = "(?:px|rem|em|ex|ch|cap|ic|lh|rlh|cm|mm|in|pt|pc|q|" +
   "vh|vw|vi|vb|vmin|vmax|" +
   "svh|svw|svmin|svmax|lvh|lvw|lvmin|lvmax|dvh|dvw|dvmin|dvmax|" +
   "cqw|cqb|cqi|cqh|cqmin|cqmax|%)";
@@ -110,7 +109,9 @@ function readSum(source: string, at: number): number | undefined {
       i = after;
       continue;
     }
-    if (source[next] === undefined || !"+-*/".includes(source[next] as string)) {
+    if (
+      source[next] === undefined || !"+-*/".includes(source[next] as string)
+    ) {
       return next;
     }
     const after = readTerm(source, next + 1);

@@ -1,6 +1,9 @@
 # Operational docs (git-ignored, will go stale)
 .agents/specs/
 
+# Daemon discovery (written at start, removed on close)
+spin-connection.json
+
 # Harness run state (regenerated, never tracked)
 .omo/
 

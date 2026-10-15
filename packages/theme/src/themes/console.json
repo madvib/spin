@@ -131,9 +131,6 @@
     "0": {
       "$value": "0"
     },
-    "px": {
-      "$value": "1px"
-    },
     "1": {
       "$value": "0.25rem"
     },
@@ -190,6 +187,9 @@
     },
     "60": {
       "$value": "15rem"
+    },
+    "px": {
+      "$value": "1px"
     }
   },
   "font": {
@@ -287,9 +287,6 @@
   },
   "radius": {
     "$type": "dimension",
-    "xs": {
-      "$value": "0.0625rem"
-    },
     "$description": "Corner rounding, from square to fully round.",
     "none": {
       "$value": "0"
@@ -312,6 +309,9 @@
     "xl": {
       "$value": "4px",
       "$type": "dimension"
+    },
+    "xs": {
+      "$value": "0.0625rem"
     }
   },
   "opacity": {
@@ -463,14 +463,14 @@
       "decelerate": {
         "$value": "cubic-bezier(0, 0, 0, 1)"
       },
+      "accelerate": {
+        "$value": "cubic-bezier(0.3, 0, 1, 1)"
+      },
       "out": {
         "$value": "cubic-bezier(0, 0, 0.2, 1)"
       },
       "in-out": {
         "$value": "cubic-bezier(0.4, 0, 0.2, 1)"
-      },
-      "accelerate": {
-        "$value": "cubic-bezier(0.3, 0, 1, 1)"
       }
     }
   },

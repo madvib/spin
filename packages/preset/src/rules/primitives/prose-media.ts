@@ -1,10 +1,5 @@
 import type { Rule } from "@unocss/core";
-import {
-  claim,
-  proseTokens,
-  rhythm,
-  type Mode,
-} from "./shared.ts";
+import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
 
 /**
  * Embedded media: `figure`, `figcaption`, the raster and vector elements, and
@@ -36,7 +31,9 @@ function figcaptionRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, "figcaption"),
-        ...(t.spacing1 !== undefined ? { "margin-block-start": t.spacing1 } : {}),
+        ...(t.spacing1 !== undefined
+          ? { "margin-block-start": t.spacing1 }
+          : {}),
         ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
         "text-align": "center",

@@ -48,6 +48,16 @@ const Analysis = v.object({
   /** Null when the text is not a parseable, well-formed token document. */
   error: v.nullable(v.string()),
   issues: v.array(ValidationIssue),
+  /**
+   * The parsed tree, when there is one.
+   *
+   * The daemon has already parsed to reach the verdict, so handing the tree
+   * back costs nothing and saves a consumer a second parse. The studio does
+   * not read it yet — its analysis is synchronous and would have to become
+   * async across eight call sites to move behind RPC — so this is a contract
+   * answer waiting for its consumer rather than an unused one.
+   */
+  tree: v.nullable(v.unknown()),
 });
 
 const CssOutput = v.object({
@@ -187,80 +197,6 @@ export const themeTypes = oc
     path: "/theme/types",
     summary: "Generate TypeScript declarations for a theme",
   });
-/**
- * A theme on disk, named by its file stem.
- *
- * The name is a bare stem constrained to `[a-z0-9-]`: a name from a picker
- * is untrusted input to a filesystem read, and a separator in it reads
- * outside the themes directory. The regex below is that constraint, stated
- * once in the contract so every caller shares it.
- */
-const ThemeName = v.pipe(
-  v.string(),
-  v.regex(/^[a-z0-9][a-z0-9-]*$/i),
-  v.description("A theme file stem, e.g. `default`."),
-);
-
-const ProjectTheme = v.object({
-  /** File stem, and the name written back to disk. */
-  name: ThemeName,
-  /** The raw JSON text, which is what an author edits. */
-  text: v.string(),
-  /** Path relative to the workspace, shown so the author knows what they edit. */
-  file: v.string(),
-});
-
-/** Every theme file in the project's themes directory. */
-export const listThemes = oc
-  .output(v.array(ProjectTheme))
-  .route({
-    method: "GET",
-    path: "/project/themes/list",
-    summary: "List the project's themes on disk",
-  });
-
-/** Read one theme file by name. */
-export const readTheme = oc
-  .input(v.object({ name: ThemeName }))
-  .output(
-    v.object({ text: v.nullable(v.string()) }),
-  )
-  .route({
-    method: "GET",
-    path: "/project/themes/read",
-    summary: "Read one theme file by name",
-  });
-
-/** Write one theme file by name, creating it when absent. */
-export const writeTheme = oc
-  .input(v.object({ name: ThemeName, text: ThemeText }))
-  .output(v.object({ error: v.nullable(v.string()) }))
-  .route({
-    method: "POST",
-    path: "/project/themes/write",
-    summary: "Write one theme file by name",
-  });
-
-/** Remove one theme file by name. */
-export const removeTheme = oc
-  .input(v.object({ name: ThemeName }))
-  .output(v.object({ error: v.nullable(v.string()) }))
-  .route({
-    method: "POST",
-    path: "/project/themes/remove",
-    summary: "Remove one theme file by name",
-  });
-
-/** Copy one theme file to a new name. A new theme starts as a copy. */
-export const copyTheme = oc
-  .input(v.object({ from: ThemeName, to: ThemeName }))
-  .output(v.object({ error: v.nullable(v.string()) }))
-  .route({
-    method: "POST",
-    path: "/project/themes/copy",
-    summary: "Copy one theme file to a new name",
-  });
-
 export const themeContract = {
   theme: {
     analyze: analyzeTheme,
@@ -275,14 +211,5 @@ export const themeContract = {
   },
   themes: {
     css: themesCss,
-  },
-  project: {
-    themes: {
-      list: listThemes,
-      read: readTheme,
-      write: writeTheme,
-      remove: removeTheme,
-      copy: copyTheme,
-    },
   },
 };

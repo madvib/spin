@@ -149,8 +149,9 @@ function barRule(progress: string): Rule {
       // as two overlapping things.
       if (t.primary !== undefined) {
         const band = {
-          "background-image":
-            `linear-gradient(90deg, ${t.track ?? "transparent"} 0 30%, ${t.primary} 50% 70%, ${t.track ?? "transparent"} 90% 100%)`,
+          "background-image": `linear-gradient(90deg, ${
+            t.track ?? "transparent"
+          } 0 30%, ${t.primary} 50% 70%, ${t.track ?? "transparent"} 90% 100%)`,
           "background-size": "300% 100%",
           "background-repeat": "no-repeat",
         };
@@ -159,24 +160,28 @@ function barRule(progress: string): Rule {
         };
 
         yield {
-          [ctx.symbols.selector]: () => `${progress}:indeterminate::-webkit-progress-bar`,
+          [ctx.symbols.selector]: () =>
+            `${progress}:indeterminate::-webkit-progress-bar`,
           ...band,
           ...motion,
           "-webkit-appearance": "none",
         };
         yield {
-          [ctx.symbols.selector]: () => `${progress}:indeterminate::-webkit-progress-value`,
+          [ctx.symbols.selector]: () =>
+            `${progress}:indeterminate::-webkit-progress-value`,
           "background-color": "transparent",
           "-webkit-appearance": "none",
         };
         yield {
-          [ctx.symbols.selector]: () => `${progress}:indeterminate::-moz-progress-bar`,
+          [ctx.symbols.selector]: () =>
+            `${progress}:indeterminate::-moz-progress-bar`,
           ...band,
           ...motion,
           "-moz-appearance": "none",
         };
         yield {
-          [ctx.symbols.selector]: () => `${progress}:indeterminate::-moz-progress-value`,
+          [ctx.symbols.selector]: () =>
+            `${progress}:indeterminate::-moz-progress-value`,
           "background-color": "transparent",
           "-moz-appearance": "none",
         };
@@ -215,7 +220,8 @@ function indeterminateRule(progress: string): Rule[] {
         // one place in the system a value is passed as a property rather than
         // as a reference, and the reason is a browser limitation rather than a
         // preference.
-        const states = `${progress}:is(:indeterminate, .progress-indeterminate)`;
+        const states =
+          `${progress}:is(:indeterminate, .progress-indeterminate)`;
         yield {
           [ctx.symbols.selector]: () => states,
           "--progress-sweep-from": t.track ?? "transparent",

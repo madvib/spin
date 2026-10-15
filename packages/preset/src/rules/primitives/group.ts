@@ -32,11 +32,10 @@ export function groupRules(roots: readonly string[]): Rule[] {
 }
 
 /** The controls a group joins. A group of things is a group of controls. */
-const MEMBERS =
-  ':is(button, input, select, textarea, badge, [role="button"])';
+const MEMBERS = ':is(button, input, select, textarea, badge, [role="button"])';
 
 /** The same list as a standalone selector, for composing onto a position. */
-const MEMBER = "button, input, select, textarea, badge, [role=\"button\"]";
+const MEMBER = 'button, input, select, textarea, badge, [role="button"]';
 
 function tokens(ctx: Parameters<typeof themeOf>[0]) {
   const t = themeOf(ctx);
@@ -109,7 +108,8 @@ function groupRule(): Rule {
       // of each line, dragging it into the row above. Opting out is one rule
       // rather than a variant, because nothing else distinguishes the two.
       yield {
-        [ctx.symbols.selector]: () => `${group}[data-wrap] > ${MEMBERS} ~ ${MEMBERS}`,
+        [ctx.symbols.selector]: () =>
+          `${group}[data-wrap] > ${MEMBERS} ~ ${MEMBERS}`,
         "margin-inline-start": "0",
       };
     },

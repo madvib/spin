@@ -175,13 +175,19 @@ function readsOnlySuppliedTokens(css: string, value: string): boolean {
 }
 
 async function cssFor(classes: string): Promise<string> {
-  const uno = await generatorFor({ themes: { default: workingTreeDocument() } });
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
   const { css } = await uno.generate(classes);
   return css;
 }
 
 Deno.test("bg-primary resolves to the color token variable", async () => {
-  assertTokenDriven(await cssFor("bg-primary"), "bg-primary", "background-color");
+  assertTokenDriven(
+    await cssFor("bg-primary"),
+    "bg-primary",
+    "background-color",
+  );
 });
 
 Deno.test("p-4 resolves to the spacing token variable", async () => {
@@ -219,7 +225,9 @@ Deno.test("preflight emits the theme variables", async () => {
   // The decision is that every token a utility READS is one the sheet
   // DECLARES. Asserting the token's own name instead would only prove the
   // fixture spelled it the way the test expects.
-  const uno = await generatorFor({ themes: { default: workingTreeDocument() } });
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
   const { css } = await uno.generate(
     "bg-primary p-4 rounded-lg text-lg font-sans shadow-md",
   );
@@ -318,7 +326,6 @@ Deno.test("preflight emits dark overrides for the dark axis", async () => {
     `the dark block must override the primary it shares with light:\n${css}`,
   );
 });
-
 
 Deno.test("preset refuses a theme missing required tokens", () => {
   assertThrows(
@@ -515,7 +522,12 @@ Deno.test("items-center resolves to center alignment", async () => {
 });
 
 Deno.test("overflow-auto resolves to auto overflow", async () => {
-  assertSets(await cssFor("overflow-auto"), "overflow-auto", "overflow", "auto");
+  assertSets(
+    await cssFor("overflow-auto"),
+    "overflow-auto",
+    "overflow",
+    "auto",
+  );
 });
 
 Deno.test("border-2 resolves to two pixel width", async () => {
@@ -539,7 +551,9 @@ Deno.test("preflight resets the box model", async () => {
 });
 
 Deno.test("the theme layer sets the body from theme tokens", async () => {
-  const uno = await generatorFor({ themes: { default: workingTreeDocument() } });
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
   const { css } = await uno.generate("flex");
   // The body rule reads a token rather than naming a face, so a theme change
   // re-types the document without a rebuild.
@@ -804,7 +818,9 @@ Deno.test("a wind4-only family produces a rule", async () => {
     ["caret-primary", "caret-color"],
     ["line-clamp-3", "-webkit-line-clamp"],
   ];
-  const uno = await generatorFor({ themes: { default: workingTreeDocument() } });
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
   for (const [utility, property] of families) {
     const { css, matched } = await uno.generate(utility);
     assert(
@@ -825,7 +841,9 @@ Deno.test("a utility we own resolves through our token", async () => {
   // wind4 spacing rule answers with `var(--spacing)`, a base a spin theme
   // never declares, so the declaration parses and then computes to nothing —
   // no padding at all, with a sheet that looks perfectly correct.
-  const uno = await generatorFor({ themes: { default: workingTreeDocument() } });
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
   const { css } = await uno.generate("p-4 bg-primary rounded-lg");
   for (
     const [utility, property] of [
@@ -852,7 +870,9 @@ Deno.test("no emitted declaration is a self-referential custom property", async 
   // `--spacing-2` as a read of `--spacing-2`. A self-reference resolves to
   // nothing at computed-value time: the variable is declared, the sheet looks
   // right, and every element spending that token gets nothing.
-  const uno = await generatorFor({ themes: { default: workingTreeDocument() } });
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
   const { css } = await uno.generate(
     "p-4 m-4 ps-4 px-4 gap-4 w-4 h-4 inset-4 inset-x-0 top-4 bg-primary " +
       "border-primary rounded-lg text-lg font-sans font-bold shadow-md " +

@@ -17,10 +17,37 @@ const ComponentName = v.pipe(
   v.description("Component name, e.g. 'button'."),
 );
 
+/** One row of a component's showcase, as the RPC surface carries it. */
+const ExampleRow = v.object({
+  name: v.string(),
+  html: v.string(),
+});
+
+const ComponentExamples = v.object({
+  note: v.string(),
+  rows: v.array(ExampleRow),
+});
+
+/**
+ * Every example a component ships, in one payload.
+ *
+ * Measured, not guessed: 35 components, 139 rows, 63.5 KiB total and a median
+ * of 1.4 KiB — trivial for one call and far cheaper than a round trip per
+ * component. Split it when the payload actually hurts, which is a measurement
+ * rather than a guess.
+ */
 const ComponentSummary = v.object({
   name: v.string(),
   tags: v.array(v.string()),
   variants: v.array(v.string()),
+  /**
+   * The custom properties this component reads, so one call carries both the
+   * vocabulary and what it spends. A specimen wall that knows which tokens
+   * each component reads answers "what does this edit change" without a round
+   * trip per component.
+   */
+  reads: v.array(v.string()),
+  examples: v.optional(ComponentExamples),
 });
 
 const ContractOutput = v.object({
@@ -82,6 +109,6 @@ export const primitivesContract = {
   primitives: {
     list,
     contract,
-      tokens,
+    tokens,
   },
 };

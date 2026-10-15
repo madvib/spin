@@ -11,6 +11,7 @@
  * are fresh trees sharing nothing with the input.
  */
 
+import { requiredPaths } from "../contract/roles.ts";
 import { isTokenType } from "../pipeline/parse.ts";
 import type {
   TokenGroup,
@@ -34,6 +35,9 @@ export type MutationErrorCode =
   | "group-not-token"
   | "missing-token"
   | "occupied-target"
+  // The path names a token the contract requires, so removing it leaves a
+  // theme that does not build.
+  | "required-token"
   | "type-mismatch"
   | "type-required";
 
@@ -189,6 +193,19 @@ export function removeToken(
   tree: TokenTree,
   path: string[],
 ): MutationResult {
+  // A required token cannot be dropped. Without this, `remove` happily
+  // deletes `color.primary` and the failure surfaces three layers later as
+  // "theme is incomplete" from the preset — correct, but far from the edit
+  // that caused it, and the studio's gate is not the same body of rules as
+  // this one. The mutation refuses its own contract violation.
+  const required = new Set(requiredPaths());
+  if (required.has(path.join("."))) {
+    return fail(
+      "required-token",
+      path,
+      "this token is required; a theme without it does not build",
+    );
+  }
   const next = cloneTree(tree);
   const found = resolveParentForWrite(next, path);
   if (!found.ok) return found;

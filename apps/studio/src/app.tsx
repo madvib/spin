@@ -9,12 +9,40 @@
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
-import { A, Router } from "@solidjs/router";
-import { FileRoutes } from "@solidjs/start/router";
-import { createResource, For, Show, Suspense } from "solid-js";
+import { A, Route, Router } from "@solidjs/router";
+import ColorsPage from "./routes/colors.tsx";
+import TypePage from "./routes/type.tsx";
+import ComponentsLayout from "./routes/components.tsx";
+import ComponentPage from "./routes/components/[name].tsx";
+import OverviewPage from "./routes/index.tsx";
+import MotionPage from "./routes/motion.tsx";
+import SpacingPage from "./routes/spacing.tsx";
+import SurfacesPage from "./routes/surfaces.tsx";
+import UtilitiesPage from "./routes/utilities.tsx";
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+  Suspense,
+} from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
-import { listProjectThemes } from "./lib/themes.ts";
+
+import { listProjectThemes, saveTheme } from "./lib/themes.ts";
+import {
+  canRedo,
+  canUndo,
+  isDirty,
+  lastRefusal,
+  markSaved,
+  redo,
+  themeText,
+  undo,
+} from "./lib/store.ts";
 import {
   activeMode,
   activeName,
@@ -28,41 +56,65 @@ import {
  */
 const STUDIO_THEME = "studio";
 
+/**
+ * The mode control.
+ *
+ * A two-button group with pressed state rather than a cycling icon: the
+ * current mode is a choice with two answers, and pressing the one you are
+ * not on is the affordance a tool needs. One control drives both the
+ * chrome and the preview — working in dark means the whole studio is
+ * dark, and the preview still declares the edited theme's own dark values.
+ */
 function ModePicker() {
-  const cycle = () =>
-    setActiveMode(activeMode() === "light" ? "dark" : "light");
   return (
-    <button
-      type="button"
-      aria-label={`Switch to ${
-        activeMode() === "light" ? "dark" : "light"
-      } mode`}
-      onClick={cycle}
-    >
-      <span
-        class={`inline-block ${
-          activeMode() === "light" ? "i-lucide-moon" : "i-lucide-sun"
-        }`}
-        aria-hidden="true"
-      />
-    </button>
+    <div class="row-sm" role="group" aria-label="Color mode">
+      <button
+        type="button"
+        class="bare"
+        aria-pressed={activeMode() === "light"}
+        onClick={() => setActiveMode("light")}
+      >
+        <span class="inline-block icon-md i-lucide-sun" aria-hidden="true" />
+        Light
+      </button>
+      <button
+        type="button"
+        class="bare"
+        aria-pressed={activeMode() === "dark"}
+        onClick={() => setActiveMode("dark")}
+      >
+        <span class="inline-block icon-md i-lucide-moon" aria-hidden="true" />
+        Dark
+      </button>
+    </div>
   );
 }
 
 /**
  * The project theme picker.
  *
- * Lists what is on disk in the project's themes directory — not what the studio
- * shipped with. The selected theme drives the preview surface only.
+ * Lists what is on disk in the project's themes directory — not what the
+ * studio shipped with. The selected theme drives the preview surface only;
+ * a `<label>` names it rather than a bare floating select.
  */
 function ThemePicker() {
   const [themes] = createResource(listProjectThemes);
+  let select: HTMLSelectElement | undefined;
+  // The options arrive after the select does, and the browser answers an
+  // option list it just filled by selecting the first one — so the picker
+  // read `console` while the editor was editing `default`. Writing the value
+  // once both are settled is the only thing that keeps them honest.
+  createEffect(() => {
+    if (select !== undefined && themes() !== undefined) {
+      select.value = activeName();
+    }
+  });
   return (
-    <div class="flex items-center gap-4">
+    <div class="row-sm">
       <label for="theme-picker">Theme</label>
       <select
+        ref={select}
         id="theme-picker"
-        value={activeName()}
         onChange={(event) => setActiveName(event.currentTarget.value)}
       >
         <Show when={themes()} fallback={<option>loading…</option>}>
@@ -78,6 +130,7 @@ function ThemePicker() {
 
 const CONCERNS = [
   ["colors", "Color"],
+  ["type", "Type"],
   ["surfaces", "Surfaces"],
   ["spacing", "Spacing"],
   ["motion", "Motion"],
@@ -86,8 +139,35 @@ const CONCERNS = [
 ] as const;
 
 export default function App() {
+  // The concern list collapses on a narrow viewport — the studio runs in an
+  // iframe at drawer width, where eight entries are either a three-row stack
+  // or a horizontal scroll. Both are worse than one button that opens them.
+  //
+  // A `matchMedia` rather than `md:` variants: `.hidden` and `.md:flex` are
+  // the same specificity, so which one wins is a property of the sheet's
+  // emission order rather than of the markup. It resolved wrong, and left
+  // the nav empty at full width.
+  const [navOpen, setNavOpen] = createSignal(false);
+  const [narrow, setNarrow] = createSignal(false);
+  onMount(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => setNarrow(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    onCleanup(() => query.removeEventListener("change", sync));
+  });
+
+  // The path is the daemon's answer, project-relative: it states the layout
+  // of a project rather than of the machine the studio happens to run on.
+  const [themes] = createResource(listProjectThemes);
+  const activePath = () =>
+    themes()?.find((theme) => theme.name === activeName())?.file;
+
   return (
     <Router
+      // The bundle is served under `/__spin/studio/`; dev serves at `/`.
+      // Vite injects the build's base here, so one line covers both.
+      base={import.meta.env.BASE_URL.replace(/\/$/, "")}
       root={(props) => (
         <MetaProvider>
           <Title>spin theme studio</Title>
@@ -97,38 +177,132 @@ export default function App() {
           }
           <div
             data-theme={STUDIO_THEME}
-            class="flex flex-col h-screen bg-surface"
+            data-mode={activeMode()}
+            class="stack h-screen bg-surface"
           >
             <nav
               aria-label="Studio"
-              class="flex items-center gap-4 p-4 bg-surface-raised shrink-0"
+              class="flex flex-wrap items-center gap-4 shrink-0 bg-surface-raised p-4"
             >
-              <A href="/">
-                <span class="flex items-center gap-4">
+              <A href="/" class="row-sm font-semibold">
+                <span
+                  class="inline-block icon-lg i-lucide-loader-pinwheel text-text"
+                  aria-hidden="true"
+                />
+                <span>Spin</span>
+              </A>
+              <Show when={narrow()}>
+                <button
+                  type="button"
+                  class="bare"
+                  aria-expanded={navOpen()}
+                  aria-label="Concerns"
+                  onClick={() => setNavOpen((open) => !open)}
+                >
                   <span
-                    class="inline-block i-lucide-loader-pinwheel"
+                    class="inline-block icon-md i-lucide-menu"
                     aria-hidden="true"
                   />
-                  <span>Spin</span>
-                </span>
-              </A>
-              <ul class="flex flex-1 items-center justify-center gap-4">
+                </button>
+              </Show>
+              <ul
+                class={narrow() && !navOpen()
+                  ? "hidden"
+                  : "row-list flex-1 justify-center"}
+              >
                 <For each={CONCERNS}>
                   {([href, label]) => (
                     <li>
-                      <A href={`/${href}`}>{label}</A>
+                      {
+                        /* `activeClass` is the router's own answer to "where am
+                          I", which is the one thing a nav must say and this
+                          one said nothing: every entry looked identical. */
+                      }
+                      <A
+                        href={`/${href}`}
+                        activeClass="text-text font-semibold underline"
+                        inactiveClass="text-text-muted"
+                      >
+                        {label}
+                      </A>
                     </li>
                   )}
                 </For>
               </ul>
               <ThemePicker />
+              {
+                /* Undo, redo and save are editing controls, not a status bar.
+                  They had a row of their own, which in the drawer was half
+                  the screen for two icons and a button. */
+              }
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="bare"
+                  onClick={() => undo()}
+                  disabled={!canUndo()}
+                  aria-label="Undo"
+                  title="Undo"
+                >
+                  <span
+                    class="inline-block icon-md i-lucide-undo-2"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  class="bare"
+                  onClick={() => redo()}
+                  disabled={!canRedo()}
+                  aria-label="Redo"
+                  title="Redo"
+                >
+                  <span
+                    class="inline-block icon-md i-lucide-redo-2"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const name = activeName();
+                    const written = await saveTheme(name, themeText());
+                    if (written.error === null) markSaved(name);
+                  }}
+                  disabled={!isDirty(activeName())}
+                  title="Save to disk"
+                >
+                  Save
+                </button>
+                {
+                  /* The running app is the primary specimen: a theme edit
+                    re-themes it live through the overlay, so this opens the
+                    app the project actually ships. */
+                }
+                <a
+                  // Same origin from the user's dev server; standalone
+                  // studio-dev takes `?app=`, because the app is a second
+                  // server with a floating port.
+                  href={new URLSearchParams(location.search).get("app") ?? "/"}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="View in app"
+                  title="View in app"
+                  class="button secondary whitespace-nowrap"
+                >
+                  View in app
+                </a>
+              </div>
+              {
+                /* A refused edit says why, next to the button that would have
+                  applied it, rather than in a row of its own. */
+              }
+              <Show when={lastRefusal() !== undefined}>
+                <alert variant="danger" class="text-xs">
+                  {lastRefusal()}
+                </alert>
+              </Show>
             </nav>
-            <div class="flex items-center gap-4 p-4 shrink-0 border-b border-border">
-              <span>
-                Editing <code>{activeName()}</code>{" "}
-                in packages/theme/src/themes · previewing {activeMode()}
-              </span>
-            </div>
             {
               /* The preview carries the project's theme. Everything above is
                 chrome and stays on the studio's own. */
@@ -136,7 +310,7 @@ export default function App() {
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
-              class="flex flex-col flex-1 min-h-0"
+              class="stack min-h-0 flex-1"
             >
               <PreviewStyles />
               <Suspense>{props.children}</Suspense>
@@ -145,7 +319,16 @@ export default function App() {
         </MetaProvider>
       )}
     >
-      <FileRoutes />
+      <Route path="/" component={OverviewPage} />
+      <Route path="/colors" component={ColorsPage} />
+      <Route path="/type" component={TypePage} />
+      <Route path="/surfaces" component={SurfacesPage} />
+      <Route path="/spacing" component={SpacingPage} />
+      <Route path="/motion" component={MotionPage} />
+      <Route path="/components" component={ComponentsLayout}>
+        <Route path="/:name" component={ComponentPage} />
+      </Route>
+      <Route path="/utilities" component={UtilitiesPage} />
     </Router>
   );
 }

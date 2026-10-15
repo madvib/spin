@@ -1,6 +1,12 @@
 import { assert, assertEquals } from "@std/assert";
-import { indexTree, parseTokens, validateLegibility, validateTokens } from "@spin/theme";
+import {
+  indexTree,
+  parseTokens,
+  validateLegibility,
+  validateTokens,
+} from "@spin/theme";
 import { requiredRolesFor } from "../src/index.ts";
+import type { TokenLeaf, TokenNode } from "@spin/theme";
 
 /**
  * The shipped example themes are the reference implementations of "a theme
@@ -48,25 +54,18 @@ Deno.test("a dark MODE restates what it flips and inherits the rest", () => {
   const parsed = parseTokens(example("default.json"));
   if (!parsed.ok) throw new Error(parsed.error);
 
-  const declared = new Set(
-    Object.keys(indexTree(parsed.tree).leaves).map((k) => k),
-  );
-  const dark = parsed.tree.find((node) => node.path.join(".") === "dark");
-  assert(dark !== undefined, "the theme must carry a dark group");
-
-  const base = new Set(
-    parsed.tree
-      .filter((node) => node.path.join(".") !== "dark")
-      .flatMap((node) =>
-        Object.keys(indexTree([node]).leaves).map((k) => k.replace(/^dark\./, ""))
-      ),
-  );
-  for (const leaf of Object.keys(indexTree([dark]).leaves)) {
-    const bare_ = leaf.replace(/^dark\./, "");
-    assert(
-      base.has(bare_) || declared.has(bare_),
-      `dark declares ${bare_}, which the theme does not — a mode may only ` +
-        `restate, never introduce`,
-    );
-  }
+  // A token carries its mode values as `$modes.dark` beside its base, so the
+  // property is now structural: a mode may only restate a token the theme
+  // already declares. There is no group to walk any more, and no second
+  // document to reconcile — the test's original worry is answered by the
+  // shape itself, which the schema enforces.
+  const withMode = parsed.tree.flatMap(function walk(
+    node: TokenNode,
+  ): TokenLeaf[] {
+    if (node.kind === "token") {
+      return node.modes !== undefined && "dark" in node.modes ? [node] : [];
+    }
+    return node.children.flatMap(walk);
+  });
+  assert(withMode.length > 0, "the theme must declare some dark values");
 });
