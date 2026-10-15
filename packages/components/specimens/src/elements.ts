@@ -58,6 +58,16 @@ declare module "solid-js" {
         "prop:zoomStep"?: string;
         "prop:disabled"?: boolean;
       };
+      "spin-signature-pad": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        children?: JSX.Element;
+        id?: string;
+        "prop:label"?: string;
+        "prop:name"?: string;
+        "prop:required"?: boolean;
+        "prop:disabled"?: boolean;
+        "prop:readOnly"?: boolean;
+      };
       "spin-color-picker": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;

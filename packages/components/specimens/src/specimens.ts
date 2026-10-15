@@ -6,6 +6,7 @@ import Combobox from "./routes/combobox.tsx";
 import Listbox from "./routes/listbox.tsx";
 import ColorPicker from "./routes/color-picker.tsx";
 import ImageCropper from "./routes/image-cropper.tsx";
+import SignaturePad from "./routes/signature-pad.tsx";
 import DateInput from "./routes/date-input.tsx";
 import DatePicker from "./routes/date-picker.tsx";
 import Editable from "./routes/editable.tsx";
@@ -49,6 +50,15 @@ export const SPECIMENS: readonly Specimen[] = [
     path: "/image-cropper",
     group: "Inputs",
     component: ImageCropper,
+  },
+  {
+    id: "signature-pad",
+    title: "Signature pad",
+    blurb:
+      "Freehand strokes: press to draw, release to commit, clear to empty.",
+    path: "/signature-pad",
+    group: "Inputs",
+    component: SignaturePad,
   },
   {
     id: "color-picker",

@@ -12,6 +12,7 @@
     "./listbox": "./src/spin-listbox/spin-listbox.html",
     "./color-picker": "./src/spin-color-picker/spin-color-picker.html",
     "./image-cropper": "./src/spin-image-cropper/spin-image-cropper.html",
+    "./signature-pad": "./src/spin-signature-pad/spin-signature-pad.html",
     "./date-input": "./src/spin-date-input/spin-date-input.html",
     "./date-picker": "./src/spin-date-picker/spin-date-picker.html",
     "./editable": "./src/spin-editable/spin-editable.html",
