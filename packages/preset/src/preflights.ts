@@ -41,6 +41,22 @@ const RESET_CSS =
   "*, ::before, ::after { box-sizing: border-box; border-width: 0; }";
 
 /**
+ * A glyph is a mask and a mask needs a box.
+ *
+ * preset-icons emits `width: 1em; height: 1em` and no `display`, so an inline
+ * `<span>` ignores both and every icon rendered at zero — a flex parent
+ * blockified it to `width: 0` besides, which is why grid-centred glyphs
+ * looked fine. `extraProperties` would fix it too, but it is a flag on the
+ * consumer's preset list, so it is here instead. Utilities at layer 0 beat
+ * this, so `flex-1` or `inline` on a glyph still wins.
+ *
+ * Matches the `i-` prefix on a token boundary, so `pi-icon` and `data-icon`
+ * are not caught.
+ */
+const ICON_GLYPH_CSS =
+  '[class^="i-"], [class*=" i-"] { display: inline-block; flex: none; }';
+
+/**
  * The motion floor, applied once rather than copied into every component that
  * animates. A component that needs to do more than stop — a busy spinner that
  * should read as busy without moving — overrides it locally, where the
@@ -99,7 +115,7 @@ function assemble(
       name: "reset",
       layer: "reset",
       order: LAYER.reset,
-      getCSS: () => RESET_CSS,
+      getCSS: () => `${RESET_CSS}\n${ICON_GLYPH_CSS}`,
     },
     {
       name: "theme/motion-policy",

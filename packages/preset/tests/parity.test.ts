@@ -30,10 +30,7 @@ function referencePlugin(): ViteOptions {
   const options = spin.vite({
     themes: starterThemes,
     presets: [
-      presetIcons({
-        collections: { lucide } as never,
-        extraProperties: { display: "inline-block", flex: "none" },
-      }),
+      presetIcons({ collections: { lucide } } as never),
     ],
     content: {
       filesystem: [
