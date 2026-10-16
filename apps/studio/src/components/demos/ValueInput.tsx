@@ -228,18 +228,40 @@ function TextControl(props: {
   onCommit: (value: string) => boolean;
   id?: string;
 }) {
+  const multiline = () =>
+    props.value.includes("(") ||
+    props.value.includes(",") ||
+    props.value.length > 24;
   const [draft, setDraft] = createSignal(props.value);
   return (
-    <input
-      id={props.id}
-      type="text"
-      class="p-2 border-border rounded-md border text-sm"
-      value={draft()}
-      onChange={(event) => {
-        const next = event.currentTarget.value;
-        setDraft(next);
-        props.onCommit(next);
-      }}
-    />
+    <Show
+      when={multiline()}
+      fallback={
+        <input
+          id={props.id}
+          type="text"
+          class="w-40 p-2 border-border rounded-md border font-mono text-sm"
+          value={draft()}
+          onChange={(event) => {
+            const next = event.currentTarget.value;
+            setDraft(next);
+            props.onCommit(next);
+          }}
+        />
+      }
+    >
+      <textarea
+        id={props.id}
+        spellcheck={false}
+        rows={2}
+        class="w-48 min-h-10 resize-y p-2 border-border rounded-md border font-mono text-sm"
+        value={draft()}
+        onChange={(event) => {
+          const next = event.currentTarget.value;
+          setDraft(next);
+          props.onCommit(next);
+        }}
+      />
+    </Show>
   );
 }
