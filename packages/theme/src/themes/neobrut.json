@@ -447,7 +447,15 @@
     "shadow-hover": {
       "$type": "shadow",
       "$description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
-      "$value": "6px 6px 0 #000000"
+      "$value": "none"
+    },
+    "hover-lift-x": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "hover-lift-y": {
+      "$type": "dimension",
+      "$value": "4px"
     }
   },
   "border": {
