@@ -9,7 +9,7 @@
     "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
     "primary": {
       "$type": "color",
-      "$value": "#1d4ed8"
+      "$value": "#5194ff"
     },
     "secondary": {
       "$type": "color",
@@ -70,7 +70,7 @@
       }
     },
     "surface": {
-      "$value": "{color.neutral.50}",
+      "$value": "#dceafe",
       "$description": "Page background."
     },
     "surface-sunken": {
@@ -95,7 +95,7 @@
     },
     "on-primary": {
       "$type": "color",
-      "$value": "#ffffff"
+      "$value": "#000000"
     },
     "on-danger": {
       "$type": "color",
@@ -103,11 +103,11 @@
     },
     "focus-ring": {
       "$type": "color",
-      "$value": "#1d4ed8"
+      "$value": "#5194ff"
     },
     "link": {
       "$type": "color",
-      "$value": "#1d4ed8"
+      "$value": "#5194ff"
     },
     "on-secondary": {
       "$type": "color",
@@ -197,7 +197,7 @@
     "family": {
       "$type": "fontFamily",
       "sans": {
-        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$value": "DM Sans, ui-sans-serif, system-ui, sans-serif",
         "$description": "Body and UI text."
       },
       "serif": {
@@ -239,7 +239,7 @@
     "weight": {
       "$type": "fontWeight",
       "regular": {
-        "$value": 400
+        "$value": 500
       },
       "medium": {
         "$value": 500
@@ -284,16 +284,16 @@
     "$type": "dimension",
     "$description": "Corner rounding, from square to fully round.",
     "none": {
-      "$value": "0"
+      "$value": "5px"
     },
     "sm": {
-      "$value": "0"
+      "$value": "5px"
     },
     "md": {
-      "$value": "0"
+      "$value": "5px"
     },
     "lg": {
-      "$value": "0"
+      "$value": "5px"
     },
     "full": {
       "$value": "9999px"
