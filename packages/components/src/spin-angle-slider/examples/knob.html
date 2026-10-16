@@ -6,12 +6,12 @@
     {...angleSlider.getControlProps()}
   >
     <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 200 200" aria-hidden="true">
-      <circle cx="100" cy="100" r="80" class="fill-none stroke-border" stroke-width="20" />
+      <circle cx="100" cy="100" r="80" class="fill-none stroke-surface-sunken" stroke-width="20" />
       <circle cx="100" cy="100" r="80" class="fill-none stroke-primary" stroke-width="20" stroke-linecap="round"
         stroke-dasharray={502.65} stroke-dashoffset={502.65 * (1 - angleSlider.value / 360)} />
     </svg>
     <span
-      class="absolute h-[1.75rem] w-[1.75rem] rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
+      class="absolute h-[1.75rem] w-[1.75rem] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
       {...angleSlider.getThumbProps()}
     ></span>
     <span class="flex flex-col items-center" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>

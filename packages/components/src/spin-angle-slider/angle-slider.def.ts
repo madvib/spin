@@ -285,11 +285,11 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "data-invalid": dataAttr(scope.props["invalid"] === true),
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          // Position only: the rim point the thumb centers on. Centering
+          // is markup's (`-translate-1/2`), so thumb size never leaks here.
           style: {
             "--thumb-angle": `${shown}deg`,
             ...rimPlacement(shown, 42),
-            marginLeft: "-10px",
-            marginTop: "-10px",
           },
           onFocus: (): void => {
             scope.send({ type: "THUMB.FOCUS" });
