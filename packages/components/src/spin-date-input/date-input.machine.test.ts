@@ -1,9 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createDateInputBridge } from "./date-input.bridge.ts";
-import type { DateInputValueChange } from "./date-input.bridge.ts";
-import type { DateInputApi } from "./date-input.connect.ts";
+import { dateInput } from "./date-input.def.ts";
+const createDateInputBridge = dateInput.createBridge;
+import type { DateInputValueChange } from "./date-input.def.ts";
+import type { DateInputApi } from "./date-input.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
