@@ -147,8 +147,14 @@ export function emit(ir: ComponentIr): EmitOutput {
       }
       const iDepth = showTest !== undefined ? depth + 2 : depth;
       const iParts = bid !== undefined ? `${bid}p` : parts;
+      // SVG subtrees need their namespace: `createElement("circle")` makes
+      // a dead HTMLUnknownElement. The namespace inherits down — an `svg`
+      // ancestor switches its whole subtree.
+      const inSvg = node.tag === "svg" || (bound as Set<string>).has("@@svg");
       if (node.tag === "host") {
         out.push(`${pad(iDepth)}{ const ${el} = _host;`);
+      } else if (inSvg) {
+        out.push(`${pad(iDepth)}{ const ${el} = document.createElementNS("http://www.w3.org/2000/svg", ${JSON.stringify(node.tag)});`);
       } else {
         out.push(`${pad(iDepth)}{ const ${el} = document.createElement(${JSON.stringify(node.tag)});`);
       }
@@ -173,7 +179,8 @@ export function emit(ir: ComponentIr): EmitOutput {
         bindings++;
         out.push(`${pad(iDepth + 1)}${iParts}.push(bindSpread(${el}, () => (${scopeExpr(spread.expr, bound)})));`);
       }
-      for (const line of emitNodes(node.children, iDepth + 1, el, iParts, bound)) out.push(line);
+      const childBound = inSvg ? new Set([...bound, "@@svg"]) : bound;
+      for (const line of emitNodes(node.children, iDepth + 1, el, iParts, childBound)) out.push(line);
       if (node.tag !== "host") out.push(`${pad(iDepth + 1)}${bid !== undefined ? `${bid}f` : host}.appendChild(${el});`);
       out.push(`${pad(iDepth)}}`);
       if (showTest !== undefined && bid !== undefined) {

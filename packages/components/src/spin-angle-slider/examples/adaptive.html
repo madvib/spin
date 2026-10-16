@@ -1,0 +1,26 @@
+<scope>props={ defaultValue: string = "45" } consume={ angleSlider }</scope>
+
+<div class="mx-auto flex w-full max-w-xs flex-col items-center gap-4" {...angleSlider.getRootProps()}>
+  <div
+    class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center rounded-full border border-solid border-border bg-surface-raised select-none"
+    {...angleSlider.getControlProps()}
+  >
+    <div class="pointer-events-none absolute inset-0" {...angleSlider.getMarkerGroupProps()}>
+      <template for={angleSlider.getMarkers()} as={row} key={row}>
+        <span
+          class="absolute h-[1.25rem] w-[3px] -translate-x-1/2 bg-border-strong data-[state=under-value]:bg-semantic-success data-[state=at-value]:bg-primary data-[state=over-value]:bg-border"
+          {...angleSlider.getMarkerProps({ value: row })}
+        ></span>
+      </template>
+    </div>
+    <span
+      class="absolute h-[1.75rem] w-[1.75rem] rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
+      {...angleSlider.getThumbProps()}
+    ></span>
+    <span class="flex flex-col items-center" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>
+      <span class="text-4xl font-bold tabular-nums text-text">{angleSlider.value}°</span>
+      <span class="text-sm font-medium text-muted">degrees</span>
+    </span>
+  </div>
+  <input {...angleSlider.getHiddenInputProps()} />
+</div>
