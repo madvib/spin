@@ -159,7 +159,7 @@ function RaceStage(props: {
             <li class="stack-sm">
               <div class="row-sm flex-wrap justify-between gap-3">
                 <code class="text-xs text-text-muted">{lane.path}</code>
-                <div class="row-sm flex-wrap shrink-0 gap-2">
+                <div class="row-sm flex-wrap gap-2">
                   <code class="text-xs whitespace-nowrap">
                     {lane.utility}
                   </code>
