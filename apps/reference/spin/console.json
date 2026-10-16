@@ -123,6 +123,11 @@
     }
   },
   "spacing": {
+    "$type": "dimension",
+    "unit": {
+      "$value": "0.25rem"
+    },
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
     "0": {
       "$value": "0"
     },
@@ -132,17 +137,60 @@
     "2": {
       "$value": "0.5rem"
     },
+    "3": {
+      "$value": "0.75rem"
+    },
     "4": {
       "$value": "1rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
     },
     "8": {
       "$value": "2rem"
     },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3rem"
+    },
+    "14": {
+      "$value": "3.5rem"
+    },
     "16": {
       "$value": "4rem"
     },
-    "$type": "dimension",
-    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+    "20": {
+      "$value": "5rem"
+    },
+    "24": {
+      "$value": "6rem"
+    },
+    "32": {
+      "$value": "8rem"
+    },
+    "36": {
+      "$value": "9rem"
+    },
+    "40": {
+      "$value": "10rem"
+    },
+    "56": {
+      "$value": "14rem"
+    },
+    "60": {
+      "$value": "15rem"
+    },
+    "px": {
+      "$value": "1px"
+    }
   },
   "font": {
     "$description": "Typography: which face, how large, how heavy, and how open the tracking sits. Console is monospaced only where a terminal speaks in fixed width.",
@@ -151,7 +199,7 @@
       "sans": {
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
         "$type": "fontFamily",
-        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below — code, markup, readouts — and not in every heading and paragraph, where monospace reads as shouting."
+        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below \u2014 code, markup, readouts \u2014 and not in every heading and paragraph, where monospace reads as shouting."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
@@ -187,6 +235,10 @@
       },
       "3xl": {
         "$value": "1.875rem"
+      },
+      "4xl": {
+        "$value": "2.375rem",
+        "$type": "dimension"
       }
     },
     "weight": {
@@ -257,9 +309,14 @@
     "xl": {
       "$value": "4px",
       "$type": "dimension"
+    },
+    "xs": {
+      "$value": "0.0625rem"
     }
   },
   "opacity": {
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. The fractions themselves are the same in every theme, but console is dark-only and its foregrounds are bright: on black a fraction reads dimmer at the same number than it would on white, so the low steps are spent carefully here.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -303,9 +360,7 @@
     "100": {
       "$value": 1,
       "$description": "Fully shown. Named so a rule can say it rather than assume it."
-    },
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions themselves are the same in every theme, but console is dark-only and its foregrounds are bright: on black a fraction reads dimmer at the same number than it would on white, so the low steps are spent carefully here."
+    }
   },
   "shadow": {
     "$type": "shadow",
@@ -410,6 +465,12 @@
       },
       "accelerate": {
         "$value": "cubic-bezier(0.3, 0, 1, 1)"
+      },
+      "out": {
+        "$value": "cubic-bezier(0, 0, 0.2, 1)"
+      },
+      "in-out": {
+        "$value": "cubic-bezier(0.4, 0, 0.2, 1)"
       }
     }
   },
@@ -469,7 +530,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"
