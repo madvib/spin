@@ -632,9 +632,14 @@ function formatOpenTag(
   attrs: readonly (readonly [string, string | undefined])[],
   depth: number,
 ): string {
-  const spelled = attrs.map(([name, value]) =>
-    value === undefined ? name : `${name}=${value}`
-  );
+  // A data blob (nodes JSON, a data URI) is content, not reading: elide
+  // past a screen of characters so one attribute is not the whole page.
+  // Copy writes the exact source, never this display text.
+  const spelled = attrs.map(([name, value]) => {
+    if (value === undefined) return name;
+    const shown = value.length > 160 ? `${value.slice(0, 160)}…(${value.length} chars)` : value;
+    return `${name}=${shown}`;
+  });
   if (spelled.length > 2) {
     const pad = FORMAT_INDENT.repeat(depth + 1);
     return `<${tag}\n${spelled.map((s) => `${pad}${s}`).join("\n")}\n${
@@ -645,7 +650,13 @@ function formatOpenTag(
 }
 
 function formatNode(node: FormatNode, depth: number): string {
-  if (node.kind === "text" || node.kind === "raw") return node.text;
+  // Text carries data blobs too (a scope line is one text node): elide
+  // the same way attributes do. Copy stays exact.
+  if (node.kind === "text" || node.kind === "raw") {
+    return node.text.length > 320
+      ? `${node.text.slice(0, 320)}…(${node.text.length} chars)`
+      : node.text;
+  }
   const pad = FORMAT_INDENT.repeat(depth);
   const open = formatOpenTag(node.tag, node.attrs, depth);
   if (node.raw !== undefined) return `${pad}${open}>${node.raw}</${node.tag}>`;
@@ -747,7 +758,8 @@ function ExampleSection(props: {
   });
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(pre.textContent ?? "");
+      // The exact source, never the elided display text.
+      await navigator.clipboard.writeText(shown());
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -805,7 +817,7 @@ function ExampleSection(props: {
         }
         <pre
           ref={pre}
-          class={`${CODE_PRE} col-start-1 row-start-1 ${
+          class={`${CODE_PRE} col-start-1 row-start-1 max-h-[32rem] overflow-auto ${
             tab() === "code" ? "" : "invisible"
           }`}
           aria-hidden={tab() === "code" ? undefined : "true"}
