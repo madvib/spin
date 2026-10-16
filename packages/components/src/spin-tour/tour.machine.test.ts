@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createTourBridge } from "./tour.bridge.ts";
-import type { TourApi } from "./tour.connect.ts";
+import { tour } from "./tour.def.ts";
+const createTourBridge = tour.createBridge;
+import type { TourApi } from "./tour.def.ts";
 import type { TourStepRecord } from "./tour.machine.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;

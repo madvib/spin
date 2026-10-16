@@ -247,6 +247,9 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     readonly root: () => Element;
     readonly id: (part: string, slot?: number) => string;
     readonly focus: (part: string, slot?: number) => void;
+    /** The view's send: a settled reflex that kicks a DOM poll (a target
+     * lookup, a scroll settle) reports its findings back through this. */
+    readonly send: (event: { readonly type: string } & Record<string, unknown>) => void;
   }) => void;
   readonly channels: Record<string, ChannelDef>;
   /** Channel names merged into machine context before every send, so an

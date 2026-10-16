@@ -109,6 +109,9 @@ export interface BridgeHooks<
     readonly before: { readonly context: C; readonly state: string };
     readonly after: { readonly context: C; readonly state: string };
     readonly props: () => Record<string, unknown>;
+    /** The full funnel: a settled reflex that kicks a DOM poll reports
+     * its findings back through this, with reporting and ticks. */
+    readonly send: (event: E) => void;
   }): void;
   /** Merge parsed props into machine context (pre-send and in the owned
    * effect, so a host scalar write lands without waiting for a gesture).
@@ -220,6 +223,7 @@ export function defineBridge<
       before,
       after: { context: svc.state.context, state: svc.state.value },
       props,
+      send: (report: E): void => send(report),
     });
     tick(tick() + 1);
     machineTick(machineTick() + 1);

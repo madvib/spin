@@ -1,10 +1,9 @@
-import type { MachineDef } from "@spin/runtime";
-import { createTourBridge } from "./tour.bridge.ts";
-import type { TourDismissChange, TourStepChange, TourStepRecord } from "./tour.machine.ts";
+import { tour } from "./tour.def.ts";
+import type { TourDismissChange, TourStepChange, TourStepRecord } from "./tour.def.ts";
 
 /**
- * The tour's seam: the bridge, the element's imperative commands, and the
- * CustomEvents the host reads.
+ * The tour's seam: the synthesized bridge, the element's imperative
+ * commands, and the CustomEvents the host reads.
  *
  * Events are faithful to Zag's callbacks: `start` carries `onStart`,
  * `step-change` carries `onStepChange`, `dismiss` carries `onDismiss`
@@ -12,37 +11,5 @@ import type { TourDismissChange, TourStepChange, TourStepRecord } from "./tour.m
  * not-found), and `complete` carries `onComplete`.
  */
 
+export { tour };
 export type { TourDismissChange, TourStepChange, TourStepRecord };
-
-export const tour: MachineDef = {
-  createBridge: createTourBridge,
-  commands: [
-    "start",
-    "next",
-    "prev",
-    "dismiss",
-    "skip",
-    "setStep",
-    "notifyTargetResolved",
-    "notifyTargetNotFound",
-    "notifyScrollEnd",
-  ],
-  events: {
-    start: {
-      on: "onStart",
-      detail: (change: { step: number }) => ({ step: change.step }),
-    },
-    "step-change": {
-      on: "onStepChange",
-      detail: (change: TourStepChange) => ({ step: change.step, stepId: change.stepId }),
-    },
-    dismiss: {
-      on: "onDismiss",
-      detail: (change: TourDismissChange) => ({ reason: change.reason, step: change.step }),
-    },
-    complete: {
-      on: "onComplete",
-      detail: () => ({}),
-    },
-  },
-};

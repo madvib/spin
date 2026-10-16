@@ -233,7 +233,7 @@ export function defineComponent<
         if (def.mounted === undefined) return;
         def.mounted({ props: parse(readRaw), root, id: resolveId, focus: focusPart });
       },
-      settled: ({ event, before, after, props: readRaw }) => {
+      settled: ({ event, before, after, props: readRaw, send }) => {
         if (def.settled === undefined) return;
         def.settled({
           event: event as { readonly type: string } & Record<string, unknown>,
@@ -243,6 +243,9 @@ export function defineComponent<
           root,
           id: resolveId,
           focus: focusPart,
+          send: (report: { readonly type: string } & Record<string, unknown>): void => {
+            send(report as E);
+          },
         });
       },
       connect: (service, readProps, id) => {
