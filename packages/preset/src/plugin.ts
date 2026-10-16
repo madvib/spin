@@ -1,4 +1,4 @@
-import { createGenerator, type Preset } from "@unocss/core";
+import { createGenerator, parseVariantGroup, type Preset } from "@unocss/core";
 import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
@@ -9,6 +9,15 @@ import {
   resolveThemes,
 } from "./session.ts";
 
+/**
+ * Variant groups (`data-[open]:(bg-x text-y)`) expand before generation:
+ * the generator tokenizes static text, so a group is invisible until
+ * expanded. Core's parser does the expansion; the preset only applies it
+ * to the joined content, never to author files.
+ */
+function expandGroups(sources: string): string {
+  return parseVariantGroup(sources, undefined).expanded;
+}
 /**
  * The slice of a dev server the overlay lifecycle touches. Structural, so
  * `@spin/preset` keeps no bundler dependency and the hook stays portable
@@ -164,9 +173,9 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens
     // whose utilities must resolve even though no file changed.
-    cachedSources ??= joinContent(
+    cachedSources ??= expandGroups(joinContent(
       await scanContent(options.content ?? {}, root),
-    );
+    ));
     const safelist = catalogUtilities(resolveThemes(themes));
     // Static: index.ts never imports plugin.ts, so this edge runs one way —
     // the browser graph stays clean because index.ts carries no `node:`.

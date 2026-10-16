@@ -1,5 +1,5 @@
 import { createUnplugin } from "unplugin";
-import { parse, parseScope } from "@spin/runtime";
+import { expandVariantGroups, parse, parseScope } from "@spin/runtime";
 import { emit } from "./emit.ts";
 
 export interface SpinElementsOptions {
@@ -37,7 +37,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
     async transform(source, id) {
       // Example notes live in HTML comments (rendered in the code tab);
       // they are source-only and never reach the IR.
-      const code = source.replace(/<!--[\s\S]*?-->/g, "");
+      const code = expandVariantGroups(source.replace(/<!--[\s\S]*?-->/g, ""));
       if (/<!doctype|<script[\s>]|<style[\s>]/i.test(code)) {
         throw new Error(`spin-elements: ${id} looks like a document, not a component`);
       }

@@ -18,6 +18,7 @@ import { createGenerator } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { walk } from "@std/fs/walk";
+import { expandVariantGroups } from "../packages/runtime/src/directives/expand-groups.ts";
 import { spinPreset } from "../packages/preset/src/index.ts";
 import { starterThemes } from "../packages/theme/src/themes/index.ts";
 
@@ -30,7 +31,7 @@ const SOURCES = [
 /** A `class="..."` attribute's value, minus anything dynamic. */
 function classesOf(source: string): string[] {
   const out: string[] = [];
-  for (const match of source.matchAll(/class="([^"]*)"/g)) {
+  for (const match of expandVariantGroups(source).matchAll(/class="([^"]*)"/g)) {
     for (const token of (match[1] ?? "").split(/\s+/)) {
       // A dynamic value (`class={...}`) is not literal text; the emitter's
       // own output is checked by the build, not here.

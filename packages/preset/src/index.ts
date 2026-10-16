@@ -34,6 +34,7 @@
 import { definePreset } from "@unocss/core";
 import type { Preset } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";
+import transformerVariantGroup from "@unocss/transformer-variant-group";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
@@ -245,7 +246,7 @@ const factory = definePreset(
       preflights: buildPreflights(
         { trees, documents },
       ),
-      transformers: [transformerDirectives()],
+      transformers: [transformerDirectives(), transformerVariantGroup()],
       // Declared order: reset (-100) → theme vars + body (-90) → primitives
       // (-50) → utilities (default 0). Without this, unregistered layer
       // names fall to 0 and localeCompare re-sorts, so primitives CSS lands
