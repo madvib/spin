@@ -217,6 +217,13 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     event: { type: string } & Record<string, unknown>,
     props: Record<string, unknown>,
   ) => { type: string } & Record<string, unknown>;
+  /** Once, after the first connect build (cells exist in markup): entry
+   * focus and other mount-time view reflexes. */
+  readonly mounted?: (args: {
+    readonly props: Record<string, unknown>;
+    readonly id: (part: string, slot?: unknown) => string;
+    readonly focus: (part: string, slot?: unknown) => void;
+  }) => void;
   /** Post-send view reflexes (the panel's opening owes the field its
    * focus). View-side only: focus management, never state. */
   readonly settled?: (args: {

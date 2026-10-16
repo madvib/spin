@@ -90,6 +90,11 @@ export interface BridgeHooks<
   ): boolean;
   /** Host writes apply silently (no effect notify). Static per def. */
   readonly silentSync?: boolean;
+  /** Once, after the first connect build (cells exist in markup): entry
+   * focus and other mount-time view reflexes. */
+  mounted?(args: {
+    readonly props: () => Record<string, unknown>;
+  }): void;
   /** Post-send view reflexes (the panel's opening owes the field its focus).
    * View-side only: focus management, never state. */
   settled?(args: {
@@ -185,7 +190,15 @@ export function defineBridge<
     return service;
   };
 
-  const send = (event: E): void => {
+  // The full pipeline minus reporting: refresh, send, view reflexes, ticks.
+  // Sync-effect writes route through this (not the raw service), so focus
+  // and completion reflexes run for controlled writes too. Reporting stays
+  // manual: the effect's trailing notify covers reconcile moves, and
+  // watch-cursors suppress its echo of these sends.
+  const transmit = (event: E): {
+    readonly svc: Service<C, E>;
+    readonly before: { readonly context: C; readonly state: string };
+  } => {
     const svc = ensureService();
     hooks.refresh?.(svc, props, authored);
     // Shallow: assigns replace fields rather than mutating them, so the
@@ -198,6 +211,13 @@ export function defineBridge<
       after: { context: svc.state.context, state: svc.state.value },
       props,
     });
+    tick(tick() + 1);
+    machineTick(machineTick() + 1);
+    return { svc, before };
+  };
+
+  const send = (event: E): void => {
+    const { svc, before } = transmit(event);
     hooks.notify(
       svc,
       hooks.readCallbacks(props),
@@ -206,8 +226,6 @@ export function defineBridge<
       before.context,
       hooks.readConnectProps(props) as Record<string, unknown>,
     );
-    tick(tick() + 1);
-    machineTick(machineTick() + 1);
   };
 
   /** The service surface the connect reads. Built once: the connect lives
@@ -224,8 +242,15 @@ export function defineBridge<
   };
 
   let api: Api | undefined;
+  let mounted = false;
   const ensureConnect = (): Api => {
-    api ??= hooks.connect(serviceApi, () => hooks.readConnectProps(props), id);
+    if (api === undefined) {
+      api = hooks.connect(serviceApi, () => hooks.readConnectProps(props), id);
+      if (!mounted) {
+        mounted = true;
+        hooks.mounted?.({ props });
+      }
+    }
     return api;
   };
 
@@ -239,9 +264,9 @@ export function defineBridge<
       const svc = ensureService();
       // The cursors stay on the pre-write values while the events send.
       const beforeContext = { ...svc.state.context };
-      const channelMoved = hooks.sync(svc, props, authored, (event) => svc.send(event));
+      const channelMoved = hooks.sync(svc, props, authored, (event) => transmit(event));
       const parsed = hooks.readConnectProps(props) as Record<string, unknown>;
-      const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => svc.send(event)) ?? false;
+      const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => transmit(event)) ?? false;
       const moved = channelMoved || derivedMoved;
       if (moved) {
         tick(tick() + 1);

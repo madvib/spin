@@ -191,6 +191,10 @@ export function defineComponent<
           send: send as (event: { type: string } & Record<string, unknown>) => void,
         });
       },
+      mounted: ({ props: readRaw }) => {
+        if (def.mounted === undefined) return;
+        def.mounted({ props: parse(readRaw), id: resolveId, focus: focusPart });
+      },
       settled: ({ event, before, after, props: readRaw }) => {
         if (def.settled === undefined) return;
         def.settled({
