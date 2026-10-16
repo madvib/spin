@@ -351,13 +351,13 @@
     "$type": "shadow",
     "$description": "Elevation, as CSS box-shadow values.",
     "sm": {
-      "$value": "4px 4px 0 #000000"
+      "$value": "none"
     },
     "md": {
-      "$value": "6px 6px 0 #000000"
+      "$value": "4px 4px 0 #000000"
     },
     "lg": {
-      "$value": "8px 8px 0 #000000"
+      "$value": "4px 4px 0 #000000"
     }
   },
   "breakpoint": {
