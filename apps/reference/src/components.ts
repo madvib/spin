@@ -65,6 +65,12 @@ for (const [path, html] of Object.entries(recipeModules)) {
  * `machine/stem`. The loading example's `loadChildren` is what a consumer
  * writes in their own code (see the note in the example source). */
 const EXAMPLE_ONLOAD: Record<string, string> = {
+  "tour/basic": `
+    document.querySelectorAll("tour-basic").forEach((tour) => {
+      tour.querySelector("[data-start]")?.addEventListener("click", () => {
+        tour.start();
+      });
+    });`,
   "tree-view/loading": `
     document.querySelectorAll("tree-view-loading").forEach((tree) => {
       const t = tree;
