@@ -79,3 +79,20 @@ export function bezierY(
 export function easingUtility(path: string): string {
   return `ease-${path.split(".").slice(2).join("-")}`;
 }
+
+/**
+ * The four points written back the way a theme spells them.
+ *
+ * The identity curve becomes `linear`, because a drag that round-trips
+ * through the numbers would otherwise rewrite the keyword into
+ * `cubic-bezier(0, 0, 1, 1)` and claim a value was edited. Three decimals
+ * is the precision a handle drags at; anything finer is pointer noise the
+ * document has no business storing.
+ */
+export function easingValue(
+  points: readonly [number, number, number, number],
+): string {
+  const [x1, y1, x2, y2] = points.map((n) => Number(n.toFixed(3)));
+  if (x1 === 0 && y1 === 0 && x2 === 1 && y2 === 1) return "linear";
+  return `cubic-bezier(${x1}, ${y1}, ${x2}, ${y2})`;
+}

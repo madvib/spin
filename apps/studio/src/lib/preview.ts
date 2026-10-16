@@ -12,6 +12,33 @@
 
 import { spinClient } from "./client.ts";
 
+/**
+ * Paint custom properties onto the preview surface, and hand back the
+ * function that takes them off again.
+ *
+ * This is how a drag previews without committing: every utility resolves
+ * through the token's own custom property, so setting `--spacing-4` on the
+ * element the stylesheet is scoped to moves every specimen that spends that
+ * token, and removing it puts the document's word back. Inline declarations
+ * win over the sheet on the same element; the chrome sits under a different
+ * `data-theme` and never sees them. A caller that repaints must clear its
+ * previous paint first — two painters on one variable cannot both take it
+ * off.
+ */
+export function paintPreview(vars: Record<string, string>): () => void {
+  if (typeof document === "undefined") return () => {};
+  const host = document.querySelector<HTMLElement>(
+    '[data-theme="studio"] > [data-theme]',
+  );
+  if (host === null) return () => {};
+  for (const [name, value] of Object.entries(vars)) {
+    host.style.setProperty(name, value);
+  }
+  return () => {
+    for (const name of Object.keys(vars)) host.style.removeProperty(name);
+  };
+}
+
 /** Why a preview could not be generated. */
 export interface PreviewFailure {
   readonly error: string;

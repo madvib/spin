@@ -28,32 +28,40 @@ export default function TokenRow_({
   row,
   onEdit,
   swatch = false,
+  group,
+  variable,
 }: {
   row: TokenRow;
   /** Applies an edit. Returns false when the theme refused it. */
   onEdit: (path: string[], value: string) => boolean;
   /** Shows the token's own utility at the head of the row. */
   swatch?: boolean;
+  /** Every value in the token's group, for the slider's ceiling. */
+  group?: readonly string[];
+  /** The token's custom property, painted on the preview surface while dragging. */
+  variable?: string;
 }) {
   const id = `token-${row.path}`;
   return (
     <card class="split p-4">
-      <div class="row-sm">
+      <div class="row-sm min-w-0">
         <Show when={swatch}>
           <div
             class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
           />
         </Show>
-        <label for={id} class="font-mono text-sm">
+        <label for={id} class="truncate font-mono text-sm">
           {row.path}
         </label>
       </div>
-      <div class="row-sm shrink-0">
+      <div class="row-sm min-w-0 flex-1 flex-wrap justify-end gap-2">
         <ValueInput
           id={id}
           value={row.value}
           type={row.type}
           onCommit={(value) => onEdit(row.path.split("."), value)}
+          group={group}
+          variable={variable}
         />
       </div>
     </card>

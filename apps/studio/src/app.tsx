@@ -21,19 +21,13 @@ import ComponentsIndex from "./routes/components/index.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
-import { createResource, createSignal, For, Show, Suspense } from "solid-js";
+import { createSignal, For, Show, Suspense } from "solid-js";
 import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
-import {
-  CONCERNS,
-  FOOT,
-  MARK,
-  ROUTES,
-  type RoutePath,
-} from "./lib/routes.ts";
+import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 
-import { listProjectThemes, saveTheme } from "./lib/themes.ts";
+import { saveTheme } from "./lib/themes.ts";
 import {
   activeMode,
   activeName,
@@ -121,7 +115,8 @@ type RouteEntry = (typeof ROUTES)[number];
  */
 type ChildPath = RouteEntry extends {
   children: readonly (infer Child)[];
-} ? `${RouteEntry["path"]}${Child & string}` : never;
+} ? `${RouteEntry["path"]}${Child & string}`
+  : never;
 
 /** The page each child pattern renders, keyed by the path it becomes. */
 const CHILDREN = {
@@ -143,12 +138,6 @@ function childPage(path: string, child: string): Component {
 }
 
 export default function App() {
-  // The path is the daemon's answer, project-relative: it states the layout
-  // of a project rather than of the machine the studio happens to run on.
-  const [themes] = createResource(listProjectThemes);
-  const activePath = () =>
-    themes()?.find((theme) => theme.name === activeName())?.file;
-
   return (
     <Router
       // The bundle is served under `/__spin/studio/`; dev serves at `/`.
@@ -176,7 +165,13 @@ export default function App() {
             // edge — the host's drawer is right-anchored, so a left rail
             // traps the content between chrome and the viewport edge.
             classList={{
-              "h-screen": !inDrawer(),
+              // Modal: the shell is exactly one viewport and clips, so the
+              // DOCUMENT never scrolls and the sticky rail has no reason to
+              // move. Drawer: the shell grows with the page and the host's
+              // frame scrolls it, which is the only scroll that works
+              // there — a `h-screen` shell would pin the rail to a box the
+              // document drags away.
+              "h-screen overflow-hidden": !inDrawer(),
               "min-h-full": inDrawer(),
               "flex-row-reverse": inDrawer() && dockSide() === "right",
               "drawer-flow": inDrawer(),
@@ -298,6 +293,12 @@ export default function App() {
               // Same debt as the chrome's: <html> is stamped light, so a
               // label that only inherits keeps that ink on a dark surface.
               class="flex min-h-0 min-w-0 flex-1 flex-col text-text"
+              // Modal, this column is the scroller: a page that brings its
+              // own rail fills it exactly and never triggers this, and a
+              // page that does not scrolls HERE rather than dragging the
+              // document — and with it the rail. Not `drawer-scroll`,
+              // which the drawer's flow rule rewrites to `flex: none`.
+              classList={{ "overflow-y-auto": !inDrawer() }}
             >
               <Show
                 when={new URLSearchParams(location.search).get("app") !== null}
@@ -327,7 +328,8 @@ export default function App() {
                     class="bare shrink-0 text-text"
                     aria-label="Close"
                     title="Close"
-                    onClick={() => globalThis.parent.postMessage("spin:close", "*")}
+                    onClick={() =>
+                      globalThis.parent.postMessage("spin:close", "*")}
                   >
                     <span
                       class="inline-block icon-md i-lucide-x"

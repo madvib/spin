@@ -94,6 +94,27 @@ export function setToken(
   return JSON.stringify(doc, null, 2);
 }
 
+/**
+ * Apply several token edits to one document, or none of them.
+ *
+ * A group moved by one factor is ONE edit as far as the author is
+ * concerned: six snapshots for six steps would make a single gesture six
+ * presses of undo. And the batch is refused as a whole when any path
+ * fails, because a scale that half-landed leaves a group whose ratios the
+ * factor never actually set.
+ */
+export function applyEdits(
+  text: string,
+  edits: readonly { path: readonly string[]; value: string }[],
+  mode: "base" | "dark",
+): string {
+  let doc = text;
+  for (const edit of edits) {
+    doc = setToken(doc, [...edit.path], edit.value, mode);
+  }
+  return doc;
+}
+
 export function rootDescription(text: string): string {
   try {
     const doc = JSON.parse(text) as Record<string, unknown>;

@@ -17,10 +17,21 @@ export default function TokenGroupEditor(props: {
   /** Shows each token's own utility at the head of its row. */
   swatch?: boolean;
 }) {
+  // The whole group rides on every row: the slider's ceiling is the
+  // group's top, so the rows' thumbs line up as the ramp they belong to.
+  const values = () => props.tokens.map((row) => row.value);
   return (
     <div class="stack-sm">
       <For each={props.tokens}>
-        {(row) => <Row row={row} onEdit={props.onEdit} swatch={props.swatch} />}
+        {(row) => (
+          <Row
+            row={row}
+            onEdit={props.onEdit}
+            swatch={props.swatch}
+            group={values()}
+            variable={row.variable}
+          />
+        )}
       </For>
     </div>
   );

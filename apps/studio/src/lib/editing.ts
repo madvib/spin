@@ -1,22 +1,28 @@
-import { setToken } from "./theme";
+import { applyEdits } from "./theme";
 import { activeMode, setThemeText, themeText } from "./store";
 
+/** One edit, as the controls spell it: a DTCG path and the value to write. */
+export interface TokenEdit {
+  path: string[];
+  value: string;
+}
+
 /**
- * Apply one token edit to the working document.
+ * Apply token edits to the working document, as one edit.
  *
- * The mode picks where the value lands: the token's own `$value`, or its
+ * The mode picks where the values land: the tokens' own `$value`, or their
  * `$modes.dark`. Validation is a property of the control that produces the
- * value — a color field emits colors, a spacing field emits steps — so this
- * never has to reject anything, and a bad edit cannot reach the document in
- * the first place.
+ * value — a colour field emits colours, a scale emits steps — so a bad edit
+ * cannot reach the document in the first place. The batch is all or
+ * nothing, because a group scaled by one factor that half-landed is a
+ * group whose ratios the factor never set.
  */
-export function editToken(path: string[], value: string): boolean {
+export function editTokens(edits: readonly TokenEdit[]): boolean {
   const next = (() => {
     try {
-      return setToken(
+      return applyEdits(
         themeText(),
-        path,
-        value,
+        edits,
         activeMode() === "dark" ? "dark" : "base",
       );
     } catch {
@@ -30,4 +36,9 @@ export function editToken(path: string[], value: string): boolean {
   const before = themeText();
   setThemeText(next);
   return themeText() !== before;
+}
+
+/** Apply one token edit. */
+export function editToken(path: string[], value: string): boolean {
+  return editTokens([{ path, value }]);
 }

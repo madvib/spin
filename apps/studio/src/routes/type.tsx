@@ -28,7 +28,9 @@ import { activeMode, themeText } from "../lib/store.ts";
 import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { DISPLAY, HEADING, PARAGRAPH } from "../lib/specimen-copy.ts";
-import { editToken } from "../lib/editing.ts";
+import { editToken, editTokens } from "../lib/editing.ts";
+import ValueInput from "../components/demos/ValueInput.tsx";
+import ScaleControl from "../components/demos/ScaleControl.tsx";
 import { inDrawer } from "../app.tsx";
 
 /** The four family slots, and the sentence that shows each one off. */
@@ -184,6 +186,11 @@ export default function TypePage() {
           The nine steps, largest first. Each is drawn at its own size, so the
           ramp is the judgement.
         </p>
+        <ScaleControl
+          rows={scaleRows()}
+          label="Scale every size together"
+          onScale={(edits) => editTokens(edits)}
+        />
         <div class="flex flex-col">
           <For each={SCALE}>
             {(step) => <ScaleRow step={step} />}
@@ -343,13 +350,24 @@ function ScaleRow(props: { step: string }) {
   const rows = createMemo(scaleRows);
   const row = () => sizeOf(rows(), props.step);
   return (
-    <div class="split border-border border-b py-6 last:border-b-0">
+    <div class="split flex-wrap border-border border-b py-6 last:border-b-0">
       <p class={`text-${props.step}`}>
         {HEADING}
       </p>
       <div class="stack-sm shrink-0 items-end text-right">
         <code class="text-text-muted text-xs">{`font.size.${props.step}`}</code>
-        <code class="text-sm">{row()?.value ?? "—"}</code>
+        <Show when={row()}>
+          {(current) => (
+            <ValueInput
+              value={current().value}
+              type={current().type}
+              onCommit={(value) => editToken(current().path.split("."), value)}
+              group={rows().map((size) => size.value)}
+              variable={current().variable}
+              label={current().path}
+            />
+          )}
+        </Show>
       </div>
     </div>
   );
@@ -368,16 +386,6 @@ function faceFor(tag: string, fallback: string): string {
   const rows = familyRows();
   const own = rows.find((row) => row.path === `font.element.${tag}`);
   return own?.value ?? fallback;
-}
-
-/**
- * Write the face an element claims.
- *
- * `font.element.<tag>` names a slot in `font.family`, and the rule prefers
- * it — so `<h1>` can claim a face while the other headings keep theirs.
- */
-function setFace(tag: string, slot: string): void {
-  editToken(["font", "element", tag], slot);
 }
 
 /** What one element may override about its type. Mirrors the preset's own. */
@@ -444,9 +452,6 @@ function tagSize(tag: string): string {
 
 /** The size scale a theme declares, as steps rather than freeform text. */
 const SIZE_STEPS = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl"] as const;
-
-/** The weight scale, read the same way. */
-const WEIGHT_STEPS = ["regular", "medium", "semibold", "bold"] as const;
 
 /** A step's custom property, so a preview renders at the theme's own size. */
 const SIZE_VAR: Record<string, string> = {

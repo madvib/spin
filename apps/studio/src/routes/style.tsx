@@ -1,12 +1,14 @@
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import ValueInput from "../components/demos/ValueInput";
-import { inDrawer } from "../app";
+import ScaleControl from "../components/demos/ScaleControl";
+import Page from "../components/Page";
 import { analyzeTheme } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
 import type { TokenRow } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
-import { editToken } from "../lib/editing";
+import { editToken, editTokens } from "../lib/editing";
+import type { TokenEdit } from "../lib/editing";
 
 /**
  * Style — the values that shape a surface: its corners, its lift, its stack.
@@ -17,6 +19,13 @@ import { editToken } from "../lib/editing";
  * because a shadow read as a string of offsets says nothing about how far it
  * stands off the page. Z-index stacks real layers, because a number cannot
  * say which of two overlapping things wins — the overlap can.
+ *
+ * A family of corners is a scale before it is a set of values — none, small,
+ * medium, large exist as RATIOS — so radius takes one control that moves the
+ * whole family by a factor, and a slider per corner for the step that is
+ * wrong on its own. Z-index gets sliders and no factor: layer ORDER is the
+ * decision there, and a factor would happily keep the order while quietly
+ * changing every number the author already chose.
  *
  * Every row is editable, including radius, which used to be a column of
  * squares you could look at but not set.
@@ -39,34 +48,27 @@ export default function StylePage() {
 
   const edit = (row: TokenRow, value: string) =>
     editToken(row.path.split("."), value);
+  const scale = (edits: readonly TokenEdit[]) => editTokens(edits);
 
   return (
-    <section
-      class="stack mb-6"
-      classList={{ "max-w-screen-md": !inDrawer() }}
+    <Page
+      title="Style"
+      note="The values that shape a surface. Each row spends its own utility on a real specimen and edits in place, so the thing you are changing is the thing you are looking at."
     >
-      <header class="stack-sm">
-        <h1 class="text-xl font-semibold">Style</h1>
-        <p class="text-sm text-text-muted">
-          The values that shape a surface. Each row spends its own utility on
-          a real specimen and edits in place, so the thing you are changing is
-          the thing you are looking at.
-        </p>
-      </header>
-
       <Family
         title="Radius"
         note="A corner, on a box the theme's own surface and edge draw."
         rows={radii()}
         prefix="rounded"
         onEdit={edit}
+        scale={{ label: "Scale every radius together", apply: scale }}
       >
         {(row) => <RadiusSpecimen row={row} />}
       </Family>
 
       <Family
         title="Elevation"
-        note="A card stood off a sunken ground, so the shadow is the distance."
+        note="A card stood off a sunken ground, so the shadow is the distance. A shadow is a list of offsets, blurs and colours rather than one number, so it edits as the string the author wrote."
         rows={shadows()}
         prefix="shadow"
         onEdit={edit}
@@ -75,7 +77,7 @@ export default function StylePage() {
       </Family>
 
       <section class="stack-sm" aria-label="Z-index">
-        <h2 class="font-medium">Z-index</h2>
+        <h2 class="text-xl">Z-index</h2>
         <p class="text-sm text-text-muted">
           Layers stacked, so the winner is visible. Each carries its own
           utility; the one that sits highest is the one whose step is largest.
@@ -85,28 +87,31 @@ export default function StylePage() {
           fallback={<Empty />}
         >
           <StackSpecimen rows={layers()} />
-          <ul class="stack-sm flow-list">
+          <ul class="flow-list stack-sm">
             <For each={layers()}>
               {(row) => (
-                <li class="panel row-sm justify-between gap-3">
-                  <code class="text-xs text-text-muted">{row.path}</code>
-                  <div class="row-sm shrink-0">
+                <li class="panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="row-sm flex-wrap justify-between gap-3">
+                    <code class="text-xs text-text-muted">{row.path}</code>
                     <code class="text-xs whitespace-nowrap">
                       {`z-${suffixOf(row.path)}`}
                     </code>
-                    <ValueInput
-                      value={row.value}
-                      type={row.type}
-                      onCommit={(value) => edit(row, value)}
-                    />
                   </div>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => edit(row, value)}
+                    group={layers().map((r) => r.value)}
+                    variable={row.variable}
+                    label={row.path}
+                  />
                 </li>
               )}
             </For>
           </ul>
         </Show>
       </section>
-    </section>
+    </Page>
   );
 }
 
@@ -122,22 +127,39 @@ function Family(props: {
   /** The utility prefix this family spends, so the label matches the specimen. */
   prefix: string;
   onEdit: (row: TokenRow, value: string) => boolean;
+  /**
+   * Present only for a family whose values scale together: one factor for
+   * the whole family, applied as a single edit.
+   */
+  scale?: {
+    label: string;
+    apply: (edits: readonly TokenEdit[]) => boolean;
+  };
   children: (row: TokenRow) => JSX.Element;
 }) {
   return (
     <section class="stack-sm" aria-label={props.title}>
-      <h2 class="font-medium">{props.title}</h2>
+      <h2 class="text-xl">{props.title}</h2>
       <p class="text-sm text-text-muted">{props.note}</p>
       <Show when={props.rows.length > 0} fallback={<Empty />}>
-        <ul class="stack-sm flow-list">
+        <Show when={props.scale}>
+          {(scale) => (
+            <ScaleControl
+              rows={props.rows}
+              label={scale().label}
+              onScale={scale().apply}
+            />
+          )}
+        </Show>
+        <ul class="flow-list stack-sm">
           <For each={props.rows}>
             {(row) => (
-              <li class="panel row-sm justify-between gap-4">
-                <div class="row-sm">
+              <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="row-sm flex-wrap">
                   {props.children(row)}
                   <code class="text-xs text-text-muted">{row.path}</code>
                 </div>
-                <div class="row-sm shrink-0">
+                <div class="row-sm flex-wrap shrink-0">
                   <code class="text-xs whitespace-nowrap">
                     {`${props.prefix}-${suffixOf(row.path)}`}
                   </code>
@@ -145,6 +167,9 @@ function Family(props: {
                     value={row.value}
                     type={row.type}
                     onCommit={(value) => props.onEdit(row, value)}
+                    group={props.rows.map((r) => r.value)}
+                    variable={row.variable}
+                    label={row.path}
                   />
                 </div>
               </li>
@@ -161,9 +186,9 @@ function RadiusSpecimen(props: { row: TokenRow }) {
   return (
     <div class="spin-preview shrink-0">
       <div
-        class={`bg-surface-raised border border-border h-10 w-10 ${
-          `rounded-${suffixOf(props.row.path)}`
-        }`}
+        class={`bg-surface-raised border border-border h-10 w-10 ${`rounded-${
+          suffixOf(props.row.path)
+        }`}`}
       />
     </div>
   );
@@ -174,9 +199,9 @@ function LiftSpecimen(props: { row: TokenRow }) {
   return (
     <div class="spin-preview bg-surface-sunken shrink-0 rounded-md p-3">
       <div
-        class={`bg-surface-raised border border-border h-8 w-16 ${
-          `shadow-${suffixOf(props.row.path)}`
-        }`}
+        class={`bg-surface-raised border border-border h-8 w-16 ${`shadow-${
+          suffixOf(props.row.path)
+        }`}`}
       />
     </div>
   );
@@ -191,13 +216,13 @@ function LiftSpecimen(props: { row: TokenRow }) {
  */
 function StackSpecimen(props: { rows: TokenRow[] }) {
   return (
-    <div class="spin-preview relative h-28">
+    <div class="spin-preview relative h-24">
       <For each={props.rows}>
         {(row, index) => (
           <div
-            class={`absolute inset-0 bg-surface-raised border border-border rounded-md p-3 stack-xs ${
-              `z-${suffixOf(row.path)}`
-            }`}
+            class={`absolute inset-0 bg-surface-raised border border-border rounded-md p-3 stack-sm ${`z-${
+              suffixOf(row.path)
+            }`}`}
             style={{
               top: `${index() * 10}px`,
               left: `${index() * 10}px`,

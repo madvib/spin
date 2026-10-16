@@ -112,7 +112,10 @@ class Page {
 
   async overlay(base: string): Promise<{
     open: boolean;
-    themes: Record<string, { color?: { primary?: { $value?: string } } }>;
+    themes: Record<string, {
+      color?: { primary?: { $value?: string } };
+      spacing?: Record<string, { $value?: string }>;
+    }>;
     dirty: string[];
   }> {
     return await this.eval(
@@ -141,6 +144,21 @@ class Page {
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await new Promise((r) => setTimeout(r, 800));
         return "edited";
+      })()`,
+    );
+  }
+
+  /** The scale track, released: `change` commits the whole group as one edit. */
+  async scaleGroup(t: string): Promise<string> {
+    return await this.eval<string>(
+      `(async () => {
+        const input = document.querySelector('input[type="range"][aria-label^="Scale every"]');
+        if (input === null) return "no-scale-track";
+        input.value = ${JSON.stringify(t)};
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1200));
+        return "scaled";
       })()`,
     );
   }
@@ -442,6 +460,86 @@ async function checkDrawerFits(
   );
 }
 
+/**
+ * The rail is furniture: it does not travel with the content.
+ *
+ * Desktop shells clip at the viewport and the column scrolls inside them, so
+ * the probe moves both scrollers — the window must refuse the scroll, the
+ * column must take it — and the rail's top must not shift while it does.
+ * A route too short to scroll is skipped rather than passed.
+ */
+async function checkRailStaysPut(
+  socket: CdpSocket,
+  studio: string,
+  results: Verdict[],
+): Promise<void> {
+  const scout = await openTab(socket);
+  let routes: string[];
+  try {
+    routes = await routeTargets(scout.page, studio);
+  } finally {
+    await scout.close().catch(() => {});
+  }
+  const broken: string[] = [];
+  let checked = 0;
+  for (const route of routes) {
+    const tab = await openTab(socket);
+    try {
+      await tab.page.goto(`${studio}${route}`);
+      const probe = await tab.page.eval<{
+        windowScroll: number;
+        columnScroll: number;
+        drift: number;
+      }>(
+        `(async () => {
+          const nav = document.querySelector("#app nav");
+          if (!nav) return { windowScroll: -1, columnScroll: -1, drift: -1 };
+          const top0 = nav.getBoundingClientRect().top;
+          const windowScroller = document.scrollingElement;
+          if (windowScroller) windowScroller.scrollTop = 400;
+          const column = [...document.querySelectorAll("#app *")].find((el) => {
+            if (nav.contains(el)) return false;
+            const s = getComputedStyle(el);
+            return (s.overflowY === "auto" || s.overflowY === "scroll") &&
+              el.scrollHeight > el.clientHeight + 400;
+          });
+          if (column) column.scrollTop = 400;
+          await new Promise((r) =>
+            requestAnimationFrame(() => requestAnimationFrame(r))
+          );
+          return {
+            windowScroll: windowScroller ? windowScroller.scrollTop : -1,
+            columnScroll: column ? column.scrollTop : -1,
+            drift: Math.abs(nav.getBoundingClientRect().top - top0),
+          };
+        })()`,
+      );
+      const moved = Math.max(probe.windowScroll, probe.columnScroll, 0);
+      if (moved < 300) continue; // A short route cannot say anything.
+      checked += 1;
+      if (
+        probe.windowScroll > 1 || probe.columnScroll < 300 || probe.drift > 1
+      ) {
+        broken.push(
+          `window=${probe.windowScroll} column=${
+            Math.round(probe.columnScroll)
+          } drift=${Math.round(probe.drift)} at ${route}`,
+        );
+      }
+    } finally {
+      await tab.close().catch(() => {});
+    }
+  }
+  verdict(
+    results,
+    "the rail does not scroll with content",
+    broken.length === 0 && checked >= 2,
+    broken.length === 0
+      ? `${checked} scrolling routes, column only, rail still`
+      : `${broken.length} failing — ${broken.slice(0, 3).join("  |  ")}`,
+  );
+}
+
 async function checkRegistrySeats(
   page: Page,
   studio: string,
@@ -490,6 +588,46 @@ async function checkEditRethemesApp(
   );
 
   await watcher.clearOverlay(app);
+}
+
+/**
+ * One gesture on the scale track, as one edit in the overlay and one new
+ * value in the app's stylesheet.
+ *
+ * The track's contract is the batch: released at ×4 every spacing step grows
+ * together — `spacing.2` from 0.5rem to 2rem — rather than the single value a
+ * lone slider would have written. The watcher reads its own stylesheet, so
+ * the verdict is about what the app renders, not about what the studio sent.
+ */
+async function checkScaleSliderEdits(
+  driver: Page,
+  watcher: Page,
+  studio: string,
+  app: string,
+  results: Verdict[],
+): Promise<void> {
+  await watcher.goto(`${app}/`);
+  await watcher.clearOverlay(app);
+  await watcher.reload();
+  const before = await watcher.cssVar("--spacing-2");
+
+  await driver.goto(`${studio}/spacing?app=${encodeURIComponent(app)}`);
+  const driven = await driver.scaleGroup("1000");
+  await watcher.settle(3000);
+  const state = await watcher.overlay(app);
+  const published = state.themes["default"]?.spacing?.["2"]?.$value ?? null;
+  const after = await watcher.cssVar("--spacing-2");
+
+  verdict(
+    results,
+    "scale slider edit lands in overlay and stylesheet",
+    driven === "scaled" && before === "0.5rem" && published === "2rem" &&
+      after === published,
+    `spacing.2 ${before} → ${after}, driven=${driven}, published=${published}`,
+  );
+
+  await watcher.clearOverlay(app);
+  await watcher.reload();
 }
 
 async function checkSaveClearsDirty(
@@ -555,8 +693,16 @@ async function main(argv: readonly string[]): Promise<number> {
       await checkLegibility(launched.socket, studio, results);
       await checkCodeViewLegible(launched.socket, studio, results);
       await checkDrawerFits(launched.socket, studio, results);
+      await checkRailStaysPut(launched.socket, studio, results);
       await checkRegistrySeats(driver.page, studio, results);
       await checkEditRethemesApp(
+        driver.page,
+        watcher.page,
+        studio,
+        app,
+        results,
+      );
+      await checkScaleSliderEdits(
         driver.page,
         watcher.page,
         studio,

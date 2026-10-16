@@ -1,5 +1,7 @@
 import { createSignal, Match, Show, Switch } from "solid-js";
 import { formatHex, parseColor } from "@spin/theme";
+import { measure, quantize, sliderRange } from "../../lib/scale.ts";
+import { paintPreview } from "../../lib/preview.ts";
 
 function asHex(value: string): string | undefined {
   try {
@@ -9,41 +11,31 @@ function asHex(value: string): string | undefined {
   }
 }
 
+/** What the editor's control is, chosen by the value the theme holds. */
+type Control = "color" | "range" | "text";
+
 /**
- * A dimension split into its number and its unit, as authored.
+ * The control follows what the value IS.
  *
- * The unit is THE THEME'S: `radius.full` is `9999px` in a scale that is
- * otherwise rem, and rewriting it in rem would change a value the author
- * chose. A number control therefore steps in whatever unit the token already
- * speaks, and a value with no number (or no unit) falls through to text.
+ * A colour picks; a number — a length, a duration, a plain number — is a
+ * track, because a spinner makes an author click forty times to watch a
+ * corner round, and dragging is how you look at a value while you change
+ * it. Everything a slider cannot honestly step (a shadow is a list of
+ * lengths and colours; a curve is four points) is text, where the value
+ * can say all of itself.
  */
-function toDimension(value: string): { n: number; unit: string } | undefined {
-  const match = value.trim().match(/^(-?[\d.]+)(rem|em|px|%)?$/);
-  if (match === null) return undefined;
-  return { n: Number(match[1]), unit: match[2] ?? "" };
-}
-
-/** What the editor's control is, chosen by the theme's declared token type. */
-type Control = "color" | "dimension" | "text";
-
-function controlFor(type: string): Control {
+function controlFor(type: string, value: string): Control {
   if (type === "color") return "color";
-  if (type === "dimension") return "dimension";
+  if (measure(value) !== undefined) return "range";
   return "text";
 }
 
 /**
  * One token's value, and the only way it changes.
  *
- * The CONTROL follows the theme's declared type, which is the point: a color
- * token gets a picker, a dimension gets a step control, anything else is
- * text. One field that pretends to accept anything validates nothing — a
- * validator applied afterwards can only reject, never prevent.
- *
- * Each branch therefore constrains what it can produce. The text branch is
- * the fallback for types with no structured control (a shadow is a list of
- * lengths and colors; there is nothing to pick), and it is permissive because
- * there is no shorter honest check.
+ * Each branch constrains what it can produce. The text branch is the
+ * fallback for values with no structured control, and it is permissive
+ * because there is no shorter honest check.
  */
 export default function ValueInput(props: {
   value: string;
@@ -51,14 +43,24 @@ export default function ValueInput(props: {
   onCommit: (value: string) => boolean;
   /** The control's id, so the token's path is its label. */
   id?: string;
+  /** The token's path, named to the control when no label claims it. */
+  label?: string;
+  /**
+   * Every value in the token's own group. The slider's ceiling is read
+   * from it — twice the top of the ramp — so all of a scale's steps share
+   * one track and line up as the scale they belong to.
+   */
+  group?: readonly string[];
+  /** The token's custom property, painted on the preview surface while dragging. */
+  variable?: string;
 }) {
   return (
     <Switch fallback={<TextControl {...props} />}>
-      <Match when={controlFor(props.type) === "color"}>
+      <Match when={controlFor(props.type, props.value) === "color"}>
         <ColorControl {...props} />
       </Match>
-      <Match when={controlFor(props.type) === "dimension"}>
-        <DimensionControl {...props} />
+      <Match when={controlFor(props.type, props.value) === "range"}>
+        <RangeControl {...props} />
       </Match>
     </Switch>
   );
@@ -118,64 +120,103 @@ function ColorControl(props: {
   );
 }
 
-/** The step control itself, once the value is known to be a dimension. */
-function DimensionInput(props: {
-  dimension: { n: number; unit: string };
-  onCommit: (value: string) => boolean;
-  id?: string;
-}) {
-  const unit = () => props.dimension.unit;
-  return (
-    <input
-      type="number"
-      // The scale's own quantum, in the scale's own unit.
-      id={props.id}
-      step={unit() === "px" ? 1 : 0.0625}
-      min={0}
-      class="p-2 border-border rounded-md border w-24 text-sm"
-      value={props.dimension.n}
-      onChange={(event) => {
-        const next = Number(event.currentTarget.value);
-        if (!Number.isFinite(next)) return;
-        const at = unit();
-        const rounded = at === "px"
-          ? Math.round(next)
-          : Math.round(next * 16) / 16;
-        props.onCommit(`${rounded}${at}`);
-      }}
-    />
-  );
-}
-
-/** A dimension: a step control, stepping in the theme's own unit. */
-function DimensionControl(props: {
+/**
+ * A number the theme authored, as a track.
+ *
+ * The bounds are the group's — twice the top of the ramp — so every step
+ * of a scale shares one ceiling and the sliders read as the ramp they
+ * belong to; a value the outlier rule dropped (a `9999px` pill among
+ * corners) takes headroom of its own. While the pointer is down the token's
+ * own custom property is painted on the preview surface, so the specimen
+ * moves under the finger; on release one commit lands, one snapshot of
+ * undo, and the paint comes off.
+ */
+function RangeControl(props: {
   value: string;
   onCommit: (value: string) => boolean;
+  id?: string;
+  label?: string;
+  group?: readonly string[];
+  variable?: string;
 }) {
-  const dimension = () => toDimension(props.value);
+  const current = () => measure(props.value);
+  const range = () => sliderRange(props.value, props.group ?? [props.value]);
+  // What the track proposes while it is being dragged; the document's own
+  // value once the gesture is over.
+  const [draft, setDraft] = createSignal<string | undefined>(undefined);
+  let clear: (() => void) | undefined;
+  const release = () => {
+    clear?.();
+    clear = undefined;
+  };
+
   return (
     <Show
-      when={dimension()}
-      fallback={<TextControl value={props.value} onCommit={props.onCommit} />}
-    >
-      {(current) => (
-        <DimensionInput
-          dimension={current()}
-          onCommit={(value) => props.onCommit(value)}
+      when={current()}
+      fallback={
+        <TextControl
+          value={props.value}
+          onCommit={props.onCommit}
+          id={props.id}
         />
-      )}
+      }
+    >
+      <div class="row-sm flex-wrap gap-2">
+        <input
+          id={props.id}
+          type="range"
+          aria-label={props.label}
+          min={range().min}
+          max={range().max}
+          step={range().step}
+          value={current()?.n ?? range().min}
+          class="min-w-24 flex-1"
+          onInput={(event) => {
+            const next = quantize(
+              props.value,
+              Number(event.currentTarget.value),
+            );
+            setDraft(next);
+            if (props.variable !== undefined) {
+              release();
+              clear = paintPreview({ [props.variable]: next });
+            }
+          }}
+          onChange={(event) => {
+            const next = quantize(
+              props.value,
+              Number(event.currentTarget.value),
+            );
+            release();
+            const accepted = props.onCommit(next);
+            setDraft(undefined);
+            // A refused commit puts the thumb back on the document's value,
+            // which is the only word the readout will show.
+            if (!accepted) {
+              event.currentTarget.value = String(current()?.n ?? "");
+            }
+          }}
+          onPointerCancel={() => {
+            release();
+            setDraft(undefined);
+          }}
+        />
+        <code class="text-sm">{draft() ?? props.value}</code>
+      </div>
     </Show>
   );
 }
 
-/** Free text, for types with nothing structured to control. */
+/** Free text, for values with nothing structured to control. */
 function TextControl(props: {
   value: string;
   onCommit: (value: string) => boolean;
+  id?: string;
 }) {
   const [draft, setDraft] = createSignal(props.value);
   return (
     <input
+      id={props.id}
       type="text"
       class="p-2 border-border rounded-md border text-sm"
       value={draft()}

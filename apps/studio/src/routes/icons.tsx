@@ -32,7 +32,8 @@ import {
   Switch,
 } from "solid-js";
 import TokenGroupEditor from "../components/demos/TokenGroupEditor.tsx";
-import { editToken } from "../lib/editing.ts";
+import ScaleControl from "../components/demos/ScaleControl.tsx";
+import { editToken, editTokens } from "../lib/editing.ts";
 import {
   collectionsIn,
   type IconEntry,
@@ -73,7 +74,7 @@ export default function IconsPage() {
   const [query, setQuery] = createSignal("");
   const [size, setSize] = createSignal("md");
   const [copied, setCopied] = createSignal<string | null>(null);
-  let copiedFor: number | undefined;
+  let copiedFor: ReturnType<typeof globalThis.setTimeout> | undefined;
 
   /** The collections the catalogue carries, in the order it lists them. */
   const collections = createMemo(() => collectionsIn(catalog() ?? []));
@@ -108,9 +109,9 @@ export default function IconsPage() {
     }
     setCopied(utility);
     clearTimeout(copiedFor);
-    // The window's own: the DOM lib types its return as a number, and the
-    // peer's `Timeout` is Deno's — a studio file has one dom lib to answer to.
-    copiedFor = window.setTimeout(() => setCopied(null), 1200);
+    // Typed from the call itself: node's and the DOM's names for this handle
+    // differ, and neither has to be guessed at the assignment.
+    copiedFor = globalThis.setTimeout(() => setCopied(null), 1200);
   }
 
   return (
@@ -240,16 +241,17 @@ export default function IconsPage() {
 
         {
           /*
-          In the drawer the sizes stack below the grid: a w-72 aside beside
+          In the drawer the sizes stack below the grid: an 18rem aside beside
           a 300px grid crushes both into slivers, which is the breakage the
-          drawer screenshot showed.
+          drawer screenshot showed. The measure is the page's own bound —
+          no spacing token reaches 18rem.
         */
         }
         <aside
           class="stack-sm shrink-0 overflow-y-auto bg-surface-raised p-4"
           classList={{
             "w-full border-t border-border": inDrawer(),
-            "w-72": !inDrawer(),
+            "w-[18rem]": !inDrawer(),
           }}
         >
           <h2 class="text-sm font-semibold">Glyph sizes</h2>
@@ -258,6 +260,11 @@ export default function IconsPage() {
             group. The grid draws at the selected step; editing a step redraws
             it.
           </p>
+          <ScaleControl
+            rows={iconTokens()}
+            label="Scale every glyph size together"
+            onScale={(edits) => editTokens(edits)}
+          />
           <TokenGroupEditor tokens={iconTokens()} onEdit={editToken} />
         </aside>
       </div>
