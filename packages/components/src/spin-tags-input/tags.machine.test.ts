@@ -1,9 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createTagsBridge } from "./tags.bridge.ts";
-import type { TagsCommands } from "./tags.bridge.ts";
-import type { TagsApi, TagsRow } from "./tags.connect.ts";
+import { tagsInput } from "./tags.def.ts";
+const createTagsBridge = tagsInput.createBridge;
+import type { TagsCommands } from "./tags.def.ts";
+import type { TagsApi, TagsRow } from "./tags.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -59,7 +60,7 @@ const settle = (): Promise<void> => {
 };
 
 interface Harness {
-  readonly api: TagsApi & TagsCommands;
+  readonly api: TagsApi;
   readonly root: HTMLDivElement;
   readonly input: HTMLInputElement;
   readonly changes: { value: string[][]; inputValue: string[]; highlight: (number | null)[]; invalid: string[] };

@@ -15,6 +15,7 @@ const parseProp = <C extends object, E extends { type: string }>(
   def: ComponentDef<C, E>,
   props: () => Record<string, unknown>,
   cache?: Map<string, { raw: unknown; parsed: unknown }>,
+  host?: { readonly root: () => Element },
 ): Record<string, unknown> => {
   const raw = props();
   const out: Record<string, unknown> = {};
@@ -22,19 +23,22 @@ const parseProp = <C extends object, E extends { type: string }>(
     // Parsed props memoize on the raw prop's identity: a collection parse
     // builds row objects, and a fresh array per read would look like a new
     // item tree — re-rendering every row and orphaning in-flight gestures.
+    // Host-root reads bypass the cache: the element property may mutate
+    // without the scope prop moving.
     const input = raw[name];
-    if (cache !== undefined) {
+    const rootRead = input === undefined && host !== undefined;
+    if (cache !== undefined && !rootRead) {
       const hit = cache.get(name);
       if (hit !== undefined && hit.raw === input) {
         out[name] = hit.parsed;
         continue;
       }
-      const parsed = channel.parse(input);
+      const parsed = channel.parse(input, host);
       cache.set(name, { raw: input, parsed });
       out[name] = parsed;
       continue;
     }
-    out[name] = channel.parse(input);
+    out[name] = channel.parse(input, host);
   }
   return out;
 };
@@ -54,16 +58,24 @@ export function defineComponent<
   // is the raw value itself, so two elements never share a parse unless they
   // hold the identical prop — in which case sharing is correct.
   const parsedCache = new Map<string, { raw: unknown; parsed: unknown }>();
-  const parse = (props: () => Record<string, unknown>): Record<string, unknown> =>
-    parseProp(def, props, parsedCache);
   const hooks = (
     id: string,
+    root: () => Element,
   ): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
     const names = ids(def.name, id);
-    const focusPart = (part: string, slot?: unknown): void => {
-      if (typeof document === "undefined") return;
-      document.getElementById(names(part, slot))?.focus({ preventScroll: true });
-    };
+    const segments = new Map<string, string>();
+    for (const [key, partDef] of Object.entries(def.parts)) {
+      segments.set(key, partDef.id ?? key);
+    }
+    for (const [key, slotDef] of Object.entries(def.slots ?? {})) {
+      segments.set(key, slotDef.id ?? key);
+    }
+    const resolveId = (part: string, slot?: unknown): string =>
+      names(segments.get(part) ?? part, slot);
+    const host = { root };
+    const parse = (props: () => Record<string, unknown>): Record<string, unknown> =>
+      parseProp(def, props, parsedCache, host);
+    const focusPart = focuser(names);
     const bagMemos = new Map<string, ReturnType<typeof memo>>();
     const bagFor = (part: string): ReturnType<typeof memo> => {
       let found = bagMemos.get(part);
@@ -78,7 +90,15 @@ export function defineComponent<
       a.length === b.length && a.every((value, index) => value === b[index]);
 
     return {
+      ...(def.silentSync === true ? { silentSync: true as const } : {}),
       seed: (props, authored) => def.seed(parse(props), authored) as Partial<C>,
+      establish: (svc, props, authored) => {
+        if (def.establish === undefined) return;
+        const parsed = parse(props);
+        for (const event of def.establish(parsed, authored)) {
+          svc.send(event as E);
+        }
+      },
       sync: (svc, props, authored, send) => {
         let moved = false;
         const parsed = parse(props);
@@ -96,7 +116,11 @@ export function defineComponent<
             : context[name];
           const same = channel.equal ?? ((a, b) => a === b);
           if (!same(current, outer)) {
-            send(channel.event(outer as never) as E);
+            if (channel.assign === true) {
+              ((svc.state.context as object) as Record<string, unknown>)[name] = outer;
+            } else {
+              send(channel.event(outer as never) as E);
+            }
             moved = true;
           }
         }
@@ -167,13 +191,15 @@ export function defineComponent<
           send: send as (event: { type: string } & Record<string, unknown>) => void,
         });
       },
-      settled: ({ event, before, after }) => {
+      settled: ({ event, before, after, props: readRaw }) => {
         if (def.settled === undefined) return;
         def.settled({
           event: event as { readonly type: string } & Record<string, unknown>,
           before: (before as object) as Record<string, unknown>,
           after: (after as object) as Record<string, unknown>,
-          id: names,
+          props: parse(readRaw),
+          root,
+          id: resolveId,
           focus: focusPart,
         });
       },
@@ -182,25 +208,16 @@ export function defineComponent<
         const dispatch = (event: { type: string } & Record<string, unknown>): void => {
           service.send((def.dispatch !== undefined ? def.dispatch(event, readProps()) : event) as E);
         };
-        const segments = new Map<string, string>();
-        for (const [key, partDef] of Object.entries(def.parts)) {
-          segments.set(key, partDef.id ?? key);
-        }
-        for (const [key, slotDef] of Object.entries(def.slots ?? {})) {
-          segments.set(key, slotDef.id ?? key);
-        }
-        const resolveId = (part: string, slot?: unknown): string =>
-          names(segments.get(part) ?? part, slot);
         const api: Record<string, unknown> = {};
         for (const [name, command] of Object.entries(def.commands)) {
           if (command.view !== undefined) {
             const view = command.view;
-            api[name] = (...args: readonly unknown[]) => view({ args, id: names, focus: focusHere });
+            api[name] = (...args: readonly unknown[]) => view({ args, id: resolveId, focus: focusHere });
             continue;
           }
           const send = command.event;
           api[name] = (...args: readonly unknown[]) => dispatch(
-            send(args, (service.context as object) as Record<string, unknown>) as unknown as { type: string } & Record<string, unknown>,
+            send(args, (service.context as object) as Record<string, unknown>, resolveId) as unknown as { type: string } & Record<string, unknown>,
           );
         }
         for (const [name, reader] of Object.entries(def.readers ?? {})) {
@@ -242,6 +259,7 @@ export function defineComponent<
           const scope: Record<string, unknown> = {
             props,
             context,
+            root,
             id: resolveId,
             send: dispatch,
             attr: dataAttr,
@@ -289,21 +307,22 @@ export function defineComponent<
 
   const createBridge = (
     props: () => Record<string, unknown>,
-    _root: () => Element,
+    root: () => Element,
     id: string,
   ): { readonly api: Api; dispose(): void } => {
     const startState = typeof def.start === "function"
-      ? def.start(parse(props))
-      : (def.start ?? "idle");
+      ? def.start(parseProp(def, props, parsedCache, { root }))
+      : def.start;
     const bridged = defineBridge(
       {
         config: def.config,
         implementations: def.implementations,
-        startState,
+        ...(startState === undefined ? {} : { startState }),
         hooks,
       },
       props,
       id,
+      root,
     );
     return bridged as unknown as { readonly api: Api; dispose(): void };
   };

@@ -13,7 +13,13 @@
 
 import type { Config, Implementations } from "@spin/runtime/fsm";
 
-export type PropParser = (raw: unknown) => unknown;
+export interface ParseHost {
+  /** The element root: behavioral host props (sanitize, validate,
+   * translations) live as element properties, not scope props. */
+  readonly root: () => Element;
+}
+
+export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
 
 export interface PropDef {
   /** Parse the raw scope value into the connect prop. */
@@ -27,6 +33,9 @@ export interface ControlledDef {
   readonly parse: PropParser;
   /** The event a host write sends. Receives the parsed outer value. */
   readonly event: (value: never) => { type: string } & Record<string, unknown>;
+  /** Write the parsed value straight into context instead of sending:
+   * host writes alternate on their own, not on the next machine event. */
+  readonly assign?: true;
   /** Equality against the machine's current value. Default `===` — array
    * channels declare their own (a fresh parse never `===`s). */
   readonly equal?: (current: unknown, outer: unknown) => boolean;
@@ -46,6 +55,7 @@ export interface PartScope {
   readonly props: Record<string, unknown>;
   readonly context: Record<string, unknown>;
   readonly state: string;
+  readonly root: () => Element;
   readonly id: (part: string, slot?: unknown) => string;
   readonly send: (event: { type: string } & Record<string, unknown>) => void;
   readonly attr: (value: boolean) => string | undefined;
@@ -114,12 +124,14 @@ export interface MethodDef {
 
 export type CommandDef =
   | {
-    /** A sending command: name + event from args and live context.
-     * The context read keeps `setThumbValue`-style splices in the def
-     * without a hand-written api method. */
+    /** A sending command: name + event from args, live context, and part
+     * ids. The context read keeps `setThumbValue`-style splices in the def
+     * without a hand-written api method; the ids resolve id-keyed commands
+     * (`clearValue(tagId)`) without one. */
     readonly event: (
       args: readonly unknown[],
       context: Record<string, unknown>,
+      id: (part: string, slot?: unknown) => string,
     ) => { type: string } & Record<string, unknown>;
     readonly view?: undefined;
   }
@@ -169,6 +181,12 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
   /** The start state, or its computation from parsed props (an authored
    * `open` starts the panel up). Absent, the machine's own initial. */
   readonly start?: string | ((props: Record<string, unknown>) => string);
+  /** Events sent once after start (seeded through the machine, not a
+   * write: validation and sanitization run through the assigns). */
+  readonly establish?: (
+    props: Record<string, unknown>,
+    authored: (name: string) => boolean,
+  ) => readonly ({ type: string } & Record<string, unknown>)[];
   /** Seed the machine context from parsed props before start. A coerced
    * default is never a write: `closeOnSelect` defaults from the mode unless
    * the host authored it. */
@@ -176,6 +194,11 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
+  /** Host writes apply silently: the effect wakes bindings with a tick
+   * but never reports — machine sends own the events, diffing before/after
+   * snapshots that already include the silently applied writes. Default
+   * false: sync moves notify as commits. */
+  readonly silentSync?: true;
   /** Derived context sync inside the owned effect (collection order/labels
    * re-homed over a changed item tree). Reads parsed props, may assign
    * derived caches directly and send re-homing events. Returns true when
@@ -200,6 +223,8 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     readonly event: { readonly type: string } & Record<string, unknown>;
     readonly before: Record<string, unknown>;
     readonly after: Record<string, unknown>;
+    readonly props: Record<string, unknown>;
+    readonly root: () => Element;
     readonly id: (part: string, slot?: number) => string;
     readonly focus: (part: string, slot?: number) => void;
   }) => void;

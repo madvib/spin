@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { TagsCommands } from "../../../src/spin-tags-input/tags.bridge.ts";
+import type { TagsCommands } from "../../../src/spin-tags-input/tags.def.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

@@ -35,7 +35,8 @@ export interface BridgeService<C, E extends { type: string }> {
 export interface BridgeShared<C extends object, E extends { type: string }> {
   readonly config: Config<C, E>;
   readonly implementations: Implementations<C, E>;
-  readonly startState: string;
+  /** The start state. Undefined starts at the machine's own initial. */
+  readonly startState?: string;
 }
 
 export interface BridgeHooks<
@@ -50,6 +51,13 @@ export interface BridgeHooks<
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
   ): Partial<C>;
+  /** Post-start sends (seeded through the machine: validation runs through
+   * the assigns). Once per service, before the first tick. */
+  establish?(
+    svc: Service<C, E>,
+    props: () => Record<string, unknown>,
+    authored: (name: string) => boolean,
+  ): void;
   /** Alternate authored channels against the machine. Return true when a send moved state. */
   sync(
     svc: Service<C, E>,
@@ -80,12 +88,15 @@ export interface BridgeHooks<
     authored: (name: string) => boolean,
     send: (event: E) => void,
   ): boolean;
+  /** Host writes apply silently (no effect notify). Static per def. */
+  readonly silentSync?: boolean;
   /** Post-send view reflexes (the panel's opening owes the field its focus).
    * View-side only: focus management, never state. */
   settled?(args: {
     readonly event: E;
     readonly before: { readonly context: C; readonly state: string };
     readonly after: { readonly context: C; readonly state: string };
+    readonly props: () => Record<string, unknown>;
   }): void;
   /** Merge parsed props into machine context before a send. Absent, sends go direct. */
   refresh?(
@@ -108,7 +119,10 @@ export interface BridgeSpec<
   /** Fresh per-bridge hooks: notify cursors live in this closure, so two
    * elements on one page never share them. Receives the element id for
    * post-send view reflexes. */
-  hooks(id: string): BridgeHooks<C, E, Api, ConnectProps, Callbacks>;
+  hooks(
+    id: string,
+    root: () => Element,
+  ): BridgeHooks<C, E, Api, ConnectProps, Callbacks>;
 }
 
 export function authoredProps(props: () => Record<string, unknown>): (name: string) => boolean {
@@ -140,11 +154,14 @@ export function defineBridge<
   spec: BridgeSpec<C, E, Api, ConnectProps, Callbacks>,
   props: () => Record<string, unknown>,
   id: string,
+  root: () => Element = () => {
+    throw new Error("[spin] bridge needs a root element");
+  },
 ): { readonly api: Api; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
   const authored = authoredProps(props);
-  const hooks = spec.hooks(id);
+  const hooks = spec.hooks(id, root);
   const machine = createMachine<C, E>(
     { ...spec.config, context: { ...(spec.config.context ?? {}) } as C },
     spec.implementations,
@@ -157,6 +174,9 @@ export function defineBridge<
     service = owner.run(() => {
       const svc = interpret(machine).start(spec.startState);
       Object.assign(svc.state.context, hooks.seed(props, authored));
+      // Scalars first: seed sends run assigns that read them.
+      hooks.refresh?.(svc, props, authored);
+      hooks.establish?.(svc, props, authored);
       // Prime the watch cursors: the first notify must report a MOVE, not
       // the seed. The sink swallows the callbacks; the cursors still advance.
       hooks.notify(svc, {} as Callbacks, "move");
@@ -168,12 +188,15 @@ export function defineBridge<
   const send = (event: E): void => {
     const svc = ensureService();
     hooks.refresh?.(svc, props, authored);
-    const before = { context: svc.state.context, state: svc.state.value };
+    // Shallow: assigns replace fields rather than mutating them, so the
+    // pre-send values survive the transition (the tags log diff relies on it).
+    const before = { context: { ...svc.state.context }, state: svc.state.value };
     svc.send(event);
     hooks.settled?.({
       event,
       before,
       after: { context: svc.state.context, state: svc.state.value },
+      props,
     });
     hooks.notify(
       svc,
@@ -208,16 +231,25 @@ export function defineBridge<
 
   owner.run(() =>
     effect(() => {
+      // Subscribe to the prop signals and nothing else: the whole body
+      // runs untracked, so machine ticks can never re-run it and re-impose
+      // the authored prop over the machine's own transition.
+      props();
+      untrack(() => {
       const svc = ensureService();
       // The cursors stay on the pre-write values while the events send.
       const beforeContext = { ...svc.state.context };
-      const moved = untrack(() => {
-        const channelMoved = hooks.sync(svc, props, authored, (event) => svc.send(event));
-        const parsed = hooks.readConnectProps(props) as Record<string, unknown>;
-        const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => svc.send(event)) ?? false;
-        return channelMoved || derivedMoved;
+      const channelMoved = hooks.sync(svc, props, authored, (event) => svc.send(event));
+      const parsed = hooks.readConnectProps(props) as Record<string, unknown>;
+      const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => svc.send(event)) ?? false;
+      const moved = channelMoved || derivedMoved;
+      if (moved) {
+        tick(tick() + 1);
+        if (hooks.silentSync !== true) {
+          hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, hooks.readConnectProps(props) as Record<string, unknown>);
+        }
+      }
       });
-      if (moved) hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, hooks.readConnectProps(props) as Record<string, unknown>);
     }),
   );
 

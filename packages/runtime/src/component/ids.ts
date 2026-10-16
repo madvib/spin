@@ -18,6 +18,10 @@ export function ids(name: string, id: string): IdFn {
   // An already-namespaced id is used verbatim: sub-scopes hand down their
   // own prefix, and a second namespace would orphan every part lookup.
   const root = id.startsWith(`${name}:`) ? id : `${name}:${id}`;
-  return (part, slot) =>
-    slot === undefined || slot === null ? `${root}:${part}` : `${root}:${part}:${String(slot)}`;
+  return (part, slot) => {
+    // An empty segment is the bare owner id (the root part carries no
+    // suffix, so owner-scoped lookups never collide with a part name).
+    if (part === "") return root;
+    return slot === undefined || slot === null ? `${root}:${part}` : `${root}:${part}:${String(slot)}`;
+  };
 }
