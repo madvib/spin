@@ -41,10 +41,21 @@ export interface AngleSliderMarkerSlotProps {
    * the track centerline the examples draw.
    */
   readonly radius?: number;
+  /**
+   * Diameter mode: the marker is a full-diameter line markup centers and
+   * rotates itself (tark parity). Position is skipped, rotation kept.
+   */
+  readonly diameter?: boolean;
 }
 
 export interface AngleSliderThumbSlotProps {
   readonly radius?: number;
+  /**
+   * Needle mode: the thumb is a full-diameter indicator line rotated to
+   * the value (tark parity), not a dot on the rim. The bag emits rotation
+   * without a rim point; markup centers the line itself.
+   */
+  readonly needle?: boolean;
 }
 
 export interface AngleSliderValueChangeEnd {
@@ -276,7 +287,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       sig: (scope, arg) => {
         const ctx = asCtx(scope.context);
         const slot = (arg ?? {}) as AngleSliderThumbSlotProps;
-        return [ctx.value, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state, slot.radius ?? 40].join(" ");
+        return [ctx.value, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state, slot.radius ?? 40, slot.needle === true].join(" ");
       },
       attrs: (scope, arg) => {
         const ctx = asCtx(scope.context);
@@ -298,9 +309,13 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "data-invalid": dataAttr(scope.props["invalid"] === true),
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
-          // Position only: the rim point the thumb centers on. Centering
-          // is markup's (`-translate-1/2`), so thumb size never leaks here.
-          style: {
+          // Dot mode positions a rim point for markup to center on;
+          // needle mode rotates the markup's own centered line instead.
+          // Rotation rides with position: same grandfathered geometry.
+          style: slot.needle === true ? {
+            "--thumb-angle": `${shown}deg`,
+            rotate: `${shown}deg`,
+          } : {
             "--thumb-angle": `${shown}deg`,
             ...rimPlacement(shown, slot.radius ?? 40),
           },
@@ -372,7 +387,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       indexes: () => MARKERS,
       sig: (scope) => {
         const slot = scope.slot as unknown as AngleSliderMarkerSlotProps;
-        return [slot.value, slot.radius ?? 46, asCtx(scope.context).value].join(" ");
+        return [slot.value, slot.radius ?? 46, slot.diameter === true, asCtx(scope.context).value].join(" ");
       },
       attrs: (scope) => {
         const slot = scope.slot as unknown as AngleSliderMarkerSlotProps;
@@ -394,11 +409,14 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           style: {
             "--marker-angle": `${shown}deg`,
-            ...rimPlacement(shown, radius),
-            // Radial orientation rides with position: a positioned tick that
-            // stays vertical at every angle is not on the dial, it is near
-            // it. Same grandfathered category as the rim point above.
-            rotate: `${shown}deg`,
+            // Diameter markup centers itself; the bag keeps rotation only.
+            // Rim ticks keep point + orientation together (see above).
+            ...((slot as AngleSliderMarkerSlotProps).diameter === true ? {
+              rotate: `${shown}deg`,
+            } : {
+              ...rimPlacement(shown, radius),
+              rotate: `${shown}deg`,
+            }),
           },
         };
       },

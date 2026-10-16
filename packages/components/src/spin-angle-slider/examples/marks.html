@@ -1,20 +1,24 @@
 <scope>props={ defaultValue: string = "45", step: string = "10" } consume={ angleSlider }</scope>
 
-<div class="mx-auto flex w-full max-w-xs flex-col items-center gap-4" {...angleSlider.getRootProps()}>
+<div class="mx-auto flex w-full max-w-xs items-center justify-center" {...angleSlider.getRootProps()}>
   <div
     class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center rounded-full border border-solid border-border bg-surface-raised select-none"
     {...angleSlider.getControlProps()}
   >
-    <svg class="pointer-events-none absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 200 200" aria-hidden="true">
-      <circle cx="100" cy="100" r="88" class="fill-none stroke-primary" stroke-width="3" stroke-linecap="round"
-        stroke-dasharray={553.0} stroke-dashoffset={553.0 * (1 - angleSlider.value / 360)} />
-    </svg>
-    <div class="pointer-events-none absolute inset-0" {...angleSlider.getMarkerGroupProps()}>
+    <span
+      class="pointer-events-none absolute inset-y-0 left-1/2 -ml-px w-[2px]"
+      {...angleSlider.getThumbProps({ needle: true })}
+    >
+      <span class="absolute inset-x-0 top-[17%] block h-[33%] rounded-full bg-primary" aria-hidden="true"></span>
+    </span>
+    <div class="pointer-events-none absolute inset-px" {...angleSlider.getMarkerGroupProps()}>
       <template for={angleSlider.getMarkers()} as={row} key={row}>
         <span
-          class="absolute h-[1rem] w-[2px] -translate-1/2 bg-border-strong data-[state=under-value]:bg-semantic-success data-[state=at-value]:bg-primary"
-          {...angleSlider.getMarkerProps({ value: row })}
-        ></span>
+          class="absolute inset-y-0 left-1/2 -ml-px w-[2px]"
+          {...angleSlider.getMarkerProps({ value: row, diameter: true })}
+        >
+          <span class="absolute inset-x-0 top-[17%] block h-[16%] rounded-full bg-border-strong data-[state=under-value]:bg-semantic-success data-[state=at-value]:bg-primary" aria-hidden="true"></span>
+        </span>
       </template>
     </div>
     <span class="flex flex-col items-center" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>
