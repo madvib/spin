@@ -46,8 +46,8 @@ Deno.test("scaleValue keeps the precision the author wrote", () => {
   // The spacing scale is a sixteenth grid, and a scaled step stays on it —
   // a nudge that would land between steps snaps back rather than inventing
   // a value the scale never had.
-  assertEquals(scaleValue("1rem", 1.015), "1rem");
-  assertEquals(scaleValue("1rem", 1.25), "1.25rem");
+  assertEquals(scaleValue("1rem", 1.001), "1rem");
+  assertEquals(scaleValue("1rem", 1.02), "1.02rem");
 });
 
 Deno.test("scaleValue refuses what a factor cannot mean", () => {
@@ -88,8 +88,8 @@ Deno.test("sliderRange gives every step of a group the same ceiling", () => {
   const steps = ["0", "0.25rem", "0.5rem", "1rem", "2rem", "4rem"];
   // The ramp's ceiling: twice the top, in this row's own unit, stepping on
   // the sixteenth grid the scale is authored in.
-  assertEquals(sliderRange("0.25rem", steps), { min: 0, max: 8, step: 0.03125 });
-  assertEquals(sliderRange("4rem", steps), { min: 0, max: 8, step: 0.03125 });
+  assertEquals(sliderRange("0.25rem", steps), { min: 0, max: 8, step: 0.015625 });
+  assertEquals(sliderRange("4rem", steps), { min: 0, max: 8, step: 0.08 });
   const durations = ["150ms", "250ms", "400ms"];
   assertEquals(sliderRange("150ms", durations), { min: 0, max: 800, step: 1 });
   assertEquals(sliderRange("1000", ["0", "1000", "2000", "3000"]), {
@@ -102,7 +102,7 @@ Deno.test("sliderRange gives every step of a group the same ceiling", () => {
 Deno.test("sliderRange lets a row above the ramp take its own headroom", () => {
   const radii = ["0", "0.125rem", "0.25rem", "0.5rem", "9999px"];
   // The pill does not drag the rest of the scale's ceiling up with it…
-  assertEquals(sliderRange("0.5rem", radii), { min: 0, max: 1, step: 0.03125 });
+  assertEquals(sliderRange("0.5rem", radii), { min: 0, max: 1, step: 0.015625 });
   // …and it still has room to grow.
   assertEquals(sliderRange("9999px", radii), {
     min: 0,
@@ -122,7 +122,7 @@ Deno.test("sliderRange converts the ceiling into the row's own unit", () => {
 Deno.test("sliderRange never hands back a dead track", () => {
   assertEquals(sliderRange("0", ["0", "0"]), { min: 0, max: 16, step: 1 });
   assertEquals(sliderRange("0ms", ["0ms"]), { min: 0, max: 400, step: 1 });
-  assertEquals(sliderRange("0rem", ["0rem"]), { min: 0, max: 1, step: 0.03125 });
+  assertEquals(sliderRange("0rem", ["0rem"]), { min: 0, max: 1, step: 0.015625 });
 });
 
 const RAMP = [

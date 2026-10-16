@@ -77,7 +77,13 @@ function decimals(text: string): number {
  * precision is the grid, because their `0.5px` is a decision about halves.
  */
 function quantumOf(raw: string, m: Measure): number {
-  if (m.unit === "rem" || m.unit === "em") return 1 / 32;
+  if (m.unit === "rem" || m.unit === "em") {
+    // Context-dependent: a small value steps finely, a large value coarsely.
+    // A fixed grid (1/32) makes a 0.25rem value jump 12.5% per step; scaling
+    // the quantum with the value's own magnitude keeps the drag responsive
+    // at every scale without inventing steps the scale never had.
+    return Math.max(1 / 64, Math.abs(m.n) * 0.02);
+  }
   if (m.unit === "ms") return 1;
   if (m.unit === "s") return 0.001;
   const d = decimals(raw);
