@@ -1,100 +1,211 @@
 import { createMemo, For, Show } from "solid-js";
-import TokenGroupEditor from "../components/demos/TokenGroupEditor";
+import type { JSX } from "solid-js";
+import ValueInput from "../components/demos/ValueInput";
+import { inDrawer } from "../app";
 import { analyzeTheme } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
+import type { TokenRow } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
 import { editToken } from "../lib/editing";
 
 /**
- * The style page.
+ * Style — the values that shape a surface: its corners, its lift, its stack.
  *
- * A border colour is a thing you see, so the page shows it: a filled bar
- * next to its row, a rounded square per radius step, a card lifted by each
- * shadow. The utilities a theme declares for these groups are named in the
- * catalog and rendered as a list, which reads as documentation and has to be
- * read back by hand to know what `rounded-lg` actually looks like.
+ * Each family's specimen is the thing the family controls, spent through the
+ * token's own utility inside the preview scope. Radius rounds a real box, so
+ * the shape is the value. A shadow lifts a real card off a sunken ground,
+ * because a shadow read as a string of offsets says nothing about how far it
+ * stands off the page. Z-index stacks real layers, because a number cannot
+ * say which of two overlapping things wins — the overlap can.
  *
- * Each row carries the specimen beside the control, so changing a value
- * moves the thing being changed in the same glance. The rows are the same
- * `TokenRow` every other page edits, so there is one way to set a value.
+ * Every row is editable, including radius, which used to be a column of
+ * squares you could look at but not set.
  */
 
-/** The radius group, read from the theme rather than listed by hand. */
-const GROUPS: Array<{ title: string; blurb: string; groups: string[][] }> = [
-  {
-    title: "Radius",
-    blurb: "A box's corners, from square to a pill.",
-    groups: [["radius"]],
-  },
-  {
-    title: "Elevation",
-    blurb: "Shadows, and what each one lifts.",
-    groups: [["shadow"]],
-  },
-  {
-    title: "Layering",
-    blurb: "Which wins when boxes overlap.",
-    groups: [["z-index"]],
-  },
-];
+/** `radius.md` → `md`, the suffix the matching utility spends. */
+function suffixOf(path: string): string {
+  return path.split(".").slice(1).join("-");
+}
 
 export default function StylePage() {
   const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const sections = createMemo(() => {
+  const group = (prefixes: string[][]): TokenRow[] => {
     const current = tree();
-    if (!current) return [];
-    return GROUPS.map((section) => ({
-      ...section,
-      rows: groupTokens(current, section.groups, activeMode()),
-    })).filter((section) => section.rows.length > 0);
-  });
+    return current ? groupTokens(current, prefixes, activeMode()) : [];
+  };
+  const radii = createMemo(() => group([["radius"]]));
+  const shadows = createMemo(() => group([["shadow"]]));
+  const layers = createMemo(() => group([["z-index"]]));
+
+  const edit = (row: TokenRow, value: string) =>
+    editToken(row.path.split("."), value);
 
   return (
-    <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0 stack">
-      <div>
-        <h1 class="text-2xl">Style</h1>
-        <p>
-          Corners, edges, elevation, and layering of boxes in space. Each row
-          shows what its value looks like beside the control that sets it.
+    <section
+      class="stack mb-6"
+      classList={{ "max-w-screen-md": !inDrawer() }}
+    >
+      <header class="stack-sm">
+        <h1 class="text-xl font-semibold">Style</h1>
+        <p class="text-sm text-text-muted">
+          The values that shape a surface. Each row spends its own utility on
+          a real specimen and edits in place, so the thing you are changing is
+          the thing you are looking at.
         </p>
-      </div>
+      </header>
 
-      <For each={sections()}>
-        {(section) => (
-          <section class="stack-sm">
-            <h2 class="text-xl">{section.title}</h2>
-            <p class="text-text-muted">{section.blurb}</p>
-            <Show
-              when={section.title === "Radius"}
-              fallback={
-                <div class="panel">
-                  <TokenGroupEditor tokens={section.rows} onEdit={editToken} />
+      <Family
+        title="Radius"
+        note="A corner, on a box the theme's own surface and edge draw."
+        rows={radii()}
+        prefix="rounded"
+        onEdit={edit}
+      >
+        {(row) => <RadiusSpecimen row={row} />}
+      </Family>
+
+      <Family
+        title="Elevation"
+        note="A card stood off a sunken ground, so the shadow is the distance."
+        rows={shadows()}
+        prefix="shadow"
+        onEdit={edit}
+      >
+        {(row) => <LiftSpecimen row={row} />}
+      </Family>
+
+      <section class="stack-sm" aria-label="Z-index">
+        <h2 class="font-medium">Z-index</h2>
+        <p class="text-sm text-text-muted">
+          Layers stacked, so the winner is visible. Each carries its own
+          utility; the one that sits highest is the one whose step is largest.
+        </p>
+        <Show
+          when={layers().length > 0}
+          fallback={<Empty />}
+        >
+          <StackSpecimen rows={layers()} />
+          <ul class="stack-sm flow-list">
+            <For each={layers()}>
+              {(row) => (
+                <li class="panel row-sm justify-between gap-3">
+                  <code class="text-xs text-text-muted">{row.path}</code>
+                  <div class="row-sm shrink-0">
+                    <code class="text-xs whitespace-nowrap">
+                      {`z-${suffixOf(row.path)}`}
+                    </code>
+                    <ValueInput
+                      value={row.value}
+                      type={row.type}
+                      onCommit={(value) => edit(row, value)}
+                    />
+                  </div>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </section>
+    </section>
+  );
+}
+
+function Empty() {
+  return <p class="text-sm text-text-muted">This theme declares none yet.</p>;
+}
+
+/** One family: a specimen per row, the editor beside it. */
+function Family(props: {
+  title: string;
+  note: string;
+  rows: TokenRow[];
+  /** The utility prefix this family spends, so the label matches the specimen. */
+  prefix: string;
+  onEdit: (row: TokenRow, value: string) => boolean;
+  children: (row: TokenRow) => JSX.Element;
+}) {
+  return (
+    <section class="stack-sm" aria-label={props.title}>
+      <h2 class="font-medium">{props.title}</h2>
+      <p class="text-sm text-text-muted">{props.note}</p>
+      <Show when={props.rows.length > 0} fallback={<Empty />}>
+        <ul class="stack-sm flow-list">
+          <For each={props.rows}>
+            {(row) => (
+              <li class="panel row-sm justify-between gap-4">
+                <div class="row-sm">
+                  {props.children(row)}
+                  <code class="text-xs text-text-muted">{row.path}</code>
                 </div>
-              }
-            >
-              {
-                /*
-                Radius is the one group where a row's value is visible as a
-                shape, so the rows are squares that round by the value they
-                set rather than a swatch beside a number.
-              */
-              }
-              <div class="flex flex-wrap gap-4 p-4 panel">
-                <For each={section.rows}>
-                  {(row) => (
-                    <div class="w-24 stack-sm">
-                      <div
-                        class="h-16 bg-surface-raised border-2 border-accent"
-                        style={{ "border-radius": `var(${row.variable})` }}
-                      />
-                      <code class="text-xs">{row.path.split(".").pop()}</code>
-                      <span class="text-xs text-text-muted">{row.value}</span>
-                    </div>
-                  )}
-                </For>
-              </div>
-            </Show>
-          </section>
+                <div class="row-sm shrink-0">
+                  <code class="text-xs whitespace-nowrap">
+                    {`${props.prefix}-${suffixOf(row.path)}`}
+                  </code>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => props.onEdit(row, value)}
+                  />
+                </div>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </section>
+  );
+}
+
+/** A box whose corners are the radius under edit. */
+function RadiusSpecimen(props: { row: TokenRow }) {
+  return (
+    <div class="spin-preview shrink-0">
+      <div
+        class={`bg-surface-raised border border-border h-10 w-10 ${
+          `rounded-${suffixOf(props.row.path)}`
+        }`}
+      />
+    </div>
+  );
+}
+
+/** A card stood off a sunken ground by the elevation under edit. */
+function LiftSpecimen(props: { row: TokenRow }) {
+  return (
+    <div class="spin-preview bg-surface-sunken shrink-0 rounded-md p-3">
+      <div
+        class={`bg-surface-raised border border-border h-8 w-16 ${
+          `shadow-${suffixOf(props.row.path)}`
+        }`}
+      />
+    </div>
+  );
+}
+
+/**
+ * Every layer stacked and fanned, so the order is the z-index.
+ *
+ * The fan offset is demo geometry — how far each card peeks from behind the
+ * one above — not a value the theme owns, so it is set inline rather than
+ * through a token. The z-index itself is the token's own utility.
+ */
+function StackSpecimen(props: { rows: TokenRow[] }) {
+  return (
+    <div class="spin-preview relative h-28">
+      <For each={props.rows}>
+        {(row, index) => (
+          <div
+            class={`absolute inset-0 bg-surface-raised border border-border rounded-md p-3 stack-xs ${
+              `z-${suffixOf(row.path)}`
+            }`}
+            style={{
+              top: `${index() * 10}px`,
+              left: `${index() * 10}px`,
+            }}
+          >
+            <code class="text-xs text-text-muted">{row.path}</code>
+            <code class="text-xs">{`z-${suffixOf(row.path)}`}</code>
+          </div>
         )}
       </For>
     </div>

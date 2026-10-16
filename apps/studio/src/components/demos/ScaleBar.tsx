@@ -13,19 +13,24 @@ function toRem(px: number): string {
  * parse here, an edit redraws the bar without this component knowing the
  * value changed, and the ramp reads as relative lengths — 4px beside 96px —
  * rather than as a column of numbers. A drag paints the width it proposes
- * until it commits, and the field beside the bar sets the same step the
- * precise way.
+ * until it commits.
+ *
+ * Deliberately just the bar. The row owns the token's name and its editor,
+ * because two labels and two fields for one token is what this component
+ * used to produce when it carried its own.
  */
 export default function ScaleBar(props: {
-  label: string;
   /** The custom property the bar's width reads when it is not being dragged. */
   variable: string;
-  /** The step resolved in px, where a drag starts and the fields read. */
+  /** The step resolved in px, where a drag starts. */
   px: number | undefined;
+  /** The furthest a drag can propose, so a wide step cannot leave the track. */
+  maxPx?: number;
   onCommit: (rem: string) => void;
 }) {
   const [dragPx, setDragPx] = createSignal<number | undefined>(undefined);
   const shown = () => dragPx() ?? props.px ?? 0;
+  const max = () => props.maxPx ?? 320;
   let startX = 0;
   let startPx = 0;
 
@@ -40,37 +45,24 @@ export default function ScaleBar(props: {
   };
 
   return (
-    <div class="split panel">
-      <code>{props.label}</code>
-      <div class="flex-1 h-8 bg-neutral-100 rounded-md overflow-hidden">
-        <div
-          class="h-8 bg-primary rounded-md cursor-col-resize"
-          style={{
-            width: dragPx() === undefined
-              ? `var(${props.variable})`
-              : `${Math.min(dragPx() ?? 0, 320)}px`,
-          }}
-          onPointerDown={(event) => {
-            startX = event.clientX;
-            startPx = shown();
-            (event.currentTarget as Element).setPointerCapture?.(
-              event.pointerId,
-            );
-            event.currentTarget.onpointermove = onPointerMove;
-            event.currentTarget.onpointerup = endDrag;
-            event.currentTarget.onpointercancel = () => setDragPx(undefined);
-          }}
-        />
-      </div>
-      <code>{toRem(shown())}</code>
-      <input
-        class="text-sm p-2 border border-border rounded-md w-24"
-        type="number"
-        step="0.25"
-        min="0"
-        value={Number((shown() / 16).toFixed(2))}
-        onChange={(event) =>
-          props.onCommit(toRem(Number(event.currentTarget.value) * 16))}
+    <div class="h-6 overflow-hidden rounded-md bg-surface-sunken">
+      <div
+        class="h-full rounded-md bg-primary cursor-col-resize"
+        style={{
+          width: dragPx() === undefined
+            ? `var(${props.variable})`
+            : `${Math.min(dragPx() ?? 0, max())}px`,
+        }}
+        onPointerDown={(event) => {
+          startX = event.clientX;
+          startPx = shown();
+          (event.currentTarget as Element).setPointerCapture?.(
+            event.pointerId,
+          );
+          event.currentTarget.onpointermove = onPointerMove;
+          event.currentTarget.onpointerup = endDrag;
+          event.currentTarget.onpointercancel = () => setDragPx(undefined);
+        }}
       />
     </div>
   );
