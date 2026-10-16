@@ -1,4 +1,4 @@
-import { effect, own } from "../core/signal.ts";
+import { effect, machineTick, own, untrack } from "../core/signal.ts";
 import { scope } from "../core/signal.ts";
 
 export interface BranchRender {
@@ -33,7 +33,11 @@ export function bindIf(opts: BindIfOptions): () => void {
     nodes = [];
   };
 
+  // The tick is the invalidation bus: a test that reads machine state
+  // through plain getters subscribes to nothing else, so without this a
+  // show={machine-expr} block renders its seed branch and never moves.
   effect(() => {
+    machineTick();
     const v = test();
     if (v === last) return;
     last = v;
@@ -42,9 +46,13 @@ export function bindIf(opts: BindIfOptions): () => void {
     const next = scope();
     owner = next;
     let rendered!: BranchRender;
-    next.run(() => {
+    // Untracked: content rendered inside the test effect would link as its
+    // child, and alien-signals then gates the content's own tick
+    // subscriptions on the parent — in-branch text froze while top-level
+    // text moved. The branch owns its effects; the test owns the flip.
+    next.run(() => untrack(() => {
       rendered = branches[v]!();
-    });
+    }));
     cleanup = rendered.cleanup;
     nodes = rendered.nodes;
     const host = anchor.parentNode;
