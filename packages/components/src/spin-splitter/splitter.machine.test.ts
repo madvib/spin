@@ -1,8 +1,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createSplitterBridge, parsePanels } from "./splitter.bridge.ts";
-import type { SplitterApi } from "./splitter.connect.ts";
+import { parsePanels, splitter } from "./splitter.def.ts";
+const createSplitterBridge = splitter.createBridge;
+import type { SplitterApi } from "./splitter.def.ts";
 import type { SplitterResizeDetails } from "./splitter.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
