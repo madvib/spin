@@ -88,7 +88,7 @@ const CODE_PRE =
 
 /** The panel every specimen sits in: one box, one surface, room to stand. */
 const SPECIMEN_PANEL =
-  "min-h-16 rounded-md border border-dashed border-border bg-surface p-6 shadow-sm";
+  "min-h-16 flex items-center justify-center rounded-md border border-dashed border-border bg-surface p-6 shadow-sm";
 
 /** The measure a specimen's content is set at. */
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
@@ -167,7 +167,7 @@ function ExampleSection(props: {
           </button>
         </div>
       </div>
-      <div class="relative grid">
+      <div class={`relative grid ${measure ? SPECIMEN_MEASURE : "max-w-full"} mx-auto`}>
         <pre
           ref={pre}
           class={`${CODE_PRE} col-start-1 row-start-1 ${

@@ -48,10 +48,21 @@ export default defineConfig(({ command }) => ({
       // app shows.
       mount: mountSpinApp(resolve(import.meta.dirname, "../../apps/reference")),
       content: {
-        filesystem: ["src/**/*.{tsx,ts}"],
+        filesystem: [
+          "src/**/*.{tsx,ts}",
+          // Primitives register their demo markup through the daemon, so the
+          // studio's Uno scan cannot see a class written in an example to
+          // generate a rule for it - which is exactly how component icons came
+          // to render nothing. Scanning the example modules brings the real
+          // glyph names into the studio's sheet. Mirrors the reference app.
+          resolve(
+            import.meta.dirname,
+            "../../packages/preset/src/rules/primitives/*.examples.ts",
+          ),
+        ],
         pipeline: {
           include: [
-            /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
+            /\.(tsx?|html)($|\?)/,
           ],
           // Demos are the component viewer's content, rendered as markup
           // strings and registered through the preview surface's own scan —
