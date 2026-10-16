@@ -27,6 +27,8 @@ export interface RpcComponent {
   readonly reads: readonly string[];
   readonly examples?: {
     readonly note: string;
+    /** The line that finishes an example markup alone cannot finish. */
+    readonly onLoad?: string;
     readonly rows: readonly RpcExample[];
   };
 }
