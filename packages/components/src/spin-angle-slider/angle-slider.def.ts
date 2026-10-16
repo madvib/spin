@@ -34,6 +34,17 @@ import {
 
 export interface AngleSliderMarkerSlotProps {
   readonly value: number;
+  /**
+   * Rim radius in dial-percent (50 = the control edge). The def cannot know
+   * the dial's drawn geometry — a bordered circle, a track ring, a needle
+   * dial each ride a different radius — so the usage says, defaulting to
+   * the track centerline the examples draw.
+   */
+  readonly radius?: number;
+}
+
+export interface AngleSliderThumbSlotProps {
+  readonly radius?: number;
 }
 
 export interface AngleSliderValueChangeEnd {
@@ -54,7 +65,7 @@ export interface AngleSliderApi {
   getLabelProps(): Record<string, unknown>;
   getHiddenInputProps(): Record<string, unknown>;
   getControlProps(): Record<string, unknown>;
-  getThumbProps(): Record<string, unknown>;
+  getThumbProps(slot?: AngleSliderThumbSlotProps): Record<string, unknown>;
   getValueTextProps(value: string): Record<string, unknown>;
   getMarkerGroupProps(): Record<string, unknown>;
   getMarkerProps(slot: AngleSliderMarkerSlotProps): Record<string, unknown>;
@@ -262,13 +273,15 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       }),
     },
     thumb: {
-      sig: (scope) => {
+      sig: (scope, arg) => {
         const ctx = asCtx(scope.context);
-        return [ctx.value, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state].join(" ");
+        const slot = (arg ?? {}) as AngleSliderThumbSlotProps;
+        return [ctx.value, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state, slot.radius ?? 40].join(" ");
       },
-      attrs: (scope) => {
+      attrs: (scope, arg) => {
         const ctx = asCtx(scope.context);
         const shown = displayAngle(ctx.value, ctx.dir);
+        const slot = (arg ?? {}) as AngleSliderThumbSlotProps;
         const ariaLabel = scope.props["ariaLabel"] as string;
         return {
           id: scope.id("thumb"),
@@ -289,7 +302,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           // is markup's (`-translate-1/2`), so thumb size never leaks here.
           style: {
             "--thumb-angle": `${shown}deg`,
-            ...rimPlacement(shown, 40),
+            ...rimPlacement(shown, slot.radius ?? 40),
           },
           onFocus: (): void => {
             scope.send({ type: "THUMB.FOCUS" });
@@ -359,12 +372,13 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       indexes: () => MARKERS,
       sig: (scope) => {
         const slot = scope.slot as unknown as AngleSliderMarkerSlotProps;
-        return [slot.value, asCtx(scope.context).value].join(" ");
+        return [slot.value, slot.radius ?? 46, asCtx(scope.context).value].join(" ");
       },
       attrs: (scope) => {
         const slot = scope.slot as unknown as AngleSliderMarkerSlotProps;
         const context = asCtx(scope.context);
         const shown = displayAngle(slot.value, context.dir);
+        const radius = slot.radius ?? 46;
         const state = slot.value < context.value
           ? "under-value"
           : slot.value > context.value
@@ -380,7 +394,11 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           style: {
             "--marker-angle": `${shown}deg`,
-            ...rimPlacement(shown, 46),
+            ...rimPlacement(shown, radius),
+            // Radial orientation rides with position: a positioned tick that
+            // stays vertical at every angle is not on the dial, it is near
+            // it. Same grandfathered category as the rim point above.
+            rotate: `${shown}deg`,
           },
         };
       },
