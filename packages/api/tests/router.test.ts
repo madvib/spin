@@ -94,7 +94,7 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     "components",
     [
       "components.list",
-      "components.variants",
+      "components.examples",
       "components.copy",
     ],
     componentsContract,

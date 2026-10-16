@@ -28,17 +28,17 @@ describe("daemon components over HTTP", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("lists machines with their variant names", async () => {
+  it("lists machines with their example names", async () => {
     const listed = await client.components.list({});
     const tree = listed.find((c) => c.name === "tree-view");
     assert(tree !== undefined, "tree-view is listed");
-    assertEquals(tree.variants, ["async-loading", "basic"]);
+    assertEquals(tree.examples, ["async-loading", "basic"]);
   });
 
   it("serves a machine's variants with copy-ready markup", async () => {
-    const { variants } = await client.components.variants({ name: "tree-view" });
-    assertEquals(variants.length, 2);
-    const basic = variants.find((v) => v.name === "basic");
+    const { examples } = await client.components.examples({ name: "tree-view" });
+    assertEquals(examples.length, 2);
+    const basic = examples.find((v) => v.name === "basic");
     assert(basic !== undefined);
     assert(basic.html.includes("<spin-tree-view"), "the markup names the element");
   });
@@ -46,7 +46,7 @@ describe("daemon components over HTTP", () => {
   it("copies a variant into the project at its known location", async () => {
     const copied = await client.components.copy({
       name: "tree-view",
-      variant: "basic",
+      example: "basic",
       root: dir,
     });
     assertEquals(copied.error, null);
@@ -59,10 +59,10 @@ describe("daemon components over HTTP", () => {
     );
   });
 
-  it("refuses an unknown variant without writing", async () => {
+  it("refuses an unknown example without writing", async () => {
     const copied = await client.components.copy({
       name: "tree-view",
-      variant: "nope",
+      example: "nope",
       root: dir,
     });
     assertEquals(copied.file, null);

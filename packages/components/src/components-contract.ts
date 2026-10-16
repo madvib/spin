@@ -1,10 +1,10 @@
 /**
- * The components contract: machines, the framework, and vendored variants.
+ * The components contract: machines, the framework, and vendored examples.
  *
- * We do not publish a component library. Each machine ships `*.variants.ts`
+ * We do not publish a component library. Each machine ships `examples/`
  * beside it — consumer-ready examples translated from the tark surface —
  * and this contract is how users discover them over RPC and copy them into
- * their projects at a known location (`spin/<component>/<variant>.html`).
+ * their projects at a known location (`spin/<component>/<example>.html`).
  */
 
 import { oc } from "@orpc/contract";
@@ -16,8 +16,8 @@ const ComponentName = v.pipe(
   v.description("Machine name, e.g. 'tree-view'."),
 );
 
-/** One vendored variant, as the RPC surface carries it. */
-const VariantRow = v.object({
+/** One vendored example, as the RPC surface carries it. */
+const ExampleRow = v.object({
   name: v.string(),
   title: v.string(),
   html: v.string(),
@@ -25,11 +25,11 @@ const VariantRow = v.object({
 
 const ComponentSummary = v.object({
   name: v.string(),
-  variants: v.array(v.string()),
+  examples: v.array(v.string()),
 });
 
-const VariantsOutput = v.object({
-  variants: v.array(VariantRow),
+const ExamplesOutput = v.object({
+  examples: v.array(ExampleRow),
 });
 
 const CopyOutput = v.object({
@@ -38,32 +38,32 @@ const CopyOutput = v.object({
   error: v.nullable(v.string()),
 });
 
-/** List every machine with its vendored variant names. */
+/** List every machine with its vendored example names. */
 export const list = oc
   .input(v.object({}))
   .output(v.array(ComponentSummary))
   .route({
     method: "POST",
     path: "/components/list",
-    summary: "List machines with vendored variants",
+    summary: "List machines with vendored examples",
   });
 
-/** Get one machine's variants, or an empty list when it ships none yet. */
-export const variants = oc
+/** Get one machine's examples, or an empty list when it ships none yet. */
+export const examples = oc
   .input(v.object({ name: ComponentName }))
-  .output(VariantsOutput)
+  .output(ExamplesOutput)
   .route({
     method: "POST",
-    path: "/components/variants",
-    summary: "Get a machine's variants",
+    path: "/components/examples",
+    summary: "Get a machine's examples",
   });
 
-/** Copy one variant into the caller's project at its known location. */
+/** Copy one example into the caller's project at its known location. */
 export const copy = oc
   .input(
     v.object({
       name: ComponentName,
-      variant: v.string(),
+      example: v.string(),
       root: v.optional(v.string()),
     }),
   )
@@ -71,13 +71,13 @@ export const copy = oc
   .route({
     method: "POST",
     path: "/components/copy",
-    summary: "Copy a variant into the project",
+    summary: "Copy an example into the project",
   });
 
 export const componentsContract = {
   components: {
     list,
-    variants,
+    examples,
     copy,
   },
 };
