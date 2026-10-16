@@ -1,37 +1,14 @@
-import type { MachineDef } from "@spin/runtime";
-import { createTimerBridge } from "./timer.bridge.ts";
-import type { TimerTickChange } from "./timer.bridge.ts";
+import { timer } from "./timer.def.ts";
+import type { TimerTickChange } from "./timer.def.ts";
 
 /**
- * The timer's seam: the bridge, the element's imperative commands and the
- * CustomEvents the host reads.
+ * The timer's seam: the synthesized bridge, the element's imperative
+ * commands and the CustomEvents the host reads.
  *
- * `machine`/`connect` are inert placeholders — the def's `createBridge` routes
- * straight to the fork, which is what makes this interpreter a drop-in behind
- * the `<name>.machine-def.ts` contract the plugin consumes.
- *
- * Events are faithful to Zag's callbacks: `tick` carries `onTick` with the
- * new count and its parts, `complete` carries `onComplete` once the run
- * reaches its target.
+ * Events are faithful to Zag's callbacks: `tick` carries `onTick` with
+ * the new count and its parts, `complete` carries `onComplete` once the
+ * run reaches its target.
  */
 
+export { timer };
 export type { TimerTickChange };
-
-export const timer: MachineDef = {
-  createBridge: createTimerBridge,
-  commands: ["start", "pause", "resume", "reset", "restart"],
-  events: {
-    tick: {
-      on: "onTick",
-      detail: (change: TimerTickChange) => ({
-        value: change.value,
-        time: change.time,
-        formattedTime: change.formattedTime,
-      }),
-    },
-    complete: {
-      on: "onComplete",
-      detail: () => ({}),
-    },
-  },
-};

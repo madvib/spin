@@ -232,6 +232,7 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * focus and other mount-time view reflexes. */
   readonly mounted?: (args: {
     readonly props: Record<string, unknown>;
+    readonly root: () => Element;
     readonly id: (part: string, slot?: unknown) => string;
     readonly focus: (part: string, slot?: unknown) => void;
   }) => void;

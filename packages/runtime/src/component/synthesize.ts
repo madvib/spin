@@ -225,7 +225,7 @@ export function defineComponent<
       },
       mounted: ({ props: readRaw }) => {
         if (def.mounted === undefined) return;
-        def.mounted({ props: parse(readRaw), id: resolveId, focus: focusPart });
+        def.mounted({ props: parse(readRaw), root, id: resolveId, focus: focusPart });
       },
       settled: ({ event, before, after, props: readRaw }) => {
         if (def.settled === undefined) return;

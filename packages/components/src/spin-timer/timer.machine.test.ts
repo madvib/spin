@@ -1,9 +1,10 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createTimerBridge } from "./timer.bridge.ts";
-import type { TimerTickChange } from "./timer.bridge.ts";
-import type { TimerApi, TimerUnit } from "./timer.connect.ts";
+import { timer } from "./timer.def.ts";
+const createTimerBridge = timer.createBridge;
+import type { TimerTickChange } from "./timer.def.ts";
+import type { TimerApi, TimerUnit } from "./timer.def.ts";
 import type { Time, TimePart } from "./timer.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
