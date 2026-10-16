@@ -103,7 +103,7 @@
     },
     "focus-ring": {
       "$type": "color",
-      "$value": "#5194ff"
+      "$value": "#000000"
     },
     "link": {
       "$type": "color",
