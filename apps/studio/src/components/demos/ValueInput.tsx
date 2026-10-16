@@ -5,6 +5,11 @@ import { analyzeTheme } from "../../lib/theme.ts";
 import { themeText } from "../../lib/store.ts";
 import { paintPreview } from "../../lib/preview.ts";
 import ShadowEditor from "./ShadowEditor.tsx";
+import BezierEditor from "./BezierEditor.tsx";
+
+function isBezierValue(value: string): boolean {
+  return /^cubic-bezier\s*\(/.test(value.trim());
+}
 
 function isShadowValue(value: string): boolean {
   return /^\s*-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+.+$/.test(
@@ -73,6 +78,9 @@ export default function ValueInput(props: {
 }) {
   return (
     <Switch fallback={<TextControl {...props} />}>
+      <Match when={isBezierValue(props.value)}>
+        <BezierEditor value={props.value} onCommit={props.onCommit} />
+      </Match>
       <Match when={isShadowValue(props.value)}>
         <ShadowEditor value={props.value} onCommit={props.onCommit} />
       </Match>
