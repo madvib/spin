@@ -14,9 +14,7 @@ import { ROUTE_PATHS, ROUTES } from "./routes.ts";
  */
 Deno.test("editorRouteFor answers the route that claims a token's group", () => {
   const claims = ROUTES.flatMap((route) =>
-    "owns" in route
-      ? route.owns.map((prefix) => ({ route, prefix }))
-      : []
+    "owns" in route ? route.owns.map((prefix) => ({ route, prefix })) : []
   );
   // Without this the test is a loop over nothing, and a table that claimed
   // no groups at all would pass it.
@@ -54,7 +52,9 @@ Deno.test("every token in the reference theme links to a route that exists", asy
     new URL("../../../reference/spin/default.json", import.meta.url),
   );
   const parsed = parseTokens(JSON.parse(text));
-  if (!parsed.ok) throw new Error(`reference theme does not parse: ${parsed.error}`);
+  if (!parsed.ok) {
+    throw new Error(`reference theme does not parse: ${parsed.error}`);
+  }
 
   const paths = Object.values(indexTree(parsed.tree).leaves).map((leaf) =>
     leaf.path.join(".")

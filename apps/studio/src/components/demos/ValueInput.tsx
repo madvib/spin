@@ -53,6 +53,14 @@ export default function ValueInput(props: {
   group?: readonly string[];
   /** The token's custom property, painted on the preview surface while dragging. */
   variable?: string;
+  /**
+   * Reports a value the control PROPOSES while dragged, in place of
+   * painting the token's own property: a linked group paints the whole
+   * family, and two painters on one variable cannot both take it off.
+   */
+  onPreview?: (value: string) => void;
+  /** Reports a drag abandoned before it committed. */
+  onCancel?: () => void;
 }) {
   return (
     <Switch fallback={<TextControl {...props} />}>
@@ -138,6 +146,8 @@ function RangeControl(props: {
   label?: string;
   group?: readonly string[];
   variable?: string;
+  onPreview?: (value: string) => void;
+  onCancel?: () => void;
 }) {
   const current = () => measure(props.value);
   const range = () => sliderRange(props.value, props.group ?? [props.value]);
@@ -177,7 +187,11 @@ function RangeControl(props: {
               Number(event.currentTarget.value),
             );
             setDraft(next);
-            if (props.variable !== undefined) {
+            // A family preview paints the whole group and owns its paint;
+            // a lone token paints only its own property.
+            if (props.onPreview !== undefined) {
+              props.onPreview(next);
+            } else if (props.variable !== undefined) {
               release();
               clear = paintPreview({ [props.variable]: next });
             }
@@ -198,6 +212,7 @@ function RangeControl(props: {
           }}
           onPointerCancel={() => {
             release();
+            props.onCancel?.();
             setDraft(undefined);
           }}
         />

@@ -32,8 +32,7 @@ import {
   Switch,
 } from "solid-js";
 import TokenGroupEditor from "../components/demos/TokenGroupEditor.tsx";
-import ScaleControl from "../components/demos/ScaleControl.tsx";
-import { editToken, editTokens } from "../lib/editing.ts";
+import LinkToggle from "../components/demos/LinkToggle.tsx";
 import {
   collectionsIn,
   type IconEntry,
@@ -43,6 +42,7 @@ import {
   loadIconGlyph,
   searchIcons,
 } from "../lib/icons.ts";
+import { createLockstep } from "../lib/lockstep.ts";
 import { activeMode, themeText } from "../lib/store.ts";
 import { inDrawer } from "../app.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
@@ -57,13 +57,14 @@ interface Step {
 export default function IconsPage() {
   const tree = createMemo(() => analyzeTheme(themeText()).tree);
   // The `icon` group, resolved live: the grid draws at what these rows say,
-  // and editing one of them is what the rows are for.
-  const iconTokens = createMemo(() => {
+  // and editing one of them is what the rows are for. Linked, the sizes are
+  // one scale — one row's track resizes the whole grid.
+  const iconSizes = createLockstep(() => {
     const current = tree();
     return current ? groupTokens(current, [["icon"]], activeMode()) : [];
-  });
+  }, "icon");
   const steps = createMemo<readonly Step[]>(() =>
-    iconTokens().map((row) => ({
+    iconSizes.rows().map((row) => ({
       step: row.path.slice("icon.".length),
       value: row.value,
     }))
@@ -254,18 +255,21 @@ export default function IconsPage() {
             "w-[18rem]": !inDrawer(),
           }}
         >
-          <h2 class="text-sm font-semibold">Glyph sizes</h2>
+          <div class="row-sm justify-between gap-2">
+            <h2 class="text-sm font-semibold">Glyph sizes</h2>
+            <LinkToggle group="icon" />
+          </div>
           <p class="text-sm text-text-muted">
             The theme's <code>icon</code>{" "}
             group. The grid draws at the selected step; editing a step redraws
             it.
           </p>
-          <ScaleControl
-            rows={iconTokens()}
-            label="Scale every glyph size together"
-            onScale={(edits) => editTokens(edits)}
+          <TokenGroupEditor
+            tokens={iconSizes.rows()}
+            onEdit={(path, value) => iconSizes.commit(path.join("."), value)}
+            onPreview={(path, value) => iconSizes.preview(path, value)}
+            onCancel={iconSizes.abandon}
           />
-          <TokenGroupEditor tokens={iconTokens()} onEdit={editToken} />
         </aside>
       </div>
     </div>

@@ -1,14 +1,13 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import ValueInput from "../components/demos/ValueInput";
 import ScaleBar from "../components/demos/ScaleBar";
-import ScaleControl from "../components/demos/ScaleControl";
+import LinkToggle from "../components/demos/LinkToggle";
 import Page from "../components/Page";
 import { analyzeTheme } from "../lib/theme";
 import { groupTokens, toPx } from "../lib/tokens";
 import type { TokenRow } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
-import { editToken, editTokens } from "../lib/editing";
-import type { TokenEdit } from "../lib/editing";
+import { createLockstep } from "../lib/lockstep";
 
 /**
  * Spacing — the scale, and what each step is for.
@@ -21,9 +20,10 @@ import type { TokenEdit } from "../lib/editing";
  *
  * The ramp is also the picker: a row selects, and the step's editor and its
  * two applied specimens — the step as padding, the step as a gap — spend
- * that step's own utility in the preview scope below. The scale control at
- * the head moves every step by one factor, because a scale is one decision
- * rather than eight.
+ * that step's own utility in the preview scope below. And the ramp is one
+ * gesture: while the group is linked, dragging any bar or track sets that
+ * step and moves every other step by the same ratio, so the shape survives
+ * the edit.
  *
  * A breakpoint is a viewport width, not a length inside a layout, so it is
  * shown as a share of the widest the theme declares — the one relative fact
@@ -37,26 +37,27 @@ function stepOf(path: string): string {
 
 export default function SpacingPage() {
   const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const steps = createMemo(() => {
+  const stepRows = createMemo(() => {
     const current = tree();
     return current ? groupTokens(current, [["spacing"]], activeMode()) : [];
   });
-  const breakpoints = createMemo(() => {
+  const steps = createLockstep(() => stepRows(), "spacing");
+  const breakpointRows = createMemo(() => {
     const current = tree();
     return current ? groupTokens(current, [["breakpoint"]], activeMode()) : [];
   });
+  const breakpoints = createLockstep(() => breakpointRows(), "breakpoint");
   const widest = () =>
-    Math.max(1, ...breakpoints().map((row) => toPx(row.value) ?? 0));
-
-  const edit = (row: TokenRow, value: string) =>
-    editToken(row.path.split("."), value);
-  const scale = (edits: readonly TokenEdit[]) => editTokens(edits);
+    Math.max(
+      1,
+      ...breakpoints.rows().map((row) => toPx(row.value) ?? 0),
+    );
 
   // The ramp, shortest bar first: the order is the comparison, and a step
   // the length parser cannot read still has to appear — at the end, where
   // its row simply claims no ratio.
   const ramp = createMemo(() =>
-    steps()
+    steps.rows()
       .map((row) => ({ row, px: toPx(row.value) }))
       .sort((a, b) => (a.px ?? Infinity) - (b.px ?? Infinity))
   );
@@ -88,20 +89,18 @@ export default function SpacingPage() {
       note="Every gap, pad and inset is one of these steps. The ramp shows the scale itself — each bar on one track, each step against the ratio that made it — and a row opens the step's editor and its two applied figures."
     >
       <section class="stack-sm" aria-label="Scale">
-        <h2 class="text-xl">Scale</h2>
+        <div class="row-sm justify-between gap-3">
+          <h2 class="text-xl">Scale</h2>
+          <LinkToggle group="spacing" />
+        </div>
         <Show
-          when={steps().length > 0}
+          when={steps.rows().length > 0}
           fallback={
             <p class="text-sm text-text-muted">
               This theme declares no spacing steps yet.
             </p>
           }
         >
-          <ScaleControl
-            rows={steps()}
-            label="Scale every step together"
-            onScale={scale}
-          />
           <ul class="flow-list stack-sm">
             <For each={ramp()}>
               {(entry, index) => (
@@ -132,7 +131,10 @@ export default function SpacingPage() {
                           variable={entry.row.variable}
                           px={entry.px}
                           maxPx={rampMax()}
-                          onCommit={(rem) => edit(entry.row, rem)}
+                          onCommit={(rem) => steps.commit(entry.row.path, rem)}
+                          onPreview={(rem) =>
+                            steps.preview(entry.row.path, rem)}
+                          onCancel={steps.abandon}
                         />
                       </span>
                       <code class="w-16 shrink-0 text-right text-xs">
@@ -158,10 +160,13 @@ export default function SpacingPage() {
                   <ValueInput
                     value={entry().row.value}
                     type={entry().row.type}
-                    onCommit={(value) => edit(entry().row, value)}
-                    group={steps().map((row) => row.value)}
+                    onCommit={(value) => steps.commit(entry().row.path, value)}
+                    group={steps.rows().map((row) => row.value)}
                     variable={entry().row.variable}
                     label={entry().row.path}
+                    onPreview={(value) =>
+                      steps.preview(entry().row.path, value)}
+                    onCancel={steps.abandon}
                   />
                 </div>
                 <StepFigures row={entry().row} />
@@ -172,27 +177,25 @@ export default function SpacingPage() {
       </section>
 
       <section class="stack-sm" aria-label="Breakpoints">
-        <h2 class="text-xl">Breakpoints</h2>
+        <div class="row-sm justify-between gap-3">
+          <h2 class="text-xl">Breakpoints</h2>
+          <LinkToggle group="breakpoint" />
+        </div>
         <p class="text-sm text-text-muted">
           The viewport widths a layout changes at. Each is shown as a share of
           the widest this theme declares, which is the only relative fact about
           one.
         </p>
         <Show
-          when={breakpoints().length > 0}
+          when={breakpoints.rows().length > 0}
           fallback={
             <p class="text-sm text-text-muted">
               This theme declares no breakpoints yet.
             </p>
           }
         >
-          <ScaleControl
-            rows={breakpoints()}
-            label="Scale every breakpoint together"
-            onScale={scale}
-          />
           <ul class="flow-list stack-sm">
-            <For each={breakpoints()}>
+            <For each={breakpoints.rows()}>
               {(row) => (
                 <li class="panel stack-sm">
                   <div class="row-sm flex-wrap justify-between gap-3">
@@ -200,10 +203,13 @@ export default function SpacingPage() {
                     <ValueInput
                       value={row.value}
                       type={row.type}
-                      onCommit={(value) => edit(row, value)}
-                      group={breakpoints().map((r) => r.value)}
+                      onCommit={(value) => breakpoints.commit(row.path, value)}
+                      group={breakpoints.rows().map((r) => r.value)}
                       variable={row.variable}
                       label={row.path}
+                      onPreview={(value) =>
+                        breakpoints.preview(row.path, value)}
+                      onCancel={breakpoints.abandon}
                     />
                   </div>
                   <div

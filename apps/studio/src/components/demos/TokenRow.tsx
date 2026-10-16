@@ -30,6 +30,8 @@ export default function TokenRow_({
   swatch = false,
   group,
   variable,
+  onPreview,
+  onCancel,
 }: {
   row: TokenRow;
   /** Applies an edit. Returns false when the theme refused it. */
@@ -40,6 +42,10 @@ export default function TokenRow_({
   group?: readonly string[];
   /** The token's custom property, painted on the preview surface while dragging. */
   variable?: string;
+  /** Reports a value this row's control proposes while dragged. */
+  onPreview?: (path: string, value: string) => void;
+  /** Reports a drag abandoned before it committed. */
+  onCancel?: () => void;
 }) {
   const id = `token-${row.path}`;
   return (
@@ -62,6 +68,10 @@ export default function TokenRow_({
           onCommit={(value) => onEdit(row.path.split("."), value)}
           group={group}
           variable={variable}
+          onPreview={onPreview === undefined
+            ? undefined
+            : (value) => onPreview(row.path, value)}
+          onCancel={onCancel}
         />
       </div>
     </card>

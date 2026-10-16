@@ -8,7 +8,7 @@ import {
   untrack,
 } from "solid-js";
 import ValueInput from "../components/demos/ValueInput";
-import ScaleControl from "../components/demos/ScaleControl";
+import LinkToggle from "../components/demos/LinkToggle";
 import Page from "../components/Page";
 import {
   bezierY,
@@ -22,8 +22,8 @@ import { analyzeTheme } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
 import type { TokenRow } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
-import { editToken, editTokens } from "../lib/editing";
-import type { TokenEdit } from "../lib/editing";
+import { editToken } from "../lib/editing";
+import { createLockstep } from "../lib/lockstep";
 import { paintPreview } from "../lib/preview";
 
 /**
@@ -74,7 +74,7 @@ interface Lane {
 }
 
 function lanesFor(
-  rows: TokenRow[],
+  rows: readonly TokenRow[],
   utility: (path: string) => string,
   withCurve: boolean,
 ): Lane[] {
@@ -107,10 +107,15 @@ function RaceStage(props: {
   /** The one thing held still across every lane, so the rest can be compared. */
   anchor: string;
   onEdit: (path: string, value: string) => boolean;
+  /** Reports a value a lane's control proposes while dragged. */
+  onPreview?: (path: string, value: string) => void;
+  /** Reports a drag abandoned before it committed. */
+  onCancel?: () => void;
   /** Under the section's loop control; stopped, the stage rests at its shares. */
   running: boolean;
 }) {
   const [phase, setPhase] = createSignal<"idle" | "reset" | "run">("idle");
+  const preview = props.onPreview;
 
   createEffect(() => {
     if (!props.running) {
@@ -165,6 +170,10 @@ function RaceStage(props: {
                     group={props.lanes.map((other) => other.value)}
                     variable={lane.variable}
                     label={lane.path}
+                    onPreview={preview === undefined
+                      ? undefined
+                      : (value) => preview(lane.path, value)}
+                    onCancel={props.onCancel}
                   />
                 </div>
               </div>
@@ -519,12 +528,12 @@ function LoopButton(props: {
 
 export default function MotionPage() {
   const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const durations = createMemo(() => {
+  const durations = createLockstep(() => {
     const current = tree();
     return current
       ? groupTokens(current, [["motion", "duration"]], activeMode())
       : [];
-  });
+  }, "motion.duration");
   const easings = createMemo(() => {
     const current = tree();
     return current
@@ -533,7 +542,6 @@ export default function MotionPage() {
   });
   const edit = (path: string, value: string) =>
     editToken(path.split("."), value);
-  const scale = (edits: readonly TokenEdit[]) => editTokens(edits);
 
   const [durationLoop, setDurationLoop] = createSignal(false);
   const [easingLoop, setEasingLoop] = createSignal(false);
@@ -541,7 +549,7 @@ export default function MotionPage() {
   // Every duration races under one shared easing, and every easing over one
   // shared duration: a lane that set both would compare nothing.
   const preferredDuration = () => {
-    const rows = durations();
+    const rows = durations.rows();
     return rows.find((row) => row.path.endsWith(".base")) ?? rows[0];
   };
   const anchor = (prefix: string) => {
@@ -568,29 +576,29 @@ export default function MotionPage() {
       <section class="stack-sm" aria-label="Durations">
         <div class="row-sm flex-wrap justify-between gap-3">
           <h2 class="text-xl">Durations</h2>
-          <LoopButton
-            running={durationLoop()}
-            onToggle={() => setDurationLoop(!durationLoop())}
-            label="loop all"
-          />
+          <div class="row-sm gap-2">
+            <LinkToggle group="motion.duration" />
+            <LoopButton
+              running={durationLoop()}
+              onToggle={() => setDurationLoop(!durationLoop())}
+              label="loop all"
+            />
+          </div>
         </div>
         <Show
-          when={durations().length > 0}
+          when={durations.rows().length > 0}
           fallback={
             <p class="text-sm text-text-muted">
               This theme declares no durations yet.
             </p>
           }
         >
-          <ScaleControl
-            rows={durations()}
-            label="Scale every duration together"
-            onScale={scale}
-          />
           <RaceStage
-            lanes={lanesFor(durations(), durationUtility, false)}
+            lanes={lanesFor(durations.rows(), durationUtility, false)}
             anchor={anchor("ease")}
-            onEdit={edit}
+            onEdit={(path, value) => durations.commit(path, value)}
+            onPreview={(path, value) => durations.preview(path, value)}
+            onCancel={durations.abandon}
             running={durationLoop()}
           />
         </Show>

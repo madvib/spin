@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import {
+  lockstepEdits,
   measure,
   quantize,
   robustMax,
@@ -122,4 +123,97 @@ Deno.test("sliderRange never hands back a dead track", () => {
   assertEquals(sliderRange("0", ["0", "0"]), { min: 0, max: 16, step: 1 });
   assertEquals(sliderRange("0ms", ["0ms"]), { min: 0, max: 400, step: 1 });
   assertEquals(sliderRange("0rem", ["0rem"]), { min: 0, max: 1, step: 0.0625 });
+});
+
+const RAMP = [
+  { path: "spacing.1", value: "0.25rem" },
+  { path: "spacing.2", value: "0.5rem" },
+  { path: "spacing.3", value: "1rem" },
+  { path: "spacing.4", value: "2rem" },
+];
+
+/**
+ * Setting one step is setting the scale: the ratio the drag produced lands
+ * on every sibling, so the group keeps the shape it was authored with. The
+ * result runs in the group's own order and carries the row asked for, which
+ * is the batch the commit writes as one edit.
+ */
+Deno.test("lockstepEdits moves every step of a linked group by one ratio", () => {
+  assertEquals(lockstepEdits(RAMP, "spacing.3", "2rem", true), [
+    { path: ["spacing", "1"], value: "0.5rem" },
+    { path: ["spacing", "2"], value: "1rem" },
+    { path: ["spacing", "3"], value: "2rem" },
+    { path: ["spacing", "4"], value: "4rem" },
+  ]);
+});
+
+/** Unlinked, the step is wrong on its own and only the step is written. */
+Deno.test("lockstepEdits writes only the row asked for when the group is unlinked", () => {
+  assertEquals(lockstepEdits(RAMP, "spacing.3", "2rem", false), [
+    { path: ["spacing", "3"], value: "2rem" },
+  ]);
+});
+
+/**
+ * A step at zero holds no ratio — every factor of it is still zero — and a
+ * ratio of zero scales the group out of existence. Both answer honestly by
+ * writing the row asked for and leaving the rest at the document's word.
+ */
+Deno.test("lockstepEdits refuses the two ratios a scale cannot be built from", () => {
+  const withZero = [{ path: "spacing.0", value: "0" }, ...RAMP];
+  assertEquals(lockstepEdits(withZero, "spacing.0", "1rem", true), [
+    { path: ["spacing", "0"], value: "1rem" },
+  ]);
+  const durations = [
+    { path: "motion.fast", value: "150ms" },
+    { path: "motion.base", value: "400ms" },
+  ];
+  assertEquals(lockstepEdits(durations, "motion.base", "0ms", true), [
+    { path: ["motion", "base"], value: "0ms" },
+  ]);
+});
+
+/** A value with no number is a value a ratio cannot act on; the rest still move. */
+Deno.test("lockstepEdits leaves a sibling a factor cannot mean at its own value", () => {
+  const mixed = [
+    { path: "spacing.a", value: "1rem" },
+    { path: "spacing.b", value: "0.5rem" },
+    { path: "spacing.c", value: "auto" },
+  ];
+  assertEquals(lockstepEdits(mixed, "spacing.a", "2rem", true), [
+    { path: ["spacing", "a"], value: "2rem" },
+    { path: ["spacing", "b"], value: "1rem" },
+  ]);
+});
+
+/** The edit carries what CHANGED: a sibling the grid rounds back to its own
+ * value has not moved, and writing it would be noise in the undo stack. */
+Deno.test("lockstepEdits skips a sibling the grid rounds back to unchanged", () => {
+  const grid = [
+    { path: "spacing.x", value: "0.25rem" },
+    { path: "spacing.y", value: "1" },
+  ];
+  assertEquals(lockstepEdits(grid, "spacing.x", "0.3125rem", true), [
+    { path: ["spacing", "x"], value: "0.3125rem" },
+  ]);
+});
+
+/** The ratio is unit-blind: it is read in canonical space and written back
+ * in each row's own unit, so seconds stay seconds beside milliseconds. */
+Deno.test("lockstepEdits carries the ratio across units", () => {
+  const mixed = [
+    { path: "motion.a", value: "1000ms" },
+    { path: "motion.b", value: "0.5s" },
+  ];
+  assertEquals(lockstepEdits(mixed, "motion.a", "2000ms", true), [
+    { path: ["motion", "a"], value: "2000ms" },
+    { path: ["motion", "b"], value: "1s" },
+  ]);
+});
+
+/** A caller outside the group gets its value and no invented siblings. */
+Deno.test("lockstepEdits answers a path it does not hold with the edit alone", () => {
+  assertEquals(lockstepEdits(RAMP, "spacing.9", "9rem", true), [
+    { path: ["spacing", "9"], value: "9rem" },
+  ]);
 });

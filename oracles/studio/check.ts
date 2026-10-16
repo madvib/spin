@@ -148,17 +148,19 @@ class Page {
     );
   }
 
-  /** The scale track, released: `change` commits the whole group as one edit. */
-  async scaleGroup(t: string): Promise<string> {
+  /** A row's track, released: `change` commits — linked, the group follows. */
+  async dragRange(label: string, value: string): Promise<string> {
     return await this.eval<string>(
       `(async () => {
-        const input = document.querySelector('input[type="range"][aria-label^="Scale every"]');
-        if (input === null) return "no-scale-track";
-        input.value = ${JSON.stringify(t)};
+        const input = document.querySelector(${
+        JSON.stringify(`input[type="range"][aria-label="${label}"]`)
+      });
+        if (input === null) return "no-track";
+        input.value = ${JSON.stringify(value)};
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await new Promise((r) => setTimeout(r, 1200));
-        return "scaled";
+        return "dragged";
       })()`,
     );
   }
@@ -591,15 +593,15 @@ async function checkEditRethemesApp(
 }
 
 /**
- * One gesture on the scale track, as one edit in the overlay and one new
- * value in the app's stylesheet.
+ * One row's track, released: the row lands AND its siblings land with it.
  *
- * The track's contract is the batch: released at ×4 every spacing step grows
- * together — `spacing.2` from 0.5rem to 2rem — rather than the single value a
- * lone slider would have written. The watcher reads its own stylesheet, so
+ * The contract is lockstep. Dragging `spacing.1` to 1rem produces a 4×
+ * ratio, and the ratio lands on every other step — so `spacing.2` arrives
+ * at 2rem in the overlay and in the app's stylesheet, where a lone slider
+ * would have left it at 0.5rem. The watcher reads its own stylesheet, so
  * the verdict is about what the app renders, not about what the studio sent.
  */
-async function checkScaleSliderEdits(
+async function checkScaleLockstep(
   driver: Page,
   watcher: Page,
   studio: string,
@@ -612,7 +614,7 @@ async function checkScaleSliderEdits(
   const before = await watcher.cssVar("--spacing-2");
 
   await driver.goto(`${studio}/spacing?app=${encodeURIComponent(app)}`);
-  const driven = await driver.scaleGroup("1000");
+  const driven = await driver.dragRange("spacing.1", "1");
   await watcher.settle(3000);
   const state = await watcher.overlay(app);
   const published = state.themes["default"]?.spacing?.["2"]?.$value ?? null;
@@ -620,10 +622,10 @@ async function checkScaleSliderEdits(
 
   verdict(
     results,
-    "scale slider edit lands in overlay and stylesheet",
-    driven === "scaled" && before === "0.5rem" && published === "2rem" &&
+    "one step dragged lands the whole scale",
+    driven === "dragged" && before === "0.5rem" && published === "2rem" &&
       after === published,
-    `spacing.2 ${before} → ${after}, driven=${driven}, published=${published}`,
+    `spacing.1 → 1rem drove spacing.2 ${before} → ${after}, published=${published}`,
   );
 
   await watcher.clearOverlay(app);
@@ -702,7 +704,7 @@ async function main(argv: readonly string[]): Promise<number> {
         app,
         results,
       );
-      await checkScaleSliderEdits(
+      await checkScaleLockstep(
         driver.page,
         watcher.page,
         studio,

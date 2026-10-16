@@ -27,6 +27,10 @@ export default function ScaleBar(props: {
   /** The furthest a drag can propose, so a wide step cannot leave the track. */
   maxPx?: number;
   onCommit: (rem: string) => void;
+  /** Reports the length a drag proposes, so a linked group can follow it. */
+  onPreview?: (rem: string) => void;
+  /** Reports a drag abandoned before it committed. */
+  onCancel?: () => void;
 }) {
   const [dragPx, setDragPx] = createSignal<number | undefined>(undefined);
   const shown = () => dragPx() ?? props.px ?? 0;
@@ -35,7 +39,9 @@ export default function ScaleBar(props: {
   let startPx = 0;
 
   const onPointerMove = (event: PointerEvent) => {
-    setDragPx(Math.max(0, startPx + event.clientX - startX));
+    const px = Math.max(0, startPx + event.clientX - startX);
+    setDragPx(px);
+    props.onPreview?.(toRem(px));
   };
   const endDrag = (event: PointerEvent) => {
     (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
@@ -61,7 +67,10 @@ export default function ScaleBar(props: {
           );
           event.currentTarget.onpointermove = onPointerMove;
           event.currentTarget.onpointerup = endDrag;
-          event.currentTarget.onpointercancel = () => setDragPx(undefined);
+          event.currentTarget.onpointercancel = () => {
+            setDragPx(undefined);
+            props.onCancel?.();
+          };
         }}
       />
     </div>

@@ -28,9 +28,10 @@ import { activeMode, themeText } from "../lib/store.ts";
 import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { DISPLAY, HEADING, PARAGRAPH } from "../lib/specimen-copy.ts";
-import { editToken, editTokens } from "../lib/editing.ts";
+import { editToken } from "../lib/editing.ts";
 import ValueInput from "../components/demos/ValueInput.tsx";
-import ScaleControl from "../components/demos/ScaleControl.tsx";
+import LinkToggle from "../components/demos/LinkToggle.tsx";
+import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
 import { inDrawer } from "../app.tsx";
 
 /** The four family slots, and the sentence that shows each one off. */
@@ -154,6 +155,7 @@ function sizeOf(
 }
 
 export default function TypePage() {
+  const sizes = createLockstep(scaleRows, "font.size");
   return (
     <div class="drawer-scroll min-h-0 min-w-0 flex-1 overflow-y-auto">
       <header class="stack px-8 pt-8">
@@ -181,19 +183,17 @@ export default function TypePage() {
       </section>
 
       <section class="stack mt-12 px-8">
-        <h2 class="text-xl">Scale</h2>
+        <div class="row-sm justify-between gap-3">
+          <h2 class="text-xl">Scale</h2>
+          <LinkToggle group="font.size" />
+        </div>
         <p class="max-w-screen-md text-text-muted">
           The nine steps, largest first. Each is drawn at its own size, so the
           ramp is the judgement.
         </p>
-        <ScaleControl
-          rows={scaleRows()}
-          label="Scale every size together"
-          onScale={(edits) => editTokens(edits)}
-        />
         <div class="flex flex-col">
           <For each={SCALE}>
-            {(step) => <ScaleRow step={step} />}
+            {(step) => <ScaleRow step={step} family={sizes} />}
           </For>
         </div>
       </section>
@@ -346,8 +346,8 @@ function FamilyCard(props: { slot: string; role: string; sample: string }) {
 }
 
 /** One step of the scale, drawn at its own size. */
-function ScaleRow(props: { step: string }) {
-  const rows = createMemo(scaleRows);
+function ScaleRow(props: { step: string; family: Lockstep }) {
+  const rows = () => props.family.rows();
   const row = () => sizeOf(rows(), props.step);
   return (
     <div class="split flex-wrap border-border border-b py-6 last:border-b-0">
@@ -361,10 +361,12 @@ function ScaleRow(props: { step: string }) {
             <ValueInput
               value={current().value}
               type={current().type}
-              onCommit={(value) => editToken(current().path.split("."), value)}
+              onCommit={(value) => props.family.commit(current().path, value)}
               group={rows().map((size) => size.value)}
               variable={current().variable}
               label={current().path}
+              onPreview={(value) => props.family.preview(current().path, value)}
+              onCancel={props.family.abandon}
             />
           )}
         </Show>

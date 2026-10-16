@@ -1,14 +1,14 @@
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import ValueInput from "../components/demos/ValueInput";
-import ScaleControl from "../components/demos/ScaleControl";
+import LinkToggle from "../components/demos/LinkToggle";
 import Page from "../components/Page";
 import { analyzeTheme } from "../lib/theme";
 import { groupTokens } from "../lib/tokens";
 import type { TokenRow } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
-import { editToken, editTokens } from "../lib/editing";
-import type { TokenEdit } from "../lib/editing";
+import { editToken } from "../lib/editing";
+import { createLockstep, type Lockstep } from "../lib/lockstep";
 
 /**
  * Style — the values that shape a surface: its corners, its lift, its stack.
@@ -21,11 +21,10 @@ import type { TokenEdit } from "../lib/editing";
  * say which of two overlapping things wins — the overlap can.
  *
  * A family of corners is a scale before it is a set of values — none, small,
- * medium, large exist as RATIOS — so radius takes one control that moves the
- * whole family by a factor, and a slider per corner for the step that is
- * wrong on its own. Z-index gets sliders and no factor: layer ORDER is the
- * decision there, and a factor would happily keep the order while quietly
- * changing every number the author already chose.
+ * medium, large exist as RATIOS — so radius is linked: one row's track sets
+ * that corner and every sibling by the same ratio. Z-index stays unlinked
+ * in spirit: layer ORDER is the decision there, and a ratio would happily
+ * keep the order while quietly changing every number the author chose.
  *
  * Every row is editable, including radius, which used to be a column of
  * squares you could look at but not set.
@@ -42,13 +41,12 @@ export default function StylePage() {
     const current = tree();
     return current ? groupTokens(current, prefixes, activeMode()) : [];
   };
-  const radii = createMemo(() => group([["radius"]]));
+  const radii = createLockstep(() => group([["radius"]]), "radius");
   const shadows = createMemo(() => group([["shadow"]]));
   const layers = createMemo(() => group([["z-index"]]));
 
   const edit = (row: TokenRow, value: string) =>
     editToken(row.path.split("."), value);
-  const scale = (edits: readonly TokenEdit[]) => editTokens(edits);
 
   return (
     <Page
@@ -58,10 +56,10 @@ export default function StylePage() {
       <Family
         title="Radius"
         note="A corner, on a box the theme's own surface and edge draw."
-        rows={radii()}
+        rows={radii.rows()}
         prefix="rounded"
-        onEdit={edit}
-        scale={{ label: "Scale every radius together", apply: scale }}
+        onEdit={(row, value) => radii.commit(row.path, value)}
+        family={radii}
       >
         {(row) => <RadiusSpecimen row={row} />}
       </Family>
@@ -123,34 +121,28 @@ function Empty() {
 function Family(props: {
   title: string;
   note: string;
-  rows: TokenRow[];
+  rows: readonly TokenRow[];
   /** The utility prefix this family spends, so the label matches the specimen. */
   prefix: string;
   onEdit: (row: TokenRow, value: string) => boolean;
   /**
-   * Present only for a family whose values scale together: one factor for
-   * the whole family, applied as a single edit.
+   * Present only for a family whose values are a scale: rows move in
+   * lockstep while linked, and the family takes the drag's preview itself.
    */
-  scale?: {
-    label: string;
-    apply: (edits: readonly TokenEdit[]) => boolean;
-  };
+  family?: Lockstep;
   children: (row: TokenRow) => JSX.Element;
 }) {
+  const family = props.family;
   return (
     <section class="stack-sm" aria-label={props.title}>
-      <h2 class="text-xl">{props.title}</h2>
+      <div class="row-sm justify-between gap-3">
+        <h2 class="text-xl">{props.title}</h2>
+        <Show when={family}>
+          {(active) => <LinkToggle group={active().name} />}
+        </Show>
+      </div>
       <p class="text-sm text-text-muted">{props.note}</p>
       <Show when={props.rows.length > 0} fallback={<Empty />}>
-        <Show when={props.scale}>
-          {(scale) => (
-            <ScaleControl
-              rows={props.rows}
-              label={scale().label}
-              onScale={scale().apply}
-            />
-          )}
-        </Show>
         <ul class="flow-list stack-sm">
           <For each={props.rows}>
             {(row) => (
@@ -170,6 +162,10 @@ function Family(props: {
                     group={props.rows.map((r) => r.value)}
                     variable={row.variable}
                     label={row.path}
+                    onPreview={family === undefined
+                      ? undefined
+                      : (value) => family.preview(row.path, value)}
+                    onCancel={family?.abandon}
                   />
                 </div>
               </li>

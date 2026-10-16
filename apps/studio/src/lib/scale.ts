@@ -129,6 +129,58 @@ export function robustMax(values: readonly number[]): number {
   return top;
 }
 
+/** One member of a group of numbers: the token's dotted path and its value. */
+export interface ScaleStep {
+  readonly path: string;
+  readonly value: string;
+}
+
+/** What one step will be worth once a gesture lands: a DTCG path and a value. */
+export interface ScaleEdit {
+  readonly path: string[];
+  readonly value: string;
+}
+
+/**
+ * Every value a group moves to, when one row is set.
+ *
+ * Setting one step is setting the scale: the gesture produced a ratio, and
+ * the ratio lands on every sibling, so the group keeps the shape it was
+ * authored with instead of being nudged step by step. The result runs in the
+ * group's own order and carries the row asked for; a sibling the grid rounds
+ * back to its own value has not moved and is not written.
+ *
+ * Two ratios a scale cannot be built from answer with the row alone. A step
+ * at zero holds no ratio — everything times zero is still zero — and a ratio
+ * of zero scales the group out of existence.
+ */
+export function lockstepEdits(
+  steps: readonly ScaleStep[],
+  editedPath: string,
+  next: string,
+  linked: boolean,
+): ScaleEdit[] {
+  const own: ScaleEdit = { path: editedPath.split("."), value: next };
+  const edited = steps.find((step) => step.path === editedPath);
+  const before = measure(edited?.value ?? "");
+  const proposed = measure(next);
+  const ratio = before !== undefined && proposed !== undefined &&
+      canonical(before) !== 0
+    ? canonical(proposed) / canonical(before)
+    : 0;
+  if (!linked || !Number.isFinite(ratio) || ratio <= 0) return [own];
+  const out: ScaleEdit[] = [];
+  for (const step of steps) {
+    const value = step.path === editedPath
+      ? next
+      : scaleValue(step.value, ratio);
+    if (value !== undefined && value !== step.value) {
+      out.push({ path: step.path.split("."), value });
+    }
+  }
+  return out;
+}
+
 /** A value in px (or ms), so numbers of different units compare at all. */
 function canonical(m: Measure): number {
   if (m.kind === "duration") return m.unit === "s" ? m.n * 1000 : m.n;
