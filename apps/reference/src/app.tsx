@@ -635,6 +635,24 @@ function parseForFormat(html: string): FormatNode[] {
         const stop = close === -1 ? html.length : close + 1;
         attrs.push([name, html.slice(i, stop)]);
         i = stop;
+      } else if (quote === "{") {
+        // An expression is code, not a bare word: without this
+        // `show={a - b === 4}` splits on its spaces into fake attrs.
+        let depth = 0;
+        let stop = i;
+        while (stop < html.length) {
+          if (html[stop] === "{") depth += 1;
+          if (html[stop] === "}") {
+            depth -= 1;
+            if (depth === 0) {
+              stop += 1;
+              break;
+            }
+          }
+          stop += 1;
+        }
+        attrs.push([name, html.slice(i, stop)]);
+        i = stop;
       } else {
         let stop = i;
         while (
@@ -688,10 +706,13 @@ function formatOpenTag(
   // Copy writes the exact source, never this display text.
   const spelled = attrs.map(([name, value]) => {
     if (value === undefined) return name;
-    const shown = value.length > 160 ? `${value.slice(0, 160)}…(${value.length} chars)` : value;
+    const cut = value.lastIndexOf(" ", 160);
+    const shown = value.length > 160
+      ? `${value.slice(0, cut === -1 ? 160 : cut)}…(${value.length} chars)`
+      : value;
     return `${name}=${shown}`;
   });
-  if (spelled.length > 2) {
+  if (spelled.length > 2 && spelled.every((s) => !s.includes("{"))) {
     const pad = FORMAT_INDENT.repeat(depth + 1);
     return `<${tag}\n${spelled.map((s) => `${pad}${s}`).join("\n")}\n${
       FORMAT_INDENT.repeat(depth)
