@@ -2,6 +2,8 @@ import { assert, assertEquals } from "@std/assert";
 import { parseTokens, treeToJson } from "@spin/theme";
 import { scaffold } from "@spin/preset";
 import {
+  componentsContract,
+  componentsRouter,
   createSpinClient,
   presetContract,
   presetRouter,
@@ -88,6 +90,16 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     primitivesRouter,
   ],
   ["preset", ["preset.catalog"], presetContract, presetRouter],
+  [
+    "components",
+    [
+      "components.list",
+      "components.variants",
+      "components.copy",
+    ],
+    componentsContract,
+    componentsRouter,
+  ],
 ];
 
 /** Follow a dotted path into a nested structure. */

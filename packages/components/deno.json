@@ -37,7 +37,8 @@
     "./tour": "./src/spin-tour/spin-tour.html",
     "./toast": "./src/spin-toast/spin-toast.html",
     "./tooltip": "./src/spin-tooltip/spin-tooltip.html",
-    "./tree-view": "./src/spin-tree-view/spin-tree-view.html"
+    "./tree-view": "./src/spin-tree-view/spin-tree-view.html",
+    "./procedures": "./src/components-procedures.ts"
   },
   "imports": {
     "@spin/components": "./src/index.ts",
@@ -53,7 +54,10 @@
     "@spin/runtime/actions": "../runtime/src/actions/index.ts",
     "@spin/hooks": "../hooks/src/index.ts",
     "@spin/hooks/solid": "../hooks/src/solid.ts",
-    "@spin/hooks/react": "../hooks/src/react.ts"
+    "@spin/hooks/react": "../hooks/src/react.ts",
+    "@orpc/contract": "npm:@orpc/contract@^1.0.0",
+    "@orpc/server": "npm:@orpc/server@^1.0.0",
+    "valibot": "npm:valibot@^1.0.0"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-import src/",

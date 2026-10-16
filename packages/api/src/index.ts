@@ -22,6 +22,7 @@ import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
 import { overlayRouter } from "@spin/preset";
+import { componentsRouter } from "@spin/components/procedures";
 
 export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
@@ -37,6 +38,8 @@ export { themeContract } from "@spin/theme";
 export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
 export { presetRouter } from "@spin/preset";
+export { componentsRouter } from "@spin/components/procedures";
+export { componentsContract } from "@spin/components/procedures";
 export { presetContract } from "@spin/preset";
 
 /** The daemon's router: every module's procedures, mounted by name. */
@@ -45,6 +48,7 @@ export const router = {
   ...primitivesRouter,
   ...presetRouter,
   ...projectRouter,
+  ...componentsRouter,
   ...previewRouter,
   ...overlayRouter,
   ...fontsRouter,
