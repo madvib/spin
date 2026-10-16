@@ -4,6 +4,13 @@ import { measure, quantize, sliderRange } from "../../lib/scale.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
 import { themeText } from "../../lib/store.ts";
 import { paintPreview } from "../../lib/preview.ts";
+import ShadowEditor from "./ShadowEditor.tsx";
+
+function isShadowValue(value: string): boolean {
+  return /^\s*-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+.+$/.test(
+    value.trim(),
+  );
+}
 
 function asHex(value: string): string | undefined {
   try {
@@ -66,6 +73,9 @@ export default function ValueInput(props: {
 }) {
   return (
     <Switch fallback={<TextControl {...props} />}>
+      <Match when={isShadowValue(props.value)}>
+        <ShadowEditor value={props.value} onCommit={props.onCommit} />
+      </Match>
       <Match when={controlFor(props.type, props.value) === "color"}>
         <ColorControl {...props} />
       </Match>
