@@ -31,6 +31,7 @@ export interface SliderApi {
   decrement(index?: number): void;
   focus(): void;
   readonly value: readonly number[];
+  readonly markers: readonly number[];
   readonly valueText: string;
   readonly dragging: boolean;
   readonly focused: boolean;
@@ -39,10 +40,13 @@ export interface SliderApi {
   getThumbMin(index: number): number;
   getThumbMax(index: number): number;
   getThumbIndexes(): readonly { readonly index: number }[];
+  getMarkers(): readonly number[];
   getRootProps(): Record<string, unknown>;
   getLabelProps(): Record<string, unknown>;
   getValueTextProps(): Record<string, unknown>;
   getControlProps(): Record<string, unknown>;
+  getMarkerGroupProps(): Record<string, unknown>;
+  getMarkerProps(slot: { readonly value: number }): Record<string, unknown>;
   getTrackProps(): Record<string, unknown>;
   getRangeProps(): Record<string, unknown>;
   getThumbProps(slot: { readonly index: number }): Record<string, unknown>;
@@ -168,6 +172,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       readOnly: props["readOnly"],
       invalid: props["invalid"],
       value: seeded,
+      markers: valuesProp(props["markers"]) ?? [],
     };
   },
   channels: {
@@ -181,6 +186,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
         sameValues(current as readonly number[], outer as readonly number[]),
     },
     defaultValue: { parse: valuesProp },
+    markers: { parse: valuesProp },
     min: { parse: minProp },
     max: { parse: maxProp },
     step: { parse: stepProp },
@@ -326,8 +332,12 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       attrs: (scope) => {
         const context = asCtx(scope.context);
         const percents = (context.value as number[]).map((value) => percentOf(context, value));
-        const low = Math.min(...percents);
-        const high = Math.max(...percents);
+        const origin = scope.props["origin"];
+        // Single-thumb ranges start at the origin edge, not the thumb: a
+        // lone 50% value fills 0-50 (tark basic), not a zero-width band.
+        const single = percents.length < 2;
+        const low = single && origin === "start" ? 0 : Math.min(...percents);
+        const high = single && origin === "end" ? 100 : Math.max(...percents);
         const vertical = scope.props["orientation"] === "vertical";
         return {
           id: scope.id("range"),
@@ -348,6 +358,15 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
           },
         };
       },
+    },
+    markerGroup: {
+      id: "marker-group",
+      sig: (scope) => [`${scope.props["dir"]}`].join(" "),
+      attrs: (scope) => ({
+        dir: scope.props["dir"],
+        "data-scope": "slider",
+        "data-part": "marker-group",
+      }),
     },
   },
   slots: {
@@ -471,6 +490,33 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
         };
       },
     },
+    marker: {
+      indexes: (context) => asCtx(context).markers as unknown as readonly { readonly value: number }[],
+      sig: (scope) => {
+        const slot = scope.slot as unknown as { readonly value: number };
+        return [slot.value, (asCtx(scope.context).value as number[]).join(",")].join(" ");
+      },
+      attrs: (scope) => {
+        const slot = scope.slot as unknown as { readonly value: number };
+        const context = asCtx(scope.context);
+        const percent = percentOf(context, slot.value);
+        const first = (context.value as number[])[0] ?? context.min;
+        const state = slot.value < first ? "under-value" : slot.value > first ? "over-value" : "at-value";
+        const vertical = scope.props["orientation"] === "vertical";
+        return {
+          id: scope.id("marker", slot.value),
+          dir: scope.props["dir"],
+          "data-scope": "slider",
+          "data-part": "marker",
+          "data-value": String(slot.value),
+          "data-state": state,
+          "data-orientation": scope.props["orientation"],
+          style: vertical
+            ? { "--marker-percent": `${percent}%`, bottom: "var(--marker-percent)" }
+            : { "--marker-percent": `${percent}%`, left: "var(--marker-percent)" },
+        };
+      },
+    },
     hiddenInput: {
       id: "input",
       indexes: (context) => (asCtx(context).value as number[]).map((_, index) => ({ index })),
@@ -505,6 +551,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   },
   readers: {
     value: { read: (context) => asCtx(context).value },
+    markers: { read: (context) => asCtx(context).markers },
     valueText: { read: (context) => (asCtx(context).value as number[]).join(", ") },
     dragging: { read: (_context, state) => state === "dragging" },
     focused: { read: (_context, state) => state === "focus" },
@@ -525,6 +572,9 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     },
     getThumbMax: {
       call: (context, _state, args) => thumbRange(asCtx(context), args[0] as number).max,
+    },
+    getMarkers: {
+      call: (context) => asCtx(context).markers,
     },
   },
   events: {

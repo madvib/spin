@@ -1,0 +1,26 @@
+<scope>props={ defaultValue: string = "[25, 75]" } consume={ slider }</scope>
+
+<div class="mx-auto w-full max-w-md" {...slider.getRootProps()}>
+  <div class="mb-4 text-sm text-muted" {...slider.getValueTextProps()}>{slider.getThumbValue(0)} - {slider.getThumbValue(1)}</div>
+  <div
+    class="relative flex h-5 w-full touch-none items-center select-none"
+    {...slider.getControlProps()}
+  >
+<div
+      class="relative h-2 w-full overflow-hidden rounded-full bg-surface-sunken"
+      {...slider.getTrackProps()}
+    >
+      <div
+        class="absolute inset-y-0 rounded-full bg-primary"
+        {...slider.getRangeProps()}
+      ></div>
+    </div>
+<template for={slider.getThumbIndexes()} as={row} key={row}>
+      <span
+        class="absolute top-1/2 -mt-2.5 -ml-2.5 h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
+        {...slider.getThumbProps({ index: row.index })}
+      ></span>
+      <input {...slider.getHiddenInputProps({ index: row.index })} />
+    </template>
+  </div>
+</div>

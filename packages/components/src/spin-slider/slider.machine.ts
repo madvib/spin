@@ -44,6 +44,11 @@ export interface SliderContext {
   dragOffset: number | null;
   /** The values when the drag started: swap compares against the grab. */
   dragStartValue: number[] | null;
+  /**
+   * Marker stops for the ticks/marks usages. View data, seeded from the
+   * `markers` prop; the machine never reads or writes it.
+   */
+  markers: number[];
 }
 
 export type SliderEvent =
@@ -214,6 +219,7 @@ export const config = {
     // serializable values.
     dragOffset: null as number | null,
     dragStartValue: null as number[] | null,
+    markers: [] as number[],
   },
   on: {
     SET_VALUE: [

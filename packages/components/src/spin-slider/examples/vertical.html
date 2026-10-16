@@ -1,0 +1,25 @@
+<scope>props={ defaultValue: string = "[50]", orientation: string = "vertical" } consume={ slider }</scope>
+
+<div class="mx-auto flex w-full max-w-md justify-center" {...slider.getRootProps()}>
+  <div
+    class="relative flex h-[16rem] w-5 touch-none flex-col items-center select-none"
+    {...slider.getControlProps()}
+  >
+    <div
+      class="relative w-2 flex-1 overflow-hidden rounded-full bg-surface-sunken"
+      {...slider.getTrackProps()}
+    >
+      <div
+        class="absolute inset-x-0 rounded-full bg-primary"
+        {...slider.getRangeProps()}
+      ></div>
+    </div>
+    <template for={slider.getThumbIndexes()} as={row} key={row}>
+      <span
+        class="absolute left-1/2 -mb-2.5 -ml-2.5 h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
+        {...slider.getThumbProps({ index: row.index })}
+      ></span>
+      <input {...slider.getHiddenInputProps({ index: row.index })} />
+    </template>
+  </div>
+</div>
