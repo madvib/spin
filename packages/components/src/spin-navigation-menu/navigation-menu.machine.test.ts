@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createNavigationMenuBridge } from "./navigation-menu.bridge.ts";
-import type { NavigationMenuApi } from "./navigation-menu.connect.ts";
+import { navigationMenu } from "./navigation-menu.def.ts";
+const createNavigationMenuBridge = navigationMenu.createBridge;
+import type { NavigationMenuApi } from "./navigation-menu.def.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
