@@ -1,6 +1,8 @@
-import { createSignal, Match, Show, Switch } from "solid-js";
-import { formatHex, parseColor } from "@spin/theme";
+import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { formatHex, indexTree, parseColor } from "@spin/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
+import { analyzeTheme } from "../../lib/theme.ts";
+import { themeText } from "../../lib/store.ts";
 import { paintPreview } from "../../lib/preview.ts";
 
 function asHex(value: string): string | undefined {
@@ -233,14 +235,40 @@ function TextControl(props: {
     props.value.includes(",") ||
     props.value.length > 24;
   const [draft, setDraft] = createSignal(props.value);
+  const paths = () => {
+    const current = analyzeTheme(themeText()).tree;
+    if (current === undefined) return [];
+    return Object.keys(indexTree(current).leaves);
+  };
   return (
     <Show
       when={multiline()}
       fallback={
-        <input
+        <>
+          <input
+            id={props.id}
+            type="text"
+            list="spin-token-paths"
+            class="w-40 p-2 border-border rounded-md border font-mono text-sm"
+            value={draft()}
+            onChange={(event) => {
+              const next = event.currentTarget.value;
+              setDraft(next);
+              props.onCommit(next);
+            }}
+          />
+          <datalist id="spin-token-paths">
+            <For each={paths()}>{(p) => <option value={`{${p}}`} />}</For>
+          </datalist>
+        </>
+      }
+    >
+      <>
+        <textarea
           id={props.id}
-          type="text"
-          class="w-40 p-2 border-border rounded-md border font-mono text-sm"
+          spellcheck={false}
+          rows={2}
+          class="w-48 min-h-10 resize-y p-2 border-border rounded-md border font-mono text-sm"
           value={draft()}
           onChange={(event) => {
             const next = event.currentTarget.value;
@@ -248,20 +276,10 @@ function TextControl(props: {
             props.onCommit(next);
           }}
         />
-      }
-    >
-      <textarea
-        id={props.id}
-        spellcheck={false}
-        rows={2}
-        class="w-48 min-h-10 resize-y p-2 border-border rounded-md border font-mono text-sm"
-        value={draft()}
-        onChange={(event) => {
-          const next = event.currentTarget.value;
-          setDraft(next);
-          props.onCommit(next);
-        }}
-      />
+        <datalist id="spin-token-paths">
+          <For each={paths()}>{(p) => <option value={`{${p}}`} />}</For>
+        </datalist>
+      </>
     </Show>
   );
 }
