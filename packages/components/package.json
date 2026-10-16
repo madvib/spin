@@ -36,7 +36,8 @@
     "./timer": "./src/spin-timer/spin-timer.html",
     "./tour": "./src/spin-tour/spin-tour.html",
     "./toast": "./src/spin-toast/spin-toast.html",
-    "./tree-view": "./src/spin-tree-view/spin-tree-view.html"
+    "./tree-view": "./src/spin-tree-view/spin-tree-view.html",
+    "./procedures": "./src/components-procedures.ts"
   },
   "dependencies": {},
   "devDependencies": {}

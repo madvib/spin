@@ -132,6 +132,8 @@ import {
 export interface PrimitiveExample {
   readonly name: string;
   readonly html: string;
+  /** The authored source, when the mounted html differs (machine examples). */
+  readonly source?: string;
 }
 
 export interface PrimitivePage {

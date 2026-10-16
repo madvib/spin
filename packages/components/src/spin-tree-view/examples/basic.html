@@ -1,4 +1,6 @@
-<spin-tree-view nodes='${NODES}' defaultExpandedValue='["src"]' defaultSelectedValue='["src/app"]'>
+<scope>props={ nodes: string = '[{"value": "src", "label": "packages", "children": [{"value": "components", "label": "components", "children": [{"value": "combobox", "label": "combobox"}, {"value": "select", "label": "select"}]}, {"value": "runtime", "label": "runtime"}]}, {"value": "readme", "label": "README.md"}]' } consume={ treeView }</scope>
+
+<div class="w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-1" {...treeView.getRootProps()}>
   <template for={treeView.getVisibleRows()} as={row} key={row.node.value}>
     <div class="relative" {...treeView.getItemProps(row)}>
       <button
@@ -8,11 +10,8 @@
         <span class="hidden size-4 shrink-0 items-center justify-center text-muted data-[branch]:inline-flex" {...treeView.getBranchIndicatorProps(row)}>
           <span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span>
         </span>
-        <span class="i-lucide-folder shrink-0 text-sm text-primary data-[kind=leaf]:hidden data-[kind=branch-open]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-        <span class="i-lucide-folder-open shrink-0 text-sm text-primary data-[kind=leaf]:hidden data-[kind=branch-closed]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-        <span class="i-lucide-file shrink-0 text-sm text-muted data-[kind=branch-open]:hidden data-[kind=branch-closed]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
         <span class="min-w-0 flex-1 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
       </button>
     </div>
   </template>
-</spin-tree-view>
+</div>

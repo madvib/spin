@@ -13,6 +13,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
     name: "spin-elements",
     enforce: "pre",
     async resolveId(id, importer) {
+      // `?raw` / `?url` imports want the file, not the element: the
+      // reference app reads example sources as text through globs.
+      if (id.includes("?raw") || id.includes("?url")) return undefined;
       if (id.endsWith(".html") && importer && !importer.includes("node_modules")) {
         const path = await import("node:path");
         const real = path.resolve(path.dirname(importer.split("?")[0]!), id);
@@ -36,7 +39,16 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         throw new Error(`spin-elements: ${id} looks like a document, not a component`);
       }
       const file = id.split("?")[0]!;
-      const tag = file.split("/").pop()!.replace(/\.html$/, "");
+      const stem = file.split("/").pop()!.replace(/\.html$/, "");
+      // A bare stem (`basic.html`) is not a valid custom element name, and
+      // examples live under their machine dir: qualify with the parent
+      // (`spin-tree-view/examples/basic.html` → `tree-view-basic`).
+      // Recipes (`spin-*.html`) already carry their tag in the filename.
+      // The machine dir is the grandparent: examples nest one level
+      // (`spin-tree-view/examples/basic.html` → `tree-view-basic`).
+      const grandparent = file.split("/").slice(-3, -2)[0] ?? "";
+      const machine = grandparent.startsWith("spin-") ? grandparent.slice("spin-".length) : "";
+      const tag = stem.includes("-") ? stem : (machine.length > 0 ? `${machine}-${stem}` : stem);
       const dir = file.split("/").slice(0, -1).join("/");
       const { parse: parseMod } = await import("@spin/runtime");
       void parseMod;
@@ -119,15 +131,26 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         // platform tier: same slot, no machine.
         const defStem = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
         const stems = [`${defStem}.machine-def.ts`, `${defStem}.controller-def.ts`];
+        // Examples live in `<machine>/examples/`, one level below the def:
+        // look beside the file first, then walk up like actions do.
         let defMod: string | undefined;
-        for (const stem of stems) {
-          try {
-            await fs.access(path.join(dir, stem));
-            defMod = `./${stem}`;
-            break;
-          } catch {
-            // Next stem.
+        let walk = dir;
+        for (let depth = 0; depth < 4; depth++) {
+          let hit = false;
+          for (const stem of stems) {
+            try {
+              await fs.access(path.join(walk, stem));
+              defMod = `./${path.relative(dir, walk)}/${stem}`.replace("././", "./");
+              hit = true;
+              break;
+            } catch {
+              // Next stem.
+            }
           }
+          if (hit) break;
+          const parent = path.dirname(walk);
+          if (parent === walk) break;
+          walk = parent;
         }
         if (defMod === undefined) {
           // No def file: consume name is inert.

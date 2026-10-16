@@ -1,4 +1,6 @@
-<spin-tree-view id="async-tree" selectionMode="single">
+<scope>props={ nodes: string = '[{"value": "repo", "label": "spin-runtime"}]' } consume={ treeView }</scope>
+
+<div class="w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-1" {...treeView.getRootProps()}>
   <template for={treeView.getVisibleRows()} as={row} key={row.node.value}>
     <div class="relative" {...treeView.getItemProps(row)}>
       <button
@@ -13,17 +15,4 @@
       </button>
     </div>
   </template>
-</spin-tree-view>
-<script>
-  // Lazy branches declare no children; the host loads them on first expand.
-  const tree = document.getElementById("async-tree");
-  tree.nodes = JSON.stringify([{ value: "repo", label: "spin-runtime" }]);
-  tree.loadChildren = async (value) => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    if (value !== "repo") return [];
-    return [
-      { value: "repo/src", label: "src" },
-      { value: "repo/deno", label: "deno.json" },
-    ];
-  };
-</script>
+</div>

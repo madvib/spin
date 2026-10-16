@@ -11,6 +11,8 @@ import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes, themeModes } from "@spin/theme/themes";
 import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
+import { COMPONENTS } from "./components.ts";
+import "@spin/components/elements";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
@@ -734,6 +736,7 @@ const FEATURED: readonly string[] = ["button", "card", "alert"];
 function ExampleSection(props: {
   name: string;
   html: string;
+  source?: string;
   onLoad?: string;
 }) {
   let pre!: HTMLPreElement;
@@ -751,14 +754,16 @@ function ExampleSection(props: {
       /* clipboard unavailable: no-op */
     }
   };
+  // The source is what the reader copies; the mounted tag is what they see.
+  const shown = () => props.source ?? props.html;
   // The panel decides the room the specimen gets, and the markup says which
   // room it is: a page header is a page-width thing, and the md measure —
   // where the page's own prose reads — squeezes a header until its trail
   // wraps into a column of links. Everything else reads at the measure.
-  const measure = props.html.trimStart().startsWith("<header")
+  const measure = shown().trimStart().startsWith("<header")
     ? ""
     : SPECIMEN_MEASURE;
-  const tokens = createMemo(() => tokenizeHtml(formatExampleHtml(props.html)));
+  const tokens = createMemo(() => tokenizeHtml(formatExampleHtml(shown())));
   return (
     <section class="mb-8">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -837,14 +842,17 @@ function ExampleSection(props: {
 }
 
 function PrimitivePage(props: { id: string; onLoad?: string }) {
-  const fixture = createMemo(() => PRIMITIVES.find((r) => r.id === props.id));
+  const fixture = createMemo(() =>
+    PRIMITIVES.find((r) => r.id === props.id) ??
+    COMPONENTS.find((r) => r.id === props.id)
+  );
   return (
     <Show when={fixture()} fallback={<p>Not found</p>}>
       {(f) => (
         <>
           <header class="mb-8 flex items-start justify-between gap-4">
             <div class="flex items-start gap-2">
-              <i class={`${PRIMITIVE_ICONS[f().id]} ${TITLE_ICON}`} />
+              <i class={`${PRIMITIVE_ICONS[f().id] ?? "i-lucide-cog"} ${TITLE_ICON}`} />
               <div>
                 <h2 class="m-0 text-2xl font-bold tracking-tight">
                   {f().title}
@@ -866,7 +874,8 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
               <ExampleSection
                 name={e.name}
                 html={e.html}
-                onLoad={f().onLoad ?? props.onLoad}
+                {...(e.source !== undefined ? { source: e.source } : {})}
+                {...(f().onLoad ?? props.onLoad ? { onLoad: (f().onLoad ?? props.onLoad) as string } : {})}
               />
             )}
           </For>
@@ -883,15 +892,19 @@ const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number]> = Object
 /** One specimen on the landing: a component, as a consumer writes it. */
 function FeaturedSpecimen(props: { id: string }) {
   const page = PAGE_BY_ID[props.id];
+  if (page === undefined) return null;
+  const first = page.examples[0];
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
         <i class={`${PRIMITIVE_ICONS[props.id]} icon-md text-text-muted`} />
         <h4 class="m-0 text-sm font-semibold text-text">{page.title}</h4>
       </div>
+      {first !== undefined ? (
       <div class={SPECIMEN_PANEL}>
-        <div class={SPECIMEN_MEASURE} innerHTML={page.examples[0].html} />
+        <div class={SPECIMEN_MEASURE} innerHTML={first.html} />
       </div>
+      ) : null}
       <button
         type="button"
         onClick={() => (location.hash = `#/components/${props.id}`)}
@@ -913,9 +926,9 @@ function FeaturedSpecimen(props: { id: string }) {
  */
 function IndexRow(props: { id: string }) {
   const page = PAGE_BY_ID[props.id];
+  if (page === undefined) return null;
   return (
     <button
-      type="button"
       onClick={() => (location.hash = `#/components/${props.id}`)}
       class="flex w-full items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2 text-left shadow-sm hover:border-border-strong"
     >
@@ -952,7 +965,7 @@ function LandingPage() {
           <h2 class="m-0 text-2xl font-bold tracking-tight">Primitives</h2>
         </div>
         <div class="font-mono text-xs text-text-muted">
-          spin reference · {PRIMITIVES.length} components
+          spin reference · {PRIMITIVES.length + COMPONENTS.length} components
         </div>
         <p class="mt-4 max-w-screen-md text-md text-text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
@@ -1125,8 +1138,9 @@ function Rail(props: {
   const utilities = () => props.route().startsWith("/utilities");
 
   const components = createMemo(() =>
-    PRIMITIVES.filter((page) => page.title.toLowerCase().includes(needle()))
-      .sort((a, b) => a.title.localeCompare(b.title))
+    [...PRIMITIVES, ...COMPONENTS].filter((page) =>
+      page.title.toLowerCase().includes(needle())
+    ).sort((a, b) => a.title.localeCompare(b.title))
   );
 
   const sections = createMemo(() =>
@@ -1146,7 +1160,9 @@ function Rail(props: {
       : components().map((page) => ({
         id: page.id,
         title: page.title,
-        icon: PRIMITIVE_ICONS[page.id],
+        ...(PRIMITIVE_ICONS[page.id] !== undefined
+          ? { icon: PRIMITIVE_ICONS[page.id] as string }
+          : { icon: "i-lucide-cog" }),
       }))
   );
 
@@ -1176,19 +1192,37 @@ function Rail(props: {
         // that go nowhere.
         rows: [],
       }))
-      : CATEGORIES
-        .map((cat) => ({
-          label: cat.label,
-          rows: cat.members
-            .map((id) => byId().get(id))
-            .filter((page) => page !== undefined)
+      : [
+        ...CATEGORIES
+          .map((cat) => ({
+            label: cat.label,
+            rows: cat.members
+              .map((id) => byId().get(id))
+              .filter((page) => page !== undefined)
+              .map((page): RailRow => ({
+                id: page.id,
+                title: page.title,
+                ...(PRIMITIVE_ICONS[page.id] !== undefined
+                  ? { icon: PRIMITIVE_ICONS[page.id] as string }
+                  : { icon: "i-lucide-cog" }),
+              })),
+          }))
+          .filter((group) => group.rows.length > 0),
+        {
+          label: "Machines",
+          rows: COMPONENTS
+            .filter((page) =>
+              page.title.toLowerCase().includes(
+                props.query().trim().toLowerCase(),
+              )
+            )
             .map((page) => ({
               id: page.id,
               title: page.title,
-              icon: PRIMITIVE_ICONS[page.id],
+              icon: "i-lucide-cog",
             })),
-        }))
-        .filter((group) => group.rows.length > 0)
+        },
+      ].filter((group) => group.rows.length > 0)
   );
 
   return (
