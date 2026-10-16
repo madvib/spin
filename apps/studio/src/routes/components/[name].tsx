@@ -84,7 +84,7 @@ const COPY_BUTTON =
  * and the scrollbar stays as the floor for the one line that cannot break.
  */
 const CODE_PRE =
-  "max-w-full whitespace-pre-wrap overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
+  "max-h-80 max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
 
 /** The panel every specimen sits in: one box, one surface, room to stand. */
 const SPECIMEN_PANEL =
@@ -171,7 +171,7 @@ function ExampleSection(props: {
         <pre
           ref={pre}
           class={`${CODE_PRE} col-start-1 row-start-1 ${
-            tab() === "code" ? "" : "invisible"
+            tab() === "code" ? "" : "hidden"
           }`}
           aria-hidden={tab() === "code" ? undefined : "true"}
         >
@@ -187,7 +187,7 @@ function ExampleSection(props: {
         </button>
         <div
           class={`${SPECIMEN_PANEL} col-start-1 row-start-1 ${
-            tab() === "component" ? "" : "invisible"
+            tab() === "component" ? "" : "hidden"
           }`}
           aria-hidden={tab() === "component" ? undefined : "true"}
         >
@@ -425,7 +425,7 @@ export default function ComponentPage() {
             }
             <Show when={tokenEntries().length > 0}>
               <h2 class="mt-6 text-xl">Tokens this reads</h2>
-              <ul class="mt-2 flex flex-wrap gap-2">
+              <ul class="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
                 <For each={tokenEntries()}>
                   {({ path }) => (
                     <li>
