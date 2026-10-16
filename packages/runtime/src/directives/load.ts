@@ -4,8 +4,8 @@ import { on } from "./use.ts";
 import { scope as makeScope } from "../core/signal.ts";
 import { bindFor } from "./for.ts";
 import { runAction as act, type ElementAction } from "./use.ts";
-import { parse } from "./parse.ts";
-import type { ComponentIr, Node } from "./ir.ts";
+import { parse } from "@spin/syntax";
+import type { ComponentIr, Node } from "@spin/syntax";
 import type { Handle } from "../scope/table.ts";
 
 

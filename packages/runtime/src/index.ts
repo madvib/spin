@@ -132,9 +132,9 @@ export {
 export { bindFor, type BindForOptions, type RenderedItem } from "./directives/for.ts";
 export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
 export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
-export { parse, parseScope, coerceProps } from "./directives/parse.ts";
-export { formatExampleHtml, tokenizeHtml, type CodeToken, type CodeTokenType } from "./directives/display.ts";
-export { expandVariantGroups } from "./directives/expand-groups.ts";
+export { coerceProps, parse, parseScope } from "@spin/syntax";
+export { formatExampleHtml, tokenizeHtml, type CodeToken, type CodeTokenType } from "@spin/syntax";
+export { expandVariantGroups } from "@spin/syntax";
 export type {
   ActionUse,
   Attr,
@@ -150,8 +150,8 @@ export type {
   ScopePropType,
   SpreadUse,
   TextNode,
-} from "./directives/ir.ts";
-export { ParseError } from "./directives/ir.ts";
+} from "@spin/syntax";
+export { ParseError } from "@spin/syntax";
 
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
 export { bindActionProps, bindSpread } from "./directives/spread.ts";

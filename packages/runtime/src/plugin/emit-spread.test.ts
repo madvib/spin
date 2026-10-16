@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { parse } from "../directives/parse.ts";
+import { parse } from "@spin/syntax";
 import { emit } from "./emit.ts";
 
 Deno.test("emit spread produces bindSpread with scopeExpr rewrite", () => {

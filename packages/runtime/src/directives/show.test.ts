@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import { parse } from "./parse.ts";
+import { parse } from "@spin/syntax";
 import { emit } from "../plugin/emit.ts";
 
 /**

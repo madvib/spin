@@ -13,7 +13,8 @@
     "./packages/hooks",
     "./apps/reference",
     "./examples/coffee",
-    "./oracles/layout"
+    "./oracles/layout",
+    "./packages/syntax"
   ],
   "exports": {
     ".": "./packages/theme/src/index.ts",
@@ -46,7 +47,8 @@
     "@spin/runtime/fsm": "./packages/runtime/src/machine/fsm/machine.ts",
     "@spin/hooks": "./packages/hooks/src/index.ts",
     "@spin/hooks/solid": "./packages/hooks/src/solid.ts",
-    "@spin/hooks/react": "./packages/hooks/src/react.ts"
+    "@spin/hooks/react": "./packages/hooks/src/react.ts",
+    "@spin/syntax": "./packages/syntax/src/index.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-net packages/",

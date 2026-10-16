@@ -27,7 +27,7 @@ export {
 export { bindFor, type BindForOptions, type RenderedItem } from "./directives/for.ts";
 export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
 export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
-export { parse } from "./directives/parse.ts";
+export { parse } from "@spin/syntax";
 export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export {
   batch,
