@@ -252,6 +252,7 @@ export default function ComponentPage() {
     library()?.find((c) => c.name === params.name)
   );
   const rows = () => found()?.examples?.rows ?? [];
+  const [showTokens, setShowTokens] = createSignal(false);
 
   /**
    * Uno reads source text, which is how the chrome gets its CSS — but the
@@ -347,18 +348,94 @@ export default function ComponentPage() {
                   </Show>
                 </p>
               </div>
-              <span class="shrink-0 rounded-full border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
-                {rows().length} examples
-              </span>
+              <div class="flex shrink-0 items-center gap-2">
+                <Show when={character().length > 0}>
+                  <button
+                    type="button"
+                    class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text shadow-none hover:border-primary"
+                    onClick={() => setShowTokens((v) => !v)}
+                  >
+                    {showTokens() ? "hide" : "character tokens"} ({character().length})
+                  </button>
+                </Show>
+                <span class="shrink-0 rounded-full border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+                  {rows().length} examples
+                </span>
+              </div>
             </header>
 
-            <p class="mb-6 max-w-screen-md text-sm text-text-muted">
+            <p class="mb-4 max-w-screen-md text-sm text-text-muted">
               {component.examples?.note ?? ""}
             </p>
 
-            <div class="lg:grid lg:grid-cols-[1fr_20rem] lg:gap-6">
-              <div class="min-w-0">
-                <For each={rows()}>
+            <Show when={showTokens() && character().length > 0}>
+              <div
+                class="fixed inset-0 z-40"
+                onClick={() => setShowTokens(false)}
+              >
+                <div
+                  class="absolute end-4 top-20 w-[22rem] max-h-[70vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-3 shadow-lg"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div class="mb-2 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold">Character tokens</h2>
+                    <button
+                      type="button"
+                      class="text-xs text-text-muted hover:text-text"
+                      onClick={() => setShowTokens(false)}
+                    >
+                      close
+                    </button>
+                  </div>
+                  <p class="mb-2 text-xs text-text-muted">
+                    What this component declares as its own character — edited
+                    here, created here when the theme has never had to spell it.
+                  </p>
+                  <div class="stack-sm">
+                    <For each={character()}>
+                      {(entry) =>
+                        entry.row !== undefined
+                          ? (
+                            <TokenRow
+                              row={entry.row}
+                              onEdit={editToken}
+                              variable={entry.row.variable}
+                              group={siblingsFor(entry.entry.path)}
+                            />
+                          )
+                          : (
+                            <card class="split p-2">
+                              <div class="row-sm min-w-0">
+                                <span class="truncate font-mono text-xs">
+                                  {entry.entry.path}
+                                </span>
+                              </div>
+                              <div class="row-sm min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+                                <span class="font-mono text-xs text-text-muted">
+                                  {entry.entry.type} · {entry.entry.value}
+                                </span>
+                                <button
+                                  type="button"
+                                  class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-normal normal-case tracking-normal text-text shadow-none hover:border-primary"
+                                  onClick={() =>
+                                    createToken(
+                                      entry.entry.path.split("."),
+                                      entry.entry.type,
+                                      entry.entry.value,
+                                    )}
+                                >
+                                  Create
+                                </button>
+                              </div>
+                            </card>
+                          )}
+                    </For>
+                  </div>
+                </div>
+              </div>
+            </Show>
+
+            <For each={rows()}>
               {(row) => (
                 <ExampleSection
                   row={row}
@@ -367,17 +444,6 @@ export default function ComponentPage() {
               )}
             </For>
 
-            {
-              /* The character axis, editable where it is spent: a token the
-                theme holds edits here with its own control; a token it does
-                not holds its manifest scaffold and offers to land it. */
-            }
-
-            {
-              /* Tokens this component reads, as paths. A path is the thing the
-                editor can edit and a `--variable` is not, so each entry links
-                to the editor that owns it. */
-            }
             <Show when={tokenEntries().length > 0}>
               <h2 class="mt-6 text-xl">Tokens this reads</h2>
               <p class="mt-2 font-mono text-xs leading-relaxed text-text-muted">
@@ -391,58 +457,6 @@ export default function ComponentPage() {
                 </For>
               </p>
             </Show>
-              </div>
-              <aside class="hidden lg:block lg:sticky lg:top-4 lg:self-start">
-                <Show when={character().length > 0}>
-                  <details class="group mb-6 rounded-md border border-border bg-surface-raised p-3">
-              <summary class="cursor-pointer text-sm font-semibold">
-                Character tokens ({character().length}) — what this component declares as its own character
-              </summary>
-              <div class="mt-3 stack-sm">
-                <For each={character()}>
-                  {(entry) =>
-                    entry.row !== undefined
-                      ? (
-                        <TokenRow
-                          row={entry.row}
-                          onEdit={editToken}
-                          variable={entry.row.variable}
-                          group={siblingsFor(entry.entry.path)}
-                        />
-                      )
-                      : (
-                        <card class="split p-4">
-                          <div class="row-sm min-w-0">
-                            <span class="truncate font-mono text-sm">
-                              {entry.entry.path}
-                            </span>
-                          </div>
-                          <div class="row-sm min-w-0 flex-1 flex-wrap items-center justify-end gap-3">
-                            <span class="font-mono text-xs text-text-muted">
-                              {entry.entry.type} · {entry.entry.value}
-                            </span>
-                            <button
-                              type="button"
-                              class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-normal normal-case tracking-normal text-text shadow-none hover:border-primary"
-                              onClick={() =>
-                                createToken(
-                                  entry.entry.path.split("."),
-                                  entry.entry.type,
-                                  entry.entry.value,
-                                )}
-                            >
-                              Create
-                            </button>
-                          </div>
-                        </card>
-                      )}
-                </For>
-              
-              </div>
-            </details>
-                </Show>
-              </aside>
-            </div>
           </div>
         )}
       </Show>
