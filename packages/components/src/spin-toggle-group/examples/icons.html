@@ -1,0 +1,16 @@
+<scope>props={ items: { value: string, label: string }[] = [{"value":"grid","label":"Grid"},{"value":"list","label":"List"},{"value":"calendar","label":"Calendar"}], defaultValue: string = "[\"grid\"]" } consume={ toggleGroup }</scope>
+
+<div class="mx-auto flex w-full max-w-md justify-center">
+  <div
+    class="inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-1 data-[orientation=vertical]:flex-col"
+    {...toggleGroup.getRootProps()}
+  >
+    <template for={toggleGroup.getItems()} as={row} key={row.value}>
+      <button
+        type="button"
+        class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+        {...toggleGroup.getItemProps(row)}
+      ><span class="text-base" aria-hidden="true"><span show={row.value === "grid"} class="i-lucide-layout-grid"></span><span show={row.value === "list"} class="i-lucide-list"></span><span show={row.value === "calendar"} class="i-lucide-calendar"></span></span>{row.label}</button>
+    </template>
+  </div>
+</div>
