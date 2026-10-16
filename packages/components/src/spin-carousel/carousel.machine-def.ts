@@ -1,5 +1,9 @@
-import type { MachineDef } from "@spin/runtime";
-import { createCarouselBridge } from "./carousel.bridge.ts";
+import { carousel } from "./carousel.def.ts";
+import type {
+  CarouselAutoplayStatusChange,
+  CarouselDragStatusChange,
+  CarouselIndexChange,
+} from "./carousel.def.ts";
 
 /**
  * The carousel machine-def: the seam file codegen finds by consume name.
@@ -31,30 +35,9 @@ export interface CarouselAutoplayStatusChange {
   readonly index: number;
 }
 
-export const carousel: MachineDef = {
-  createBridge: createCarouselBridge,
-  commands: ["next", "prev", "goTo", "setAutoplay"],
-  events: {
-    "index-change": {
-      on: "onIndexChange",
-      detail: (change: CarouselIndexChange) => ({
-        index: change.index,
-        pageCount: change.pageCount,
-      }),
-    },
-    "drag-status-change": {
-      on: "onDragStatusChange",
-      detail: (change: CarouselDragStatusChange) => ({
-        status: change.status,
-        index: change.index,
-      }),
-    },
-    "autoplay-status-change": {
-      on: "onAutoplayStatusChange",
-      detail: (change: CarouselAutoplayStatusChange) => ({
-        status: change.status,
-        index: change.index,
-      }),
-    },
-  },
+export { carousel };
+export type {
+  CarouselAutoplayStatusChange,
+  CarouselDragStatusChange,
+  CarouselIndexChange,
 };
