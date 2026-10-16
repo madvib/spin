@@ -52,12 +52,13 @@ export interface BridgeHooks<
     authored: (name: string) => boolean,
   ): Partial<C>;
   /** Post-start sends (seeded through the machine: validation runs through
-   * the assigns). Once per service, before the first tick. */
+   * the assigns). Once per service; the bridge transmits each (reflexes
+   * run) and primes the cursors after (nothing reports). */
   establish?(
     svc: Service<C, E>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
-  ): void;
+  ): readonly E[];
   /** Alternate authored channels against the machine. Returns whether
    * anything moved and the events sent: each reports through notify with
    * its own kind. Silent (assign-mode) channels apply without reporting;
@@ -193,12 +194,15 @@ export function defineBridge<
       Object.assign(svc.state.context, hooks.seed(props, authored));
       // Scalars first: seed sends run assigns that read them.
       hooks.refresh?.(svc, props, authored);
-      hooks.establish?.(svc, props, authored);
-      // Prime the watch cursors: the first notify must report a MOVE, not
-      // the seed. The sink swallows the callbacks; the cursors still advance.
-      hooks.notify(svc, {} as Callbacks, "move");
       return svc;
     });
+    // Establish events travel the transmit pipeline (view reflexes run,
+    // ticks bump) but report nothing: the watch cursors prime after, so
+    // the seed never reports a change.
+    for (const event of hooks.establish?.(service, props, authored) ?? []) {
+      transmit(event);
+    }
+    hooks.notify(service, {} as Callbacks, "move");
     return service;
   };
 

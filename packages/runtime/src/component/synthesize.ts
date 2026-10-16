@@ -100,11 +100,9 @@ export function defineComponent<
       noteSent,
       seed: (props, authored) => def.seed(parse(props), authored) as Partial<C>,
       establish: (svc, props, authored) => {
-        if (def.establish === undefined) return;
+        if (def.establish === undefined) return [];
         const parsed = parse(props);
-        for (const event of def.establish(parsed, authored)) {
-          svc.send(event as E);
-        }
+        return def.establish(parsed, authored) as readonly E[];
       },
       sync: (svc, props, authored, send) => {
         let moved = false;
