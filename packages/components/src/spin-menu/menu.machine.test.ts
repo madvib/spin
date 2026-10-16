@@ -1,10 +1,17 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createMenuBridge } from "./menu.bridge.ts";
-import type { MenuCommands } from "./menu.bridge.ts";
-import type { MenuBlock, MenuEntry, MenuApi, MenuRow } from "./menu.connect.ts";
-import type { MenuHighlightChange, MenuOpenChange, MenuSelect } from "./menu.bridge.ts";
+import { menu } from "./menu.def.ts";
+const createMenuBridge = menu.createBridge;
+import type {
+  MenuApi,
+  MenuBlock,
+  MenuEntry,
+  MenuHighlightChange,
+  MenuOpenChange,
+  MenuRow,
+  MenuSelect,
+} from "./menu.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -62,7 +69,7 @@ const NESTED: MenuEntry[] = [
 ];
 
 interface Harness {
-  readonly api: MenuApi & MenuCommands;
+  readonly api: MenuApi;
   readonly root: Element;
   readonly events: {
     readonly openChange: MenuOpenChange[];
@@ -88,12 +95,15 @@ function mount(
     highlightChange: [] as MenuHighlightChange[],
   };
   const values: Record<string, WriteSignal> = {};
+  const authoredKeys = new Set(Object.keys(overrides));
   const write = (name: string, value: unknown): void => {
+    authoredKeys.add(name);
     const source = values[name];
     if (source === undefined) values[name] = signal<unknown>(value);
     else source(value);
   };
   write("items", JSON.stringify(entries));
+  authoredKeys.delete("items");
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("onOpenChange", (change: MenuOpenChange) => events.openChange.push(change));
   write("onSelect", (change: MenuSelect) => events.select.push(change));
@@ -102,6 +112,7 @@ function mount(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
+      record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
     () => root,
@@ -544,7 +555,7 @@ Deno.test("Given items with groups and separators / When the blocks are read / T
   );
   assertEquals(
     blocks.map((block) => h.api.getItemGroupProps(block)["aria-labelledby"]),
-    [`${blocks[0]?.id}:label`, undefined],
+    [h.api.getItemGroupLabelProps(blocks[0] as MenuBlock)["id"], undefined],
     "a labeled group points at its label, an unlabeled one does not",
   );
   assertEquals(
