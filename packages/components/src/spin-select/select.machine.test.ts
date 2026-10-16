@@ -1,14 +1,15 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createSelectBridge } from "./select.bridge.ts";
+import { select } from "./select.def.ts";
+const createSelectBridge = select.createBridge;
 import type {
   SelectHighlightChange,
   SelectOpenChange,
   SelectSelect,
   SelectValueChange,
-} from "./select.bridge.ts";
-import type { SelectApi, SelectRow } from "./select.connect.ts";
+} from "./select.def.ts";
+import type { SelectApi, SelectRow } from "./select.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

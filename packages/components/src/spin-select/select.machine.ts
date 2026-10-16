@@ -48,6 +48,7 @@ export type SelectEvent =
   | { type: "CLEAR.CLICK" }
   | { type: "OPEN" }
   | { type: "CLOSE" }
+  | { type: "TOGGLE" }
   | { type: "CONTROLLED.OPEN" }
   | { type: "CONTROLLED.CLOSE"; restoreFocus?: boolean }
   | { type: "TRIGGER.CLICK" }
@@ -114,6 +115,12 @@ export const config = {
     idle: {
       on: {
         "TRIGGER.FOCUS": { target: "focused" },
+        // The imperative toggle: OPEN's own transition, so the highlight
+        // pre-places exactly as a gesture open does.
+        TOGGLE: {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
         "TRIGGER.CLICK": {
           target: "open",
           actions: [{ assign: "highlightFirstOrSelected" }],
@@ -132,6 +139,10 @@ export const config = {
       on: {
         "TRIGGER.BLUR": { target: "idle" },
         "TRIGGER.CLICK": {
+          target: "open",
+          actions: [{ assign: "highlightFirstOrSelected" }],
+        },
+        TOGGLE: {
           target: "open",
           actions: [{ assign: "highlightFirstOrSelected" }],
         },
@@ -192,6 +203,7 @@ export const config = {
           { actions: [{ assign: "selectClicked" }] },
         ],
         CLOSE: [{ target: "idle", actions: [{ assign: "clearHighlighted" }] }],
+        TOGGLE: [{ target: "idle", actions: [{ assign: "clearHighlighted" }] }],
         "CONTROLLED.CLOSE": [
           {
             cond: "restoreFocus",
