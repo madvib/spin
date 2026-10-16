@@ -70,16 +70,10 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       const t = tree;
       t.loadChildren = async (value) => {
         await new Promise((resolve) => setTimeout(resolve, 800));
-        if (value === "node_modules") {
+        if (value === "packages") {
           return [
-            { value: "node_modules/zag-js", label: "zag-js" },
-            { value: "node_modules/panda", label: "panda" },
-          ];
-        }
-        if (value === "src") {
-          return [
-            { value: "src/App", label: "App" },
-            { value: "src/main", label: "main.ts" },
+            { value: "packages/components", label: "components" },
+            { value: "packages/runtime", label: "runtime" },
           ];
         }
         return [];

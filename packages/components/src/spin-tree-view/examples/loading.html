@@ -1,4 +1,4 @@
-<scope>props={ nodes: string = '[{"value": "node_modules", "label": "node_modules"}, {"value": "src", "label": "src"}, {"value": "package.json", "label": "package.json"}, {"value": "readme", "label": "README.md"}]', defaultExpandedValue: string[] = [], loadChildren: string = "" } consume={ treeView }</scope>
+<scope>props={ nodes: string = '[{"value": "packages", "label": "packages"}, {"value": "packages/preset", "label": "preset"}, {"value": "readme", "label": "README.md"}]', defaultExpandedValue: string[] = [], loadChildren: string = "" } consume={ treeView }</scope>
 
 <!-- Lazy roots declare no children: expanding one calls the host's
   `loadChildren(value)` property (a function returning nodes) and shows
@@ -24,7 +24,7 @@
           <span class="i-lucide-folder-open shrink-0 text-sm text-primary data-[kind=leaf]:hidden data-[kind=branch-closed]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
           <span class="i-lucide-file shrink-0 text-sm text-muted data-[kind=branch-open]:hidden data-[kind=branch-closed]:hidden" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
           <span class="min-w-0 flex-1 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
-          <span class="ms-auto shrink-0 text-xs text-muted" {...treeView.getLoadingProps(row)}>…</span>
+          <span class="ms-auto shrink-0 text-muted" {...treeView.getLoadingProps(row)}><span class="i-lucide-loader-circle animate-spin text-sm" aria-hidden="true"></span></span>
         </button>
       </div>
     </template>
