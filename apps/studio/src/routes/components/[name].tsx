@@ -425,20 +425,16 @@ export default function ComponentPage() {
             }
             <Show when={tokenEntries().length > 0}>
               <h2 class="mt-6 text-xl">Tokens this reads</h2>
-              <ul class="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              <p class="mt-2 font-mono text-xs leading-relaxed text-text-muted">
                 <For each={tokenEntries()}>
-                  {({ path }) => (
-                    <li>
-                      <A
-                        href={editorRouteFor(path)}
-                        class="text-xs hover:underline"
-                      >
-                        <code>{path}</code>
-                      </A>
-                    </li>
+                  {({ path }, i) => (
+                    <>
+                      {i() > 0 && <span>, </span>}
+                      <A href={editorRouteFor(path)} class="hover:text-text hover:underline">{path}</A>
+                    </>
                   )}
                 </For>
-              </ul>
+              </p>
             </Show>
           </div>
         )}

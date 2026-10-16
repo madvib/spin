@@ -49,8 +49,7 @@ export default function TokenRow_({
 }) {
   const id = `token-${row.path}`;
   return (
-    <card class="split p-4">
-      <div class="row-sm min-w-0">
+    <card class="split p-2">      <div class="row-sm min-w-0">
         <Show when={swatch}>
           <div
             class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
