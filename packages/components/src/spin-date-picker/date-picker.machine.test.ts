@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createDatePickerBridge } from "./date-picker.bridge.ts";
-import type { DatePickerApi } from "./date-picker.connect.ts";
+import { datePicker } from "./date-picker.def.ts";
+const createDatePickerBridge = datePicker.createBridge;
+import type { DatePickerApi, DatePickerCellView } from "./date-picker.def.ts";
 import type { DatePickerValue } from "./date-picker.machine.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
