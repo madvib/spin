@@ -1,3 +1,4 @@
+import { scanRun } from "./scan.ts";
 import {
   createEffect,
   createMemo,
@@ -327,19 +328,7 @@ function tokenizeHtml(html: string): CodeToken[] {
         return;
       }
       if (open > j) push("text", html.slice(j, open));
-      let depth = 0;
-      let stop = open;
-      while (stop < html.length) {
-        if (html[stop] === "{") depth += 1;
-        if (html[stop] === "}") {
-          depth -= 1;
-          if (depth === 0) {
-            stop += 1;
-            break;
-          }
-        }
-        stop += 1;
-      }
+      const stop = scanRun(html, open);
       push("expr", html.slice(open, Math.min(stop, to)));
       j = Math.min(stop, to);
       if (stop >= to) return;
@@ -413,19 +402,7 @@ function tokenizeHtml(html: string): CodeToken[] {
       // A spread or expression is code, not an attribute name: without
       // this `{...slider.getRootProps()}` reads as one long attr.
       if (ch === "{") {
-        let depth = 0;
-        let stop = i;
-        while (stop < html.length) {
-          if (html[stop] === "{") depth += 1;
-          if (html[stop] === "}") {
-            depth -= 1;
-            if (depth === 0) {
-              stop += 1;
-              break;
-            }
-          }
-          stop += 1;
-        }
+        const stop = scanRun(html, i);
         push("expr", html.slice(i, stop));
         i = stop;
         continue;
@@ -439,10 +416,8 @@ function tokenizeHtml(html: string): CodeToken[] {
       if (html[i] === "=") {
         push("punct", "=");
         i += 1;
-        const quote = html[i];
-        if (quote === '"' || quote === "'") {
-          const close = html.indexOf(quote, i + 1);
-          const stop = close === -1 ? html.length : close + 1;
+        if (html[i] === '"' || html[i] === "'") {
+          const stop = scanRun(html, i);
           push("string", html.slice(i, stop));
           i = stop;
         } else {
@@ -630,27 +605,8 @@ function parseForFormat(html: string): FormatNode[] {
       }
       i += 1;
       const quote = html[i];
-      if (quote === '"' || quote === "'") {
-        const close = html.indexOf(quote, i + 1);
-        const stop = close === -1 ? html.length : close + 1;
-        attrs.push([name, html.slice(i, stop)]);
-        i = stop;
-      } else if (quote === "{") {
-        // An expression is code, not a bare word: without this
-        // `show={a - b === 4}` splits on its spaces into fake attrs.
-        let depth = 0;
-        let stop = i;
-        while (stop < html.length) {
-          if (html[stop] === "{") depth += 1;
-          if (html[stop] === "}") {
-            depth -= 1;
-            if (depth === 0) {
-              stop += 1;
-              break;
-            }
-          }
-          stop += 1;
-        }
+      if (quote === '"' || quote === "'" || quote === "{") {
+        const stop = scanRun(html, i);
         attrs.push([name, html.slice(i, stop)]);
         i = stop;
       } else {
