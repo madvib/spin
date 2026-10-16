@@ -1,13 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createListboxBridge } from "./listbox.bridge.ts";
+import { listbox } from "./listbox.def.ts";
+const createListboxBridge = listbox.createBridge;
 import type {
   ListboxHighlightChange,
   ListboxSelect,
   ListboxValueChange,
-} from "./listbox.bridge.ts";
-import type { ListboxBlock, ListboxApi, ListboxRow } from "./listbox.connect.ts";
+} from "./listbox.def.ts";
+import type { ListboxBlock, ListboxApi, ListboxRow } from "./listbox.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

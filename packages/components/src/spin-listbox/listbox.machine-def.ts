@@ -1,14 +1,13 @@
-import type { MachineDef } from "@spin/runtime";
-import { createListboxBridge } from "./listbox.bridge.ts";
+import { listbox } from "./listbox.def.ts";
 import type {
   ListboxHighlightChange,
   ListboxSelect,
   ListboxValueChange,
-} from "./listbox.bridge.ts";
+} from "./listbox.def.ts";
 
 /**
- * The listbox's seam: the bridge, the element's imperative commands and the
- * CustomEvents the host reads.
+ * The listbox's seam: the synthesized bridge, the element's imperative
+ * commands and the CustomEvents the host reads.
  *
  * Events are faithful to Zag's callbacks: `value-change` carries
  * `onValueChange` with the new keys and the items they resolve to,
@@ -16,42 +15,9 @@ import type {
  * `select` carries `onSelect` with the value the pick landed on.
  */
 
+export { listbox };
 export type {
   ListboxHighlightChange,
   ListboxSelect,
   ListboxValueChange,
-};
-
-export const listbox: MachineDef = {
-  createBridge: createListboxBridge,
-  commands: [
-    "syncSelectedItems",
-    "setHighlightValue",
-    "clearHighlightValue",
-    "selectValue",
-    "setValue",
-    "selectAll",
-    "clearValue",
-    "highlightFirst",
-    "highlightLast",
-    "highlightNext",
-    "highlightPrevious",
-  ],
-  events: {
-    "value-change": {
-      on: "onValueChange",
-      detail: (change: ListboxValueChange) => ({ value: change.value, items: change.items }),
-    },
-    "highlight-change": {
-      on: "onHighlightChange",
-      detail: (change: ListboxHighlightChange) => ({
-        highlightedValue: change.highlightedValue,
-        highlightedItem: change.highlightedItem,
-      }),
-    },
-    select: {
-      on: "onSelect",
-      detail: (change: ListboxSelect) => ({ value: change.value, itemValue: change.itemValue }),
-    },
-  },
 };
