@@ -240,6 +240,8 @@ function TextControl(props: {
     if (current === undefined) return [];
     return Object.keys(indexTree(current).leaves);
   };
+  const isShadow = (v: string) =>
+    v.includes("px") && v.split(" ").length >= 3;
   return (
     <Show
       when={multiline()}
@@ -263,7 +265,7 @@ function TextControl(props: {
         </>
       }
     >
-      <>
+      <div class="stack-sm">
         <textarea
           id={props.id}
           spellcheck={false}
@@ -276,10 +278,16 @@ function TextControl(props: {
             props.onCommit(next);
           }}
         />
+        <Show when={isShadow(draft())}>
+          <div
+            class="h-8 w-16 rounded-md bg-surface-raised"
+            style={{ "box-shadow": draft() }}
+          />
+        </Show>
         <datalist id="spin-token-paths">
           <For each={paths()}>{(p) => <option value={`{${p}}`} />}</For>
         </datalist>
-      </>
+      </div>
     </Show>
   );
 }

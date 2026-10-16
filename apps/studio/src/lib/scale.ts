@@ -77,7 +77,7 @@ function decimals(text: string): number {
  * precision is the grid, because their `0.5px` is a decision about halves.
  */
 function quantumOf(raw: string, m: Measure): number {
-  if (m.unit === "rem" || m.unit === "em") return 1 / 16;
+  if (m.unit === "rem" || m.unit === "em") return 1 / 32;
   if (m.unit === "ms") return 1;
   if (m.unit === "s") return 0.001;
   const d = decimals(raw);
