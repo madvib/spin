@@ -3,7 +3,7 @@
 <div class="mx-auto w-full max-w-md" {...slider.getRootProps()}>
   <div class="mb-4 text-sm text-muted" {...slider.getValueTextProps()}>{slider.valueText}</div>
   <div
-    class="relative flex h-5 w-full touch-none items-center select-none"
+    class="relative flex h-4 w-full touch-none items-center select-none"
     {...slider.getControlProps()}
   >
     <div
@@ -17,7 +17,7 @@
     </div>
     <template for={slider.getThumbIndexes()} as={row} key={row}>
       <span
-        class="absolute top-1/2 -mt-2.5 -ml-2.5 h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
+        class="absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
         {...slider.getThumbProps({ index: row.index })}
       ></span>
       <input {...slider.getHiddenInputProps({ index: row.index })} />
@@ -26,7 +26,7 @@
   <div class="relative mt-2 h-8" {...slider.getMarkerGroupProps()}>
     <template for={slider.getMarkers()} as={row} key={row}>
       <span
-        class="absolute top-0 flex w-0 justify-center pt-3 text-xs text-muted"
+        class="absolute top-0 flex w-0 justify-center pt-4 text-xs text-muted"
         {...slider.getMarkerProps({ value: row })}
       >
         <span class="absolute left-1/2 top-0 -ml-px h-1 w-1 rounded-full bg-border-strong data-[state=under-value]:bg-primary" aria-hidden="true"></span>

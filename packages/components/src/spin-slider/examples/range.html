@@ -3,7 +3,7 @@
 <div class="mx-auto w-full max-w-md" {...slider.getRootProps()}>
   <div class="mb-4 text-sm text-muted" {...slider.getValueTextProps()}>{slider.getThumbValue(0)} - {slider.getThumbValue(1)}</div>
   <div
-    class="relative flex h-5 w-full touch-none items-center select-none"
+    class="relative flex h-4 w-full touch-none items-center select-none"
     {...slider.getControlProps()}
   >
 <div
@@ -17,7 +17,7 @@
     </div>
 <template for={slider.getThumbIndexes()} as={row} key={row}>
       <span
-        class="absolute top-1/2 -mt-2.5 -ml-2.5 h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
+        class="absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
         {...slider.getThumbProps({ index: row.index })}
       ></span>
       <input {...slider.getHiddenInputProps({ index: row.index })} />
