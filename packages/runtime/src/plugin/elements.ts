@@ -260,6 +260,10 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           `  const { nodes } = create(actions, values, el);`,
           `  for (const node of nodes) el.appendChild(node);`,
           `} });`,
+          // Example modules cannot hot-swap: the tag is already defined and
+          // the define guard keeps the first registration, so an edit would
+          // serve stale markup forever. Invalidate (full reload) instead.
+          ...(file.includes("/examples/") ? [`if (import.meta.hot) import.meta.hot.invalidate();`] : []),
           `export default ${JSON.stringify(tag)};`,
         ].join("\n"),
         map: null,
