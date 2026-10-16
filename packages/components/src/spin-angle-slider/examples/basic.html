@@ -8,13 +8,13 @@
     <div class="pointer-events-none absolute inset-0" {...angleSlider.getMarkerGroupProps()}>
       <template for={angleSlider.getMarkers()} as={row} key={row}>
         <span
-          class="absolute h-[1rem] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-border-strong data-[state=at-value]:bg-primary"
+          class="absolute h-[1rem] w-[2px] -translate-1/2 bg-border-strong data-[state=at-value]:bg-primary"
           {...angleSlider.getMarkerProps({ value: row })}
         ></span>
       </template>
     </div>
     <span
-      class="absolute h-[1.75rem] w-[1.75rem] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
+      class="absolute h-[1.75rem] w-[1.75rem] -translate-1/2 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
       {...angleSlider.getThumbProps()}
     ></span>
     <span class="flex flex-col items-center" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>

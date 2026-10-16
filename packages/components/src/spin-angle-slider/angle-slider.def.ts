@@ -289,7 +289,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           // is markup's (`-translate-1/2`), so thumb size never leaks here.
           style: {
             "--thumb-angle": `${shown}deg`,
-            ...rimPlacement(shown, 42),
+            ...rimPlacement(shown, 40),
           },
           onFocus: (): void => {
             scope.send({ type: "THUMB.FOCUS" });
