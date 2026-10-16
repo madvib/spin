@@ -120,6 +120,10 @@ const parseNodes = (raw: unknown): readonly TreeNode[] => {
 const parseKeys = (raw: unknown): string[] => {
   if (Array.isArray(raw)) return (raw as readonly unknown[]).filter((v): v is string => typeof v === "string");
   if (typeof raw !== "string" || raw.length === 0) return [];
+  // A scope default cannot carry top-level commas (the grammar splits
+  // props on them), so bracketed-unquoted (`[a, b]`) splits like a bare
+  // comma list when JSON fails — string-authored seeds work either way.
+  const list = raw.startsWith("[") && raw.endsWith("]") ? raw.slice(1, -1) : raw;
   if (raw.startsWith("[")) {
     try {
       const parsed: unknown = JSON.parse(raw);
@@ -127,11 +131,10 @@ const parseKeys = (raw: unknown): string[] => {
         return (parsed as readonly unknown[]).filter((v): v is string => typeof v === "string");
       }
     } catch {
-      return [];
+      // Fall through to the comma split below.
     }
-    return [];
   }
-  return raw.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
+  return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
 };
 
 const sameSet = (a: readonly string[], b: readonly string[]): boolean =>

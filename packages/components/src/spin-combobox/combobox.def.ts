@@ -130,7 +130,9 @@ export interface ComboboxApi {
 const parseKeys = (raw: unknown): string[] => {
   if (Array.isArray(raw)) return raw.filter((value): value is string => typeof value === "string");
   if (typeof raw !== "string") return [];
-  return raw.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
+  // Bracketed-unquoted scope defaults (`[a, b]`) split like a bare list.
+  const list = raw.startsWith("[") && raw.endsWith("]") ? raw.slice(1, -1) : raw;
+  return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
 };
 
 const toRow = (item: ComboboxItem): ComboboxRow | undefined => {

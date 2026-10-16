@@ -48,7 +48,10 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // (`spin-tree-view/examples/basic.html` → `tree-view-basic`).
       const grandparent = file.split("/").slice(-3, -2)[0] ?? "";
       const machine = grandparent.startsWith("spin-") ? grandparent.slice("spin-".length) : "";
-      const tag = stem.includes("-") ? stem : (machine.length > 0 ? `${machine}-${stem}` : stem);
+      // Examples always qualify (`basic` → `tree-view-basic`): the mount
+      // tag derives the same way, so the two can never disagree the way a
+      // "valid names pass through" rule lets dashed stems disagree.
+      const tag = machine.length > 0 ? `${machine}-${stem}` : stem;
       const dir = file.split("/").slice(0, -1).join("/");
       const { parse: parseMod } = await import("@spin/runtime");
       void parseMod;

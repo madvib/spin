@@ -227,5 +227,9 @@ export function define(tag: string, spec: ElementSpec): void {
     configurable: true,
   });
 
+  // HMR re-runs the module (cache-busted `?t=` query): the tag is already
+  // live, and a second define throws. The first registration wins; a real
+  // rename is a new tag, so nothing versioned is lost.
+  if (customElements.get(tag) !== undefined) return;
   customElements.define(tag, Component);
 }

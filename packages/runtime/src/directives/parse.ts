@@ -619,8 +619,14 @@ function coerceByType(type: ScopePropType, raw: string, def?: unknown, fields?: 
       const n = parseInt(raw, 10);
       return Number.isNaN(n) ? def : n;
     }
-    case "string[]":
-      return raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+    case "string[]": {
+      // Bracketed scope defaults (`[a, b]`) split like a bare list: the
+      // grammar reserves top-level commas for prop separation.
+      const inner = raw.trim().startsWith("[") && raw.trim().endsWith("]")
+        ? raw.trim().slice(1, -1)
+        : raw;
+      return inner.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+    }
     case "string":
       return raw;
     case "object-array": {
