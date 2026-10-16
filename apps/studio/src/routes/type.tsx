@@ -34,6 +34,7 @@ import { editToken, upsertToken } from "../lib/editing.ts";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
+import Page from "../components/Page";
 import { inDrawer } from "../app.tsx";
 
 /** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
@@ -176,16 +177,11 @@ function weightOptions(): readonly string[] {
 export default function TypePage() {
   const sizes = createLockstep(scaleRows, "font.size");
   return (
-    <div class="drawer-scroll min-h-0 min-w-0 flex-1 overflow-y-auto">
-      <header class="stack px-8 pt-8">
-        <h1 class="text-3xl">Type</h1>
-        <p class="max-w-screen-md text-text-muted">
-          Four faces and one scale, and a map of which element claims which. A
-          theme moves its type by moving these tokens, and every element that
-          reads them follows.
-        </p>
-      </header>
-
+    <Page
+      title="Type"
+      note="Four faces and one scale, and a map of which element claims which."
+      wide
+    >
       <section class="stack mt-8 px-8">
         <h2 class="text-xl">Faces</h2>
         <div class="flex flex-col gap-4">
@@ -401,7 +397,7 @@ export default function TypePage() {
           </table>
         </div>
       </section>
-    </div>
+    </Page>
   );
 }
 

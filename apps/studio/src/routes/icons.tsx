@@ -118,7 +118,7 @@ export default function IconsPage() {
   return (
     <div class="flex min-h-0 min-w-0 flex-1 flex-col">
       <div class="shrink-0 p-4 stack-sm">
-        <h1 class="text-2xl">Icons</h1>
+        <h1 class="text-3xl">Icons</h1>
         <p class="max-w-screen-md text-text-muted">
           Every glyph in the five installed collections. Click one to copy its
           utility; the grid draws at the selected step of the theme's icon

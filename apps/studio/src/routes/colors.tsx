@@ -6,6 +6,7 @@ import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { activeMode, activeModes, themeText } from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
+import Page from "../components/Page";
 import { tokenValue } from "../lib/overview.ts";
 
 /**
@@ -144,12 +145,10 @@ export default function ColorsPage() {
   });
 
   return (
-    <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
-      <h1 class="text-2xl">Colors</h1>
-      <p>
-        What exists, then what it is for. Light and dark edit side by side — a
-        dark slot saying what the light one says drops out of the document.
-      </p>
+    <Page
+      title="Colors"
+      note="What exists, then what it is for."
+    >
       <section class="stack-sm mb-6" aria-label="Hues">
         <h2 class="text-xl">Hues</h2>
         <div
@@ -172,7 +171,7 @@ export default function ColorsPage() {
         <For each={split().roles}>{(row) => <RoleRow row={row} />}</For>
       </section>
       <RampBuilder />
-    </div>
+    </Page>
   );
 }
 
