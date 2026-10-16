@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createFileUploadBridge } from "./file-upload.bridge.ts";
-import type { FileUploadApi } from "./file-upload.connect.ts";
+import { fileUpload } from "./file-upload.def.ts";
+const createFileUploadBridge = fileUpload.createBridge;
+import type { FileUploadApi } from "./file-upload.def.ts";
 import type { FileRecord } from "./file-upload.machine.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
