@@ -172,7 +172,7 @@ export function defineComponent<
         }
         return moved;
       },
-      notify: (svc, callbacks, kind, event, beforeSnapshot, parsed) => {
+      notify: (svc, callbacks, kind, event, beforeSnapshot, parsed, source) => {
         const context = (svc.state.context as object) as Record<string, unknown>;
         const state = svc.state.value;
         const fns = callbacks as Record<string, (...args: readonly unknown[]) => void>;
@@ -195,8 +195,14 @@ export function defineComponent<
               before,
               context,
               { was: beforeState, is: state },
+              source,
             );
-            if (payload !== null) fns[defEvent.prop]?.(payload);
+            if (payload !== null) {
+              // A queue diff reports each move: one payload per toast.
+              if (Array.isArray(payload)) {
+                for (const report of payload) fns[defEvent.prop]?.(report);
+              } else fns[defEvent.prop]?.(payload);
+            }
             continue;
           }
           if (defEvent.on !== "commit" && last !== undefined && sameWatch(last, watched)) continue;

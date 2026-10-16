@@ -185,7 +185,8 @@ export interface EventDef {
     before: Record<string, unknown>,
     after: Record<string, unknown>,
     states?: { readonly was: string; readonly is: string },
-  ) => Record<string, unknown> | null;
+    source?: string,
+  ) => Record<string, unknown> | readonly Record<string, unknown>[] | null;
 }
 export interface ComponentDef<C extends object, E extends { type: string }> {
   readonly name: string;

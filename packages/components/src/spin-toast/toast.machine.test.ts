@@ -1,9 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createToastBridge } from "./toast.bridge.ts";
-import type { ToastStatusChange } from "./toast.bridge.ts";
-import type { ToastApi, ToastItem } from "./toast.connect.ts";
+import { toast } from "./toast.def.ts";
+const createToastBridge = toast.createBridge;
+import type { ToastStatusChange } from "./toast.def.ts";
+import type { ToastApi, ToastItem } from "./toast.def.ts";
 import type { ToastEntry } from "./toast.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

@@ -90,6 +90,7 @@ export type ToastEvent =
     }
   | { type: "TOAST.REMOVE"; id: string }
   | { type: "TOAST.DISMISS"; id: string; src: string }
+  | { type: "DISMISS.ALL" }
   | { type: "TOAST.PAUSE"; id: string; remaining: number }
   | { type: "TOAST.RESUME"; id: string }
   | { type: "TOAST.MOUNTED"; id: string }
@@ -206,6 +207,9 @@ const QUEUE_EVENTS = {
   ],
   "TOAST.UPDATE": { actions: [{ assign: "updateToast" }] },
   "TOAST.DISMISS": { actions: [{ assign: "dismissToast" }] },
+  /** One command fans out here: the def's commands send one event each,
+   * so a whole-queue exit is one event the assign loops over. */
+  "DISMISS.ALL": { actions: [{ assign: "dismissAll" }] },
   "TIMER.ELAPSED": { actions: [{ assign: "dismissToast" }] },
   "TOAST.MOUNTED": { actions: [{ assign: "mountToast" }] },
   "HEIGHT.SET": { actions: [{ assign: "setHeight" }] },
@@ -320,6 +324,10 @@ export const implementations = {
       }
       return promote({ ...ctx, toasts: ctx.toasts.filter(gone), queued: ctx.queued.filter(gone) });
     },
+    dismissAll: (ctx: ToastContext): Partial<ToastContext> => ({
+      toasts: ctx.toasts.map((entry) =>
+        entry.status === "dismissing" ? entry : { ...entry, status: "dismissing" }),
+    }),
     dismissToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
       if (e.type !== "TOAST.DISMISS" && e.type !== "TIMER.ELAPSED") return {};
       const toasts = amend(ctx.toasts, e.id, (entry) =>

@@ -68,8 +68,10 @@ export interface BridgeHooks<
     authored: (name: string) => boolean,
     send: (event: E) => void,
   ): { readonly moved: boolean; readonly events: readonly E[] };
-  /** Report what moved. `defineBridge` threads the kind and the triggering
-   * event (undefined from the sync effect). Cursors live in the hooks closure. */
+  /** Report what moved. `defineBridge` threads the kind, the triggering
+   * event (undefined from the sync effect) and the send's source
+   * (`"reconcile"` for effect-driven sends, undefined for gestures).
+   * Cursors live in the hooks closure. */
   notify(
     svc: Service<C, E>,
     callbacks: Callbacks,
@@ -77,6 +79,7 @@ export interface BridgeHooks<
     event?: E,
     before?: { readonly context: C; readonly state: string },
     parsed?: Record<string, unknown>,
+    source?: string,
   ): void;
   /** Classify the send: commit sends fire `on: "commit"` events, moves fire
    * `on: "move"` (unset) events. Absent, every send notifies as a move. */
@@ -280,11 +283,17 @@ export function defineBridge<
       const scalarMoved = hooks.refresh?.(svc, props, authored) ?? false;
       const syncResult = hooks.sync(svc, props, authored, (event) => transmit(event));
       const parsed = readParsed();
-      const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => transmit(event)) ?? false;
+      const reconciled: E[] = [];
+      const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {
+        reconciled.push(event);
+        transmit(event);
+      }) ?? false;
       const moved = scalarMoved || syncResult.moved || derivedMoved;
       if (moved) tick(tick() + 1);
-      // Each sync send reports with its own kind and event; a moved-but
+      // Each send reports with its own kind and event; a moved-but
       // eventless effect (reconcile assigns) reports once as a commit.
+      // Reconcile sends carry their source: a host-driven queue edit is
+      // not a gesture, and the report tells them apart.
       for (const event of syncResult.events) {
         hooks.notify(
           svc,
@@ -295,7 +304,24 @@ export function defineBridge<
           readParsed(),
         );
       }
-      if (syncResult.events.length === 0 && derivedMoved) {
+      // One report for the whole host edit, diffed against the effect's
+      // start: per-send reports would each diff the same `before` and
+      // repeat the queue. The last event rides along for the src read.
+      if (reconciled.length > 0) {
+        const last = reconciled[reconciled.length - 1];
+        if (last !== undefined) {
+          hooks.notify(
+            svc,
+            hooks.readCallbacks(props),
+            hooks.kind?.(last) ?? "move",
+            last,
+            beforeContext,
+            readParsed(),
+            "reconcile",
+          );
+        }
+      }
+      if (syncResult.events.length === 0 && reconciled.length === 0 && derivedMoved) {
         hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, readParsed());
       }
       });
