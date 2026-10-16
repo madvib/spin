@@ -7,7 +7,7 @@
 
 import { dataAttr, keyed, memo, type BagMemo } from "./bags.ts";
 import { focuser, ids } from "./ids.ts";
-import { defineBridge, pickCallback, type BridgeHooks, type BridgeService } from "./bridge.ts";
+import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeService } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotScope } from "./define.ts";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
@@ -62,6 +62,13 @@ export function defineComponent<
     id: string,
     root: () => Element,
   ): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
+    // The last event sent, which is what a controlled close reads to tell
+    // a commit from a cancel — Zag's `previousEvent`. Per bridge, advanced
+    // on every transmitted send (sync writes included).
+    let lastEventType = "";
+    const noteSent = (type: string): void => {
+      lastEventType = type;
+    };
     const names = ids(def.name, id);
     const segments = new Map<string, string>();
     for (const [key, partDef] of Object.entries(def.parts)) {
@@ -90,6 +97,7 @@ export function defineComponent<
       a.length === b.length && a.every((value, index) => value === b[index]);
 
     return {
+      noteSent,
       seed: (props, authored) => def.seed(parse(props), authored) as Partial<C>,
       establish: (svc, props, authored) => {
         if (def.establish === undefined) return;
@@ -100,7 +108,7 @@ export function defineComponent<
       },
       sync: (svc, props, authored, send) => {
         let moved = false;
-        let loud = false;
+        const events: E[] = [];
         const parsed = parse(props);
         for (const [name, channel] of Object.entries(def.channels)) {
           if (channel.controlled !== true) continue;
@@ -122,13 +130,18 @@ export function defineComponent<
             if (channel.assign === true) {
               ((svc.state.context as object) as Record<string, unknown>)[name] = outer;
             } else {
-              send(channel.event(outer as never) as E);
+              const event = channel.event(
+                outer as never,
+                (svc.state.context as object) as Record<string, unknown>,
+                lastEventType,
+              ) as E;
+              send(event);
+              if (!silent) events.push(event);
             }
             moved = true;
-            if (!silent) loud = true;
           }
         }
-        return { moved, loud };
+        return { moved, events };
       },
       kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
       refresh: (svc, props, authored) => {
@@ -159,7 +172,7 @@ export function defineComponent<
         }
         return moved;
       },
-      notify: (svc, callbacks, kind, event, before, parsed) => {
+      notify: (svc, callbacks, kind, event, beforeSnapshot, parsed) => {
         const context = (svc.state.context as object) as Record<string, unknown>;
         const state = svc.state.value;
         const fns = callbacks as Record<string, (...args: readonly unknown[]) => void>;
@@ -174,11 +187,14 @@ export function defineComponent<
           if (defEvent.select !== undefined) {
             // Event-gated reports (invokeOnSelect): the send's outcome
             // against the pre-send context; a refused guard reports nothing.
+            const before = (beforeSnapshot as { readonly context?: Record<string, unknown> } | undefined)?.context;
             if (event === undefined || before === undefined) continue;
+            const beforeState = (beforeSnapshot as { readonly state?: string } | undefined)?.state ?? state;
             const payload = defEvent.select(
               event as { readonly type: string } & Record<string, unknown>,
-              (before as object) as Record<string, unknown>,
+              before,
               context,
+              { was: beforeState, is: state },
             );
             if (payload !== null) fns[defEvent.prop]?.(payload);
             continue;
@@ -331,7 +347,7 @@ export function defineComponent<
     id: string,
   ): { readonly api: Api; dispose(): void } => {
     const startState = typeof def.start === "function"
-      ? def.start(parseProp(def, props, parsedCache, { root }))
+      ? def.start(parseProp(def, props, parsedCache, { root }), authoredProps(props))
       : def.start;
     const bridged = defineBridge(
       {

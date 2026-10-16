@@ -31,8 +31,14 @@ export interface PropDef {
 export interface ControlledDef {
   readonly controlled: true;
   readonly parse: PropParser;
-  /** The event a host write sends. Receives the parsed outer value. */
-  readonly event: (value: never) => { type: string } & Record<string, unknown>;
+  /** The event a host write sends. Receives the parsed outer value, the
+   * live context, and the last sent event's type — a controlled close
+   * right after a submit commits, anything else reverts. */
+  readonly event: (
+    value: never,
+    context?: Record<string, unknown>,
+    lastEvent?: string,
+  ) => { type: string } & Record<string, unknown>;
   /** Write the parsed value straight into context instead of sending:
    * host writes alternate on their own, not on the next machine event. */
   readonly assign?: true;
@@ -175,6 +181,7 @@ export interface EventDef {
     event: { readonly type: string } & Record<string, unknown>,
     before: Record<string, unknown>,
     after: Record<string, unknown>,
+    states?: { readonly was: string; readonly is: string },
   ) => Record<string, unknown> | null;
 }
 export interface ComponentDef<C extends object, E extends { type: string }> {
@@ -183,7 +190,10 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
   readonly implementations: Implementations<C, E>;
   /** The start state, or its computation from parsed props (an authored
    * `open` starts the panel up). Absent, the machine's own initial. */
-  readonly start?: string | ((props: Record<string, unknown>) => string);
+  readonly start?: string | ((
+    props: Record<string, unknown>,
+    authored: (name: string) => boolean,
+  ) => string);
   /** Events sent once after start (seeded through the machine, not a
    * write: validation and sanitization run through the assigns). */
   readonly establish?: (

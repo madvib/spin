@@ -59,14 +59,15 @@ export interface BridgeHooks<
     authored: (name: string) => boolean,
   ): void;
   /** Alternate authored channels against the machine. Returns whether
-   * anything moved and whether the move reports (silent channels apply
-   * without events). */
+   * anything moved and the events sent: each reports through notify with
+   * its own kind. Silent (assign-mode) channels apply without reporting;
+   * scalar-only moves tick without events. */
   sync(
     svc: Service<C, E>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
     send: (event: E) => void,
-  ): { readonly moved: boolean; readonly loud: boolean };
+  ): { readonly moved: boolean; readonly events: readonly E[] };
   /** Report what moved. `defineBridge` threads the kind and the triggering
    * event (undefined from the sync effect). Cursors live in the hooks closure. */
   notify(
@@ -74,12 +75,15 @@ export interface BridgeHooks<
     callbacks: Callbacks,
     kind: "move" | "commit",
     event?: E,
-    before?: C,
+    before?: { readonly context: C; readonly state: string },
     parsed?: Record<string, unknown>,
   ): void;
   /** Classify the send: commit sends fire `on: "commit"` events, moves fire
    * `on: "move"` (unset) events. Absent, every send notifies as a move. */
   kind?(event: E): "move" | "commit";
+  /** Observe every transmitted event type (sync writes included): a
+   * controlled close reads the last one to tell a commit from a cancel. */
+  noteSent?(type: string): void;
   /** Derived-context reconcile inside the owned effect (collection order
    * re-homed over a changed item tree). Absent, the effect only alternates
    * controlled channels. */
@@ -202,6 +206,7 @@ export function defineBridge<
     readonly before: { readonly context: C; readonly state: string };
   } => {
     const svc = ensureService();
+    hooks.noteSent?.(event.type);
     hooks.refresh?.(svc, props, authored);
     // Shallow: assigns replace fields rather than mutating them, so the
     // pre-send values survive the transition (the tags log diff relies on it).
@@ -225,7 +230,7 @@ export function defineBridge<
       hooks.readCallbacks(props),
       hooks.kind?.(event) ?? "move",
       event,
-      before.context,
+      before,
       hooks.readConnectProps(props) as Record<string, unknown>,
     );
   };
@@ -266,18 +271,32 @@ export function defineBridge<
       const svc = ensureService();
       // The cursors stay on the pre-write values while the events send.
       // The cursors stay on the pre-write values while the events send.
-      const beforeContext = { ...svc.state.context };
+      const beforeContext = {
+        context: { ...svc.state.context },
+        state: svc.state.value,
+      };
+      const readParsed = (): Record<string, unknown> =>
+        hooks.readConnectProps(props) as Record<string, unknown>;
       const scalarMoved = hooks.refresh?.(svc, props, authored) ?? false;
       const syncResult = hooks.sync(svc, props, authored, (event) => transmit(event));
-      const parsed = hooks.readConnectProps(props) as Record<string, unknown>;
+      const parsed = readParsed();
       const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => transmit(event)) ?? false;
       const moved = scalarMoved || syncResult.moved || derivedMoved;
-      const loud = syncResult.loud || derivedMoved;
-      if (moved) {
-        tick(tick() + 1);
-        if (loud) {
-          hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, hooks.readConnectProps(props) as Record<string, unknown>);
-        }
+      if (moved) tick(tick() + 1);
+      // Each sync send reports with its own kind and event; a moved-but
+      // eventless effect (reconcile assigns) reports once as a commit.
+      for (const event of syncResult.events) {
+        hooks.notify(
+          svc,
+          hooks.readCallbacks(props),
+          hooks.kind?.(event) ?? "move",
+          event,
+          beforeContext,
+          readParsed(),
+        );
+      }
+      if (syncResult.events.length === 0 && derivedMoved) {
+        hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, readParsed());
       }
       });
     }),
