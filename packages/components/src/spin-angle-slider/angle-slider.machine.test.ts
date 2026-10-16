@@ -1,9 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createAngleSliderBridge } from "./angle-slider.bridge.ts";
-import type { AngleSliderValueChangeEnd } from "./angle-slider.bridge.ts";
-import type { AngleSliderApi } from "./angle-slider.connect.ts";
+import { angleSlider } from "./angle-slider.def.ts";
+const createAngleSliderBridge = angleSlider.createBridge;
+import type { AngleSliderValueChangeEnd } from "./angle-slider.def.ts";
+import type { AngleSliderApi } from "./angle-slider.def.ts";
 import {
   constrainAngle,
   pointAngle,
