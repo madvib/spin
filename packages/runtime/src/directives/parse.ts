@@ -159,7 +159,7 @@ function parseElement(p: Parser): Node {
     }
     if (ch === "/" && p.src[p.pos + 1] === ">") {
       p.pos += 2;
-      return finishElement(tag, attrs, events, actions, spreads, [], start, p.pos);
+      return finishElement(p, tag, attrs, events, actions, spreads, [], start, p.pos);
     }
     const aStart = p.pos;
     let name = "";
@@ -234,7 +234,7 @@ function parseElement(p: Parser): Node {
     void vEnd;
   }
   if (VOID.has(tag)) {
-    return finishElement(tag, attrs, events, actions, spreads, [], start, p.pos);
+    return finishElement(p, tag, attrs, events, actions, spreads, [], start, p.pos);
   }
   if (tag === "template") {
     return parseTemplate(p, attrs, events, actions, start);
@@ -263,12 +263,13 @@ function parseElement(p: Parser): Node {
       if (t.kind === "text" && t.parts.length > 0) children.push(t);
     }
   }
-  return finishElement(tag, attrs, events, actions, spreads, children, start, p.pos);
+  return finishElement(p, tag, attrs, events, actions, spreads, children, start, p.pos);
 }
 
 import type { ActionUse, Attr as ElementAttr, EventBinding, SpreadUse } from "./ir.ts";
 
 function finishElement(
+  p: Parser,
   tag: string,
   attrs: ElementAttr[],
   events: EventBinding[],
@@ -278,7 +279,19 @@ function finishElement(
   start: number,
   end: number,
 ): Node {
-  return { kind: "element", tag, attrs, events, actions, spreads, children, span: span(start, end) };
+  // `show={expr}` is structural, not an attribute: it never reaches the DOM.
+  const at = attrs.findIndex((a) => a.name === "show");
+  let show: string | undefined;
+  if (at !== -1) {
+    const found = attrs[at]!;
+    if (found.value.kind !== "expr") {
+      fail(p, "show-static", "`show` needs an expression: show={cond}", found.span.start, found.span.end);
+    } else {
+      show = found.value.expr;
+    }
+    attrs.splice(at, 1);
+  }
+  return { kind: "element", tag, attrs, events, actions, spreads, children, ...(show !== undefined ? { show } : {}), span: span(start, end) };
 }
 
 function templateAttr(attrs: ElementAttr[], name: string): string | undefined {

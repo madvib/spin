@@ -52,6 +52,8 @@ export interface ElementNode {
   readonly actions: readonly ActionUse[];
   readonly spreads: readonly SpreadUse[];
   readonly children: readonly Node[];
+  /** Conditional render: the `show={expr}` expression, evaluated per tick. */
+  readonly show?: string;
   readonly span: Span;
 }
 

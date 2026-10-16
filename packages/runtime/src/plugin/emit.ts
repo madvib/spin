@@ -128,46 +128,67 @@ export function emit(ir: ComponentIr): EmitOutput {
         continue;
       }
       const el = `e${seq++}`;
+      // `show={expr}` renders through bindIf: the element (and its subtree)
+      // mounts only while the expression holds, and unmounts otherwise.
+      // The test indexes two branches ([shown] vs empty), so a truthy read
+      // shows and anything else hides — no new syntax beyond the attribute.
+      const showTest = node.kind === "element" && node.show !== undefined
+        ? `() => ((${scopeExpr(node.show, bound)}) ? 0 : 1)`
+        : undefined;
+      // Branch-local frag/parts: named once, threaded through the subtree.
+      const bid = showTest !== undefined ? `b${seq++}` : undefined;
+      if (showTest !== undefined) {
+        bindings++;
+        const aid = `a${seq++}`;
+        out.push(`${pad(depth)}{ const ${aid} = document.createComment("show"); ${host}.appendChild(${aid});`);
+        out.push(`${pad(depth + 1)}bindIf({ anchor: ${aid}, test: ${showTest}, branches: [() => {`);
+        out.push(`${pad(depth + 2)}const ${bid}f = document.createDocumentFragment();`);
+        out.push(`${pad(depth + 2)}const ${bid}p = [];`);
+      }
+      const iDepth = showTest !== undefined ? depth + 2 : depth;
+      const iParts = bid !== undefined ? `${bid}p` : parts;
       if (node.tag === "host") {
-        out.push(`${pad(depth)}{ const ${el} = _host;`);
+        out.push(`${pad(iDepth)}{ const ${el} = _host;`);
       } else {
-        out.push(`${pad(depth)}{ const ${el} = document.createElement(${JSON.stringify(node.tag)});`);
+        out.push(`${pad(iDepth)}{ const ${el} = document.createElement(${JSON.stringify(node.tag)});`);
       }
       for (const attr of node.attrs) {
         if (attr.value.kind === "static") {
-          out.push(`${pad(depth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
+          out.push(`${pad(iDepth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
         } else {
           bindings++;
-          // leave undefined in the update list and crash update() on sync.
-          out.push(`${pad(depth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${scopeExpr(attr.value.expr, bound)}));`);
+          out.push(`${pad(iDepth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${scopeExpr(attr.value.expr, bound)}));`);
         }
       }
       for (const ev of node.events) {
         bindings++;
-        // on() owns disposal via own() and returns its unsubscribe: pushing
-        // it would call unsubscribe on every sync. Bare call, like bindAttr.
-        out.push(`${pad(depth + 1)}on(${el}, ${JSON.stringify(ev.event)}, (...args) => (${scopeExpr(ev.handler, bound)})(...args));`);
+        out.push(`${pad(iDepth + 1)}on(${el}, ${JSON.stringify(ev.event)}, (...args) => (${scopeExpr(ev.handler, bound)})(...args));`);
       }
       for (const use of node.actions) {
         bindings++;
         const param = use.param !== undefined ? `() => (${scopeExpr(use.param, bound)})` : `undefined`;
-        out.push(`${pad(depth + 1)}runAction(${el}, actions[${JSON.stringify(use.name)}], ${param});`);
-
+        out.push(`${pad(iDepth + 1)}runAction(${el}, actions[${JSON.stringify(use.name)}], ${param});`);
       }
       for (const spread of node.spreads) {
         bindings++;
-        out.push(`${pad(depth + 1)}${parts}.push(bindSpread(${el}, () => (${scopeExpr(spread.expr, bound)})));`);
+        out.push(`${pad(iDepth + 1)}${iParts}.push(bindSpread(${el}, () => (${scopeExpr(spread.expr, bound)})));`);
       }
-      for (const line of emitNodes(node.children, depth + 1, el, parts, bound)) out.push(line);
-      if (node.tag !== "host") out.push(`${pad(depth + 1)}${host}.appendChild(${el});`);
-      out.push(`${pad(depth)}}`);
+      for (const line of emitNodes(node.children, iDepth + 1, el, iParts, bound)) out.push(line);
+      if (node.tag !== "host") out.push(`${pad(iDepth + 1)}${bid !== undefined ? `${bid}f` : host}.appendChild(${el});`);
+      out.push(`${pad(iDepth)}}`);
+      if (showTest !== undefined && bid !== undefined) {
+        out.push(`${pad(depth + 2)}for (const u of ${bid}p) u();`);
+        out.push(`${pad(depth + 2)}return { nodes: [...${bid}f.childNodes], update() { for (const u of ${bid}p) u(); } };`);
+        out.push(`${pad(depth + 1)}}, () => ({ nodes: [], update() {} })]});`);
+        out.push(`${pad(depth)}}`);
+      }
     }
     return out;
   };
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText, bindFor, bindActionProps, bindSpread, placeSlot, signal, effect } from "@spin/runtime";`,
+    `import { runAction, on, bindAttr, bindText, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect } from "@spin/runtime";`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,
     `  const frag = document.createDocumentFragment();`,

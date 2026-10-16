@@ -596,15 +596,8 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     itemIcon: {
       indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as VisibleRow);
-        return [`${state.branch}`, state.expanded].join(" ");
-      },
-      attrs: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as VisibleRow);
-        const kind = !state.branch ? "leaf" : state.expanded ? "branch-open" : "branch-closed";
-        return { "aria-hidden": true, "data-kind": kind };
-      },
+      sig: () => "icon",
+      attrs: () => ({ "aria-hidden": true }),
     },
     rail: {
       indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),

@@ -13,9 +13,9 @@
           <span class="hidden size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard data-[branch]:(inline-flex) data-[state=open]:(rotate-90)" {...treeView.getBranchIndicatorProps(row)}>
             <span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span>
           </span>
-          <span class="i-lucide-folder shrink-0 text-sm text-primary data-[kind=leaf]:(hidden) data-[kind=branch-open]:(hidden)" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-          <span class="i-lucide-folder-open shrink-0 text-sm text-primary data-[kind=leaf]:(hidden) data-[kind=branch-closed]:(hidden)" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-          <span class="i-lucide-file shrink-0 text-sm text-muted data-[kind=branch-open]:(hidden) data-[kind=branch-closed]:(hidden)" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
+          <span show={treeView.isBranch(row) && !treeView.getItemState(row).expanded} class="i-lucide-folder shrink-0 text-sm text-primary" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
+          <span show={treeView.isBranch(row) && treeView.getItemState(row).expanded} class="i-lucide-folder-open shrink-0 text-sm text-primary" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
+          <span show={!treeView.isBranch(row)} class="i-lucide-file shrink-0 text-sm text-muted" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
           <span class="min-w-0 flex-1 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
         </button>
       </div>
