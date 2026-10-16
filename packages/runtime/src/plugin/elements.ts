@@ -34,7 +34,10 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
     transformInclude(id) {
       return id.endsWith("?spin-element");
     },
-    async transform(code, id) {
+    async transform(source, id) {
+      // Example notes live in HTML comments (rendered in the code tab);
+      // they are source-only and never reach the IR.
+      const code = source.replace(/<!--[\s\S]*?-->/g, "");
       if (/<!doctype|<script[\s>]|<style[\s>]/i.test(code)) {
         throw new Error(`spin-elements: ${id} looks like a document, not a component`);
       }

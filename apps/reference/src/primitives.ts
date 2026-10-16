@@ -134,6 +134,8 @@ export interface PrimitiveExample {
   readonly html: string;
   /** The authored source, when the mounted html differs (machine examples). */
   readonly source?: string;
+  /** Mount glue a static file cannot carry (property functions). */
+  readonly onLoad?: string;
 }
 
 export interface PrimitivePage {

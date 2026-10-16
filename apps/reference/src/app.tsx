@@ -875,7 +875,7 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
                 name={e.name}
                 html={e.html}
                 {...(e.source !== undefined ? { source: e.source } : {})}
-                {...(f().onLoad ?? props.onLoad ? { onLoad: (f().onLoad ?? props.onLoad) as string } : {})}
+                {...(e.onLoad ?? f().onLoad ?? props.onLoad ? { onLoad: (e.onLoad ?? f().onLoad ?? props.onLoad) as string } : {})}
               />
             )}
           </For>

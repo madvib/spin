@@ -40,7 +40,7 @@ const exampleMachineOf = (path: string): string =>
 const recipeMachineOf = (path: string): string =>
   stripSpin(path.split("/").at(-2) ?? "");
 
-const grouped = new Map<string, { examples: { name: string; html: string; source: string }[] }>();
+const grouped = new Map<string, { examples: { name: string; html: string; source: string; onLoad?: string }[] }>();
 for (const [path, html] of Object.entries(exampleSources)) {
   const machine = exampleMachineOf(path);
   const stem = path.split("/").at(-1)?.slice(0, -".html".length) ?? path;
@@ -61,12 +61,43 @@ for (const [path, html] of Object.entries(recipeModules)) {
   });
 }
 
+/** Mount glue a static file cannot carry: property functions. Keyed by
+ * `machine/stem`. The loading example's `loadChildren` is what a consumer
+ * writes in their own code (see the note in the example source). */
+const EXAMPLE_ONLOAD: Record<string, string> = {
+  "tree-view/loading": `
+    document.querySelectorAll("tree-view-loading").forEach((tree) => {
+      const t = tree;
+      t.loadChildren = async (value) => {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (value === "node_modules") {
+          return [
+            { value: "node_modules/zag-js", label: "zag-js" },
+            { value: "node_modules/panda", label: "panda" },
+          ];
+        }
+        if (value === "src") {
+          return [
+            { value: "src/App", label: "App" },
+            { value: "src/main", label: "main.ts" },
+          ];
+        }
+        return [];
+      };
+    });
+  `,
+};
+
 export const COMPONENTS: readonly PrimitivePage[] = [...grouped.entries()]
   .map(([id, group]) => ({
     id: `component-${id}`,
     title: titleOf(id),
     kind: "machine",
     note: "",
-    examples: [...group.examples].sort((a, b) => a.name.localeCompare(b.name)),
+    examples: [...group.examples].sort((a, b) => a.name.localeCompare(b.name)).map((e) => {
+      const key = `${id}/${e.name.split(" — ")[1]?.toLowerCase().replace(/ /g, "-") ?? ""}`;
+      const onLoad = EXAMPLE_ONLOAD[key];
+      return onLoad !== undefined ? { ...e, onLoad } : e;
+    }),
   }))
   .sort((a, b) => a.title.localeCompare(b.title));
