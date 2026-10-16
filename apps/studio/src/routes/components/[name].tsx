@@ -88,7 +88,7 @@ const CODE_PRE =
 
 /** The panel every specimen sits in: one box, one surface, room to stand. */
 const SPECIMEN_PANEL =
-  "min-h-16 flex items-center justify-center rounded-md border border-dashed border-border bg-surface p-6 shadow-sm";
+  "min-h-[2rem] flex items-center justify-center rounded-md border border-dashed border-border bg-surface p-4 shadow-sm";
 
 /** The measure a specimen's content is set at. */
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
@@ -140,7 +140,7 @@ function ExampleSection(props: {
   }
 
   return (
-    <section class="mb-8">
+    <section class="mb-4">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 class="flex items-center gap-2 text-sm font-semibold">
           <span class="block h-1 w-4 rounded-full bg-primary" />
