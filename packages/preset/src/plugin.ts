@@ -29,6 +29,7 @@ export interface DevServer {
     invalidateModule: (mod: object) => void;
   };
   ws: { send: (payload: object) => void };
+  watcher: { on: (event: string, fn: (file: string) => void) => void };
   httpServer?: { once: (event: string, fn: () => void) => void } | null;
 }
 import { spinPreset } from "./index.ts";
@@ -150,16 +151,43 @@ async function themesFromDisk(
   return themes;
 }
 
+/**
+ * Re-run the sheet module so the client swaps the regenerated stylesheet
+ * in place. Shared by overlay writes and content saves.
+ */
+function invalidateSheet(server: DevServer): void {
+  const modules = [...server.moduleGraph.urlToModuleMap.values()];
+  const mod = modules
+    .flatMap((entry) => entry instanceof Set ? [...entry] : [entry])
+    .find((node) => (node as { url?: string }).url === VIRTUAL_ID);
+  if (mod) {
+    server.moduleGraph.invalidateModule(mod as object);
+    server.ws.send({
+      type: "update",
+      updates: [{
+        // A `js-update`: vite 8 swaps a `<link>` for anything else, but
+        // this module injects its sheet from JS, so only a re-import
+        // re-runs `updateStyle` with the regenerated sheet.
+        type: "js-update",
+        path: VIRTUAL_ID,
+        acceptedPath: VIRTUAL_ID,
+        timestamp: Date.now(),
+      }],
+    });
+  } else {
+    server.ws.send({ type: "full-reload", path: "*" });
+  }
+}
+
 export const spin = createUnplugin<SpinPluginOptions>((options) => {
   // `configResolved` sets this before anything generates; the default only
   // covers non-vite hosts. Guarded because the studio typechecks this file
   // without Deno types, and an unguarded reference is a build break there.
   let root = typeof Deno !== "undefined" ? Deno.cwd() : process.cwd();
   let envMode: "dev" | "build" = "build";
-  // The walk is the expensive half and content changes rarely, so the scan
-  // is cached and the stylesheet regenerates from it. An overlay change
-  // regenerates from the same scan — the content is unchanged, the theme
-  // documents behind the rules are not.
+  // The walk measures ~50ms, so dev rescans every generate and a new
+  // class is live on the next save with no restart. Builds cache: content
+  // is frozen mid-build by construction.
   let cachedSources: string | null = null;
 
   async function generate(): Promise<string> {
@@ -170,12 +198,14 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
     // restart.
     const themes = options.themes ?? await themesFromDisk(root);
     noteDiskDocuments(themes);
-    // The walk is expensive and content changes rarely; the safelist is
-    // rebuilt every time because an overlay write can introduce tokens
-    // whose utilities must resolve even though no file changed.
-    cachedSources ??= expandGroups(joinContent(
-      await scanContent(options.content ?? {}, root),
-    ));
+    // The safelist is rebuilt every time because an overlay write can
+    // introduce tokens whose utilities must resolve even though no file
+    // changed.
+    const sources = envMode === "dev"
+      ? expandGroups(joinContent(await scanContent(options.content ?? {}, root)))
+      : (cachedSources ??= expandGroups(joinContent(
+        await scanContent(options.content ?? {}, root),
+      )));
     const safelist = catalogUtilities(resolveThemes(themes));
     // Static: index.ts never imports plugin.ts, so this edge runs one way —
     // the browser graph stays clean because index.ts carries no `node:`.
@@ -184,7 +214,7 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
       presets: [...(options.presets ?? []), spinPreset({ themes })],
       ...(options.safelist === false ? {} : { safelist }),
     });
-    const scanned = await generator.generate(cachedSources);
+    const scanned = await generator.generate(sources);
     return scanned.css;
   }
 
@@ -224,32 +254,14 @@ spinOverlay("${studioBase}/rpc"${
     // untouched, so the dev-server lifecycle lives here rather than
     // nested under `vite:`, where the rollup conversion drops it.
     configureServer(server: DevServer) {
-      // An overlay write regenerates the sheet from the same cached
-      // scan — only the rules behind the theme documents change. The
-      // module is a CSS module, so the client swaps the stylesheet in
-      // place rather than reloading the page.
-      const stop = onOverlayChange(() => {
-        const modules = [...server.moduleGraph.urlToModuleMap.values()];
-        const mod = modules
-          .flatMap((entry) => entry instanceof Set ? [...entry] : [entry])
-          .find((node) => node.url === VIRTUAL_ID);
-        if (mod) {
-          server.moduleGraph.invalidateModule(mod);
-          server.ws.send({
-            type: "update",
-            updates: [{
-              // A `js-update`: vite 8 swaps a `<link>` for anything else,
-              // but this module injects its sheet from JS, so only a
-              // re-import re-runs `updateStyle` with the regenerated sheet.
-              type: "js-update",
-              path: VIRTUAL_ID,
-              acceptedPath: VIRTUAL_ID,
-              timestamp: Date.now(),
-            }],
-          });
-        } else {
-          server.ws.send({ type: "full-reload", path: "*" });
-        }
+      // An overlay write regenerates the sheet from the same scan — only
+      // the rules behind the theme documents change. A content save
+      // rescans on the next generate (dev never caches). Either way the
+      // sheet module re-runs and the client swaps the stylesheet in place
+      // rather than reloading the page.
+      const stop = onOverlayChange(() => invalidateSheet(server));
+      server.watcher.on("change", (file: string) => {
+        if (/\.(html|tsx|ts|jsx|js|vue|svelte|mdx?)($|\?)/.test(file)) invalidateSheet(server);
       });
       server.httpServer?.once("close", stop);
       options.mount?.({ server, root });
