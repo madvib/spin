@@ -1,0 +1,35 @@
+<scope>props={ count: string = "100", pageSize: string = "10", siblingCount: string = "1", defaultPage: string = "1" } consume={ pagination }</scope>
+
+
+<nav class="flex w-full flex-nowrap items-center gap-1 overflow-x-auto" {...pagination.getRootProps()}>
+  <button
+    type="button"
+    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    {...pagination.getFirstTriggerProps()}
+  ><span aria-hidden="true">«</span></button>
+  <button
+    type="button"
+    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    {...pagination.getPrevTriggerProps()}
+  ><span aria-hidden="true">‹</span></button>
+  <template for={pagination.getItems()} as={row} key={row.key}>
+    <button
+      type="button"
+      class="h-7 min-w-7 rounded-md border border-solid border-border bg-surface-raised px-1.5 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface data-[selected]:border-primary data-[selected]:bg-primary data-[selected]:text-on-primary data-[hidden]:hidden"
+      {...pagination.getItemProps(row)}
+    >{row.label}</button><span
+      class="grid h-7 min-w-7 place-items-center px-1 text-xs text-muted data-[hidden]:hidden"
+      {...pagination.getEllipsisProps(row)}
+    >{row.label}</span>
+  </template>
+  <button
+    type="button"
+    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    {...pagination.getNextTriggerProps()}
+  ><span aria-hidden="true">›</span></button>
+  <button
+    type="button"
+    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    {...pagination.getLastTriggerProps()}
+  ><span aria-hidden="true">»</span></button>
+</nav>
