@@ -31,11 +31,16 @@ import { CARD_EXAMPLES, cardFixtureNote } from "./card.examples.ts";
 import {
   CHECKBOX_EXAMPLES,
   controlFixtureNote,
+  indeterminateOnLoad,
   SWITCH_EXAMPLES,
   switchFixtureNote,
 } from "./control.examples.ts";
 import { DETAILS_EXAMPLES, detailsFixtureNote } from "./details.examples.ts";
-import { DIALOG_EXAMPLES, dialogFixtureNote } from "./dialog.examples.ts";
+import {
+  DIALOG_EXAMPLES,
+  dialogFixtureNote,
+  dialogOnLoad,
+} from "./dialog.examples.ts";
 import {
   fieldFixtureNote,
   INPUT_EXAMPLES,
@@ -80,6 +85,15 @@ export interface ComponentExamples {
   readonly id: string;
   /** The sentence naming the contract the rows demonstrate. */
   readonly note: string;
+  /**
+   * The line that finishes an example markup alone cannot finish.
+   *
+   * `data-mixed` and `data-open` name DOM properties, so a consumer who copies
+   * a row and pastes it gets a specimen that lies unless they also know to
+   * run this. It is scoped to the element that renders the examples, never the
+   * document.
+   */
+  readonly onLoad?: string;
   /** The rows, in authored order. */
   readonly rows: readonly FixtureExample[];
 }
@@ -110,6 +124,7 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
   checkbox: {
     id: "checkbox",
     note: controlFixtureNote,
+    onLoad: indeterminateOnLoad,
     rows: CHECKBOX_EXAMPLES,
   },
   details: {
@@ -117,7 +132,12 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     note: detailsFixtureNote,
     rows: DETAILS_EXAMPLES,
   },
-  dialog: { id: "dialog", note: dialogFixtureNote, rows: DIALOG_EXAMPLES },
+  dialog: {
+    id: "dialog",
+    note: dialogFixtureNote,
+    onLoad: dialogOnLoad,
+    rows: DIALOG_EXAMPLES,
+  },
   // Keyed `hr`, which is the manifest's name and the element's tag. It was
   // filed as `divider`, so the studio's lookup missed and the rule never
   // appeared in the specimen wall.
@@ -156,7 +176,12 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     rows: SKELETON_EXAMPLES,
   },
   stat: { id: "stat", note: statFixtureNote, rows: STAT_EXAMPLES },
-  switch: { id: "switch", note: switchFixtureNote, rows: SWITCH_EXAMPLES },
+  switch: {
+    id: "switch",
+    note: switchFixtureNote,
+    onLoad: indeterminateOnLoad,
+    rows: SWITCH_EXAMPLES,
+  },
   table: { id: "table", note: tableFixtureNote, rows: TABLE_EXAMPLES },
   tabs: { id: "tabs", note: tabsFixtureNote, rows: TABS_EXAMPLES },
   textarea: {

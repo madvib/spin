@@ -29,6 +29,7 @@ import {
 import {
   CHECKBOX_EXAMPLES,
   controlFixtureNote,
+  indeterminateOnLoad,
   SWITCH_EXAMPLES,
   switchFixtureNote,
 } from "@spin/preset/rules/primitives/control.examples.ts";
@@ -47,6 +48,7 @@ import {
 import {
   DIALOG_EXAMPLES,
   dialogFixtureNote,
+  dialogOnLoad,
 } from "@spin/preset/rules/primitives/dialog.examples.ts";
 import {
   HR_EXAMPLES,
@@ -271,8 +273,7 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     title: "Checkbox",
     kind: "rule",
     note: controlFixtureNote,
-    onLoad:
-      "document.querySelectorAll('[data-mixed]').forEach((e) => e.indeterminate = true);",
+    onLoad: indeterminateOnLoad,
     examples: [...CHECKBOX_EXAMPLES],
   },
   {
@@ -287,8 +288,7 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     title: "Dialog",
     kind: "rule",
     note: dialogFixtureNote,
-    onLoad:
-      "document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.open)?.showModal()));",
+    onLoad: dialogOnLoad,
     examples: [...DIALOG_EXAMPLES],
   },
   {
@@ -429,8 +429,7 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     title: "Switch",
     kind: "rule",
     note: switchFixtureNote,
-    onLoad:
-      "document.querySelectorAll('[data-mixed]').forEach((e) => e.indeterminate = true);",
+    onLoad: indeterminateOnLoad,
     examples: [...SWITCH_EXAMPLES],
   },
   {

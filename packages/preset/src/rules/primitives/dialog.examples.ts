@@ -38,6 +38,13 @@ const close =
 export const dialogFixtureNote =
   "A native modal: focus trapping, Escape and inertness are the platform's. Ours is a card that looks like every other card.";
 
+/**
+ * `data-open="id"` names the dialog a row opens; a native dialog only opens
+ * from `showModal()`, so the fixture ships the line that calls it.
+ */
+export const dialogOnLoad =
+  "document.querySelectorAll('[data-open]').forEach((el) => el.addEventListener('click', () => document.querySelector('#' + el.dataset.open)?.showModal()));";
+
 export const DIALOG_EXAMPLES: readonly DialogExample[] = [
   {
     name: "Modal",

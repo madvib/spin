@@ -33,6 +33,14 @@ const inputSwitch = (attrs: string, label: string): string =>
 export const controlFixtureNote =
   "A working checkbox with no class: the input carries the base and draws its own tick. `checked` and `disabled` are attributes; indeterminate is `data-mixed`.";
 
+/**
+ * `data-mixed` is the markup; `indeterminate` is the property. No markup
+ * produces the state, so the fixture that names it ships the line that sets
+ * it — and a consumer copying the row knows the same line is theirs to run.
+ */
+export const indeterminateOnLoad =
+  "document.querySelectorAll('[data-mixed]').forEach((el) => { el.indeterminate = true; });";
+
 export const CHECKBOX_EXAMPLES: readonly ControlExample[] = [
   {
     name: "Checkbox · states",

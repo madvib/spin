@@ -18,20 +18,44 @@ export { primitivesContract };
 
 const os = implement(primitivesContract);
 
-const list = os.primitives.list.handler(() => {
-  return Object.values(primitiveComponents).map((c) => {
-    const examples = componentExamples[c.name];
+/**
+ * Every component a reader can browse: the ones that ship examples.
+ *
+ * The manifest is not that set. It also holds `a11y`, a utility family, and
+ * `field`, the contract input/select/textarea share — neither is something a
+ * gallery card can open. And it misses the components whose examples are
+ * authored beside rules it does not name at all. The gallery is therefore
+ * driven by what has something to show, and the manifest's tags, variants and
+ * reads ride along wherever it models the same name.
+ */
+export function listedComponents(): {
+  name: string;
+  tags: string[];
+  variants: string[];
+  reads: string[];
+  examples?: {
+    onLoad?: string;
+    note: string;
+    rows: { name: string; html: string }[];
+  };
+}[] {
+  return Object.values(componentExamples).map((examples) => {
+    const component = primitiveComponents[examples.id];
     return {
-      name: c.name,
-      tags: [...c.tags],
-      variants: [...c.variants],
-      reads: [...c.reads],
-      ...(examples !== undefined
-        ? { examples: { note: examples.note, rows: [...examples.rows] } }
-        : {}),
+      name: examples.id,
+      tags: [...(component?.tags ?? [])],
+      variants: [...(component?.variants ?? [])],
+      reads: [...(component?.reads ?? [])],
+      examples: {
+        ...(examples.onLoad !== undefined ? { onLoad: examples.onLoad } : {}),
+        note: examples.note,
+        rows: [...examples.rows],
+      },
     };
   });
-});
+}
+
+const list = os.primitives.list.handler(() => listedComponents());
 
 const contract = os.primitives.contract.handler(({ input }) => {
   const component = primitiveComponents[input.name];
