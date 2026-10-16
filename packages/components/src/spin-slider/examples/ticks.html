@@ -17,7 +17,7 @@
     </div>
 <template for={slider.getThumbIndexes()} as={row} key={row}>
       <span
-        class="absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
+        class="absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
         {...slider.getThumbProps({ index: row.index })}
       ></span>
       <input {...slider.getHiddenInputProps({ index: row.index })} />

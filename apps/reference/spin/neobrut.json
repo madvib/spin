@@ -272,7 +272,7 @@
       "$value": "0"
     },
     "full": {
-      "$value": "9999px"
+      "$value": "0"
     }
   },
   "opacity": {
@@ -321,7 +321,7 @@
       "$description": "Fully shown. Named so a rule can say it rather than assume it."
     },
     "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme — a fraction is a measurement, not a preference — but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces."
+    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme \u2014 a fraction is a measurement, not a preference \u2014 but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces."
   },
   "shadow": {
     "$type": "shadow",
@@ -457,7 +457,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "1rem"

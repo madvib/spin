@@ -310,7 +310,7 @@
   },
   "radius": {
     "$type": "dimension",
-    "$description": "Corner rounding, from square to fully round.",
+    "$description": "Corner rounding. Everything is square: sm through full are 0 on purpose \u2014 a rounded corner would look like a mistake here, the same way a 1px border would.",
     "none": {
       "$value": "0"
     },
@@ -324,7 +324,7 @@
       "$value": "0"
     },
     "full": {
-      "$value": "9999px"
+      "$value": "0"
     },
     "xs": {
       "$value": "0.0625rem"
