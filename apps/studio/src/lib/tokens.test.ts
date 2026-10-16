@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { indexTree, parseTokens, type TokenTree } from "@spin/theme";
-import { editorRouteFor, tokenRowAt, toPx } from "./tokens.ts";
+import { borderUtilityOf, editorRouteFor, tokenRowAt, toPx } from "./tokens.ts";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
 
 /**
@@ -115,4 +115,13 @@ Deno.test("every token in the reference theme links to a route that exists", asy
     true,
     "no token in the reference theme is claimed by any editor",
   );
+});
+
+Deno.test("borderUtilityOf names the utility the vocabulary spells", () => {
+  // `border.width` is the hairline and reads as the bare utility; the steps
+  // carry their number. A page that printed `border-width-2` was naming a
+  // utility nothing could write.
+  assertEquals(borderUtilityOf("border.width"), "border");
+  assertEquals(borderUtilityOf("border.width-2"), "border-2");
+  assertEquals(borderUtilityOf("border.width-8"), "border-8");
 });

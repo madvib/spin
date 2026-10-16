@@ -218,6 +218,11 @@ export function lastRefusal(): string | undefined {
   return refusal();
 }
 
+/** Record why an edit did not land — the gate or the document says so. */
+export function noteRefusal(message: string): void {
+  setRefusal(message);
+}
+
 /** Replaces the editor text for the active theme. Not a write to disk. */
 export function setThemeText(next: string): boolean {
   const name = activeName();

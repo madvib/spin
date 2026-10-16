@@ -74,7 +74,9 @@ export const ROUTES = [
     label: "Style",
     icon: "i-lucide-layers",
     rail: "concern",
-    owns: [["radius"], ["shadow"], ["z-index"]],
+    owns: [["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
+      "focus",
+    ]],
   },
   {
     path: "/components",

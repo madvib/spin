@@ -35,6 +35,7 @@ import {
   canUndo,
   dockSide,
   isDirty,
+  lastRefusal,
   markSaved,
   redo,
   themeText,
@@ -339,6 +340,20 @@ export default function App() {
                 </div>
               </Show>
               <PreviewStyles />
+              <Show when={lastRefusal()}>
+                {(message) => (
+                  <div
+                    role="status"
+                    class="sticky top-0 z-10 shrink-0 border-b border-border bg-surface px-3 py-2 text-sm text-semantic-error"
+                  >
+                    <span
+                      class="i-lucide-shield-alert mr-2 inline-block align-middle"
+                      aria-hidden="true"
+                    />
+                    {message()}
+                  </div>
+                )}
+              </Show>
               <Suspense>{props.children}</Suspense>
             </div>
           </div>

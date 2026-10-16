@@ -24,40 +24,22 @@
 
 import { createMemo, For, Show } from "solid-js";
 import { analyzeTheme } from "../lib/theme.ts";
+import { defaultFaceFor } from "../lib/faces.ts";
+import { elementOverrides, overrideWrites } from "../lib/elements.ts";
 import { activeMode, themeText } from "../lib/store.ts";
 import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
-import { DISPLAY, HEADING, PARAGRAPH } from "../lib/specimen-copy.ts";
-import { editToken } from "../lib/editing.ts";
+import { DISPLAY, HEADING } from "../lib/specimen-copy.ts";
+import { editToken, upsertToken } from "../lib/editing.ts";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
 import { inDrawer } from "../app.tsx";
 
-/** The four family slots, and the sentence that shows each one off. */
-const FAMILY_SLOTS = [
-  {
-    slot: "heading",
-    role: "Headings, and anything that leads",
-    sample: DISPLAY,
-  },
-  {
-    slot: "body",
-    role: "Paragraphs, and UI copy",
-    sample: PARAGRAPH,
-  },
-  {
-    slot: "serif",
-    role: "Long-form editorial text",
-    sample: "The shop has cupped every Tuesday for eleven years.",
-  },
-  {
-    slot: "mono",
-    role: "Code, identifiers, tabular figures",
-    sample: "color.primary = #7c2d12",
-  },
-] as const;
-
+/** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
+function suffixOf(path: string): string {
+  return path.split(".").slice(2).join("-");
+}
 /** Which face each element claims. The assignment is the design decision. */
 const TAG_MAP = [
   {
@@ -114,9 +96,6 @@ const TAG_MAP = [
   { tag: "kbd", face: "mono", size: "sm", note: "a key the reader presses" },
 ] as const;
 
-/** The weights a user can set an element to, as the theme's scale names them. */
-const WEIGHTS = ["400", "500", "600", "700", "800"] as const;
-
 /** The scale, largest first, so it reads as a decision rather than a list. */
 const SCALE = ["3xl", "2xl", "xl", "lg", "md", "sm", "xs", "2xs"] as const;
 
@@ -154,6 +133,46 @@ function sizeOf(
   return sizes.find((row) => row.path === `font.size.${step}`);
 }
 
+/** The font-weight tokens the theme declares, so the controls edit real rows. */
+function weightRows(): TokenRow[] {
+  const tree = analyzeTheme(themeText()).tree;
+  if (tree === undefined) return [];
+  return groupTokens(tree, [["font", "weight"]], activeMode());
+}
+
+/** The letter-spacing tokens the theme declares, for the tracking family. */
+function trackingRows(): TokenRow[] {
+  const tree = analyzeTheme(themeText()).tree;
+  if (tree === undefined) return [];
+  return groupTokens(tree, [["font", "letter-spacing"]], activeMode());
+}
+
+/** The element overrides a theme has spelt. */
+function elementTokenRows(): TokenRow[] {
+  const tree = analyzeTheme(themeText()).tree;
+  if (tree === undefined) return [];
+  return groupTokens(tree, [["font", "element"]], activeMode());
+}
+
+/** The face names the theme actually declares. */
+function declaredFaces(): readonly string[] {
+  return familyRows().map((row) => row.path.split(".").pop()!);
+}
+
+/** Options for the face select — the theme's own families, else the usual ones. */
+function faceOptions(): readonly string[] {
+  const declared = declaredFaces();
+  return declared.length > 0 ? declared : (["sans", "serif", "mono"] as const);
+}
+
+/** Options for the weight select — the theme's declared scales. */
+function weightOptions(): readonly string[] {
+  const declared = weightRows().map((row) => row.path.split(".").pop()!);
+  return declared.length > 0
+    ? declared
+    : (["400", "500", "600", "700", "800"] as const);
+}
+
 export default function TypePage() {
   const sizes = createLockstep(scaleRows, "font.size");
   return (
@@ -170,15 +189,19 @@ export default function TypePage() {
       <section class="stack mt-8 px-8">
         <h2 class="text-xl">Faces</h2>
         <div class="flex flex-col gap-4">
-          <For each={FAMILY_SLOTS}>
+          <For each={declaredFaces()}>
             {(slot) => (
               <FamilyCard
-                slot={slot.slot}
-                role={slot.role}
-                sample={slot.sample}
+                slot={slot}
+                sample={DISPLAY}
               />
             )}
           </For>
+          <Show when={declaredFaces().length === 0}>
+            <p class="text-sm text-text-muted">
+              This theme declares no faces yet.
+            </p>
+          </Show>
         </div>
       </section>
 
@@ -198,8 +221,90 @@ export default function TypePage() {
         </div>
       </section>
 
+      <section class="stack mt-12 px-8">
+        <h2 class="text-xl">Weight</h2>
+        <p class="max-w-screen-md text-text-muted">
+          The weights a face can take, edited at their named step, so an element
+          can claim any of them and the specimens read the value.
+        </p>
+        <ul class="flow-list stack-sm">
+          <For each={weightRows()}>
+            {(row) => (
+              <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="row-sm flex-wrap">
+                  <span class={`text-2xl ${`font-${suffixOf(row.path)}`}`}>
+                    {HEADING}
+                  </span>
+                  <code class="text-xs text-text-muted">{row.path}</code>
+                </div>
+                <div class="row-sm flex-wrap shrink-0">
+                  <code class="text-xs whitespace-nowrap">
+                    {`font-${suffixOf(row.path)}`}
+                  </code>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => editToken(row.path.split("."), value)}
+                    group={weightRows().map((r) => r.value)}
+                    variable={row.variable}
+                    label={row.path}
+                  />
+                </div>
+              </li>
+            )}
+          </For>
+        </ul>
+        <Show when={weightRows().length === 0}>
+          <p class="text-sm text-text-muted">
+            This theme declares no weights yet.
+          </p>
+        </Show>
+      </section>
+
+      <section class="stack mt-12 px-8">
+        <h2 class="text-xl">Tracking</h2>
+        <p class="max-w-screen-md text-text-muted">
+          The letter spacing at each named step, on a line of text read at
+          display size, where the spacing is the judgement.
+        </p>
+        <ul class="flow-list stack-sm">
+          <For each={trackingRows()}>
+            {(row) => (
+              <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="row-sm flex-wrap">
+                  <span
+                    class="text-2xl"
+                    style={{ "letter-spacing": `var(${row.variable})` }}
+                  >
+                    {HEADING}
+                  </span>
+                  <code class="text-xs text-text-muted">{row.path}</code>
+                </div>
+                <div class="row-sm flex-wrap shrink-0">
+                  <code class="text-xs whitespace-nowrap">
+                    {`tracking-${suffixOf(row.path)}`}
+                  </code>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => editToken(row.path.split("."), value)}
+                    group={trackingRows().map((r) => r.value)}
+                    variable={row.variable}
+                    label={row.path}
+                  />
+                </div>
+              </li>
+            )}
+          </For>
+        </ul>
+        <Show when={trackingRows().length === 0}>
+          <p class="text-sm text-text-muted">
+            This theme declares no tracking yet.
+          </p>
+        </Show>
+      </section>
+
       <section class="stack mt-12 mb-16 px-8">
-        <h2 class="text-xl">Which face each element claims</h2>
         <p class="max-w-screen-md text-text-muted">
           {"Every element reads a face, and any of them can read a different one from its siblings. <h1> claiming the display face while <h2> and <h3> take the body face is a decision this table makes. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
         </p>
@@ -242,16 +347,14 @@ export default function TypePage() {
                     </td>
                     <td>
                       <select
-                        value={faceFor(entry.tag, entry.face)}
+                        value={faceFor(entry.tag) ?? ""}
                         onChange={(event) =>
                           setType(entry.tag, {
                             face: event.currentTarget.value,
                           })}
                       >
-                        <For each={FACES}>
-                          {(face) => (
-                            <option value={face.slot}>{face.slot}</option>
-                          )}
+                        <For each={faceOptions()}>
+                          {(face) => <option value={face}>{face}</option>}
                         </For>
                       </select>
                     </td>
@@ -277,15 +380,15 @@ export default function TypePage() {
                     </td>
                     <td>
                       <select
-                        value={weightFor(entry.tag) ?? (tagWeight(entry.tag)) ??
-                          ""}
+                        value={weightFor(entry.tag) ?? (tagWeight(entry.tag) ??
+                          "")}
                         onChange={(event) =>
                           setType(entry.tag, {
                             weight: event.currentTarget.value || undefined,
                           })}
                       >
                         <option value="">scale</option>
-                        <For each={WEIGHTS}>
+                        <For each={weightOptions()}>
                           {(weight) => <option value={weight}>{weight}</option>}
                         </For>
                       </select>
@@ -303,7 +406,7 @@ export default function TypePage() {
 }
 
 /** One family slot: the face drawn in itself, and the stack that names it. */
-function FamilyCard(props: { slot: string; role: string; sample: string }) {
+function FamilyCard(props: { slot: string; sample: string }) {
   const rows = createMemo(familyRows);
   const row = () => tokenFor(rows(), props.slot);
   return (
@@ -319,11 +422,8 @@ function FamilyCard(props: { slot: string; role: string; sample: string }) {
         <code class="text-text-muted text-sm">
           {`font.family.${props.slot}`}
         </code>
-        <span class="text-text-muted text-sm">{props.role}</span>
       </div>
-      <p class={`font-${props.slot} text-2xl leading-tight`}>
-        {props.sample}
-      </p>
+      <p class={`font-${props.slot} text-2xl leading-tight`}>{props.sample}</p>
       {
         /* The stack is output. Under it, the decision: which family this slot
            spends, chosen from the catalogue rather than typed as a comma
@@ -375,19 +475,11 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
   );
 }
 
-/** The faces a theme can assign, and the sentence that shows each off. */
-const FACES = [
-  { slot: "heading" },
-  { slot: "body" },
-  { slot: "serif" },
-  { slot: "mono" },
-] as const;
-
 /** The face an element claims: its own token if set, else its default. */
-function faceFor(tag: string, fallback: string): string {
-  const rows = familyRows();
-  const own = rows.find((row) => row.path === `font.element.${tag}`);
-  return own?.value ?? fallback;
+function faceFor(tag: string): string {
+  const own = elementOverrides(elementTokenRows(), tag).face;
+  if (own) return own;
+  return defaultFaceFor(tag, declaredFaces());
 }
 
 /** What one element may override about its type. Mirrors the preset's own. */
@@ -395,8 +487,6 @@ interface ElementType {
   face?: string;
   size?: string;
   weight?: string;
-  lineHeight?: string;
-  tracking?: string;
 }
 
 /** The size an element claims for itself, as the theme stores it. */
@@ -411,33 +501,26 @@ function weightFor(tag: string): string | undefined {
 
 /** The whole override one element carries, whatever shape it was written in. */
 function elementTypeFor(tag: string): ElementType {
-  const rows = familyRows();
-  const own = rows.find((row) => row.path === `font.element.${tag}`);
-  if (own === undefined) return {};
-  try {
-    const parsed = JSON.parse(own.value) as ElementType & { face: string };
-    return parsed;
-  } catch {
-    // The earlier shape: a bare slot name.
-    return { face: own.value };
-  }
+  return elementOverrides(elementTokenRows(), tag);
 }
 
 /**
  * Write one element's override.
  *
- * `font.element.<tag>` holds the whole thing, so a face change keeps the
- * size the user already set — a write per property would drop the others.
+ * `font.element.<tag>` holds the leaves per property, so a face change keeps
+ * the size the user already set — a write per property would drop the others.
+ * A leaf the element has never specified gets minted along the way, and the
+ * group keeps what it had when this field is left unset.
  */
 function setType(tag: string, change: Partial<ElementType>): void {
-  const next: ElementType = { ...elementTypeFor(tag), ...change };
-  const own = familyRows().find((row) => row.path === `font.element.${tag}`);
-  const fields: Record<string, string> = {};
-  if (next.face !== undefined) fields.face = next.face;
-  if (next.size !== undefined) fields.size = next.size;
-  if (next.weight !== undefined) fields.weight = String(next.weight);
-  editToken(["font", "element", tag], JSON.stringify(fields));
-  void own;
+  const existing = elementTokenRows();
+  for (const write of overrideWrites(existing, tag, change)) {
+    if (write.exists) {
+      editToken([...write.path], write.value);
+    } else {
+      upsertToken([...write.path], write.type, write.value);
+    }
+  }
 }
 
 /** The scale weight a heading level states, for the field's placeholder. */
@@ -485,15 +568,27 @@ const WEIGHT_VAR: Record<string, string> = {
 function previewStyle(tag: string): Record<string, string> {
   const own = elementTypeFor(tag);
   const style: Record<string, string> = {};
-  const size = own.size ?? SIZE_VAR[tagSize(tag) ?? ""] ?? SIZE_VAR.lg;
+  let size = SIZE_VAR[tagSize(tag) ?? ""] ?? SIZE_VAR.lg;
+  if (own.size !== undefined) size = SIZE_VAR[own.size] ?? own.size;
   style["font-size"] = size.startsWith("--") ? `var(${size})` : size;
-  const weight = own.weight ?? WEIGHT_VAR[tagWeight(tag) ?? ""] ?? "";
-  if (weight !== "") style["font-weight"] = `var(${weight})`;
+  const ownWeight = own.weight;
+  let weightDecl = "";
+  if (ownWeight !== undefined) {
+    weightDecl = /^\d+$/.test(ownWeight)
+      ? ownWeight
+      : `var(--font-weight-${ownWeight})`;
+  } else {
+    const w = WEIGHT_VAR[tagWeight(tag) ?? ""] ?? "";
+    if (w !== "") weightDecl = `var(${w})`;
+  }
+  if (weightDecl !== "") {
+    style["font-weight"] = weightDecl;
+  }
   return style;
 }
 
 /** The class that renders the preview in the face its row names. */
 function previewClass(tag: string): string {
-  const slot = faceFor(tag, tag.startsWith("h") ? "heading" : "body");
+  const slot = faceFor(tag);
   return `font-${slot.replace(/[^a-z]/g, "")}`;
 }

@@ -9,6 +9,7 @@ import type { TokenRow } from "../lib/tokens";
 import { activeMode, themeText } from "../lib/store";
 import { editToken } from "../lib/editing";
 import { createLockstep, type Lockstep } from "../lib/lockstep";
+import { borderUtilityOf } from "../lib/tokens";
 
 /**
  * Style — the values that shape a surface: its corners, its lift, its stack.
@@ -44,7 +45,9 @@ export default function StylePage() {
   const radii = createLockstep(() => group([["radius"]]), "radius");
   const shadows = createMemo(() => group([["shadow"]]));
   const layers = createMemo(() => group([["z-index"]]));
-
+  const opacities = createMemo(() => group([["opacity"]]));
+  const borders = createMemo(() => group([["border"]]));
+  const focuses = createMemo(() => group([["focus"]]));
   const edit = (row: TokenRow, value: string) =>
     editToken(row.path.split("."), value);
 
@@ -109,6 +112,64 @@ export default function StylePage() {
           </ul>
         </Show>
       </section>
+
+      <Family
+        title="Opacity"
+        note="How much of a thing is shown, from invisible to fully there. The specimen spends the token's own value; the step a theme edits is the step everything else reads."
+        rows={opacities()}
+        prefix="opacity"
+        utilityOf={(row) => `opacity-${suffixOf(row.path)}`}
+        onEdit={edit}
+      >
+        {(row) => <OpacitySpecimen row={row} />}
+      </Family>
+
+      <Family
+        title="Border"
+        note="The edge a control and surface draw with, as a width. The specimen is the edge, and the page spends the token's own thickness on it."
+        rows={borders()}
+        prefix="border"
+        utilityOf={(row) => borderUtilityOf(row.path)}
+        onEdit={edit}
+      >
+        {(row) => <BorderSpecimen row={row} />}
+      </Family>
+
+      <section class="stack-sm" aria-label="Focus">
+        <h2 class="text-xl">Focus</h2>
+        <p class="text-sm text-text-muted">
+          The ring that marks the interactive element, shared by every control:
+          its thickness and the gap between it and its control. Each carries its
+          own custom property, so the ring is the value.
+        </p>
+        <Show when={focuses().length > 0} fallback={<Empty />}>
+          <ul class="flow-list stack-sm">
+            <For each={focuses()}>
+              {(row) => (
+                <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="row-sm flex-wrap">
+                    <FocusSpecimen row={row} />
+                    <code class="text-xs text-text-muted">{row.path}</code>
+                  </div>
+                  <div class="row-sm flex-wrap shrink-0">
+                    <code class="text-xs whitespace-nowrap">
+                      {row.path.split(".").pop()}
+                    </code>
+                    <ValueInput
+                      value={row.value}
+                      type={row.type}
+                      onCommit={(value) => edit(row, value)}
+                      group={focuses().map((r) => r.value)}
+                      variable={row.variable}
+                      label={row.path}
+                    />
+                  </div>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </section>
     </Page>
   );
 }
@@ -125,6 +186,8 @@ function Family(props: {
   /** The utility prefix this family spends, so the label matches the specimen. */
   prefix: string;
   onEdit: (row: TokenRow, value: string) => boolean;
+  /** Maps a row to the utility name an author writes, when it is not the prefix. */
+  utilityOf?: (row: TokenRow) => string;
   /**
    * Present only for a family whose values are a scale: rows move in
    * lockstep while linked, and the family takes the drag's preview itself.
@@ -153,7 +216,9 @@ function Family(props: {
                 </div>
                 <div class="row-sm flex-wrap shrink-0">
                   <code class="text-xs whitespace-nowrap">
-                    {`${props.prefix}-${suffixOf(row.path)}`}
+                    {props.utilityOf === undefined
+                      ? `${props.prefix}-${suffixOf(row.path)}`
+                      : props.utilityOf(row)}
                   </code>
                   <ValueInput
                     value={row.value}
@@ -177,7 +242,53 @@ function Family(props: {
   );
 }
 
-/** A box whose corners are the radius under edit. */
+/** A surface read at the opacity the token carries. */
+function OpacitySpecimen(props: { row: TokenRow }) {
+  return (
+    <div class="spin-preview shrink-0">
+      <div
+        class="h-10 w-10 rounded-md border border-border bg-primary"
+        style={{ opacity: `var(${props.row.variable})` }}
+      />
+    </div>
+  );
+}
+
+/** A box drawn at the border width the token carries. */
+function BorderSpecimen(props: { row: TokenRow }) {
+  return (
+    <div class="spin-preview shrink-0">
+      <div
+        class="h-10 w-16 rounded-md bg-surface-raised text-text"
+        style={{
+          "border-width": `var(${props.row.variable})`,
+          "border-style": "solid",
+          "border-color": "var(--color-border)",
+        }}
+      />
+    </div>
+  );
+}
+
+/** A focus ring at the width and offset the token carries. */
+function FocusSpecimen(props: { row: TokenRow }) {
+  // The element has its own width and offset; pair them on the same ring so
+  // the two steps read as one ring being adjusted.
+  return (
+    <div class="spin-preview shrink-0">
+      <button
+        type="button"
+        class="rounded-md border border-border bg-surface-raised px-2 py-1 text-xs text-text"
+        style={{
+          outline: `var(${props.row.variable}) solid var(--color-focus-ring)`,
+          "outline-offset": "var(--focus-offset)",
+        }}
+      >
+        focus
+      </button>
+    </div>
+  );
+}
 function RadiusSpecimen(props: { row: TokenRow }) {
   return (
     <div class="spin-preview shrink-0">

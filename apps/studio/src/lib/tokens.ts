@@ -27,6 +27,17 @@ export function toPx(value: string): number | undefined {
   return undefined;
 }
 
+/**
+ * The border utility whose value the token carries. `border.width` is the
+ * bare hairline; `border.width-N` is the step. Anything else does not usefully
+ * name a border utility at all, and fails the oracle rather than guessing.
+ */
+export function borderUtilityOf(path: string | { path: string }): string {
+  const p = typeof path === "string" ? path : path.path;
+  const leaf = p.split(".").pop() ?? "";
+  return leaf === "width" ? "border" : `border-${leaf.replace(/^width-/, "")}`;
+}
+
 export function groupTokens(
   tree: TokenTree,
   prefixes: string[][],

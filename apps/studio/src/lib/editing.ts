@@ -1,5 +1,5 @@
 import { applyEdits, createToken as insertToken } from "./theme";
-import { activeMode, setThemeText, themeText } from "./store";
+import { activeMode, noteRefusal, setThemeText, themeText } from "./store";
 
 /** One edit, as the controls spell it: a DTCG path and the value to write. */
 export interface TokenEdit {
@@ -27,7 +27,8 @@ export function editTokens(
   const next = (() => {
     try {
       return applyEdits(themeText(), edits, slot);
-    } catch {
+    } catch (err) {
+      noteRefusal(err instanceof Error ? err.message : String(err));
       return undefined;
     }
   })();
@@ -71,9 +72,43 @@ export function createToken(
   let next: string;
   try {
     next = insertToken(before, path, type, value);
-  } catch {
+  } catch (err) {
+    noteRefusal(err instanceof Error ? err.message : String(err));
     return false;
   }
   setThemeText(next);
   return themeText() !== before;
+}
+
+/**
+ * Create the token, or edit it if it already exists.
+ *
+ * The compact form a mint-on-choice needs: the element table writes leaves
+ * by setting a field, without knowing whether the theme has ever carried
+ * that element before. A straight edit fails on a missing path, which is the
+ * expected and silent word; a straight create fails on an existing path,
+ * also expected. Doing one then the other lands exactly one edit or a
+ * legibility refusal, never both, and never a clobber.
+ */
+export function upsertToken(
+  path: string[],
+  type: string,
+  value: string,
+  mode?: "base" | "dark",
+): boolean {
+  const before = themeText();
+  if (pathExists(before, path)) {
+    if (editToken(path, value, mode)) return true;
+    return false;
+  }
+  return createToken(path, type, value);
+}
+
+function pathExists(text: string, path: readonly string[]): boolean {
+  let node: unknown = JSON.parse(text);
+  for (const segment of path) {
+    if (typeof node !== "object" || node === null) return false;
+    node = (node as Record<string, unknown>)[segment];
+  }
+  return node !== undefined;
 }
