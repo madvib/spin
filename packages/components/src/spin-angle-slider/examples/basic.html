@@ -2,7 +2,7 @@
 
 <div class="flex w-full max-w-xs flex-col items-center gap-4" {...angleSlider.getRootProps()}>
   <div
-    class="relative h-40 w-40 touch-none rounded-full border border-solid border-border bg-surface-raised select-none"
+    class="relative h-60 w-60 touch-none rounded-full border border-solid border-border bg-surface-raised select-none"
     {...angleSlider.getControlProps()}
   >
     <div class="pointer-events-none absolute inset-0" {...angleSlider.getMarkerGroupProps()}>
@@ -14,7 +14,7 @@
       </template>
     </div>
     <span
-      class="absolute h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
+      class="absolute h-7 w-7 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
       {...angleSlider.getThumbProps()}
     ></span>
   </div>

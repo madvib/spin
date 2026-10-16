@@ -2,32 +2,22 @@
 
 <div class="flex w-full max-w-xs flex-col items-center gap-4" {...angleSlider.getRootProps()}>
   <div
-    class="relative h-40 w-40 touch-none rounded-full border border-solid border-border bg-surface-raised select-none"
+    class="relative h-60 w-60 touch-none rounded-full border border-solid border-border bg-surface-raised select-none"
     {...angleSlider.getControlProps()}
   >
     <div class="pointer-events-none absolute inset-0" {...angleSlider.getMarkerGroupProps()}>
       <template for={angleSlider.getMarkers()} as={row} key={row}>
         <span
-          class="absolute h-4 w-[2px] -translate-x-1/2 bg-border-strong data-[state=at-value]:bg-primary"
+          class="absolute h-5 w-[3px] -translate-x-1/2 bg-border-strong data-[state=under-value]:bg-semantic-success data-[state=at-value]:bg-primary data-[state=at-value]:bg-primary"
           {...angleSlider.getMarkerProps({ value: row })}
         ></span>
       </template>
     </div>
-    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 50.0%; top: 20.0%;">0°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 71.2%; top: 28.8%;">45°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 80.0%; top: 50.0%;">90°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 71.2%; top: 71.2%;">135°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 50.0%; top: 80.0%;">180°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 28.8%; top: 71.2%;">225°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 20.0%; top: 50.0%;">270°</span>
-      <span class="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[0.65rem] text-muted" style="left: 28.8%; top: 28.8%;">315°</span>
-    </div>
     <span
-      class="absolute h-5 w-5 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
+      class="absolute h-7 w-7 rounded-full border-2 border-solid border-primary bg-surface shadow-sm data-[disabled]:opacity-50"
       {...angleSlider.getThumbProps()}
     ></span>
   </div>
-  <span class="text-4xl font-bold tabular-nums text-text" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>{angleSlider.valueAsDegree}</span>
+  <span class="rounded-md border border-solid border-border bg-surface-sunken px-2 py-0.5 font-mono text-sm tabular-nums text-text" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>{angleSlider.valueAsDegree}</span>
   <input {...angleSlider.getHiddenInputProps()} />
 </div>
