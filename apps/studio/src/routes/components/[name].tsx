@@ -356,7 +356,7 @@ export default function ComponentPage() {
               {component.examples?.note ?? ""}
             </p>
 
-            <details class="group mb-6 rounded-md border border-border bg-surface-raised p-3" open>
+            <details class="group mb-6 rounded-md border border-border bg-surface-raised p-3">
               <summary class="cursor-pointer text-sm font-semibold">
                 Character tokens ({character().length}) — what this component declares as its own character
               </summary>

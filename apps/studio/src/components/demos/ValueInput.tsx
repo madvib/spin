@@ -182,7 +182,7 @@ function RangeControl(props: {
           max={range().max}
           step={range().step}
           value={current()?.n ?? range().min}
-          class="min-w-24 flex-1"
+          class="min-w-16 max-w-32 flex-1"
           onInput={(event) => {
             const next = quantize(
               props.value,
