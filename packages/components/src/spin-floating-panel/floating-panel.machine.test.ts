@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createFloatingPanelBridge } from "./floating-panel.bridge.ts";
-import type { FloatingPanelApi } from "./floating-panel.connect.ts";
+import { floatingPanel } from "./floating-panel.def.ts";
+const createFloatingPanelBridge = floatingPanel.createBridge;
+import type { FloatingPanelApi } from "./floating-panel.def.ts";
 import type { FloatingPanelSize } from "./floating-panel.machine.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
