@@ -356,26 +356,10 @@ export default function ComponentPage() {
               {component.examples?.note ?? ""}
             </p>
 
-            <For each={rows()}>
-              {(row) => (
-                <ExampleSection
-                  row={row}
-                  onLoad={component.examples?.onLoad}
-                />
-              )}
-            </For>
-
-            {
-              /* The character axis, editable where it is spent: a token the
-                theme holds edits here with its own control; a token it does
-                not holds its manifest scaffold and offers to land it. */
-            }
-            <Show when={character().length > 0}>
-              <h2 class="mt-6 text-xl">Character tokens</h2>
-              <p class="mt-1 max-w-screen-md text-sm text-text-muted">
-                What this component declares as its own character — edited here,
-                and created here when the theme has never had to spell it.
-              </p>
+            <details class="group mb-6 rounded-md border border-border bg-surface-raised p-3" open>
+              <summary class="cursor-pointer text-sm font-semibold">
+                Character tokens ({character().length}) — what this component declares as its own character
+              </summary>
               <div class="mt-3 stack-sm">
                 <For each={character()}>
                   {(entry) =>
@@ -415,8 +399,23 @@ export default function ComponentPage() {
                         </card>
                       )}
                 </For>
+              
               </div>
-            </Show>
+            </details>
+            <For each={rows()}>
+              {(row) => (
+                <ExampleSection
+                  row={row}
+                  onLoad={component.examples?.onLoad}
+                />
+              )}
+            </For>
+
+            {
+              /* The character axis, editable where it is spent: a token the
+                theme holds edits here with its own control; a token it does
+                not holds its manifest scaffold and offers to land it. */
+            }
 
             {
               /* Tokens this component reads, as paths. A path is the thing the
