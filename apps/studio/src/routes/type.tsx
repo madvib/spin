@@ -196,92 +196,100 @@ export default function TypePage() {
         <p class="max-w-screen-md text-text-muted">
           {"Every element reads a face, and any of them can read a different one from its siblings. <h1> claiming the display face while <h2> and <h3> take the body face is a decision this table makes. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
         </p>
-        <table>
-          <thead>
-            <tr>
-              <th>Element</th>
-              <th>Set at</th>
-              <th>Face</th>
-              <th>Size</th>
-              <th>Weight</th>
-              <th>Why</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={TAG_MAP}>
-              {(entry) => (
-                <tr>
-                  <td>
-                    <code>{`<${entry.tag}>`}</code>
-                  </td>
-                  {
-                    /* The preview is the row's own specimen: the element, empty,
+        {
+          /* Six columns and a face specimen in each: wider than the drawer's
+            floor, so the table scrolls inside its own rail rather than
+            widening a frame the reader cannot widen. */
+        }
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Element</th>
+                <th>Set at</th>
+                <th>Face</th>
+                <th>Size</th>
+                <th>Weight</th>
+                <th>Why</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={TAG_MAP}>
+                {(entry) => (
+                  <tr>
+                    <td>
+                      <code>{`<${entry.tag}>`}</code>
+                    </td>
+                    {
+                      /* The preview is the row's own specimen: the element, empty,
                       so it takes whatever this row decides and nothing from the
                       copy beside it. */
-                  }
-                  <td>
-                    <span
-                      class={previewClass(entry.tag)}
-                      style={previewStyle(entry.tag)}
-                    >
-                      {entry.tag === "p" ? "Aa Bb Cc" : "Aa"}
-                    </span>
-                  </td>
-                  <td>
-                    <select
-                      value={faceFor(entry.tag, entry.face)}
-                      onChange={(event) =>
-                        setType(entry.tag, {
-                          face: event.currentTarget.value,
-                        })}
-                    >
-                      <For each={FACES}>
-                        {(face) => (
-                          <option value={face.slot}>{face.slot}</option>
-                        )}
-                      </For>
-                    </select>
-                  </td>
-                  {
-                    /* Size and weight are per-element, so they are overrides
+                    }
+                    <td>
+                      <span
+                        class={previewClass(entry.tag)}
+                        style={previewStyle(entry.tag)}
+                      >
+                        {entry.tag === "p" ? "Aa Bb Cc" : "Aa"}
+                      </span>
+                    </td>
+                    <td>
+                      <select
+                        value={faceFor(entry.tag, entry.face)}
+                        onChange={(event) =>
+                          setType(entry.tag, {
+                            face: event.currentTarget.value,
+                          })}
+                      >
+                        <For each={FACES}>
+                          {(face) => (
+                            <option value={face.slot}>{face.slot}</option>
+                          )}
+                        </For>
+                      </select>
+                    </td>
+                    {
+                      /* Size and weight are per-element, so they are overrides
                       rather than tokens: minting a token for one element's size
                       would be a theme file per heading. They land in the same
                       `font.element.<tag>` group the face already uses. */
-                  }
-                  <td>
-                    <select
-                      value={sizeFor(entry.tag) ?? ""}
-                      onChange={(event) => setType(entry.tag, {
-                        size: event.currentTarget.value || undefined,
-                      })}
-                    >
-                      <option value="">scale</option>
-                      <For each={SIZE_STEPS}>
-                        {(step) => <option value={step}>{step}</option>}
-                      </For>
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      value={weightFor(entry.tag) ?? (tagWeight(entry.tag)) ??
-                        ""}
-                      onChange={(event) =>
-                        setType(entry.tag, {
-                          weight: event.currentTarget.value || undefined,
-                        })}
-                    >
-                      <option value="">scale</option>
-                      <For each={WEIGHTS}>
-                        {(weight) => <option value={weight}>{weight}</option>}
-                      </For>
-                    </select>
-                  </td>
-                  <td class="text-text-muted">{entry.note}</td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
+                    }
+                    <td>
+                      <select
+                        value={sizeFor(entry.tag) ?? ""}
+                        onChange={(event) =>
+                          setType(entry.tag, {
+                            size: event.currentTarget.value || undefined,
+                          })}
+                      >
+                        <option value="">scale</option>
+                        <For each={SIZE_STEPS}>
+                          {(step) => <option value={step}>{step}</option>}
+                        </For>
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={weightFor(entry.tag) ?? (tagWeight(entry.tag)) ??
+                          ""}
+                        onChange={(event) =>
+                          setType(entry.tag, {
+                            weight: event.currentTarget.value || undefined,
+                          })}
+                      >
+                        <option value="">scale</option>
+                        <For each={WEIGHTS}>
+                          {(weight) => <option value={weight}>{weight}</option>}
+                        </For>
+                      </select>
+                    </td>
+                    <td class="text-text-muted">{entry.note}</td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

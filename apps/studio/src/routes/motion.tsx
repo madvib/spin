@@ -48,9 +48,7 @@ function RaceStage(props: {
     setPhase("reset");
     // Two frames: the reset has to paint before the run starts, or the
     // browser coalesces them and nothing transitions.
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => setPhase("run"))
-    );
+    requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
   };
 
   // A bar's width at rest is its share of the longest duration, so the scale
@@ -75,10 +73,12 @@ function RaceStage(props: {
           <For each={props.lanes}>
             {(lane) => (
               <li class="stack-xs">
-                <div class="row-sm justify-between gap-3">
+                <div class="row-sm flex-wrap justify-between gap-3">
                   <code class="text-xs text-text-muted">{lane.path}</code>
                   <div class="row-sm shrink-0">
-                    <code class="text-xs whitespace-nowrap">{lane.utility}</code>
+                    <code class="text-xs whitespace-nowrap">
+                      {lane.utility}
+                    </code>
                     <ValueInput
                       value={lane.value}
                       type={lane.type}
@@ -86,8 +86,10 @@ function RaceStage(props: {
                     />
                   </div>
                 </div>
-                {/* The lane's own utility on the bar, so the specimen is the
-                    token and not a stand-in for it. */}
+                {
+                  /* The lane's own utility on the bar, so the specimen is the
+                    token and not a stand-in for it. */
+                }
                 <div
                   class="spin-preview h-5 overflow-hidden rounded-sm bg-surface-sunken"
                   aria-hidden="true"
@@ -137,7 +139,9 @@ function EasingChart(props: { lanes: Lane[] }) {
                 const [x1, y1, x2, y2] = points();
                 return (
                   <path
-                    d={`M ${at(0, 0)} C ${at(x1, y1)} ${at(x2, y2)} ${at(1, 1)}`}
+                    d={`M ${at(0, 0)} C ${at(x1, y1)} ${at(x2, y2)} ${
+                      at(1, 1)
+                    }`}
                     // The preset ships no stroke- utility, so the curve takes
                     // the theme's own ink custom property.
                     style={{ stroke: "var(--color-text)" }}

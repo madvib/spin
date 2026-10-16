@@ -87,6 +87,20 @@ class Page {
     await this.settle(400);
   }
 
+  /**
+   * The frame the drawer gets from its host: 38% of the window with a floor,
+   * so the pages are laid out for the narrow edge rather than for a squeezed
+   * desktop.
+   */
+  async fitDrawer(width: number, height: number): Promise<void> {
+    await this.#session.command("Emulation.setDeviceMetricsOverride", {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+  }
+
   /** Read from computed style, not from the token: the claim is about the page. */
   async cssVar(name: string): Promise<string | null> {
     return await this.eval<string | null>(
@@ -153,6 +167,15 @@ class Page {
       20_000,
     );
     await this.settle(400);
+  }
+
+  /** Swap a component's specimen for the markup that produced it. */
+  async toggleCode(): Promise<string> {
+    const clicked = await this.eval<string>(
+      `(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent.trim() === "Code"); if (!b) return "absent"; b.click(); return "shown"; })()`,
+    );
+    await this.settle(400);
+    return clicked;
   }
 
   /** WCAG thresholds: 4.5 for body text, 3 for the large and the bold. */
@@ -329,6 +352,96 @@ async function checkLegibility(
   }
 }
 
+/**
+ * The code view, in both modes.
+ *
+ * The legibility sweep walks the specimens; the markup panel is behind a
+ * toggle and is never on screen during that walk. Its four inks are theme
+ * tokens like any other and they fail the same way.
+ */
+async function checkCodeViewLegible(
+  socket: CdpSocket,
+  studio: string,
+  results: Verdict[],
+): Promise<void> {
+  for (const mode of ["Light", "Dark"] as const) {
+    const tab = await openTab(socket);
+    try {
+      await tab.page.goto(`${studio}/`);
+      const pressed = await tab.page.press(mode);
+      await tab.page.followRail("/components");
+      await tab.page.followRail("/components/button");
+      const shown = await tab.page.toggleCode();
+      const fails = shown === "shown" ? await tab.page.contrastFailures() : [];
+      verdict(
+        results,
+        `code view legible in ${mode.toLowerCase()} mode`,
+        pressed === "pressed" && shown === "shown" && fails.length === 0,
+        fails.length === 0
+          ? "button's markup panel readable"
+          : `${fails.length} failing — ${
+            fails.slice(0, 2).map((f) => `${f.ratio} (need ${f.need}) ${f.cls}`)
+              .join("  |  ")
+          }`,
+      );
+    } finally {
+      await tab.close().catch(() => {});
+    }
+  }
+}
+
+/**
+ * Every route at the drawer's floor.
+ *
+ * The drawer is 38% of the host with a 480px floor, and the pages lay out for
+ * it rather than being squeezed into it. A page that still needs more width
+ * than the drawer gives scrolls sideways inside a frame the reader cannot
+ * widen, so the fit is a gate and not a preference.
+ */
+async function checkDrawerFits(
+  socket: CdpSocket,
+  studio: string,
+  results: Verdict[],
+): Promise<void> {
+  const scout = await openTab(socket);
+  let routes: string[];
+  try {
+    routes = await routeTargets(scout.page, studio);
+  } finally {
+    await scout.close().catch(() => {});
+  }
+  const broken: string[] = [];
+  for (const route of routes) {
+    const tab = await openTab(socket);
+    try {
+      await tab.page.fitDrawer(480, 900);
+      const heading = await tab.page.goto(`${studio}${route}?mode=drawer`);
+      const probe = await tab.page.eval<{
+        scroll: number;
+        client: number;
+        text: number;
+      }>(
+        `(() => { const d = document.documentElement; return { scroll: d.scrollWidth, client: d.clientWidth, text: (document.getElementById("app")?.innerText ?? "").trim().length }; })()`,
+      );
+      if (heading === undefined || heading.trim() === "" || probe.text <= 50) {
+        broken.push(`${route} did not render`);
+      } else if (probe.scroll > probe.client + 1) {
+        broken.push(`${route} ${probe.scroll} wide in ${probe.client}`);
+      }
+    } finally {
+      await tab.close().catch(() => {});
+    }
+  }
+  verdict(
+    results,
+    "every route fits the drawer",
+    broken.length === 0,
+    broken.length === 0
+      ? `${routes.length} routes fit at the 480px floor`
+      : `${broken.length} failing — ${broken.slice(0, 3).join("  |  ")}`,
+  );
+}
+
 async function checkRegistrySeats(
   page: Page,
   studio: string,
@@ -440,6 +553,8 @@ async function main(argv: readonly string[]): Promise<number> {
     try {
       await checkRoutes(launched.socket, studio, results);
       await checkLegibility(launched.socket, studio, results);
+      await checkCodeViewLegible(launched.socket, studio, results);
+      await checkDrawerFits(launched.socket, studio, results);
       await checkRegistrySeats(driver.page, studio, results);
       await checkEditRethemesApp(
         driver.page,

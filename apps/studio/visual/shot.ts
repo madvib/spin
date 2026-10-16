@@ -35,6 +35,15 @@ const routes = [
   ]),
 ];
 
+/**
+ * What each route photographs as. `/` is `overview`; a child keeps its
+ * subject, so `/components/:name` becomes `components-alert.png`.
+ */
+const shotName = (route: string): string =>
+  route === "/" ? "overview" : route.slice(1).replace(/[:/]/g, "-");
+
+const names = routes.map(shotName);
+
 for (const route of routes) {
   const url = `${ORIGIN}${route}`;
   // A page per shot: a reused tab exhausts what the browser will open, and
@@ -50,13 +59,19 @@ for (const route of routes) {
   page.on("pageerror", (error) => console.log(`pageerror: ${error}`));
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(800);
-  // `/` photographs as `overview`; a child keeps its subject, so
-  // `/components/:name` becomes `components-a11y.png`.
-  const name = route === "/"
-    ? "overview"
-    : route.slice(1).replace(/[:/]/g, "-");
-  await page.screenshot({ path: join(SHOTS, `${name}.png`) });
-  console.log(`shot: ${name}`);
+  await page.screenshot({ path: join(SHOTS, `${shotName(route)}.png`) });
+  console.log(`shot: ${shotName(route)}`);
   await page.close();
+}
+
+/**
+ * A shot for a route that no longer exists is a picture of a page nobody can
+ * reach, and it stays in the tree forever because nothing else touches it.
+ */
+for (const entry of Deno.readDirSync(SHOTS)) {
+  if (!entry.isFile || !entry.name.endsWith(".png")) continue;
+  if (names.includes(entry.name.replace(/\.png$/, ""))) continue;
+  await Deno.remove(join(SHOTS, entry.name));
+  console.log(`stale: ${entry.name}`);
 }
 await browser.close();
