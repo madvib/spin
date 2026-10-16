@@ -1,5 +1,5 @@
-import { formatExampleHtml, tokenizeHtml } from "./code-view.ts";
-import type { CodeTokenType } from "./code-view.ts";
+import { formatExampleHtml, tokenizeHtml } from "@spin/runtime";
+import type { CodeTokenType } from "@spin/runtime";
 import {
   createEffect,
   createMemo,

@@ -1,4 +1,4 @@
-import { scanRun } from "./scan.ts";
+import { matchBrace, skipQuoted } from "./braces.ts";
 
 /**
  * One token of example markup, as the code viewer reads it.
@@ -24,6 +24,24 @@ export interface CodeToken {
 
 const WHITESPACE = /\s/;
 const NAME_STOP = /[\s=/>]/;
+
+/**
+ * One balanced run from `i`: a quoted string or a brace block. Braces
+ * match through the syntax owner's reader, so the viewer and the
+ * compiler agree on where `{...}` ends; quotes are terminals the
+ * compiler never nests.
+ */
+function scanRun(html: string, i: number): number {
+  const open = html[i];
+  if (open === '"' || open === "'" || open === "`") {
+    return skipQuoted(html, i, html.length);
+  }
+  if (open === "{") {
+    const close = matchBrace(html, i, html.length);
+    return close >= html.length ? html.length : close + 1;
+  }
+  return i;
+}
 
 /**
  * Example HTML, tokenized: tags, attribute names, string values, comments and

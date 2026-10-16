@@ -17,7 +17,7 @@ export function matchBrace(source: string, start: number, end: number): number {
   return end;
 }
 
-function skipQuoted(source: string, i: number, end: number): number {
+export function skipQuoted(source: string, i: number, end: number): number {
   const q = source[i]!;
   let j = i + 1;
   while (j < end) {

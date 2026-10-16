@@ -133,6 +133,7 @@ export { bindFor, type BindForOptions, type RenderedItem } from "./directives/fo
 export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
 export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
 export { parse, parseScope, coerceProps } from "./directives/parse.ts";
+export { formatExampleHtml, tokenizeHtml, type CodeToken, type CodeTokenType } from "./directives/display.ts";
 export { expandVariantGroups } from "./directives/expand-groups.ts";
 export type {
   ActionUse,

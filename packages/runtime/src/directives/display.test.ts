@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import { formatExampleHtml, tokenizeHtml } from "./code-view.ts";
+import { formatExampleHtml, tokenizeHtml } from "./display.ts";
 
 /** The viewer shows formatted source with each token wearing its kind.
  * These pin the displayed output for the shapes that broke it: spreads,
