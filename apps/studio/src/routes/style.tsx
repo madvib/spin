@@ -54,7 +54,7 @@ export default function StylePage() {
   return (
     <Page
       title="Style"
-      note="The values that shape a surface. Each row spends its own utility on a real specimen and edits in place, so the thing you are changing is the thing you are looking at."
+      note="The values that shape a surface: radius, opacity, border width, elevation, focus, and stacking order. Each row spends the token on a real specimen, so the value being edited is never text alone."
     >
       <Family
         title="Radius"
