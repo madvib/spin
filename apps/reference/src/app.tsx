@@ -293,6 +293,7 @@ type CodeTokenType =
   | "string"
   | "comment"
   | "punct"
+  | "expr"
   | "text";
 
 interface CodeToken {
@@ -314,13 +315,43 @@ function tokenizeHtml(html: string): CodeToken[] {
     if (value !== "") out.push({ type, value });
   };
   let i = 0;
+  // Inline expressions read as code wherever they sit: `{row.label}`
+  // between tags is not prose. Runs first so the tag scan below only
+  // ever sees markup.
+  const pushTextRuns = (from: number, to: number): void => {
+    let j = from;
+    while (j < to) {
+      const open = html.indexOf("{", j);
+      if (open === -1 || open >= to) {
+        push("text", html.slice(j, to));
+        return;
+      }
+      if (open > j) push("text", html.slice(j, open));
+      let depth = 0;
+      let stop = open;
+      while (stop < html.length) {
+        if (html[stop] === "{") depth += 1;
+        if (html[stop] === "}") {
+          depth -= 1;
+          if (depth === 0) {
+            stop += 1;
+            break;
+          }
+        }
+        stop += 1;
+      }
+      push("expr", html.slice(open, Math.min(stop, to)));
+      j = Math.min(stop, to);
+      if (stop >= to) return;
+    }
+  };
   while (i < html.length) {
     const lt = html.indexOf("<", i);
     if (lt === -1) {
-      push("text", html.slice(i));
+      pushTextRuns(i, html.length);
       break;
     }
-    if (lt > i) push("text", html.slice(i, lt));
+    if (lt > i) pushTextRuns(i, lt);
     // A comment runs to its close, or to the end of the document.
     if (html.startsWith("<!--", lt)) {
       const end = html.indexOf("-->", lt + 4);
@@ -377,6 +408,26 @@ function tokenizeHtml(html: string): CodeToken[] {
       if (ch === "/") {
         push("punct", "/");
         i += 1;
+        continue;
+      }
+      // A spread or expression is code, not an attribute name: without
+      // this `{...slider.getRootProps()}` reads as one long attr.
+      if (ch === "{") {
+        let depth = 0;
+        let stop = i;
+        while (stop < html.length) {
+          if (html[stop] === "{") depth += 1;
+          if (html[stop] === "}") {
+            depth -= 1;
+            if (depth === 0) {
+              stop += 1;
+              break;
+            }
+          }
+          stop += 1;
+        }
+        push("expr", html.slice(i, stop));
+        i = stop;
         continue;
       }
       let attrEnd = i;
@@ -571,7 +622,7 @@ function parseForFormat(html: string): FormatNode[] {
       while (attrEnd < html.length && !NAME_STOP.test(html[attrEnd]!)) {
         attrEnd += 1;
       }
-      const name = html.slice(i, attrEnd).toLowerCase();
+      const name = html.slice(i, attrEnd);
       i = attrEnd;
       if (html[i] !== "=") {
         attrs.push([name, undefined]);
@@ -717,6 +768,7 @@ const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
   string: "text-semantic-warning",
   comment: "text-text-muted",
   punct: "text-text-muted",
+  expr: "text-semantic-success",
   text: "text-text",
 };
 
