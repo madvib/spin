@@ -109,11 +109,14 @@ export interface SlotDef {
 
 export interface ReaderDef {
   /** A state projection: live context + state + parsed props (the
-   * collection lives in props, not context — rows never enter the machine). */
+   * collection lives in props, rows never enter the machine) + the root
+   * (a fieldset's disabled state disables the control, and only the root
+   * knows its ancestors). */
   readonly read: (
     context: Record<string, unknown>,
     state: string,
     props: Record<string, unknown>,
+    root?: () => Element,
   ) => unknown;
 }
 

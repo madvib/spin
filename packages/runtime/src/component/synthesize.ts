@@ -262,6 +262,7 @@ export function defineComponent<
               (service.context as object) as Record<string, unknown>,
               service.state,
               readProps(),
+              root,
             ),
             enumerable: true,
           });

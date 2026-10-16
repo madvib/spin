@@ -1,14 +1,17 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createCascadeBridge } from "./cascade.bridge.ts";
+import { cascade } from "./cascade.def.ts";
+const createCascadeBridge = cascade.createBridge;
 import type {
-  CascadeCommands,
+  CascadeApi,
   CascadeHighlightChange,
+  CascadeItem,
+  CascadeLevel,
+  CascadeNode,
   CascadeOpenChange,
   CascadeValueChange,
-} from "./cascade.bridge.ts";
-import type { CascadeApi, CascadeItem, CascadeLevel, CascadeNode } from "./cascade.connect.ts";
+} from "./cascade.def.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -115,7 +118,7 @@ const TREE: readonly CascadeNode[] = [
 ];
 
 interface Harness {
-  readonly api: CascadeApi & CascadeCommands;
+  readonly api: CascadeApi;
   /** The element id this mount handed the bridge, so part ids are its own. */
   readonly id: string;
   /** A part id in this mount's namespace: `cascade:<id>:<part>`. */
@@ -161,6 +164,7 @@ function mount(
     outside: { pointer: 0, focus: 0, interact: [] as string[] },
   };
   const values: Record<string, WriteSignal> = {};
+  const authoredKeys = new Set(Object.keys(overrides));
   const write = (name: string, value: unknown): void => {
     const source = values[name];
     if (source === undefined) values[name] = signal<unknown>(value);
@@ -184,6 +188,7 @@ function mount(
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
+      record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
     () => root,
