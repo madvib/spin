@@ -357,10 +357,19 @@ function formatNode(node: FormatNode, depth: number): string {
  * replaces whitespace-only runs and nothing else.
  */
 export function formatExampleHtml(html: string): string {
+  // A base64 data URI is an image compressed into an attribute, and a code
+  // panel is where the example's markup is READ. Thousands of bytes of
+  // base64 only eat the page and say nothing, so the panel carries the
+  // shape, not the payload — the bytes still live in the markup the preview
+  // registers as stylesheet content.
+  const collapsed = html.replace(
+    /src=(["'])data:[^"']*/g,
+    (_match, quote: string) => `src=${quote}data:…`,
+  );
   // Roots that are only elements break between siblings; a root that spells
   // text keeps its neighbours on the same line, because a newline a
   // formatter adds beside text is text the markup did not have.
-  const roots = parseForFormat(html).filter(
+  const roots = parseForFormat(collapsed).filter(
     (n) => n.kind !== "text" || !/^\s*$/.test(n.text),
   );
   const inline = roots.some((n) => n.kind === "text");
