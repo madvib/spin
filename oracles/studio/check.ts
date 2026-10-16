@@ -192,7 +192,7 @@ class Page {
   /** Swap a component's specimen for the markup that produced it. */
   async toggleCode(): Promise<string> {
     const clicked = await this.eval<string>(
-      `(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent.trim() === "Code"); if (!b) return "absent"; b.click(); return "shown"; })()`,
+      `(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent.trim().toLowerCase() === "code"); if (!b) return "absent"; b.click(); return "shown"; })()`,
     );
     await this.settle(400);
     return clicked;

@@ -1,4 +1,4 @@
-import { applyEdits } from "./theme";
+import { applyEdits, createToken as insertToken } from "./theme";
 import { activeMode, setThemeText, themeText } from "./store";
 
 /** One edit, as the controls spell it: a DTCG path and the value to write. */
@@ -41,4 +41,33 @@ export function editTokens(edits: readonly TokenEdit[]): boolean {
 /** Apply one token edit. */
 export function editToken(path: string[], value: string): boolean {
   return editTokens([{ path, value }]);
+}
+
+/**
+ * Create a token at a path the document does not have yet, with its type.
+ *
+ * The one write that may ADD to the document rather than move something in
+ * it: a component's character token belongs to the manifest's vocabulary,
+ * and an author meets it on a component page whose theme has never had to
+ * spell `button.weight`. The scaffold is the manifest's own value, so the
+ * token is spendable the moment it lands.
+ *
+ * A refusal — the path exists, a segment stands where a token stands — is
+ * a false, the same word `editTokens` gives a document that will not take
+ * the edit; the document never moves on a failed creation.
+ */
+export function createToken(
+  path: string[],
+  type: string,
+  value: string,
+): boolean {
+  const before = themeText();
+  let next: string;
+  try {
+    next = insertToken(before, path, type, value);
+  } catch {
+    return false;
+  }
+  setThemeText(next);
+  return themeText() !== before;
 }

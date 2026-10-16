@@ -6,7 +6,10 @@
  * Cancel</button>` typed by hand while `button.examples.ts` was shipping the
  * same control as data. Nothing here is a copy — the label, the note, and the
  * markup all arrive from `primitives.list`, so a change to a component's
- * examples is a change this page renders.
+ * examples is a change this page renders. The character tokens come from
+ * `primitives.contract`: what the manifest says the component starts at, so a
+ * theme that has never spelled `button.weight` meets the token HERE, on the
+ * component that spends it, and can create it scaffolded as authored.
  *
  * The markup is set with `innerHTML` because it is sourced markup the studio
  * is asked to render, not markup it writes. The daemon is the only thing that
@@ -25,11 +28,30 @@ import {
   Show,
 } from "solid-js";
 import { A, useParams } from "@solidjs/router";
-import { primitivesTokens, type RpcExample } from "../../lib/primitives.ts";
-import { library, registerMarkup, themeText } from "../../lib/store.ts";
+import {
+  primitivesContract,
+  primitivesTokens,
+  type RpcExample,
+} from "../../lib/primitives.ts";
+import {
+  activeMode,
+  library,
+  registerMarkup,
+  themeText,
+} from "../../lib/store.ts";
+import { createToken, editToken } from "../../lib/editing.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
-import { editorRouteFor, tokenPathsByVar } from "../../lib/tokens.ts";
-import { type CodeKind, dedent, tokenizeHtml } from "../../lib/code.ts";
+import {
+  editorRouteFor,
+  tokenPathsByVar,
+  tokenRowAt,
+} from "../../lib/tokens.ts";
+import {
+  type CodeKind,
+  formatExampleHtml,
+  tokenizeHtml,
+} from "../../lib/code.ts";
+import TokenRow from "../../components/demos/TokenRow.tsx";
 
 /** Where a run of characters sits, and the ink that says so. */
 const INK: Record<CodeKind, string> = {
@@ -40,22 +62,71 @@ const INK: Record<CodeKind, string> = {
 };
 
 /**
+ * The specimen/code switch: a bordered group of two where unselected is a
+ * hole, so the selected one is the only thing drawn. `min-h-0` drops the
+ * height floor the button primitive puts under every control — a segmented
+ * switch is chrome, not a call to action.
+ */
+const SEGMENT_GROUP = "flex shrink-0 gap-1 rounded-md border border-border p-1";
+
+const SEGMENT =
+  "flex-1 min-h-0 justify-center rounded-md border border-transparent bg-transparent px-2 py-1 font-normal normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+
+/** The quiet copy: a link-shaped button in the corner of the code panel. */
+const COPY_BUTTON =
+  "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-normal normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+
+/**
+ * The code block. It WRAPS: the primitive layer pins `overflow-x` on a bare
+ * `<pre>`, and a scroller only contains what it is GIVEN — a 4KB data URI as
+ * one unbreakable token would widen the page rather than scroll in its own
+ * box. So `whitespace-pre-wrap` on the block and `break-all` on the tokens,
+ * and the scrollbar stays as the floor for the one line that cannot break.
+ */
+const CODE_PRE =
+  "max-w-full whitespace-pre-wrap overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
+
+/** The panel every specimen sits in: one box, one surface, room to stand. */
+const SPECIMEN_PANEL =
+  "min-h-16 rounded-md border border-dashed border-border bg-surface p-6 shadow-sm";
+
+/** The measure a specimen's content is set at. */
+const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
+
+/**
  * One fixture: the specimen, or the markup that produced it.
  *
- * A component is judged by looking at it, and built by reading the source,
- * so one row carries both behind a toggle rather than one beside the other.
+ * Both live in ONE grid cell, so the section's height is decided by
+ * measurement rather than by whichever view happens to be showing — the
+ * invisible one holds the room. A stacked pair used to put the markup
+ * between every two specimens, which turns a page of components into a page
+ * of code with components in it.
  */
 function ExampleSection(props: {
   readonly row: RpcExample;
   readonly onLoad?: string;
 }) {
-  const [showCode, setShowCode] = createSignal(false);
+  const [tab, setTab] = createSignal<"component" | "code">("component");
   const [copied, setCopied] = createSignal(false);
-  let copiedFor: number | undefined;
+  let copiedFor: ReturnType<typeof setTimeout> | undefined;
+  let pre!: HTMLPreElement;
+
+  // The panel decides the room the specimen gets, and the markup says which
+  // room it is: a page header is a page-width thing, and the md measure —
+  // where the page's own prose reads — squeezes a header until its trail
+  // wraps into a column of links. Everything else reads at the measure.
+  const measure = props.row.html.trimStart().startsWith("<header")
+    ? ""
+    : SPECIMEN_MEASURE;
+  const tokens = createMemo(() =>
+    tokenizeHtml(formatExampleHtml(props.row.html))
+  );
 
   async function copy(): Promise<void> {
     try {
-      await navigator.clipboard.writeText(dedent(props.row.html));
+      // What is SHOWN is what is copied: the formatted string in the panel,
+      // not the fixture's source indentation beside it.
+      await navigator.clipboard.writeText(pre.textContent ?? "");
     } catch {
       // A clipboard the page cannot reach is a permission, not a failure to
       // report: nothing was copied, so nothing is claimed.
@@ -63,64 +134,70 @@ function ExampleSection(props: {
     }
     setCopied(true);
     clearTimeout(copiedFor);
-    // The window's own: the DOM lib types its return as a number, and the
-    // peer's `Timeout` is Deno's — a studio file has one dom lib to answer to.
-    copiedFor = window.setTimeout(() => setCopied(false), 1200);
+    // Whatever lib claims the timer — DOM's number, the peer's Timeout —
+    // the handle and the clear agree on it.
+    copiedFor = setTimeout(() => setCopied(false), 1200);
   }
 
   return (
-    <section class="mt-4 border-t border-border pt-3">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <h3 class="text-sm font-medium">{props.row.name}</h3>
-        <div class="flex items-center gap-3">
-          <Show when={copied()}>
-            <span class="text-xs text-text-muted">copied</span>
-          </Show>
+    <section class="mb-8">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 class="flex items-center gap-2 text-sm font-semibold">
+          <span class="block h-1 w-4 rounded-full bg-primary" />
+          {props.row.name}
+        </h3>
+        <div class={SEGMENT_GROUP} role="group" aria-label="Example view">
           <button
             type="button"
-            class="bare text-xs text-text-muted hover:underline"
-            onClick={copy}
+            class={SEGMENT}
+            aria-current={tab() === "component" || undefined}
+            onClick={() => setTab("component")}
           >
-            Copy code
+            <i class="i-lucide-eye icon-md" aria-hidden="true" />
+            component
           </button>
-          <div class="row-list overflow-hidden rounded-md border border-border text-xs">
-            <button
-              type="button"
-              class="bare px-2 py-1 text-text-muted"
-              classList={{
-                "bg-surface-raised font-medium text-text": !showCode(),
-              }}
-              onClick={() => setShowCode(false)}
-            >
-              Component
-            </button>
-            <button
-              type="button"
-              class="bare px-2 py-1 text-text-muted"
-              classList={{
-                "bg-surface-raised font-medium text-text": showCode(),
-              }}
-              onClick={() => setShowCode(true)}
-            >
-              Code
-            </button>
-          </div>
+          <button
+            type="button"
+            class={SEGMENT}
+            aria-current={tab() === "code" || undefined}
+            onClick={() => setTab("code")}
+          >
+            <i class="i-lucide-code-xml icon-md" aria-hidden="true" />
+            code
+          </button>
         </div>
       </div>
-      <Show
-        when={!showCode()}
-        fallback={
-          <pre class="mt-2 overflow-x-auto rounded-md border border-border bg-surface-sunken p-3 text-xs">
-            <code>
-              <For each={tokenizeHtml(dedent(props.row.html))}>
-                {(token) => <span class={INK[token.kind]}>{token.text}</span>}
-              </For>
-            </code>
-          </pre>
-        }
-      >
-        <Specimen html={props.row.html} onLoad={props.onLoad} />
-      </Show>
+      <div class="relative grid">
+        <pre
+          ref={pre}
+          class={`${CODE_PRE} col-start-1 row-start-1 ${
+            tab() === "code" ? "" : "invisible"
+          }`}
+          aria-hidden={tab() === "code" ? undefined : "true"}
+        >
+          <span class="text-lg break-all">
+            <For each={tokens()}>
+              {(token) => <span class={INK[token.kind]}>{token.text}</span>}
+            </For>
+          </span>
+        </pre>
+        <button type="button" onClick={copy} class={COPY_BUTTON}>
+          <i class="i-lucide-copy icon-md" aria-hidden="true" />
+          {copied() ? "copied" : "copy"}
+        </button>
+        <div
+          class={`${SPECIMEN_PANEL} col-start-1 row-start-1 ${
+            tab() === "component" ? "" : "invisible"
+          }`}
+          aria-hidden={tab() === "component" ? undefined : "true"}
+        >
+          <Specimen
+            html={props.row.html}
+            onLoad={props.onLoad}
+            measure={measure}
+          />
+        </div>
+      </div>
     </section>
   );
 }
@@ -136,6 +213,7 @@ function ExampleSection(props: {
 function Specimen(props: {
   readonly html: string;
   readonly onLoad?: string;
+  readonly measure: string;
 }) {
   let host!: HTMLDivElement;
   onMount(() => {
@@ -147,7 +225,7 @@ function Specimen(props: {
   return (
     <div
       ref={host}
-      class="spin-preview mt-2 rounded-md border border-dashed border-border p-3"
+      class={`spin-preview ${props.measure}`}
       innerHTML={props.html}
     />
   );
@@ -160,6 +238,12 @@ export default function ComponentPage() {
   const [tokens] = createResource(
     () => params.name,
     (name) => primitivesTokens(name),
+  );
+  // The contract carries what the list does not: the character tokens this
+  // component declares, as the manifest authors them.
+  const [contract] = createResource(
+    () => params.name,
+    (name) => primitivesContract(name),
   );
   // A memo, not a const: the resource resolves after first render, and a
   // const would snapshot `undefined` and never move. The memo re-derives when
@@ -195,6 +279,35 @@ export default function ComponentPage() {
     return [...new Set(paths)].map((path) => ({ path }));
   };
 
+  /**
+   * Each declared character token with the theme's own word for it, or
+   * nothing where the theme is missing the path — which is the row that
+   * offers creation, scaffolded from the manifest's own value. A ref
+   * re-derives: an edit or a creation writes the document, and the row that
+   * was a Create button comes back as the control that edits it.
+   */
+  const character = createMemo(() => {
+    const declared = contract()?.character ?? [];
+    const tree = analyzeTheme(themeText()).tree;
+    return declared.map((entry) => ({
+      entry,
+      row: tree === undefined
+        ? undefined
+        : tokenRowAt(tree, entry.path, activeMode()),
+    }));
+  });
+
+  // A character token's slider ceiling is its FAMILY's — icon.sm beside
+  // icon.md and icon.lg — so siblings share one track the way a scale's
+  // steps do. Alone, the control takes headroom of its own.
+  const siblingsFor = (path: string): readonly string[] | undefined => {
+    const root = path.split(".")[0];
+    const values = character()
+      .filter((c) => c.entry.path.split(".")[0] === root && c.row !== undefined)
+      .map((c) => c.row!.value);
+    return values.length > 1 ? values : undefined;
+  };
+
   return (
     <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4">
       <Show
@@ -218,26 +331,31 @@ export default function ComponentPage() {
       >
         {(component) => (
           <div>
-            <h1 class="text-2xl capitalize">
-              {component.name.replace(/-/g, " ")}
-            </h1>
-            <p class="max-w-screen-md text-sm text-text-muted">
+            <header class="mb-4 flex flex-wrap items-start justify-between gap-4">
+              <div class="min-w-0">
+                <h1 class="text-2xl font-bold capitalize tracking-tight">
+                  {component.name.replace(/-/g, " ")}
+                </h1>
+                <p class="truncate font-mono text-xs text-text-muted">
+                  <Show when={component.tags.length > 0}>
+                    {component.tags.map((t: string) => `<${t}>`).join("  ")}
+                  </Show>
+                  <Show when={component.variants.length > 0}>
+                    <span class="ml-2 text-text-muted">
+                      variants {component.variants.join(" ")}
+                    </span>
+                  </Show>
+                </p>
+              </div>
+              <span class="shrink-0 rounded-full border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+                {rows().length} examples
+              </span>
+            </header>
+
+            <p class="mb-6 max-w-screen-md text-sm text-text-muted">
               {component.examples?.note ?? ""}
             </p>
 
-            <Show when={component.tags.length > 0}>
-              <h2 class="mt-6 text-xl">Tags</h2>
-              <p class="font-mono text-sm">
-                {component.tags.map((t: string) => `<${t}>`).join("  ")}
-              </p>
-            </Show>
-
-            <h2 class="mt-6 text-xl">
-              Examples
-              <span class="ml-2 text-sm font-normal text-text-muted">
-                {rows().length}
-              </span>
-            </h2>
             <For each={rows()}>
               {(row) => (
                 <ExampleSection
@@ -246,6 +364,59 @@ export default function ComponentPage() {
                 />
               )}
             </For>
+
+            {
+              /* The character axis, editable where it is spent: a token the
+                theme holds edits here with its own control; a token it does
+                not holds its manifest scaffold and offers to land it. */
+            }
+            <Show when={character().length > 0}>
+              <h2 class="mt-6 text-xl">Character tokens</h2>
+              <p class="mt-1 max-w-screen-md text-sm text-text-muted">
+                What this component declares as its own character — edited here,
+                and created here when the theme has never had to spell it.
+              </p>
+              <div class="mt-3 stack-sm">
+                <For each={character()}>
+                  {(entry) =>
+                    entry.row !== undefined
+                      ? (
+                        <TokenRow
+                          row={entry.row}
+                          onEdit={editToken}
+                          variable={entry.row.variable}
+                          group={siblingsFor(entry.entry.path)}
+                        />
+                      )
+                      : (
+                        <card class="split p-4">
+                          <div class="row-sm min-w-0">
+                            <span class="truncate font-mono text-sm">
+                              {entry.entry.path}
+                            </span>
+                          </div>
+                          <div class="row-sm min-w-0 flex-1 flex-wrap items-center justify-end gap-3">
+                            <span class="font-mono text-xs text-text-muted">
+                              {entry.entry.type} · {entry.entry.value}
+                            </span>
+                            <button
+                              type="button"
+                              class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-normal normal-case tracking-normal text-text shadow-none hover:border-primary"
+                              onClick={() =>
+                                createToken(
+                                  entry.entry.path.split("."),
+                                  entry.entry.type,
+                                  entry.entry.value,
+                                )}
+                            >
+                              Create
+                            </button>
+                          </div>
+                        </card>
+                      )}
+                </For>
+              </div>
+            </Show>
 
             {
               /* Tokens this component reads, as paths. A path is the thing the

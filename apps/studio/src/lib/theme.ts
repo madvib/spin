@@ -115,6 +115,58 @@ export function applyEdits(
   return doc;
 }
 
+/**
+ * Insert a token at a path the document does not have yet, with its type.
+ *
+ * Creation, not editing: the path may stand on groups nobody wrote — a
+ * component's character token belongs to the manifest's vocabulary, and the
+ * theme only has to spell it once an author decides the default is not
+ * theirs. The groups a missing path needs are built on the way down.
+ *
+ * An existing token under the path is refused rather than rewritten: the
+ * scaffold is what a token STARTS at, never what it is reset to. The
+ * refusal is a throw, the same word `setToken` gives a path that does not
+ * resolve — a caller only asks to create what the theme is missing, so
+ * anything else arriving here is the caller's mistake, and saying so beats
+ * handing back a document that silently kept the old value.
+ */
+export function createToken(
+  text: string,
+  path: readonly string[],
+  type: string,
+  value: string,
+): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  let node = doc;
+  for (const segment of path.slice(0, -1)) {
+    const next = node[segment];
+    if (next === undefined) {
+      const group: Record<string, unknown> = {};
+      node[segment] = group;
+      node = group;
+    } else if (
+      typeof next === "object" && next !== null && !("$value" in next)
+    ) {
+      node = next as Record<string, unknown>;
+    } else {
+      throw new Error(
+        `token ${path.join(".")} cannot stand inside token ${
+          path.slice(0, -1).join(".")
+        }`,
+      );
+    }
+  }
+  const last = path[path.length - 1];
+  if (last === undefined) {
+    throw new Error("createToken needs a path to create at");
+  }
+  if (node[last] !== undefined) {
+    throw new Error(`token ${path.join(".")} already exists`);
+  }
+  node[last] = { $type: type, $value: value };
+  return JSON.stringify(doc, null, 2);
+}
+
 export function rootDescription(text: string): string {
   try {
     const doc = JSON.parse(text) as Record<string, unknown>;

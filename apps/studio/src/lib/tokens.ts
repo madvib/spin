@@ -66,6 +66,23 @@ export function tokenPathsByVar(
   return out;
 }
 
+/**
+ * The theme's own row for one exact path, in the mode asked for.
+ *
+ * Exact, because creation is the other half of its job: `color.neutral` is
+ * a group, and reading the leaf BENEATH it as if the path itself were a
+ * token would offer to scaffold a namespace the theme already has.
+ */
+export function tokenRowAt(
+  tree: TokenTree,
+  path: string,
+  mode: string,
+): TokenRow | undefined {
+  return groupTokens(tree, [path.split(".")], mode).find((row) =>
+    row.path === path
+  );
+}
+
 /** Which editor route owns a token path; a group no editor owns answers `/`. */
 export function editorRouteFor(path: string): string {
   const segments = path.split(".");

@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
-import { indexTree, parseTokens } from "@spin/theme";
-import { editorRouteFor, toPx } from "./tokens.ts";
+import { indexTree, parseTokens, type TokenTree } from "@spin/theme";
+import { editorRouteFor, tokenRowAt, toPx } from "./tokens.ts";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
 
 /**
@@ -45,6 +45,39 @@ Deno.test("toPx reads a length as the pixels it is", () => {
   // A value that is not a length has no width to draw, and saying so beats
   // drawing nothing without a reason.
   assertEquals(toPx("cubic-bezier(0, 0, 0, 1)"), undefined);
+});
+
+/** A corner that varies by mode, and a colour nested under its ramp. */
+function rowFixture(): TokenTree {
+  const parsed = parseTokens({
+    radius: {
+      $type: "dimension",
+      sm: { $value: "0.25rem", $modes: { dark: "0.5rem" } },
+    },
+    color: { $type: "color", neutral: { "50": { $value: "#f8fafc" } } },
+  });
+  if (!parsed.ok) throw new Error(`fixture does not parse: ${parsed.error}`);
+  return parsed.tree;
+}
+
+Deno.test("tokenRowAt answers an exact path with the theme's own row", () => {
+  assertEquals(tokenRowAt(rowFixture(), "radius.sm", "light"), {
+    path: "radius.sm",
+    variable: "--radius-sm",
+    value: "0.25rem",
+    type: "dimension",
+  });
+});
+
+Deno.test("tokenRowAt reads the value the asked-for mode holds", () => {
+  assertEquals(tokenRowAt(rowFixture(), "radius.sm", "dark")?.value, "0.5rem");
+});
+
+Deno.test("tokenRowAt does not read a token under a path as the path itself", () => {
+  // `color.neutral` is a group; the leaf beneath it answers for
+  // `color.neutral.50`, and offering creation for a group as if it were a
+  // missing token would scaffold over a namespace the theme already has.
+  assertEquals(tokenRowAt(rowFixture(), "color.neutral", "light"), undefined);
 });
 
 Deno.test("every token in the reference theme links to a route that exists", async () => {

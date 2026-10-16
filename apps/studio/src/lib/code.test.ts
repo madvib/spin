@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { type CodeToken, dedent, tokenizeHtml } from "./code.ts";
+import { type CodeToken, formatExampleHtml, tokenizeHtml } from "./code.ts";
 
 /**
  * The tokenizer splits what a reader can see; the gaps an attribute sits in
@@ -11,26 +11,6 @@ const visible = (html: string): CodeToken[] =>
   tokenizeHtml(html).filter((token) => token.text.trim() !== "");
 
 const texts = (html: string) => tokenizeHtml(html).map((t) => t.text).join("");
-
-Deno.test("dedent strips the indentation a fixture template leaves behind", () => {
-  const authored = `<div class="flex">
-          <button>default</button>
-        </div>`;
-  assertEquals(
-    dedent(authored),
-    `<div class="flex">
-  <button>default</button>
-</div>`,
-  );
-});
-
-Deno.test("dedent leaves a single-line fixture alone", () => {
-  assertEquals(dedent(`<hr class="hr-dashed">`), `<hr class="hr-dashed">`);
-});
-
-Deno.test("dedent drops the blank lines a fixture wraps itself in", () => {
-  assertEquals(dedent(`\n\n<hr>\n\n`), `<hr>`);
-});
 
 Deno.test("tokenizeHtml round-trips the markup it splits", () => {
   const html =
@@ -77,4 +57,47 @@ Deno.test("tokenizeHtml reads a void element with no closing tag", () => {
     "input",
     ">",
   ]);
+});
+
+Deno.test("formatExampleHtml indents nested elements one step per depth", () => {
+  assertEquals(
+    formatExampleHtml(`<ul class="stack"><li><a href="#">Home</a></li></ul>`),
+    [
+      `<ul class="stack">`,
+      `  <li>`,
+      `    <a href="#">Home</a>`,
+      `  </li>`,
+      `</ul>`,
+    ].join("\n"),
+  );
+});
+
+Deno.test("formatExampleHtml keeps a sentence on its element's own line", () => {
+  assertEquals(
+    formatExampleHtml(`<p>Press <kbd>Enter</kbd> to submit.</p>`),
+    `<p>Press <kbd>Enter</kbd> to submit.</p>`,
+  );
+});
+
+Deno.test("formatExampleHtml reads the same formatting twice as once", () => {
+  const once = formatExampleHtml(
+    `<div class="card"><h2>Title</h2><p>Body text</p></div>`,
+  );
+  assertEquals(formatExampleHtml(once), once);
+});
+
+Deno.test("formatExampleHtml copies a verbatim element's own whitespace through", () => {
+  assertEquals(
+    formatExampleHtml(`<pre>col one\n  col two</pre>`),
+    `<pre>col one\n  col two</pre>`,
+  );
+});
+
+Deno.test("formatExampleHtml gives a third attribute a line of its own", () => {
+  assertEquals(
+    formatExampleHtml(
+      `<button type="button" class="secondary" disabled>OK</button>`,
+    ),
+    `<button\n  type="button"\n  class="secondary"\n  disabled\n>OK</button>`,
+  );
 });

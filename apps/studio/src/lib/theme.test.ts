@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { applyEdits } from "./theme.ts";
+import { applyEdits, createToken } from "./theme.ts";
 
 /** A document small enough to read and real enough for setToken to walk. */
 function fixture(): string {
@@ -52,5 +52,39 @@ Deno.test("applyEdits refuses the whole batch when one path does not resolve", (
       { path: ["spacing", "4"], value: "0.5rem" },
       { path: ["spacing", "16"], value: "8rem" },
     ], "base")
+  );
+});
+
+Deno.test("createToken inserts a token the document does not have yet", () => {
+  // The path may stand on groups nobody wrote: a component's character token
+  // (`button.weight`) belongs to a vocabulary the manifest declares and the
+  // theme has never had to spell. Creation builds what the path needs and
+  // lands the type with the value, so the token is spendable at once.
+  const doc = JSON.parse(
+    createToken(fixture(), ["button", "weight"], "fontWeight", "600"),
+  ) as { button: Record<string, { $type: string; $value: string }> };
+  assertEquals(doc.button.weight, { $type: "fontWeight", $value: "600" });
+});
+
+Deno.test("createToken adds beside a token the theme already holds", () => {
+  const doc = JSON.parse(
+    createToken(fixture(), ["spacing", "16"], "dimension", "4rem"),
+  ) as {
+    spacing: Record<string, { $type?: string; $value: unknown }>;
+  };
+  assertEquals(doc.spacing["16"], { $type: "dimension", $value: "4rem" });
+  // The neighbour keeps its own word: creation adds, it does not rewrite.
+  assertEquals(doc.spacing["4"]?.$value, "1rem");
+});
+
+Deno.test("createToken refuses to overwrite a token the theme already holds", () => {
+  // The page only offers creation for a path the theme is missing, so an
+  // existing token under the cursor is a caller's mistake — and the one
+  // thing it must not do is quietly reset the author's edited value back to
+  // the manifest's scaffold.
+  assertThrows(
+    () => createToken(fixture(), ["spacing", "4"], "dimension", "9rem"),
+    Error,
+    "spacing.4",
   );
 });
