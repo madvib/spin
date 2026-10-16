@@ -1,14 +1,15 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createImageCropperBridge } from "./image-cropper.bridge.ts";
+import { imageCropper } from "./image-cropper.def.ts";
+const createImageCropperBridge = imageCropper.createBridge;
 import type {
   ImageCropperCropChange,
   ImageCropperFlipChange,
   ImageCropperRotationChange,
   ImageCropperZoomChange,
-} from "./image-cropper.bridge.ts";
-import type { ImageCropperApi } from "./image-cropper.connect.ts";
+} from "./image-cropper.def.ts";
+import type { ImageCropperApi } from "./image-cropper.def.ts";
 import type { CropHandle, CropRect } from "./image-cropper.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

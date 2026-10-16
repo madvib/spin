@@ -150,7 +150,7 @@ export const config = {
         NUDGE_RESIZE: { cond: "hasViewport", actions: [{ assign: "nudgeResize" }] },
         NUDGE_MOVE: { cond: "hasViewport", actions: [{ assign: "nudgeMove" }] },
         NUDGE_PAN: { cond: "hasViewport", actions: [{ assign: "nudgePan" }] },
-        RESIZE_CROP: { cond: "hasViewport", actions: [{ assign: "resizeCrop" }] },
+        RESIZE_CROP: { cond: "canResize", actions: [{ assign: "resizeCrop" }] },
       },
     },
     dragging: {
@@ -202,6 +202,11 @@ const ratioOf = (ctx: ImageCropperContext): number | null =>
 export const implementations = {
   conds: {
     hasViewport: (ctx: ImageCropperContext): boolean => isVisibleRect(ctx.viewportRect),
+    /** A fixed area refuses programmatic resizes: the view blocked them
+     * before, and the def's commands always send — so the guard lives
+     * here now, where every path meets it. */
+    canResize: (ctx: ImageCropperContext): boolean =>
+      isVisibleRect(ctx.viewportRect) && !ctx.fixedCropArea,
     canDragSelection: (ctx: ImageCropperContext): boolean =>
       isVisibleRect(ctx.viewportRect) && !ctx.fixedCropArea,
     canPan: (ctx: ImageCropperContext): boolean =>
