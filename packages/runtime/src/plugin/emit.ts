@@ -74,14 +74,13 @@ export function emit(ir: ComponentIr): EmitOutput {
             if (part.kind === "static") return JSON.stringify(part.value);
             return `String((${scopeExpr(part.expr, bound)}) ?? "")`;
           }).join(" + ");
-          // ONE writer: the effect re-runs on the signals the reads touch
-          // (machine text via its tick). The for-cell update has no signal
-          // to move — a connect can hand out a stable holder it rewrites,
-          // like the carousel readout — so the update path bumps the same
-          // signal the effect subscribes to instead of writing the node a
-          // second time.
+          // ONE writer: the effect re-runs on the machine tick (bag reads
+          // are raw, so the tick is the invalidation bus) plus the fresh
+          // signal the for-cell update bumps on resync. Top-level text has
+          // no resync caller — without the tick read it renders its seed
+          // value and never moves again.
           out.push(
-            `${pad(depth)}{ const ${id} = document.createTextNode(""); const ${id}Fresh = signal(0); effect(() => { ${id}Fresh(); ${id}.data = (${reads}); }); ${parts}.push(() => ${id}Fresh(${id}Fresh() + 1)); ${host}.appendChild(${id}); }`,
+            `${pad(depth)}{ const ${id} = document.createTextNode(""); const ${id}Fresh = signal(0); effect(() => { ${id}Fresh(); machineTick(); ${id}.data = (${reads}); }); ${parts}.push(() => ${id}Fresh(${id}Fresh() + 1)); ${host}.appendChild(${id}); }`,
           );
         }
         continue;
@@ -195,7 +194,7 @@ export function emit(ir: ComponentIr): EmitOutput {
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect } from "@spin/runtime";`,
+    `import { runAction, on, bindAttr, bindText, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect, machineTick } from "@spin/runtime";`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,
     `  const frag = document.createDocumentFragment();`,

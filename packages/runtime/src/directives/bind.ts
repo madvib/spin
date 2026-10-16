@@ -1,9 +1,13 @@
-import { effect, own, scope } from "../core/signal.ts";
+import { effect, machineTick, own, scope } from "../core/signal.ts";
 export type Signal<T> = { (): T; (value: T): void };
 
+// Binding effects subscribe to the machine tick the way spreads do: bag
+// reads are raw (no per-field signals), so the tick is the invalidation
+// bus. Without it a binding renders its seed value and never moves again.
 export function bindText(node: Text, get: () => unknown): void {
   let last: unknown;
   effect(() => {
+    machineTick();
     const v = get();
     if (v !== last) {
       last = v;
@@ -15,6 +19,7 @@ export function bindText(node: Text, get: () => unknown): void {
 export function bindAttr(el: Element, name: string, get: () => unknown): void {
   let last: unknown = Symbol("init");
   effect(() => {
+    machineTick();
     const v = get();
     if (Object.is(v, last)) return;
     last = v;
