@@ -161,6 +161,16 @@ const todayUtc = (): DatePickerValue => {
 
 type Ctx = DatePickerContext;
 
+// Scope props arrive as strings; hooks write numbers. Accept both.
+const numProp = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
 const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
 
 type IdFn = (part: string, slot?: unknown) => string;
@@ -489,7 +499,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     },
     defaultOpen: { parse: (raw) => raw === true },
     selectionMode: { parse: (raw) => raw },
-    numOfMonths: { parse: (raw) => (typeof raw === "number" ? raw : 1) },
+    numOfMonths: { parse: (raw) => numProp(raw) ?? 1 },
     min: {
       parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : null),
     },
@@ -500,7 +510,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     locale: {
       parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "en-US"),
     },
-    startOfWeek: { parse: (raw) => (typeof raw === "number" ? raw : 0) },
+    startOfWeek: { parse: (raw) => numProp(raw) ?? 0 },
     label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
     placeholder: { parse: (raw) => (typeof raw === "string" ? raw : "Pick a date") },
     format: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },

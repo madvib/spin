@@ -146,6 +146,16 @@ const derive = (parsed: Record<string, unknown>): {
 
 type Ctx = CarouselContext;
 
+// Scope props arrive as strings; hooks write numbers. Accept both.
+const numProp = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
 const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
 
 const lastPageOf = (ctx: Ctx): number => Math.max(0, ctx.pageCount - 1);
@@ -347,12 +357,12 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     items: { parse: (raw) => (Array.isArray(raw) ? raw : []) },
     index: {
       controlled: true,
-      parse: (raw) => (typeof raw === "number" ? raw : 0),
+      parse: (raw) => numProp(raw) ?? 0,
       event: (value: number) => ({ type: "GO_TO", index: value }),
       // The host's write lands clamped, exactly as the bridge assigned it.
       assign: true,
     },
-    defaultIndex: { parse: (raw) => (typeof raw === "number" ? raw : 0) },
+    defaultIndex: { parse: (raw) => numProp(raw) ?? 0 },
     loop: { parse: (raw) => raw === true },
     autoplay: { parse: (raw) => raw === true },
     autoplayDelay: { parse: (raw) => Math.max(1, asInt(raw, 4000)) },

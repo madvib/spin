@@ -40,6 +40,14 @@ export default defineConfig({
             here,
             "../../packages/preset/src/rules/primitives/*.examples.ts",
           ),
+          resolve(
+            here,
+            "../../packages/components/src/spin-*/examples/*.html",
+          ),
+          resolve(
+            here,
+            "../../packages/components/src/spin-*/spin-*.html",
+          ),
           resolve(here, "src/**/*.{tsx,ts}"),
         ],
         pipeline: {

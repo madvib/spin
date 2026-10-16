@@ -12,10 +12,11 @@ const exampleSources = import.meta.glob(
 ) as Record<string, string>;
 
 // Compiled: each example is its own element, registered by the element
-// transform. The component tab mounts the tag. One static import per
-// machine keeps the glob (which vite must see literally) auditable.
-import "../../../packages/components/src/spin-tree-view/examples/basic.html";
-import "../../../packages/components/src/spin-tree-view/examples/async-loading.html";
+// transform as a side effect. Same glob, no ?raw.
+import.meta.glob(
+  "../../../packages/components/src/spin-*/examples/*.html",
+  { eager: true },
+);
 
 const recipeModules = import.meta.glob(
   "../../../packages/components/src/spin-*/spin-*.html",

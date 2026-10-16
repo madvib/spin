@@ -45,8 +45,16 @@ export interface RatingGroupApi {
   getHiddenInputProps(): Record<string, unknown>;
 }
 
-const numProp = (raw: unknown): number | null =>
-  typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+// Scope props arrive as strings; hooks write numbers. Accept both — a
+// string-authored `defaultValue="45"` seeds 45, not 0.
+const numProp = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
 
 const countProp = (raw: unknown): number => {
   const count = numProp(raw);
