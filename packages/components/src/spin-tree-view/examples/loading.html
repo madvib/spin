@@ -1,4 +1,4 @@
-<scope>props={ nodes: string = '[{"value": "packages", "label": "packages"}, {"value": "packages/preset", "label": "preset"}, {"value": "readme", "label": "README.md"}]', defaultExpandedValue: string[] = [], loadChildren: string = "" } consume={ treeView }</scope>
+<scope>props={ nodes: string = '[{"value": "packages", "label": "packages"}, {"value": "packages/preset", "label": "preset", "children": []}, {"value": "readme", "label": "README.md", "children": []}]', defaultExpandedValue: string[] = [], loadChildren: string = "" } consume={ treeView }</scope>
 
 <!-- Lazy roots declare no children: expanding one calls the host's
   `loadChildren(value)` property (a function returning nodes) and shows
