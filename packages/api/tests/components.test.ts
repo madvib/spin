@@ -32,7 +32,7 @@ describe("daemon components over HTTP", () => {
     const listed = await client.components.list({});
     const tree = listed.find((c) => c.name === "tree-view");
     assert(tree !== undefined, "tree-view is listed");
-    assertEquals(tree.variants, ["basic", "async-loading"]);
+    assertEquals(tree.variants, ["async-loading", "basic"]);
   });
 
   it("serves a machine's variants with copy-ready markup", async () => {

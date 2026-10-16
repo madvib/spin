@@ -1,45 +1,102 @@
 /**
- * Implements {@link componentsContract}. Each handler is a thin wrapper
- * over the vendored `*.variants.ts` modules — pure, no fs, except `copy`
- * which writes into the caller's project the way `project.init` does.
+ * Implements {@link componentsContract}. Discovery is the filesystem:
+ * each machine ships `variants/*.html` beside it (file stem = variant
+ * name), so the directory listing IS the list — no index, no map.
  */
 
 import { implement } from "@orpc/server";
 
-import { TREE_VIEW_VARIANTS } from "./spin-tree-view/tree-view.variants.ts";
 import { componentsContract } from "./components-contract.ts";
 
 export { componentsContract };
 
-const VARIANTS: Record<string, readonly { name: string; title: string; html: string }[]> = {
-  "tree-view": TREE_VIEW_VARIANTS,
+const HERE = new URL("./", import.meta.url);
+
+/** `spin-tree-view` → `tree-view`: the directory prefix is packaging. */
+const machineOf = (dir: string): string =>
+  dir.startsWith("spin-") ? dir.slice("spin-".length) : dir;
+
+const titleOf = (stem: string): string =>
+  stem.split("-").map((word) =>
+    word.length === 0 ? word : word[0]?.toUpperCase() + word.slice(1)
+  ).join(" ");
+
+interface VariantRow {
+  readonly name: string;
+  readonly title: string;
+  readonly html: string;
+}
+
+const readDir = async (dir: URL): Promise<string[]> => {
+  try {
+    const { readdir } = await import("node:fs/promises");
+    return (await readdir(dir)).filter((entry) => entry.endsWith(".html")).sort();
+  } catch {
+    return [];
+  }
+};
+
+/** Every machine with a `variants/` directory, and its stems. */
+const discover = async (): Promise<Map<string, string[]>> => {
+  const { readdir } = await import("node:fs/promises");
+  const found = new Map<string, string[]>();
+  let dirs: string[];
+  try {
+    dirs = await readdir(HERE);
+  } catch {
+    return found;
+  }
+  for (const dir of dirs) {
+    if (!dir.startsWith("spin-")) continue;
+    const stems = await readDir(new URL(`./${dir}/variants/`, HERE));
+    if (stems.length === 0) continue;
+    found.set(machineOf(dir), stems.map((file) => file.slice(0, -".html".length)));
+  }
+  return found;
+};
+
+const readVariant = async (machine: string, variant: string): Promise<VariantRow | null> => {
+  if (variant.includes("/") || variant.includes("\\") || machine.includes("/")) return null;
+  try {
+    const { readFile } = await import("node:fs/promises");
+    const html = await readFile(
+      new URL(`./spin-${machine}/variants/${variant}.html`, HERE),
+      "utf8",
+    );
+    return { name: variant, title: titleOf(variant), html };
+  } catch {
+    return null;
+  }
 };
 
 const os = implement(componentsContract);
 
-const list = os.components.list.handler(() => {
-  return Object.entries(VARIANTS).map(([name, rows]) => ({
-    name,
-    variants: rows.map((row) => row.name),
-  }));
+const list = os.components.list.handler(async () => {
+  const found = await discover();
+  return [...found.entries()].map(([name, variants]) => ({ name, variants }));
 });
 
-const variants = os.components.variants.handler(({ input }) => {
-  const rows = VARIANTS[input.name] ?? [];
-  return { variants: rows.map((row) => ({ ...row })) };
+const variants = os.components.variants.handler(async ({ input }) => {
+  const found = await discover();
+  const stems = found.get(input.name) ?? [];
+  const rows: VariantRow[] = [];
+  for (const stem of stems) {
+    const row = await readVariant(input.name, stem);
+    if (row !== null) rows.push(row);
+  }
+  return { variants: rows };
 });
 
 const copy = os.components.copy.handler(async ({ input }) => {
-  const rows = VARIANTS[input.name] ?? [];
-  const found = rows.find((row) => row.name === input.variant);
-  if (found === undefined) {
+  const found = await readVariant(input.name, input.variant);
+  if (found === null) {
     return { file: null, error: `Unknown variant: ${input.name}/${input.variant}` };
   }
   try {
     const { mkdir, writeFile } = await import("node:fs/promises");
     const { join } = await import("node:path");
     // The caller's project, or the daemon's own — one process serves many
-  // projects, so the root rides the call the way project.* carries it.
+    // projects, so the root rides the call the way project.* carries it.
     const root = input.root ?? ".";
     const file = join("spin", input.name, `${input.variant}.html`);
     await mkdir(join(root, "spin", input.name), { recursive: true });
@@ -49,6 +106,7 @@ const copy = os.components.copy.handler(async ({ input }) => {
     return { file: null, error: err instanceof Error ? err.message : String(err) };
   }
 });
+
 export const componentsRouter = os.router({
   components: {
     list,
