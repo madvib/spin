@@ -7,6 +7,7 @@ import {
   faceSpecimens,
   paletteChips,
   spaceSteps,
+  summarySwatches,
   surfaceSteps,
   tokenValue,
 } from "./overview.ts";
@@ -105,6 +106,41 @@ Deno.test("paletteChips reads the mode it is asked to show", () => {
   assertEquals(dark?.value, "#445566");
 });
 
+Deno.test("summarySwatches reads one palette per mode the theme declares", () => {
+  const groups = summarySwatches(TEXT);
+  assertEquals(
+    groups.map((group) => group.mode),
+    ["light", "dark"],
+  );
+  const primary = (mode: string) =>
+    groups.find((group) => group.mode === mode)?.chips.find((chip) =>
+      chip.path === "color.primary"
+    )?.value;
+  assertEquals(primary("light"), "#112233");
+  assertEquals(primary("dark"), "#445566");
+});
+
+Deno.test("summarySwatches reads a theme that declares one mode as one palette", () => {
+  const solo = summarySwatches(JSON.stringify({
+    modes: ["light"],
+    color: { $type: "color", primary: { $value: "#0f1115" } },
+  }));
+  assertEquals(
+    solo.map((group) => group.mode),
+    ["light"],
+  );
+  assertEquals(
+    solo[0]?.chips.find((chip) => chip.path === "color.primary")?.value,
+    "#0f1115",
+  );
+});
+
+Deno.test("summarySwatches answers a document that does not parse with nothing", () => {
+  // The overview keeps rendering while an author is mid-edit: a summary of a
+  // half-typed document is empty, not a crash.
+  assertEquals(summarySwatches("{not json"), []);
+});
+
 Deno.test("surfaceSteps reads the ladder from the page down", () => {
   assertEquals(
     surfaceSteps(TEXT, "light").map((step) => step.path),
@@ -114,7 +150,10 @@ Deno.test("surfaceSteps reads the ladder from the page down", () => {
 
 Deno.test("surfaceSteps shows the dark value of a step that is a reference", () => {
   const dark = surfaceSteps(TEXT, "dark");
-  assertEquals(dark.find((s) => s.path === "color.surface-sunken")?.value, "#1f1f1f");
+  assertEquals(
+    dark.find((s) => s.path === "color.surface-sunken")?.value,
+    "#1f1f1f",
+  );
   assertEquals(dark.find((s) => s.path === "color.surface")?.value, "#fafafa");
 });
 
@@ -126,7 +165,9 @@ Deno.test("faceSpecimens shows the slots this theme declares, leading with the d
 });
 
 Deno.test("faceSpecimens carries the stack and the utility that draws it", () => {
-  const heading = faceSpecimens(TEXT, "light").find((f) => f.slot === "heading");
+  const heading = faceSpecimens(TEXT, "light").find((f) =>
+    f.slot === "heading"
+  );
   assertEquals(heading?.stack, "Georgia, serif");
   assertEquals(heading?.paint, "font-heading");
 });
@@ -156,15 +197,30 @@ const LIBRARY = [
       note: "",
       rows: [
         { name: "default", html: "<button>Ok</button>" },
-        { name: "secondary", html: '<button variant="secondary">Cancel</button>' },
+        {
+          name: "secondary",
+          html: '<button variant="secondary">Cancel</button>',
+        },
       ],
     },
   },
   { name: "rule" },
   { name: "empty", examples: { note: "", rows: [] } },
-  { name: "alert", examples: { note: "", rows: [{ name: "tone", html: "<alert>Saved</alert>" }] } },
-  { name: "badge", examples: { note: "", rows: [{ name: "base", html: "<badge>3</badge>" }] } },
-  { name: "card", examples: { note: "", rows: [{ name: "base", html: "<card></card>" }] } },
+  {
+    name: "alert",
+    examples: {
+      note: "",
+      rows: [{ name: "tone", html: "<alert>Saved</alert>" }],
+    },
+  },
+  {
+    name: "badge",
+    examples: { note: "", rows: [{ name: "base", html: "<badge>3</badge>" }] },
+  },
+  {
+    name: "card",
+    examples: { note: "", rows: [{ name: "base", html: "<card></card>" }] },
+  },
 ];
 
 Deno.test("elementSamples samples the components that have examples", () => {

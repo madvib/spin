@@ -10,7 +10,7 @@
 
 import { createEffect, createResource, createSignal } from "solid-js";
 import { listPrimitives, type RpcComponent } from "./primitives.ts";
-import { paletteChips, type Chip } from "./overview.ts";
+import { summarySwatches, type SwatchGroup } from "./overview.ts";
 import { analyzeTheme } from "./theme.ts";
 import { parseTokens, validateLegibility } from "@spin/theme";
 import { indexTree } from "@spin/theme";
@@ -384,14 +384,16 @@ export interface ThemeSummary {
   valid: boolean;
   issues: string[];
   /**
-   * The palette as chips, in the mode being shown.
+   * The palette as strips, one per mode the theme declares.
    *
    * The same curated rows the overview's palette card uses, because a strip
    * of the colours a theme is *for* is a different question from "which
    * tokens happen to be colours" — and answering the second one twice, here
-   * and on the card, is how the two answers start to disagree.
+   * and on the card, is how the two answers start to disagree. Each group
+   * carries ITS theme's resolved values: a summary sits beside every other
+   * theme, and a utility would paint all of them with the active one.
    */
-  swatches: Chip[];
+  swatches: SwatchGroup[];
 }
 
 /** One card per theme on disk, with its editor state attached. */
@@ -414,7 +416,7 @@ export function themeSummaries(): ThemeSummary[] {
           `${issue.path || "(document)"}: ${issue.message}`
         ),
       ],
-      swatches: paletteChips(text, activeMode()),
+      swatches: summarySwatches(text),
     };
   });
 }

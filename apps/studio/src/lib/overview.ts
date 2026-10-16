@@ -7,7 +7,7 @@
  * that is itself a reference would read as reference text.
  */
 
-import { aliasTarget, valuesInMode } from "@spin/theme";
+import { aliasTarget, themeModes, valuesInMode } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import { analyzeTheme } from "./theme.ts";
 import { groupTokens, toPx } from "./tokens.ts";
@@ -132,6 +132,40 @@ function resolve(
 /** The palette rows this theme declares, in palette order. */
 export function paletteChips(text: string, mode: string): Chip[] {
   return resolve(text, mode, PALETTE);
+}
+
+/** One mode's worth of the curated palette, as a summary strip shows it. */
+export interface SwatchGroup {
+  readonly mode: string;
+  readonly chips: readonly Chip[];
+}
+
+/**
+ * One palette per mode the theme declares, in declaration order.
+ *
+ * The overview shows EVERY theme, and a chip's utility can only paint the
+ * ACTIVE theme's token — which is exactly why every summary strip used to
+ * show the same colours. So these chips carry their own resolved values: a
+ * foreign document's colour is data, and the strip draws the data. The mode
+ * groups are the other half of the question: a theme that declares both
+ * modes answers `light` and `dark` separately, and a strip per mode is how
+ * an author sees what dark mode will be before switching into it.
+ *
+ * A document that does not parse claims no modes and shows no palette: an
+ * empty answer, because the overview keeps rendering while an author is
+ * half-way through typing.
+ */
+export function summarySwatches(text: string): SwatchGroup[] {
+  let declared: readonly string[];
+  try {
+    declared = themeModes(JSON.parse(text) as Record<string, unknown>);
+  } catch {
+    return [];
+  }
+  // No `modes` field means no claim; the base values still deserve a strip,
+  // and the studio's word for the base is `light`.
+  const modes: readonly string[] = declared.length > 0 ? declared : ["light"];
+  return modes.map((mode) => ({ mode, chips: paletteChips(text, mode) }));
 }
 
 /** The surface ladder this theme declares, from the page down. */

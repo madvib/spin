@@ -55,6 +55,26 @@ Deno.test("applyEdits refuses the whole batch when one path does not resolve", (
   );
 });
 
+Deno.test("applyEdits drops a dark override that says what the base says", () => {
+  // Seed an override, then say the base's own word in dark: an override is
+  // not a value, it is a difference — and a slot that differs from nothing
+  // has no business being in the document.
+  const withOverride = applyEdits(fixture(), [
+    { path: ["spacing", "4"], value: "1.5rem" },
+  ], "dark");
+  const back = applyEdits(withOverride, [
+    { path: ["spacing", "4"], value: "1rem" },
+  ], "dark");
+  const doc = JSON.parse(back) as {
+    spacing: Record<
+      string,
+      { $value: string; $modes?: Record<string, string> }
+    >;
+  };
+  assertEquals(doc.spacing["4"]?.$modes, undefined);
+  assertEquals(doc.spacing["4"]?.$value, "1rem");
+});
+
 Deno.test("createToken inserts a token the document does not have yet", () => {
   // The path may stand on groups nobody wrote: a component's character token
   // (`button.weight`) belongs to a vocabulary the manifest declares and the

@@ -11,20 +11,22 @@ export interface TokenEdit {
  * Apply token edits to the working document, as one edit.
  *
  * The mode picks where the values land: the tokens' own `$value`, or their
- * `$modes.dark`. Validation is a property of the control that produces the
- * value — a colour field emits colours, a scale emits steps — so a bad edit
- * cannot reach the document in the first place. The batch is all or
- * nothing, because a group scaled by one factor that half-landed is a
- * group whose ratios the factor never set.
+ * `$modes.dark`. A caller that knows which slot it is writing — a page that
+ * shows both slots at once, each with its own control — says so; a caller
+ * that follows the preview follows the active mode. Validation is a
+ * property of the control that produces the value — a colour field emits
+ * colours, a scale emits steps — so a bad edit cannot reach the document in
+ * the first place. The batch is all or nothing, because a group scaled by
+ * one factor that half-landed is a group whose ratios the factor never set.
  */
-export function editTokens(edits: readonly TokenEdit[]): boolean {
+export function editTokens(
+  edits: readonly TokenEdit[],
+  mode?: "base" | "dark",
+): boolean {
+  const slot = mode ?? (activeMode() === "dark" ? "dark" : "base");
   const next = (() => {
     try {
-      return applyEdits(
-        themeText(),
-        edits,
-        activeMode() === "dark" ? "dark" : "base",
-      );
+      return applyEdits(themeText(), edits, slot);
     } catch {
       return undefined;
     }
@@ -38,9 +40,13 @@ export function editTokens(edits: readonly TokenEdit[]): boolean {
   return themeText() !== before;
 }
 
-/** Apply one token edit. */
-export function editToken(path: string[], value: string): boolean {
-  return editTokens([{ path, value }]);
+/** Apply one token edit, into `mode`'s slot when the caller names one. */
+export function editToken(
+  path: string[],
+  value: string,
+  mode?: "base" | "dark",
+): boolean {
+  return editTokens([{ path, value }], mode);
 }
 
 /**

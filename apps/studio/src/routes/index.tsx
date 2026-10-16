@@ -17,7 +17,14 @@
  * resolved here, which is the check that the two answers still match.
  */
 
-import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { scaffoldTheme, treeToJson } from "@spin/theme";
@@ -27,8 +34,8 @@ import { inDrawer } from "../app.tsx";
 import {
   activeComponents,
   activeMode,
-  activeName,
   activeModes,
+  activeName,
   library,
   refetchThemes,
   registerMarkup,
@@ -37,11 +44,7 @@ import {
   themeSummaries,
   themeText,
 } from "../lib/store.ts";
-import {
-  copyTheme,
-  removeTheme,
-  saveTheme,
-} from "../lib/themes.ts";
+import { copyTheme, removeTheme, saveTheme } from "../lib/themes.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import { editorRouteFor, groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
@@ -169,9 +172,7 @@ export default function OverviewPage() {
   return (
     // The pane's paper is the project's, because its ink is: a header reading
     // `text-text` on the chrome's surface only agrees by luck.
-    <div
-      class="drawer-scroll flex-1 overflow-y-auto bg-surface p-4 sm:p-6 min-h-0 min-w-0"
-    >
+    <div class="drawer-scroll flex-1 overflow-y-auto bg-surface p-4 sm:p-6 min-h-0 min-w-0">
       <div class="mx-auto stack-lg max-w-6xl">
         <header class="stack-sm">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -270,20 +271,42 @@ export default function OverviewPage() {
                     </Show>
                   </div>
                   <Show
-                    when={summary.swatches.length > 0}
+                    when={summary.swatches.some((group) =>
+                      group.chips.length > 0
+                    )}
                     fallback={
                       <p class="text-xs text-text-muted">
                         No palette declared yet.
                       </p>
                     }
                   >
-                    <div class="flex h-6 overflow-hidden rounded-sm border border-border">
-                      <For each={summary.swatches}>
-                        {(chip) => (
-                          <span
-                            class={`flex-1 ${chip.paint}`}
-                            title={`${chip.label} ${chip.value}`}
-                          />
+                    <div class="stack-sm">
+                      <For
+                        each={summary.swatches.filter((group) =>
+                          group.chips.length > 0
+                        )}
+                      >
+                        {(group) => (
+                          <div class="flex items-center gap-2">
+                            <span class="w-10 shrink-0 font-mono text-xs text-text-muted">
+                              {group.mode}
+                            </span>
+                            <div class="flex h-6 flex-1 overflow-hidden rounded-sm border border-border">
+                              <For each={group.chips}>
+                                {(chip) => (
+                                  <span
+                                    class="flex-1"
+                                    // Every theme's OWN colour: a utility can
+                                    // only paint the active theme's tokens,
+                                    // and this strip sits beside every theme —
+                                    // the resolved value IS the data shown.
+                                    style={{ background: chip.value }}
+                                    title={`${chip.label} ${chip.value}`}
+                                  />
+                                )}
+                              </For>
+                            </div>
+                          </div>
                         )}
                       </For>
                     </div>
@@ -337,8 +360,13 @@ export default function OverviewPage() {
               <For each={issues()}>
                 {(issue) => (
                   <li class="panel flex flex-wrap items-baseline gap-2 text-sm">
-                    <A href={editorRouteFor(issue.path)} class="hover:underline">
-                      <code>{issue.path === "" ? "(document)" : issue.path}</code>
+                    <A
+                      href={editorRouteFor(issue.path)}
+                      class="hover:underline"
+                    >
+                      <code>
+                        {issue.path === "" ? "(document)" : issue.path}
+                      </code>
                     </A>
                     <span class="min-w-0 flex-1 text-text-muted">
                       {issue.message}
@@ -518,8 +546,10 @@ function ladderElements(steps: readonly Chip[]): JSX.Element {
         class={`stack-sm rounded-md border border-border p-3 ${step.paint}`}
       >
         <div class="split">
-          {/* Named, not inherited: the box paints the step's own surface, so
-              the label needs the ink that theme pairs with it. */}
+          {
+            /* Named, not inherited: the box paints the step's own surface, so
+              the label needs the ink that theme pairs with it. */
+          }
           <span class="text-sm text-text">{step.label}</span>
           <code class="text-xs text-text">{step.value}</code>
         </div>
@@ -623,7 +653,9 @@ function ShapeCard(props: {
                   class="h-12 w-full border-2 border-primary bg-surface"
                   style={{ "border-radius": `var(${row.variable})` }}
                 />
-                <code class="truncate text-xs">{row.path.split(".").pop()}</code>
+                <code class="truncate text-xs">
+                  {row.path.split(".").pop()}
+                </code>
               </div>
             )}
           </For>
@@ -634,7 +666,9 @@ function ShapeCard(props: {
                   class="h-12 w-full rounded-md bg-surface-raised"
                   style={{ "box-shadow": `var(${row.variable})` }}
                 />
-                <code class="truncate text-xs">{row.path.split(".").pop()}</code>
+                <code class="truncate text-xs">
+                  {row.path.split(".").pop()}
+                </code>
               </div>
             )}
           </For>
@@ -672,7 +706,9 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
                     style={{ width: `var(${row.variable})` }}
                   />
                 </span>
-                <code class="shrink-0 text-xs text-text-muted">{row.value}</code>
+                <code class="shrink-0 text-xs text-text-muted">
+                  {row.value}
+                </code>
               </div>
             )}
           </For>

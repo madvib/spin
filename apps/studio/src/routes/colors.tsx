@@ -1,10 +1,12 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { generateScale } from "@spin/theme";
+import { generateScale, valuesInMode } from "@spin/theme";
+import type { TokenTree } from "@spin/theme";
 import { inDrawer } from "../app.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
-import { activeMode, themeText } from "../lib/store.ts";
+import { activeMode, activeModes, themeText } from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
+import { tokenValue } from "../lib/overview.ts";
 
 /**
  * Colors — every color token, grouped by family, edited beside its swatch.
@@ -14,6 +16,12 @@ import { editToken } from "../lib/editing.ts";
  * A color page is a palette first — the families read as rows of swatches,
  * and the selected swatch expands its editor inline. The swatch IS the
  * control's label: click it to edit, see the value move in place.
+ *
+ * Both modes are on the page at once, because a preview stands in one mode
+ * at a time and dark overrides are invisible until you switch into them.
+ * Each slot writes where it sits: light the token's own `$value`, dark its
+ * `$modes.dark` — and a dark slot saying what the light slot says is a slot
+ * with nothing to say, so it drops out of the document.
  */
 
 /**
@@ -38,9 +46,40 @@ function familyOf(path: string): string {
   return "accents";
 }
 
-/** One swatch: the color itself, opening its picker in place. */
+/** Where a slot's commit lands: the token's own value, or the dark one. */
+function commitSlot(mode: string): "base" | "dark" {
+  return mode === "dark" ? "dark" : "base";
+}
+
+/** What a token is worth in a mode, references followed. */
+function valueIn(tree: TokenTree | undefined, mode: string, path: string) {
+  return tree === undefined ? undefined : tokenValue(tree, mode, path);
+}
+
+/** A slot's chip: the color this mode actually renders, as data. */
+function ModeChip(props: { path: string; mode: string }) {
+  const tree = createMemo(() => analyzeTheme(themeText()).tree);
+  return (
+    <span
+      class="h-8 w-12 shrink-0 rounded-sm border border-border"
+      // The active mode's variable would resolve both chips to the one mode
+      // being previewed; each chip is its own mode's answer, drawn from the
+      // document. A value the document cannot resolve paints nothing.
+      style={{ background: valueIn(tree(), props.mode, props.path) ?? "" }}
+      title={`${props.path} · ${props.mode}`}
+      aria-hidden="true"
+    />
+  );
+}
+
+/**
+ * One hue: its slots side by side, light first.
+ *
+ * Light stays the swatch's first input, so the first colour the page offers * is the token's own `$value` — the one an oracle or a script reaches for
+ * without naming a mode.
+ */
 function Swatch(props: { row: TokenRow }) {
-  const id = `token-${props.row.path}`;
+  const tree = createMemo(() => analyzeTheme(themeText()).tree);
   return (
     <div class="stack-sm">
       {
@@ -52,21 +91,37 @@ function Swatch(props: { row: TokenRow }) {
         itself on hover.
       */
       }
-      <label
-        class="block h-12 w-full cursor-pointer rounded-md border border-border shrink-0"
-        style={{ background: `var(${props.row.variable})` }}
-        title={props.row.path}
-      >
-        <span class="visually-hidden">{props.row.path}</span>
-        <input
-          id={id}
-          type="color"
-          class="visually-hidden"
-          value={props.row.value}
-          onChange={(event) =>
-            editToken(props.row.path.split("."), event.currentTarget.value)}
-        />
-      </label>
+      <div class="flex h-12 gap-1">
+        <For each={activeModes()}>
+          {(mode) => {
+            const value = () =>
+              valueIn(tree(), mode, props.row.path) ?? props.row.value;
+            return (
+              <label
+                class="block h-12 flex-1 cursor-pointer rounded-md border border-border shrink-0"
+                style={{ background: value() }}
+                title={`${props.row.path} · ${mode}`}
+              >
+                <span class="visually-hidden">
+                  {props.row.path} in {mode}
+                </span>
+                <input
+                  id={`token-${props.row.path}-${mode}`}
+                  type="color"
+                  class="visually-hidden"
+                  value={value()}
+                  onChange={(event) =>
+                    editToken(
+                      props.row.path.split("."),
+                      event.currentTarget.value,
+                      commitSlot(mode),
+                    )}
+                />
+              </label>
+            );
+          }}
+        </For>
+      </div>
       <span class="truncate text-center text-xs text-text-muted">
         {props.row.path.split(".").pop()}
       </span>
@@ -92,7 +147,8 @@ export default function ColorsPage() {
     <div class="drawer-scroll flex-1 overflow-y-auto p-4 min-h-0 min-w-0">
       <h1 class="text-2xl">Colors</h1>
       <p>
-        What exists, then what it is for. Editing writes to the active mode.
+        What exists, then what it is for. Light and dark edit side by side — a
+        dark slot saying what the light one says drops out of the document.
       </p>
       <section class="stack-sm mb-6" aria-label="Hues">
         <h2 class="text-xl">Hues</h2>
@@ -121,8 +177,11 @@ export default function ColorsPage() {
 }
 
 /**
- * One role: the job named, the current hue as a chip, the picker as a list
- * of hues. No hex field — a role holds a reference, and the control makes
+ * One role: the job named, then a line per mode — that mode's resolved
+ * color as a chip, and the hue list its reference points at. A dark role
+ * often points somewhere else entirely (surface on the dark surface, on-*
+ * flipped onto light ink), so both references are the role's value and both
+ * edit here. No hex field — a role holds a reference, and the control makes
  * anything else unrepresentable instead of validated.
  */
 function RoleRow(props: { row: TokenRow }) {
@@ -134,37 +193,55 @@ function RoleRow(props: { row: TokenRow }) {
       (row) => familyOf(row.path) !== "roles",
     );
   });
-  const target = () => props.row.value.match(/^\{(.+)\}$/)?.[1] ?? null;
+  /** This mode's authored value: the reference as written, or a raw color. */
+  function raw(mode: string): string | null {
+    const current = tree();
+    if (!current) return null;
+    const value = valuesInMode(current, mode).get(props.row.path);
+    return typeof value === "string" || typeof value === "number"
+      ? String(value)
+      : null;
+  }
+  const target = (mode: string) => raw(mode)?.match(/^\{(.+)\}$/)?.[1] ?? null;
   return (
-    <div class="row-sm rounded-md border border-border p-2">
-      <span
-        class="h-8 w-12 shrink-0 rounded-sm border border-border"
-        style={{ background: `var(${props.row.variable})` }}
-        aria-hidden="true"
-      />
-      <span class="min-w-[8rem] flex-1 truncate font-medium">
+    <div class="stack-sm rounded-md border border-border p-2">
+      <span class="truncate font-medium">
         {props.row.path.split(".").slice(1).join(" ")}
       </span>
-      <select
-        class="min-w-0 flex-1"
-        aria-label={`${props.row.path} points at`}
-        value={target() ?? ""}
-        onChange={(event) => {
-          const next = event.currentTarget.value;
-          if (next) editToken(props.row.path.split("."), `{${next}}`);
-        }}
-      >
-        <Show when={target() === null}>
-          <option value="">a raw value — pick a hue to reference</option>
-        </Show>
-        <For each={hues()}>
-          {(hue) => (
-            <option value={hue.path} selected={hue.path === target()}>
-              {hue.path.split(".").slice(1).join(" ")}
-            </option>
-          )}
-        </For>
-      </select>
+      <For each={activeModes()}>
+        {(mode) => (
+          <div class="row-sm">
+            <ModeChip path={props.row.path} mode={mode} />
+            <span class="w-10 shrink-0 text-xs text-text-muted">{mode}</span>
+            <select
+              class="min-w-0 flex-1"
+              aria-label={`${props.row.path} points at in ${mode}`}
+              value={target(mode) ?? ""}
+              onChange={(event) => {
+                const next = event.currentTarget.value;
+                if (next) {
+                  editToken(
+                    props.row.path.split("."),
+                    `{${next}}`,
+                    commitSlot(mode),
+                  );
+                }
+              }}
+            >
+              <Show when={target(mode) === null}>
+                <option value="">a raw value — pick a hue to reference</option>
+              </Show>
+              <For each={hues()}>
+                {(hue) => (
+                  <option value={hue.path}>
+                    {hue.path.split(".").slice(1).join(" ")}
+                  </option>
+                )}
+              </For>
+            </select>
+          </div>
+        )}
+      </For>
     </div>
   );
 }
