@@ -42,6 +42,9 @@ export interface ControlledDef {
   /** A parsed null alternates (clears) rather than skipping: nullable text
    * channels where null is a value, not a failed parse. */
   readonly nullable?: true;
+  /** Host writes apply without reporting (assign-mode implies it): the
+   * machine's own sends own the events. Event channels report by default. */
+  readonly silent?: true;
   /** Reads the channel's current value: context field by default, derived
    * state otherwise (open-ness lives in the phase, not the context). */
   readonly current?: (context: Record<string, unknown>, state: string) => unknown;
@@ -194,11 +197,6 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
-  /** Host writes apply silently: the effect wakes bindings with a tick
-   * but never reports — machine sends own the events, diffing before/after
-   * snapshots that already include the silently applied writes. Default
-   * false: sync moves notify as commits. */
-  readonly silentSync?: true;
   /** Derived context sync inside the owned effect (collection order/labels
    * re-homed over a changed item tree). Reads parsed props, may assign
    * derived caches directly and send re-homing events. Returns true when

@@ -90,7 +90,6 @@ export function defineComponent<
       a.length === b.length && a.every((value, index) => value === b[index]);
 
     return {
-      ...(def.silentSync === true ? { silentSync: true as const } : {}),
       seed: (props, authored) => def.seed(parse(props), authored) as Partial<C>,
       establish: (svc, props, authored) => {
         if (def.establish === undefined) return;
@@ -101,6 +100,7 @@ export function defineComponent<
       },
       sync: (svc, props, authored, send) => {
         let moved = false;
+        let loud = false;
         const parsed = parse(props);
         for (const [name, channel] of Object.entries(def.channels)) {
           if (channel.controlled !== true) continue;
@@ -116,32 +116,48 @@ export function defineComponent<
             : context[name];
           const same = channel.equal ?? ((a, b) => a === b);
           if (!same(current, outer)) {
+            // Assign-mode writes (and explicit silent channels) apply
+            // without reporting; the machine's own sends own the events.
+            const silent = channel.assign === true || channel.silent === true;
             if (channel.assign === true) {
               ((svc.state.context as object) as Record<string, unknown>)[name] = outer;
             } else {
               send(channel.event(outer as never) as E);
             }
             moved = true;
+            if (!silent) loud = true;
           }
         }
-        return moved;
+        return { moved, loud };
       },
       kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
       refresh: (svc, props, authored) => {
-        if (def.scalars === undefined && def.scalarsOf === undefined) return;
+        if (def.scalars === undefined && def.scalarsOf === undefined) return false;
         const parsed = parse(props);
+        const context = (svc.state.context as object) as Record<string, unknown>;
         if (def.scalarsOf !== undefined) {
-          Object.assign(svc.state.context, def.scalarsOf(parsed, authored));
-          return;
+          const merge = def.scalarsOf(parsed, authored);
+          let moved = false;
+          for (const [key, value] of Object.entries(merge)) {
+            if (context[key] !== value) {
+              context[key] = value;
+              moved = true;
+            }
+          }
+          return moved;
         }
-        const merge: Record<string, unknown> = {};
         // Nullish parses never merge: scalar channels default at parse,
         // so nullish means "prop absent, parse nullable" (largeStep before
         // its step-dependent default) — never a value the context holds.
+        let moved = false;
         for (const name of def.scalars ?? []) {
-          if (parsed[name] !== null && parsed[name] !== undefined) merge[name] = parsed[name];
+          if (parsed[name] === null || parsed[name] === undefined) continue;
+          if (context[name] !== parsed[name]) {
+            context[name] = parsed[name];
+            moved = true;
+          }
         }
-        Object.assign(svc.state.context, merge);
+        return moved;
       },
       notify: (svc, callbacks, kind, event, before, parsed) => {
         const context = (svc.state.context as object) as Record<string, unknown>;

@@ -455,7 +455,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       },
     },
   },
-  silentSync: true,
   scalarsOf: (parsed) => ({
     max: parsed["max"],
     allowOverflow: parsed["allowOverflow"],

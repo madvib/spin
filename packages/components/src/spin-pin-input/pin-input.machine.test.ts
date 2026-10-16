@@ -1,13 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createPinInputBridge } from "./pin-input.bridge.ts";
+import { pinInput } from "./pin-input.def.ts";
+const createPinInputBridge = pinInput.createBridge;
+import type { PinInputApi } from "./pin-input.def.ts";
 import type {
   PinInputValueChange,
   PinInputValueComplete,
   PinInputValueInvalid,
-} from "./pin-input.bridge.ts";
-import type { PinInputApi } from "./pin-input.connect.ts";
+} from "./pin-input.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

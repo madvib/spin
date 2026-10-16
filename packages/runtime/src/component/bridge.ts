@@ -58,13 +58,15 @@ export interface BridgeHooks<
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
   ): void;
-  /** Alternate authored channels against the machine. Return true when a send moved state. */
+  /** Alternate authored channels against the machine. Returns whether
+   * anything moved and whether the move reports (silent channels apply
+   * without events). */
   sync(
     svc: Service<C, E>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
     send: (event: E) => void,
-  ): boolean;
+  ): { readonly moved: boolean; readonly loud: boolean };
   /** Report what moved. `defineBridge` threads the kind and the triggering
    * event (undefined from the sync effect). Cursors live in the hooks closure. */
   notify(
@@ -88,8 +90,6 @@ export interface BridgeHooks<
     authored: (name: string) => boolean,
     send: (event: E) => void,
   ): boolean;
-  /** Host writes apply silently (no effect notify). Static per def. */
-  readonly silentSync?: boolean;
   /** Once, after the first connect build (cells exist in markup): entry
    * focus and other mount-time view reflexes. */
   mounted?(args: {
@@ -103,12 +103,14 @@ export interface BridgeHooks<
     readonly after: { readonly context: C; readonly state: string };
     readonly props: () => Record<string, unknown>;
   }): void;
-  /** Merge parsed props into machine context before a send. Absent, sends go direct. */
+  /** Merge parsed props into machine context (pre-send and in the owned
+   * effect, so a host scalar write lands without waiting for a gesture).
+   * Returns true when a field moved. Absent, sends go direct. */
   refresh?(
     svc: Service<C, E>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
-  ): void;
+  ): boolean;
   readCallbacks(props: () => Record<string, unknown>): Callbacks;
   readConnectProps(props: () => Record<string, unknown>): ConnectProps;
   connect(service: BridgeService<C, E>, readProps: () => ConnectProps, id: string): Api;
@@ -263,14 +265,17 @@ export function defineBridge<
       untrack(() => {
       const svc = ensureService();
       // The cursors stay on the pre-write values while the events send.
+      // The cursors stay on the pre-write values while the events send.
       const beforeContext = { ...svc.state.context };
-      const channelMoved = hooks.sync(svc, props, authored, (event) => transmit(event));
+      const scalarMoved = hooks.refresh?.(svc, props, authored) ?? false;
+      const syncResult = hooks.sync(svc, props, authored, (event) => transmit(event));
       const parsed = hooks.readConnectProps(props) as Record<string, unknown>;
       const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => transmit(event)) ?? false;
-      const moved = channelMoved || derivedMoved;
+      const moved = scalarMoved || syncResult.moved || derivedMoved;
+      const loud = syncResult.loud || derivedMoved;
       if (moved) {
         tick(tick() + 1);
-        if (hooks.silentSync !== true) {
+        if (loud) {
           hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, hooks.readConnectProps(props) as Record<string, unknown>);
         }
       }
