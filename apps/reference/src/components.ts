@@ -65,6 +65,29 @@ for (const [path, html] of Object.entries(recipeModules)) {
  * `machine/stem`. The loading example's `loadChildren` is what a consumer
  * writes in their own code (see the note in the example source). */
 const EXAMPLE_ONLOAD: Record<string, string> = {
+  "toast/promise": `
+    document.querySelectorAll("toast-promise").forEach((pg) => {
+      const id = "upload";
+      pg.create({ id: id, title: "Uploading file...", description: "Please wait.", type: "loading", duration: 0, priority: 0, action: "" });
+      setTimeout(() => {
+        pg.update(id, { title: "Upload successful!", description: "Your file is live.", type: "success", duration: 5000 });
+      }, 2500);
+    });`,
+  "toast/updatable": `
+    document.querySelectorAll("toast-updatable").forEach((pg) => {
+      const id = "progress";
+      pg.create({ id: id, title: "Uploading...", description: "Starting.", type: "loading", duration: 0, priority: 0, action: "" });
+      let step = 0;
+      const timer = setInterval(() => {
+        step += 1;
+        if (step >= 3) {
+          clearInterval(timer);
+          pg.update(id, { title: "Upload complete!", description: "Done.", type: "success", duration: 5000 });
+        } else {
+          pg.update(id, { description: "Part " + step + " of 3." });
+        }
+      }, 1200);
+    });`,
   "pagination/dropdown": `
     document.querySelectorAll("pagination-dropdown").forEach((pg) => {
       pg.querySelectorAll("[data-size]").forEach((btn) => {

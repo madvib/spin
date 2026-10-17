@@ -638,6 +638,8 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
       call: (context) => {
         // The `for` effect re-runs only on signals its source reads: the
         // tick is the subscription that re-reads the queue after a move.
+        // Rows rebind on resync (the row update repoints the binding),
+        // so plain entries are enough — no live getters needed.
         machineTick();
         return [...(context as unknown as Ctx).toasts];
       },

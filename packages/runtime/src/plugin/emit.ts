@@ -98,11 +98,15 @@ export function emit(ir: ComponentIr): EmitOutput {
         out.push(`${pad(depth + 2)}items: () => ((${scopeExpr(node.source, bound)}) ?? []),`);
         out.push(`${pad(depth + 2)}key: ${key},`);
         out.push(`${pad(depth + 2)}render: (item, i) => {`);
-        out.push(`${pad(depth + 3)}const ${node.binding} = item;`);
+        // Rebindable: resync swaps the cell's item on every move, and the
+        // update below repoints the binding before re-running the row's
+        // effects — otherwise a row closes over its render-time item and
+        // field updates (a toast retitle, a step rename) never display.
+        out.push(`${pad(depth + 3)}let ${node.binding} = item;`);
         out.push(`${pad(depth + 3)}const rowParts = [];`);
         out.push(`${pad(depth + 3)}const frag = document.createDocumentFragment();`);
         for (const line of emitNodes(node.body, depth + 3, "frag", "rowParts", withRow)) out.push(line);
-        out.push(`${pad(depth + 3)}return { nodes: [...frag.childNodes], update() { for (const u of rowParts) u(); } };`);
+        out.push(`${pad(depth + 3)}return { nodes: [...frag.childNodes], update(item) { ${node.binding} = item; for (const u of rowParts) u(); } };`);
         out.push(`${pad(depth + 2)}}});`);
         out.push(`${pad(depth)}}`);
         continue;

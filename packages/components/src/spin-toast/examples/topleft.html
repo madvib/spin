@@ -1,0 +1,36 @@
+<scope>props={ placement: string = "top-start", items: { id: string, title: string, description: string, type: string, duration: int, priority: int, action: string }[] = [{"id":"pos","title":"top-start","description":"Toast from top-start.","type":"info","duration":5000,"priority":1}] } consume={ toast }</scope>
+
+
+<div
+  class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col [gap:var(--toast-gap,1rem)] px-4 data-[side=top]:[top:var(--toast-offset,1rem)] data-[side=bottom]:[bottom:var(--toast-offset,1rem)] data-[align=start]:[left:var(--toast-offset,1rem)] data-[align=end]:[right:var(--toast-offset,1rem)] data-[align=center]:left-1/2 data-[align=center]:right-1/2"
+  {...toast.getGroupProps()}
+>
+  <template for={toast.getToasts()} as={row} key={row.id}>
+    <div
+      class="pointer-events-auto absolute inset-x-0 origin-bottom data-[side=top]:origin-top data-[side=bottom]:bottom-0 [transform:translateY(var(--toast-y,0px))] [scale:var(--toast-scale,1)] [z-index:var(--toast-z,0)] [opacity:var(--toast-opacity,1)] transition-all duration-fast ease-decelerate data-[state=closed]:pointer-events-none"
+      {...toast.getToastProps(row)}
+    >
+      <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate data-[paused]:bg-surface">
+        <span
+          aria-hidden="true"
+          data-type={row.type}
+          class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate data-[type=success]:text-semantic-success data-[type=warning]:text-semantic-warning data-[type=error]:text-semantic-error data-[type=info]:text-accent"
+        ><span class="i-lucide-circle text-[0.4rem]" aria-hidden="true"></span></span>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>
+          <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
+          <button
+            type="button"
+            class="mt-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
+            {...toast.getActionTriggerProps(row)}
+          >{row.action}</button>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 rounded-md p-1 text-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text focus-visible:ring-2 focus-visible:ring-border-strong"
+          {...toast.getCloseTriggerProps(row)}
+        ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </template>
+</div>

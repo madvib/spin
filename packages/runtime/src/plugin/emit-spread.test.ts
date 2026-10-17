@@ -16,7 +16,8 @@ Deno.test("emit for-template produces balanced bindFor without .sync wrapper", (
   assertStringIncludes(js, "bindFor(");
   assertStringIncludes(js, "items: () => ((values.items) ?? [])");
   assertStringIncludes(js, "render: (item, i) => {");
-  assertStringIncludes(js, "const row = item;");
+  assertStringIncludes(js, "let row = item;");
+  assertStringIncludes(js, "update(item) { row = item;");
   // Regression: no stale .sync wrapper
   assertEquals(js.includes(".sync"), false);
   // Regression: template-literal brace-eat — braces in expressions preserved
@@ -27,7 +28,8 @@ Deno.test("row binding avoids render-param shadow inside for-template", () => {
   const ir = parse(`<template for={items} as={row}><span>{row.name}</span></template>`);
   const { js } = emit(ir);
   // Inside render, `row` is the local item param, NOT values.row
-  assertStringIncludes(js, "const row = item;");
+  assertStringIncludes(js, "let row = item;");
+  assertStringIncludes(js, "update(item) { row = item;");
   // The text expression uses bare `row.name`, not `values.row.name`
   assertStringIncludes(js, "row.name");
   assertEquals(js.includes("values.row.name"), false);
