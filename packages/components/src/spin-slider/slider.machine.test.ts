@@ -227,3 +227,10 @@ Deno.test("thumb percents feed the geometry channel", () => {
   const style = bag["style"] as Record<string, unknown>;
   assertEquals(style["--slider-thumb"], "25%");
 });
+
+Deno.test("shift+arrow moves by the parsed large step, not the raw prop", () => {
+  const { api } = mount({ defaultValue: [50] });
+  handler<() => void>(thumb(api, 0), "onFocus")();
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("ArrowRight", true));
+  assertEquals(api.value, [60], "largeStep defaults to 10x step");
+});

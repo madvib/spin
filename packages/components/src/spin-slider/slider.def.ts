@@ -449,7 +449,9 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
             if (event.defaultPrevented) return;
             if (!isInteractive(asCtx(scope.context))) return;
             if (isComposing(event)) return;
-            const large = event.shiftKey ? (scope.props["largeStep"] as number) : undefined;
+            // Parsed, not raw: largeStep defaults to 10x step in the
+            // channel parse, which raw props never see.
+            const large = event.shiftKey ? asCtx(scope.context).largeStep : undefined;
             const keyed = (type: string): boolean => {
               event.preventDefault();
               event.stopPropagation();
