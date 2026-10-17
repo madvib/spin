@@ -38,6 +38,8 @@ function panelOf(el: Element): HTMLElement | null {
   return el.querySelector("[popover]") as HTMLElement | null;
 }
 
+let instanceCounter = 0;
+
 export function attachPopover(el: Element): PopoverApi {
   const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
 
@@ -52,8 +54,9 @@ export function attachPopover(el: Element): PopoverApi {
     emit((event as ToggleEvent).newState === "open");
   }, true);
 
-  const triggerId = `${el.id || "popover"}:trigger`;
-  const panelId = `${el.id || "popover"}:panel`;
+  const instance = el.id !== "" ? el.id : `${"popover-"}${++instanceCounter}`;
+  const triggerId = `${instance}:trigger`;
+  const panelId = `${instance}:panel`;
 
   return {
     get open(): boolean {
@@ -64,12 +67,16 @@ export function attachPopover(el: Element): PopoverApi {
     toggle: () => panelOf(el)?.togglePopover(),
     getTriggerProps: () => ({
       id: triggerId,
+      "data-scope": "popover",
+      "data-part": "trigger",
       popovertarget: panelId,
       "aria-expanded": readOpen(),
       "data-state": readOpen() ? "open" : "closed",
     }),
     getContentProps: () => ({
       id: panelId,
+      "data-scope": "popover",
+      "data-part": "content",
       popover: "",
       "data-state": readOpen() ? "open" : "closed",
     }),

@@ -60,6 +60,8 @@ function intAttr(el: Element, name: string, fallback: number): number {
   return Number.isNaN(parsed) ? fallback : parsed;
 }
 
+let instanceCounter = 0;
+
 export function attachHoverCard(el: Element): HoverCardApi {
   const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
   const disabled = el.hasAttribute("disabled");
@@ -90,8 +92,9 @@ export function attachHoverCard(el: Element): HoverCardApi {
 
   const geometry = signal<AnchorGeometry>({ x: 0, y: 0, w: 0, h: 0, placement: "bottom" });
 
-  const triggerId = `${el.id || "hover-card"}:trigger`;
-  const panelId = `${el.id || "hover-card"}:panel`;
+  const instance = el.id !== "" ? el.id : `${"hover-card-"}${++instanceCounter}`;
+  const triggerId = `${instance}:trigger`;
+  const panelId = `${instance}:panel`;
 
   return {
     get open(): boolean {
@@ -100,6 +103,8 @@ export function attachHoverCard(el: Element): HoverCardApi {
     show,
     hide,
     getRootProps: () => ({
+      "data-scope": "hover-card",
+      "data-part": "root",
       "data-state": readOpen() ? "open" : "closed",
       ...(disabled
         ? {}
@@ -114,6 +119,8 @@ export function attachHoverCard(el: Element): HoverCardApi {
     }),
     getTriggerProps: () => ({
       id: triggerId,
+      "data-scope": "hover-card",
+      "data-part": "trigger",
       "aria-expanded": readOpen(),
       "data-state": readOpen() ? "open" : "closed",
       ...(disabled ? { disabled: true } : {}),
@@ -122,6 +129,8 @@ export function attachHoverCard(el: Element): HoverCardApi {
     }),
     getContentProps: () => ({
       id: panelId,
+      "data-scope": "hover-card",
+      "data-part": "content",
       popover: "",
       "data-state": readOpen() ? "open" : "closed",
       "data-placement": geometry().placement,

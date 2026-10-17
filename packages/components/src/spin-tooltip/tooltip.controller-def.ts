@@ -43,6 +43,8 @@ function panelOf(el: Element): HTMLElement | null {
   return el.querySelector("[popover]") as HTMLElement | null;
 }
 
+let instanceCounter = 0;
+
 export function attachTooltip(el: Element): TooltipApi {
   const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
 
@@ -67,8 +69,9 @@ export function attachTooltip(el: Element): TooltipApi {
     panel.hidePopover();
   };
 
-  const triggerId = `${el.id || "tooltip"}:trigger`;
-  const panelId = `${el.id || "tooltip"}:panel`;
+  const instance = el.id !== "" ? el.id : `${"tooltip-"}${++instanceCounter}`;
+  const triggerId = `${instance}:trigger`;
+  const panelId = `${instance}:panel`;
   const geometry = signal<AnchorGeometry>({ x: 0, y: 0, w: 0, h: 0, placement: "bottom" });
   return {
     get open(): boolean {
@@ -78,6 +81,8 @@ export function attachTooltip(el: Element): TooltipApi {
     hide,
     getTriggerProps: () => ({
       id: triggerId,
+      "data-scope": "tooltip",
+      "data-part": "trigger",
       "aria-describedby": panelId,
       "data-state": readOpen() ? "open" : "closed",
       "use:hover-delay": {
@@ -89,6 +94,8 @@ export function attachTooltip(el: Element): TooltipApi {
     }),
     getContentProps: () => ({
       id: panelId,
+      "data-scope": "tooltip",
+      "data-part": "content",
       popover: "",
       role: "tooltip",
       "data-placement": geometry().placement,
