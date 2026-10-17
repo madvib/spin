@@ -346,7 +346,21 @@ export default function Home(): JSX.Element {
       {/* Below the fold: an application, then the layers, then where to go. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
         <Reveal>
-          <Console />
+          <div class="mt-16">
+            <Section title="The console">
+              <p class="m-0 mb-6 max-w-prose text-text-muted">
+                A back-office screen — sidebar, stats, orders table — built from
+                the elements and classes this page documents:{" "}
+                <code class="text-xs">&lt;card&gt;</code>,{" "}
+                <code class="text-xs">&lt;alert&gt;</code>,{" "}
+                <code class="text-xs">&lt;badge&gt;</code>,{" "}
+                <code class="text-xs">&lt;table&gt;</code>, and the utility
+                classes the section below teaches. The status chips and the
+                search filter the rows.
+              </p>
+              <Console />
+            </Section>
+          </div>
         </Reveal>
 
         <Reveal>
@@ -387,10 +401,10 @@ export default function Home(): JSX.Element {
               <div class="grid gap-6 md:grid-cols-2">
                 <p class="m-0 max-w-prose">
                   The studio is the theme editor, mounted into the app it is
-                  editing — this site included, as below. It docks to either
-                  side of that app or takes the whole screen, and every change
-                  repaints the app beside it: themes, palettes, type, motion,
-                  spacing, the components. The <strong>Theme</strong>{" "}
+                  editing — this site included. It docks to either side of that
+                  app or takes the whole screen, and every change repaints the
+                  app beside it: themes, palettes, type, motion, spacing, the
+                  components. The <strong>Theme</strong>{" "}
                   button in the corner of this page opens it on this page.
                 </p>
                 <div class="flex flex-col justify-center gap-2 md:max-w-xs">
@@ -406,12 +420,6 @@ export default function Home(): JSX.Element {
                   </For>
                 </div>
               </div>
-              <img
-                src="/studio.png"
-                loading="lazy"
-                alt="This site with the studio docked to its right, editing the theme the site is wearing"
-                class="mt-6 w-full rounded-md border border-border"
-              />
               <div class="mt-6 grid gap-6 md:grid-cols-2">
                 <p class="m-0">Update your theme live in the studio.</p>
                 <div class="border border-border bg-surface-raised rounded-md p-4">
