@@ -415,7 +415,12 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         const paused = scope.state === "paused";
         // Which triggers the phase answers: a stopped clock offers start
         // and restart, a running one pause and reset, a paused one resume,
-        // reset and restart.
+        // reset and restart. Reset hides only when there is nothing to
+        // reset (fresh clock) — never an empty control mid-run.
+        const ctx = asCtx(scope.context);
+        const atStart = ctx.countdown
+          ? ctx.currentMs >= ctx.startMs
+          : ctx.currentMs <= 0;
         const hidden = action === "start"
           ? running || paused
           : action === "pause"
@@ -423,7 +428,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
           : action === "resume"
           ? !paused
           : action === "reset"
-          ? !running && !paused
+          ? atStart && !running && !paused
           : false;
         return {
           id: scope.id("actionTrigger", action),

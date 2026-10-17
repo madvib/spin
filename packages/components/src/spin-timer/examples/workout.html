@@ -11,5 +11,9 @@
       </template>
     </div>
     <div class="mt-1 text-sm opacity-80">seconds</div>
+    <div class="mt-4 flex items-center justify-center gap-2" {...timer.getControlProps()}>
+      <button aria-label="Pause" class="grid h-10 w-10 place-items-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30" {...timer.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-sm"></span></button>
+      <button aria-label="Reset" class="grid h-10 w-10 place-items-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30" {...timer.getActionTriggerProps({ action: "reset" })}><span class="i-lucide-rotate-ccw text-sm"></span></button>
+    </div>
   </div>
 </div>
