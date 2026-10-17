@@ -1,6 +1,7 @@
-<scope>props={ label: string = "Panel", defaultOpen: string = "true" } consume={ floatingPanel }</scope>
+<scope>props={ label: string = "Panel", defaultOpen: bool = true } consume={ floatingPanel }</scope>
 
 <div class="relative h-96">
+  <button type="button" class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
   <div class="relative" {...floatingPanel.getPositionerProps()}>
     <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden data-[stage=maximized]:left-0 data-[stage=maximized]:top-0 data-[stage=maximized]:h-full data-[stage=maximized]:w-full [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)]" {...floatingPanel.getContentProps()}>
       <div class="flex items-center justify-between gap-2 border-b border-border p-3" {...floatingPanel.getDragTriggerProps()}>
@@ -8,7 +9,10 @@
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Basic Panel</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getMinimizeProps()}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageProps()}>
+            <span class="i-lucide-minus hidden text-xs data-[stage=restored]:inline-block" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
+            <span class="i-lucide-square hidden text-xs data-[stage=minimized]:inline-block data-[stage=maximized]:inline-block" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
+          </button>
           <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-2 p-4 text-sm text-muted">

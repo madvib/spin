@@ -1,6 +1,7 @@
-<scope>props={ label: string = "Calculator", defaultOpen: string = "true" } consume={ floatingPanel }</scope>
+<scope>props={ label: string = "Calculator", defaultOpen: bool = true } consume={ floatingPanel }</scope>
 
 <div class="relative h-96">
+  <button type="button" class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
   <div class="relative" {...floatingPanel.getPositionerProps()}>
     <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden data-[stage=maximized]:left-0 data-[stage=maximized]:top-0 data-[stage=maximized]:h-full data-[stage=maximized]:w-full [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)]" {...floatingPanel.getContentProps()}>
       <div class="flex items-center justify-between gap-2 border-b border-border p-3" {...floatingPanel.getDragTriggerProps()}>
