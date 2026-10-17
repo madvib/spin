@@ -480,6 +480,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], asCtx(scope.context).value.length === 0, scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id("root"),
+        "data-scope": "tags-input",
+        "data-part": "root",
         dir: scope.props["dir"],
         "data-invalid": scope.attr(invalidOf(scope)),
         "data-readonly": scope.attr(scope.props["readOnly"] === true),
@@ -497,6 +499,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"], scope.props["required"]].join(""),
       attrs: (scope) => ({
         id: scope.id("label"),
+        "data-scope": "tags-input",
+        "data-part": "label",
         dir: scope.props["dir"],
         for: scope.id("input"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -509,6 +513,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id("control"),
+        "data-scope": "tags-input",
+        "data-part": "control",
         dir: scope.props["dir"],
         tabIndex: scope.props["readOnly"] === true ? 0 : undefined,
         "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -527,6 +533,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         const empty = context.value.length === 0;
         return {
           id: scope.id("input"),
+        "data-scope": "tags-input",
+        "data-part": "input",
           dir: scope.props["dir"],
           type: "text",
           autoComplete: "off",
@@ -642,6 +650,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           readOnly: scope.props["readOnly"],
           required: scope.props["required"],
           id: scope.id("hiddenInput"),
+        "data-scope": "tags-input",
+        "data-part": "hidden-input",
           value: context.value.join(", "),
           // Zag's trackFormControl: a form reset returns the tags to the
           // seeded value. The rest of that effect (fieldset disabled) has
@@ -662,6 +672,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         const empty = asCtx(scope.context).value.length === 0;
         return {
           id: scope.id("clearTrigger"),
+        "data-scope": "tags-input",
+        "data-part": "clear-trigger",
           type: "button",
           dir: scope.props["dir"],
           "data-readonly": scope.attr(scope.props["readOnly"] === true),
@@ -682,6 +694,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       sig: () => "",
       attrs: (scope) => ({
         id: scope.id("liveRegion"),
+        "data-scope": "tags-input",
+        "data-part": "live-region",
         role: "status",
         "aria-live": "assertive",
         "aria-atomic": true,
@@ -699,6 +713,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         const row = scope.slot as unknown as TagsRow;
         return {
           dir: scope.props["dir"],
+          "data-scope": "tags-input",
+          "data-part": "item",
           "data-value": row.value,
           "data-disabled": scope.attr(scope.props["disabled"] === true),
         };
@@ -717,6 +733,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         return {
           id: tagIdOf(scope.id, row),
           dir: scope.props["dir"],
+          "data-scope": "tags-input",
+          "data-part": "item-preview",
           hidden: state.editing,
           "data-value": row.value,
           "data-disabled": scope.attr(state.disabled),
@@ -737,6 +755,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         const state = stateOf(scope, scope.slot as unknown as TagsRow);
         return {
           dir: scope.props["dir"],
+          "data-scope": "tags-input",
+          "data-part": "item-text",
           "data-disabled": scope.attr(state.disabled),
           "data-highlighted": scope.attr(state.highlighted),
         };
@@ -755,6 +775,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         return {
           id: `${tagIdOf(scope.id, row)}:input`,
           dir: scope.props["dir"],
+          "data-scope": "tags-input",
+          "data-part": "item-input",
           type: "text",
           disabled: state.disabled,
           "aria-label": (scope.props["translations"] as TagsTranslations).tagEdited(row.value),
@@ -813,6 +835,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           id: `${tagIdOf(scope.id, row)}:delete-btn`,
           type: "button",
           dir: scope.props["dir"],
+          "data-scope": "tags-input",
+          "data-part": "item-delete-trigger",
           "data-disabled": scope.attr(state.disabled),
           "aria-disabled": state.disabled,
           "data-highlighted": scope.attr(state.highlighted),

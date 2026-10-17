@@ -80,6 +80,34 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       });
     });
   `,
+"tags-input/with-combobox": `
+    document.querySelectorAll("tags-input-with-combobox").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // A combobox pick adds a tag: delegated clicks read the
+      // row's value straight from the DOM, so the tags and combobox
+      // value-change events (same name, same target) never collide.
+      host.addEventListener("click", (event) => {
+        const row = event.target?.closest("[data-scope=combobox][data-part=item]");
+        const value = row?.getAttribute("data-value") ?? row?.textContent?.trim();
+        if (!value || typeof host.addValue !== "function") return;
+        host.addValue(value);
+        // Clear the pick: reset the field and tell the machine, so the
+        // dropdown closes and the next pick starts from all options.
+        // Deferred past the row's own select handling, which sets the
+        // field to the picked label after this bubble handler runs.
+        requestAnimationFrame(() => {
+          // The combobox's own clear trigger resets its field through
+          // the machine; synthetic input events never survive the
+          // controlled binding.
+          const clear = host.querySelector("[data-scope=combobox][data-part=clear-trigger]");
+          if (clear instanceof HTMLElement) clear.click();
+          const input = host.querySelector("[data-scope=combobox][data-part=input]");
+          if (input instanceof HTMLInputElement) input.focus();
+        });
+      });
+    });
+  `,
 "pagination/jump": `
     document.querySelectorAll("pagination-jump").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;

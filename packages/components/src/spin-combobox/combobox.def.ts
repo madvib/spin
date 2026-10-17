@@ -610,6 +610,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         return {
           id: scope.id("root"),
           dir: scope.props["dir"],
+          "data-scope": "combobox",
+          "data-part": "root",
           "data-state": open ? "open" : "closed",
           "data-phase": scope.state,
           "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -656,6 +658,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       sig: (scope) => [scope.state, scope.props["disabled"], scope.props["invalid"]].join("\u0000"),
       attrs: (scope) => ({
         id: scope.id("control"),
+          "data-scope": "combobox",
+          "data-part": "control",
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
         "data-focused": scope.attr(scope.state !== "idle"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -668,6 +672,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         const placement = scope.props["placement"] as string;
         return {
           id: scope.id("positioner"),
+          "data-scope": "combobox",
+          "data-part": "positioner",
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           "data-phase": scope.state,
           // Zag measures a floating placement and reports it; the recipe
@@ -689,6 +695,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         return {
           id: scope.id("input"),
           dir: scope.props["dir"],
+          "data-scope": "combobox",
+          "data-part": "input",
           type: "text",
           role: "combobox",
           name: scope.props["name"],
@@ -745,6 +753,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         const open = isOpenPhase(scope.state);
         return {
           id: scope.id("trigger"),
+          "data-scope": "combobox",
+          "data-part": "trigger",
           dir: scope.props["dir"],
           type: "button",
           "aria-haspopup": scope.props["composite"] !== false ? "listbox" : "dialog",
@@ -804,6 +814,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       sig: (scope) => [scope.state, scope.props["disabled"], scope.props["invalid"], asCtx(scope.context).value.length, scope.props["clearTriggerLabel"]].join("\u0000"),
       attrs: (scope) => ({
         id: scope.id("clearTrigger"),
+          "data-scope": "combobox",
+          "data-part": "clear-trigger",
         type: "button",
         "aria-label": scope.props["clearTriggerLabel"],
         "aria-controls": scope.id("input"),
@@ -833,6 +845,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         return {
           id: scope.id("content"),
           dir: scope.props["dir"],
+          "data-scope": "combobox",
+          "data-part": "content",
           role: scope.props["composite"] !== false ? "listbox" : "dialog",
           tabIndex: -1,
           "aria-labelledby": scope.id("label"),
@@ -866,6 +880,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         const composite = scope.props["composite"] !== false;
         return {
           dir: scope.props["dir"],
+          "data-scope": "combobox",
+          "data-part": "list",
           role: composite ? undefined : "listbox",
           "aria-labelledby": scope.id("label"),
           "aria-multiselectable": composite ? undefined : ctx.multiple ? true : undefined,
@@ -887,6 +903,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.value),
+          "data-scope": "combobox",
+          "data-part": "item",
           role: "option",
           tabIndex: -1,
           "data-value": row.value,

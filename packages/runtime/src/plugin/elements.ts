@@ -159,6 +159,42 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           walk = parent;
         }
         if (defMod === undefined) {
+          // Cross-machine consume: a name the walk-up misses may live in
+          // a sibling machine dir (`spin-tags-input` consuming
+          // `combobox`). Climb to the machine root (a dir holding
+          // `spin-*`) and scan it before giving up.
+          try {
+            // Machine dirs have no dots; the machine's own recipe file
+            // (`spin-tags-input.html`) matches the prefix and would stop
+            // the climb one level short.
+            const isMachineDir = (n: string): boolean => n.startsWith("spin-") && !n.includes(".");
+            let root = dir;
+            for (let depth = 0; depth < 6; depth++) {
+              const names = await fs.readdir(root);
+              if (names.some(isMachineDir)) break;
+              const parent = path.dirname(root);
+              if (parent === root) break;
+              root = parent;
+            }
+            const names = await fs.readdir(root);
+            if (!names.some(isMachineDir)) break;
+            outer: for (const name of names) {
+              if (!isMachineDir(name)) continue;
+              for (const stem of stems) {
+                try {
+                  await fs.access(path.join(root, name, stem));
+                  defMod = `./${path.relative(dir, path.join(root, name))}/${stem}`.replace("././", "./");
+                  break outer;
+                } catch {
+                  // Next stem.
+                }
+              }
+            }
+          } catch {
+            // No machine root: consume name is inert.
+          }
+        }
+        if (defMod === undefined) {
           // No def file: consume name is inert.
           continue;
         }
