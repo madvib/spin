@@ -1,16 +1,18 @@
-import type { ThemeRef, ThemeRefGroup } from "@spin/theme";
+import type { ThemeRef } from "@spin/theme";
+import { themeKey } from "@spin/theme";
+import type { ThemeTokenPath } from "@spin/theme/theme-types";
 
 export interface ThemeContext {
   theme?: unknown;
 }
 
 /**
- * Our groups out of the theme, as `{name: reference}`.
+ * The theme map out of the rule context.
  *
- * The values are already the references `themeRef` built, so a rule reads one
- * and returns it — there is no path to join and no name to spell. A group the
- * theme does not carry is simply absent, which is what makes an unknown token
- * emit nothing rather than fall back.
+ * Values are the references `themeRef` built, so a rule reads one and returns
+ * it — there is no path to join and no name to spell. A name the theme does
+ * not carry is simply absent, which is what makes an undeclared token emit
+ * nothing rather than fall back.
  */
 export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
   const theme = ctx?.theme;
@@ -19,76 +21,46 @@ export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
     : undefined;
 }
 
-/** One group's references, or an empty map so a rule needs no guard. */
-export function groupOf(
+/**
+ * A canonical token, by its dotted path.
+ *
+ * The parameter is the generated path union, so a read spelled wrong is a
+ * compile error rather than a declaration that silently never applies. A
+ * path the theme does not declare — a scale step a minimal theme omits — is
+ * undefined by design, and the caller states its own fallback.
+ *
+ * A theme names its tokens under the canonical paths and nowhere else: there
+ * is no second spelling a reader has to know about.
+ */
+export function token(
   ctx: ThemeContext | undefined,
-  group: string,
-): ThemeRefGroup {
-  const section = themeOf(ctx)?.[group];
-  return typeof section === "object" && section !== null
-    ? section as ThemeRefGroup
-    : {};
-}
-
-const themeCache = new WeakMap<object, Map<string, Map<string, string>>>();
-
-function flattenSection(section: unknown): Map<string, string> {
-  const out = new Map<string, string>();
-  const visit = (node: unknown, prefix: string): void => {
-    if (typeof node === "string" || typeof node === "number") {
-      out.set(prefix, String(node));
-      return;
-    }
-    if (typeof node === "object" && node !== null && !Array.isArray(node)) {
-      for (const [key, value] of Object.entries(node)) {
-        const name = String(key).toLowerCase();
-        visit(value, prefix ? `${prefix}-${name}` : name);
-      }
-    }
-  };
-  visit(section, "");
-  return out;
-}
-
-export function extendedTheme(
-  ctx: ThemeContext | undefined,
-  keys: string[],
-  name: string,
+  path: ThemeTokenPath,
 ): string | undefined {
-  const theme = ctx?.theme;
-  if (typeof theme !== "object" || theme === null) return undefined;
-  let perTheme = themeCache.get(theme);
-  if (!perTheme) {
-    perTheme = new Map();
-    themeCache.set(theme, perTheme);
-  }
-  for (const key of keys) {
-    let flat = perTheme.get(key);
-    if (!flat) {
-      flat = flattenSection((theme as Record<string, unknown>)[key]);
-      perTheme.set(key, flat);
-    }
-    const value = flat.get(name);
-    if (value !== undefined) return value;
-  }
-  return undefined;
+  return themeOf(ctx)?.[themeKey(path)];
 }
 
 /**
- * A token from the theme, by group and name.
+ * A token a class name carries, where the name is data.
  *
- * The direct lookup first — `themeOf(ctx)?.[group]?.[name]` — then the
- * extended one, which reads the theme's `extend` block. The extra keys are
- * the alternate group names the extended lookup tries, so a theme that
- * declares its radii under `borderRadius` rather than `radius` is found.
+ * The utility families resolve the suffix the author typed, so this lookup is
+ * dynamic by nature: `named(ctx, "spacing", "4")` is `--spacing-4`, and the
+ * family is the flat name prefix — the words the class itself is made of.
  */
-export function tokenOf(
+export function named(
   ctx: ThemeContext | undefined,
-  group: string,
+  family: string,
   name: string,
-  ...extraKeys: string[]
 ): string | undefined {
-  const direct = themeOf(ctx)?.[group]?.[name];
-  if (direct !== undefined) return direct;
-  return extendedTheme(ctx, [group, ...extraKeys], name);
+  return themeOf(ctx)?.[`${family}-${name}`];
+}
+
+/**
+ * The names one family carries: every flat key under `family-`, stripped back
+ * to the name a class would write. For autocomplete templates.
+ */
+export function namesIn(theme: ThemeRef, family: string): string[] {
+  const prefix = `${family}-`;
+  return Object.keys(theme)
+    .filter((key) => key.startsWith(prefix))
+    .map((key) => key.slice(prefix.length));
 }

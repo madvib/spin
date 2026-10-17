@@ -1,5 +1,4 @@
-import type { ThemeContext } from "../../utils/lookup.ts";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
 
 /**
  * How a primitive claims its element.
@@ -36,10 +35,9 @@ export function spend(
   properties: Record<string, string>,
   ...steps: string[]
 ): Record<string, string> {
-  const tokens = groupOf(ctx, group);
   const out: Record<string, string> = {};
   for (const step of steps) {
-    const value = tokens[step];
+    const value = named(ctx, group, step);
     if (value === undefined) continue;
     const property = properties[step];
     if (property !== undefined) out[property] = value;
@@ -118,47 +116,46 @@ export interface Tokens {
   readonly heading: string | undefined;
 }
 
-export function proseTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
-  const t = themeOf(ctx);
-  const family = t?.fontFamily;
+export function proseTokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing1: t?.spacing["1"],
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
-    radiusSm: t?.radius?.["sm"],
-    radiusMd: t?.radius?.["md"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    surface: t?.colors["surface"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
-    link: t?.colors["link"],
-    accent: t?.colors["accent"],
-    onAccent: t?.colors["on-accent"],
-    success: t?.colors["semantic-success"],
-    error: t?.colors["semantic-error"],
-    focusRing: t?.colors["focus-ring"],
-    borderWidth: t?.borderWidth?.["width"],
-    focusWidth: t?.focusWidth?.["width"],
-    focusOffset: t?.focusOffset?.["offset"],
-    sizeXs: t?.fontSize?.["xs"],
-    sizeSm: t?.fontSize?.["sm"],
-    sizeMd: t?.fontSize?.["md"],
-    sizeLg: t?.fontSize?.["lg"],
-    sizeXl: t?.fontSize?.["xl"],
-    size2xl: t?.fontSize?.["2xl"],
-    size3xl: t?.fontSize?.["3xl"],
-    weightSemibold: t?.fontWeight?.["semibold"],
-    weightBold: t?.fontWeight?.["bold"],
-    mono: family?.["mono"],
-    sans: family?.["body"] ?? family?.["sans"],
-    body: family?.["body"] ?? family?.["sans"],
-    serif: family?.["serif"],
+    spacing1: token(ctx, "spacing.1"),
+    spacing2: token(ctx, "spacing.2"),
+    spacing4: token(ctx, "spacing.4"),
+    radiusSm: token(ctx, "radius.sm"),
+    radiusMd: token(ctx, "radius.md"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    surface: token(ctx, "color.surface"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    link: token(ctx, "color.link"),
+    accent: token(ctx, "color.accent"),
+    onAccent: token(ctx, "color.on-accent"),
+    success: token(ctx, "color.semantic.success"),
+    error: token(ctx, "color.semantic.error"),
+    focusRing: token(ctx, "color.focus-ring"),
+    borderWidth: token(ctx, "border.width"),
+    focusWidth: token(ctx, "focus.width"),
+    focusOffset: token(ctx, "focus.offset"),
+    sizeXs: token(ctx, "font.size.xs"),
+    sizeSm: token(ctx, "font.size.sm"),
+    sizeMd: token(ctx, "font.size.md"),
+    sizeLg: token(ctx, "font.size.lg"),
+    sizeXl: token(ctx, "font.size.xl"),
+    size2xl: token(ctx, "font.size.2xl"),
+    size3xl: token(ctx, "font.size.3xl"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
+    weightBold: token(ctx, "font.weight.bold"),
+    mono: token(ctx, "font.family.mono"),
+    sans: token(ctx, "font.family.body") ?? token(ctx, "font.family.sans"),
+    body: token(ctx, "font.family.body") ?? token(ctx, "font.family.sans"),
+    serif: token(ctx, "font.family.serif"),
     // The heading face is a fallback chain, not a step: a theme may name a
     // heading face, then a body face, and fall through to the sans face. The
     // chain is resolved here rather than spelled as a nested `var()` because a
     // rule reads values, not variable names.
-    heading: family?.["heading"] ?? family?.["body"] ?? family?.["sans"],
+    heading: token(ctx, "font.family.heading") ??
+      token(ctx, "font.family.body") ?? token(ctx, "font.family.sans"),
   };
 }
 

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { primitiveContracts } from "./primitives/manifest.ts";
-import { type ThemeContext, themeOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 
 /**
  * Component character tokens, spent as utilities.
@@ -31,7 +31,7 @@ export function componentRules(roots: readonly string[]): Rule[] {
       [
         new RegExp(`^${root}-(.+)$`),
         ([, step]: string[], ctx?: ThemeContext) => {
-          const value = themeOf(ctx)?.[root]?.[step];
+          const value = named(ctx, root, step);
           if (value === undefined) return undefined;
           const type = typeByStep[step];
           if (type === undefined) return undefined;

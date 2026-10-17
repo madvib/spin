@@ -1,17 +1,16 @@
 import type { Rule } from "@unocss/core";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
-import type { ThemeRef, ThemeRefGroup } from "@spin/theme";
-import { extendedTheme, groupOf, type ThemeContext } from "./lookup.ts";
+import type { ThemeRef } from "@spin/theme";
+import { named, namesIn, type ThemeContext } from "./lookup.ts";
 
 /**
- * An alternation of a group's names, for autocomplete templates.
+ * An alternation of a family's names, for autocomplete templates.
  *
- * Read from the same theme object the rules resolve against, so a suggestion
- * can never name something the theme does not carry.
+ * Read from the same map the rules resolve against, so a suggestion can never
+ * name something the theme does not carry.
  */
-export function orGroup(theme: ThemeRef, group: string): string {
-  const entries = (theme[group] ?? {}) as ThemeRefGroup;
-  return "(" + Object.keys(entries).join("|") + ")";
+export function orGroup(theme: ThemeRef, family: string): string {
+  return "(" + namesIn(theme, family).join("|") + ")";
 }
 
 export function staticRules(
@@ -31,8 +30,7 @@ export function spacingRule(
   return [
     pattern,
     ([, name]: string[], ctx?: ThemeContext) => {
-      const path = groupOf(ctx, "spacing")[name];
-      const ref = path ? path : extendedTheme(ctx, ["spacing"], name);
+      const ref = named(ctx, "spacing", name);
       if (!ref) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },
@@ -172,18 +170,18 @@ export function insetRule(
   return [
     pattern,
     ([, name]: string[], ctx?: ThemeContext) => {
-      // The ONE place a hardcoded literal is correct. Every other value an
-      // inset resolves is a theme token — spacing, a fraction, a keyword — and
-      // one the theme does not carry means the rule omits itself. An arbitrary
-      // value is the CALLER supplying the number, which is the escape hatch's
-      // entire purpose, so it is emitted as written or not at all.
+      // The ONE place a hardcoded literal is correct. Every other value the
+      // inset resolves is a theme token — spacing, a fraction, a keyword —
+      // and one the theme does not carry means the rule omits itself. An
+      // arbitrary value is the CALLER supplying the number, which is the
+      // escape hatch's entire purpose, so it is emitted as written or not at
+      // all.
       const literal = arbitraryValue(name);
       if (literal !== undefined) {
         return Object.fromEntries(props.map((prop) => [prop, literal]));
       }
-      const token = groupOf(ctx, "spacing")[name];
-      const ref = token ? token : FRACTIONS[name] ?? INSET_KEYWORDS[name] ??
-        extendedTheme(ctx, ["spacing"], name);
+      const ref = named(ctx, "spacing", name) ?? FRACTIONS[name] ??
+        INSET_KEYWORDS[name];
       if (!ref) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },

@@ -37,18 +37,18 @@ import transformerDirectives from "@unocss/transformer-directives";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
-import { hasOverlay, resolveThemes } from "./session.ts";
+import { resolveThemes } from "./session.ts";
 import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
-import { spinShortcuts } from "./shortcuts.ts";
 import {
   elementExtractor,
   typeExtractor,
   variantExtractor,
 } from "./extractors.ts";
 import { themeRef } from "@spin/theme";
-import { wind4Layers, type Wind4Options } from "./wind4.ts";
+import type { ThemeRef } from "@spin/theme";
+import { wind4Layers, type Wind4Options, wind4Theme } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
 import { breakpointEdges, spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
@@ -208,16 +208,17 @@ const factory = definePreset(
       assertComplete(name, parsed.tree, requiredRolesFor());
       trees[name] = parsed.tree;
     }
-    // The uno theme is the only name table. Values are references, so a rule
-    // reads one and returns it: no path to join, no variable to spell.
-    // Component roots come from the manifest, so a component's character
-    // tokens are reachable as `theme[root][step]` — the same change that
-    // enables a component makes its tokens spendable.
+    // The uno theme is the only name table, and the names ARE the custom
+    // properties: one flat map, every token. A rule reads `spacing-4` and
+    // gets the reference; there is no exposure decision to make, so there is
+    // no row to forget. wind4's nested vocabulary is spread on top of the
+    // same object — see `wind4Theme` for why that seam and only that seam
+    // exists.
     const componentRoots = enabled ?? Object.keys(primitiveContracts);
-    const theme = themeRef(
+    const vars = themeRef(
       Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
-      componentRoots,
     );
+    const theme = { ...vars, ...wind4Theme(vars) } as unknown as ThemeRef;
     // Breakpoint VALUES, resolved: a media query cannot read a custom
     // property, so the variant needs the literal width the theme declared.
     const edges = breakpointEdges(Object.values(trees));
@@ -272,17 +273,17 @@ const factory = definePreset(
           "shadow-$shadow",
         ],
         shorthands: {
-          colors: orGroup(theme, "colors"),
+          colors: orGroup(theme, "color"),
           spacing: orGroup(theme, "spacing"),
           opacity: orGroup(theme, "opacity"),
-          letterSpacing: orGroup(theme, "letterSpacing"),
+          letterSpacing: orGroup(theme, "font-letter-spacing"),
           breakpoint: orGroup(theme, "breakpoint"),
-          zIndex: orGroup(theme, "zIndex"),
-          motionDuration: orGroup(theme, "motionDuration"),
-          motionEasing: orGroup(theme, "motionEasing"),
-          fontSize: orGroup(theme, "fontSize"),
-          fontFamily: orGroup(theme, "fontFamily"),
-          fontWeight: orGroup(theme, "fontWeight"),
+          zIndex: orGroup(theme, "z-index"),
+          motionDuration: orGroup(theme, "motion-duration"),
+          motionEasing: orGroup(theme, "motion-easing"),
+          fontSize: orGroup(theme, "font-size"),
+          fontFamily: orGroup(theme, "font-family"),
+          fontWeight: orGroup(theme, "font-weight"),
           radius: orGroup(theme, "radius"),
           shadow: orGroup(theme, "shadow"),
         },

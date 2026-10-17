@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -44,21 +44,20 @@ export function tableRules(roots: readonly string[], mode: Mode): Rule[] {
   ];
 }
 
-function tableTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tableTokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: t?.spacing["2"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    border: t?.colors["border"],
-    raised: t?.colors["surface-raised"],
-    sunken: t?.colors["surface-sunken"],
-    fontFamily: t?.fontFamily?.["sans"],
-    fontSize: t?.fontSize?.["sm"],
-    sizeMd: t?.fontSize?.["md"],
-    sizeXs: t?.fontSize?.["xs"],
-    borderWidth: t?.borderWidth?.["width"],
-    weightSemibold: t?.fontWeight?.["semibold"],
+    spacing2: token(ctx, "spacing.2"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    border: token(ctx, "color.border"),
+    raised: token(ctx, "color.surface-raised"),
+    sunken: token(ctx, "color.surface-sunken"),
+    fontFamily: token(ctx, "font.family.sans"),
+    fontSize: token(ctx, "font.size.sm"),
+    sizeMd: token(ctx, "font.size.md"),
+    sizeXs: token(ctx, "font.size.xs"),
+    borderWidth: token(ctx, "border.width"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
   };
 }
 

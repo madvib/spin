@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /**
@@ -15,18 +15,17 @@ export function skeletonRules(roots: readonly string[], _mode: Mode): Rule[] {
 }
 
 /** The theme values a skeleton spends, resolved once per rule. */
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    field: t?.colors["field"],
-    radiusSm: t?.radius["sm"],
-    radiusFull: t?.radius?.["full"],
-    spacing2: t?.spacing?.["2"],
-    textSize: t?.fontSize?.["sm"],
+    field: token(ctx, "color.field"),
+    radiusSm: token(ctx, "radius.sm"),
+    radiusFull: token(ctx, "radius.full"),
+    spacing2: token(ctx, "spacing.2"),
+    textSize: token(ctx, "font.size.sm"),
     // A disc placeholder is a face, so its edge is the avatar ladder's.
-    avatar: groupOf(ctx, "avatar")["md"],
-    duration: t?.motionDuration?.["slow"],
-    easing: t?.motionEasing?.["standard"],
+    avatar: named(ctx, "avatar", "md"),
+    duration: token(ctx, "motion.duration.slow"),
+    easing: token(ctx, "motion.easing.standard"),
   };
 }
 

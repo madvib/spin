@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -48,24 +48,23 @@ export function popoverRules(roots: readonly string[], mode: Mode): Rule[] {
   return [popoverRule(mode), tooltipRule(mode)];
 }
 
-function popoverTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function popoverTokens(ctx: ThemeContext | undefined) {
   return {
-    spacing1: t?.spacing["1"],
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
-    radiusSm: t?.radius?.["sm"],
-    radiusLg: t?.radius?.["lg"],
-    text: t?.colors["text"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    shadowSm: t?.shadow?.["sm"],
-    shadowLg: t?.shadow?.["lg"],
-    duration: t?.motionDuration?.["base"],
-    easing: t?.motionEasing?.["standard"],
-    zDropdown: t?.zIndex?.["dropdown"],
-    sizeXs: t?.fontSize?.["xs"],
+    spacing1: token(ctx, "spacing.1"),
+    spacing2: token(ctx, "spacing.2"),
+    spacing4: token(ctx, "spacing.4"),
+    radiusSm: token(ctx, "radius.sm"),
+    radiusLg: token(ctx, "radius.lg"),
+    text: token(ctx, "color.text"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    shadowSm: token(ctx, "shadow.sm"),
+    shadowLg: token(ctx, "shadow.lg"),
+    duration: token(ctx, "motion.duration.base"),
+    easing: token(ctx, "motion.easing.standard"),
+    zDropdown: token(ctx, "z-index.dropdown"),
+    sizeXs: token(ctx, "font.size.xs"),
   };
 }
 

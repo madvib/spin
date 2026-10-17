@@ -23,7 +23,7 @@ export function breakpointVariant(
 ): Variant {
   return {
     name: "spin-breakpoint",
-    match(matcher: string, ctx?: ThemeContext) {
+    match(matcher: string, _ctx?: ThemeContext) {
       const max = matcher.startsWith("max-");
       const rest = max ? matcher.slice(4) : matcher;
       const colon = rest.indexOf(":");

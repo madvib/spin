@@ -199,6 +199,14 @@
         "$type": "fontFamily",
         "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below \u2014 code, markup, readouts \u2014 and not in every heading and paragraph, where monospace reads as shouting."
       },
+      "heading": {
+        "$value": "{font.family.sans}",
+        "$description": "The display face. The terminal's headings are its interface face; the voice lives in the mono below."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face: the same interface face, named so the surface is whole."
+      },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
         "$description": "Long-form editorial text."

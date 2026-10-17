@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 
 /**
  * The tokens a field box spends. Absent ones drop their declaration rather
@@ -29,26 +29,25 @@ export interface FieldTokens {
   readonly error: string | undefined;
 }
 
-export function fieldTokens(ctx: Parameters<typeof themeOf>[0]): FieldTokens {
-  const t = themeOf(ctx);
+export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
   return {
-    spacing2: t?.spacing["2"],
-    radius: t?.radius["md"],
-    fontFamily: t?.fontFamily["sans"],
-    fontSize: t?.fontSize["md"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    field: t?.colors["field"],
-    edge: t?.colors?.["border-strong"],
-    border: t?.colors["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    focusWidth: t?.focusWidth?.["width"],
-    focusRing: t?.colors["focus-ring"],
-    duration: t?.motionDuration["fast"],
-    easing: t?.motionEasing["standard"],
-    primary: t?.colors["primary"],
-    success: t?.colors["semantic-success"],
-    error: t?.colors["semantic-error"],
+    spacing2: token(ctx, "spacing.2"),
+    radius: token(ctx, "radius.md"),
+    fontFamily: token(ctx, "font.family.sans"),
+    fontSize: token(ctx, "font.size.md"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    field: token(ctx, "color.field"),
+    edge: token(ctx, "color.border-strong"),
+    border: token(ctx, "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    focusWidth: token(ctx, "focus.width"),
+    focusRing: token(ctx, "color.focus-ring"),
+    duration: token(ctx, "motion.duration.fast"),
+    easing: token(ctx, "motion.easing.standard"),
+    primary: token(ctx, "color.primary"),
+    success: token(ctx, "color.semantic.success"),
+    error: token(ctx, "color.semantic.error"),
   };
 }
 

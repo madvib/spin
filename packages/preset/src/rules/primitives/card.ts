@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -91,21 +91,20 @@ type Tokens = {
   readonly shadow: string | undefined;
 };
 
-function cardTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
-  const t = themeOf(ctx);
+function cardTokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing: t?.spacing["4"],
-    radius: t?.radius["lg"],
-    borderWidth: t?.borderWidth?.["width"],
-    border: t?.colors["border"],
-    raised: t?.colors["surface-raised"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    sizeLg: t?.fontSize["lg"],
-    sizeSm: t?.fontSize["sm"],
-    weightSemibold: t?.fontWeight["semibold"],
+    spacing: token(ctx, "spacing.4"),
+    radius: token(ctx, "radius.lg"),
+    borderWidth: token(ctx, "border.width"),
+    border: token(ctx, "color.border"),
+    raised: token(ctx, "color.surface-raised"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    sizeLg: token(ctx, "font.size.lg"),
+    sizeSm: token(ctx, "font.size.sm"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
 
-    shadow: t?.shadow?.["lg"],
+    shadow: token(ctx, "shadow.lg"),
   };
 }
 

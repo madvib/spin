@@ -214,6 +214,14 @@
         "$value": "DM Sans, ui-sans-serif, system-ui, sans-serif",
         "$description": "Body and UI text."
       },
+      "heading": {
+        "$value": "{font.family.sans}",
+        "$description": "The display face: the heavy geometric face itself, named so the surface is whole."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face: the same face, named so the surface is whole."
+      },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
         "$description": "Long-form editorial text."

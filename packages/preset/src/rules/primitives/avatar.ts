@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
+import { named, token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /**
@@ -46,9 +46,8 @@ function avatarBase(avatar: string): Rule {
   return [
     /^avatar$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const size = groupOf(ctx, "avatar")["md"];
-      const radius = t?.radius["md"];
+      const size = named(ctx, "avatar", "md");
+      const radius = token(ctx, "radius.md");
       yield {
         [ctx.symbols.selector]: () => avatar,
         ...(size !== undefined ? { width: size, height: size } : {}),
@@ -81,7 +80,7 @@ function avatarSizes(avatar: string): Rule[] {
   return (["sm", "md", "lg"] as const).map((step): Rule => [
     new RegExp(`^avatar-${step}$`),
     function* (_m, ctx) {
-      const size = groupOf(ctx, "avatar")[step];
+      const size = named(ctx, "avatar", step);
       yield {
         [ctx.symbols.selector]: () => `${avatar}.avatar-${step}`,
         ...(size !== undefined ? { width: size, height: size } : {}),
@@ -96,7 +95,7 @@ function avatarCircle(avatar: string): Rule {
   return [
     /^avatar-circle$/,
     function* (_m, ctx) {
-      const radius = themeOf(ctx)?.radius["full"];
+      const radius = token(ctx, "radius.full");
       yield {
         [ctx.symbols.selector]: () => `${avatar}.avatar-circle`,
         ...(radius !== undefined ? { "border-radius": radius } : {}),
@@ -120,9 +119,8 @@ function avatarRing(avatar: string): Rule {
   return [
     /^avatar-ring$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const width = t?.borderWidth?.["width-2"];
-      const color = t?.colors["border-strong"];
+      const width = token(ctx, "border.width-2");
+      const color = token(ctx, "color.border-strong");
       yield {
         [ctx.symbols.selector]: () => `${avatar}.avatar-ring`,
         ...(width !== undefined && color !== undefined
@@ -146,9 +144,8 @@ function avatarStatus(): Rule {
   return [
     /^avatar-status$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const radius = t?.radius["full"];
-      const success = t?.colors["semantic-success"];
+      const radius = token(ctx, "radius.full");
+      const success = token(ctx, "color.semantic.success");
       yield {
         [ctx.symbols.selector]: () => ".avatar-status",
         position: "absolute",

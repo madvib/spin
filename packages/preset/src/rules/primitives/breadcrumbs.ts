@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /**
@@ -18,26 +18,25 @@ import type { Mode } from "./shared.ts";
  */
 export function breadcrumbsRules(
   roots: readonly string[],
-  mode: Mode,
+  _mode: Mode,
 ): Rule[] {
   if (!roots.includes("breadcrumbs")) return [];
   return [trailRule(), listRule(), boxRule(), arrowRule()];
 }
 
 /** The theme values breadcrumbs spends, resolved once per rule. */
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    sizeSm: t?.fontSize?.["sm"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    gap: t?.spacing["2"],
-    separatorGap: t?.spacing["1"],
-    spacing2: t?.spacing["2"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    radiusMd: t?.radius["md"],
+    sizeSm: token(ctx, "font.size.sm"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    gap: token(ctx, "spacing.2"),
+    separatorGap: token(ctx, "spacing.1"),
+    spacing2: token(ctx, "spacing.2"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    radiusMd: token(ctx, "radius.md"),
   };
 }
 

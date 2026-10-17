@@ -11,13 +11,7 @@
  * neither wins by source order.
  */
 
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  rhythm,
-  type Tokens,
-} from "./shared.ts";
+import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
 import type { Rule } from "@unocss/core";
 
 function bodyRule(mode: Mode): Rule {

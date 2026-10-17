@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -51,15 +51,14 @@ export function progressRules(
   ];
 }
 
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    height: t?.spacing["1"],
-    radius: t?.radius?.["full"],
-    track: t?.colors?.["surface-raised"],
-    primary: t?.colors?.["primary"],
-    warning: t?.colors?.["semantic-warning"],
-    error: t?.colors?.["semantic-error"],
+    height: token(ctx, "spacing.1"),
+    radius: token(ctx, "radius.full"),
+    track: token(ctx, "color.surface-raised"),
+    primary: token(ctx, "color.primary"),
+    warning: token(ctx, "color.semantic.warning"),
+    error: token(ctx, "color.semantic.error"),
     // A sweep is watched for the length of a load, not clicked through:
     // the motion ladder's steps are response times (150/250/400ms), and a
     // 150ms sweep is a strobe. The period is stated, like the skeleton's

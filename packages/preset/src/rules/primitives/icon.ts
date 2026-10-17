@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { named } from "../../utils/lookup.ts";
 
 /**
  * The icon sizes, as generated rules.
@@ -39,7 +39,7 @@ export function iconRules(roots: readonly string[]): Rule[] {
     [
       new RegExp(`^icon-${step}$`),
       (_m, ctx) => {
-        const size = themeOf(ctx)?.icon?.[step];
+        const size = named(ctx, "icon", step);
         return {
           [ctx.symbols.selector]: () => `.icon-${step}`,
           // An icon class from `preset-icons` sizes the glyph `1em` square

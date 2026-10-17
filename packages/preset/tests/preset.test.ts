@@ -737,10 +737,10 @@ Deno.test("extendTheme names resolve as closed utilities", async () => {
   const uno = await createGenerator({
     presets: [spinPreset()],
     extendTheme: (theme) => {
-      (theme as Record<string, unknown>).colors = {
-        ...((theme as Record<string, Record<string, string>>).colors ?? {}),
-        brand: "#bada55",
-      };
+      // The extension writes the name the utilities resolve: the flat map is
+      // keyed by custom property name, so a colour added here is reachable
+      // as `bg-brand` under the same spelling the sheet defines.
+      (theme as Record<string, unknown>)["color-brand"] = "#bada55";
     },
   });
   const { css } = await uno.generate("bg-brand");
@@ -754,19 +754,30 @@ Deno.test("the preset theme publishes references, not literals", () => {
   // The engine must resolve at the browser: a rule emits a `var(…)` reference
   // and the stylesheet supplies the value, so switching themes is a selector
   // swap rather than a rebuild. Literals exist for tooling, and only there.
-  const theme = spinPreset().theme as Record<
-    string,
-    Record<string, unknown>
-  >;
-  for (const [family, group] of Object.entries(theme)) {
-    for (const [name, value] of Object.entries(group)) {
-      if (typeof value !== "string") continue;
-      assert(
-        readsAToken(value),
-        `theme.${family}.${name} is the literal \`${value}\`; a rule reading it would freeze the token into the sheet`,
-      );
+  // The map is flat, with wind4's nested vocabulary on top, so both shapes
+  // are walked.
+  const theme = spinPreset().theme as Record<string, unknown>;
+  const offenders: string[] = [];
+  for (const [name, value] of Object.entries(theme)) {
+    if (typeof value === "string") {
+      if (!readsAToken(value)) offenders.push(name);
+      continue;
+    }
+    if (typeof value === "object" && value !== null) {
+      for (
+        const [step, ref] of Object.entries(value as Record<string, unknown>)
+      ) {
+        if (typeof ref === "string" && !readsAToken(ref)) {
+          offenders.push(`${name}.${step}`);
+        }
+      }
     }
   }
+  assertEquals(
+    offenders,
+    [],
+    `these publish literals: ${offenders.join(", ")}`,
+  );
 });
 
 Deno.test("the primitives layer is emitted by default", async () => {

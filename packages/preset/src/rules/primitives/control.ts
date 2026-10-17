@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
+import { named, token } from "../../utils/lookup.ts";
 
 /**
  * Checkbox and switch — the two controls a theme has real decisions about.
@@ -55,19 +55,18 @@ function checkboxRule(): Rule {
   return [
     /^checkbox$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const size = t?.spacing["4"];
-      const radius = t?.radius["sm"];
-      const text = t?.colors["text"];
-      const primary = t?.colors["primary"];
-      const onPrimary = t?.colors["on-primary"];
-      const border = t?.colors["border"];
-      const duration = t?.motionDuration["fast"];
-      const easing = t?.motionEasing["standard"];
-      const borderWidth = t?.borderWidth?.["width"];
-      const focusWidth = t?.focusWidth?.["width"];
-      const focusRing = t?.colors["focus-ring"];
-      const focusOffset = t?.focusOffset?.["offset"];
+      const size = token(ctx, "spacing.4");
+      const radius = token(ctx, "radius.sm");
+      const text = token(ctx, "color.text");
+      const primary = token(ctx, "color.primary");
+      const onPrimary = token(ctx, "color.on-primary");
+      const border = token(ctx, "color.border");
+      const duration = token(ctx, "motion.duration.fast");
+      const easing = token(ctx, "motion.easing.standard");
+      const borderWidth = token(ctx, "border.width");
+      const focusWidth = token(ctx, "focus.width");
+      const focusRing = token(ctx, "color.focus-ring");
+      const focusOffset = token(ctx, "focus.offset");
 
       // Depth is three inset shadows driven by one scalar rather than a
       // single drop shadow. A dark inner line at the bottom edge is what makes
@@ -75,7 +74,7 @@ function checkboxRule(): Rule {
       // catches the light, and the spread shadow separates the box from
       // whatever sits behind it. A drop shadow alone gives a box that floats
       // and never looks like it is made of a surface.
-      const depth = groupOf(ctx, "checkbox")?.["depth"] ?? "1.5";
+      const depth = named(ctx, "checkbox", "depth") ?? "1.5";
 
       const shell = {
         appearance: "none",
@@ -231,7 +230,7 @@ function checkboxRule(): Rule {
         // The depth goes with the interaction: a box you cannot press should
         // not have the shadows that say it can be.
         "box-shadow": "none",
-        opacity: t?.opacity?.["40"] ?? 0.4,
+        opacity: token(ctx, "opacity.40") ?? 0.4,
       };
     },
     { layer: "primitives", autocomplete: "checkbox" },
@@ -256,23 +255,22 @@ function switchRule(): Rule {
   return [
     /^switch$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const size = t?.spacing["4"];
-      const borderWidth = t?.borderWidth?.["width"];
-      const radius = t?.radius?.["md"];
-      const radiusFull = t?.radius?.["full"];
-      const border = t?.colors["border"];
-      const text = t?.colors["text"];
-      const muted = t?.colors["text-muted"];
-      const raised = t?.colors["surface-raised"];
-      const primary = t?.colors["primary"];
-      const onPrimary = t?.colors["on-primary"];
-      const shadow = t?.shadow?.["sm"];
-      const duration = t?.motionDuration?.["fast"];
-      const easing = t?.motionEasing?.["standard"];
-      const focusWidth = t?.focusWidth?.["width"];
-      const focusRing = t?.colors["focus-ring"];
-      const focusOffset = t?.focusOffset?.["offset"];
+      const size = token(ctx, "spacing.4");
+      const borderWidth = token(ctx, "border.width");
+      const radius = token(ctx, "radius.md");
+      const radiusFull = token(ctx, "radius.full");
+      const border = token(ctx, "color.border");
+      const text = token(ctx, "color.text");
+      const muted = token(ctx, "color.text-muted");
+      const raised = token(ctx, "color.surface-raised");
+      const primary = token(ctx, "color.primary");
+      const onPrimary = token(ctx, "color.on-primary");
+      const shadow = token(ctx, "shadow.sm");
+      const duration = token(ctx, "motion.duration.fast");
+      const easing = token(ctx, "motion.easing.standard");
+      const focusWidth = token(ctx, "focus.width");
+      const focusRing = token(ctx, "color.focus-ring");
+      const focusOffset = token(ctx, "focus.offset");
 
       const shell: Record<string, string | undefined> = {
         appearance: "none",
@@ -420,7 +418,7 @@ function switchRule(): Rule {
         cursor: "not-allowed",
         // The depth goes with the interaction, as it does on the checkbox.
         "box-shadow": "none",
-        opacity: t?.opacity?.["40"] ?? 0.4,
+        opacity: token(ctx, "opacity.40") ?? 0.4,
       };
       // An indeterminate switch has no middle position to sit at, so the grid
       // halves rather than choosing one for it.

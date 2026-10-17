@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 
 /**
  * Group — joined controls, as a relationship rather than a component.
@@ -37,11 +37,10 @@ const MEMBERS = ':is(button, input, select, textarea, badge, [role="button"])';
 /** The same list as a standalone selector, for composing onto a position. */
 const MEMBER = 'button, input, select, textarea, badge, [role="button"]';
 
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    radius: t?.radius?.["md"],
-    borderWidth: t?.borderWidth?.["width"],
+    radius: token(ctx, "radius.md"),
+    borderWidth: token(ctx, "border.width"),
   };
 }
 

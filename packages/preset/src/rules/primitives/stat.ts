@@ -1,9 +1,9 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /** Stat — a labelled number, sized and coloured by the type ladder. */
-export function statRules(roots: readonly string[], mode: Mode): Rule[] {
+export function statRules(roots: readonly string[], _mode: Mode): Rule[] {
   if (!roots.includes("stat")) return [];
   return [statContainer(), statTitle(), statValue(), statDesc()];
 }
@@ -20,17 +20,16 @@ type Tokens = {
   readonly trackingWide: string | undefined;
 };
 
-function statTokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
-  const t = themeOf(ctx);
+function statTokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing2: t?.spacing["2"],
-    sizeXs: t?.fontSize?.["xs"],
-    sizeSm: t?.fontSize?.["sm"],
-    size2xl: t?.fontSize?.["2xl"],
-    weightSemibold: t?.fontWeight?.["semibold"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    trackingWide: t?.letterSpacing?.["wide"],
+    spacing2: token(ctx, "spacing.2"),
+    sizeXs: token(ctx, "font.size.xs"),
+    sizeSm: token(ctx, "font.size.sm"),
+    size2xl: token(ctx, "font.size.2xl"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    trackingWide: token(ctx, "font.letter-spacing.wide"),
   };
 }
 

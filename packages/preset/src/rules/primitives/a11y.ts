@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 
 /**
  * Accessibility and operability — the two things CSS can say about an
@@ -75,7 +75,7 @@ function hiddenRules(roots: readonly string[]): Rule[] {
     [
       /^visually-hidden$/,
       function* (_m, ctx) {
-        const duration = themeOf(ctx)?.motionDuration?.["fast"];
+        const duration = token(ctx, "motion.duration.fast");
         yield {
           [ctx.symbols.selector]: () =>
             ':is([aria-hidden="false"][hidden], .visually-hidden)',

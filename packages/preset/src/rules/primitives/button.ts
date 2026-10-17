@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { type ThemeContext, themeOf } from "../../utils/lookup.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
 import { type Entry, spend, spentEntries } from "./shared.ts";
 
 /**
@@ -177,9 +177,9 @@ const VARIANTS: Record<PaintedVariant, {
   secondary: {
     selector: `${BUTTON}.secondary, ${BUTTON}[variant~="secondary"]`,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors["surface-raised"],
-      "border-color": themeOf(ctx)?.colors["border"],
-      color: themeOf(ctx)?.colors["text"],
+      "background-color": token(ctx, "color.surface-raised"),
+      "border-color": token(ctx, "color.border"),
+      color: token(ctx, "color.text"),
     }),
   },
   ghost: {
@@ -192,22 +192,22 @@ const VARIANTS: Record<PaintedVariant, {
       // a hard offset — a ghost carrying it is a black box floating over an
       // empty button.
       "box-shadow": "none",
-      color: themeOf(ctx)?.colors["text"],
+      color: token(ctx, "color.text"),
     }),
   },
   danger: {
     selector: `${BUTTON}.danger, ${BUTTON}[variant~="danger"]`,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors["semantic-error"],
-      color: themeOf(ctx)?.colors["on-danger"],
+      "background-color": token(ctx, "color.semantic.error"),
+      color: token(ctx, "color.on-danger"),
     }),
   },
   contrast: {
     selector: `${CONTRAST}.contrast, ${CONTRAST}[variant~="contrast"]`,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors["text"],
-      "border-color": themeOf(ctx)?.colors["text"],
-      color: themeOf(ctx)?.colors["surface"],
+      "background-color": token(ctx, "color.text"),
+      "border-color": token(ctx, "color.text"),
+      color: token(ctx, "color.surface"),
     }),
   },
   outline: {
@@ -218,17 +218,17 @@ const VARIANTS: Record<PaintedVariant, {
       // same reason ghost spends none. Without this the theme's shadow hangs
       // off an empty box (a hard offset in neobrut).
       "box-shadow": "none",
-      "border-color": themeOf(ctx)?.colors["accent"],
-      color: themeOf(ctx)?.colors["primary"],
+      "border-color": token(ctx, "color.accent"),
+      color: token(ctx, "color.primary"),
     }),
   },
   "s-sm": {
     selector: `${BUTTON}.s-sm, ${BUTTON}[variant~="s-sm"]`,
     body: (ctx) => {
-      const fontSize = themeOf(ctx)?.fontSize["sm"];
-      const spacing1 = themeOf(ctx)?.spacing["1"];
-      const spacing2 = themeOf(ctx)?.spacing["2"];
-      const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
+      const fontSize = token(ctx, "font.size.sm");
+      const spacing1 = token(ctx, "spacing.1");
+      const spacing2 = token(ctx, "spacing.2");
+      const borderWidth = token(ctx, "border.width");
       return {
         "padding-inline-start": spacing2,
         "padding-inline-end": spacing2,
@@ -248,10 +248,10 @@ const VARIANTS: Record<PaintedVariant, {
   "s-lg": {
     selector: `${BUTTON}.s-lg, ${BUTTON}[variant~="s-lg"]`,
     body: (ctx) => {
-      const fontSize = themeOf(ctx)?.fontSize["lg"];
-      const spacing4 = themeOf(ctx)?.spacing["4"];
-      const spacing8 = themeOf(ctx)?.spacing["8"];
-      const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
+      const fontSize = token(ctx, "font.size.lg");
+      const spacing4 = token(ctx, "spacing.4");
+      const spacing8 = token(ctx, "spacing.8");
+      const borderWidth = token(ctx, "border.width");
       return {
         "padding-inline-start": spacing8,
         "padding-inline-end": spacing8,
@@ -297,7 +297,7 @@ const VARIANT_HOVER: Record<string, {
       "background-color": "transparent",
       "border-color": "transparent",
       "box-shadow": "none",
-      color: themeOf(ctx)?.colors["text"],
+      color: token(ctx, "color.text"),
     }),
   },
   outline: {
@@ -305,8 +305,8 @@ const VARIANT_HOVER: Record<string, {
     body: (ctx) => ({
       "background-color": "transparent",
       "box-shadow": "none",
-      "border-color": themeOf(ctx)?.colors["accent"],
-      color: themeOf(ctx)?.colors["primary"],
+      "border-color": token(ctx, "color.accent"),
+      color: token(ctx, "color.primary"),
     }),
   },
   bare: {
@@ -333,16 +333,16 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // The base's tokens, read from the theme. One the theme omits reads
         // as undefined: the engine drops a single-token declaration, and a
         // compound one states itself only when every token in it resolves.
-        const spacing2 = themeOf(ctx)?.spacing["2"];
-        const spacing4 = themeOf(ctx)?.spacing["4"];
-        const fontFamily = themeOf(ctx)?.fontFamily["sans"];
-        const fontSize = themeOf(ctx)?.fontSize["md"];
-        const radius = themeOf(ctx)?.radius["md"];
-        const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
-        const primary = themeOf(ctx)?.colors["primary"];
-        const onPrimary = themeOf(ctx)?.colors["on-primary"];
-        const duration = themeOf(ctx)?.motionDuration["fast"];
-        const easing = themeOf(ctx)?.motionEasing["standard"];
+        const spacing2 = token(ctx, "spacing.2");
+        const spacing4 = token(ctx, "spacing.4");
+        const fontFamily = token(ctx, "font.family.sans");
+        const fontSize = token(ctx, "font.size.md");
+        const radius = token(ctx, "radius.md");
+        const borderWidth = token(ctx, "border.width");
+        const primary = token(ctx, "color.primary");
+        const onPrimary = token(ctx, "color.on-primary");
+        const duration = token(ctx, "motion.duration.fast");
+        const easing = token(ctx, "motion.easing.standard");
         // The base. An array body because the rule states `transition-property`
         // three times and the last one wins; reproducing it keeps the computed
         // value (transform only) rather than "fixing" it into a colour transition.
@@ -397,8 +397,8 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // A theme that states no lift gets no transform — the no-movement
         // default the variable fallbacks declared, kept by omission rather
         // than by spelling zero.
-        const liftX = themeOf(ctx)?.button?.["hover-lift-x"];
-        const liftY = themeOf(ctx)?.button?.["hover-lift-y"];
+        const liftX = named(ctx, "button", "hover-lift-x");
+        const liftY = named(ctx, "button", "hover-lift-y");
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:hover:not(:disabled):not([aria-busy="true"])`,
@@ -417,9 +417,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // The ring, drawn on focus-visible so a mouse press leaves none. Its
         // width and offset come from the theme's focus scale; a theme that
         // states none gets no ring rather than an outline of undefined width.
-        const focusWidth = themeOf(ctx)?.focusWidth?.["width"];
-        const focusRing = themeOf(ctx)?.colors["focus-ring"];
-        const focusOffset = themeOf(ctx)?.focusOffset?.["offset"];
+        const focusWidth = token(ctx, "focus.width");
+        const focusRing = token(ctx, "color.focus-ring");
+        const focusOffset = token(ctx, "focus.offset");
         yield {
           [ctx.symbols.selector]: () => `${BUTTON}:focus-visible`,
           ...(focusWidth !== undefined && focusRing !== undefined
@@ -455,7 +455,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           // How present a dead control still looks is the theme's call: the
           // opacity scale carries the answer, and a theme that states none
           // keeps the historical fraction.
-          opacity: themeOf(ctx)?.opacity?.["50"] ?? 0.55,
+          opacity: token(ctx, "opacity.50") ?? 0.55,
           cursor: "not-allowed",
           transform: "none",
         };
@@ -490,21 +490,21 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // selector is specific enough to beat the base rule.
         yield {
           [ctx.symbols.selector]: () => '[type="reset"]',
-          "background-color": themeOf(ctx)?.colors["surface-raised"],
-          "border-color": themeOf(ctx)?.colors["border"],
-          color: themeOf(ctx)?.colors["text"],
+          "background-color": token(ctx, "color.surface-raised"),
+          "border-color": token(ctx, "color.border"),
+          color: token(ctx, "color.text"),
         };
         yield {
           [ctx.symbols.selector]: () => '[type="reset"].outline',
           "background-color": "transparent",
-          "border-color": themeOf(ctx)?.colors["accent"],
-          color: themeOf(ctx)?.colors["primary"],
+          "border-color": token(ctx, "color.accent"),
+          color: token(ctx, "color.primary"),
         };
         yield {
           [ctx.symbols.selector]: () =>
             '[type="reset"].outline:hover:not(:disabled)',
-          "background-color": themeOf(ctx)?.colors["primary"],
-          color: themeOf(ctx)?.colors["on-primary"],
+          "background-color": token(ctx, "color.primary"),
+          color: token(ctx, "color.on-primary"),
         };
       },
       { layer: "primitives", autocomplete: "button" },
@@ -527,7 +527,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               // the font-size is the one declaration that reaches the glyph. In
               // `em`, so the glyph tracks the button's font-size across all
               // three of its sizes — the slot's sizing is a token now.
-              const size = themeOf(ctx)?.icon?.["md"];
+              const size = token(ctx, "icon.md");
               return {
                 [ctx.symbols.selector]: () => ".button-icon",
                 display: "inline-block",
@@ -571,7 +571,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
     [
       /^span$/,
       function* (_m, ctx) {
-        const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
+        const borderWidth = token(ctx, "border.width");
         yield {
           [ctx.symbols.selector]: () => GROUP,
           display: "inline-flex",
@@ -587,13 +587,13 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:first-child`,
           "margin-inline-start": 0,
-          "border-start-start-radius": themeOf(ctx)?.radius["md"],
-          "border-end-start-radius": themeOf(ctx)?.radius["md"],
+          "border-start-start-radius": token(ctx, "radius.md"),
+          "border-end-start-radius": token(ctx, "radius.md"),
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:last-child`,
-          "border-start-end-radius": themeOf(ctx)?.radius["md"],
-          "border-end-end-radius": themeOf(ctx)?.radius["md"],
+          "border-start-end-radius": token(ctx, "radius.md"),
+          "border-end-end-radius": token(ctx, "radius.md"),
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:hover`,
@@ -602,9 +602,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${GROUP} > button[aria-pressed="true"]`,
-          "background-color": themeOf(ctx)?.colors["primary"],
-          color: themeOf(ctx)?.colors["on-primary"],
-          "border-color": themeOf(ctx)?.colors["on-primary"],
+          "background-color": token(ctx, "color.primary"),
+          color: token(ctx, "color.on-primary"),
+          "border-color": token(ctx, "color.on-primary"),
           "z-index": 1,
         };
       },

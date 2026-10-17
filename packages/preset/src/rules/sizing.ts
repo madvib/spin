@@ -4,8 +4,8 @@ import {
   HEIGHT_KEYWORDS,
   WIDTH_KEYWORDS,
 } from "../utils/vocabulary.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 import { arbitraryValue } from "../utils/factories.ts";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
 
 /**
  * The sizing names that do not depend on the theme.
@@ -45,7 +45,7 @@ export function sizingRules(): Rule[] {
         // not pretend to be one. Emitted as written, or not at all.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { width: literal };
-        const token = tokenOf(ctx, "spacing", name);
+        const token = named(ctx, "spacing", name);
         if (token) return { width: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { width: fraction };
@@ -61,7 +61,7 @@ export function sizingRules(): Rule[] {
         // As `w-`: the escape hatch, and the only height that is not a token.
         const literal = arbitraryValue(name);
         if (literal !== undefined) return { height: literal };
-        const token = tokenOf(ctx, "spacing", name);
+        const token = named(ctx, "spacing", name);
         if (token) return { height: token };
         const fraction = FRACTIONS[name];
         if (fraction) return { height: fraction };
@@ -107,7 +107,7 @@ export function sizingRules(): Rule[] {
         if (name.startsWith("screen-")) {
           if (edge !== "max" || axis !== "w") return undefined;
           const at = name.slice("screen-".length);
-          const point = tokenOf(ctx, "breakpoint", at, "breakpoints");
+          const point = named(ctx, "breakpoint", at);
           if (point) return { [prop]: point };
           return undefined;
         }
@@ -115,13 +115,13 @@ export function sizingRules(): Rule[] {
         // A viewport breakpoint is a MEASURE, so it is a maximum and nothing
         // else. `min-w-lg` would mean a floor that moves as the window does.
         if (edge === "max" && axis === "w" && /^[a-z]+$/.test(name)) {
-          const point = tokenOf(ctx, "breakpoint", name, "breakpoints");
+          const point = named(ctx, "breakpoint", name);
           if (point) return { [prop]: point };
         }
 
         // And the spacing scale, so an exact measure is one step away rather
         // than an inline style.
-        const step = tokenOf(ctx, "spacing", name);
+        const step = named(ctx, "spacing", name);
         if (step) return { [prop]: step };
 
         return undefined;

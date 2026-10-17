@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { claim, type Mode } from "./shared.ts";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 
 /**
  * Label — the bare `<label>` as a flex row.
@@ -27,14 +27,15 @@ function labelRule(mode: Mode): Rule {
   return [
     /^label$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
       yield {
         [ctx.symbols.selector]: () => label,
         display: "inline-flex",
         "align-items": "center",
-        ...(t?.spacing["2"] !== undefined ? { gap: t.spacing["2"] } : {}),
-        ...(t?.fontFamily?.sans !== undefined
-          ? { "font-family": t.fontFamily.sans }
+        ...(token(ctx, "spacing.2") !== undefined
+          ? { gap: token(ctx, "spacing.2") }
+          : {}),
+        ...(token(ctx, "font.family.sans") !== undefined
+          ? { "font-family": token(ctx, "font.family.sans") }
           : {}),
       };
     },

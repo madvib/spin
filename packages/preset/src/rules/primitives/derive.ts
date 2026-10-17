@@ -14,7 +14,7 @@
  */
 
 import type { Rule } from "@unocss/core";
-import { indexTree, parseTokens, REF_SPECS, resolveAliases } from "@spin/theme";
+import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { ThemeCssVar } from "@spin/theme/theme-types";
 import type { State, Surface } from "../../reference/surface.ts";
 import type { ThemeDocument } from "@spin/theme";
@@ -53,26 +53,15 @@ import { tabsRules } from "./tabs.ts";
 import { textareaRules } from "./textarea.ts";
 
 /**
- * Convert a theme-object path to a CSS variable name.
+ * A recorded read, as its CSS variable name.
  *
- * The theme object has keys like `colors`, `spacing`, `fontSize`, etc.
- * These map to token paths via REF_SPECS. For component roots (e.g. `button`),
- * the path is the token path directly.
+ * The recording proxy observes the ONE property access a reader makes —
+ * `theme["spacing-4"]` — and the flat map's keys are custom property names
+ * without the leading `--`, so the variable is the recorded key itself,
+ * prefixed.
  */
 function themePathToCssVar(path: string): string {
-  const segments = path.split(".");
-  const spec = REF_SPECS.find((s) => s.key === segments[0]);
-  if (spec === undefined) {
-    // Component root: the path is the token path.
-    return `--${segments.join("-")}`;
-  }
-  if (spec.exact === true) {
-    // The name is the last prefix segment.
-    return `--${spec.prefix.join("-")}`;
-  }
-  // Token path = prefix + the name below it.
-  const tokenPath = [...spec.prefix, ...segments.slice(1)];
-  return `--${tokenPath.join("-")}`;
+  return `--${path}`;
 }
 
 /**

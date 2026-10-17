@@ -50,7 +50,9 @@ import type {
   VariantObject,
 } from "@unocss/core";
 import { symbols, toArray } from "@unocss/core";
-import { refFamilies } from "@spin/theme";
+import { parseTokens, themeKey } from "@spin/theme";
+import type { ThemeRef } from "@spin/theme";
+import { defaultTheme } from "@spin/theme/themes";
 import {
   rules as wind4Rules,
   variants as wind4Variants,
@@ -76,6 +78,46 @@ export interface Wind4Options {
 export interface Wind4Layers {
   rules: Rule[];
   variants: Variant[];
+}
+
+/**
+ * The nested theme keys wind4's rules read, mapped to our flat families.
+ *
+ * A foreign vocabulary, stated once at the seam where wind4 lives: its rules
+ * read `theme.colors.primary`, `theme.spacing["4"]` and so on, and those
+ * names are not ours to choose. Everything outside this list is our own
+ * shape — one flat map keyed by custom property name, which is the token's
+ * identity — and nothing else in a spin build reads the nested form.
+ */
+const WIND4_FAMILIES: ReadonlyArray<readonly [key: string, family: string]> = [
+  ["colors", "color"],
+  ["spacing", "spacing"],
+  ["fontSize", "font-size"],
+  ["fontFamily", "font-family"],
+  ["fontWeight", "font-weight"],
+  ["radius", "radius"],
+  ["shadow", "shadow"],
+  ["breakpoint", "breakpoint"],
+  ["zIndex", "z-index"],
+  ["opacity", "opacity"],
+  ["letterSpacing", "font-letter-spacing"],
+];
+
+/** wind4's nested view of the flat theme map, for the rules that read it. */
+export function wind4Theme(
+  vars: ThemeRef,
+): Record<string, Record<string, string>> {
+  const out: Record<string, Record<string, string>> = {};
+  for (const [key, family] of WIND4_FAMILIES) {
+    const group: Record<string, string> = {};
+    for (const [name, ref] of Object.entries(vars)) {
+      if (name.startsWith(`${family}-`)) {
+        group[name.slice(family.length + 1)] = ref;
+      }
+    }
+    out[key] = group;
+  }
+  return out;
 }
 
 /**
@@ -267,19 +309,27 @@ function covered(rule: Rule, claim: string): boolean {
 /**
  * The variable namespaces a spin sheet defines.
  *
- * Every token becomes a `--<group>-<name>` variable, so the GROUPS are the
- * defined surface: `--color-primary` is defined because the colour group
- * carries a `primary`, and a rule reading one is reading something real.
- * `refFamilies` is read rather than a prefix list written out, so a theme that
- * grows a group widens this with it.
+ * Every token becomes a `--<path-with-dashes>` variable, so the TOP-LEVEL
+ * groups are the defined surface: `--color-primary` is defined because the
+ * colour group carries a `primary`, and a rule reading one is reading
+ * something real. The groups are read from the default theme — the canonical
+ * surface every theme answers — so the set is data, not a list maintained
+ * alongside the audit.
  *
  * `--grid-gutter` is the one variable nobody declares — `spacing.ts` and
  * `grid.ts` both spend it, and the consumer sets it on the container.
  */
-const definedNamespaces: readonly string[] = [
-  ...refFamilies().map((family) => "--" + family.replace(/\./g, "-")),
-  "--grid-gutter",
-];
+const definedNamespaces: readonly string[] = (() => {
+  const parsed = parseTokens(
+    defaultTheme as Parameters<typeof parseTokens>[0],
+  );
+  if (!parsed.ok) throw new Error(`spin default theme: ${parsed.error}`);
+  const groups = new Set<string>(["--grid-gutter"]);
+  for (const node of parsed.tree) {
+    if (node.kind === "group") groups.add("--" + themeKey(node.name));
+  }
+  return [...groups];
+})();
 
 /**
  * A bare `var()` read — one with no fallback behind it.

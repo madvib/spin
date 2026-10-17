@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode, proseTokens } from "./shared.ts";
 
 /**
@@ -52,12 +52,12 @@ function hrRule(base: string): Rule {
 }
 
 /** The vertical rule's length, and the room it keeps beside it. */
-function dividerTokens(ctx: Parameters<typeof themeOf>[0]) {
+function dividerTokens(ctx: ThemeContext | undefined) {
   return {
-    length: themeOf(ctx)?.spacing["8"],
-    space: themeOf(ctx)?.spacing["4"],
-    width: themeOf(ctx)?.borderWidth?.["width"],
-    color: themeOf(ctx)?.colors["border"],
+    length: token(ctx, "spacing.8"),
+    space: token(ctx, "spacing.4"),
+    width: token(ctx, "border.width"),
+    color: token(ctx, "color.border"),
   };
 }
 

@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 
 /**
  * Radio — a drawn control, not a themed `accent-color`.
@@ -26,17 +26,16 @@ export function radioRules(roots: readonly string[]): Rule[] {
     [
       /^radio$/,
       function* (_m, ctx) {
-        const t = themeOf(ctx);
-        const size = t?.spacing["4"];
-        const borderWidth = t?.borderWidth?.["width"];
-        const border = t?.colors?.["border"];
-        const field = t?.colors?.["field"];
-        const primary = t?.colors?.["primary"];
-        const duration = t?.motionDuration?.["fast"];
-        const easing = t?.motionEasing?.["standard"];
-        const focusWidth = t?.focusWidth?.["width"];
-        const focusRing = t?.colors?.["focus-ring"];
-        const focusOffset = t?.focusOffset?.["offset"];
+        const size = token(ctx, "spacing.4");
+        const borderWidth = token(ctx, "border.width");
+        const border = token(ctx, "color.border");
+        const field = token(ctx, "color.field");
+        const primary = token(ctx, "color.primary");
+        const duration = token(ctx, "motion.duration.fast");
+        const easing = token(ctx, "motion.easing.standard");
+        const focusWidth = token(ctx, "focus.width");
+        const focusRing = token(ctx, "color.focus-ring");
+        const focusOffset = token(ctx, "focus.offset");
 
         const shell: Record<string, string | undefined> = {
           appearance: "none",
@@ -155,7 +154,7 @@ export function radioRules(roots: readonly string[]): Rule[] {
           // Flatten with the checkbox: a control you cannot press should
           // not carry the shadows that say it can be.
           "box-shadow": "none",
-          opacity: t?.opacity?.["40"] ?? 0.4,
+          opacity: token(ctx, "opacity.40") ?? 0.4,
         };
       },
       { layer: "primitives", autocomplete: "radio" },

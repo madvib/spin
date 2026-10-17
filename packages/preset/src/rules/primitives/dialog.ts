@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -194,19 +194,18 @@ export function dialogRules(
   ];
 }
 
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
-    radius: t?.radius?.["lg"],
-    text: t?.colors["text"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
-    scrim: t?.colors["scrim"],
-    borderWidth: t?.borderWidth?.["width"],
-    shadow: t?.shadow?.["lg"],
-    duration: t?.motionDuration?.["fast"],
-    easing: t?.motionEasing?.["standard"],
+    spacing2: token(ctx, "spacing.2"),
+    spacing4: token(ctx, "spacing.4"),
+    radius: token(ctx, "radius.lg"),
+    text: token(ctx, "color.text"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    scrim: token(ctx, "color.scrim"),
+    borderWidth: token(ctx, "border.width"),
+    shadow: token(ctx, "shadow.lg"),
+    duration: token(ctx, "motion.duration.fast"),
+    easing: token(ctx, "motion.easing.standard"),
   };
 }

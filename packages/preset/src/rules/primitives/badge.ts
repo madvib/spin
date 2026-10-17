@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
+import { named, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -35,21 +35,19 @@ function badgeBase(mode: Mode): Rule {
   return [
     /^badge$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const spacing2 = t?.spacing["2"];
-      const spacing1 = t?.spacing["1"];
-      const borderWidth = t?.borderWidth?.["width"];
-      const borderColor = t?.colors?.["border"];
-      const sizeXs = t?.fontSize["xs"];
-      const weightMedium = t?.fontWeight["medium"];
-      const badgeGroup = groupOf(ctx, "badge");
-      const edge = badgeGroup?.["edge"] ?? borderWidth;
+      const spacing2 = token(ctx, "spacing.2");
+      const spacing1 = token(ctx, "spacing.1");
+      const borderWidth = token(ctx, "border.width");
+      const borderColor = token(ctx, "color.border");
+      const sizeXs = token(ctx, "font.size.xs");
+      const weightMedium = token(ctx, "font.weight.medium");
+      const edge = named(ctx, "badge", "edge") ?? borderWidth;
       // `badge.pill` is a boolean token: a theme declares it true for the
       // pill and false (or omits it) for the square tag. The flag IS the
       // decision — the rule asks one question instead of carrying a radius
       // scale a badge has no use for.
-      const pill = badgeGroup?.["pill"] !== undefined;
-      const pillRadius = t?.radius?.["full"];
+      const pill = named(ctx, "badge", "pill") !== undefined;
+      const pillRadius = token(ctx, "radius.full");
       yield {
         [ctx.symbols.selector]: () => badge,
         display: "inline-flex",
@@ -119,10 +117,11 @@ function badgeTones(mode: Mode): Rule[] {
       [
         new RegExp(`^badge-${name}$`),
         function* (_m, ctx) {
-          const colors = themeOf(ctx)?.colors;
-          const bg = colors?.[fill];
-          const fg = colors?.[on];
-          const edgeColor = edge !== undefined ? colors?.[edge] : undefined;
+          const bg = named(ctx, "color", fill);
+          const fg = named(ctx, "color", on);
+          const edgeColor = edge !== undefined
+            ? named(ctx, "color", edge)
+            : undefined;
           // Both syntaxes: `class="badge-primary"` and `variant="primary"`.
           // The variant extractor emits the compound token so the rule
           // fires; the attribute selector matches the element that carries
@@ -145,13 +144,13 @@ function badgeTones(mode: Mode): Rule[] {
       [
         new RegExp(`^badge-${name}-muted$`),
         function* (_m, ctx) {
-          const colors = themeOf(ctx)?.colors;
-          const surface = colors?.["surface-raised"] ?? colors?.["surface"];
+          const surface = named(ctx, "color", "surface-raised") ??
+            named(ctx, "color", "surface");
           // The tone's colour: the edge for neutral (its identity is the
           // border), the fill for the chromatic tones.
           const toneColour = edge !== undefined
-            ? colors?.[edge]
-            : colors?.[fill];
+            ? named(ctx, "color", edge)
+            : named(ctx, "color", fill);
           yield {
             [ctx.symbols.selector]: () =>
               `${badge}.badge-${name}-muted, ${badge}[variant~="${name}-muted"]`,
@@ -203,10 +202,9 @@ function badgeSizes(mode: Mode): Rule[] {
   return SIZES.map((size) => [
     new RegExp(`^${size.name}$`),
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const fontSize = t?.fontSize[size.fontSize];
-      const spacingInline = t?.spacing[size.spacingInline];
-      const spacingBlock = t?.spacing[size.spacingBlock];
+      const fontSize = named(ctx, "font.size", size.fontSize);
+      const spacingInline = named(ctx, "spacing", size.spacingInline);
+      const spacingBlock = named(ctx, "spacing", size.spacingBlock);
       yield {
         [ctx.symbols.selector]: () =>
           `${badge}.${size.name}, ${badge}[variant~="${size.short}"]`,
@@ -245,7 +243,6 @@ function badgeClose(mode: Mode): Rule[] {
     [
       /^badge-close$/,
       function* (_m, ctx) {
-        const radiusSm = themeOf(ctx)?.radius?.["sm"];
         yield {
           [ctx.symbols.selector]: () => `${badge} .badge-close`,
           "background-color": "transparent",

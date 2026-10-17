@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -33,18 +33,17 @@ export function alertRules(roots: readonly string[], mode: Mode): Rule[] {
   return [alertBase(mode), ...alertTones(mode)];
 }
 
-function alertTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function alertTokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
-    radius: t?.radius?.["md"],
-    text: t?.colors["text"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    fontSize: t?.fontSize?.["sm"],
-    weight: t?.fontWeight?.["medium"],
+    spacing2: token(ctx, "spacing.2"),
+    spacing4: token(ctx, "spacing.4"),
+    radius: token(ctx, "radius.md"),
+    text: token(ctx, "color.text"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    fontSize: token(ctx, "font.size.sm"),
+    weight: token(ctx, "font.weight.medium"),
   };
 }
 
@@ -150,8 +149,9 @@ function alertTones(mode: Mode): Rule[] {
       [
         new RegExp(`^alert-${name}$`),
         function* (_m, ctx) {
-          const colors = themeOf(ctx)?.colors;
-          const color = edge !== undefined ? colors?.[edge] : colors?.[fill];
+          const color = edge !== undefined
+            ? named(ctx, "color", edge)
+            : named(ctx, "color", fill);
           yield {
             [ctx.symbols.selector]: () =>
               `${alert}.alert-${name}, ${alert}[variant~="${name}"]`,
@@ -166,11 +166,11 @@ function alertTones(mode: Mode): Rule[] {
       [
         new RegExp(`^alert-${name}-muted$`),
         function* (_m, ctx) {
-          const colors = themeOf(ctx)?.colors;
-          const surface = colors?.["surface-raised"] ?? colors?.["surface"];
+          const surface = named(ctx, "color", "surface-raised") ??
+            named(ctx, "color", "surface");
           const toneColour = edge !== undefined
-            ? colors?.[edge]
-            : colors?.[fill];
+            ? named(ctx, "color", edge)
+            : named(ctx, "color", fill);
           yield {
             [ctx.symbols.selector]: () =>
               `${alert}.alert-${name}-muted, ${alert}[variant~="${name}-muted"]`,

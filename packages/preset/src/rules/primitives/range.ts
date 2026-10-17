@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /**
@@ -44,18 +44,17 @@ function rangeRule(): Rule {
   return [
     /^range$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const trackHeight = t?.spacing["2"];
-      const thumbSize = t?.spacing["4"];
-      const field = t?.colors["field"];
-      const border = t?.colors["border"];
-      const borderWidth = t?.borderWidth?.["width"];
-      const primary = t?.colors["primary"];
-      const shadowSm = t?.shadow?.["sm"];
-      const full = t?.radius["full"];
-      const focusWidth = t?.focusWidth?.["width"];
-      const focusRing = t?.colors["focus-ring"];
-      const offset = t?.spacing["1"];
+      const trackHeight = token(ctx, "spacing.2");
+      const thumbSize = token(ctx, "spacing.4");
+      const field = token(ctx, "color.field");
+      const border = token(ctx, "color.border");
+      const borderWidth = token(ctx, "border.width");
+      const primary = token(ctx, "color.primary");
+      const shadowSm = token(ctx, "shadow.sm");
+      const full = token(ctx, "radius.full");
+      const focusWidth = token(ctx, "focus.width");
+      const focusRing = token(ctx, "color.focus-ring");
+      const offset = token(ctx, "spacing.1");
 
       // The element itself: a host for the pseudo-elements, sized by the
       // track's own step. `spacing.2` rather than a heavier step because the
@@ -159,7 +158,7 @@ function rangeRule(): Rule {
       // which is every theme today, the scale powers the utilities.
       yield {
         [ctx.symbols.selector]: () => 'input[type="range"]:disabled',
-        opacity: t?.opacity?.["50"] ?? 0.55,
+        opacity: token(ctx, "opacity.50") ?? 0.55,
       };
     },
     { layer: "primitives", autocomplete: "range" },

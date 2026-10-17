@@ -1,6 +1,5 @@
 import type { Rule } from "@unocss/core";
-import type { ThemeContext } from "../utils/lookup.ts";
-import { themeOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 
 /**
  * The stacking families: `z-*` and the `isolate`/`static` pair.
@@ -27,7 +26,7 @@ export function stackingRules(): Rule[] {
   const steps: Rule[] = STACKING.map((step): Rule => [
     new RegExp(`^z-${step}$`),
     (_match: RegExpMatchArray, ctx?: ThemeContext) => {
-      const value = themeOf(ctx)?.zIndex?.[step];
+      const value = named(ctx, "z-index", step);
       return value === undefined ? undefined : { "z-index": value };
     },
     { autocomplete: "z-$zIndex" },

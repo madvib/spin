@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 import { COLOR_KEYWORDS } from "../utils/vocabulary.ts";
 
 /**
@@ -16,7 +16,7 @@ function colorOf(
   name: string,
   property: "background-color" | "border-color" | "color" | "accent-color",
 ): Record<string, string> | undefined {
-  const path = tokenOf(ctx, "colors", name);
+  const path = named(ctx, "color", name);
   if (path) return { [property]: path };
   if ((COLOR_KEYWORDS as readonly string[]).includes(name)) {
     return { [property]: name };

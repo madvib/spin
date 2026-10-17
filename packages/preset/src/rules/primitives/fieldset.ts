@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { claim, type Mode } from "./shared.ts";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 
 /**
  * Fieldset & legend — the bare grouping element and its title.
@@ -31,26 +31,27 @@ function fieldsetRule(mode: Mode): Rule {
   return [
     /^fieldset$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
       const box: Record<string, string | undefined> = {
         display: "flex",
         "flex-direction": "column",
       };
-      if (t?.spacing["2"] !== undefined) {
-        Object.assign(box, { gap: t.spacing["2"] });
+      if (token(ctx, "spacing.2") !== undefined) {
+        Object.assign(box, { gap: token(ctx, "spacing.2") });
       }
-      if (t?.spacing["4"] !== undefined) {
-        Object.assign(box, { padding: t.spacing["4"] });
+      if (token(ctx, "spacing.4") !== undefined) {
+        Object.assign(box, { padding: token(ctx, "spacing.4") });
       }
-      if (t?.radius["md"] !== undefined) {
-        Object.assign(box, { "border-radius": t.radius["md"] });
+      if (token(ctx, "radius.md") !== undefined) {
+        Object.assign(box, { "border-radius": token(ctx, "radius.md") });
       }
       if (
-        t?.borderWidth?.["width"] !== undefined &&
-        t?.colors["border"] !== undefined
+        token(ctx, "border.width") !== undefined &&
+        token(ctx, "color.border") !== undefined
       ) {
         Object.assign(box, {
-          border: `${t.borderWidth["width"]} solid ${t.colors["border"]}`,
+          border: `${token(ctx, "border.width")} solid ${
+            token(ctx, "color.border")
+          }`,
         });
       }
       yield {
@@ -62,14 +63,14 @@ function fieldsetRule(mode: Mode): Rule {
       // edge, and the type weight makes it read as the group's name.
       yield {
         [ctx.symbols.selector]: () => `${fieldset} > ${legend}`,
-        ...(t?.spacing["2"] !== undefined
-          ? { "padding-inline": t.spacing["2"] }
+        ...(token(ctx, "spacing.2") !== undefined
+          ? { "padding-inline": token(ctx, "spacing.2") }
           : {}),
-        ...(t?.fontSize?.["sm"] !== undefined
-          ? { "font-size": t.fontSize["sm"] }
+        ...(token(ctx, "font.size.sm") !== undefined
+          ? { "font-size": token(ctx, "font.size.sm") }
           : {}),
-        ...(t?.fontWeight?.["semibold"] !== undefined
-          ? { "font-weight": t.fontWeight["semibold"] }
+        ...(token(ctx, "font.weight.semibold") !== undefined
+          ? { "font-weight": token(ctx, "font.weight.semibold") }
           : {}),
       };
     },

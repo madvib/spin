@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { arbitraryValue, staticRules } from "../utils/factories.ts";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
 
@@ -19,7 +19,7 @@ export function typographyRules(): Rule[] {
     [
       /^tracking-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const token = tokenOf(ctx, "letterSpacing", name);
+        const token = named(ctx, "font-letter-spacing", name);
         if (token !== undefined) return { "letter-spacing": token };
         return STATIC_DECLS[`tracking-${name}`];
       },
@@ -34,9 +34,9 @@ export function typographyRules(): Rule[] {
     [
       /^font-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const family = tokenOf(ctx, "fontFamily", name);
+        const family = named(ctx, "font-family", name);
         if (family) return { "font-family": family };
-        const weight = tokenOf(ctx, "fontWeight", name);
+        const weight = named(ctx, "font-weight", name);
         if (weight) return { "font-weight": weight };
         return undefined;
       },
@@ -64,9 +64,9 @@ export function typographyRules(): Rule[] {
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const size = tokenOf(ctx, "fontSize", name);
+        const size = named(ctx, "font-size", name);
         if (size) return { "font-size": size };
-        const color = tokenOf(ctx, "colors", name);
+        const color = named(ctx, "color", name);
         if (color) return { color: color };
         return undefined;
       },

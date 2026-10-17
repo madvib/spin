@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -30,9 +30,8 @@ function modeBase(mode: Mode): Rule {
   return [
     /^mode$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const icon = t?.icon?.["md"];
-      const gap = t?.spacing?.["2"];
+      const icon = token(ctx, "icon.md");
+      const gap = token(ctx, "spacing.2");
       yield {
         [ctx.symbols.selector]: () => `${claim(mode, "button")}.mode`,
         // The face is the theme's icon step, not the button's type: a glyph
@@ -52,7 +51,6 @@ function modeDisabled(mode: Mode): Rule {
   return [
     /^mode$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
       yield {
         [ctx.symbols.selector]: () =>
           `${claim(mode, "button")}.mode:disabled, ${
@@ -63,7 +61,7 @@ function modeDisabled(mode: Mode): Rule {
         // inert, the a11y layer's cursor says unusable, and the element
         // stays in the tree for a reader who tabs to it and wants to know
         // why it does nothing.
-        opacity: t?.opacity?.["40"] ?? 0.4,
+        opacity: token(ctx, "opacity.40") ?? 0.4,
       };
     },
     { layer: "primitives", autocomplete: "mode" },

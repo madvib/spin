@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -59,22 +59,21 @@ interface Tokens {
   readonly easeOut: string | undefined;
 }
 
-function tokens(ctx: Parameters<typeof themeOf>[0]): Tokens {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing2: t?.spacing["2"],
-    radius: t?.radius?.["md"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    raised: t?.colors["surface-raised"],
-    border: t?.colors["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    weightSemibold: t?.fontWeight?.["semibold"],
-    focusOffset: t?.focusOffset?.["offset"],
-    duration: t?.motionDuration?.["fast"],
-    easing: t?.motionEasing?.["standard"],
-    reveal: t?.motionDuration?.["base"],
-    easeOut: t?.motionEasing?.["decelerate"],
+    spacing2: token(ctx, "spacing.2"),
+    radius: token(ctx, "radius.md"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
+    focusOffset: token(ctx, "focus.offset"),
+    duration: token(ctx, "motion.duration.fast"),
+    easing: token(ctx, "motion.easing.standard"),
+    reveal: token(ctx, "motion.duration.base"),
+    easeOut: token(ctx, "motion.easing.decelerate"),
   };
 }
 

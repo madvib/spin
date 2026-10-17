@@ -41,7 +41,6 @@ function referencePlugin(): ViteOptions {
   return options;
 }
 
-
 Deno.test("the id the app imports resolves to the plugin's own module", () => {
   const plugin = referencePlugin();
   assertEquals(plugin.resolveId!("uno.css"), "/__uno.css");

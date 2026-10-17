@@ -1,10 +1,4 @@
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  rhythm,
-  type Tokens,
-} from "./shared.ts";
+import { claim, type Mode } from "./shared.ts";
 
 /**
  * Prose — the bare content tags, and a `<prose>` container around them.

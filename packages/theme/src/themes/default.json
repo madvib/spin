@@ -318,6 +318,14 @@
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
         "$description": "Body and UI text."
       },
+      "heading": {
+        "$value": "{font.family.sans}",
+        "$description": "The display face. The default answers with the sans; a theme with a display voice states its own."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face. Distinct from `sans` only when a theme wants the two to differ."
+      },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
         "$description": "Long-form editorial text."

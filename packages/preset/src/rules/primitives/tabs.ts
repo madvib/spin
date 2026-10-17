@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -43,24 +43,23 @@ export function tabsRules(roots: readonly string[], mode: Mode): Rule[] {
   return [tabsBase(mode), tabsVertical(mode)];
 }
 
-function tabsTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tabsTokens(ctx: ThemeContext | undefined) {
   return {
-    spacing0: t?.spacing["0"],
-    spacing1: t?.spacing["1"],
-    spacing2: t?.spacing["2"],
-    spacing4: t?.spacing["4"],
-    text: t?.colors["text"],
-    muted: t?.colors["text-muted"],
-    primary: t?.colors["primary"],
-    focusRing: t?.colors["focus-ring"],
-    focusWidth: t?.focusWidth?.["width"],
-    focusOffset: t?.focusOffset?.["offset"],
-    borderWidth: t?.borderWidth?.["width"],
-    weightMedium: t?.fontWeight?.["medium"],
-    weightSemibold: t?.fontWeight?.["semibold"],
-    duration: t?.motionDuration?.["fast"],
-    easing: t?.motionEasing?.["standard"],
+    spacing0: token(ctx, "spacing.0"),
+    spacing1: token(ctx, "spacing.1"),
+    spacing2: token(ctx, "spacing.2"),
+    spacing4: token(ctx, "spacing.4"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    primary: token(ctx, "color.primary"),
+    focusRing: token(ctx, "color.focus-ring"),
+    focusWidth: token(ctx, "focus.width"),
+    focusOffset: token(ctx, "focus.offset"),
+    borderWidth: token(ctx, "border.width"),
+    weightMedium: token(ctx, "font.weight.medium"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
+    duration: token(ctx, "motion.duration.fast"),
+    easing: token(ctx, "motion.easing.standard"),
   };
 }
 
@@ -198,7 +197,7 @@ function tabsBase(mode: Mode): Rule {
       // button speaks.
       yield {
         [ctx.symbols.selector]: () => `${label}:has(input:disabled)`,
-        opacity: themeOf(ctx)?.opacity?.["50"] ?? 0.55,
+        opacity: token(ctx, "opacity.50") ?? 0.55,
         cursor: "not-allowed",
       };
 
