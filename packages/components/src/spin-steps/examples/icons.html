@@ -1,0 +1,16 @@
+<scope>props={ label: string = "Checkout", count: string = "4", titles: string = "["Profile","Settings","Sync","Complete"]", defaultStep: string = "1" } consume={ steps }</scope>
+
+<div class="w-full" {...steps.getRootProps()}>
+  <ol class="flex items-start gap-1" {...steps.getListProps()}>
+    <template for={steps.getItems()} as={row} key={row}>
+      <li class="flex min-w-0 flex-1 items-center gap-1 last:flex-none" {...steps.getItemProps({ index: row })}>
+        <button
+          type="button"
+          class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-solid border-border bg-surface-raised text-muted transition-all duration-fast ease-decelerate hover:border-primary data-[current]:border-primary data-[current]:bg-primary data-[current]:text-on-primary data-[complete]:border-primary data-[complete]:bg-primary data-[complete]:text-on-primary"
+          {...steps.getTriggerProps({ index: row })}
+        ><span class="text-base" aria-hidden="true"><span show={row === 0} class="i-lucide-user"></span><span show={row === 1} class="i-lucide-settings"></span><span show={row === 2} class="i-lucide-arrow-right-left"></span><span show={row === 3} class="i-lucide-check-circle"></span></span></button>
+        <span class="hidden truncate text-xs text-muted data-[current]:text-text sm:block" {...steps.getSeparatorProps({ index: row })}>{steps.getItemTitle(row)}</span>
+      </li>
+    </template>
+  </ol>
+</div>

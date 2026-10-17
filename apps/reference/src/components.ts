@@ -65,6 +65,21 @@ for (const [path, html] of Object.entries(recipeModules)) {
  * `machine/stem`. The loading example's `loadChildren` is what a consumer
  * writes in their own code (see the note in the example source). */
 const EXAMPLE_ONLOAD: Record<string, string> = {
+  "pagination/dropdown": `
+    document.querySelectorAll("pagination-dropdown").forEach((pg) => {
+      pg.querySelectorAll("[data-size]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          pg.setPageSize(Number(btn.getAttribute("data-size")));
+        });
+      });
+    });`,
+  "pagination/jump": `
+    document.querySelectorAll("pagination-jump").forEach((pg) => {
+      const input = pg.querySelector("[data-jump] input");
+      pg.querySelector("[data-go]")?.addEventListener("click", () => {
+        pg.setPage(Number(input.value));
+      });
+    });`,
   "tour/basic": `
     document.querySelectorAll("tour-basic").forEach((tour) => {
       tour.querySelector("[data-start]")?.addEventListener("click", () => {

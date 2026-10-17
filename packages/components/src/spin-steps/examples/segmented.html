@@ -1,0 +1,20 @@
+<scope>props={ label: string = "Checkout", count: string = "4", titles: string = "["Cart","Shipping","Payment","Review"]", defaultStep: string = "1" } consume={ steps }</scope>
+
+<div class="w-full" {...steps.getRootProps()}>
+  <div class="mb-3 flex items-center justify-between gap-2">
+    <span class="text-sm font-medium text-text">{label}</span>
+    <span class="text-xs text-muted">Step {steps.value} of {steps.count}</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <button type="button" class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...steps.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
+    <ol class="flex flex-1 items-start gap-1" {...steps.getListProps()}>
+      <template for={steps.getItems()} as={row} key={row}>
+        <li class="flex min-w-0 flex-1 items-center gap-1 last:flex-none" {...steps.getItemProps({ index: row })}>
+          <div class="h-1.5 w-full rounded-full bg-surface-sunken data-[complete]:bg-primary data-[current]:bg-primary" {...steps.getTriggerProps({ index: row })}></div>
+        </li>
+      </template>
+    </ol>
+    <button type="button" class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...steps.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
+  </div>
+</div>

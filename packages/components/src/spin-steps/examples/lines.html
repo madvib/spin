@@ -1,0 +1,16 @@
+<scope>props={ label: string = "Checkout", count: string = "4", titles: string = "["Step One","Step Two","Step Three","Step Four"]", defaultStep: string = "1" } consume={ steps }</scope>
+
+<div class="w-full" {...steps.getRootProps()}>
+  <ol class="flex items-start gap-4" {...steps.getListProps()}>
+    <template for={steps.getItems()} as={row} key={row}>
+      <li class="flex min-w-0 flex-1 flex-col items-start gap-2 last:flex-none" {...steps.getItemProps({ index: row })}>
+        <button
+          type="button"
+          class="h-1.5 w-full rounded-full bg-surface-sunken transition-all duration-fast ease-decelerate data-[current]:bg-primary data-[complete]:bg-primary"
+          {...steps.getTriggerProps({ index: row })}
+        ></button>
+        <span class="text-sm font-medium text-muted data-[current]:text-text data-[complete]:text-text" {...steps.getSeparatorProps({ index: row })}>{steps.getItemTitle(row)}</span>
+      </li>
+    </template>
+  </ol>
+</div>

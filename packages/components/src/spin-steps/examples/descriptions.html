@@ -1,0 +1,17 @@
+<scope>props={ label: string = "Checkout", count: string = "3", titles: string = "["Step One","Step Two","Step Three"]", defaultStep: string = "1" } consume={ steps }</scope>
+
+<div class="w-full" {...steps.getRootProps()}>
+  <ol class="flex items-start gap-1" {...steps.getListProps()}>
+    <template for={steps.getItems()} as={row} key={row}>
+      <li class="flex min-w-0 flex-1 flex-col items-center gap-1 last:flex-none" {...steps.getItemProps({ index: row })}>
+        <button
+          type="button"
+          class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-solid border-border bg-surface-raised text-xs font-medium text-muted transition-all duration-fast ease-decelerate hover:border-primary data-[current]:border-primary data-[current]:bg-primary data-[current]:text-on-primary data-[complete]:border-primary data-[complete]:bg-primary data-[complete]:text-on-primary"
+          {...steps.getTriggerProps({ index: row })}
+        ><span aria-hidden="true" {...steps.getIndicatorProps({ index: row })}>{row}</span></button>
+        <span class="text-sm font-medium text-text" {...steps.getSeparatorProps({ index: row })}>{steps.getItemTitle(row)}</span>
+        <span class="text-xs text-muted">Desc for step {row}</span>
+      </li>
+    </template>
+  </ol>
+</div>
