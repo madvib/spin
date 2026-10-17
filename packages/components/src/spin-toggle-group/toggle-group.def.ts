@@ -131,7 +131,9 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   implementations,
   start: "idle",
   seed: (props) => ({
-    value: valuesProp(props["value"]) ?? [],
+    // Controlled `value` wins; uncontrolled falls back to `defaultValue`
+    // (an authored `defaultValue` alone must still select).
+    value: valuesProp(props["value"]) ?? valuesProp(props["defaultValue"]) ?? [],
     multiple: props["multiple"] === true,
     deselectable: props["deselectable"] !== false,
     rovingFocus: props["rovingFocus"] !== false,

@@ -154,3 +154,9 @@ Deno.test("authored value seeds the group and a host write moves it", () => {
   assertEquals(api.value, ["bold"]);
   assertEquals(events.valueChange.length, 1);
 });
+
+Deno.test("an authored defaultValue alone selects (uncontrolled seed)", () => {
+  const { api } = mount({ defaultValue: ["bold"] });
+  assertEquals(api.value, ["bold"]);
+  assert(api.isPressed("bold"));
+});
