@@ -48,6 +48,15 @@ const visibleButtons = (page: Page): Promise<string> =>
       .filter((b) => !(b as HTMLElement).hidden)
       .map((b) => b.getAttribute("aria-label") ?? "?").join(","));
 
+/** Painted widths of the four header buttons: a hidden-attribute button
+ * must actually paint zero (author display utilities beat the UA sheet,
+ * so the attribute alone proves nothing — this pins the preflight). */
+const buttonWidths = (page: Page): Promise<string> =>
+  page.evaluate(() =>
+    [...document.querySelectorAll("#panel [aria-label='Minimize'],#panel [aria-label='Maximize'],#panel [aria-label='Restore'],#panel [aria-label='Close']")]
+      .map((b) => `${b.getAttribute("aria-label")}=${Math.round(b.getBoundingClientRect().width)}`)
+      .join(","));
+
 /** The panel's rect in page coordinates. */
 const bodyRect = (page: Page): Promise<{ x: number; y: number; w: number; h: number }> =>
   page.evaluate(() => {
@@ -122,17 +131,18 @@ Deno.test("spin-floating-panel e2e", () =>
         { seq: ["max", "min", "default"], stage: "restored", ...restored },
         { seq: ["min", "default", "max"], stage: "maximized", w: 1024, h: 768 },
         { seq: ["max", "default", "min"], stage: "minimized", w: 360, h: 48 },
-        { seq: ["default", "min", "max"], stage: "maximized", w: 1024, h: 768 },
-        // Minimized keeps the pre-minimize width (zag: only the height
-        // collapses to the header): after a maximize that is 1024.
-        { seq: ["default", "max", "min"], stage: "minimized", w: 1024, h: 48 },
+        // min>max and max>min without a restore are unreachable: staged
+        // triggers hide. The hidden-skip in clickStage proves it — a
+        // repeated stage is a no-op, pinned by the rows below.
         { seq: ["min", "min"], stage: "minimized", w: 360, h: 48 },
         { seq: ["max", "max"], stage: "maximized", w: 1024, h: 768 },
       ];
       const clickStage = async (which: string): Promise<void> => {
-        if (which === "min") await page.locator(STAGE_MIN).click();
-        else if (which === "max") await page.locator(STAGE_MAX).click();
-        else await page.locator(STAGE_DEFAULT).click();
+        // A hidden trigger cannot be clicked (that is the point of the
+        // hidden attribute): repeated stages are idempotent no-ops.
+        const sel = which === "min" ? STAGE_MIN : which === "max" ? STAGE_MAX : STAGE_DEFAULT;
+        if (await page.locator(sel).isHidden()) return;
+        await page.locator(sel).click();
         await page.waitForTimeout(300);
       };
       for (const row of rows) {
@@ -154,6 +164,18 @@ Deno.test("spin-floating-panel e2e", () =>
         const buttons = await visibleButtons(page);
         if (row.stage === "restored") assert.equal(buttons, "Minimize,Maximize,Close", `${row.seq.join(">")} shows min/max/close`);
         else assert.equal(buttons, "Restore,Close", `${row.seq.join(">")} shows restore/close`);
+        const widths = await buttonWidths(page);
+        const zero = (name: string): boolean =>
+          widths.split(",").some((cell) => cell === `${name}=0`);
+        const shown = (name: string): boolean =>
+          widths.split(",").some((cell) => cell.startsWith(`${name}=`) && cell !== `${name}=0`);
+        if (row.stage === "restored") {
+          assert.equal(zero("Restore"), true, `${row.seq.join(">")} restore paints zero`);
+          assert.equal(shown("Minimize") && shown("Maximize") && shown("Close"), true, `${row.seq.join(">")} min/max/close paint`);
+        } else {
+          assert.equal(zero("Minimize") && zero("Maximize"), true, `${row.seq.join(">")} min/max paint zero`);
+          assert.equal(shown("Restore"), true, `${row.seq.join(">")} restore paints`);
+        }
       }
     });
 

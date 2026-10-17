@@ -53,6 +53,18 @@ const RESET_CSS =
  * Matches the `i-` prefix on a token boundary, so `pi-icon` and `data-icon`
  * are not caught.
  */
+/**
+ * The `hidden` attribute hides, full stop.
+ *
+ * Author display utilities beat the UA sheet, so a bag-hidden trigger
+ * carrying `flex` still paints. Content scanning cannot emit this (no
+ * file carries the token — the bag sets the attribute at runtime), and
+ * a utility-layer rule would need a content token too, so it lives
+ * here beside the reduced-motion floor: platform semantics no utility
+ * may override.
+ */
+const HIDDEN_ATTR_CSS = "[hidden] { display: none !important; }";
+
 const ICON_GLYPH_CSS =
   '[class^="i-"], [class*=" i-"] { display: inline-block; flex: none; }';
 
@@ -115,7 +127,7 @@ function assemble(
       name: "reset",
       layer: "reset",
       order: LAYER.reset,
-      getCSS: () => `${RESET_CSS}\n${ICON_GLYPH_CSS}`,
+      getCSS: () => `${RESET_CSS}\n${HIDDEN_ATTR_CSS}\n${ICON_GLYPH_CSS}`,
     },
     {
       name: "theme/motion-policy",
