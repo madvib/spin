@@ -8,6 +8,7 @@
     "./packages/lint",
     "./packages/kit",
     "./packages/api",
+    "./packages/mcp",
     "./apps/studio",
     "./apps/reference",
     "./apps/docs",
