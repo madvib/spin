@@ -1,0 +1,17 @@
+<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"tab1","label":"Dashboard","content":"Main dashboard with key metrics and insights."},{"value":"tab2","label":"Analytics","content":"Track performance with detailed reports."},{"value":"tab3","label":"Settings","content":"Configure preferences and account options."}], defaultValue: string = "tab1" } consume={ tabs }</scope>
+
+
+<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...tabs.getRootProps()}>
+  <div class="mb-4 flex gap-2" {...tabs.getListProps()}>
+    <template for={items} as={row} key={row.value}>
+      <button
+        type="button"
+        class="rounded-full border border-solid border-border px-4 py-1.5 text-sm font-medium text-muted transition-all data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-on-primary"
+        {...tabs.getTriggerProps(row)}
+      >{row.label}</button>
+    </template>
+  </div>
+  <template for={items} as={row} key={row.value}>
+    <p class="m-0 text-center text-sm text-muted" {...tabs.getContentProps(row)}>{row.content}</p>
+  </template>
+</div>

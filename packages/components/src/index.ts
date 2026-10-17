@@ -46,5 +46,6 @@ export { select } from "./spin-select/select.machine-def.ts";
 export { tags } from "./spin-tags-input/tags.machine-def.ts";
 export { timer } from "./spin-timer/timer.machine-def.ts";
 export { toast } from "./spin-toast/toast.machine-def.ts";
+export { tabs } from "./spin-tabs/tabs.controller-def.ts";
 export { tooltip } from "./spin-tooltip/tooltip.controller-def.ts";
 export { treeView } from "./spin-tree-view/tree-view.machine-def.ts";
