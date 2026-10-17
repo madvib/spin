@@ -1,0 +1,37 @@
+<scope>props={ items: { value: string, label: string, disabled: bool, group: string }[] = [{"value":"critical","label":"Critical"},{"value":"high","label":"High"},{"value":"medium","label":"Medium"},{"value":"low","label":"Low"}], label: string = "Task Priority", defaultValue: string = "medium" } consume={ listbox }</scope>
+
+<div class="w-full" {...listbox.getRootProps()}>
+  <label
+    class="mb-1 block text-sm font-medium text-text transition-colors duration-fast ease-decelerate data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[focused]:text-primary"
+    {...listbox.getLabelProps()}
+  >Task Priority</label>
+
+  <span
+    class="block text-sm text-muted transition-colors duration-fast ease-decelerate data-[empty]:hidden"
+    {...listbox.getValueTextProps()}
+  >{listbox.valueAsString}</span>
+
+  <div
+    class="max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised p-1 transition-colors duration-fast ease-decelerate data-[disabled]:opacity-60 data-[empty]:hidden"
+    {...listbox.getContentProps()}
+  >
+    <template for={listbox.getBlocks()} as={block} key={block.id}>
+      <div class="py-0.5" {...listbox.getItemGroupProps(block)}>
+        <span class="block px-2 py-1 text-xs font-medium text-muted" {...listbox.getItemGroupLabelProps(block)}>{block.label}</span>
+        <template for={listbox.getRows(block)} as={row} key={row.value}>
+          <div
+            class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+            {...listbox.getItemProps(row)}
+          >
+            <span class="min-w-0 flex-1 truncate" {...listbox.getItemTextProps(row)}>{row.label}</span>
+            <span
+              aria-hidden="true"
+              class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[state=checked]:scale-100 data-[state=checked]:opacity-100"
+              {...listbox.getItemIndicatorProps(row)}
+            ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+          </div>
+        </template>
+      </div>
+    </template>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<scope>props={ items: { value: string, label: string }[] = [{"value":"javascript","label":"JavaScript"},{"value":"typescript","label":"TypeScript"},{"value":"react","label":"React"},{"value":"vue","label":"Vue"},{"value":"angular","label":"Angular"},{"value":"svelte","label":"Svelte"}], label: string = "Skills", multiple: bool = true, closeOnSelect: bool = false } consume={ combobox }</scope>
+
+<div class="relative w-full" {...combobox.getRootProps()}>
+  <label class="mb-1 block text-sm font-medium text-text transition-colors duration-fast ease-decelerate data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[focused]:text-primary" {...combobox.getLabelProps()}>Skills</label>
+
+  <div class="relative" {...combobox.getControlProps()}>
+    <input class="h-7 w-full rounded-md border border-solid border-border bg-surface-raised px-2 pr-16 text-sm text-text transition-colors duration-fast ease-decelerate placeholder:text-muted focus-visible:ring-2 focus-visible:ring-border-strong data-[disabled]:opacity-60 data-[disabled]:cursor-not-allowed data-[invalid]:border-border-strong data-[state=open]:border-border-strong" {...combobox.getInputProps()} placeholder="Add skills..." />
+
+    <div class="absolute inset-y-0 right-0 flex items-center gap-0.5 pr-1">
+      <button class="grid h-5 w-5 place-items-center rounded-sm border border-solid border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text data-[invalid]:text-text" {...combobox.getClearTriggerProps()}><span aria-hidden="true"><span class="i-lucide-x text-xs" aria-hidden="true"></span></span></button>
+      <button class="grid h-6 w-6 place-items-center rounded-md border border-solid border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text data-[disabled]:cursor-not-allowed" {...combobox.getTriggerProps()}><span aria-hidden="true" class="text-xs transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180" {...combobox.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span></button>
+    </div>
+
+    <div class="absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0" {...combobox.getPositionerProps()}>
+      <div class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[disabled]:opacity-60" {...combobox.getContentProps()}>
+        <div class="max-h-60 overflow-y-auto p-1 transition-opacity duration-fast ease-decelerate data-[empty]:hidden" {...combobox.getListProps()}>
+          <template for={combobox.getBlocks()} as={block} key={block.id}>
+            <div class="py-0.5" {...combobox.getItemGroupProps(block)}>
+              <span class="block px-2 py-1 text-xs font-medium text-muted" {...combobox.getItemGroupLabelProps(block)}>{block.label}</span>
+              <template for={combobox.getRows(block)} as={row} key={row.value}>
+                <div class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...combobox.getItemProps(row)}>
+                  <span class="min-w-0 flex-1 truncate" {...combobox.getItemTextProps(row)}>{row.label}</span>
+                  <span aria-hidden="true" class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[state=checked]:scale-100 data-[state=checked]:opacity-100" {...combobox.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

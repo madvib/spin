@@ -1,0 +1,63 @@
+<scope>props={ items: { value: string, label: string }[] = [{"value": "en", "label": "English"}, {"value": "es", "label": "Spanish"}, {"value": "fr", "label": "French"}, {"value": "de", "label": "German"}, {"value": "it", "label": "Italian"}, {"value": "pt", "label": "Portuguese"}, {"value": "ru", "label": "Russian"}, {"value": "ja", "label": "Japanese"}, {"value": "ko", "label": "Korean"}, {"value": "zh", "label": "Chinese"}], label: string = "Language", placeholder: string = "Select a language" } consume={ select }</scope>
+
+<div class="relative w-full" {...select.getRootProps()}>
+  <label
+    class="mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50"
+    {...select.getLabelProps()}>{label}</label>
+
+  <div class="flex items-center gap-1" {...select.getControlProps()}>
+    <button
+      class="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-2 text-sm text-text transition-colors duration-fast ease-decelerate hover:bg-surface data-[state=open]:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
+      {...select.getTriggerProps()}
+    >
+      <span class="min-w-0 flex-1 truncate text-left"
+        {...select.getValueTextProps()}>
+        <template for={select.getSelectedRows()} as={row} key={row.value}>
+          <span>{row.label}</span>
+        </template>
+      </span>
+      <span
+        aria-hidden="true"
+        class="shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180"
+        {...select.getTriggerIndicatorProps()}
+      ><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
+    </button>
+    <button
+      type="button"
+      aria-hidden="true"
+      tabindex="-1"
+      class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-solid border-transparent bg-transparent text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text"
+      {...select.getClearTriggerProps()}
+    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+  </div>
+
+  <div
+    class="absolute z-dropdown left-0 top-full mt-1 origin-top-left transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[placement^=top]:bottom-full data-[placement^=top]:top-auto data-[placement^=top]:mb-1 data-[placement^=top]:mt-0 data-[placement^=top]:origin-bottom-left [min-width:var(--select-anchor-w,12rem)]"
+    {...select.getPositionerProps()}
+  >
+    <div
+      class="max-h-56 overflow-y-auto overscroll-contain rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+      {...select.getContentProps()}
+    >
+      <div role="group" class="flex flex-col p-0.5" {...select.getListProps()}>
+        <template for={select.getRows()} as={row} key={row.value}>
+          <div
+            class="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:font-medium data-[disabled]:opacity-50 data-[disabled]:pointer-events-none"
+            {...select.getItemProps(row)}
+          >
+            <span class="min-w-0 flex-1 truncate"
+              {...select.getItemTextProps(row)}>{row.label}</span>
+            <span
+              aria-hidden="true"
+              class="shrink-0 text-xs text-primary opacity-0 transition-opacity duration-fast ease-decelerate data-[state=checked]:opacity-100"
+              {...select.getItemIndicatorProps(row)}
+            ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <select class="sr-only" {...select.getHiddenSelectProps()}
+    aria-hidden="true"></select>
+</div>

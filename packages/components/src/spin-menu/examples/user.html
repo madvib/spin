@@ -1,0 +1,33 @@
+<scope>props={ items: string = '[{"value":"profile","label":"Profile"},{"value":"settings","label":"Settings"},{"value":"billing","label":"Billing"},{"separator":true},{"value":"help","label":"Help & Support"},{"separator":true},{"value":"logout","label":"Log out"}]', label: string = "John Doe" } consume={ menu }</scope>
+
+<div class="relative inline-block">
+  <div class="relative" {...menu.getContextTriggerProps()}>
+    <button class="group inline-flex items-center gap-3 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors duration-fast hover:bg-surface" {...menu.getTriggerProps()}>
+      <span class="truncate">John Doe</span>
+      <span aria-hidden="true" class="text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-180" {...menu.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
+    </button>
+  </div>
+  <div class="absolute z-dropdown origin-top-left transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 [left:var(--menu-anchor-x,0px)] [top:var(--menu-anchor-y,100%)] [min-width:var(--menu-anchor-w,14rem)]" {...menu.getPositionerProps()}>
+    <div class="rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg" {...menu.getContentProps()}>
+      <div class="px-3 py-2 border-b border-solid border-border">
+        <div class="text-sm font-medium text-text">John Doe</div>
+        <div class="text-xs text-muted">john@example.com</div>
+      </div>
+      <template for={menu.getBlocks()} as={block} key={block.id}>
+        <div class="py-1" {...menu.getItemGroupProps(block)}>
+          <span class="block px-2 pb-1 text-xs font-medium text-muted" {...menu.getItemGroupLabelProps(block)}>{block.label}</span>
+          <template for={menu.getRows(block)} as={row} key={row.value}>
+            <div class="group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast cursor-default data-[highlighted]:bg-surface data-[disabled]:opacity-50" {...menu.getItemProps(row)}>
+              <span class="min-w-0 flex-1 truncate" {...menu.getItemTextProps(row)}>{row.label}</span>
+              <span class="shrink-0 text-xs text-muted" {...menu.getItemShortcutProps(row)}>{row.shortcut}</span>
+              <span aria-hidden="true" class="shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0 data-[state=checked]:scale-100 data-[state=checked]:opacity-100" {...menu.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+              <span aria-hidden="true" class="shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-90" {...menu.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
+              <spin-menu class="absolute left-full top-0" {...menu.getSubmenuProps(row)} submenu />
+            </div>
+          </template>
+        </div>
+        <div class="my-1 border-t border-border" {...menu.getSeparatorProps(block)}></div>
+      </template>
+    </div>
+  </div>
+</div>
