@@ -52,7 +52,9 @@ const CARD_CODE =
     <span class="text-sm text-text-muted">$19</span>
   </div>
   <p class="m-0 text-sm text-text-muted">Apricot, jasmine, black tea</p>
-  <button type="button" class="s-sm">Add to box</button>
+  <div class="flex flex-wrap items-center gap-2">
+    <button type="button" class="s-sm">Add to box</button>
+  </div>
 </article>`;
 
 const DIALOG_CODE = `<dialog id="sold-out">
@@ -60,6 +62,10 @@ const DIALOG_CODE = `<dialog id="sold-out">
   <button type="button" onclick="sold-out.close()">Close</button>
 </dialog>
 <button type="button" onclick="sold-out.showModal()">Check stock</button>`;
+
+/** The card in the utilities panel keeps a real count: the button is a JS
+ * action, which is what `type="button"` is for. */
+const [inBox, setInBox] = createSignal(0);
 
 const SWATCHES: readonly (readonly [string, string])[] = [
   ["--color-primary", "bg-primary"],
@@ -123,7 +129,16 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             <p class="m-0 text-sm text-text-muted">
               Apricot, jasmine, black tea
             </p>
-            <button type="button" class="s-sm">Add to box</button>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                class="s-sm"
+                onClick={() => setInBox((n) => n + 1)}
+              >
+                Add to box
+              </button>
+              {inBox() > 0 && <badge variant="success">{inBox()} in box</badge>}
+            </div>
           </article>
         </div>
       </div>
@@ -364,12 +379,11 @@ export default function Home(): JSX.Element {
             <Section title="The studio">
               <div class="grid gap-6 md:grid-cols-2">
                 <p class="m-0 max-w-prose">
-                  The studio is the theme editor, mounted into the app you're
-                  already running. This is it docked beside a real one: every
-                  card, badge, and button on the left is spending the tokens
-                  being edited on the right, live. It docks to either side or
-                  takes the whole screen, and it opens from any page in dev —
-                  the <strong>Theme</strong>{" "}
+                  The studio is the theme editor, mounted into the app it is
+                  editing — this site included, as below. It docks to either
+                  side of that app or takes the whole screen, and every change
+                  repaints the app beside it: themes, palettes, type, motion,
+                  spacing, the components. The <strong>Theme</strong>{" "}
                   button in the corner of this page opens it on this page.
                 </p>
                 <div class="flex flex-col justify-center gap-2 md:max-w-xs">
@@ -388,13 +402,14 @@ export default function Home(): JSX.Element {
               <img
                 src="/studio.png"
                 loading="lazy"
-                alt="The studio docked to the right of a coffee shop app, editing the theme the app is wearing"
+                alt="This site with the studio docked to its right, editing the theme the site is wearing"
                 class="mt-6 w-full rounded-md border border-border"
               />
               <div class="mt-6 grid gap-6 md:grid-cols-2">
                 <p class="m-0">
-                  One token moves and everything repaints — this is that, live.
-                  Drag primary and watch this page follow it.
+                  Drag <code class="text-xs">color.primary</code>{" "}
+                  and every button, badge, and bar on this page repaints with
+                  it. The value below is the one the page is using right now.
                 </p>
                 <div class="border border-border bg-surface-raised rounded-md p-4">
                   <div class="flex items-center justify-between gap-3">
@@ -430,39 +445,38 @@ export default function Home(): JSX.Element {
               <div class="grid gap-4 md:grid-cols-3">
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">
-                    Your agent learns your system.
+                    An MCP client reads the project.
                   </p>
                   <p class="m-0 mt-2 text-sm">
-                    Point an MCP client at the dev server and it reads your live
-                    theme and element vocabulary — the colors you actually use,
-                    the elements you actually ship. The code it writes comes
-                    back on-theme instead of guessing.
+                    Claude, Cursor, or any MCP client connects to the running
+                    dev server and reads what is actually there: the token
+                    document, the utilities the preset generates, the elements
+                    it ships. Code it writes uses those names instead of
+                    inventing parallel ones.
                   </p>
                 </div>
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">
-                    The errors tell it what to do.
+                    Lint errors name the fix.
                   </p>
                   <p class="m-0 mt-2 text-sm">
                     <code class="text-xs">@spin/lint</code>{" "}
-                    runs in oxlint, and every message names the fix: a hardcoded
-                    {" "}
-                    <code class="text-xs">#c8102e</code> gets told to use{" "}
-                    <code class="text-xs">text-text</code> or{" "}
-                    <code class="text-xs">bg-surface</code>{" "}
-                    instead; a class outside the vocabulary is told it generates
-                    nothing. Your agent reads the fix and applies it.
+                    runs in oxlint: a hardcoded{" "}
+                    <code class="text-xs">#c8102e</code>{" "}
+                    fails with the token to use instead; a class the preset will
+                    not generate fails as one that does not exist; a utility
+                    parked on an element that styles itself fails with where it
+                    belongs.
                   </p>
                 </div>
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">
-                    Broken dark mode doesn't ship.
+                    Every theme opens in a browser.
                   </p>
                   <p class="m-0 mt-2 text-sm">
-                    The gates open every theme in a real browser, both modes,
-                    and check what eyeballs miss: contrast under the legibility
-                    floor, layout that overflows, elements stacking wrong. Dark
-                    mode fails quietly on its own; here it fails a build.
+                    The gates render each starter in both modes and check
+                    contrast, layout, overflow, and stacking — failures that
+                    never show up in a code review, only on the page.
                   </p>
                 </div>
               </div>
