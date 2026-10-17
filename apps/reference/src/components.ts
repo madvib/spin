@@ -416,7 +416,7 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       host.setAttribute("data-wired", "true");
       let tries = 0;
       const wait = () => {
-        if (host.querySelector("[data-note-input]") !== null) {
+        if (host.querySelector("[data-note]") !== null) {
           wire(host);
           return;
         }
@@ -426,34 +426,53 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         }
       };
       const wire = (root) => {
-        const list = root.querySelector("[data-notes]");
-        const input = root.querySelector("[data-note-input]");
-        const save = root.querySelector("[data-save]");
-        const add = () => {
-          const text = input.value.trim();
-          if (text === "") return;
-          const card = document.createElement("div");
-          card.className = "rounded-lg border border-solid border-border p-3 hover:bg-surface";
-          const head = document.createElement("div");
-          head.className = "flex items-start justify-between gap-2";
-          const title = document.createElement("p");
-          title.className = "m-0 text-sm font-medium text-text";
-          title.textContent = text.length > 42 ? text.slice(0, 42) + "…" : text;
-          const date = document.createElement("span");
-          date.className = "shrink-0 text-xs text-muted";
-          date.textContent = "Just now";
-          head.appendChild(title);
-          head.appendChild(date);
-          const preview = document.createElement("p");
-          preview.className = "m-0 mt-1 text-xs text-muted";
-          preview.textContent = text;
-          card.appendChild(head);
-          card.appendChild(preview);
-          list.appendChild(card);
-          list.scrollTop = list.scrollHeight;
-          input.value = "";
+        const notes = [
+          { title: "Meeting Notes", preview: "Discussed project timeline and deliverables…", date: "Today" },
+          { title: "Ideas", preview: "New feature ideas for the dashboard…", date: "Yesterday" },
+          { title: "Shopping List", preview: "Milk, Bread, Eggs, Coffee beans…", date: "2 days ago" },
+        ];
+        const title = root.querySelector("[data-title]");
+        const body = root.querySelector("[data-body]");
+        const edited = root.querySelector("[data-edited]");
+        const select = (index) => {
+          const note = notes[index];
+          if (!note) return;
+          title.textContent = note.title;
+          body.textContent = note.preview;
+          edited.textContent = "Last edited " + note.date;
+          root.querySelectorAll("[data-note]").forEach((btn) => {
+            const active = btn.getAttribute("data-note") === String(index);
+            btn.classList.toggle("bg-surface-raised", active);
+          });
         };
-        save.addEventListener("click", add);
+        root.querySelectorAll("[data-note]").forEach((btn) => {
+          btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
+        });
+        const add = root.querySelector("[data-new]");
+        if (add) add.addEventListener("click", () => {
+          const index = notes.length;
+          notes.push({ title: "Untitled Note", preview: "Start writing…", date: "Just now" });
+          select(index - 0);
+          title.textContent = "Untitled Note";
+          const list = root.querySelector("[data-notes]");
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.setAttribute("data-note", String(index));
+          btn.className = "grid justify-items-start gap-1 rounded-md p-3 text-left hover:bg-surface";
+          const t = document.createElement("p");
+          t.className = "m-0 text-sm font-medium text-text";
+          t.textContent = "Untitled Note";
+          const pv = document.createElement("p");
+          pv.className = "m-0 text-xs text-muted";
+          pv.textContent = "Start writing…";
+          const dt = document.createElement("p");
+          dt.className = "m-0 text-xs text-muted";
+          dt.textContent = "Just now";
+          btn.append(t, pv, dt);
+          btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
+          list.appendChild(btn);
+          select(index);
+        });
       };
       wait();
     });`,
