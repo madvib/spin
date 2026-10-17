@@ -516,6 +516,55 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       };
       wait();
     });`,
+"floating-panel/video-call": `
+    document.querySelectorAll("floating-panel-video-call").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-mute]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const swap = (btn, onIcon, offIcon) => {
+          const icon = btn.querySelector("span");
+          const pressed = btn.getAttribute("aria-pressed") === "true";
+          btn.setAttribute("aria-pressed", pressed ? "false" : "true");
+          btn.classList.toggle("bg-semantic-error", !pressed);
+          btn.classList.toggle("text-on-primary", !pressed);
+          btn.classList.toggle("bg-surface-raised", pressed);
+          btn.classList.toggle("text-text", pressed);
+          if (icon) icon.className = "i-lucide-" + (pressed ? onIcon : offIcon) + " text-sm";
+        };
+        const mute = root.querySelector("[data-mute]");
+        const video = root.querySelector("[data-video]");
+        if (mute) mute.addEventListener("click", () => swap(mute, "mic", "mic-off"));
+        if (video) video.addEventListener("click", () => swap(video, "video", "video-off"));
+        const hangup = root.querySelector("[data-hangup]");
+        if (hangup) hangup.addEventListener("click", () => {
+          const close = root.querySelector("[aria-label=Close]");
+          if (close) close.click();
+        });
+        const timer = root.querySelector("[data-timer]");
+        if (timer) {
+          let parts = [0, 12, 34];
+          setInterval(() => {
+            parts[2] += 1;
+            if (parts[2] > 59) { parts[2] = 0; parts[1] += 1; }
+            if (parts[1] > 59) { parts[1] = 0; parts[0] += 1; }
+            const pad = (n) => String(n).padStart(2, "0");
+            timer.textContent = pad(parts[0]) + ":" + pad(parts[1]) + ":" + pad(parts[2]);
+          }, 1000);
+        }
+      };
+      wait();
+    });`,
   "floating-panel/calculator": `
     document.querySelectorAll("floating-panel-calculator").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
