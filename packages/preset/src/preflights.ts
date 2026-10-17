@@ -17,8 +17,8 @@
 
 import { generateThemeCss } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
-import { basePreflights } from "@spin/theme/base";
-import type { PreflightProvider } from "@spin/theme/base";
+import { documentDefaults, fontFaces, readFonts } from "@spin/theme/base";
+import type { FontResult, PreflightProvider } from "@spin/theme/base";
 import { animationPreflights } from "@spin/animation";
 import type { ThemeDocument } from "./index.ts";
 
@@ -80,6 +80,28 @@ interface Assembled extends PreflightProvider {
 }
 
 /**
+ * Every face the shipped documents declare, merged.
+ *
+ * Faces are global CSS, not theme-scoped: each document contributes its own
+ * `$extensions.spin.fonts`, and the sheet carries the union. The merge exists
+ * because a theme's name must never decide whether its type loads — an
+ * earlier assembler read `documents.light` and silently shipped no faces for
+ * a project whose themes were named anything else, which is every project
+ * after the starters stopped being called `light`.
+ */
+function declaredFaces(
+  documents: Record<string, ThemeDocument>,
+): FontResult {
+  const merged: FontResult = { fonts: [], issues: [] };
+  for (const doc of Object.values(documents)) {
+    const declared = readFonts(doc as Record<string, unknown>);
+    merged.fonts.push(...declared.fonts);
+    merged.issues.push(...declared.issues);
+  }
+  return merged;
+}
+
+/**
  * Collect every provider, sort by order, drop the ones that emit nothing.
  *
  * Sorting is numeric because UnoCSS re-sorts preflights it does not
@@ -89,10 +111,20 @@ interface Assembled extends PreflightProvider {
 function assemble(
   input: PreflightInput,
 ): Assembled[] {
-  const base = basePreflights(input.documents.light ?? {}).map((provider) => ({
-    ...provider,
-    layer: "theme",
-  }));
+  const base: Assembled[] = [
+    {
+      name: "theme/document-defaults",
+      layer: "theme",
+      order: LAYER.theme,
+      getCSS: () => documentDefaults(),
+    },
+    {
+      name: "theme/fonts",
+      layer: "theme",
+      order: LAYER.theme,
+      getCSS: () => fontFaces(declaredFaces(input.documents)),
+    },
+  ];
 
   const providers: Assembled[] = [
     {

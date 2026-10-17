@@ -392,10 +392,10 @@ Deno.test("the light block of the example theme carries the light document's val
   );
   const root = blockWithSelector(generateCss(tree), ":root");
 
-  assertEquals(root.declarations["--color-primary"], "#2563eb");
-  assertEquals(root.declarations["--color-secondary"], "#6d28d9");
-  assertEquals(root.declarations["--color-accent"], "#0f766e");
-  assertEquals(root.declarations["--color-semantic-error"], "#b91c1c");
+  assertEquals(root.declarations["--color-primary"], "#1c62c2");
+  assertEquals(root.declarations["--color-secondary"], "#1a2434");
+  assertEquals(root.declarations["--color-accent"], "#006974");
+  assertEquals(root.declarations["--color-semantic-error"], "#a6312b");
   assertEquals(root.declarations["--spacing-4"], "1rem");
   assertEquals(
     root.declarations["--font-family-sans"],
@@ -466,12 +466,12 @@ Deno.test("a dark-mode consumer reads the dark document's colors", async () => {
   );
   const vars = varsInMode(generateCss(tree), "dark");
 
-  assertEquals(vars["--color-primary"], "#60a5fa");
-  assertEquals(vars["--color-secondary"], "#a78bfa");
-  assertEquals(vars["--color-accent"], "#2dd4bf");
-  assertEquals(vars["--color-semantic-success"], "#4ade80");
-  assertEquals(vars["--color-semantic-error"], "#f87171");
-  assertEquals(vars["--color-surface-raised"], "#111827");
+  assertEquals(vars["--color-primary"], "#8db9fa");
+  assertEquals(vars["--color-secondary"], "#dadee5");
+  assertEquals(vars["--color-accent"], "#71c7d1");
+  assertEquals(vars["--color-semantic-success"], "#72cf88");
+  assertEquals(vars["--color-semantic-error"], "#f38277");
+  assertEquals(vars["--color-surface-raised"], "#18202a");
 });
 
 Deno.test("roles that reference the neutral ramp follow it into dark mode", async () => {
@@ -489,12 +489,12 @@ Deno.test("roles that reference the neutral ramp follow it into dark mode", asyn
   assertEquals(lightVars["--color-text"], "var(--color-neutral-900)");
   assertEquals(lightVars["--color-border"], "var(--color-neutral-200)");
 
-  assertEquals(resolve(lightVars, "--color-surface"), "#f8fafc");
-  assertEquals(resolve(darkVars, "--color-surface"), "#0b1120");
-  assertEquals(resolve(lightVars, "--color-text"), "#0f172a");
-  assertEquals(resolve(darkVars, "--color-text"), "#f8fafc");
-  assertEquals(resolve(lightVars, "--color-border"), "#e2e8f0");
-  assertEquals(resolve(darkVars, "--color-border"), "#1f2937");
+  assertEquals(resolve(lightVars, "--color-surface"), "#f7f8fb");
+  assertEquals(resolve(darkVars, "--color-surface"), "#0d121a");
+  assertEquals(resolve(lightVars, "--color-text"), "#050d1c");
+  assertEquals(resolve(darkVars, "--color-text"), "#f3f5f8");
+  assertEquals(resolve(lightVars, "--color-border"), "#e4e8ef");
+  assertEquals(resolve(darkVars, "--color-border"), "#1d242f");
 });
 
 Deno.test("spacing, typography and layering are the same scale in both modes", async () => {
@@ -516,13 +516,13 @@ Deno.test("spacing, typography and layering are the same scale in both modes", a
     );
   }
   assertEquals(darkVars["--spacing-4"], "1rem");
-  assertEquals(darkVars["--radius-md"], "0.25rem");
+  assertEquals(darkVars["--radius-md"], "0.5rem");
   assertEquals(darkVars["--z-index-toast"], "3000");
   assertEquals(darkVars["--font-weight-semibold"], "600");
   assertEquals(darkVars["--breakpoint-xl"], "80rem");
   assertEquals(
     darkVars["--shadow-lg"],
-    "0 12px 32px -8px rgba(15, 23, 42, 0.16)",
+    "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)",
   );
   assertEquals(
     darkVars["--motion-easing-decelerate"],
@@ -697,14 +697,14 @@ Deno.test("the example theme is addressable as the named 'default' theme", async
       css,
       '[data-theme="default"]',
     ).declarations["--color-primary"],
-    "#2563eb",
+    "#1c62c2",
   );
   assertEquals(
     blockWithSelector(
       css,
       '[data-theme="default"][data-mode="dark"]',
     ).declarations["--color-primary"],
-    "#60a5fa",
+    "#8db9fa",
   );
 });
 
