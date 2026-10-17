@@ -69,6 +69,27 @@ for (const [path, html] of Object.entries(recipeModules)) {
  * writes in their own code (see the note in the example source). */
 
 const EXAMPLE_ONLOAD: Record<string, string> = {
+"pagination/jump": `
+    document.querySelectorAll("pagination-jump").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // Delegated on the host: page changes re-render the example and
+      // replace the input node, so a node-bound listener would go stale.
+      const go = () => {
+        const input = host.querySelector("[data-jump] input");
+        const raw = Number(input?.value ?? "1");
+        const total = typeof host.totalPages === "number" ? host.totalPages : 10;
+        const pageNum = Math.max(1, Math.min(total, Math.floor(raw) || 1));
+        if (typeof host.setPage === "function") host.setPage(pageNum);
+      };
+      host.addEventListener("click", (event) => {
+        if (event.target?.closest("[data-go]")) go();
+      });
+      host.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && event.target instanceof HTMLInputElement && event.target.closest("[data-jump]")) go();
+      });
+    });
+  `,
 "toast/basic": `
     document.querySelectorAll("toast-basic").forEach((pg) => {
       const btn = pg.querySelector("[data-fire]");
@@ -278,13 +299,6 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         btn.addEventListener("click", () => {
           pg.setPageSize(Number(btn.getAttribute("data-size")));
         });
-      });
-    });`,
-  "pagination/jump": `
-    document.querySelectorAll("pagination-jump").forEach((pg) => {
-      const input = pg.querySelector("[data-jump] input");
-      pg.querySelector("[data-go]")?.addEventListener("click", () => {
-        pg.setPage(Number(input.value));
       });
     });`,
   "tour/basic": `
