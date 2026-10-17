@@ -1,13 +1,11 @@
 /**
- * Threads: the token system, shown live.
+ * The token system, shown live.
  *
  * Every swatch chip is a theme utility (`bg-surface`, `bg-primary`, …) —
  * the same class the product spends, resolved by the sheet for the theme
- * the page renders with. The mode column sits in a probe subtree that
- * re-declares
- * `data-theme` and `data-mode`, so both renderings of a token hang side by
- * side, resolved by the CSS, not by JS. The character table reads the
- * starter documents and shows exactly where they disagree.
+ * the page renders with. The right column sits in a probe subtree that
+ * re-declares `data-theme` and `data-mode`, so both renderings of a token
+ * hang side by side, resolved by the CSS, not by JS.
  */
 import { createMemo, For } from "solid-js";
 import type { JSX } from "solid-js";
@@ -33,56 +31,32 @@ const stated = (doc: unknown, path: string): string => {
 /** The other mode of the active theme, if it has one. */
 const otherMode = () => (mode() === "dark" ? "light" : "dark");
 
-export default function Threads(): JSX.Element {
+export default function Tokens(): JSX.Element {
   const doc = createMemo(() => starterDoc());
   const active = theme;
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Threads</h1>
-      <p class="text-text-muted max-w-screen-md mt-1">
-        Watch your theme work. Every swatch below is a real utility class,
-        painted by the active theme (<strong class="text-text">
-          {active()}
-        </strong>
-        ). Flip light and dark in the rail — the sheet re-resolves in front of
-        you.
-      </p>
+      <h1 class="text-2xl tracking-tight">Tokens</h1>
 
       <Section id="pipeline" title="Document → sheet">
         <p>
-          A theme document states tokens (colors, scales, character), the modes
-          it answers to, and the faces it loads. The pipeline parses it,
-          validates it against the legibility floor — no fill sells without a
-          readable foreground — and emits the sheet: variables scoped by{" "}
-          <code class="font-mono">data-theme</code>, mode restatements scoped by
+          A document parses, validates against the legibility floor — no fill
+          without a readable foreground — and emits custom properties scoped by
           {" "}
-          <code class="font-mono">data-mode</code>, and font preflights that
-          load only what the theme promises.
-        </p>
-        <p class="mt-2">
-          The property name is the token's identity:{" "}
+          <code class="font-mono">data-theme</code>, restated per{" "}
+          <code class="font-mono">data-mode</code>.{" "}
           <code class="font-mono">color.semantic.error</code> and{" "}
           <code class="font-mono">color-semantic-error</code>{" "}
-          are the same thread, spelled two ways. Dotted or dashed, the CSS
-          variable is{" "}
-          <code class="font-mono">--color-semantic-error</code>, and nothing
-          else.
+          are the same token; the property is{" "}
+          <code class="font-mono">--color-semantic-error</code>.
         </p>
       </Section>
 
       <Section id="palette" title="The palette, live">
-        <p>
-          Each row is a token. The left chip is this page's rendering, in the
-          active mode. The right chip renders inside a probe that has
-          re-declared the theme as <em class="text-text">{otherMode()}</em>{" "}
-          — the theme's other rendering, by the same CSS. Values shown are what
-          the DOCUMENT states: references ({"{"}color.neutral.50{"}"}-style)
-          name their thread instead of restating a hex.
-        </p>
         <div class="mt-5 grid gap-x-10 gap-y-7 md:grid-cols-2">
           <div>
             <p class="m-0 mb-3 text-sm font-semibold text-text">
-              the page
+              {mode()}
             </p>
             <div class="grid gap-2">
               <For
@@ -102,7 +76,9 @@ export default function Threads(): JSX.Element {
             </div>
           </div>
           <div>
-            <p class="m-0 mb-3 text-sm font-semibold text-text">the red</p>
+            <p class="m-0 mb-3 text-sm font-semibold text-text">
+              {otherMode()}
+            </p>
             <Probe>
               <div class="grid gap-2">
                 <For
@@ -125,13 +101,7 @@ export default function Threads(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="modes" title="Light and dark, side by side">
-        <p>
-          The same swatches, rendered under a subtree that has re-declared{" "}
-          <code class="font-mono">data-mode="…"</code>. Themes with two modes
-          (this one) show the other rendering; themes with one show the truth of
-          one.
-        </p>
+      <Section id="modes" title="The other mode, same markup">
         <div class="mt-4 border border-border rounded-md bg-surface-raised p-4">
           <Probe>
             <div class="grid gap-2">
@@ -153,9 +123,6 @@ export default function Threads(): JSX.Element {
       </Section>
 
       <Section id="character" title="Where the starters disagree">
-        <p>
-          Every starter, read straight out of its own document.
-        </p>
         <div class="mt-4 overflow-x-auto">
           <table class="w-full border-collapse text-sm">
             <thead>
@@ -200,24 +167,9 @@ export default function Threads(): JSX.Element {
 
       <Section id="fonts" title="Faces">
         <p>
-          A theme declares the faces it loads (<code class="font-mono">
-            $extensions.spin.fonts
-          </code>), and nothing else is fetched. The didone this page's headings
-          speak is{" "}
-          {stated(doc(), "font.family.heading").split(",")[0]}, declared by{" "}
-          {active()}; light or dark, they are the same face — the mode changes
-          the sheet, not the voice.
-        </p>
-        <div class="mt-3 flex flex-wrap gap-2">
-          <For each={Object.keys(doc().font as Record<string, unknown>)}>
-            {(group) => <Chip>{`font.${group}`}</Chip>}
-          </For>
-        </div>
-        <p class="mt-3 mb-0">
-          The faces <code class="font-mono">{active()}</code>{" "}
-          declares — the load manifest the sheet turns into{" "}
+          The document declares the faces it loads — the sheet emits{" "}
           <code class="font-mono">@font-face</code>{" "}
-          rules, so a theme owns its own voices and fetches nothing beyond them:
+          for them and fetches nothing else. <strong>{active()}</strong> loads:
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={faces(doc())}>

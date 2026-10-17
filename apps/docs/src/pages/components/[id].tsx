@@ -76,14 +76,6 @@ export default function ComponentPage(): JSX.Element {
         </div>
 
         <Section title="What it spends">
-          <p>
-            These are the threads this element reads from the theme — the names
-            are the custom properties, the tokens are resolved by whatever{" "}
-            <code class="font-mono">data-theme</code>{" "}
-            scope the element sits in. The live specimens above are already
-            spending them: switch the theme in the rail to watch them
-            re-resolve.
-          </p>
           <div class="mt-3 flex flex-wrap gap-2">
             <For each={contract()!.reads}>
               {(read) => <Chip>{read}</Chip>}
@@ -93,11 +85,6 @@ export default function ComponentPage(): JSX.Element {
 
         <Show when={contract()!.character.length > 0}>
           <Section title="Character — what the theme decides">
-            <p>
-              Character tokens are the decisions this element hands to the
-              theme: a scaffold fills each one with the placeholder below, and a
-              starter answers every one with a real opinion.
-            </p>
             <div class="mt-4 overflow-x-auto">
               <table class="w-full border-collapse text-sm">
                 <thead>

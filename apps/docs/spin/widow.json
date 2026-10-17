@@ -1,0 +1,706 @@
+{
+  "$extensions": {
+    "spin": {
+      "id": "widow",
+      "fonts": [
+        {
+          "family": "Inter",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Bodoni Moda",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bodoni-moda:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "400 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
+    }
+  },
+  "$description": "The widow: a monochrome sheet hung with one red thread. Paper and ink swap seats between modes — white page with ink cards, or ink page with paper cards — and no grey is ever tinted, so the red is the only voice in the room. Headings speak in a didone; buttons read as small posters; every control is drawn rather than lit.",
+  "color": {
+    "$type": "color",
+    "$description": "Two greys and a red. The light mode is paper; the dark mode is ink; the ramp carries both, mirrored, untinted, so nothing competes with the red.",
+    "primary": {
+      "$value": "#c8102e",
+      "$description": "The widow red itself: primary actions, links, focus rings. Deep enough to hold white text at 4.5:1.",
+      "$modes": {
+        "dark": "#f4646e"
+      }
+    },
+    "secondary": {
+      "$value": "#141414",
+      "$description": "The ink block: a solid near-black control on paper, the poster's second voice.",
+      "$modes": {
+        "dark": "#f4f4f5"
+      }
+    },
+    "accent": {
+      "$value": "#d81f36",
+      "$description": "The lit red: same thread, one read brighter, for emphasis that should feel like it is on.",
+      "$modes": {
+        "dark": "#ff7d86"
+      }
+    },
+    "neutral": {
+      "50": {
+        "$value": "#fafafa",
+        "$modes": {
+          "dark": "#0e0e10"
+        }
+      },
+      "100": {
+        "$value": "#f2f2f2",
+        "$modes": {
+          "dark": "#151517"
+        }
+      },
+      "200": {
+        "$value": "#e5e5e5",
+        "$modes": {
+          "dark": "#1e1e21"
+        }
+      },
+      "300": {
+        "$value": "#d4d4d4",
+        "$modes": {
+          "dark": "#2c2c30"
+        }
+      },
+      "400": {
+        "$value": "#a3a3a3",
+        "$modes": {
+          "dark": "#46464a"
+        }
+      },
+      "500": {
+        "$value": "#737373",
+        "$modes": {
+          "dark": "#707075"
+        }
+      },
+      "600": {
+        "$value": "#525252",
+        "$modes": {
+          "dark": "#9b9ba0"
+        }
+      },
+      "700": {
+        "$value": "#404040",
+        "$modes": {
+          "dark": "#c4c4c8"
+        }
+      },
+      "800": {
+        "$value": "#262626",
+        "$modes": {
+          "dark": "#e9e9eb"
+        }
+      },
+      "900": {
+        "$value": "#0c0c0c",
+        "$modes": {
+          "dark": "#f7f7f8"
+        }
+      },
+      "$description": "The ink ramp, 50 (paper end) through 900 (ink end). Zero chroma on purpose: a widow grey is a grey, never a guest hue, so the red stands alone at full strength."
+    },
+    "semantic": {
+      "$description": "Status colors. Named by meaning, never by hue — on a red brand, danger slices itself narrower than the primary so the two reds never read as one.",
+      "success": {
+        "$value": "#2f7d46",
+        "$modes": {
+          "dark": "#7cd397"
+        }
+      },
+      "warning": {
+        "$value": "#8a5d0a",
+        "$modes": {
+          "dark": "#eac26b"
+        }
+      },
+      "error": {
+        "$value": "#9e1b2f",
+        "$modes": {
+          "dark": "#ff7a82"
+        }
+      },
+      "info": {
+        "$value": "#135e8e",
+        "$modes": {
+          "dark": "#6dbbe8"
+        }
+      }
+    },
+    "surface": {
+      "$value": "{color.neutral.50}",
+      "$description": "The page. Paper in the light mode; the ramp carries the ink page in the dark one.",
+      "$modes": {
+        "dark": "{color.neutral.50}"
+      }
+    },
+    "surface-sunken": {
+      "$value": "{color.neutral.100}",
+      "$description": "Background of elements that sit below the page: table stripes, inset wells.",
+      "$modes": {
+        "dark": "{color.neutral.100}"
+      }
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$description": "Background of elements that sit above the page: cards, popovers, menus. Pure white on the paper page; on ink, one clean step up in the same language.",
+      "$modes": {
+        "dark": "#1a1a1e"
+      }
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Body text: ink on paper, paper on ink.",
+      "$modes": {
+        "dark": "{color.neutral.900}"
+      }
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "Secondary text: captions, helper copy, placeholders.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
+      }
+    },
+    "border": {
+      "$value": "{color.neutral.200}",
+      "$description": "The hairline. A widow draws in thread: one-pixel strokes, stronger here than in softer themes, because the sheet is held together by its lines.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "scrim": {
+      "$value": "rgb(12 12 14 / 45%)",
+      "$description": "What dims the page behind a modal — the theme's own ink.",
+      "$modes": {
+        "dark": "rgb(12 12 14 / 60%)"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$type": "color",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "on-danger": {
+      "$value": "#ffffff",
+      "$type": "color",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "focus-ring": {
+      "$value": "#c8102e",
+      "$modes": {
+        "dark": "#f4646e"
+      }
+    },
+    "link": {
+      "$value": "#c8102e",
+      "$description": "The red thread through running text: a link is the widow red, no underline of another color.",
+      "$modes": {
+        "dark": "#f4646e"
+      }
+    },
+    "on-secondary": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "on-accent": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "field": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "A field's own surface: white on paper, a lifted step on ink. \u2014 a control reads as an object set on the page, not a hole punched through it.",
+      "$modes": {
+        "dark": "#1c1c20"
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "#a3a3a3",
+      "$description": "A control's own edge — the thread drawn tighter. Stronger than `border`, which divides content.",
+      "$modes": {
+        "dark": "#46464a"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#0b0b0d"
+      }
+    }
+  },
+  "spacing": {
+    "0": {
+      "$value": "0"
+    },
+    "1": {
+      "$value": "0.25rem"
+    },
+    "2": {
+      "$value": "0.5rem"
+    },
+    "3": {
+      "$value": "0.75rem"
+    },
+    "4": {
+      "$value": "1rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "8": {
+      "$value": "2rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "16": {
+      "$value": "4rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    },
+    "$type": "dimension",
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+  },
+  "font": {
+    "$description": "Typography: a didone speaks, the grotesk works, the mono is code. The display face is the brand's voice; the working faces stay quiet so it carries.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text: the working voice, quiet and even."
+      },
+      "heading": {
+        "$value": "Bodoni Moda, Didot, \"Bodoni MT\", \"Times New Roman\", serif",
+        "$description": "The display voice. A didone: hairline serifs, strong stems, all menace and poise — the widow red's natural partner."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face: the sans, named so the surface is whole."
+      },
+      "serif": {
+        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$description": "Long-form editorial text. The didone is too sharp to read for pages; the editorial voice stays a book serif."
+      },
+      "mono": {
+        "$value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
+        "$description": "Code, identifiers, tabular figures."
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "2xs": {
+        "$value": "0.625rem"
+      },
+      "xs": {
+        "$value": "0.75rem"
+      },
+      "sm": {
+        "$value": "0.8125rem"
+      },
+      "md": {
+        "$value": "0.9375rem"
+      },
+      "lg": {
+        "$value": "1.125rem"
+      },
+      "xl": {
+        "$value": "1.375rem"
+      },
+      "2xl": {
+        "$value": "1.75rem"
+      },
+      "3xl": {
+        "$value": "2.5rem"
+      },
+      "$description": "The display end reaches further than most themes dare: a didone is measured in headlines, not paragraphs."
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    },
+    "letter-spacing": {
+      "$type": "dimension",
+      "$description": "How far the letters sit from each other. A didone is spaced open where the hairlines need air and closed nowhere.",
+      "tighter": {
+        "$value": "-0.02em",
+        "$description": "Display type only. A didone carries its own tension; a theme never pinches it."
+      },
+      "tight": {
+        "$value": "-0.01em",
+        "$description": "A heading at reading size."
+      },
+      "normal": {
+        "$value": "0em",
+        "$description": "Body copy and anything unlabelled."
+      },
+      "wide": {
+        "$value": "0.04em",
+        "$description": "The small uppercase label, spun into thread."
+      },
+      "wider": {
+        "$value": "0.08em",
+        "$description": "An eyebrow or category mark above the copy it introduces."
+      },
+      "widest": {
+        "$value": "0.14em",
+        "$description": "A single word carrying a whole section. Poster spacing."
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Corner rounding, barely there: a thread ends blunt, and sharp corners are the poster's geometry.",
+    "none": {
+      "$value": "0"
+    },
+    "sm": {
+      "$value": "0.125rem"
+    },
+    "md": {
+      "$value": "0.1875rem"
+    },
+    "lg": {
+      "$value": "0.25rem"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "opacity": {
+    "0": {
+      "$value": 0,
+      "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
+    },
+    "10": {
+      "$value": 0.1,
+      "$description": "A ghost: present in the DOM, gone from the eye. Reserved for decoration."
+    },
+    "20": {
+      "$value": 0.2,
+      "$description": "Disabled. Low enough to stop a control being pressed, high enough to keep its label readable beside live controls."
+    },
+    "30": {
+      "$value": 0.3,
+      "$description": "A disabled control on a dark surface, where the same fraction reads lighter than it does on a light one."
+    },
+    "40": {
+      "$value": 0.4,
+      "$description": "The dimmed step: a placeholder image, a track before it is filled, a hint of content."
+    },
+    "50": {
+      "$value": 0.5,
+      "$description": "Half. The step most rules ask for, so it is the one a theme is most likely to have an opinion about."
+    },
+    "60": {
+      "$value": 0.6,
+      "$description": "Muted but still read: text on a disabled field that the reader is expected to transcribe."
+    },
+    "70": {
+      "$value": 0.7,
+      "$description": "Secondary content that must survive a projector or a bright room."
+    },
+    "80": {
+      "$value": 0.8,
+      "$description": "A hair under full strength: the hover state of something that should feel nearly solid."
+    },
+    "90": {
+      "$value": 0.9,
+      "$description": "Almost opaque. The step for a scrim that must dim what is behind it without appearing to."
+    },
+    "100": {
+      "$value": 1,
+      "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation, as CSS box-shadow values. A widow separates with line, not with light; shadows stay small and drop straight down.",
+    "sm": {
+      "$value": "0 1px 2px 0 rgb(6 6 7 / 0.12)",
+      "$modes": {
+        "dark": "0 1px 2px 0 rgb(0 0 0 / 0.45)"
+      }
+    },
+    "md": {
+      "$value": "0 3px 8px -2px rgb(6 6 7 / 0.16)",
+      "$modes": {
+        "dark": "0 3px 10px -2px rgb(0 0 0 / 0.55)"
+      }
+    },
+    "lg": {
+      "$value": "0 12px 32px -10px rgb(6 6 7 / 0.28)",
+      "$modes": {
+        "dark": "0 14px 36px -10px rgb(0 0 0 / 0.65)"
+      }
+    }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Viewport widths where layout steps change.",
+    "sm": {
+      "$value": "40rem"
+    },
+    "md": {
+      "$value": "48rem"
+    },
+    "lg": {
+      "$value": "64rem"
+    },
+    "xl": {
+      "$value": "80rem"
+    }
+  },
+  "z-index": {
+    "$type": "number",
+    "$description": "Stacking order. Layer, never a magic number at the call site.",
+    "base": {
+      "$value": 0
+    },
+    "dropdown": {
+      "$value": 1000
+    },
+    "modal": {
+      "$value": 2000
+    },
+    "toast": {
+      "$value": 3000
+    }
+  },
+  "motion": {
+    "$description": "How things move and how long it takes. The widow is quick: a spider responds, it does not glide.",
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": "120ms"
+      },
+      "base": {
+        "$value": "200ms"
+      },
+      "slow": {
+        "$value": "320ms"
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "linear": {
+        "$value": "linear"
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.3, 0, 0, 1)"
+      },
+      "decelerate": {
+        "$value": "cubic-bezier(0, 0, 0, 1)"
+      },
+      "accelerate": {
+        "$value": "cubic-bezier(0.4, 0, 1, 1)"
+      }
+    }
+  },
+  "button": {
+    "$type": "dimension",
+    "$description": "Character: the decisions a theme owns for its buttons. The widow's button is a small poster \u2014 uppercase, tracked open, flat \u2014 drawn rather than lit.",
+    "weight": {
+      "$type": "fontWeight",
+      "$description": "The button's own weight. A control carries more weight than the prose around it.",
+      "$value": "600"
+    },
+    "case": {
+      "$value": "uppercase",
+      "$type": "textTransform",
+      "$description": "Labels are set in capitals: the poster voice, even in a control."
+    },
+    "tracking": {
+      "$type": "dimension",
+      "$description": "Label tracking. Open, because uppercase 600 needs the air to read as words rather than a wall.",
+      "$value": "0.05em"
+    },
+    "shadow": {
+      "$type": "shadow",
+      "$description": "The resting elevation: a whisper of drop, no lit pedestal.",
+      "$value": "0 1px 3px 0 rgb(6 6 7 / 0.10)"
+    },
+    "shadow-hover": {
+      "$type": "shadow",
+      "$description": "The hovered elevation: the thread catches light. Red, not black \u2014 a button does not grow darker when it wakes.",
+      "$value": "0 2px 12px -2px rgb(200 16 46 / 0.40)"
+    }
+  },
+  "border": {
+    "$type": "dimension",
+    "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
+    "width": {
+      "$value": "1px",
+      "$description": "The hairline every control and surface draws with \u2014 the thread itself."
+    },
+    "width-2": {
+      "$value": "2px",
+      "$description": "The emphasis edge: a control that must read as selected rather than merely bordered."
+    },
+    "width-4": {
+      "$value": "4px",
+      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+    },
+    "width-8": {
+      "$value": "8px",
+      "$description": "The frame. A block drawn rather than outlined."
+    }
+  },
+  "focus": {
+    "$type": "dimension",
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs.",
+    "width": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      },
+      "$description": "The ring's stroke. Two pixels in both modes: a one-pixel ring reads as a rendering artifact rather than a decision."
+    },
+    "offset": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      }
+    }
+  },
+  "icon": {
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.875rem"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "1.125rem"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "1.5rem"
+    }
+  },
+  "badge": {
+    "$description": "Character: the decisions a theme owns for its badges. The widow's badge is a square tag with an edge drawn like thread \u2014 no pills.",
+    "edge": {
+      "$type": "dimension",
+      "$value": "{border.width}",
+      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page."
+    },
+    "pill": {
+      "$type": "boolean",
+      "$value": false,
+      "$description": "A pill is a soft word. The widow squares its badges into tags."
+    }
+  },
+  "$description": "Carries a paper base and a full ink restatement: this one theme answers to both modes.",
+  "checkbox": {
+    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn \u2014 the widow's controls are drawn, not lit.",
+    "depth": {
+      "$type": "number",
+      "$value": 0
+    }
+  },
+  "switch": {
+    "$description": "How physical a switch is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
+    "depth": {
+      "$type": "number",
+      "$value": 0
+    }
+  },
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "modes": [
+    "light",
+    "dark"
+  ]
+}

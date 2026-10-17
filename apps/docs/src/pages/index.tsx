@@ -29,9 +29,9 @@ const PAGES = [
     body: "Install, wire, and write your first themed UI.",
   },
   {
-    href: "/threads",
-    title: "Threads",
-    body: "Watch your theme do its job — light and dark, side by side.",
+    href: "/tokens",
+    title: "Tokens",
+    body: "Colors, modes, type — every starter side by side.",
   },
   {
     href: "/components",
@@ -75,11 +75,6 @@ export default function Home(): JSX.Element {
               <Mark class="h-8 w-8" />
               <span class="font-heading text-lg tracking-tighter">spin</span>
             </span>
-            <nav class="flex items-center gap-1 text-sm">
-              <A href="/guide" class={GHOST}>guide</A>
-              <A href="/threads" class={GHOST}>threads</A>
-              <A href="/components" class={CTA}>components</A>
-            </nav>
           </header>
 
           <div class="max-w-screen-md py-12">
@@ -128,11 +123,6 @@ export default function Home(): JSX.Element {
       {/* Below the fold: the sheet, lived. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
         <Section title="Steal the markup">
-          <p>
-            A bare tag paints itself, variant classes change it, utilities
-            fine-tune it — everything it spends comes from the theme. Hover the
-            rows, tab through them, read the code.
-          </p>
           <ExampleRow
             name="buttons"
             html={componentExamples.button.rows[0].html}
@@ -180,10 +170,6 @@ export default function Home(): JSX.Element {
 
         <div class="mt-10">
           <Section title="One line of wiring">
-            <p>
-              It replaces your Uno plugin and turns your theme documents into
-              the stylesheet. Every starter is an import away.
-            </p>
             <Code code={WIRING} />
           </Section>
         </div>

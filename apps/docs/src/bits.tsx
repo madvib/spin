@@ -1,6 +1,6 @@
 /**
  * Page bits the docs share: sections, code blocks, and the two-column mode
- * probe used by the threads page.
+ * probe used by the tokens page.
  *
  * The probe is the honest demo of the whole product: a subtree that
  * re-declares `data-theme` and `data-mode` carries that theme and mode's
@@ -80,14 +80,15 @@ export function starterDoc(): ThemeDocument {
 /**
  * One theme, both modes, side by side.
  *
- * The subtree re-declares the theme and the OTHER mode of it, so the theme
- * utilities the children use resolve against that rendering. Single-mode
- * themes (console) show one column and say so.
+ * The subtree re-declares the theme and the OTHER mode of it, and paints
+ * its own surface — a slab of the other rendering, so the utilities the
+ * children use resolve against it. Single-mode themes (console) show one
+ * column and say so.
  */
 export function Probe(props: { children: JSX.Element }): JSX.Element {
   return (
     <div
-      class="flex items-center gap-2"
+      class="rounded-sm bg-surface p-3 text-text"
       data-theme={theme()}
       data-mode={mode() === "dark" ? "light" : "dark"}
     >

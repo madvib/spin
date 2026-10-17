@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
-import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 
 const here = import.meta.dirname!;
 
@@ -20,8 +19,8 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      themes: { ...starterThemes },
-      // The studio, same as the reference: the FAB the overlay launcher
+      // No `themes` option: the plugin owns spin/*.json off this root — the
+      // files the studio edits, so the editing loop has documents on disk.
       // drops into every served app opens this site's own theme documents.
       mount: mountSpinApp(here, {
         studioDir: resolve(here, "../studio/dist"),
