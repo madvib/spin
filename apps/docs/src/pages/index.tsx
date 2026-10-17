@@ -12,8 +12,6 @@ import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "../mark.tsx";
 import { Code, Section } from "../bits.tsx";
-import { componentExamples } from "@spin/preset/rules/primitives/examples-index.ts";
-import { ExampleRow } from "../example-row.tsx";
 
 const WIRING = `import { spin } from "@spin/preset/plugin";
 import solid from "vite-plugin-solid";
@@ -40,29 +38,31 @@ const PAGES = [
   },
 ];
 
-const TENETS = [
+const HIGHLIGHTS = [
   [
-    "One place to style everything.",
-    "Every decision — color, space, radius, motion — is a named token in the theme. Change the theme, everything follows.",
+    "Everything syncs from the theme.",
+    "Utilities, primitives, components — all of it resolves from one document. Change a token and the whole app follows, in both modes.",
   ],
   [
-    "Just utility classes.",
-    "No style blocks, no runtime style injection. Your markup and one stylesheet; nothing hidden in between.",
+    "Agents write themed code by default.",
+    "The vocabulary is closed: a color, a radius, a duration an agent spends is a token. Off-theme styling has nowhere to live.",
   ],
   [
-    "Finished elements to build from.",
-    "Buttons, badges, inputs, switches — ready-made and themed, so agents can't invent their own.",
+    "The studio.",
+    "In dev it mounts into your app — open it from any page, edit the theme document, and the running UI repaints.",
   ],
   [
     "Verified, not eyeballed.",
-    "Contrast, layout, and rendering checked mechanically — in every theme and both modes.",
+    "Oracles render your app in a real browser and check contrast, layout, and overflow — every theme, both modes.",
+  ],
+  [
+    "Web components, soon.",
+    "A component runtime in development: branded components that travel with the theme and embed in any web framework.",
   ],
 ];
 
-const CTA =
-  "border border-border bg-surface-raised text-text rounded-sm px-3 py-2 text-sm no-underline hover:border-border-strong transition-colors duration-fast";
-const GHOST =
-  "px-3 py-2 text-sm text-text-muted rounded-sm no-underline hover:text-text transition-colors duration-fast";
+const CTA = "no-underline";
+const GHOST = "ghost no-underline";
 
 export default function Home(): JSX.Element {
   return (
@@ -71,7 +71,7 @@ export default function Home(): JSX.Element {
       <section class="grid min-h-dvh md:grid-cols-2">
         <div class="flex flex-col justify-between px-6 py-5 md:px-12 md:py-10">
           <header class="flex items-center justify-between">
-            <Logo class="h-16 text-text" />
+            <Logo size="lg" class="text-text" />
           </header>
 
           <div class="max-w-screen-md py-12">
@@ -79,13 +79,18 @@ export default function Home(): JSX.Element {
               Spin your own web.
             </h1>
             <p class="mt-5 text-md text-text-muted">
-              One theme document and one vite plugin — and every color, button,
-              and font on this page obeys it. Flip the switch below: the whole
-              page repaints in real CSS, because that's the product, running.
+              spin is a frontend framework for style and components, built on
+              Vite and UnoCSS, usable from any framework. It ships themes as
+              JSON documents, a utility-class layer, a library of component
+              primitives, and browser-based verification that checks the
+              rendered result for contrast, layout, and accessibility. A
+              web-component runtime is in development.
             </p>
-            <div class="mt-8 flex flex-wrap gap-3">
-              <A href="/guide" class={CTA}>get started</A>
-              <A href="/components" class={GHOST}>browse elements</A>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+              <A href="/guide" role="button" class={CTA}>get started</A>
+              <A href="/components" role="button" class={GHOST}>
+                browse elements
+              </A>
             </div>
           </div>
 
@@ -117,22 +122,24 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Below the fold: the sheet, lived. */}
+      {/* Below the fold: what it actually does. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
-        <Section title="Steal the markup">
-          <ExampleRow
-            name="buttons"
-            html={componentExamples.button.rows[0].html}
-          />
-          <ExampleRow
-            name="badges"
-            html={componentExamples.badge.rows[0].html}
-          />
-          <ExampleRow
-            name="fields"
-            html={componentExamples.input.rows[0].html}
-          />
-        </Section>
+        <div class="grid gap-4 md:grid-cols-2 max-w-screen-xl">
+          <For each={HIGHLIGHTS}>
+            {([claim, body]) => (
+              <div class="border-solid border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
+                <p class="m-0 font-semibold text-text">{claim}</p>
+                <p class="m-0 mt-2 text-sm">{body}</p>
+              </div>
+            )}
+          </For>
+        </div>
+
+        <div class="mt-10">
+          <Section title="One line of wiring">
+            <Code code={WIRING} />
+          </Section>
+        </div>
 
         <div class="mt-4 grid gap-4 md:grid-cols-3">
           <For each={PAGES}>
@@ -148,27 +155,6 @@ export default function Home(): JSX.Element {
               </A>
             )}
           </For>
-        </div>
-
-        <div class="mt-10">
-          <Section title="Guardrails, built in">
-            <div class="mt-4 grid gap-4 md:grid-cols-2 max-w-screen-xl">
-              <For each={TENETS}>
-                {([claim, body]) => (
-                  <div class="border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                    <p class="m-0 font-semibold text-text">{claim}</p>
-                    <p class="m-0 mt-2 text-sm">{body}</p>
-                  </div>
-                )}
-              </For>
-            </div>
-          </Section>
-        </div>
-
-        <div class="mt-10">
-          <Section title="One line of wiring">
-            <Code code={WIRING} />
-          </Section>
         </div>
       </div>
     </main>

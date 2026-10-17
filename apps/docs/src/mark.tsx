@@ -308,67 +308,70 @@ export function Mark(props: { class?: string }) {
 }
 
 /**
- * The logo: the spider, still, and the wordmark spun from the same silk.
+ * The logo: the spider, still, and the wordmark in the brand face.
+ *
+ * The glyph is artwork — the same spider, compact — carrying the
+ * theme's surface, text, and primary tokens. The wordmark is type: the
+ * document's `font.family.brand`, so the logotype is a real, loaded
+ * face and still only ever painted by theme values.
  */
-export function Logo(props: { class?: string }) {
-  return (
-    <svg
-      viewBox="0 0 82 34"
-      fill="none"
-      class={props.class}
-      role="img"
-      aria-label="spin"
-    >
-      {/* The spider, hanging still. */}
-      <g stroke="currentColor" stroke-linecap="round">
-        <line x1="11" y1="1.5" x2="11" y2="9.4" stroke-width="1.1" />
-        <g stroke-width="1.5">
-          <path d="M9.2 13.4 C7.4 12 5.8 12.2 4.6 13.6" />
-          <path d="M8.9 16.4 C6.9 16.2 5.4 17.2 4.4 19" />
-          <path d="M9.6 19.6 C8.4 21.2 8 22.8 8.4 24.4" />
-          <path d="M12.8 13.4 C14.6 12 16.2 12.2 17.4 13.6" />
-          <path d="M13.1 16.4 C15.1 16.2 16.6 17.2 17.6 19" />
-          <path d="M12.4 19.6 C13.6 21.2 14 22.8 13.6 24.4" />
-        </g>
-        <circle
-          cx="11"
-          cy="12.2"
-          r="1.9"
-          fill="var(--color-surface, #fff)"
-          stroke-width="1.5"
-        />
-        <ellipse
-          cx="11"
-          cy="17.6"
-          rx="2.9"
-          ry="3.7"
-          transform="rotate(-12 11 17.6)"
-          fill="var(--color-surface, #fff)"
-          stroke-width="1.5"
-        />
-        <path
-          d="M11.1 15.9 L12.5 17.8 L11 20.2 L9.5 17.8 Z"
-          fill="var(--color-primary, #c8102e)"
-          stroke="none"
-        />
-      </g>
+const LOGO_SIZES = {
+  sm: { glyph: "h-5", text: "text-lg", gap: "gap-1" },
+  md: { glyph: "h-8", text: "text-2xl", gap: "gap-2" },
+  lg: { glyph: "h-12", text: "text-3xl", gap: "gap-3" },
+} as const;
 
-      {/* s p i n — thread, bent. */}
-      <g
-        stroke="currentColor"
-        stroke-width="2.4"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+export function Logo(
+  props: { size?: keyof typeof LOGO_SIZES; class?: string },
+) {
+  const size = () => LOGO_SIZES[props.size ?? "md"];
+  return (
+    <span
+      class={`inline-flex items-center font-brand font-semibold tracking-tighter ${size().gap} ${
+        props.class ?? ""
+      }`}
+    >
+      <svg
+        viewBox="0 0 22 26"
+        fill="none"
+        class={size().glyph}
+        role="img"
+        aria-label="spin"
       >
-        <path d="M39.5 15.8 C37 13.4 31.4 13.6 30.8 16.9 C30.2 20 38.4 19.6 38.6 22.9 C38.8 26.3 32.6 27.4 29.8 24.8" />
-        <path d="M44.6 13.4 V31.4" />
-        <path d="M44.6 15.2 C47.8 12.9 53.6 13.8 54 18.4 C54.4 23.4 49.8 26.6 44.8 25.6" />
-        <path d="M58.6 15 V26" />
-        <circle cx="58.6" cy="10.6" r="1.5" fill="currentColor" stroke="none" />
-        <path d="M65.4 26 V15" />
-        <path d="M65.4 19.9 C67.6 15.2 74.8 14.4 76.2 19.4" />
-        <path d="M76.2 15 V26" />
-      </g>
-    </svg>
+        <g stroke="currentColor" stroke-linecap="round">
+          <line x1="11" y1="0.5" x2="11" y2="6.8" stroke-width="1.1" />
+          <g stroke-width="1.5">
+            <path d="M9.2 10.8 C7.4 9.4 5.8 9.6 4.6 11" />
+            <path d="M8.9 13.6 C6.9 13.4 5.4 14.4 4.4 16.2" />
+            <path d="M9.6 16.8 C8.4 18.4 8 20 8.4 21.6" />
+            <path d="M12.8 10.8 C14.6 9.4 16.2 9.6 17.4 11" />
+            <path d="M13.1 13.6 C15.1 13.4 16.6 14.4 17.6 16.2" />
+            <path d="M12.4 16.8 C13.6 18.4 14 20 13.6 21.6" />
+          </g>
+          <circle
+            cx="11"
+            cy="9.4"
+            r="2.1"
+            fill="var(--color-surface, #fff)"
+            stroke-width="1.5"
+          />
+          <ellipse
+            cx="11"
+            cy="15"
+            rx="3.1"
+            ry="3.9"
+            transform="rotate(-12 11 15)"
+            fill="var(--color-surface, #fff)"
+            stroke-width="1.5"
+          />
+          <path
+            d="M11.1 13.2 L12.5 15.1 L11 17.6 L9.5 15.1 Z"
+            fill="var(--color-primary, #c8102e)"
+            stroke="none"
+          />
+        </g>
+      </svg>
+      <span class={size().text}>spin</span>
+    </span>
   );
 }

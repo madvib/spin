@@ -9,6 +9,13 @@
           "weight": "100 900",
           "style": "normal",
           "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
         }
       ]
     }
@@ -333,6 +340,11 @@
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
         "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {

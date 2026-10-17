@@ -239,4 +239,5 @@ const CHARACTER_ROWS: readonly {
   { label: "radius md", read: (d) => stated(d, "radius.md") },
   { label: "motion base", read: (d) => stated(d, "motion.duration.base") },
   { label: "heading face", read: (d) => stated(d, "font.family.heading") },
+  { label: "brand face", read: (d) => stated(d, "font.family.brand") },
 ];

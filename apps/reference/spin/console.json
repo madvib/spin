@@ -16,6 +16,13 @@
           "weight": "100 800",
           "style": "normal",
           "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
         }
       ]
     }
@@ -197,11 +204,12 @@
       "sans": {
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
         "$type": "fontFamily",
-        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below \u2014 code, markup, readouts \u2014 and not in every heading and paragraph, where monospace reads as shouting."
+        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below — code, markup, readouts — and not in every heading and paragraph, where monospace reads as shouting."
       },
       "heading": {
-        "$value": "{font.family.sans}",
-        "$description": "The display face. The terminal's headings are its interface face; the voice lives in the mono below."
+        "$type": "fontFamily",
+        "$value": "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace",
+        "$description": "Terminal voice: the mono is the heading."
       },
       "body": {
         "$value": "{font.family.sans}",
@@ -214,6 +222,11 @@
       "mono": {
         "$value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
         "$type": "fontFamily"
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -495,7 +508,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"

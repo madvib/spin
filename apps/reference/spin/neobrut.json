@@ -9,6 +9,20 @@
           "weight": "100 1000",
           "style": "normal",
           "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Archivo Black",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/archivo-black@latest/latin-400-normal.woff2) format(\"woff2\")",
+          "weight": "400",
+          "style": "normal",
+          "display": "swap"
         }
       ]
     }
@@ -215,8 +229,9 @@
         "$description": "Body and UI text."
       },
       "heading": {
-        "$value": "{font.family.sans}",
-        "$description": "The display face: the heavy geometric face itself, named so the surface is whole."
+        "$type": "fontFamily",
+        "$value": "Archivo Black, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Loud, blocky, unapologetic — the poster voice."
       },
       "body": {
         "$value": "{font.family.sans}",
@@ -229,6 +244,11 @@
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
         "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -323,7 +343,7 @@
   },
   "opacity": {
     "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme \u2014 a fraction is a measurement, not a preference \u2014 but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
+    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme — a fraction is a measurement, not a preference — but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -511,7 +531,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "1rem"

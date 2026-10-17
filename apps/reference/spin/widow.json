@@ -23,11 +23,18 @@
           "weight": "100 800",
           "style": "normal",
           "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
         }
       ]
     }
   },
-  "$description": "The widow: a monochrome sheet hung with one red thread. Paper and ink swap seats between modes — white page with ink cards, or ink page with paper cards — and no grey is ever tinted, so the red is the only voice in the room. Headings speak in a didone; buttons read as small posters; every control is drawn rather than lit.",
+  "$description": "Carries a paper base and a full ink restatement: this one theme answers to both modes.",
   "color": {
     "$type": "color",
     "$description": "Two greys and a red. The light mode is paper; the dark mode is ink; the ramp carries both, mirrored, untinted, so nothing competes with the red.",
@@ -249,7 +256,7 @@
     "field": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "A field's own surface: white on paper, a lifted step on ink. \u2014 a control reads as an object set on the page, not a hole punched through it.",
+      "$description": "A field's own surface: white on paper, a lifted step on ink. — a control reads as an object set on the page, not a hole punched through it.",
       "$modes": {
         "dark": "#1c1c20"
       }
@@ -347,6 +354,11 @@
       "mono": {
         "$value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
         "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -574,7 +586,7 @@
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. The widow's button is a small poster \u2014 uppercase, tracked open, flat \u2014 drawn rather than lit.",
+    "$description": "Character: the decisions a theme owns for its buttons. The widow's button is a small poster — uppercase, tracked open, flat — drawn rather than lit.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
@@ -597,7 +609,7 @@
     },
     "shadow-hover": {
       "$type": "shadow",
-      "$description": "The hovered elevation: the thread catches light. Red, not black \u2014 a button does not grow darker when it wakes.",
+      "$description": "The hovered elevation: the thread catches light. Red, not black — a button does not grow darker when it wakes.",
       "$value": "0 2px 12px -2px rgb(200 16 46 / 0.40)"
     }
   },
@@ -606,7 +618,7 @@
     "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
     "width": {
       "$value": "1px",
-      "$description": "The hairline every control and surface draws with \u2014 the thread itself."
+      "$description": "The hairline every control and surface draws with — the thread itself."
     },
     "width-2": {
       "$value": "2px",
@@ -614,7 +626,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -639,7 +651,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"
@@ -654,7 +666,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. The widow's badge is a square tag with an edge drawn like thread \u2014 no pills.",
+    "$description": "Character: the decisions a theme owns for its badges. The widow's badge is a square tag with an edge drawn like thread — no pills.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
@@ -666,9 +678,8 @@
       "$description": "A pill is a soft word. The widow squares its badges into tags."
     }
   },
-  "$description": "Carries a paper base and a full ink restatement: this one theme answers to both modes.",
   "checkbox": {
-    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn \u2014 the widow's controls are drawn, not lit.",
+    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn — the widow's controls are drawn, not lit.",
     "depth": {
       "$type": "number",
       "$value": 0

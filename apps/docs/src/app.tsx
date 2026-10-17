@@ -114,7 +114,7 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
         aria-label="site"
       >
         <A href="/" end class="flex items-center gap-3 text-text no-underline">
-          <Logo class="h-8" />
+          <Logo size="md" />
         </A>
 
         <div class="grid gap-1">

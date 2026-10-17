@@ -27,7 +27,7 @@ export default function Verify(): JSX.Element {
       </p>
       <div class="mt-4">
         {ORACLES.map(([name, what]) => (
-          <div class="flex flex-col gap-1 border-l-4 border-primary bg-surface-raised rounded-md p-4 mt-2 md:flex-row md:items-baseline md:gap-4">
+          <div class="flex flex-col gap-1 border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4 mt-2 md:flex-row md:items-baseline md:gap-4">
             <code class="shrink-0 font-mono text-sm">{name}</code>
             <span class="text-sm">{what}</span>
           </div>
