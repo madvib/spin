@@ -282,6 +282,10 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
       },
       attrs: (scope) => ({
         id: scope.id("content"),
+        // The closed-state utilities (invisible, scale, opacity) live on
+        // this element's class list, so the state they key on must live
+        // here too — the positioner carries its own copy for its own list.
+        "data-state": scope.state === "open" ? "open" : "closed",
         "data-stage": asCtx(scope.context).stage,
       }),
     },

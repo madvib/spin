@@ -21,12 +21,32 @@ const DRAG = "#panel [id$=':drag']";
 const RESIZE_E = "#panel [id$=':resize:e']";
 const STAGE_MIN = "#panel [id$=':stage:minimized']";
 const STAGE_DEFAULT = "#panel [id$=':stage:default']";
+const STAGE_MAX = "#panel [id$=':stage:maximized']";
+const CLOSE = "#panel [aria-label='Close']";
+const RESIZE_SE = "#panel [id$=':resize:se']";
 
 const posState = (page: Page): Promise<string> =>
   page.evaluate(() => document.querySelector("#panel [role='dialog']")?.getAttribute("data-state") ?? "gone");
 
 const stage = (page: Page): Promise<string> =>
   page.evaluate(() => document.querySelector("#panel [role='dialog']")?.getAttribute("data-stage") ?? "gone");
+
+/** Whether the panel body is actually painted (non-zero box, visible). */
+const isPainted = (page: Page): Promise<boolean> =>
+  page.evaluate(() => {
+    const node = document.querySelector("#panel div.flex") as HTMLElement | null;
+    if (node === null) return false;
+    const rect = node.getBoundingClientRect();
+    const style = getComputedStyle(node);
+    return rect.width > 4 && rect.height > 4 && style.visibility !== "hidden" && style.opacity !== "0";
+  });
+
+/** Which header buttons are visible (not hidden-attribute). */
+const visibleButtons = (page: Page): Promise<string> =>
+  page.evaluate(() =>
+    [...document.querySelectorAll("#panel [aria-label='Minimize'],#panel [aria-label='Maximize'],#panel [aria-label='Restore'],#panel [aria-label='Close']")]
+      .filter((b) => !(b as HTMLElement).hidden)
+      .map((b) => b.getAttribute("aria-label") ?? "?").join(","));
 
 /** The panel's rect in page coordinates. */
 const bodyRect = (page: Page): Promise<{ x: number; y: number; w: number; h: number }> =>
@@ -92,7 +112,105 @@ Deno.test("spin-floating-panel e2e", () =>
       assert.equal(await page.locator(POSITIONER).getAttribute("data-dragging"), null, "the release leaves it");
     });
 
+    await step("every button order lands: the full stage permutation table", async () => {
+      // Each row: click the sequence from restored-open, assert the end
+      // state, stage, geometry, paint, and visible buttons. A staged
+      // trigger hides itself, so every click targets a visible button.
+      const restored = { w: 360, h: 240 };
+      const rows: Array<{ seq: string[]; stage: string; w: number; h: number }> = [
+        { seq: ["min", "max", "default"], stage: "restored", ...restored },
+        { seq: ["max", "min", "default"], stage: "restored", ...restored },
+        { seq: ["min", "default", "max"], stage: "maximized", w: 1024, h: 768 },
+        { seq: ["max", "default", "min"], stage: "minimized", w: 360, h: 48 },
+        { seq: ["default", "min", "max"], stage: "maximized", w: 1024, h: 768 },
+        // Minimized keeps the pre-minimize width (zag: only the height
+        // collapses to the header): after a maximize that is 1024.
+        { seq: ["default", "max", "min"], stage: "minimized", w: 1024, h: 48 },
+        { seq: ["min", "min"], stage: "minimized", w: 360, h: 48 },
+        { seq: ["max", "max"], stage: "maximized", w: 1024, h: 768 },
+      ];
+      const clickStage = async (which: string): Promise<void> => {
+        if (which === "min") await page.locator(STAGE_MIN).click();
+        else if (which === "max") await page.locator(STAGE_MAX).click();
+        else await page.locator(STAGE_DEFAULT).click();
+        await page.waitForTimeout(300);
+      };
+      for (const row of rows) {
+        // Reset to restored-open first (default trigger if staged).
+        if ((await stage(page)) !== "restored") {
+          await page.locator(STAGE_DEFAULT).click();
+          await page.waitForTimeout(300);
+        }
+        assert.equal(await stage(page), "restored", "reset lands restored");
+        for (const which of row.seq) await clickStage(which);
+        assert.equal(await stage(page), row.stage, `${row.seq.join(">")} lands ${row.stage}`);
+        const rect = await bodyRect(page);
+        assert.equal(Math.round(rect.w), row.w, `${row.seq.join(">")} width ${row.w}`);
+        // Minimized keeps the header bar; maximized fills the stage box.
+        if (row.stage !== "maximized") {
+          assert.equal(Math.round(rect.h), row.h, `${row.seq.join(">")} height ${row.h}`);
+        }
+        assert.equal(await isPainted(page), row.stage !== "minimized" ? true : true, `${row.seq.join(">")} paints`);
+        const buttons = await visibleButtons(page);
+        if (row.stage === "restored") assert.equal(buttons, "Minimize,Maximize,Close", `${row.seq.join(">")} shows min/max/close`);
+        else assert.equal(buttons, "Restore,Close", `${row.seq.join(">")} shows restore/close`);
+      }
+    });
+
+    await step("maximize fills the stage and restore returns the geometry", async () => {
+      if ((await stage(page)) !== "restored") {
+        await page.locator(STAGE_DEFAULT).click();
+        await page.waitForTimeout(300);
+      }
+      await page.locator(STAGE_MAX).click();
+      await page.waitForTimeout(400);
+      const maxRect = await bodyRect(page);
+      assert.equal(Math.round(maxRect.w), 1024, "maximized fills the boundary width");
+      assert.equal(Math.round(maxRect.h), 768, "maximized fills the boundary height");
+      assert.equal(await isPainted(page), true, "maximized paints");
+      await page.locator(STAGE_DEFAULT).click();
+      await page.waitForTimeout(400);
+      const back = await bodyRect(page);
+      assert.equal(Math.round(back.w), 360, "restore returns 360 width");
+      assert.equal(Math.round(back.h), 240, "restore returns 240 height");
+    });
+
+    await step("a southeast resize grows both axes", async () => {
+      if ((await stage(page)) !== "restored") {
+        await page.locator(STAGE_DEFAULT).click();
+        await page.waitForTimeout(300);
+      }
+      const before = await bodyRect(page);
+      await gesture(page, RESIZE_SE, 60, 40);
+      const after = await bodyRect(page);
+      assert.equal(Math.round(after.w - before.w), 60, "the width grew by the delta");
+      assert.equal(Math.round(after.h - before.h), 40, "the height grew by the delta");
+    });
+
+    await step("close from maximized hides the panel and the trigger reopens", async () => {
+      await page.locator(STAGE_MAX).click();
+      await page.waitForTimeout(300);
+      assert.equal(await stage(page), "maximized", "maximized first");
+      await page.locator(CLOSE).click();
+      await page.waitForTimeout(300);
+      assert.equal(await posState(page), "closed", "close from maximized closes");
+      assert.equal(await isPainted(page), false, "closed paints nothing");
+      await page.locator(TRIGGER).click();
+      await page.waitForTimeout(300);
+      assert.equal(await posState(page), "open", "the trigger reopens");
+    });
+
     await step("the east edge resizes the panel", async () => {
+      if ((await stage(page)) !== "restored" || (await posState(page)) !== "open") {
+        if ((await posState(page)) !== "open") {
+          await page.locator(TRIGGER).click();
+          await page.waitForTimeout(300);
+        }
+        if ((await stage(page)) !== "restored") {
+          await page.locator(STAGE_DEFAULT).click();
+          await page.waitForTimeout(400);
+        }
+      }
       const before = await bodyRect(page);
       await gesture(page, RESIZE_E, 60, 0);
       const after = await bodyRect(page);
