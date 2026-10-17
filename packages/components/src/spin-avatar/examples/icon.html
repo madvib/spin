@@ -1,0 +1,10 @@
+<scope>props={ label: string = "Avatar", fallback: string = " " } consume={ avatar }</scope>
+
+<div class="mx-auto flex w-full max-w-xs justify-center">
+  <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-muted" {...avatar.getRootProps()}>
+    <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
+    <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>
+      <span class="i-lucide-user text-lg" aria-hidden="true"></span>
+    </span>
+  </span>
+</div>

@@ -1,0 +1,11 @@
+<scope>props={ label: string = "Profile" } consume={ popover }</scope>
+
+<button {...popover.getTriggerProps()} class="inline-flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">
+  <span class="i-lucide-user text-sm" aria-hidden="true"></span>
+  Profile
+</button>
+
+<div {...popover.getContentProps()} class="rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
+  <p class="m-0 text-sm font-medium text-text">Sarah Chen</p>
+  <p class="m-0 mt-1 text-sm text-muted">Product Designer</p>
+</div>

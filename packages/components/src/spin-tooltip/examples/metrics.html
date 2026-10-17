@@ -1,0 +1,24 @@
+<scope>props={ label: string = "Analytics", tip: string = "Today's metrics" } consume={ tooltip }</scope>
+
+<button {...tooltip.getTriggerProps()} class="inline-flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">
+  <span class="i-lucide-bar-chart-3 text-sm" aria-hidden="true"></span>
+  {label}
+</button>
+
+<div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+  <div class="space-y-1">
+    <div class="text-xs font-medium text-muted">Today</div>
+    <div class="flex items-center justify-between gap-4">
+      <span class="text-xs">Sales</span>
+      <span class="text-xs font-semibold">$2.8k</span>
+    </div>
+    <div class="flex items-center justify-between gap-4">
+      <span class="text-xs">Revenue</span>
+      <span class="text-xs font-semibold">$4.3k</span>
+    </div>
+    <div class="flex items-center justify-between gap-4">
+      <span class="text-xs">Costs</span>
+      <span class="text-xs font-semibold">$1.6k</span>
+    </div>
+  </div>
+</div>

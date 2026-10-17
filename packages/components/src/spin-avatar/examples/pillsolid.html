@@ -1,0 +1,15 @@
+<scope>props={ src: string = "https://i.pravatar.cc/300", label: string = "Avatar", fallback: string = "JD" } consume={ avatar }</scope>
+
+<div class="flex items-center gap-2 rounded-full bg-text px-4 py-2">
+  <div class="flex -space-x-2">
+    <span class="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-sm font-semibold text-muted" {...avatar.getRootProps()}>
+      <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
+      <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>JD</span>
+    </span>
+    <span class="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-sm font-semibold text-muted" {...avatar.getRootProps()}>
+      <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
+      <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>SM</span>
+    </span>
+  </div>
+  <span class="text-sm font-medium text-surface">+3</span>
+</div>

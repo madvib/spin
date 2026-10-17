@@ -1,0 +1,14 @@
+<scope>props={ label: string = "Settings" } consume={ popover }</scope>
+
+<button {...popover.getTriggerProps()} class="inline-flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">
+  <span class="i-lucide-settings text-sm" aria-hidden="true"></span>
+  Settings
+</button>
+
+<div {...popover.getContentProps()} class="rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
+  <p class="m-0 text-sm font-medium text-text">Settings</p>
+  <div class="mt-2 space-y-2 text-sm text-muted">
+    <div class="flex items-center justify-between"><span>Dark mode</span><span>Off</span></div>
+    <div class="flex items-center justify-between"><span>Notifications</span><span>On</span></div>
+  </div>
+</div>
