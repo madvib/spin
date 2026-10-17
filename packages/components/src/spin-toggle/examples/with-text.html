@@ -1,0 +1,8 @@
+<scope>props={ label: string = "Favorite" } consume={ toggle }</scope>
+
+<div class="mx-auto flex w-full max-w-md justify-center">
+  <button
+    class="inline-flex items-center justify-center gap-2 rounded-md border border-solid border-border bg-surface text-text transition-all hover:bg-surface-raised data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-on-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+    {...toggle.getRootProps()}
+  ><span class="text-base" aria-hidden="true"><span class="i-lucide-star" {...toggle.getIndicatorProps()}></span></span><span class="px-4 py-2 text-sm font-medium">Favorite</span></button>
+</div>

@@ -1,0 +1,6 @@
+<scope>props={ label: string = "Bold", pressed: bool = false, defaultPressed: bool = false, disabled: bool = false } consume={ toggle }</scope>
+
+<button
+  class="inline-flex items-center justify-center gap-2 rounded-md border border-solid border-border bg-surface px-4 py-2 text-sm font-medium text-text transition-all hover:bg-surface-raised data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-on-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+  {...toggle.getRootProps()}
+></button>

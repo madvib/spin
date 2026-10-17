@@ -29,6 +29,7 @@ export { steps } from "./spin-steps/steps.machine-def.ts";
 export { pagination } from "./spin-pagination/pagination.machine-def.ts";
 export { angleSlider } from "./spin-angle-slider/angle-slider.machine-def.ts";
 export { toggleGroup } from "./spin-toggle-group/toggle-group.machine-def.ts";
+export { toggle } from "./spin-toggle/toggle.machine-def.ts";
 export { avatar } from "./spin-avatar/avatar.machine-def.ts";
 export { dateInput } from "./spin-date-input/date-input.machine-def.ts";
 export { datePicker } from "./spin-date-picker/date-picker.machine-def.ts";
