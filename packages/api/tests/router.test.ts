@@ -67,6 +67,7 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     "project",
     [
       "project.detect",
+      "project.current",
       "project.init",
       "project.themes.list",
       "project.themes.read",
@@ -87,7 +88,12 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     primitivesContract,
     primitivesRouter,
   ],
-  ["preset", ["preset.catalog"], presetContract, presetRouter],
+  [
+    "preset",
+    ["preset.catalog", "preset.organization"],
+    presetContract,
+    presetRouter,
+  ],
 ];
 
 /** Follow a dotted path into a nested structure. */
@@ -228,6 +234,91 @@ Deno.test("preset catalog reports unparseable input", async () => {
     const out = await client.preset.catalog({ text: "{nope" });
     assert(out.error !== null, "expected a parse error");
     assertEquals(out.sections, []);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("a mode override lands in $modes and leaves the base value", async () => {
+  const { server, client } = serve();
+  try {
+    const text = treeToJson(scaffold());
+    const before = JSON.parse(text) as {
+      color: { primary: { $value: unknown } };
+    };
+    const mutated = await client.theme.tokens.set({
+      text,
+      path: ["color", "primary"],
+      value: "#8db9fa",
+      mode: "dark",
+    });
+    assertEquals(mutated.error, null);
+    const doc = JSON.parse(mutated.text ?? "") as {
+      color: { primary: { $value: unknown; $modes: Record<string, unknown> } };
+    };
+    assertEquals(doc.color.primary.$modes.dark, "#8db9fa");
+    assertEquals(doc.color.primary.$value, before.color.primary.$value);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("a mutation refusal carries its code over the wire", async () => {
+  const { server, client } = serve();
+  try {
+    const refused = await client.theme.tokens.remove({
+      text: treeToJson(scaffold()),
+      path: ["color", "primary"],
+    });
+    assert(refused.error !== null, "expected a required-token refusal");
+    assertEquals(refused.code, "required-token");
+    assertEquals(refused.text, null);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("analyze with modes reports the leaves missing a dark value", async () => {
+  const { server, client } = serve();
+  try {
+    const analysis = await client.theme.analyze({
+      text: treeToJson(scaffold()),
+      modes: ["dark"],
+    });
+    assertEquals(analysis.error, null);
+    assert(
+      analysis.issues.some((issue) =>
+        issue.path === "color.primary" && issue.message.includes("$modes.dark")
+      ),
+      `no missing-dark issue: ${JSON.stringify(analysis.issues)}`,
+    );
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("the organization lists the catalog under reader intent", async () => {
+  const { server, client } = serve();
+  try {
+    const text = treeToJson(scaffold());
+    const catalog = await client.preset.catalog({ text });
+    const organization = await client.preset.organization({ text });
+    assertEquals(organization.error, null);
+    // Lossless by construction: every utility the catalog emits is claimed by
+    // exactly one section, so a reader can always find what they saw.
+    assertEquals(
+      organization.sections.flatMap((s) => s.utilities).sort(),
+      catalog.sections.flatMap((s) => s.utilities).sort(),
+    );
+    const colors = organization.sections.find((s) => s.id === "colors");
+    assert(
+      (colors?.utilities.length ?? 0) > 0,
+      "role colors resolve to background utilities",
+    );
+    assert(
+      organization.sections.every((s) => s.blurb.length > 0),
+      "every section explains itself",
+    );
   } finally {
     await server.shutdown();
   }

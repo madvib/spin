@@ -150,6 +150,23 @@ export const detectProject = oc
     summary: "Report whether a root is a spin project",
   });
 
+/**
+ * The project this daemon serves, when a call names none.
+ *
+ * Safe on the wire without arguments because the daemon's root is not a
+ * secret from the client that started it — and it is the one thing an MCP
+ * client cannot learn any other way: the URL it dialed carries a port, not a
+ * directory. Same report as `detect`, about the daemon's own root.
+ */
+export const currentProject = oc
+  .input(v.object({}))
+  .output(ProjectReport)
+  .route({
+    method: "POST",
+    path: "/project/current",
+    summary: "Report the daemon's own project",
+  });
+
 export const initProject = oc
   .input(
     v.object({
@@ -170,9 +187,11 @@ export const initProject = oc
 
 export const projectContract = {
   project: {
-    // `detect` and `init` are the project's own, not a theme's: one answers
-    // whether a root is spin's, the other makes one.
+    // `detect`, `current` and `init` are the project's own, not a theme's:
+    // one answers whether a root is spin's, one answers which root this is,
+    // the other makes one.
     detect: detectProject,
+    current: currentProject,
     init: initProject,
     themes: {
       list: listThemes,

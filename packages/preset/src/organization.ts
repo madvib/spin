@@ -54,7 +54,9 @@ export interface Section {
  * `stack` — a row of them, for the layout families where one panel proves
  *           nothing and adjacency is the whole point.
  */
-export type Sample = "box" | "swatch" | "text" | "stack";
+export const SAMPLES = ["box", "swatch", "text", "stack"] as const;
+
+export type Sample = (typeof SAMPLES)[number];
 
 /**
  * The reference's sections, in reading order.

@@ -135,6 +135,17 @@ describe("daemon project.themes over HTTP", () => {
     rmSync(bare, { recursive: true, force: true });
   });
 
+  it("reports the project it was started with", async () => {
+    // `current` is `detect` without the question: the daemon already knows
+    // which root it serves, and a client that dialed a port — the studio, an
+    // MCP client — has no other way to learn it. `detect` stays for roots the
+    // caller names.
+    const report = await client.project.current({});
+    assertEquals(report.root, dir);
+    assertEquals(report.spin, true);
+    assertEquals(report.themes, ["acme.json", "starter.json"]);
+  });
+
   it("serves two projects from one daemon, named per call", async () => {
     // One process, many projects: a client names the root it means. Two
     // daemons in one process used to stomp on each other, which is exactly
@@ -195,6 +206,24 @@ describe("daemon project.themes over HTTP", () => {
       true,
       "the seeded theme is a real document, not an empty file",
     );
+    rmSync(fresh, { recursive: true, force: true });
+  });
+
+  it("a write creates the themes directory a fresh project lacks", async () => {
+    // The first write into a project that has never held a theme: `spin/` is
+    // made on the way rather than demanded of the caller — the failure this
+    // replaces was an ENOENT surfacing as a dialog on a fresh checkout.
+    const fresh = mkdtempSync(join(tmpdir(), "spin-write-"));
+    const source = await client.project.themes.read({ name: "starter" });
+    const written = await client.project.themes.write({
+      name: "first",
+      text: source.text as string,
+      root: fresh,
+    });
+    assertEquals(written.error, null);
+    assertEquals(readdirSync(join(fresh, "spin")), ["first.json"]);
+    const detected = await client.project.detect({ root: fresh });
+    assertEquals(detected.spin, true, "the write made the project");
     rmSync(fresh, { recursive: true, force: true });
   });
 

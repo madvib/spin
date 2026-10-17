@@ -43,46 +43,57 @@ const os = implement(projectContract);
 
 const CONFIG_FILENAME = "uno.config.ts";
 
+/**
+ * The project report for a root: the shared body of `detect` and `current`.
+ *
+ * One function because the two procedures differ only in which root they
+ * examine, and a second copy of this walk would be a second place for the
+ * notions of "has spin", "has uno", "is wired" to drift.
+ */
+async function reportFor(root: string) {
+  const { readdir, readFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const { existsSync } = await import("node:fs");
+  const { isWired, PROJECT_DIR } = await import("./project-contract.ts");
+  const here = join(root, PROJECT_DIR);
+  const hasSpin = existsSync(here);
+  let themes: string[] = [];
+  if (hasSpin) {
+    try {
+      themes = (await readdir(here)).filter((e) => e.endsWith(".json"))
+        .sort();
+    } catch {
+      themes = [];
+    }
+  }
+  // The uno config is where the preset is wired, so it answers the other
+  // half of "is this a spin project" without being the mark of one: a
+  // project can hold themes it has not wired up yet.
+  const unoName = ["uno.config.ts", "uno.config.js", "uno.config.mjs"]
+    .find((name) => existsSync(join(root, name)));
+  let wired = false;
+  if (unoName !== undefined) {
+    try {
+      const text = await readFile(join(root, unoName), "utf8");
+      wired = isWired(text);
+    } catch {
+      wired = false;
+    }
+  }
+  return {
+    root,
+    spin: hasSpin,
+    uno: unoName !== undefined,
+    wired,
+    themes,
+  };
+}
+
 export const projectRouter = os.router({
   project: {
-    detect: os.project.detect.handler(async ({ input }) => {
-      const { readdir, readFile } = await import("node:fs/promises");
-      const { join } = await import("node:path");
-      const { existsSync } = await import("node:fs");
-      const { isWired, PROJECT_DIR } = await import("./project-contract.ts");
-      const here = join(input.root, PROJECT_DIR);
-      const hasSpin = existsSync(here);
-      let themes: string[] = [];
-      if (hasSpin) {
-        try {
-          themes = (await readdir(here)).filter((e) => e.endsWith(".json"))
-            .sort();
-        } catch {
-          themes = [];
-        }
-      }
-      // The uno config is where the preset is wired, so it answers the other
-      // half of "is this a spin project" without being the mark of one: a
-      // project can hold themes it has not wired up yet.
-      const unoName = ["uno.config.ts", "uno.config.js", "uno.config.mjs"]
-        .find((name) => existsSync(join(input.root, name)));
-      let wired = false;
-      if (unoName !== undefined) {
-        try {
-          const text = await readFile(join(input.root, unoName), "utf8");
-          wired = isWired(text);
-        } catch {
-          wired = false;
-        }
-      }
-      return {
-        root: input.root,
-        spin: hasSpin,
-        uno: unoName !== undefined,
-        wired,
-        themes,
-      };
-    }),
+    detect: os.project.detect.handler(({ input }) => reportFor(input.root)),
+
+    current: os.project.current.handler(() => reportFor(rootFor({}))),
 
     init: os.project.init.handler(async ({ input }) => {
       const { mkdir, writeFile } = await import("node:fs/promises");
@@ -155,12 +166,19 @@ export const projectRouter = os.router({
       }),
 
       write: os.project.themes.write.handler(async ({ input }) => {
-        const { writeFile } = await import("node:fs/promises");
+        const { mkdir, writeFile } = await import("node:fs/promises");
         const { join } = await import("node:path");
         const { PROJECT_DIR } = await import("./project-contract.ts");
         try {
+          const dir = join(rootFor(input), PROJECT_DIR);
+          // A write is also the first write for a project that has never
+          // held a theme: `spin/` is created rather than demanded. The
+          // alternative shipped for a while — an ENOENT in a dialog on a
+          // fresh checkout — was the directory's absence surfacing as the
+          // writer's failure.
+          await mkdir(dir, { recursive: true });
           await writeFile(
-            join(rootFor(input), PROJECT_DIR, `${input.name}.json`),
+            join(dir, `${input.name}.json`),
             input.text,
             "utf8",
           );

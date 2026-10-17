@@ -104,4 +104,5 @@ export {
 // Colour authoring — the toolbox for composing new colours.
 export { generateScale, invertColor, mixColors } from "./authoring/color.ts";
 
-export { supportsDark, themeModes, valuesInMode } from "./modes.ts";
+export { MODES, supportsDark, themeModes, valuesInMode } from "./modes.ts";
+export type { Mode } from "./modes.ts";

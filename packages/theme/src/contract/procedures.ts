@@ -21,6 +21,7 @@ import {
 import type { MutationResult } from "../authoring/mutate.ts";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
 import { requiredPaths } from "./roles.ts";
+import type { Mode } from "../modes.ts";
 import { validateLegibility } from "./schema.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import type { TokenTree } from "../pipeline/types.ts";
@@ -28,11 +29,16 @@ import { themeContract } from "./contract.ts";
 
 const os = implement(themeContract);
 
-function analyze(text: string, required?: readonly string[]) {
+function analyze(
+  text: string,
+  required?: readonly string[],
+  modes?: readonly Mode[],
+) {
   const parsed = parseTokens(text);
   if (!parsed.ok) return { error: parsed.error, issues: [], tree: null };
   const report = validateTokens(parsed.tree, {
     required: required ?? requiredPaths(),
+    ...(modes !== undefined ? { modes } : {}),
   });
   return {
     error: null,
@@ -46,21 +52,23 @@ function mutate(
   op: (tree: TokenTree) => MutationResult,
 ) {
   const parsed = parseTokens(text);
-  if (!parsed.ok) return { error: parsed.error, text: null };
+  if (!parsed.ok) return { error: parsed.error, code: null, text: null };
   const result = op(parsed.tree);
-  // A refusal carries its code and path; the wire shape is still one string so
-  // the contract stays stable, and the code is what a client should branch on.
+  // The refusal carries its code, path and detail; the wire keeps all three
+  // now — an agent branches on the code, and `error` stays the sentence a
+  // studio renders.
   if (!result.ok) {
     return {
       error: result.path ? `${result.path}: ${result.detail}` : result.detail,
+      code: result.code,
       text: null,
     };
   }
-  return { error: null, text: treeToJson(result.tree) };
+  return { error: null, code: null, text: treeToJson(result.tree) };
 }
 
 const analyzeTheme = os.theme.analyze.handler(({ input }) =>
-  analyze(input.text, input.required)
+  analyze(input.text, input.required, input.modes)
 );
 
 const themeCss = os.theme.css.handler(({ input }) => {
@@ -98,6 +106,7 @@ const setTokenValue = os.theme.tokens.set.handler(({ input }) =>
       input.path,
       input.value,
       input.type,
+      input.mode,
     ))
 );
 

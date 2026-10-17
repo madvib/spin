@@ -29,17 +29,23 @@ import type {
  * neither should be pattern-matching a sentence to find out what went wrong.
  * `path` says which token, `detail` carries whatever makes this particular
  * occurrence readable.
+ *
+ * The list is a value, not just a type, because the contract's wire schema
+ * reads it: a code cannot exist in the vocabulary and not on the wire.
  */
-export type MutationErrorCode =
-  | "empty-path"
-  | "group-not-token"
-  | "missing-token"
-  | "occupied-target"
+export const MUTATION_ERROR_CODES = [
+  "empty-path",
+  "group-not-token",
+  "missing-token",
+  "occupied-target",
   // The path names a token the contract requires, so removing it leaves a
   // theme that does not build.
-  | "required-token"
-  | "type-mismatch"
-  | "type-required";
+  "required-token",
+  "type-mismatch",
+  "type-required",
+] as const;
+
+export type MutationErrorCode = (typeof MUTATION_ERROR_CODES)[number];
 
 export interface MutationError {
   readonly ok: false;
@@ -71,6 +77,10 @@ function cloneNode(node: TokenNode): TokenNode {
       path: [...node.path],
       type: node.type,
       value: node.value,
+      // A clone that dropped `modes` would make every mutation silently
+      // delete the document's dark values — the trees here are round-tripped
+      // whole, so every field a leaf can carry travels.
+      ...(node.modes !== undefined ? { modes: { ...node.modes } } : {}),
       ...(node.description !== undefined
         ? { description: node.description }
         : {}),
@@ -144,12 +154,20 @@ function repath(nodes: TokenNode[], prefix: string[]): void {
  * Set a token's `$value` by DTCG path. Creates the token (and any missing
  * parent groups) when absent; the declared `$type` is required on creation
  * and must match when present.
+ *
+ * With `mode`, the value is written as that mode's override
+ * (`$modes.<mode>`) instead of the base value — the same edit the studio
+ * makes when the dark slot is active. A mode value equal to the base is the
+ * override's absence and removes the slot, so the document stays canonical
+ * whoever wrote it. A token that does not exist cannot gain only an
+ * override: refuse and let the caller set a base value first.
  */
 export function setToken(
   tree: TokenTree,
   path: string[],
   value: unknown,
   type?: TokenType,
+  mode?: string,
 ): MutationResult {
   const next = cloneTree(tree);
   const found = resolveParentForWrite(next, path);
@@ -167,8 +185,29 @@ export function setToken(
         `is $${existing.type}, not $${type}`,
       );
     }
+    if (mode !== undefined) {
+      const modes = { ...(existing.modes ?? {}) };
+      if (JSON.stringify(value) === JSON.stringify(existing.value)) {
+        delete modes[mode];
+      } else {
+        modes[mode] = value;
+      }
+      if (Object.keys(modes).length === 0) {
+        delete existing.modes;
+      } else {
+        existing.modes = modes;
+      }
+      return { ok: true, tree: next };
+    }
     existing.value = value;
     return { ok: true, tree: next };
+  }
+  if (mode !== undefined) {
+    return fail(
+      "missing-token",
+      path,
+      "has no base value to override — set the base value first",
+    );
   }
   if (type === undefined || !isTokenType(type)) {
     return fail(
@@ -248,6 +287,7 @@ export function renameToken(
     path: [...to],
     type: moving.type,
     value: moving.value,
+    ...(moving.modes !== undefined ? { modes: { ...moving.modes } } : {}),
     ...(moving.description !== undefined
       ? { description: moving.description }
       : {}),
@@ -303,6 +343,7 @@ function nodeToJson(node: TokenNode): unknown {
       $type: node.type,
       $value: node.value,
     };
+    if (node.modes !== undefined) out.$modes = node.modes;
     if (node.description !== undefined) out.$description = node.description;
     return out;
   }

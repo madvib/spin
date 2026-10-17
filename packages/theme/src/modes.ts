@@ -22,6 +22,15 @@ type ThemeDocument = Record<string, unknown>;
 export type Mode = "light" | "dark";
 
 /**
+ * Every mode the system serves, as a runtime list.
+ *
+ * The union above derives from nothing at runtime, and the wire needs a
+ * value: the contract's picklists read this, so a mode cannot exist in the
+ * type and not in what a validator accepts.
+ */
+export const MODES: readonly Mode[] = ["light", "dark"];
+
+/**
  * The modes a theme serves.
  *
  * Read from the root `modes` field, never derived from a group's presence:
