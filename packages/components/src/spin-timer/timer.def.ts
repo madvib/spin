@@ -174,6 +174,16 @@ const SECOND_UNIT: TimerUnit = { type: "seconds", label: "sec", last: true };
 const UNITS_WITH_DAYS: readonly TimerUnit[] = [DAY_UNIT, HOUR_UNIT, MINUTE_UNIT, SECOND_UNIT];
 const UNITS_WITHOUT_DAYS: readonly TimerUnit[] = [HOUR_UNIT, MINUTE_UNIT, SECOND_UNIT];
 
+/** Tark keeps the days row for day-scale runs (00 days at 23:59:57): days
+ * shows when the current time has one, or the run's start/target reaches
+ * a day — both fixed for the run, so no mid-run row flip. */
+function showDays(context: Record<string, unknown>): boolean {
+  const ctx = asCtx(context);
+  if (timeOf(context).days > 0) return true;
+  const day = 86_400_000;
+  return ctx.startMs >= day || (ctx.targetMs ?? 0) >= day;
+}
+
 const ACTIONS: readonly TimerActionTrigger[] = [
   { action: "start" },
   { action: "pause" },
@@ -261,6 +271,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       sig: (scope) => [scope.state, asCtx(scope.context).interval].join(" "),
       attrs: (scope) => ({
         id: scope.id("root"),
+        "data-scope": "timer",
+        "data-part": "root",
         "data-state": scope.state,
         // The clock: the action owns the interval, the machine owns nothing.
         "use:autoplay": {
@@ -283,6 +295,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         return {
           id: scope.id("area"),
           role: "timer",
+          "data-scope": "timer",
+          "data-part": "area",
           // Zag's translation, verbatim: the units a screen reader hears.
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
           "aria-atomic": true,
@@ -296,6 +310,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
+        "data-scope": "timer",
+        "data-part": "control",
         "data-state": scope.state,
       }),
     },
@@ -303,7 +319,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
   slots: {
     item: {
       indexes: (context) =>
-        timeOf(context).days > 0 ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
+        showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
       sig: (scope) => {
         const unit = scope.slot as unknown as TimerUnit;
         return [scope.state, timeOf(scope.context)[unit.type]].join(" ");
@@ -313,6 +329,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         const value = timeOf(scope.context)[unit];
         return {
           id: scope.id("item", unit),
+          "data-scope": "timer",
+          "data-part": "item",
           "data-type": unit,
           "data-state": scope.state,
           style: { "--value": value },
@@ -325,7 +343,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     itemValue: {
       id: "item-value",
       indexes: (context) =>
-        timeOf(context).days > 0 ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
+        showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
       sig: (scope) => {
         const unit = (scope.slot as unknown as TimerUnit).type;
         return [scope.state, formatTime(timeOf(scope.context))[unit]].join(" ");
@@ -334,6 +352,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         const unit = (scope.slot as unknown as TimerUnit).type;
         return {
           id: scope.id("itemValue", unit),
+          "data-scope": "timer",
+          "data-part": "item-value",
           "data-type": unit,
           "data-state": scope.state,
         };
@@ -342,12 +362,14 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     itemLabel: {
       id: "item-label",
       indexes: (context) =>
-        timeOf(context).days > 0 ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
+        showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
       sig: (scope) => `${(scope.slot as unknown as TimerUnit).type}`,
       attrs: (scope) => {
         const unit = (scope.slot as unknown as TimerUnit).type;
         return {
           id: scope.id("itemLabel", unit),
+          "data-scope": "timer",
+          "data-part": "item-label",
           "data-type": unit,
           "data-state": scope.state,
         };
@@ -355,7 +377,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     },
     separator: {
       indexes: (context) =>
-        timeOf(context).days > 0 ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
+        showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
       sig: (scope) => {
         const after = (scope.slot as unknown as TimerSeparator).after;
         return `${after === "days" && timeOf(scope.context).days === 0}`;
@@ -365,6 +387,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         const followsHiddenDays = after === "days" && timeOf(scope.context).days === 0;
         return {
           "aria-hidden": true,
+          "data-scope": "timer",
+          "data-part": "separator",
           "data-after": after,
           hidden: followsHiddenDays,
         };
@@ -401,6 +425,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         return {
           id: scope.id("actionTrigger", action),
           type: "button",
+          "data-scope": "timer",
+          "data-part": "action-trigger",
           "data-action": action,
           "data-state": scope.state,
           hidden,
@@ -420,7 +446,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         // subscription for exactly that path, and it is what wakes the
         // `for` directive so the digits get re-read.
         machineTick();
-        return [...(timeOf(context).days > 0 ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS)];
+        return [...(showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS)];
       },
     },
   },
