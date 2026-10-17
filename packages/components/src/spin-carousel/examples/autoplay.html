@@ -1,4 +1,4 @@
-<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"a","label":"Alpine","content":"Thin air, steep lines."},{"value":"b","label":"Bay","content":"Salt, fog, gulls."},{"value":"c","label":"Canyon","content":"Red rock, deep time."}], autoplay: bool = true } consume={ carousel }</scope>
+<scope>props={ items: { value: string, label: string, content: string, image: string }[] = [{"value":"a","label":"Alpine","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/10/500/300"},{"value":"b","label":"Bay","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/11/500/300"},{"value":"c","label":"Canyon","content":"Red rock, deep time.","image":"https://picsum.photos/seed/12/500/300"}], autoplay: bool = true } consume={ carousel }</scope>
 
 <div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
   {...carousel.getRootProps()}>
@@ -12,9 +12,10 @@
         {...carousel.getItemProps({ index: i })}
       >
         <div
-          class="flex min-h-32 flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-4 text-center">
-          <div class="text-sm font-medium text-text">{row.label}</div>
-          <div class="text-xs text-muted mt-1">{row.content}</div>
+          class="flex min-h-32 flex-col items-center justify-center overflow-hidden rounded-md border border-solid border-border bg-surface text-center">
+          <img class="h-32 w-full object-cover" loading="lazy" alt="" src={row.image} />
+          <div class="p-4"><div class="text-sm font-medium text-text">{row.label}</div>
+          <div class="text-xs text-muted mt-1">{row.content}</div></div>
         </div>
       </div>
     </template>

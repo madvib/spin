@@ -412,6 +412,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       sig: (scope) => [scope.state, scope.props["dir"], scope.props["orientation"], scope.props["autoplayDelay"]].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
+        "data-scope": "carousel",
+        "data-part": "root",
         role: "region",
         "aria-roledescription": "carousel",
         "data-orientation": scope.props["orientation"],
@@ -446,6 +448,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const playing = scope.state === "autoplay";
         return {
           id: scope.id("itemGroup"),
+        "data-scope": "carousel",
+        "data-part": "item-group",
           "data-orientation": scope.props["orientation"],
           // The one place a state is a utility switch: with snap mandatory
           // the platform would fight the pointer, so the drag turns it off
@@ -506,6 +510,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const can = ctx.loop || ctx.index > 0;
         return {
           id: scope.id("prevTrigger"),
+        "data-scope": "carousel",
+        "data-part": "prev-trigger",
           type: "button",
           "aria-label": "Previous slide",
           "aria-controls": scope.id("itemGroup"),
@@ -527,6 +533,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const can = ctx.loop || ctx.index < lastPageOf(ctx);
         return {
           id: scope.id("nextTrigger"),
+        "data-scope": "carousel",
+        "data-part": "next-trigger",
           type: "button",
           "aria-label": "Next slide",
           "aria-controls": scope.id("itemGroup"),
@@ -544,6 +552,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const playing = scope.state === "autoplay";
         return {
           id: scope.id("autoplayTrigger"),
+        "data-scope": "carousel",
+        "data-part": "autoplay-trigger",
           type: "button",
           "aria-label": playing ? "Stop slide rotation" : "Start slide rotation",
           "aria-pressed": playing,
@@ -558,6 +568,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       sig: (scope) => [`${scope.props["orientation"]}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("indicatorGroup"),
+        "data-scope": "carousel",
+        "data-part": "indicator-group",
         role: "group",
         "aria-label": "Slides",
         "data-orientation": scope.props["orientation"],
@@ -569,6 +581,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("progressText"),
+        "data-scope": "carousel",
+        "data-part": "progress-text",
         "data-orientation": scope.props["orientation"],
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
       }),
@@ -578,6 +592,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       sig: (scope) => [scope.state, scope.props["orientation"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("autoplayProgress"),
+        "data-scope": "carousel",
+        "data-part": "autoplay-progress",
         "data-orientation": scope.props["orientation"],
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
         "aria-hidden": true,
@@ -605,6 +621,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const inView = slideInView(scope, item.index);
         return {
           id: scope.id("item", item.index),
+        "data-scope": "carousel",
+        "data-part": "item",
           role: "group",
           "data-index": item.index,
           "data-orientation": scope.props["orientation"],
@@ -639,6 +657,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const current = item.index === asCtx(scope.context).index;
         return {
           id: scope.id("indicator", item.index),
+        "data-scope": "carousel",
+        "data-part": "indicator",
           type: "button",
           "data-index": item.index,
           "data-orientation": scope.props["orientation"],

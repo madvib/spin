@@ -1,4 +1,4 @@
-<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"sarah","label":"Sarah Johnson","content":"Marketing Director: ships on time."},{"value":"michael","label":"Michael Chen","content":"Eng lead: zero flakes."},{"value":"emily","label":"Emily Rodriguez","content":"Design: reads the room."}] } consume={ carousel }</scope>
+<scope>props={ items: { value: string, label: string, content: string, avatar: string }[] = [{"value":"sarah","label":"Sarah Johnson","content":"Marketing Director: ships on time.","avatar":"https://i.pravatar.cc/100?seed=sarah"},{"value":"michael","label":"Michael Chen","content":"Eng lead: zero flakes.","avatar":"https://i.pravatar.cc/100?seed=michael"},{"value":"emily","label":"Emily Rodriguez","content":"Design: reads the room.","avatar":"https://i.pravatar.cc/100?seed=emily"}] } consume={ carousel }</scope>
 
 <div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
   {...carousel.getRootProps()}>
@@ -12,9 +12,16 @@
         {...carousel.getItemProps({ index: i })}
       >
         <div
-          class="flex min-h-32 flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-4 text-center">
-          <div class="text-sm font-medium text-text">{row.label}</div>
-          <div class="text-xs text-muted mt-1">{row.content}</div>
+          class="flex min-h-32 flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-6 text-center">
+          <span class="i-lucide-quote text-2xl text-primary" aria-hidden="true"></span>
+          <p class="mt-3 text-sm italic text-text">"{row.content}"</p>
+          <div class="mt-3 flex items-center justify-center gap-1" aria-hidden="true">
+            <span class="i-lucide-star text-sm text-semantic-warning"></span><span class="i-lucide-star text-sm text-semantic-warning"></span><span class="i-lucide-star text-sm text-semantic-warning"></span><span class="i-lucide-star text-sm text-semantic-warning"></span><span class="i-lucide-star text-sm text-semantic-warning"></span>
+          </div>
+          <div class="mt-3 flex items-center gap-2">
+            <img class="h-10 w-10 rounded-full object-cover" loading="lazy" alt="" src={row.avatar} />
+            <div class="text-left"><div class="text-sm font-medium text-text">{row.label}</div></div>
+          </div>
         </div>
       </div>
     </template>

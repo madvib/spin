@@ -1,4 +1,4 @@
-<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"mtn","label":"Mountain Adventure","content":"Thin air, steep lines."},{"value":"ocean","label":"Ocean Views","content":"Salt, fog, gulls."},{"value":"forest","label":"Forest Escape","content":"Tall trees, soft light."},{"value":"urban","label":"Urban Explorer","content":"Vibrant city culture."}] } consume={ carousel }</scope>
+<scope>props={ items: { value: string, label: string, content: string, image: string }[] = [{"value":"mtn","label":"Mountain Adventure","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/30/400/250"},{"value":"ocean","label":"Ocean Views","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/31/400/250"},{"value":"forest","label":"Forest Escape","content":"Tall trees, soft light.","image":"https://picsum.photos/seed/32/400/250"},{"value":"urban","label":"Urban Explorer","content":"Vibrant city culture.","image":"https://picsum.photos/seed/33/400/250"}] } consume={ carousel }</scope>
 
 <div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
   {...carousel.getRootProps()}>
@@ -12,9 +12,10 @@
         {...carousel.getItemProps({ index: i })}
       >
         <div
-          class="flex min-h-32 flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-4 text-center">
-          <div class="text-sm font-medium text-text">{row.label}</div>
-          <div class="text-xs text-muted mt-1">{row.content}</div>
+          class="flex min-h-32 flex-col justify-center overflow-hidden rounded-md border border-solid border-border bg-surface">
+          <img class="h-32 w-full object-cover" loading="lazy" alt="" src={row.image} />
+          <div class="p-4"><div class="text-sm font-medium text-text">{row.label}</div>
+          <div class="text-xs text-muted mt-1">{row.content}</div></div>
         </div>
       </div>
     </template>
