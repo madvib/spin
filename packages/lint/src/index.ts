@@ -13,7 +13,8 @@
  * longer exists.
  */
 
-import { CSS_WIDE_COLORS, indexTree, scaffoldTheme } from "@spin/theme";
+import { CSS_WIDE_COLORS, indexTree, parseTokens } from "@spin/theme";
+import { defaultTheme } from "@spin/theme/themes";
 import type { TokenTree } from "@spin/theme";
 import { claimedElements, primitiveVariants } from "@spin/preset";
 import {
@@ -60,9 +61,21 @@ interface GateRule {
  * already renders. A rule added to the preset is allowed here immediately.
  * `tree` defaults to the scaffold when absent.
  */
+/**
+ * The vocabulary is the DEFAULT theme's, not the scaffold's: the scaffold
+ * carries roles but no scales, so a scaffold-derived catalog knows no
+ * spacing, type, radius, or shadow steps and every real class reads as
+ * unknown. The default theme states every spendable step.
+ */
+function defaultTree(): TokenTree {
+  const parsed = parseTokens(JSON.stringify(defaultTheme));
+  if (!parsed.ok) throw new Error("lint: default theme does not parse");
+  return parsed.tree;
+}
+
 function utilityNames(tree?: TokenTree): Set<string> {
   const out = new Set<string>();
-  for (const section of describeCatalog(tree ?? scaffoldTheme())) {
+  for (const section of describeCatalog(tree ?? defaultTree())) {
     for (const utility of section.utilities) out.add(utility);
   }
   return out;
@@ -96,7 +109,7 @@ function colorWords(tree: TokenTree): Set<string> {
  * list is hardcoded here.
  */
 function rawColor(tree?: TokenTree): RegExp {
-  const t = tree ?? scaffoldTheme();
+  const t = tree ?? defaultTree();
   const prefixes = [...utilityPrefixes(t)];
   const words = [...colorWords(t)];
   return new RegExp(

@@ -50,6 +50,8 @@ function elementsOf(path: string, source: string): void {
   }
 }
 
+// Vocabulary is uno-class-check's job (generator truth, same preset +
+// themes the app builds with). This file keeps the structural traps only.
 for await (const entry of walk(ROOT, { exts: [".html"] })) {
   if (!entry.isFile) continue;
   elementsOf(entry.path, await Deno.readTextFile(entry.path));
