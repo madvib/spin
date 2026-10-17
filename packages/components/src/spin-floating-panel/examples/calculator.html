@@ -1,7 +1,7 @@
 <scope>props={ label: string = "Calculator", defaultOpen: bool = true, defaultSize: string = '{"w":300,"h":430}', defaultMinSize: string = '{"w":280,"h":380}', defaultMaxSize: string = '{"w":360,"h":520}'  } consume={ floatingPanel }</scope>
 
 <div class="grid gap-2">
-  <button type="button" class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
+  <button class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...floatingPanel.getPositionerProps()}>
     <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)] data-[stage=maximized]:left-0 data-[stage=maximized]:top-0 data-[stage=maximized]:h-full data-[stage=maximized]:w-full" {...floatingPanel.getContentProps()}>
       <div class="flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab data-[dragging]:cursor-grabbing" {...floatingPanel.getDragTriggerProps()}>
@@ -9,10 +9,10 @@
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Calculator</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-3 p-4">
         <div data-display class="rounded-lg bg-text p-4 text-right font-mono text-2xl text-on-primary">0</div>
@@ -33,19 +33,19 @@
           <button type="button" data-key="2" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">2</button>
           <button type="button" data-key="3" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">3</button>
           <button type="button" data-key="+" data-act="op" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-semantic-warning text-on-primary hover:bg-semantic-warning">+</button>
-          <button type="button" data-key="0" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">0</button>
-          <button type="button" data-key="." data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">.</button>
-          <button type="button" data-key="=" data-act="eq" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-semantic-warning text-on-primary hover:bg-semantic-warning">=</button>
+          <button data-key="0" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">0</button>
+          <button data-key="." data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">.</button>
+          <button data-key="=" data-act="eq" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-semantic-warning text-on-primary hover:bg-semantic-warning">=</button>
         </div>
       </div>
-            <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
-      <button type="button" class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
-      <button type="button" class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
-      <button type="button" class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
-      <button type="button" class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("ne")} aria-hidden="true"></button>
-      <button type="button" class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("nw")} aria-hidden="true"></button>
-      <button type="button" class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("se")} aria-hidden="true"></button>
-      <button type="button" class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+            <button class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("sw")} aria-hidden="true"></button>
     </div>
   </div>
 </div>

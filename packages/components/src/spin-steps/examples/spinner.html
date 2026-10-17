@@ -5,7 +5,6 @@
     <template for={steps.getItems()} as={row} key={row}>
       <li class="relative flex min-w-0 items-center not-last:flex-1" {...steps.getItemProps({ index: row })}>
         <button
-          type="button"
           class="flex shrink-0 items-center gap-3 rounded-md bg-transparent text-left"
           {...steps.getTriggerProps({ index: row })}
         ><span
@@ -17,7 +16,7 @@
   </ol>
 
   <div class="mt-3 flex items-center justify-center gap-2">
-    <button type="button" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...steps.getPrevTriggerProps()}>Prev step</button>
-    <button type="button" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...steps.getNextTriggerProps()}>Next step</button>
+    <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...steps.getPrevTriggerProps()}>Prev step</button>
+    <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...steps.getNextTriggerProps()}>Next step</button>
   </div>
 </div>

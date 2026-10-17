@@ -29,25 +29,25 @@
   </div>
 
   <div class="flex items-center gap-2 mt-4" {...carousel.getControlProps()}>
-    <button type="button"
+    <button
       class="p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
       {...carousel.getPrevTriggerProps()}>‹</button>
     <div class="flex flex-1 items-center justify-center gap-1"
       {...carousel.getIndicatorGroupProps()}>
       <template for={items} as={row} key={row.value}>
-        <button type="button"
+        <button
           class="h-2 w-2 rounded-full border border-solid border-border bg-surface transition-all duration-base ease-standard data-[current]:w-4 data-[current]:bg-primary data-[current]:border-transparent data-[focus]:ring-2 data-[focus]:ring-border-strong data-[readonly]:cursor-default"
           {...carousel.getIndicatorProps({ index: i })}></button>
       </template>
     </div>
-    <button type="button"
+    <button
       class="p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[playing]:text-primary data-[focus]:ring-2 data-[focus]:ring-border-strong"
       {...carousel.getAutoplayTriggerProps()}>▶</button>
     <template for={carousel.getProgressRows()} as={row} key="progress">
       <span class="text-xs text-muted"
         {...carousel.getProgressTextProps()}>{row.value}</span>
     </template>
-    <button type="button"
+    <button
       class="p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
       {...carousel.getNextTriggerProps()}>›</button>
   </div>

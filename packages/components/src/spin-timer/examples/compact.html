@@ -10,8 +10,8 @@
       </template>
     </div>
     <div class="flex items-center gap-1" {...timer.getControlProps()}>
-    <button type="button" aria-label="Start" class="grid h-7 w-7 place-items-center rounded-md bg-semantic-success text-on-primary" {...timer.getActionTriggerProps({ action: "start" })}><span class="i-lucide-play text-xs"></span></button>
-    <button type="button" aria-label="Pause" class="grid h-7 w-7 place-items-center rounded-md bg-surface-raised text-text" {...timer.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-xs"></span></button>
+    <button aria-label="Start" class="grid h-7 w-7 place-items-center rounded-md bg-semantic-success text-on-primary" {...timer.getActionTriggerProps({ action: "start" })}><span class="i-lucide-play text-xs"></span></button>
+    <button aria-label="Pause" class="grid h-7 w-7 place-items-center rounded-md bg-surface-raised text-text" {...timer.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-xs"></span></button>
   </div>
   </div>
 </div>

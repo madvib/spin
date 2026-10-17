@@ -1,7 +1,7 @@
 <scope>props={ label: string = "Now Playing", defaultOpen: bool = true, defaultSize: string = '{"w":400,"h":330}', defaultMinSize: string = '{"w":340,"h":300}', defaultMaxSize: string = '{"w":500,"h":440}' } consume={ floatingPanel }</scope>
 
 <div class="grid gap-2">
-  <button type="button" class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
+  <button class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...floatingPanel.getPositionerProps()}>
     <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)] data-[stage=maximized]:left-0 data-[stage=maximized]:top-0 data-[stage=maximized]:h-full data-[stage=maximized]:w-full" {...floatingPanel.getContentProps()}>
       <div class="flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab data-[dragging]:cursor-grabbing" {...floatingPanel.getDragTriggerProps()}>
@@ -9,7 +9,7 @@
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Media Player</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid flex-1 content-start gap-4 overflow-y-auto bg-text p-4 text-on-primary">
         <div class="flex items-center gap-3">
@@ -36,14 +36,14 @@
           <div class="h-1 flex-1 overflow-hidden rounded-full bg-surface"><div class="h-full w-3/4 rounded-full bg-primary"></div></div>
         </div>
       </div>
-            <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
-      <button type="button" class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
-      <button type="button" class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
-      <button type="button" class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
-      <button type="button" class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("ne")} aria-hidden="true"></button>
-      <button type="button" class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("nw")} aria-hidden="true"></button>
-      <button type="button" class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("se")} aria-hidden="true"></button>
-      <button type="button" class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+            <button class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("sw")} aria-hidden="true"></button>
     </div>
   </div>
 </div>

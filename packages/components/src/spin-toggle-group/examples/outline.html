@@ -4,7 +4,6 @@
   <div class="inline-flex border border-solid border-border rounded-lg" {...toggleGroup.getRootProps()}>
     <template for={toggleGroup.getItems()} as={row} key={row.value}>
       <button
-        type="button"
         class="border-r border-solid border-border px-4 py-2 text-sm font-medium text-muted transition-all last:border-r-0 hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary"
         {...toggleGroup.getItemProps(row)}
       >{row.label}</button>

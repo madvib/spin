@@ -8,7 +8,6 @@
 
   <div class="relative flex items-center gap-2" {...colorPicker.getControlProps()}>
     <button
-      type="button"
       class="grid h-7 w-10 place-items-center rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate data-[disabled]:cursor-not-allowed data-[disabled]:opacity-60"
       {...colorPicker.getTriggerProps()}
     ><span aria-hidden="true" class="h-4 w-8 rounded-sm border border-solid border-border" style="background: {colorPicker.valueAsString}"> </span></button>
@@ -17,7 +16,6 @@
       {...colorPicker.getValueTextProps()}
     >{colorPicker.valueAsString}</span>
     <button
-      type="button"
       class="grid h-7 w-7 place-items-center rounded-md border border-solid border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text"
       {...colorPicker.getEyeDropperTriggerProps()}
     ><span class="i-lucide-pipette text-sm" aria-hidden="true"></span></button>

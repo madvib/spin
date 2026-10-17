@@ -7,12 +7,11 @@
   </div>
 
   <div class="flex items-center gap-4">
-    <button type="button" class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...steps.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
+    <button class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...steps.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
     <ol class="flex flex-1 items-start gap-1" {...steps.getListProps()}>
       <template for={steps.getItems()} as={row} key={row}>
         <li class="relative flex min-w-0 items-center not-last:flex-1" {...steps.getItemProps({ index: row })}>
         <button
-          type="button"
           class="flex shrink-0 items-center gap-3 rounded-md bg-transparent text-left"
           {...steps.getTriggerProps({ index: row })}
         ><span
@@ -22,6 +21,6 @@
       </li>
       </template>
     </ol>
-    <button type="button" class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...steps.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
+    <button class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...steps.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
   </div>
 </div>

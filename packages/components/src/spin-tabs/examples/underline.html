@@ -5,7 +5,6 @@
   <div class="mb-4 flex gap-4 border-b border-solid border-border" {...tabs.getListProps()}>
     <template for={items} as={row} key={row.value}>
       <button
-        type="button"
         class="relative -mb-px px-2 py-2 text-sm font-medium text-muted transition-colors data-[state=active]:text-text data-[state=active]:shadow-[0_2px_0_0_var(--color-primary)]"
         {...tabs.getTriggerProps(row)}
       >{row.label}</button>

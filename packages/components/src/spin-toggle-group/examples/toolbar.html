@@ -4,7 +4,6 @@
   <div class="inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-2" {...toggleGroup.getRootProps()}>
     <template for={toggleGroup.getItems()} as={row} key={row.value}>
       <button
-        type="button"
         class="rounded-md p-2 text-muted transition-all hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary"
         {...toggleGroup.getItemProps(row)}
       ><span class="text-base" aria-hidden="true"><span show={row.value === "bold"} class="i-lucide-bold"></span><span show={row.value === "italic"} class="i-lucide-italic"></span><span show={row.value === "underline"} class="i-lucide-underline"></span></span></button>

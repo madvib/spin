@@ -1,6 +1,6 @@
 <scope>props={ placement: string = "top-start" } consume={ toast }</scope>
 <div class="mx-auto flex w-full max-w-xs flex-col items-center gap-3">
-  <button type="button" data-fire="" data-title="Top left" data-description="Toast from top left." data-type="info" data-duration="5000" data-action="" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Show toast</button>
+  <button data-fire="" data-title="Top left" data-description="Toast from top left." data-type="info" data-duration="5000" data-action="" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Show toast</button>
   <div
     class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col [gap:var(--toast-gap,1rem)] px-4 data-[side=top]:[top:var(--toast-offset,1rem)] data-[side=bottom]:[bottom:var(--toast-offset,1rem)] data-[align=start]:[left:var(--toast-offset,1rem)] data-[align=end]:[right:var(--toast-offset,1rem)] data-[align=center]:left-1/2 data-[align=center]:right-1/2"
     {...toast.getGroupProps()}
@@ -15,7 +15,7 @@
             <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>
             <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
           </div>
-          <button type="button" class="shrink-0 rounded-md p-1 text-sm text-muted hover:bg-surface hover:text-text" {...toast.getCloseTriggerProps(row)}>X</button>
+          <button class="shrink-0 rounded-md p-1 text-sm text-muted hover:bg-surface hover:text-text" {...toast.getCloseTriggerProps(row)}>X</button>
         </div>
       </div>
     </template>

@@ -9,6 +9,12 @@
  * - A static `style="..."` on an element carrying a `{...bag}` spread is
  *   stripped on the spread's first run (it prunes attributes the bag does
  *   not carry). Positioning must live in the bag's style object.
+ * - `type="button"` on an element carrying a `{...bag}` spread is dead:
+ *   35 defs emit `type` from the bag (a trigger inside a consumer's form
+ *   must not submit it), and the machine cannot see its ancestors so it
+ *   assumes the worst. The static attr never fires.
+ * - A bagless `<button>` inside a `<form>` without `type=` is a submit by
+ *   default. The only place the attr does anything is in a form.
  *
  *   deno run -A scripts/recipe-check.ts
  *
@@ -24,10 +30,18 @@ const problems: string[] = [];
 
 /** Every element's literal class list and attribute text, per recipe. */
 function elementsOf(path: string, source: string): void {
-  const tagPattern = /<([a-z][a-z0-9-]*)((?:"[^"]*"|[^>"'])*)>/gi;
+  // Form depth: a `<form>` ancestor is the only place a button's type
+  // does anything. Void and self-closing tags never change depth.
+  const voids = new Set(["input", "img", "br", "hr", "meta", "link"]);
+  let formDepth = 0;
+  const tagPattern = /<(\/)?([a-z][a-z0-9-]*)((?:"[^"]*"|[^>"'])*?)(\/)?>/gi;
   for (const match of source.matchAll(tagPattern)) {
-    const tag = match[1] ?? "?";
-    const attrs = match[2] ?? "";
+    const closing = match[1] === "/";
+    const tag = match[2] ?? "?";
+    const attrs = match[3] ?? "";
+    const selfClosing = match[4] === "/" || voids.has(tag);
+    if (tag === "form" && !selfClosing) formDepth += closing ? -1 : 1;
+    if (closing) continue;
     const classAttr = attrs.match(/class="([^"]*)"/)?.[1] ?? "";
     const classes = classAttr.split(/\s+/).filter((token) => token.length > 0);
     const hasSpread = /\{\.\.\.[^}]+\}/.test(attrs);
@@ -46,6 +60,17 @@ function elementsOf(path: string, source: string): void {
     // static attribute, and survives.
     if (hasSpread && staticStyle !== undefined && !staticStyle.includes("{")) {
       problems.push(`${path}: <${tag}> static style is stripped by the spread`);
+    }
+    // The bag owns `type` on spread elements; a static one never fires.
+    // Off-spread, the attr only matters inside a form (submit default).
+    if (tag === "button") {
+      const staticType = attrs.match(/type="([^"]*)"/)?.[1];
+      if (hasSpread && staticType !== undefined) {
+        problems.push(`${path}: <button> static type is dead — the bag owns it`);
+      }
+      if (!hasSpread && staticType === undefined && formDepth > 0) {
+        problems.push(`${path}: <button> in a form without type= submits by default`);
+      }
     }
   }
 }

@@ -1,8 +1,8 @@
 <scope>props={ label: string = "Tour", steps: string = '[{"id":"welcome","target":"#tour-basic-target","title":"Welcome","description":"This button starts nothing, but the spotlight finds it."}]' } consume={ tour }</scope>
 
 <div class="mx-auto flex w-full max-w-xs flex-col items-center gap-4">
-  <button id="tour-basic-target" type="button" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">Feature button</button>
-  <button type="button" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary" data-start>Start tour</button>
+  <button id="tour-basic-target" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">Feature button</button>
+  <button class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary" data-start>Start tour</button>
 </div>
 <div class="contents" {...tour.getRootProps()}>
   <div class="pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate data-[state=closed]:opacity-0" {...tour.getBackdropProps()}></div>
@@ -20,12 +20,12 @@
       </template>
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-1">
-          <button type="button" class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...tour.getPrevTriggerProps()}>Back</button>
-          <button type="button" class="rounded-sm bg-primary px-2 py-0.5 text-xs font-medium text-on-primary transition-opacity duration-fast ease-decelerate hover:opacity-90" {...tour.getNextTriggerProps()}>Next</button>
+          <button class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...tour.getPrevTriggerProps()}>Back</button>
+          <button class="rounded-sm bg-primary px-2 py-0.5 text-xs font-medium text-on-primary transition-opacity duration-fast ease-decelerate hover:opacity-90" {...tour.getNextTriggerProps()}>Next</button>
         </div>
         <div class="flex items-center gap-1">
-          <button type="button" class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...tour.getSkipTriggerProps()}>Skip</button>
-          <button type="button" class="rounded-sm p-0.5 text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...tour.getDismissTriggerProps()}>
+          <button class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...tour.getSkipTriggerProps()}>Skip</button>
+          <button class="rounded-sm p-0.5 text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...tour.getDismissTriggerProps()}>
             <span class="i-lucide-x text-xs" aria-hidden="true"></span>
           </button>
         </div>

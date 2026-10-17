@@ -20,13 +20,11 @@
           <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>
           <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
           <button
-            type="button"
             class="mt-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
             {...toast.getActionTriggerProps(row)}
           >{row.action}</button>
         </div>
         <button
-          type="button"
           class="shrink-0 rounded-md p-1 text-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text focus-visible:ring-2 focus-visible:ring-border-strong"
           {...toast.getCloseTriggerProps(row)}
         ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
