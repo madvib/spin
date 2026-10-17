@@ -1,10 +1,16 @@
 import { assert, assertEquals } from "@std/assert";
-import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
+import {
+  indexTree,
+  parseTokens,
+  refFamilyFor,
+  resolveAliases,
+} from "@spin/theme";
 import {
   primitiveComponents,
   primitiveContracts,
   primitiveVariants,
 } from "@spin/preset";
+import { starterThemes } from "@spin/theme/themes";
 import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
 
 /**
@@ -19,7 +25,9 @@ import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
  */
 
 const THEMES_DIR = new URL("../../theme/src/themes/", import.meta.url);
-const THEMES = ["default.json", "neobrut.json", "console.json"] as const;
+// The registry, not a list: a starter added to the package is silently
+// subject to every gate below, the day it is added.
+const THEMES = Object.keys(starterThemes).map((name) => `${name}.json`);
 
 function varsOf(name: string): Set<string> {
   const text = Deno.readTextFileSync(new URL(name, THEMES_DIR));
@@ -79,6 +87,36 @@ Deno.test("every shipped theme satisfies every component's reads", () => {
       }
     }
     assertEquals(missing, [], `${theme} cannot satisfy: ${missing.join(", ")}`);
+  }
+});
+
+Deno.test("every token group a shipped theme carries is decided", () => {
+  // The forward half of the binding audit. `refFamilyFor` answers which
+  // family in the theme's ref table reaches a leaf; the manifest answers
+  // which groups are a component's own character tokens; anything else is a
+  // group no rule can ever read. That is how `opacity` and
+  // `font.letter-spacing` spent their whole lives as data, and how a
+  // `font.element` binding answered a reader that spelled the path
+  // differently. A theme may grow a group; it may not grow one nothing can
+  // spend.
+  const owned = new Set(Object.keys(primitiveContracts));
+  for (const theme of THEMES) {
+    const parsed = parseTokens(
+      JSON.parse(Deno.readTextFileSync(new URL(theme, THEMES_DIR))),
+    );
+    if (!parsed.ok) throw new Error(`${theme}: ${parsed.error}`);
+    const orphans: string[] = [];
+    for (const leaf of Object.values(indexTree(parsed.tree).leaves)) {
+      if (refFamilyFor(leaf.path) !== null) continue;
+      const group = leaf.path[0];
+      if (group !== undefined && owned.has(group)) continue;
+      orphans.push(leaf.path.join("."));
+    }
+    assertEquals(
+      orphans,
+      [],
+      `${theme}: these tokens reach no rule: ${orphans.join(", ")}`,
+    );
   }
 });
 

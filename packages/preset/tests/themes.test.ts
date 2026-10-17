@@ -6,6 +6,7 @@ import {
   validateTokens,
 } from "@spin/theme";
 import { requiredRolesFor } from "../src/index.ts";
+import { starterThemes } from "@spin/theme/themes";
 import type { TokenLeaf, TokenNode } from "@spin/theme";
 
 /**
@@ -24,7 +25,7 @@ function example(name: string): unknown {
 }
 
 /** A base document: the whole surface, nothing layered over it. */
-for (const name of ["default.json", "neobrut.json", "console.json"]) {
+for (const name of Object.keys(starterThemes).map((stem) => `${stem}.json`)) {
   Deno.test(`${name} satisfies every required role`, () => {
     const parsed = parseTokens(example(name));
     if (!parsed.ok) throw new Error(parsed.error);

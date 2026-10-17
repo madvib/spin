@@ -83,7 +83,7 @@ export {
 } from "./pipeline/generate.ts";
 
 // The uno theme: names derived from paths, values as references.
-export { REF_SPECS, refFamilies, themeRef } from "./uno-ref.ts";
+export { REF_SPECS, refFamilies, refFamilyFor, themeRef } from "./uno-ref.ts";
 export type { ThemeRef, ThemeRefGroup } from "./uno-ref.ts";
 
 // Procedures: the typed interface, owned by the module that implements it.

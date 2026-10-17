@@ -17,7 +17,11 @@ import type {
   TokenNode,
   TokenTree,
 } from "@spin/theme";
-import { themeModes } from "@spin/theme/themes";
+import {
+  type StarterThemeName,
+  starterThemes,
+  themeModes,
+} from "@spin/theme/themes";
 
 /**
  * These tests run the whole package against the example theme that ships with
@@ -300,17 +304,25 @@ Deno.test("the example theme's light document validates on its own", async () =>
   assertEquals(validateTokens(light).issues, []);
 });
 
+/**
+ * What each starter serves, as a fixture decision.
+ *
+ * `satisfies` against the registry's own key type is the totality audit: a
+ * starter added to the package cannot compile until its mode posture is
+ * written down here, so this list can never quietly skip a theme.
+ */
+const DECLARED_MODES = {
+  default: ["light", "dark"],
+  neobrut: ["light"],
+  console: ["dark"],
+} satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
+
 Deno.test("a theme states its modes at the root", async () => {
   // The modes are data, not derived from a group's presence: neobrut and
   // console have no `dark` group but different mode postures, and asking "does
   // this theme carry a dark override set?" cannot tell a base-that-is-dark
   // from a theme that never declares one. `modes` says what it serves.
-  const expected: Record<string, string[]> = {
-    default: ["light", "dark"],
-    neobrut: ["light"],
-    console: ["dark"],
-  };
-  for (const [name, modes] of Object.entries(expected)) {
+  for (const [name, modes] of Object.entries(DECLARED_MODES)) {
     const doc = JSON.parse(
       await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
     );
@@ -345,13 +357,7 @@ Deno.test("a theme declares the modes it actually has", async () => {
   // theme that drops the field answers nothing rather than answering from a
   // group's presence — and adding a mode is a change to the theme document,
   // which is the one file a theme owns.
-  for (
-    const [name, modes] of Object.entries({
-      default: ["light", "dark"],
-      neobrut: ["light"],
-      console: ["dark"],
-    })
-  ) {
+  for (const [name, modes] of Object.entries(DECLARED_MODES)) {
     const doc = JSON.parse(
       await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
     );
@@ -646,7 +652,7 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
     ["--color-semantic-error", "--color-on-danger"],
   ] as const;
 
-  for (const name of ["default", "neobrut", "console"] as const) {
+  for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
     const tree = treeOf(
       parseTokens(await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR))),
       `${name}.json`,

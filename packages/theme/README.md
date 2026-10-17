@@ -18,7 +18,7 @@ set; `@spin/theme/theme-types` the generated token types.
   emit         generateCss · generateThemeCss · generateTypes
   contract     BASE_ROLES · requiredPaths · themeSchema · spinThemeJsonSchema
   colour       parseColor · formatHex · isColor · mixColors · generateScale · invertColor · contrastRatio · relativeLuminance · CSS_WIDE_COLORS
-  uno          refFamilies · themeRef · REF_SPECS
+  uno          refFamilies · refFamilyFor · themeRef · REF_SPECS
   procedures   themeContract · themeRouter
 
 @spin/theme/base

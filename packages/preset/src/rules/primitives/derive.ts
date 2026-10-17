@@ -66,11 +66,11 @@ function themePathToCssVar(path: string): string {
     // Component root: the path is the token path.
     return `--${segments.join("-")}`;
   }
-  if (spec.depth === 0) {
+  if (spec.exact === true) {
     // The name is the last prefix segment.
     return `--${spec.prefix.join("-")}`;
   }
-  // Token path = prefix + remaining segments.
+  // Token path = prefix + the name below it.
   const tokenPath = [...spec.prefix, ...segments.slice(1)];
   return `--${tokenPath.join("-")}`;
 }

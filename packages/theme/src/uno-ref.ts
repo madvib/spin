@@ -20,54 +20,63 @@ import type { TokenTree } from "./pipeline/types.ts";
 export type ThemeRefGroup = Record<string, string>;
 
 /**
- * Which token groups map to which uno theme key, and how deep within the group
- * a name is taken from.
+ * A binding between a token-family prefix and the uno theme key it publishes
+ * under.
  *
- * `depth` is how many segments after the prefix form the name. Colors take any
- * depth and join it — a theme may name colours as deeply as it likes — while
- * the scales take one, so `spacing.4` is `4` and not `semantic.gutter`.
+ * This is the one authored surface in the bridge, and it exists because it
+ * joins two independently-fixed vocabularies: DTCG token paths, which themes
+ * author, and the uno theme keys, which rules read by ecosystem convention —
+ * `theme.colors`, `theme.fontSize`, and so on, including wind4's rules, which
+ * are composed into every build and read this exact object. Neither side can
+ * be derived from the other.
+ *
+ * Because it cannot be derived, it is audited instead, in both directions:
+ * every leaf of a shipped theme must be bound by a family here or owned by a
+ * component root, and every family here must bind at least one leaf. One test
+ * on each side, so a theme can neither grow a group no rule can see, nor keep
+ * a binding that answers nothing. Both directions have failed for real: the
+ * opacity and letter-spacing groups were unreachable from every rule, and a
+ * `fontElement` binding answered a consumer that spelled its reads another
+ * way and no theme ever declared.
+ *
+ * The name of a leaf is its path below the prefix, joined — `color.neutral.500`
+ * is `neutral-500`. An `exact` binding addresses the prefix's own token, so
+ * the name falls back to the prefix's last segment and `focus.width`
+ * publishes as `focusWidth.width`.
  */
 interface RefSpec {
+  /** The uno theme key the family is published under. */
   readonly key: string;
+  /** The DTCG token path prefix the key is bound to. */
   readonly prefix: readonly string[];
-  readonly depth: number | null;
+  /**
+   * Whether the key addresses the prefix's own token rather than the leaves
+   * below it. `focusWidth` is `focus.width` itself; `spacing` is every leaf
+   * below `spacing`.
+   */
+  readonly exact?: boolean;
 }
 
 export const REF_SPECS: readonly RefSpec[] = [
-  { key: "colors", prefix: ["color"], depth: null },
-  { key: "spacing", prefix: ["spacing"], depth: 1 },
-  { key: "fontSize", prefix: ["font", "size"], depth: 1 },
-  { key: "fontFamily", prefix: ["font", "family"], depth: 1 },
-  { key: "fontWeight", prefix: ["font", "weight"], depth: 1 },
-  { key: "radius", prefix: ["radius"], depth: 1 },
-  { key: "shadow", prefix: ["shadow"], depth: 1 },
-  { key: "breakpoint", prefix: ["breakpoint"], depth: 1 },
-  { key: "zIndex", prefix: ["z-index"], depth: 1 },
-  // How dim a thing is and how open its tracking sits. Both are groups a
-  // theme owns by its own documentation — the fraction reads differently
-  // over a light surface than a dark one, and the open end of the tracking
-  // ramp is what separates a label from a shout — but without a row here
-  // neither reached a rule, so both fell back to the conventional values
-  // and every theme dimmed and tracked identically.
-  { key: "opacity", prefix: ["opacity"], depth: 1 },
-  { key: "letterSpacing", prefix: ["font", "letter-spacing"], depth: 1 },
-  { key: "motionDuration", prefix: ["motion", "duration"], depth: 1 },
-  { key: "motionEasing", prefix: ["motion", "easing"], depth: 1 },
+  { key: "colors", prefix: ["color"] },
+  { key: "spacing", prefix: ["spacing"] },
+  { key: "fontSize", prefix: ["font", "size"] },
+  { key: "fontFamily", prefix: ["font", "family"] },
+  { key: "fontWeight", prefix: ["font", "weight"] },
+  { key: "radius", prefix: ["radius"] },
+  { key: "shadow", prefix: ["shadow"] },
+  { key: "breakpoint", prefix: ["breakpoint"] },
+  { key: "zIndex", prefix: ["z-index"] },
+  { key: "opacity", prefix: ["opacity"] },
+  { key: "letterSpacing", prefix: ["font", "letter-spacing"] },
+  { key: "motionDuration", prefix: ["motion", "duration"] },
+  { key: "motionEasing", prefix: ["motion", "easing"] },
   // The component-edge tokens. `border.width` and `focus.*` are dimensions a
   // component spends (a button's own border, the ring offset), and they are
-  // theme values like any other scale. Without a row here they were silently
-  // dropped from the uno theme, so button emitted no border and no focus
-  // ring at all.
-  { key: "borderWidth", prefix: ["border"], depth: 1 },
-  // `focus.width` and `focus.offset` are two dimensions, each its own group.
-  // Depth 0 addresses the path exactly: the prefix is the whole path, so
-  // the name is the prefix's own last segment — `focus.width` is `width`.
-  { key: "focusWidth", prefix: ["focus", "width"], depth: 0 },
-  { key: "focusOffset", prefix: ["focus", "offset"], depth: 0 },
-  // Per-element type overrides: `font.element.h1` is a group whose leaves
-  // are the properties one element moves. Depth 2 addresses the property,
-  // so `font.element.h1.size` is `size` under `h1`.
-  { key: "fontElement", prefix: ["font", "element"], depth: 2 },
+  // theme values like any other scale.
+  { key: "borderWidth", prefix: ["border"] },
+  { key: "focusWidth", prefix: ["focus", "width"], exact: true },
+  { key: "focusOffset", prefix: ["focus", "offset"], exact: true },
 ];
 
 /** A uno theme whose every value is the reference it came from. */
@@ -80,11 +89,22 @@ function specFor(path: readonly string[]): RefSpec | null {
   for (const spec of REF_SPECS) {
     if (spec.prefix.length > path.length) continue;
     if (!spec.prefix.every((segment, i) => segment === path[i])) continue;
-    const rest = path.length - spec.prefix.length;
-    if (rest !== 0 && spec.depth !== null && rest !== spec.depth) continue;
+    if (spec.exact === true && path.length !== spec.prefix.length) continue;
     return spec;
   }
   return null;
+}
+
+/**
+ * The family a token path is bound to, named by its binding's prefix, or null
+ * when no binding claims it.
+ *
+ * The forward half of the audit reads this: a leaf with no family here is a
+ * token no rule can reach, unless a component root owns it.
+ */
+export function refFamilyFor(path: readonly string[]): string | null {
+  const spec = specFor(path);
+  return spec === null ? null : spec.prefix.join(".");
 }
 
 /**
@@ -111,11 +131,9 @@ export function themeRef(
     const spec = specFor(leaf.path);
     if (spec === null) continue;
     const rest = leaf.path.slice(spec.prefix.length);
-    // A spec with depth 0 addresses the path exactly, so there is no trailing
-    // segment left to name it by: the last segment of the prefix is the name.
-    const name = spec.depth === null
+    const name = rest.length > 0
       ? rest.join("-")
-      : rest[rest.length - 1] ?? spec.prefix[spec.prefix.length - 1] ?? "";
+      : spec.prefix[spec.prefix.length - 1] ?? "";
     (out[spec.key] as ThemeRefGroup)[name.toLowerCase()] = `var(${
       cssVarName(leaf.path)
     })`;
