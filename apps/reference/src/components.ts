@@ -69,6 +69,17 @@ for (const [path, html] of Object.entries(recipeModules)) {
  * writes in their own code (see the note in the example source). */
 
 const EXAMPLE_ONLOAD: Record<string, string> = {
+"pagination/pagesize": `
+    document.querySelectorAll("pagination-pagesize").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // Delegated: page changes re-render and replace the select node.
+      host.addEventListener("change", (event) => {
+        const select = event.target?.closest("[data-size]");
+        if (select && typeof host.setPageSize === "function") host.setPageSize(Number(select.value));
+      });
+    });
+  `,
 "pagination/jump": `
     document.querySelectorAll("pagination-jump").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;

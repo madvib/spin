@@ -1,32 +1,41 @@
-<scope>props={ count: string = "100", defaultPageSize: string = "20", siblingCount: string = "1" } consume={ pagination }</scope>
+<scope>props={ count: string = "100", defaultPageSize: string = "10", siblingCount: string = "1" } consume={ pagination }</scope>
 
-
-
-<nav class="flex w-full flex-nowrap items-center gap-1 overflow-x-auto" {...pagination.getRootProps()}>
-  <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-    {...pagination.getFirstTriggerProps()}
-  ><span aria-hidden="true">«</span></button>
-  <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-    {...pagination.getPrevTriggerProps()}
-  ><span aria-hidden="true">‹</span></button>
-  <template for={pagination.getItems()} as={row} key={row.key}>
+<nav class="flex w-full flex-wrap items-center gap-6" {...pagination.getRootProps()}>
+  <div class="flex items-center gap-2 text-sm text-muted">
+    <label for="pg-size">Rows per page</label>
+    <select id="pg-size" data-size="" class="rounded-md border border-solid border-border bg-surface px-2 py-1 text-sm text-text">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+    </select>
+  </div>
+  <div class="text-sm text-muted" data-range="">{pagination.pageRange.start}-{pagination.pageRange.end} of {pagination.count}</div>
+  <div class="flex items-center gap-1">
     <button
-      class="h-7 min-w-7 rounded-md border border-solid border-border bg-surface-raised px-1.5 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface data-[selected]:border-primary data-[selected]:bg-primary data-[selected]:text-on-primary data-[hidden]:hidden"
-      {...pagination.getItemProps(row)}
-    >{row.label}</button><span
-      class="grid h-7 min-w-7 place-items-center px-1 text-xs text-muted data-[hidden]:hidden"
-      {...pagination.getEllipsisProps(row)}
-    >{row.label}</span>
-  </template>
-  <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-    {...pagination.getNextTriggerProps()}
-  ><span aria-hidden="true">›</span></button>
-  <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-    {...pagination.getLastTriggerProps()}
-  ><span aria-hidden="true">»</span></button>
-  <p class="mt-2 text-xs text-muted">{pagination.pageSize} per page</p>
+      class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+      {...pagination.getFirstTriggerProps()}
+    ><span aria-hidden="true">«</span></button>
+    <button
+      class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+      {...pagination.getPrevTriggerProps()}
+    ><span aria-hidden="true">‹</span></button>
+    <template for={pagination.getItems()} as={row} key={row.key}>
+      <button
+        class="h-7 min-w-7 rounded-md border border-solid border-border bg-surface-raised px-1.5 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface data-[selected]:border-primary data-[selected]:bg-primary data-[selected]:text-on-primary data-[hidden]:hidden"
+        {...pagination.getItemProps(row)}
+      >{row.label}</button><span
+        class="grid h-7 min-w-7 place-items-center px-1 text-xs text-muted data-[hidden]:hidden"
+        {...pagination.getEllipsisProps(row)}
+      >{row.label}</span>
+    </template>
+    <button
+      class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+      {...pagination.getNextTriggerProps()}
+    ><span aria-hidden="true">›</span></button>
+    <button
+      class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+      {...pagination.getLastTriggerProps()}
+    ><span aria-hidden="true">»</span></button>
+  </div>
 </nav>
