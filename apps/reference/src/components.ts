@@ -492,18 +492,11 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         }
       };
       const wire = (root) => {
-        const setToggle = (btn, on) => {
-          btn.setAttribute("aria-pressed", on ? "true" : "false");
-          btn.classList.toggle("bg-primary", on);
-          btn.classList.toggle("bg-border", !on);
-          const knob = btn.querySelector("[data-knob]");
-          if (knob) knob.style.transform = on ? "translateX(1.25rem)" : "translateX(0)";
-        };
-        root.querySelectorAll("[data-toggle]").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const pressed = btn.getAttribute("aria-pressed") === "true";
-            setToggle(btn, !pressed);
+        root.querySelectorAll("[data-toggle]").forEach((sw) => {
+          sw.addEventListener("change", () => {
+            sw.setAttribute("aria-checked", sw.checked ? "true" : "false");
           });
+          sw.setAttribute("aria-checked", sw.checked ? "true" : "false");
         });
         const clear = root.querySelector("[data-clear]");
         const freed = root.querySelector("[data-freed]");

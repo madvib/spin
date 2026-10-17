@@ -20,7 +20,7 @@
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
             <div><p class="m-0 text-sm text-text">Dark Mode</p><p class="m-0 text-xs text-muted">Switch to dark theme</p></div>
-            <button type="button" data-toggle="dark" aria-pressed="false" class="relative inline-flex h-5 max-h-5 min-h-0 w-10 shrink-0 items-center justify-start rounded-full p-0 bg-border"><span data-knob class="ml-1 inline-block h-3 w-3 rounded-full bg-surface-raised" style="transform: translateX(0)"></span></button>
+            <input type="checkbox" role="switch" data-toggle="dark" aria-label="Dark Mode" class="switch" />
           </div>
           </div>
         </div>
@@ -29,7 +29,7 @@
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
             <div><p class="m-0 text-sm text-text">Push Notifications</p><p class="m-0 text-xs text-muted">Receive notifications on your device</p></div>
-            <button type="button" data-toggle="notifications" aria-pressed="true" class="relative inline-flex h-5 max-h-5 min-h-0 w-10 shrink-0 items-center justify-start rounded-full p-0 bg-primary"><span data-knob class="ml-1 inline-block h-3 w-3 rounded-full bg-surface-raised" style="transform: translateX(1.25rem)"></span></button>
+            <input type="checkbox" role="switch" data-toggle="notifications" aria-label="Push Notifications" class="switch" checked />
           </div>
           </div>
         </div>
@@ -38,7 +38,7 @@
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
             <div><p class="m-0 text-sm text-text">Auto-save</p><p class="m-0 text-xs text-muted">Automatically save your work</p></div>
-            <button type="button" data-toggle="autosave" aria-pressed="true" class="relative inline-flex h-5 max-h-5 min-h-0 w-10 shrink-0 items-center justify-start rounded-full p-0 bg-primary"><span data-knob class="ml-1 inline-block h-3 w-3 rounded-full bg-surface-raised" style="transform: translateX(1.25rem)"></span></button>
+            <input type="checkbox" role="switch" data-toggle="autosave" aria-label="Auto-save" class="switch" checked />
           </div>
             <button type="button" data-clear class="grid w-full justify-items-start gap-1 rounded-lg border border-solid border-border p-3 text-left hover:bg-surface">
               <p class="m-0 text-sm text-text">Clear Cache</p>
