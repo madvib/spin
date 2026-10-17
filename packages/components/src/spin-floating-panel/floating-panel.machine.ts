@@ -31,8 +31,10 @@ export interface FloatingPanelContext {
   position: { readonly x: number; readonly y: number };
   /** The panel's size, in pixels; the restored one survives maximize. */
   size: FloatingPanelSize;
-  /** The size before a maximize, so RESTORE returns to it. */
+  /** The size before a stage, so RESTORE returns to it. */
   restoreSize: FloatingPanelSize | null;
+  /** The position before a stage, so RESTORE returns to it. */
+  restorePosition: { readonly x: number; readonly y: number } | null;
   stage: FloatingPanelStage;
   /** The position the drag started from, for an Escape cancel. */
   dragFrom: { readonly x: number; readonly y: number } | null;
@@ -86,6 +88,7 @@ export const config = {
     position: { x: 0, y: 0 },
     size: { w: 360, h: 240 },
     restoreSize: null,
+    restorePosition: null,
     stage: "restored" as FloatingPanelStage,
     dragFrom: null,
     resizeFrom: null,
@@ -233,11 +236,20 @@ export const implementations = {
       if (axis.y === -1) back.position = { x: back.position?.x ?? origin.position.x, y: origin.position.y - (h - origin.size.h) };
       return { size: { w, h }, ...back };
     },
-    setMinimized: (): Partial<FloatingPanelContext> => ({ stage: "minimized" }),
+    setMinimized: (ctx: FloatingPanelContext): Partial<FloatingPanelContext> => {
+      if (ctx.stage === "minimized") return {};
+      // Stash only when leaving restored: a staged-to-staged move keeps
+      // the original geometry, matching zag (prevSize survives until
+      // the restore, not until the next stage).
+      return ctx.stage === "restored"
+        ? { stage: "minimized", restoreSize: { ...ctx.size }, restorePosition: { ...ctx.position } }
+        : { stage: "minimized" };
+    },
     setMaximized: (ctx: FloatingPanelContext): Partial<FloatingPanelContext> => {
       if (ctx.stage === "maximized") return {};
       return {
         restoreSize: ctx.stage === "restored" ? { ...ctx.size } : ctx.restoreSize,
+        restorePosition: ctx.stage === "restored" ? { ...ctx.position } : ctx.restorePosition,
         stage: "maximized",
         size: { w: ctx.boundary.w, h: ctx.boundary.h },
         position: { x: 0, y: 0 },
@@ -248,7 +260,9 @@ export const implementations = {
       return {
         stage: "restored",
         size: ctx.restoreSize ?? ctx.size,
+        position: ctx.restorePosition ?? ctx.position,
         restoreSize: null,
+        restorePosition: null,
       };
     },
   },

@@ -241,3 +241,13 @@ Deno.test("Given the stage triggers / When called / Then each sends its own even
   assertEquals(h.api.stage, "restored", "default restores");
   h.dispose();
 });
+
+Deno.test("Given staged-to-staged moves / When restoring / Then the original geometry returns", () => {
+  const h = harness({ defaultOpen: true });
+  (h.api.getStageTriggerProps({ stage: "minimized" })["onClick"] as () => void)();
+  (h.api.getStageTriggerProps({ stage: "maximized" })["onClick"] as () => void)();
+  (h.api.getStageTriggerProps({ stage: "default" })["onClick"] as () => void)();
+  assertEquals(h.api.size, { w: 360, h: 240 }, "minimize then maximize then restore keeps 360x240");
+  assertEquals(h.api.position, { x: 0, y: 0 }, "and the position");
+  h.dispose();
+});
