@@ -1,0 +1,15 @@
+<scope>props={ items: string = '[{"value":"docs","label":"Docs"},{"value":"components","label":"Components"},{"value":"blog","label":"Blog"}]' } consume={ navigationMenu }</scope>
+
+<nav class="relative inline-flex" {...navigationMenu.getRootProps()}>
+  <ul class="m-0 flex list-none items-center gap-1 p-0" {...navigationMenu.getListProps()}>
+    <template for={navigationMenu.getItems()} as={row} key={row.value}>
+      <li class="relative" {...navigationMenu.getItemProps(row)}>
+        <a class="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface data-[state=open]:bg-surface" {...navigationMenu.getLinkProps(row)}>{row.label}</a>
+
+        <div class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)]" {...navigationMenu.getItemContentProps(row)}>
+          <p class="m-0 text-xs text-muted">{row.label} panel</p>
+        </div>
+      </li>
+    </template>
+  </ul>
+</nav>
