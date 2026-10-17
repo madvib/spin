@@ -9,9 +9,9 @@
 import { A, Navigate, Router, useLocation } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { createMemo, For, lazy, Show } from "solid-js";
+import { For, lazy, Show } from "solid-js";
 import { ThemePicker } from "@spin/kit";
-import { Mark } from "./mark.tsx";
+import { Logo } from "./mark.tsx";
 
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
  * param, `[...all]` is the catch-all, and a folder joins the segments. */
@@ -106,19 +106,7 @@ const NAV: readonly RouteDefinition[] = [...ROUTES]
   )
   .sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
 
-function Layout(props: RouteSectionProps): JSX.Element {
-  const location = useLocation();
-  const landing = createMemo(() => location.pathname === "/");
-
-  // The landing owns the whole viewport; every other page is the rail's.
-  if (landing()) {
-    return (
-      <div class="min-h-dvh bg-surface text-text font-sans text-md">
-        {props.children}
-      </div>
-    );
-  }
-
+function RailLayout(props: { children: JSX.Element }): JSX.Element {
   return (
     <div class="flex min-h-dvh bg-surface text-text font-sans text-md">
       <nav
@@ -126,8 +114,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
         aria-label="site"
       >
         <A href="/" end class="flex items-center gap-3 text-text no-underline">
-          <Mark class="h-8 w-8" />
-          <span class="font-heading text-lg tracking-tighter">spin</span>
+          <Logo class="h-8" />
         </A>
 
         <div class="grid gap-1">
@@ -181,6 +168,24 @@ function Layout(props: RouteSectionProps): JSX.Element {
 
       <div class="flex-1">{props.children}</div>
     </div>
+  );
+}
+
+/**
+ * The landing owns the whole viewport; every other page is the rail's.
+ * Reactive on the pathname — navigating back to `/` swaps the shell.
+ */
+function Layout(props: RouteSectionProps): JSX.Element {
+  const location = useLocation();
+  return (
+    <Show
+      when={location.pathname === "/"}
+      fallback={<RailLayout>{props.children}</RailLayout>}
+    >
+      <div class="min-h-dvh bg-surface text-text font-sans text-md">
+        {props.children}
+      </div>
+    </Show>
   );
 }
 

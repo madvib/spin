@@ -10,7 +10,7 @@ import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
-import { Mark } from "../mark.tsx";
+import { Logo, Mark } from "../mark.tsx";
 import { Code, Section } from "../bits.tsx";
 import { componentExamples } from "@spin/preset/rules/primitives/examples-index.ts";
 import { ExampleRow } from "../example-row.tsx";
@@ -71,15 +71,12 @@ export default function Home(): JSX.Element {
       <section class="grid min-h-dvh md:grid-cols-2">
         <div class="flex flex-col justify-between px-6 py-5 md:px-12 md:py-10">
           <header class="flex items-center justify-between">
-            <span class="flex items-center gap-3 text-text">
-              <Mark class="h-8 w-8" />
-              <span class="font-heading text-lg tracking-tighter">spin</span>
-            </span>
+            <Logo class="h-16 text-text" />
           </header>
 
           <div class="max-w-screen-md py-12">
             <h1 class="m-0 text-3xl tracking-tighter">
-              Give an agent a web it can hold.
+              Spin your own web.
             </h1>
             <p class="mt-5 text-md text-text-muted">
               One theme document and one vite plugin — and every color, button,
