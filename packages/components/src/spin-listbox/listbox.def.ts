@@ -486,6 +486,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
       sig: (scope) => [scope.state, scope.props["disabled"], scope.props["dir"], scope.props["orientation"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("root"),
+          "data-scope": "listbox",
+          "data-part": "root",
         dir: scope.props["dir"],
         "data-orientation": scope.props["orientation"],
         "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -495,6 +497,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
       sig: (scope) => [scope.props["disabled"], scope.props["dir"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
+          "data-scope": "listbox",
+          "data-part": "label",
         dir: scope.props["dir"],
         "data-disabled": scope.attr(scope.props["disabled"] === true),
       }),
@@ -507,6 +511,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
       },
       attrs: (scope) => ({
         id: scope.id("valueText"),
+          "data-scope": "listbox",
+          "data-part": "value-text",
         "data-empty": scope.attr(asCtx(scope.context).value.length === 0),
       }),
     },
@@ -530,6 +536,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
         const active = highlighted === null ? undefined : scope.id("item", highlighted);
         return {
           id: scope.id("content"),
+          "data-scope": "listbox",
+          "data-part": "content",
           role: "listbox",
           tabindex: "0",
           dir: scope.props["dir"],
@@ -570,6 +578,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.value),
+          "data-scope": "listbox",
+          "data-part": "item",
           role: "option",
           dir: scope.props["dir"],
           "data-value": state.value,
@@ -621,6 +631,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
         const block = scope.slot as unknown as ListboxBlock;
         return {
           id: scope.id("itemGroup", block.id),
+          "data-scope": "listbox",
+          "data-part": "item-group",
           role: "group",
           dir: scope.props["dir"],
           "aria-labelledby": scope.id("itemGroupLabel", block.id),
@@ -638,6 +650,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
         const block = scope.slot as unknown as ListboxBlock;
         return {
           id: scope.id("itemGroupLabel", block.id),
+          "data-scope": "listbox",
+          "data-part": "item-group-label",
           dir: scope.props["dir"],
           role: "presentation",
         };
