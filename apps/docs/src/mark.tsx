@@ -116,7 +116,7 @@ export function Mark(props: { class?: string }) {
         stroke-dasharray="1"
         stroke-dashoffset={reduced ? 0 : 1}
       >
-        {SPOKE_PATHS.map((d) => <path pathLength="1" d={d} />)}
+        {SPOKE_PATHS.map((d) => <path key={d} pathLength="1" d={d} />)}
         {!reduced && DRAW("0.05s", "0.55s")}
       </g>
 
@@ -130,7 +130,7 @@ export function Mark(props: { class?: string }) {
           stroke-dasharray="1"
           stroke-dashoffset={reduced ? 0 : 1}
         >
-          {ring.map((d) => <path pathLength="1" d={d} />)}
+          {ring.map((d) => <path key={d} pathLength="1" d={d} />)}
           {!reduced && DRAW(`${0.3 + i * 0.18}s`, "0.5s")}
         </g>
       ))}

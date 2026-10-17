@@ -72,7 +72,9 @@ function tabsTokens(ctx: ThemeContext | undefined) {
  */
 function tabsBase(mode: Mode): Rule {
   const tabs = claim(mode, "tabs");
-  const label = `${tabs} label`;
+  // The rail label is the wrapper's direct child; a label nested inside a
+  // panel is content, not rail, and must not draw the tab treatment.
+  const label = `${tabs} > div > label`;
   const radio = `${tabs} input[type="radio"]`;
   // The panel's own claim, without the container prefix: after a sibling or
   // child combinator the right-hand side must be the element itself, not a
@@ -257,7 +259,7 @@ function tabsBase(mode: Mode): Rule {
 function tabsVertical(mode: Mode): Rule {
   const tabs = claim(mode, "tabs");
   const vertical = `${tabs}.tabs-vertical`;
-  const label = `${vertical} label`;
+  const label = `${vertical} > div > label`;
   const panel = `${vertical} section`;
   return [
     /^tabs-vertical$/,

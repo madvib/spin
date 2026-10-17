@@ -6,12 +6,12 @@
  * consumer gets; flipping a starter re-declares `data-theme` on the
  * document and the page re-resolves in its own CSS.
  */
-import { For } from "solid-js";
+import { createSignal, For, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "../mark.tsx";
-import { Code, Section } from "../bits.tsx";
+import { Chip, Code, Reveal, Section } from "../bits.tsx";
 
 const WIRING = `import { spin } from "@spin/preset/plugin";
 import solid from "vite-plugin-solid";
@@ -38,33 +38,151 @@ const PAGES = [
   },
 ];
 
-const HIGHLIGHTS = [
-  [
-    "Everything syncs from the theme.",
-    "Utilities, primitives, components — all of it resolves from one document. Change a token and the whole app follows, in both modes.",
-  ],
-  [
-    "Agents write themed code by default.",
-    "The vocabulary is closed: a color, a radius, a duration an agent spends is a token. Off-theme styling has nowhere to live.",
-  ],
-  [
-    "The studio.",
-    "In dev it mounts into your app — open it from any page, edit the theme document, and the running UI repaints.",
-  ],
-  [
-    "Verified, not eyeballed.",
-    "Oracles render your app in a real browser and check contrast, layout, and overflow — every theme, both modes.",
-  ],
-  [
-    "Web components, soon.",
-    "A component runtime in development: branded components that travel with the theme and embed in any web framework.",
-  ],
+/** The landing's below-the-fold argument: one section, four layers,
+ * progressive disclosure — the radios are the tabs primitive itself. */
+const TOKEN_JSON = `{
+  "color": {
+    "primary": {
+      "$value": "#c8102e",
+      "$modes": { "dark": "#f4646e" }
+    }
+  }
+}`;
+
+const UTILITIES_CODE = `<button>Ship it</button>
+<button class="secondary">Cancel</button>
+<button class="ghost">Later</button>`;
+
+const PRIMITIVE_CODE =
+  `<label><input type="checkbox" role="switch"> Notify me</label>
+<badge variant="success">shipped</badge>`;
+
+const layers = (): readonly { label: string; panel: JSX.Element }[] => [
+  {
+    label: "0 · design tokens",
+    panel: (
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="m-0">
+            Named values in one JSON document — both modes, validated against
+            the legibility floor. The sheet emits them as custom properties;
+            everything above them spends those.
+          </p>
+          <Code class="mt-3 text-xs" code={TOKEN_JSON} />
+        </div>
+        <div class="flex flex-col justify-center gap-3">
+          <span class="flex items-center gap-3">
+            <span class="h-7 w-14 shrink-0 rounded-sm border border-border-strong bg-primary" />
+            <code class="text-xs">--color-primary</code>
+          </span>
+          <span class="flex items-center gap-3">
+            <span class="h-7 w-14 shrink-0 rounded-sm border border-border-strong bg-surface" />
+            <code class="text-xs">--color-surface</code>
+          </span>
+          <span class="flex items-center gap-3">
+            <span class="h-7 w-14 shrink-0 rounded-sm border border-border-strong bg-text" />
+            <code class="text-xs">--color-text</code>
+          </span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    label: "1 · utilities",
+    panel: (
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="m-0">
+            Classes spend those variables: the class exists because the token
+            does, and a new starter re-resolves every one of them.
+          </p>
+          <Code class="mt-3 text-xs" code={UTILITIES_CODE} />
+        </div>
+        <div class="flex flex-wrap items-center gap-3 self-center">
+          <button type="button">Ship it</button>
+          <button type="button" class="secondary">Cancel</button>
+          <button type="button" class="ghost">Later</button>
+        </div>
+      </div>
+    ),
+  },
+  {
+    label: "2 · primitives",
+    panel: (
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="m-0">
+            Semantic elements that ship styled and interactive — the behavior
+            comes with them, classes change the tone.
+          </p>
+          <Code class="mt-3 text-xs" code={PRIMITIVE_CODE} />
+        </div>
+        <div class="flex flex-col justify-center gap-5">
+          <div class="flex flex-wrap items-center gap-4">
+            <label>
+              <input type="checkbox" role="switch" checked /> Notify me
+            </label>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <badge variant="success">shipped</badge>
+            <badge variant="accent">accent</badge>
+            <badge variant="neutral">neutral</badge>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    label: "3 · component runtime",
+    panel: (
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="m-0">
+            Custom elements that carry the theme with them: branded components
+            you embed in any rendering framework, painted from the same
+            document.
+          </p>
+          <div class="mt-3">
+            <badge variant="warning">in development</badge>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 self-center">
+          <Chip>react</Chip>
+          <Chip>svelte</Chip>
+          <Chip>vue</Chip>
+          <Chip>vanilla</Chip>
+        </div>
+      </div>
+    ),
+  },
 ];
 
 const CTA = "no-underline";
 const GHOST = "ghost no-underline";
 
 export default function Home(): JSX.Element {
+  /*
+   * The studio's mechanism, live: writing `--color-primary` on the document
+   * is exactly what editing the token does — the page spends it everywhere.
+   */
+  let colorInput: HTMLInputElement | undefined;
+  const [brand, setBrand] = createSignal("");
+  const syncBrand = () => {
+    const hex = getComputedStyle(document.documentElement).getPropertyValue(
+      "--color-primary",
+    ).trim();
+    setBrand(hex);
+    if (colorInput) colorInput.value = hex;
+  };
+  onMount(syncBrand);
+  const paintBrand = (hex: string) => {
+    document.documentElement.style.setProperty("--color-primary", hex);
+    setBrand(hex);
+  };
+  const unpaintBrand = () => {
+    document.documentElement.style.removeProperty("--color-primary");
+    syncBrand();
+  };
   return (
     <main class="min-h-dvh bg-surface text-text font-sans text-md">
       {/* The first screen: mark, pitch, switch. */}
@@ -79,16 +197,12 @@ export default function Home(): JSX.Element {
               Spin your own web.
             </h1>
             <p class="mt-5 text-md text-text-muted">
-              spin is a frontend framework for style and components: themes,
-              utility classes, primitives, and components, all kept in sync.
-              Built so AI agents write consistent, themed UI — and it embeds
-              into the framework you already use.
+              Spin is a design system and portable UI framework. Built on
+              familiar concepts like design tokens, utility classes, and web
+              components, Spin can be adopted incrementally and works with any
+              rendering framework. Agents are first class authors and are given
+              tooling to create consistent and beautiful interfaces, fast.
             </p>
-            <Code
-              class="mt-6 max-w-fit text-xs"
-              code={`<button>Ship it</button>
-<button class="secondary">Cancel</button>`}
-            />
             <div class="mt-8 flex flex-wrap items-center gap-3">
               <A href="/guide" role="button" class={CTA}>get started</A>
               <A href="/components" role="button" class={GHOST}>
@@ -104,7 +218,13 @@ export default function Home(): JSX.Element {
                 {(name) => (
                   <button
                     type="button"
-                    onClick={() => setTheme(name)}
+                    onClick={() => {
+                      document.documentElement.style.removeProperty(
+                        "--color-primary",
+                      );
+                      setTheme(name);
+                      requestAnimationFrame(syncBrand);
+                    }}
                     aria-pressed={theme() === name}
                     class={`px-3 py-2 text-sm rounded-sm transition-colors duration-fast ${
                       theme() === name
@@ -125,40 +245,140 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Below the fold: what it actually does. */}
+      {/* Below the fold: the layers, then where to go. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
-        <div class="grid gap-4 md:grid-cols-2 max-w-screen-xl">
-          <For each={HIGHLIGHTS}>
-            {([claim, body]) => (
-              <div class="border-solid border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{claim}</p>
-                <p class="m-0 mt-2 text-sm">{body}</p>
-              </div>
-            )}
-          </For>
-        </div>
-
-        <div class="mt-10">
-          <Section title="One line of wiring">
-            <Code code={WIRING} />
+        <Reveal>
+          <Section title="The layers">
+            <tabs>
+              <For each={layers()}>
+                {(layer, i) => (
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        name="spin-layers"
+                        checked={i() === 0}
+                      />
+                      {layer.label}
+                    </label>
+                    <section class="pt-4">{layer.panel}</section>
+                  </div>
+                )}
+              </For>
+            </tabs>
           </Section>
-        </div>
+        </Reveal>
 
-        <div class="mt-4 grid gap-4 md:grid-cols-3">
-          <For each={PAGES}>
-            {(page) => (
-              <A
-                href={page.href}
-                class="block border border-border bg-surface-raised rounded-md p-4 no-underline hover:border-border-strong transition-colors duration-fast"
-              >
-                <p class="m-0 font-heading text-lg tracking-tight">
-                  {page.title}
-                </p>
-                <p class="m-0 mt-2 text-sm text-text-muted">{page.body}</p>
-              </A>
-            )}
-          </For>
-        </div>
+        <Reveal>
+          <div class="mt-10">
+            <Section title="The studio">
+              <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                  <p class="m-0">
+                    In dev it mounts into the app you're running — the button in
+                    the corner opens it. The theme is a file in your repo; edit
+                    it and the running page repaints, both modes.
+                  </p>
+                  <p class="mt-3 mb-0 text-sm">
+                    The mechanism is on this page: move primary and every
+                    button, bar, and badge spends it.
+                  </p>
+                </div>
+                <div class="border border-border bg-surface-raised rounded-md p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="font-mono text-sm">color.primary</span>
+                    <code class="text-xs text-text-muted">{brand()}</code>
+                  </div>
+                  <div class="mt-3 flex items-center gap-3">
+                    <input
+                      ref={colorInput}
+                      type="color"
+                      aria-label="color.primary"
+                      onInput={(e) => paintBrand(e.currentTarget.value)}
+                      class="h-9 w-12 cursor-pointer rounded-sm border border-border-strong bg-transparent p-0"
+                    />
+                    <button type="button" class="ghost" onClick={unpaintBrand}>
+                      reset
+                    </button>
+                  </div>
+                  <div class="mt-4 flex flex-wrap items-center gap-3">
+                    <button type="button">Ship it</button>
+                    <badge variant="accent">accent</badge>
+                    <span class="h-7 w-16 rounded-sm border border-border-strong bg-primary" />
+                  </div>
+                </div>
+              </div>
+            </Section>
+          </div>
+        </Reveal>
+
+        <Reveal>
+          <div class="mt-10">
+            <Section title="Tooling for agents">
+              <div class="grid gap-4 md:grid-cols-3">
+                <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
+                  <p class="m-0 font-semibold text-text">
+                    Vocabulary over MCP.
+                  </p>
+                  <p class="m-0 mt-2 text-sm">
+                    <code class="text-xs">spin daemon</code>{" "}
+                    runs one process on one port: the CLI, the MCP server, and
+                    the studio speak to the same surface, and a client lists
+                    what's available while your app runs.
+                  </p>
+                </div>
+                <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
+                  <p class="m-0 font-semibold text-text">
+                    Markup that fails the lint.
+                  </p>
+                  <p class="m-0 mt-2 text-sm">
+                    <code class="text-xs">@spin/lint</code>{" "}
+                    is an oxlint plugin — rules like{" "}
+                    <code class="text-xs">no-raw-colors</code> and{" "}
+                    <code class="text-xs">closed-vocabulary</code>{" "}
+                    — so authored UI that steps outside the system fails before
+                    it ships.
+                  </p>
+                </div>
+                <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
+                  <p class="m-0 font-semibold text-text">
+                    Rendered, not eyeballed.
+                  </p>
+                  <p class="m-0 mt-2 text-sm">
+                    Oracles open every starter in a real browser: contrast,
+                    layout, overflow — every theme, both modes.
+                  </p>
+                </div>
+              </div>
+            </Section>
+          </div>
+        </Reveal>
+
+        <Reveal>
+          <div class="mt-10">
+            <Section title="One line of wiring">
+              <Code code={WIRING} />
+            </Section>
+          </div>
+        </Reveal>
+
+        <Reveal>
+          <div class="mt-4 grid gap-4 md:grid-cols-3">
+            <For each={PAGES}>
+              {(page) => (
+                <A
+                  href={page.href}
+                  class="block border border-border bg-surface-raised rounded-md p-4 no-underline hover:border-border-strong transition-colors duration-fast"
+                >
+                  <p class="m-0 font-heading text-lg tracking-tight">
+                    {page.title}
+                  </p>
+                  <p class="m-0 mt-2 text-sm text-text-muted">{page.body}</p>
+                </A>
+              )}
+            </For>
+          </div>
+        </Reveal>
       </div>
     </main>
   );

@@ -9,8 +9,48 @@
  * resolve a color
  */
 import type { JSX } from "solid-js";
+import { createSignal, onCleanup, onMount } from "solid-js";
 import { starterThemes } from "@spin/theme/themes";
 import { mode, theme } from "@spin/kit";
+
+/**
+ * Scroll-in for the blocks below the fold: a plain opacity fade, skipped
+ * for reduced motion and when the observer is unavailable.
+ */
+export function Reveal(props: { children: JSX.Element }): JSX.Element {
+  let el: HTMLDivElement | undefined;
+  const [shown, setShown] = createSignal(false);
+  onMount(() => {
+    const reduced = globalThis.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches ?? false;
+    if (reduced || !("IntersectionObserver" in globalThis)) {
+      setShown(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShown(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    observer.observe(el!);
+    onCleanup(() => observer.disconnect());
+  });
+  return (
+    <div
+      ref={el}
+      class={`transition-opacity duration-slow ${
+        shown() ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      {props.children}
+    </div>
+  );
+}
 
 export interface ThemeDocument {
   color?: Record<string, unknown>;
