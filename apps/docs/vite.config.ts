@@ -1,8 +1,10 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
+import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
+import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
 
@@ -22,6 +24,9 @@ export default defineConfig({
       // No `themes` option: the plugin owns spin/*.json off this root — the
       // files the studio edits, so the editing loop has documents on disk.
       // drops into every served app opens this site's own theme documents.
+      // Icons compose alongside the preset: the product does not ship them,
+      // and the pages that show elements show their icons too.
+      presets: [presetIcons({ collections: { lucide } as never })],
       mount: mountSpinApp(here, {
         studioDir: resolve(here, "../studio/dist"),
       }),

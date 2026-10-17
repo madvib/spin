@@ -10,6 +10,8 @@ declare module "solid-js" {
     interface IntrinsicElements {
       tabs: HTMLAttributes<HTMLElement>;
       badge: HTMLAttributes<HTMLElement> & { variant?: string };
+      alert: HTMLAttributes<HTMLElement> & { variant?: string };
+      card: HTMLAttributes<HTMLElement>;
     }
   }
 }

@@ -12,6 +12,7 @@ import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "../mark.tsx";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
+import { Console } from "../console.tsx";
 
 const PAGES = [
   {
@@ -342,36 +343,42 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Below the fold: the layers, then where to go. */}
+      {/* Below the fold: an application, then the layers, then where to go. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
         <Reveal>
-          <Section title="The layers">
-            <p class="m-0 mb-6 max-w-prose text-text-muted">
-              Nothing here is all-or-nothing. Bring tokens to an app you already
-              have, add utility classes where you want to stop writing CSS, pull
-              in an element when you want its behavior, and take the component
-              runtime when you want the same branded component in a second
-              framework. Each layer reads the one below it, and you can stop at
-              any of them.
-            </p>
-            <tabs>
-              <For each={layers()}>
-                {(layer, i) => (
-                  <div>
-                    <label>
-                      <input
-                        type="radio"
-                        name="spin-layers"
-                        checked={i() === 0}
-                      />
-                      {layer.label}
-                    </label>
-                    <section class="pt-4">{layer.panel}</section>
-                  </div>
-                )}
-              </For>
-            </tabs>
-          </Section>
+          <Console />
+        </Reveal>
+
+        <Reveal>
+          <div class="mt-16">
+            <Section title="The layers">
+              <p class="m-0 mb-6 max-w-prose text-text-muted">
+                Nothing here is all-or-nothing. Bring tokens to an app you
+                already have, add utility classes where you want to stop writing
+                CSS, pull in an element when you want its behavior, and take the
+                component runtime when you want the same branded component in a
+                second framework. Each layer reads the one below it, and you can
+                stop at any of them.
+              </p>
+              <tabs>
+                <For each={layers()}>
+                  {(layer, i) => (
+                    <div>
+                      <label>
+                        <input
+                          type="radio"
+                          name="spin-layers"
+                          checked={i() === 0}
+                        />
+                        {layer.label}
+                      </label>
+                      <section class="pt-4">{layer.panel}</section>
+                    </div>
+                  )}
+                </For>
+              </tabs>
+            </Section>
+          </div>
         </Reveal>
 
         <Reveal>
