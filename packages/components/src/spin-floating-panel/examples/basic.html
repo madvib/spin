@@ -10,8 +10,8 @@
           <span class="truncate text-sm font-medium text-text">Basic Panel</span>
         </div>
         <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageProps()}>
-            <span class="i-lucide-minus hidden text-xs data-[stage=restored]:inline-block" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
-            <span class="i-lucide-square hidden text-xs data-[stage=minimized]:inline-block data-[stage=maximized]:inline-block" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
+            <span class="i-lucide-minus text-xs data-[stage=restored]:inline-block data-[stage=minimized]:hidden data-[stage=maximized]:hidden" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
+            <span class="i-lucide-square text-xs data-[stage=minimized]:inline-block data-[stage=maximized]:inline-block data-[stage=restored]:hidden" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
           </button>
           <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
