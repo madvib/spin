@@ -12,9 +12,14 @@
           <span class="truncate text-sm font-medium text-text">{label}</span>
         </div>
         <div class="flex shrink-0 items-center gap-1">
-          <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...floatingPanel.getStageProps()}>
-            <span class="i-lucide-minus hidden text-xs data-[stage=restored]:inline-block" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
-            <span class="i-lucide-square hidden text-xs data-[stage=minimized]:inline-block data-[stage=maximized]:inline-block" aria-hidden="true" {...floatingPanel.getStageIconProps()}></span>
+          <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...floatingPanel.getStageTriggerProps({ stage: "minimized" })}>
+            <span class="i-lucide-minus text-xs" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...floatingPanel.getStageTriggerProps({ stage: "maximized" })}>
+            <span class="i-lucide-square text-xs" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...floatingPanel.getStageTriggerProps({ stage: "default" })}>
+            <span class="i-lucide-copy text-xs" aria-hidden="true"></span>
           </button>
           <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...floatingPanel.getCloseTriggerProps()}>
             <span class="i-lucide-x text-xs" aria-hidden="true"></span>

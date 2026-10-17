@@ -221,19 +221,23 @@ Deno.test("Given a boundary / When a drag pushes past it / Then the position cla
   h.dispose();
 });
 
-Deno.test("Given the stage trigger bags / When called / Then each sends its own event", () => {
+Deno.test("Given the stage triggers / When called / Then each sends its own event and hides itself", () => {
   const h = harness({ defaultOpen: true });
-  const min = h.api.getMinimizeProps();
-  const max = h.api.getMaximizeProps();
-  const res = h.api.getRestoreProps();
-  assertEquals(typeof min["onClick"], "function", "minimize carries a click");
-  assertEquals(typeof max["onClick"], "function", "maximize carries a click");
-  assertEquals(typeof res["onClick"], "function", "restore carries a click");
+  const min = h.api.getStageTriggerProps({ stage: "minimized" });
+  const max = h.api.getStageTriggerProps({ stage: "maximized" });
+  const res = h.api.getStageTriggerProps({ stage: "default" });
+  assertEquals(min["aria-label"], "Minimize", "minimize labels");
+  assertEquals(max["aria-label"], "Maximize", "maximize labels");
+  assertEquals(res["aria-label"], "Restore", "default labels restore");
+  assertEquals(res["hidden"], true, "restore hides while restored");
+  assertEquals(min["hidden"], false, "minimize shows while restored");
   (min["onClick"] as () => void)();
   assertEquals(h.api.stage, "minimized", "minimize minimizes");
+  const min2 = h.api.getStageTriggerProps({ stage: "minimized" });
+  assertEquals(min2["hidden"], true, "minimize hides while staged");
   (max["onClick"] as () => void)();
   assertEquals(h.api.stage, "maximized", "maximize maximizes");
   (res["onClick"] as () => void)();
-  assertEquals(h.api.stage, "restored", "restore restores");
+  assertEquals(h.api.stage, "restored", "default restores");
   h.dispose();
 });

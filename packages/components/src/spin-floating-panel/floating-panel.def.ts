@@ -50,15 +50,22 @@ export interface FloatingPanelApi {
   getPositionerProps(): Record<string, unknown>;
   getContentProps(): Record<string, unknown>;
   getDragTriggerProps(): Record<string, unknown>;
-  getStageProps(): Record<string, unknown>;
-  getMinimizeProps(): Record<string, unknown>;
-  getMaximizeProps(): Record<string, unknown>;
-  getRestoreProps(): Record<string, unknown>;
-  /** The stage icon's own bag: it carries data-stage so the spans can key
-   * on it (select's trigger indicator is the same shape). */
-  getStageIconProps(): Record<string, unknown>;
+  /**
+   * One trigger per stage, ark's shape: `{ stage: "minimized" |
+   * "maximized" | "default" }`. "default" addresses the restored
+   * geometry. A trigger hides itself (the `hidden` attribute) when it
+   * is not the move: minimize/maximize hide while staged, restore
+   * hides while restored.
+   */
+  getStageTriggerProps(options: FloatingPanelStageTrigger): Record<string, unknown>;
   getResizeTriggerProps(edge: ResizeEdge): Record<string, unknown>;
   getCloseTriggerProps(): Record<string, unknown>;
+}
+
+/** The stage a stage-trigger addresses: ark's vocabulary. "default"
+ * is the panel's restored geometry. */
+export interface FloatingPanelStageTrigger {
+  readonly stage: "minimized" | "maximized" | "default";
 }
 
 /** The eight resize handles, by their axis signs. */
@@ -293,54 +300,29 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
         };
       },
     },
-    stage: {
-      sig: (scope) => [asCtx(scope.context).stage, `${scope.state === "open"}`].join(" "),
-      attrs: (scope) => {
-        const stage = asCtx(scope.context).stage;
+    stageTrigger: {
+      id: "stage",
+      sig: (scope, arg) => {
+        const want = (arg as FloatingPanelStageTrigger).stage;
+        return [want, asCtx(scope.context).stage].join(" ");
+      },
+      attrs: (scope, arg) => {
+        const want = (arg as FloatingPanelStageTrigger).stage;
+        const staged = asCtx(scope.context).stage !== "restored";
+        const self = want === "default" ? !staged : staged;
         return {
-          id: scope.id("stage"),
-          "data-stage": stage,
-          "aria-label": stage === "minimized" ? "Restore" : stage === "maximized" ? "Restore" : "Minimize",
-          onClick: (): void => scope.send({ type: stage === "restored" ? "MINIMIZE" : "RESTORE" }),
+          id: scope.id("stage", want),
+          "data-stage": want,
+          "aria-label":
+            want === "minimized" ? "Minimize" : want === "maximized" ? "Maximize" : "Restore",
+          hidden: self,
+          type: "button",
+          onClick: (): void =>
+            scope.send({
+              type: want === "minimized" ? "MINIMIZE" : want === "maximized" ? "MAXIMIZE" : "RESTORE",
+            }),
         };
       },
-    },
-    minimize: {
-      id: "minimize",
-      sig: (scope) => [asCtx(scope.context).stage].join(" "),
-      attrs: (scope) => ({
-        id: scope.id("minimize"),
-        "data-stage": asCtx(scope.context).stage,
-        "aria-label": "Minimize",
-        onClick: (): void => scope.send({ type: "MINIMIZE" }),
-      }),
-    },
-    maximize: {
-      id: "maximize",
-      sig: (scope) => [asCtx(scope.context).stage].join(" "),
-      attrs: (scope) => ({
-        id: scope.id("maximize"),
-        "data-stage": asCtx(scope.context).stage,
-        "aria-label": "Maximize",
-        onClick: (): void => scope.send({ type: "MAXIMIZE" }),
-      }),
-    },
-    restore: {
-      id: "restore",
-      sig: (scope) => [asCtx(scope.context).stage].join(" "),
-      attrs: (scope) => ({
-        id: scope.id("restore"),
-        "data-stage": asCtx(scope.context).stage,
-        "aria-label": "Restore",
-        onClick: (): void => scope.send({ type: "RESTORE" }),
-      }),
-    },
-    stageIcon: {
-      id: "stage-icon",
-      sig: (scope) => [asCtx(scope.context).stage].join(" "),
-      attrs: (scope) => ({
-        "data-stage": asCtx(scope.context).stage,
-      }),
     },
     closeTrigger: {
       id: "close",

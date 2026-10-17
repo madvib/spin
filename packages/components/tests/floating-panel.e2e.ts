@@ -19,7 +19,8 @@ const POSITIONER = "#panel [role='dialog']";
 const TRIGGER = "#panel [id$=':trigger']";
 const DRAG = "#panel [id$=':drag']";
 const RESIZE_E = "#panel [id$=':resize:e']";
-const STAGE = "#panel [id$=':stage']";
+const STAGE_MIN = "#panel [id$=':stage:minimized']";
+const STAGE_DEFAULT = "#panel [id$=':stage:default']";
 
 const posState = (page: Page): Promise<string> =>
   page.evaluate(() => document.querySelector("#panel [role='dialog']")?.getAttribute("data-state") ?? "gone");
@@ -117,11 +118,11 @@ Deno.test("spin-floating-panel e2e", () =>
       assert.equal(await posState(page), "open", "no close from a gesture escape");
     });
 
-    await step("the stage control cycles minimized and restored", async () => {
-      await page.locator(STAGE).click();
+    await step("the stage triggers cycle minimized and restored", async () => {
+      await page.locator(STAGE_MIN).click();
       assert.equal(await stage(page), "minimized", "the stage minimizes");
       assert.equal(await page.locator(READOUT).textContent(), "minimized", "and reports through the channel");
-      await page.locator(STAGE).click();
+      await page.locator(STAGE_DEFAULT).click();
       assert.equal(await stage(page), "restored", "and restores");
     });
 
