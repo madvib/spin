@@ -129,6 +129,25 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       });
     });
   `,
+"hover-card/controlled": `
+    document.querySelectorAll("hover-card-controlled").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const state = host.querySelector("#hc-state");
+      host.querySelector("#hc-show")?.addEventListener("click", () => {
+        if (typeof host.show === "function") host.show();
+        else host.querySelector("[data-part=trigger]")?.dispatchEvent(new Event("pointerenter", { bubbles: true }));
+        if (state) state.textContent = "Open";
+      });
+      host.querySelector("#hc-hide")?.addEventListener("click", () => {
+        if (typeof host.hide === "function") host.hide();
+        if (state) state.textContent = "Closed";
+      });
+      host.addEventListener("open-change", (event) => {
+        if (state) state.textContent = event.detail?.open === true ? "Open" : "Closed";
+      });
+    });
+  `,
 "toast/basic": `
     document.querySelectorAll("toast-basic").forEach((pg) => {
       const btn = pg.querySelector("[data-fire]");
