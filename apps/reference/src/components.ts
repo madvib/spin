@@ -290,6 +290,68 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         tour.start();
       });
     });`,
+"floating-panel/chat": `
+    document.querySelectorAll("floating-panel-chat").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-chat-input]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const list = root.querySelector("[data-messages]");
+        const input = root.querySelector("[data-chat-input]");
+        const sendBtn = root.querySelector("[data-send]");
+        let n = 0;
+        const bubble = (text, mine) => {
+          const wrap = document.createElement("div");
+          wrap.className = mine ? "justify-self-end" : "";
+          wrap.style.maxWidth = "80%";
+          const inner = document.createElement("div");
+          inner.className = mine
+            ? "rounded-lg rounded-tr-sm bg-info px-3 py-2 text-white"
+            : "rounded-lg rounded-tl-sm bg-surface px-3 py-2 text-text";
+          inner.textContent = text;
+          wrap.appendChild(inner);
+          if (mine) {
+            const row = document.createElement("div");
+            row.className = "justify-self-end";
+            row.style.maxWidth = "80%";
+            row.appendChild(inner);
+            list.appendChild(row);
+          } else {
+            list.appendChild(wrap);
+          }
+          list.scrollTop = list.scrollHeight;
+        };
+        const send = () => {
+          const text = input.value.trim();
+          if (text === "") return;
+          n += 1;
+          bubble(text, true);
+          input.value = "";
+          const replies = [
+            "Got it — let me look into that for you.",
+            "Thanks for the detail! One moment while I check.",
+            "That's on my list. Anything else I can help with?",
+          ];
+          const reply = replies[(n - 1) % replies.length];
+          setTimeout(() => bubble(reply, false), 600);
+        };
+        sendBtn.addEventListener("click", send);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") send();
+        });
+      };
+      wait();
+    });`,
   "floating-panel/calculator": `
     document.querySelectorAll("floating-panel-calculator").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
