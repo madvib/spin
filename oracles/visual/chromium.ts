@@ -7,7 +7,7 @@
  */
 
 import { CdpSocket } from "./cdp.ts";
-import { PROFILE_PREFIX, claimProfile, reapStaleProfiles } from "./profiles.ts";
+import { claimProfile, PROFILE_PREFIX, reapStaleProfiles } from "./profiles.ts";
 
 export interface LaunchedChromium {
   readonly socket: CdpSocket;

@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { chromium } from "npm:playwright-core";
+import { chromium } from "playwright-core";
 
 const SHOTS = join(import.meta.dirname as string, "shots");
 const SHELL =

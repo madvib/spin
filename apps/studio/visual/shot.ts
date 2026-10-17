@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { chromium } from "npm:playwright-core";
+import { chromium } from "playwright-core";
 import { CHILD_PATHS, ROUTE_PATHS } from "../src/lib/routes.ts";
 
 const SHOTS = join(import.meta.dirname as string, "shots");

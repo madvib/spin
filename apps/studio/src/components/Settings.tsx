@@ -110,7 +110,7 @@ export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
           aria-pressed={dockSide() === "left"}
           onClick={() => {
             setDockSide("left");
-            window.parent.postMessage("spin:side-left", "*");
+            globalThis.parent.postMessage("spin:side-left", "*");
           }}
         >
           <span
@@ -125,7 +125,7 @@ export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
           aria-pressed={dockSide() === "right"}
           onClick={() => {
             setDockSide("right");
-            window.parent.postMessage("spin:side-right", "*");
+            globalThis.parent.postMessage("spin:side-right", "*");
           }}
         >
           <span

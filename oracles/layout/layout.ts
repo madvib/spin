@@ -283,7 +283,9 @@ function runPass(
     const id = nodeOf.get(node);
     if (id === undefined) {
       throw new Error(
-        `layout oracle: node never laid out: <${node.tag} class="${node.classes.join(".")}">`,
+        `layout oracle: node never laid out: <${node.tag} class="${
+          node.classes.join(".")
+        }">`,
       );
     }
     const layout = tree.getLayout(id);

@@ -232,10 +232,6 @@ const SELECT_LABEL = "shrink-0 text-xs font-medium text-text-muted";
 const SELECT =
   "min-w-0 flex-1 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
 
-/** The mode switch: one button, one icon, and the label it answers to. */
-const ICON_BUTTON =
-  "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-border bg-surface-raised p-1 text-sm text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
-
 /** The copy, within the revealed block: it acts on the code beside it. */
 const COPY_BUTTON =
   "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
@@ -1024,7 +1020,6 @@ function AppHeader(props: {
   // rendering disables the control rather than cycling to somewhere that
   // does not exist: an enabled switcher on neobrut promises a dark
   // rendering neobrut never ships.
-  const dark = () => props.mode() === "dark";
   const single = () => props.modes().length <= 1;
   const next = (): string => {
     const want = props.want();
@@ -1135,20 +1130,6 @@ function Rail(props: {
 
   const shown = () => utilities() ? sections().length : components().length;
   const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length;
-
-  const rows = createMemo<readonly RailRow[]>(() =>
-    utilities()
-      ? sections().map((sec) => ({
-        id: sec.id,
-        title: sec.title,
-        count: utilitiesFor(sec, props.catalog()).length,
-      }))
-      : components().map((page) => ({
-        id: page.id,
-        title: page.title,
-        icon: PRIMITIVE_ICONS[page.id],
-      }))
-  );
 
   const byId = createMemo(
     () => new Map(components().map((page) => [page.id, page])),

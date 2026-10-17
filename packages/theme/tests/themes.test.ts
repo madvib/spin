@@ -5,7 +5,6 @@ import {
   generateCss,
   generateThemeCss,
   generateTypes,
-  indexTree,
   inkTokens,
   parseTokens,
   validateTokens,

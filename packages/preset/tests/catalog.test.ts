@@ -2,7 +2,7 @@ import { assert, assertEquals } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { describeCatalog, scaffoldDocument, spinPreset } from "../src/index.ts";
 import { parseTokens } from "@spin/theme";
-import { claims, selectorFor } from "../src/utils/claimed.ts";
+import { claims } from "../src/utils/claimed.ts";
 
 /**
  * The REAL default theme, not a fixture.

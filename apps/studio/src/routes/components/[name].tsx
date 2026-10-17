@@ -167,7 +167,11 @@ function ExampleSection(props: {
           </button>
         </div>
       </div>
-      <div class={`relative grid ${measure ? SPECIMEN_MEASURE : "max-w-full"} mx-auto`}>
+      <div
+        class={`relative grid ${
+          measure ? SPECIMEN_MEASURE : "max-w-full"
+        } mx-auto`}
+      >
         <pre
           ref={pre}
           class={`${CODE_PRE} col-start-1 row-start-1 ${
@@ -355,7 +359,8 @@ export default function ComponentPage() {
                     class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text shadow-none hover:border-primary"
                     onClick={() => setShowTokens((v) => !v)}
                   >
-                    {showTokens() ? "hide" : "character tokens"} ({character().length})
+                    {showTokens() ? "hide" : "character tokens"}{" "}
+                    ({character().length})
                   </button>
                 </Show>
                 <span class="shrink-0 rounded-full border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
@@ -450,8 +455,13 @@ export default function ComponentPage() {
                 <For each={tokenEntries()}>
                   {({ path }, i) => (
                     <>
-                      {i() > 0 && <span>, </span>}
-                      <A href={editorRouteFor(path)} class="hover:text-text hover:underline">{path}</A>
+                      {i() > 0 && <span>,</span>}
+                      <A
+                        href={editorRouteFor(path)}
+                        class="hover:text-text hover:underline"
+                      >
+                        {path}
+                      </A>
                     </>
                   )}
                 </For>

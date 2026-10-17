@@ -44,8 +44,8 @@ to build from, and oracles that mechanically verify the result.
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
 | `@spin/theme`      | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.  |
 | `@spin/primitives` | Finished elements as `.css` + authored manifest; codegen emits the portable module. No dependencies. |
-| `@spin/preset`     | UnoCSS preset wiring theme variables and primitives into the utility layer.                           |
-| `@spin/lint`       | oxlint plugin: programmatic checks that authored UI stays inside the system.                          |
+| `@spin/preset`     | UnoCSS preset wiring theme variables and primitives into the utility layer.                          |
+| `@spin/lint`       | oxlint plugin: programmatic checks that authored UI stays inside the system.                         |
 
 Supporting trees:
 
@@ -62,7 +62,8 @@ Supporting trees:
   from the theme.
 - A package that is not `@spin/preset` MUST NOT reference UnoCSS internals.
 - `@spin/lint` MUST NOT re-implement theme resolution; it asks the theme.
-Dependencies point downward: lint → theme; lint → primitives; preset → theme; preset → primitives.
+  Dependencies point downward: lint → theme; lint → primitives; preset → theme;
+  preset → primitives.
 - Every package owns its `deno.json`, exports only from `src/index.ts`, and has
   its own `test` / `lint` / `fmt` tasks.
 

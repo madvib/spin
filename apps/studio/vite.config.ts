@@ -91,7 +91,10 @@ export default defineConfig(({ command }) => ({
       },
       {
         find: /^@spin\/theme\/(.+)$/,
-        replacement: resolve(import.meta.dirname, "../../packages/theme/src/$1"),
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/theme/src/$1",
+        ),
       },
       {
         find: "@spin/theme",

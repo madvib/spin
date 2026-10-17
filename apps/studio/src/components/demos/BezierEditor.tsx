@@ -14,7 +14,8 @@ export default function BezierEditor(props: {
   const [draft, setDraft] = createSignal(parsed());
 
   function commit(next: { x1: string; y1: string; x2: string; y2: string }) {
-    const value = `cubic-bezier(${next.x1}, ${next.y1}, ${next.x2}, ${next.y2})`;
+    const value =
+      `cubic-bezier(${next.x1}, ${next.y1}, ${next.x2}, ${next.y2})`;
     setDraft({ kind: "bezier", ...next });
     props.onCommit(value);
   }
@@ -44,8 +45,7 @@ export default function BezierEditor(props: {
                 class="w-14 p-1 border-border rounded-md border font-mono text-xs"
                 value={draft()[key]}
                 onChange={(e) =>
-                  commit({ ...draft(), [key]: e.currentTarget.value })
-                }
+                  commit({ ...draft(), [key]: e.currentTarget.value })}
               />
             </label>
           ))}
@@ -55,21 +55,45 @@ export default function BezierEditor(props: {
           class="h-16 w-16 rounded-md border border-border bg-surface"
         >
           <path
-            d={`M 0,100 C ${Number(draft().x1) * 100},${(1 - Number(draft().y1)) * 100} ${Number(draft().x2) * 100},${(1 - Number(draft().y2)) * 100} 100,0`}
+            d={`M 0,100 C ${Number(draft().x1) * 100},${
+              (1 - Number(draft().y1)) * 100
+            } ${Number(draft().x2) * 100},${
+              (1 - Number(draft().y2)) * 100
+            } 100,0`}
             fill="none"
             stroke="currentColor"
             stroke-width="2"
           />
-          <circle cx={Number(draft().x1) * 100} cy={(1 - Number(draft().y1)) * 100} r="3" fill="currentColor" />
-          <circle cx={Number(draft().x2) * 100} cy={(1 - Number(draft().y2)) * 100} r="3" fill="currentColor" />
+          <circle
+            cx={Number(draft().x1) * 100}
+            cy={(1 - Number(draft().y1)) * 100}
+            r="3"
+            fill="currentColor"
+          />
+          <circle
+            cx={Number(draft().x2) * 100}
+            cy={(1 - Number(draft().y2)) * 100}
+            r="3"
+            fill="currentColor"
+          />
         </svg>
       </div>
     </Show>
   );
 }
 
-function parse(value: string): { kind: "bezier" | "other"; x1: string; y1: string; x2: string; y2: string } {
-  const match = value.trim().match(/^cubic-bezier\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)$/);
+function parse(
+  value: string,
+): {
+  kind: "bezier" | "other";
+  x1: string;
+  y1: string;
+  x2: string;
+  y2: string;
+} {
+  const match = value.trim().match(
+    /^cubic-bezier\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)$/,
+  );
   if (!match) {
     return { kind: "other", x1: "0.2", y1: "0", x2: "0", y2: "1" };
   }

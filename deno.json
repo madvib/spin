@@ -55,7 +55,10 @@
       "node_modules",
       ".omo",
       ".output",
-      "dist"
+      "dist",
+      "examples/coffee/public",
+      "**/*.timestamp-*.mjs",
+      "packages/theme/src/theme-types.d.ts"
     ]
   },
   "lint": {
@@ -63,7 +66,8 @@
       "node_modules",
       ".omo",
       ".output",
-      "dist"
+      "dist",
+      "**/*.timestamp-*.mjs"
     ]
   },
   "nodeModulesDir": "auto",

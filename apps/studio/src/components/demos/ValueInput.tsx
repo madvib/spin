@@ -12,9 +12,10 @@ function isBezierValue(value: string): boolean {
 }
 
 function isShadowValue(value: string): boolean {
-  return /^\s*-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+.+$/.test(
-    value.trim(),
-  );
+  return /^\s*-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+.+$/
+    .test(
+      value.trim(),
+    );
 }
 
 function asHex(value: string): string | undefined {
@@ -258,8 +259,7 @@ function TextControl(props: {
     if (current === undefined) return [];
     return Object.keys(indexTree(current).leaves);
   };
-  const isShadow = (v: string) =>
-    v.includes("px") && v.split(" ").length >= 3;
+  const isShadow = (v: string) => v.includes("px") && v.split(" ").length >= 3;
   return (
     <Show
       when={multiline()}

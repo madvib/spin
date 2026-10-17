@@ -34,7 +34,7 @@ describe("daemon project.themes over HTTP", () => {
   let daemon: ReturnType<typeof startDaemon>;
   let client: SpinClient;
 
-  before(async () => {
+  before(() => {
     // The daemon reads themes from `<root>/spin`, so the fixture is
     // copied into a temp dir shaped like a project: root with a themes/
     // directory inside it. The product's own themes are never touched.
@@ -47,7 +47,7 @@ describe("daemon project.themes over HTTP", () => {
     client = createSpinClient(daemon.url);
   });
 
-  after(async () => {
+  after(() => {
     // close() removes the discovery document too, which is half of what it
     // exists to be tested for.
     daemon.close();

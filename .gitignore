@@ -17,6 +17,9 @@ node_modules/
 dist/
 .output/
 
+# Vite config caches (regenerated, never tracked)
+*.timestamp-*.mjs
+
 # Generated reference content (Uno scanner input, rebuilt by build-content.ts)
 apps/reference/src/content/
 

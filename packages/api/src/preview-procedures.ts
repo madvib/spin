@@ -18,7 +18,7 @@ import { implement } from "@orpc/server";
 import * as v from "valibot";
 import { parseTokens } from "@spin/theme";
 import { describeCatalog, spinPreset } from "@spin/preset";
-import type { ThemeDocument, TokenTree } from "@spin/theme";
+import type { ThemeDocument } from "@spin/theme";
 import { createGenerator } from "@unocss/core";
 
 const PreviewInput = v.object({

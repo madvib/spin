@@ -2110,9 +2110,7 @@ function ColorSpecimen() {
           return (
             <div class="flex min-w-0 flex-1 flex-col gap-1">
               <div
-                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${
-                  ink
-                }`}
+                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${ink}`}
               >
                 {ink === "" ? "" : cls}
               </div>

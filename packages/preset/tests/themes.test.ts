@@ -1,10 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import {
-  indexTree,
-  parseTokens,
-  validateLegibility,
-  validateTokens,
-} from "@spin/theme";
+import { parseTokens, validateTokens } from "@spin/theme";
 import { requiredRolesFor } from "../src/index.ts";
 import { starterThemes } from "@spin/theme/themes";
 import type { TokenLeaf, TokenNode } from "@spin/theme";
