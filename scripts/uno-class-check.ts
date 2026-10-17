@@ -18,7 +18,7 @@ import { createGenerator } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { walk } from "@std/fs/walk";
-import { expandVariantGroups } from "../packages/runtime/src/directives/expand-groups.ts";
+import { expandVariantGroups } from "../packages/syntax/src/expand-groups.ts";
 import { spinPreset } from "../packages/preset/src/index.ts";
 import { starterThemes } from "../packages/theme/src/themes/index.ts";
 
