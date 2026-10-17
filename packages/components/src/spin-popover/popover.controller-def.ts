@@ -17,6 +17,14 @@ export interface PopoverOpenChange {
   readonly open: boolean;
 }
 
+export const popoverManifest = {
+  parts: [],
+  slots: [],
+  readers: ["open"],
+  methods: ["show", "hide", "toggle", "getTriggerProps", "getContentProps"],
+  channels: [],
+} as const;
+
 export interface PopoverApi {
   readonly open: boolean;
   show(): void;

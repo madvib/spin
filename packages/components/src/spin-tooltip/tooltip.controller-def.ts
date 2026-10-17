@@ -23,6 +23,14 @@ export interface TooltipOpenChange {
   readonly open: boolean;
 }
 
+export const tooltipManifest = {
+  parts: [],
+  slots: [],
+  readers: ["open"],
+  methods: ["show", "hide", "getTriggerProps", "getContentProps"],
+  channels: [],
+} as const;
+
 export interface TooltipApi {
   readonly open: boolean;
   show(): void;

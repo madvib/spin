@@ -30,6 +30,16 @@ export type {
   NumberInputValueInvalid,
 };
 
+export const numberInputManifest = {
+  parts: [],
+  slots: [],
+  readers: ["value", "valueAsNumber", "focused", "invalid", "empty"],
+  methods: ["setValue", "clearValue", "increment", "decrement", "setToMax", "setToMin", "focus",
+    "getRootProps", "getLabelProps", "getControlProps", "getValueTextProps", "getInputProps",
+    "getDecrementTriggerProps", "getIncrementTriggerProps", "getScrubberProps", "getCursorProps"],
+  channels: [],
+} as const;
+
 export const numberInput: MachineDef = {
   createBridge: createNumberInputBridge,
   commands: [

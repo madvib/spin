@@ -53,6 +53,13 @@ export function defineComponent<
     root: () => Element,
     id: string,
   ) => { readonly api: Api; dispose(): void };
+  readonly manifest: {
+    readonly parts: readonly string[];
+    readonly slots: readonly string[];
+    readonly readers: readonly string[];
+    readonly methods: readonly string[];
+    readonly channels: readonly string[];
+  };
 } {
   // Parsed props memoize on the raw prop's identity across bridges: the key
   // is the raw value itself, so two elements never share a parse unless they
@@ -381,9 +388,20 @@ export function defineComponent<
     events[name] = { on: event.prop, detail: (change: any) => change };
   }
 
+  // Machine authorship surface: recipe-check imports defs and validates
+  // example expressions against this — a misspelled reader is a compile
+  // error, not a silent empty render.
+  const manifest = {
+    parts: Object.keys(def.parts),
+    slots: Object.keys(def.slots ?? {}),
+    readers: Object.keys(def.readers ?? {}),
+    methods: Object.keys(def.methods ?? {}),
+    channels: Object.keys(def.channels),
+  };
   return {
     createBridge,
     commands: Object.keys(def.commands),
     events,
+    manifest,
   };
 }

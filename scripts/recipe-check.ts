@@ -23,8 +23,65 @@
  */
 
 import { walk } from "@std/fs/walk";
+import * as components from "../packages/components/src/index.ts";
 
 const ROOT = "packages/components/src";
+
+type Manifest = {
+  readonly parts: readonly string[];
+  readonly slots: readonly string[];
+  readonly readers: readonly string[];
+  readonly methods: readonly string[];
+  readonly channels: readonly string[];
+};
+
+const cap = (name: string): string =>
+  name.length === 0 ? name : name[0]!.toUpperCase() + name.slice(1);
+
+/** Every callable/readable member an example may touch on the machine. */
+function membersOf(manifest: Manifest): Set<string> {
+  const out = new Set<string>([...manifest.readers, ...manifest.methods, ...manifest.channels]);
+  for (const part of [...manifest.parts, ...manifest.slots]) out.add(`get${cap(part)}Props`);
+  for (const slot of manifest.slots) out.add(`get${cap(slot)}Indexes`);
+  return out;
+}
+
+/** Reader checking: `machine.member` must name a real reader, method,
+ * channel, or derived bag getter. A misspelled reader renders empty and
+ * nothing fails — this is the check that fails instead. For-bound rows
+ * (`as={row}`) carry view data, not machine state, so `row.*` is out of
+ * scope; bare identifiers are scope props or row passthrough. */
+function readersOf(path: string, source: string): void {
+  const scope = source.match(/<scope>props=\{([^}]*)\}\s*consume=\{\s*(\w+)\s*\}/);
+  if (scope === null) return;
+  const machine = scope[2] ?? "";
+  // Controllers and hand-rolled bridges export a sibling `<name>Manifest`.
+  const ns = (components as Record<string, unknown>);
+  const handle = ns[machine] as { readonly manifest?: Manifest } | undefined;
+  const sibling = ns[`${machine}Manifest`] as Manifest | undefined;
+  const manifest = handle?.manifest ?? sibling;
+  if (manifest === undefined) {
+    problems.push(`${path}: unknown consume machine \`${machine}\``);
+    return;
+  }
+  const valid = membersOf(manifest);
+  const rows = new Set<string>();
+  for (const match of source.matchAll(/as=\{(\w+)\}/g)) rows.add(match[1] ?? "");
+  // Machine-rooted refs inside expressions only (a class like
+  // `avatar.cc` is paint, not a member read): spreads, show, text,
+  // for-sources, attribute expressions.
+  const expressions: string[] = [];
+  for (const match of source.matchAll(/\{([^{}]*?)\}/g)) expressions.push(match[1] ?? "");
+  const body = expressions.join("\n");
+  const pattern = new RegExp(`(?<![a-zA-Z])${machine}\\.([a-zA-Z][a-zA-Z0-9_]*)`, "g");
+  for (const match of body.matchAll(pattern)) {
+    const member = match[1] ?? "";
+    if (!valid.has(member)) {
+      problems.push(`${path}: unknown member \`${machine}.${member}\``);
+    }
+  }
+  void rows;
+}
 
 const problems: string[] = [];
 
@@ -79,7 +136,9 @@ function elementsOf(path: string, source: string): void {
 // themes the app builds with). This file keeps the structural traps only.
 for await (const entry of walk(ROOT, { exts: [".html"] })) {
   if (!entry.isFile) continue;
-  elementsOf(entry.path, await Deno.readTextFile(entry.path));
+  const source = await Deno.readTextFile(entry.path);
+  elementsOf(entry.path, source);
+  readersOf(entry.path, source);
 }
 
 if (problems.length > 0) {

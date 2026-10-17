@@ -30,6 +30,16 @@ export interface HoverCardOpenChange {
   readonly open: boolean;
 }
 
+/** Authorship surface for recipe-check's reader rule (controllers do
+ * not run defineComponent, so there is no synthesized manifest). */
+export const hoverCardManifest = {
+  parts: [],
+  slots: [],
+  readers: ["open"],
+  methods: ["show", "hide", "getRootProps", "getTriggerProps", "getContentProps"],
+  channels: [],
+} as const;
+
 export interface HoverCardApi {
   readonly open: boolean;
   show(): void;
