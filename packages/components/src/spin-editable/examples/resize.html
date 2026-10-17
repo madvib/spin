@@ -1,0 +1,15 @@
+<scope>props={ label: string = "Message", defaultValue: string = "Short text", placeholder: string = "Type a longer message…", autoResize: bool = true } consume={ editable }</scope>
+
+<div class="w-full" {...editable.getRootProps()}>
+  <div class="mb-1 flex items-center gap-2">
+    <span class="i-lucide-align-left text-sm text-muted" aria-hidden="true"></span>
+    <label class="text-sm font-medium text-text transition-colors duration-fast ease-decelerate data-[focus]:text-primary data-[invalid]:text-primary data-[disabled]:opacity-50" {...editable.getLabelProps()}>{label}</label>
+  </div>
+
+  <div class="relative rounded-md border border-solid border-border bg-surface-raised transition-shadow duration-fast ease-decelerate data-[autoresize]:inline-grid data-[autoresize]:w-fit data-[focus]:ring-2 data-[focus]:ring-border-strong data-[invalid]:border-border-strong data-[invalid]:ring-2 data-[invalid]:ring-border-strong data-[disabled]:opacity-60" {...editable.getAreaProps()}>
+    <span class="col-start-1 row-start-1 block min-w-0 cursor-text px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate hover:text-primary data-[state=edit]:invisible data-[placeholder-shown]:text-muted data-[autoresize]:overflow-hidden data-[autoresize]:text-ellipsis data-[autoresize]:whitespace-pre data-[disabled]:cursor-not-allowed" {...editable.getPreviewProps()}>{editable.valueText}</span>
+    <input class="col-start-1 row-start-1 min-w-0 bg-transparent px-2 py-1.5 text-sm text-text outline-none transition-colors duration-fast ease-decelerate placeholder:text-muted data-[state=preview]:invisible data-[disabled]:cursor-not-allowed" {...editable.getInputProps()} />
+  </div>
+
+  <p class="mt-2 text-xs text-muted">Click to edit • The field grows as you type</p>
+</div>

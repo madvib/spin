@@ -1,0 +1,25 @@
+<scope>props={ label: string = "Discount Rate", defaultValue: string = "15", min: string = "0", max: string = "100", step: string = "0.1" } consume={ numberInput }</scope>
+
+<div class="w-full" {...numberInput.getRootProps()}>
+  <div class="mb-1 flex items-center justify-between gap-2">
+    <label class="text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50" {...numberInput.getLabelProps()}>Discount Rate</label>
+    <span class="text-xs text-muted tabular-nums transition-colors duration-fast" {...numberInput.getValueTextProps()}>{numberInput.value}</span>
+  </div>
+
+  <div class="flex items-center gap-2" {...numberInput.getControlProps()}>
+    <button
+      class="flex size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+      {...numberInput.getDecrementTriggerProps()}
+    ><span aria-hidden="true"><span class="i-lucide-minus text-xs" aria-hidden="true"></span></span></button>
+    <input
+      class="h-[1.75rem] w-[5rem] rounded-md border border-solid border-border bg-surface px-2 text-sm tabular-nums text-text transition-shadow duration-fast ease-decelerate data-[focus]:ring-2 data-[focus]:ring-border-strong data-[invalid]:border-border-strong data-[invalid]:text-primary data-[disabled]:opacity-50"
+      {...numberInput.getInputProps()}
+    />
+    <button
+      class="flex size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+      {...numberInput.getIncrementTriggerProps()}
+    ><span aria-hidden="true"><span class="i-lucide-plus text-xs" aria-hidden="true"></span></span></button>
+  </div>
+
+  <div class="mt-2 text-xs text-muted">Enter a value between 0% and 100%</div>
+</div>

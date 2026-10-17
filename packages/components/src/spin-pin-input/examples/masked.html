@@ -1,0 +1,15 @@
+<scope>props={ label: string = "Enter secure PIN", count: int = 4, mask: bool = true } consume={ pinInput }</scope>
+
+<div class="w-full" {...pinInput.getRootProps()}>
+  <label class="mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50" {...pinInput.getLabelProps()}>{label}</label>
+  <div class="flex items-center gap-2" {...pinInput.getControlProps()}>
+    <template for={pinInput.getItems()} as={cell} key={cell}>
+      <input
+        class="h-7 w-7 rounded-md border border-solid border-border bg-surface p-0 text-center text-sm text-text tabular-nums transition-colors duration-fast ease-decelerate placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-border-strong data-[filled]:border-border-strong data-[complete]:border-primary data-[invalid]:ring-2 data-[invalid]:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+        {...pinInput.getInputProps({ index: cell })}
+      />
+    </template>
+  </div>
+  <input {...pinInput.getHiddenInputProps()} />
+  <p class="mt-3 text-xs text-muted">Your PIN will be masked for security</p>
+</div>
