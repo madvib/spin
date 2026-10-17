@@ -291,11 +291,9 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   config,
   implementations,
   seed: (props) => {
-    if (!isLoadFn(props["load"])) {
-      throw new Error(
-        "[async-list] load is required: pass a function resolving { items, cursor }",
-      );
-    }
+    // No throw: a static list (initialItems, no loader) renders, sorts,
+    // and filters client-side. Loads without a loader are already no-ops
+    // in settled, so the throw only ever killed static usage.
     return {
       items: asArray(props["initialItems"]),
       cursor: null,

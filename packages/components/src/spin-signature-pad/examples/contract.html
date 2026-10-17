@@ -1,4 +1,4 @@
-<scope>props={ label: string = "Sign the contract" } consume={ signaturePad }</scope>
+<scope>props={ label: string = "Sign the contract", name: string = "signature" } consume={ signaturePad }</scope>
 
 <div class="w-full" {...signaturePad.getRootProps()}>
   <label class="mb-1 block text-sm font-medium text-text" {...signaturePad.getLabelProps(label)}>{label}</label>

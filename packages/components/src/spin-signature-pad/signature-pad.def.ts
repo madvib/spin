@@ -321,7 +321,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
     clearTrigger: {
       sig: (scope, arg) => {
         const ctx = asCtx(scope.context);
-        return [`${arg}`, scope.state, ctx.paths.length, `${scope.props["disabled"] === true}`].join(" ");
+        return [`${arg}`, scope.state, (ctx.paths ?? []).length, `${scope.props["disabled"] === true}`].join(" ");
       },
       attrs: (scope, arg) => {
         const label = arg as string;
@@ -334,7 +334,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
           "data-scope": "signature-pad",
           "data-part": "clear-trigger",
           "data-disabled": dataAttr(disabled),
-          "data-hidden": dataAttr(ctx.paths.length === 0 || scope.state === "drawing"),
+          "data-hidden": dataAttr((ctx.paths ?? []).length === 0 || scope.state === "drawing"),
           disabled: disabled ? true : undefined,
           onClick: (): void => {
             scope.send({ type: "CLEAR" });
@@ -346,7 +346,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       id: "hidden-input",
       sig: (scope, arg) => {
         const ctx = asCtx(scope.context);
-        return [`${arg}`, ctx.paths.length, `${scope.props["disabled"] === true}`].join(" ");
+        return [`${arg}`, (ctx.paths ?? []).length, `${scope.props["disabled"] === true}`].join(" ");
       },
       attrs: (scope, arg) => {
         const name = arg as string;
@@ -358,7 +358,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
           disabled: scope.props["disabled"] === true ? true : undefined,
           readonly: true,
           name: name.length > 0 ? name : undefined,
-          value: ctx.paths.join("\n"),
+          value: (ctx.paths ?? []).join("\n"),
         };
       },
     },
