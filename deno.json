@@ -36,7 +36,7 @@
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0"
   },
   "tasks": {
-    "test": "deno test --allow-read --allow-net packages/ apps/studio/src/",
+    "test": "deno test --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run packages/ apps/studio/src/",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno check packages/",
@@ -54,14 +54,16 @@
     "exclude": [
       "node_modules",
       ".omo",
-      ".output"
+      ".output",
+      "dist"
     ]
   },
   "lint": {
     "exclude": [
       "node_modules",
       ".omo",
-      ".output"
+      ".output",
+      "dist"
     ]
   },
   "nodeModulesDir": "auto",

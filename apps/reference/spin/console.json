@@ -91,6 +91,11 @@
       "$value": "#334155",
       "$description": "A control's own edge: stronger than border, which divides content."
     },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(0 8 4 / 70%)",
+      "$description": "The page dims into the terminal's own black. A neutral grey scrim would read as a panel from another machine."
+    },
     "on-accent": {
       "$type": "color",
       "$value": "#0a0a0a",
@@ -142,7 +147,31 @@
       "$value": "4rem"
     },
     "$type": "dimension",
-    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
+    "3": {
+      "$value": "0.75rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    }
   },
   "font": {
     "$description": "Typography: which face, how large, how heavy, and how open the tracking sits. Console is monospaced only where a terminal speaks in fixed width.",
@@ -151,7 +180,7 @@
       "sans": {
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
         "$type": "fontFamily",
-        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below — code, markup, readouts — and not in every heading and paragraph, where monospace reads as shouting."
+        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below \u2014 code, markup, readouts \u2014 and not in every heading and paragraph, where monospace reads as shouting."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
@@ -260,6 +289,8 @@
     }
   },
   "opacity": {
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. The fractions themselves are the same in every theme, but console is dark-only and its foregrounds are bright: on black a fraction reads dimmer at the same number than it would on white, so the low steps are spent carefully here.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -303,9 +334,7 @@
     "100": {
       "$value": 1,
       "$description": "Fully shown. Named so a rule can say it rather than assume it."
-    },
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions themselves are the same in every theme, but console is dark-only and its foregrounds are bright: on black a fraction reads dimmer at the same number than it would on white, so the low steps are spent carefully here."
+    }
   },
   "shadow": {
     "$type": "shadow",
@@ -384,17 +413,17 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. A terminal snaps: the phosphor answers and is done, and nothing drifts.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "90ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "140ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "220ms"
       }
     },
     "easing": {
@@ -469,7 +498,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"

@@ -274,6 +274,8 @@ const factory = definePreset(
         shorthands: {
           colors: orGroup(theme, "colors"),
           spacing: orGroup(theme, "spacing"),
+          opacity: orGroup(theme, "opacity"),
+          letterSpacing: orGroup(theme, "letterSpacing"),
           breakpoint: orGroup(theme, "breakpoint"),
           zIndex: orGroup(theme, "zIndex"),
           motionDuration: orGroup(theme, "motionDuration"),

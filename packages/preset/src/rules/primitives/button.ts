@@ -452,7 +452,10 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:disabled, ${BUTTON}[aria-disabled="true"]`,
           ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
-          opacity: 0.55,
+          // How present a dead control still looks is the theme's call: the
+          // opacity scale carries the answer, and a theme that states none
+          // keeps the historical fraction.
+          opacity: themeOf(ctx)?.opacity?.["50"] ?? 0.55,
           cursor: "not-allowed",
           transform: "none",
         };

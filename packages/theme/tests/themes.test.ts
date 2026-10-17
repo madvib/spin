@@ -4,6 +4,7 @@ import {
   cssVarName,
   generateCss,
   generateThemeCss,
+  generateTypes,
   indexTree,
   inkTokens,
   parseTokens,
@@ -698,5 +699,25 @@ Deno.test("the example theme is addressable as the named 'default' theme", async
       '[data-theme="default"][data-mode="dark"]',
     ).declarations["--color-primary"],
     "#60a5fa",
+  );
+});
+
+Deno.test("the checked-in token types are what the default theme generates", async () => {
+  // `theme-types.d.ts` is a generated artifact: it says which tokens the
+  // default theme carries, and a component that spends a token the artifact
+  // does not name does not compile. Drift therefore surfaces as a compile
+  // error in someone else's checkout, so the freshness check lives here with
+  // the theme that generates it.
+  const tree = treeOf(
+    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
+    "default.json",
+  );
+  const checkedIn = await Deno.readTextFile(
+    new URL("../src/theme-types.d.ts", import.meta.url),
+  );
+  assertEquals(
+    checkedIn,
+    generateTypes(tree),
+    "run `deno task types` in packages/theme to regenerate",
   );
 });

@@ -160,6 +160,13 @@
         "dark": "#1f2937"
       }
     },
+    "scrim": {
+      "$value": "rgb(2 6 23 / 45%)",
+      "$description": "What dims the page behind a modal. A theme closes its dialogs over its own ink, not a neutral black.",
+      "$modes": {
+        "dark": "rgb(2 6 23 / 60%)"
+      }
+    },
     "on-primary": {
       "$value": "#ffffff",
       "$type": "color",

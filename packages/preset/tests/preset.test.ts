@@ -50,6 +50,23 @@ function workingTreeDocument(): ThemeDocument {
 }
 
 /**
+ * The working fixture with one group's tokens extended.
+ *
+ * The shared fixture stays silent on the character scales on purpose — the
+ * fallback tests below depend on it — so a test that needs a theme to STATE
+ * a step builds its own document from this, rather than teaching the fixture
+ * a step and flipping half the suite.
+ */
+function withGroup(
+  group: string,
+  tokens: Record<string, unknown>,
+): ThemeDocument {
+  const base = workingTreeDocument() as Record<string, unknown>;
+  const existing = (base[group] ?? {}) as Record<string, unknown>;
+  return { ...base, [group]: { ...existing, ...tokens } } as ThemeDocument;
+}
+
+/**
  * A generator with wind4 layered beneath our own rules, the way a real build
  * is wired. Without the layer a wind4-sourced utility emits nothing at all,
  * so a test that never asks for one cannot tell "works" from "unreachable".
@@ -111,6 +128,19 @@ function valueFor(
 /** Whether a value defers to the browser by reading a custom property. */
 function readsAToken(value: string): boolean {
   return /var\(\s*--/.test(value);
+}
+
+/**
+ * The fraction a theme-aware utility falls back to when the theme states no
+ * step — the second argument of its `var()` read. Read off the declaration
+ * rather than asserted against a sheet, because a shipped theme already
+ * supplies the variable and only a theme that states nothing reaches the
+ * fallback.
+ */
+function fallbackOf(value: string | undefined): string | undefined {
+  return value === undefined
+    ? undefined
+    : /,\s*([^,()]+)\)\s*$/.exec(value)?.[1];
 }
 
 /**
@@ -477,12 +507,34 @@ Deno.test("hidden resolves to display none", async () => {
   assertSets(await cssFor("hidden"), "hidden", "display", "none");
 });
 
-Deno.test("opacity-50 resolves to half opacity", async () => {
-  assertSets(await cssFor("opacity-50"), "opacity-50", "opacity", "0.5");
+Deno.test("opacity-50 defers to the theme, falling back to half", async () => {
+  const value = valueFor(await cssFor("opacity-50"), "opacity-50", "opacity");
+  assert(
+    value !== undefined && readsAToken(value),
+    `opacity-50 must read the theme's step, got: ${value}`,
+  );
+  assertEquals(fallbackOf(value), "0.5");
 });
 
-Deno.test("opacity-100 resolves to full opacity", async () => {
-  assertSets(await cssFor("opacity-100"), "opacity-100", "opacity", "1");
+Deno.test("opacity-100 defers to the theme, falling back to full", async () => {
+  const value = valueFor(await cssFor("opacity-100"), "opacity-100", "opacity");
+  assert(
+    value !== undefined && readsAToken(value),
+    `opacity-100 must read the theme's step, got: ${value}`,
+  );
+  assertEquals(fallbackOf(value), "1");
+});
+
+Deno.test("tracking-wide spends the theme's ramp when the theme states one", async () => {
+  const uno = await generatorFor({
+    themes: {
+      default: withGroup("font", {
+        "letter-spacing": { $type: "dimension", wide: { $value: "0.4em" } },
+      }),
+    },
+  });
+  const { css } = await uno.generate("tracking-wide");
+  assertTokenDriven(css, "tracking-wide", "letter-spacing");
 });
 
 Deno.test("w-4 resolves to the spacing token variable", async () => {

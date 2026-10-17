@@ -231,7 +231,7 @@ function checkboxRule(): Rule {
         // The depth goes with the interaction: a box you cannot press should
         // not have the shadows that say it can be.
         "box-shadow": "none",
-        opacity: "0.4",
+        opacity: t?.opacity?.["40"] ?? 0.4,
       };
     },
     { layer: "primitives", autocomplete: "checkbox" },
@@ -420,7 +420,7 @@ function switchRule(): Rule {
         cursor: "not-allowed",
         // The depth goes with the interaction, as it does on the checkbox.
         "box-shadow": "none",
-        opacity: "0.4",
+        opacity: t?.opacity?.["40"] ?? 0.4,
       };
       // An indeterminate switch has no middle position to sit at, so the grid
       // halves rather than choosing one for it.

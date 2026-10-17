@@ -198,7 +198,7 @@ function tabsBase(mode: Mode): Rule {
       // button speaks.
       yield {
         [ctx.symbols.selector]: () => `${label}:has(input:disabled)`,
-        opacity: 0.55,
+        opacity: themeOf(ctx)?.opacity?.["50"] ?? 0.55,
         cursor: "not-allowed",
       };
 

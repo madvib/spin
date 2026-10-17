@@ -91,6 +91,11 @@
       "$value": "#334155",
       "$description": "A control's own edge: stronger than border, which divides content."
     },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(0 8 4 / 70%)",
+      "$description": "The page dims into the terminal's own black. A neutral grey scrim would read as a panel from another machine."
+    },
     "on-accent": {
       "$type": "color",
       "$value": "#0a0a0a",
@@ -408,17 +413,17 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. A terminal snaps: the phosphor answers and is done, and nothing drifts.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "90ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "140ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "220ms"
       }
     },
     "easing": {

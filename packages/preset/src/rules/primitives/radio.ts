@@ -155,7 +155,7 @@ export function radioRules(roots: readonly string[]): Rule[] {
           // Flatten with the checkbox: a control you cannot press should
           // not carry the shadows that say it can be.
           "box-shadow": "none",
-          opacity: "0.4",
+          opacity: t?.opacity?.["40"] ?? 0.4,
         };
       },
       { layer: "primitives", autocomplete: "radio" },

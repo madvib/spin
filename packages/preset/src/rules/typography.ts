@@ -12,9 +12,25 @@ export const TYPOGRAPHY_NAMES: readonly string[] = [
 
 export function typographyRules(): Rule[] {
   return [
-    // Capitalisation, tracking, and the focus ring: fixed steps a theme may
-    // override through `extendTheme`, but never has to name by hand.
-    ...staticRules([...TYPOGRAPHY_NAMES], STATIC_DECLS),
+    // Tracking: the theme's own ramp first, the conventional step second.
+    // The fallback lives inside this rule rather than in a static entry
+    // beside it because an exact-name rule outranks a pattern regardless of
+    // registration order — a static twin would shadow the theme forever.
+    [
+      /^tracking-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) => {
+        const token = tokenOf(ctx, "letterSpacing", name);
+        if (token !== undefined) return { "letter-spacing": token };
+        return STATIC_DECLS[`tracking-${name}`];
+      },
+      { autocomplete: "tracking-$letterSpacing" },
+    ],
+    // Capitalisation and the focus ring: fixed steps a theme may override
+    // through `extendTheme`, but never has to name by hand.
+    ...staticRules(
+      [...Object.keys(TEXT_TRANSFORMS), ...Object.keys(OUTLINE)],
+      STATIC_DECLS,
+    ),
     [
       /^font-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {

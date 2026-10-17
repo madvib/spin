@@ -43,6 +43,14 @@ export const REF_SPECS: readonly RefSpec[] = [
   { key: "shadow", prefix: ["shadow"], depth: 1 },
   { key: "breakpoint", prefix: ["breakpoint"], depth: 1 },
   { key: "zIndex", prefix: ["z-index"], depth: 1 },
+  // How dim a thing is and how open its tracking sits. Both are groups a
+  // theme owns by its own documentation — the fraction reads differently
+  // over a light surface than a dark one, and the open end of the tracking
+  // ramp is what separates a label from a shout — but without a row here
+  // neither reached a rule, so both fell back to the conventional values
+  // and every theme dimmed and tracked identically.
+  { key: "opacity", prefix: ["opacity"], depth: 1 },
+  { key: "letterSpacing", prefix: ["font", "letter-spacing"], depth: 1 },
   { key: "motionDuration", prefix: ["motion", "duration"], depth: 1 },
   { key: "motionEasing", prefix: ["motion", "easing"], depth: 1 },
   // The component-edge tokens. `border.width` and `focus.*` are dimensions a

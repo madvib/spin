@@ -66,7 +66,10 @@ export function dialogRules(
         // so this one yield covers `showModal()` and a hand-set `open` alike.
         yield {
           [ctx.symbols.selector]: () => ":modal::backdrop",
-          background: "rgba(0, 0, 0, 0.45)",
+          // The theme's own scrim. A theme that states none gets a neutral
+          // one rather than a missing backdrop: a modal that fails to dim
+          // the page has stopped being a modal.
+          background: t.scrim ?? "rgba(0, 0, 0, 0.45)",
           ...(t.duration !== undefined
             ? {
               "transition-duration": t.duration,
@@ -200,6 +203,7 @@ function tokens(ctx: Parameters<typeof themeOf>[0]) {
     text: t?.colors["text"],
     raised: t?.colors["surface-raised"],
     border: t?.colors["border"],
+    scrim: t?.colors["scrim"],
     borderWidth: t?.borderWidth?.["width"],
     shadow: t?.shadow?.["lg"],
     duration: t?.motionDuration?.["fast"],

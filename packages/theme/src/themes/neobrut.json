@@ -135,6 +135,11 @@
       "$value": "#000000",
       "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance."
     },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(0 0 0 / 55%)",
+      "$description": "The page dims to the same ink the theme draws everything with."
+    },
     "on-semantic-error": {
       "$type": "color",
       "$value": "#ffffff",
@@ -393,17 +398,17 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. Fast and flat: a hard object lands, it does not float.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "80ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "130ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "200ms"
       }
     },
     "easing": {

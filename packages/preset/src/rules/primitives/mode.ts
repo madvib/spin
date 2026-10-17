@@ -52,7 +52,7 @@ function modeDisabled(mode: Mode): Rule {
   return [
     /^mode$/,
     function* (_m, ctx) {
-      void ctx;
+      const t = themeOf(ctx);
       yield {
         [ctx.symbols.selector]: () =>
           `${claim(mode, "button")}.mode:disabled, ${
@@ -63,7 +63,7 @@ function modeDisabled(mode: Mode): Rule {
         // inert, the a11y layer's cursor says unusable, and the element
         // stays in the tree for a reader who tabs to it and wants to know
         // why it does nothing.
-        opacity: "0.4",
+        opacity: t?.opacity?.["40"] ?? 0.4,
       };
     },
     { layer: "primitives", autocomplete: "mode" },

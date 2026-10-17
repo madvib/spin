@@ -231,6 +231,14 @@
         "dark": "#475569"
       }
     },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(28 25 23 / 50%)",
+      "$description": "A modal closes over warm ink, the way the lights lower in a roastery rather than switching off.",
+      "$modes": {
+        "dark": "rgb(12 10 9 / 65%)"
+      }
+    },
     "on-semantic-error": {
       "$type": "color",
       "$value": "#ffffff",
@@ -503,17 +511,17 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. Unhurried, like a door with a good closer: nothing hurries, nothing jerks.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "200ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "320ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "560ms"
       }
     },
     "easing": {
@@ -522,7 +530,7 @@
         "$value": "linear"
       },
       "standard": {
-        "$value": "cubic-bezier(0.2, 0, 0, 1)"
+        "$value": "cubic-bezier(0.22, 0.61, 0.36, 1)"
       },
       "decelerate": {
         "$value": "cubic-bezier(0, 0, 0, 1)"
