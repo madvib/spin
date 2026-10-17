@@ -68,12 +68,12 @@ export function Home(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-xl px-4 py-10 md:py-16">
       <div class="flex flex-col gap-8 md:flex-row md:items-start">
-        <Mark class="h-36 w-36 shrink-0 md:h-44 md:w-44" />
-        <div class="max-w-prose">
+        <Mark class="h-24 w-24 shrink-0" />
+        <div class="max-w-screen-md">
           <Eyebrow>
             spin · the styling layer for agent-authored UI
           </Eyebrow>
-          <h1 class="m-0 mt-3 text-3xl tracking-tighter leading-none">
+          <h1 class="m-0 mt-3 text-3xl tracking-tighter ">
             Give an agent a web it can hold.
           </h1>
           <p class="mt-4">
@@ -152,12 +152,12 @@ export function Home(): JSX.Element {
           {(page) => (
             <Link
               href={page.href}
-              class="block border border-border bg-surface-raised rounded-md p-4 hover:border-border-strong transition-colors duration-150"
+              class="block border border-border bg-surface-raised rounded-md p-4 hover:border-border-strong transition-colors duration-fast"
             >
               <p class="m-0 font-heading text-lg tracking-tight">
                 {page.title}
               </p>
-              <p class="m-0 mt-1.5 text-sm text-text-muted">{page.body}</p>
+              <p class="m-0 mt-2 text-sm text-text-muted">{page.body}</p>
             </Link>
           )}
         </For>
@@ -174,7 +174,7 @@ export function Home(): JSX.Element {
               {([claim, body]) => (
                 <div class="border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">{claim}</p>
-                  <p class="m-0 mt-1.5 text-sm">{body}</p>
+                  <p class="m-0 mt-2 text-sm">{body}</p>
                 </div>
               )}
             </For>

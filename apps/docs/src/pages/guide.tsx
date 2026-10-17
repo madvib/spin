@@ -50,9 +50,9 @@ const MARKUP =
 
 export function Guide(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-14">
+    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
       <h1 class="text-2xl tracking-tight">Guide</h1>
-      <p class="text-text-muted max-w-prose mt-1">
+      <p class="text-text-muted max-w-screen-md mt-1">
         The whole story, in order: what the layer is, how it lands, how markup
         consumes it, and where its edges are.
       </p>

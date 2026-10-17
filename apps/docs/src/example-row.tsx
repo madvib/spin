@@ -56,7 +56,7 @@ export function ExampleRow(props: {
             class={`px-2.5 py-1 text-xs ${
               tab() === "see"
                 ? "bg-surface-raised text-text font-semibold"
-                : "text-text-muted hover:text-text"
+                : "bg-surface text-text-muted hover:text-text"
             }`}
           >
             see
@@ -68,7 +68,7 @@ export function ExampleRow(props: {
             class={`px-2.5 py-1 text-xs border-l border-border ${
               tab() === "code"
                 ? "bg-surface-raised text-text font-semibold"
-                : "text-text-muted hover:text-text"
+                : "bg-surface text-text-muted hover:text-text"
             }`}
           >
             code
@@ -94,7 +94,7 @@ export function ExampleRow(props: {
         <button
           type="button"
           onClick={copy}
-          class="absolute right-2 bottom-2 font-mono text-xs border border-border bg-surface text-text-muted rounded-sm px-2 py-0.5 hover:text-text hover:border-border-strong transition-colors duration-150"
+          class="absolute right-2 bottom-2 font-mono text-xs border border-border bg-surface text-text-muted rounded-sm px-2 py-1 hover:text-text hover:border-border-strong transition-colors duration-fast"
         >
           {copied() ? "copied" : "copy"}
         </button>

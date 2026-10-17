@@ -29,7 +29,7 @@ function NavLink(props: { href: string; label: string }): JSX.Element {
   return (
     <Link
       href={props.href}
-      class={`px-2 py-1 text-sm rounded-sm transition-colors duration-150 ${
+      class={`px-2 py-1 text-sm rounded-sm transition-colors duration-fast ${
         active() ? "text-text font-semibold" : "text-text-muted hover:text-text"
       }`}
     >
@@ -40,10 +40,10 @@ function NavLink(props: { href: string; label: string }): JSX.Element {
 
 function ThemePicker(): JSX.Element {
   return (
-    <label class="flex items-center gap-1.5 text-sm text-text-muted">
+    <label class="flex items-center gap-2 text-sm text-text-muted">
       <span class="hidden sm:inline">deck</span>
       <select
-        class="border border-border bg-surface-raised text-text text-sm rounded-sm px-1.5 py-1"
+        class="border border-border bg-surface-raised text-text text-sm rounded-sm px-2 py-1"
         value={theme()}
         onChange={(event) => setTheme(event.currentTarget.value)}
       >
@@ -61,7 +61,7 @@ function ModeToggle(): JSX.Element {
       <button
         type="button"
         onClick={() => setMode(mode() === "dark" ? "light" : "dark")}
-        class="border border-border bg-surface-raised text-text text-sm rounded-sm px-2 py-1 hover:border-border-strong transition-colors duration-150"
+        class="border border-border bg-surface-raised text-text text-sm rounded-sm px-2 py-1 hover:border-border-strong transition-colors duration-fast"
       >
         {mode() === "dark" ? "ink" : "paper"}
       </button>
@@ -94,9 +94,9 @@ export function App(): JSX.Element {
 
   return (
     <div class="min-h-dvh flex flex-col bg-surface text-text font-sans text-md">
-      <header class="sticky top-0 z-10 border-b border-border bg-surface/90 backdrop-blur">
-        <div class="mx-auto flex max-w-screen-xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2.5">
-          <Link href="/" class="flex items-center gap-2.5 text-text">
+      <header class="sticky top-0 z-10 border-b border-border bg-surface ">
+        <div class="mx-auto flex max-w-screen-xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3">
+          <Link href="/" class="flex items-center gap-3 text-text">
             <Mark class="h-8 w-8" />
             <span class="font-heading text-lg tracking-tighter">spin</span>
           </Link>

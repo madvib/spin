@@ -15,20 +15,20 @@ const PAINT = `<button>reel out</button>   <!-- the tag is only ever paint -->
 
 export function Runtime(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-14">
+    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
       <h1 class="flex items-center gap-3 text-2xl tracking-tight">
         The runtime
-        <span class="font-mono text-xs border border-border bg-surface-raised text-text-muted rounded-sm px-2 py-0.5">
+        <span class="font-mono text-xs border border-border bg-surface-raised text-text-muted rounded-sm px-2 py-1">
           merges after v0.1
         </span>
       </h1>
-      <p class="text-text-muted max-w-prose mt-1">
+      <p class="text-text-muted max-w-screen-md mt-1">
         Two halves, one system: the styling layer — running today — and the
         component stack that lands on it after v0.1. Here is the honest map.
       </p>
 
       <Section id="now" title="What runs today">
-        <div class="grid gap-1.5 max-w-screen-md">
+        <div class="grid gap-2 max-w-screen-md">
           {[
             "The theme pipeline: parse, validate, emit — the deck, its modes, its faces",
             "The preset: scale utilities plus every primitive's paint, wired by one plugin",
@@ -73,7 +73,7 @@ export function Runtime(): JSX.Element {
           ].map(([title, body]) => (
             <div class="border-l-4 border-primary bg-surface-raised rounded-md p-4">
               <p class="m-0 font-semibold text-text">{title}</p>
-              <p class="m-0 mt-1.5 text-sm">{body}</p>
+              <p class="m-0 mt-2 text-sm">{body}</p>
             </div>
           ))}
         </div>
@@ -94,7 +94,7 @@ export function Runtime(): JSX.Element {
           studio next to a repo and the blueprints of everything you just saw
           are one panel away.
         </p>
-        <div class="mt-3 flex flex-wrap gap-1.5">
+        <div class="mt-3 flex flex-wrap gap-2">
           <Chip>data-theme</Chip>
           <Chip>data-mode</Chip>
           <Chip>legibility floor</Chip>

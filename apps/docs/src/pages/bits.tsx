@@ -59,7 +59,7 @@ export function Code(props: {
 
 export function Chip(props: { children: JSX.Element }): JSX.Element {
   return (
-    <span class="font-mono text-xs border border-border bg-surface-raised rounded-sm px-1.5 py-0.5 text-text-muted">
+    <span class="font-mono text-xs border border-border bg-surface-raised rounded-sm px-2 py-1 text-text-muted">
       {props.children}
     </span>
   );
@@ -101,7 +101,7 @@ export function colorInk(doc: DeckDocument, name: string): string {
 export function Probe(props: { children: JSX.Element }): JSX.Element {
   return (
     <div
-      class="flex items-center gap-1.5"
+      class="flex items-center gap-2"
       data-theme={theme()}
       data-mode={mode() === "dark" ? "light" : "dark"}
     >

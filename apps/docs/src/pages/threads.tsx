@@ -36,9 +36,9 @@ export function Threads(): JSX.Element {
   const doc = createMemo(() => deckOf());
   const worn = theme;
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-14">
+    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
       <h1 class="text-2xl tracking-tight">Threads</h1>
-      <p class="text-text-muted max-w-prose mt-1">
+      <p class="text-text-muted max-w-screen-md mt-1">
         A theme is a document; a deck is the CSS it becomes. The thread is the
         custom property: one name, strung between every element that spends it.
         This page wears <strong class="text-text">{worn()}</strong>{" "}
@@ -82,7 +82,7 @@ export function Threads(): JSX.Element {
             <p class="m-0 mb-3 text-sm font-semibold text-text">
               page and separates
             </p>
-            <div class="grid gap-1.5">
+            <div class="grid gap-2">
               <For
                 each={[
                   "surface",
@@ -101,22 +101,24 @@ export function Threads(): JSX.Element {
           </div>
           <div>
             <p class="m-0 mb-3 text-sm font-semibold text-text">the red</p>
-            <div class="grid gap-1.5">
-              <For
-                each={[
-                  "primary",
-                  "on-primary",
-                  "secondary",
-                  "on-secondary",
-                  "accent",
-                  "on-accent",
-                  "link",
-                  "focus-ring",
-                ]}
-              >
-                {(name) => <SwatchToken name={name} doc={doc()} />}
-              </For>
-            </div>
+            <Probe>
+              <div class="grid gap-2">
+                <For
+                  each={[
+                    "primary",
+                    "on-primary",
+                    "secondary",
+                    "on-secondary",
+                    "accent",
+                    "on-accent",
+                    "link",
+                    "focus-ring",
+                  ]}
+                >
+                  {(name) => <SwatchToken name={name} doc={doc()} />}
+                </For>
+              </div>
+            </Probe>
           </div>
         </div>
       </Section>
@@ -131,7 +133,7 @@ export function Threads(): JSX.Element {
         </p>
         <div class="mt-4 border border-border rounded-md bg-surface-raised p-4">
           <Probe>
-            <div class="grid gap-1.5">
+            <div class="grid gap-2">
               <For
                 each={[
                   "primary",
@@ -172,11 +174,11 @@ export function Threads(): JSX.Element {
               <For each={CHARACTER_ROWS}>
                 {(row) => (
                   <tr class="border-b border-border">
-                    <td class="py-1.5 pr-4 text-text-muted">{row.label}</td>
+                    <td class="py-2 pr-4 text-text-muted">{row.label}</td>
                     <For each={starterList}>
                       {(name) => (
                         <td
-                          class={`py-1.5 pr-4 font-mono text-xs break-all ${
+                          class={`py-2 pr-4 font-mono text-xs break-all ${
                             theme() === name ? "text-text font-semibold" : ""
                           }`}
                         >
@@ -206,14 +208,47 @@ export function Threads(): JSX.Element {
           {worn()}; ink or paper, they are the same face — the mode changes the
           sheet, not the voice.
         </p>
-        <div class="mt-3 flex flex-wrap gap-1.5">
+        <div class="mt-3 flex flex-wrap gap-2">
           <For each={Object.keys(doc().font as Record<string, unknown>)}>
             {(group) => <Chip>{`font.${group}`}</Chip>}
+          </For>
+        </div>
+        <p class="mt-3 mb-0">
+          The faces <code class="font-mono">{worn()}</code>{" "}
+          declares — the load manifest the sheet turns into{" "}
+          <code class="font-mono">@font-face</code>{" "}
+          rules, so a deck owns its own voices and fetches nothing beyond them:
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <For each={faces(doc())}>
+            {(face) => (
+              <Chip>
+                {face.family}
+                {face.weight
+                  ? (
+                    <span class="text-text-muted">
+                      {` · ${face.weight.replace(" ", "–")}`}
+                    </span>
+                  )
+                  : null}
+              </Chip>
+            )}
           </For>
         </div>
       </Section>
     </main>
   );
+}
+
+/** The deck's load manifest: the faces declared under `$extensions.spin.fonts`. */
+function faces(
+  doc: unknown,
+): readonly { family: string; weight?: string }[] {
+  const extensions = (doc as Cell)?.$extensions as Cell | undefined;
+  const fonts = (extensions?.spin as Cell | undefined)?.fonts;
+  return Array.isArray(fonts)
+    ? fonts as { family: string; weight?: string }[]
+    : [];
 }
 
 /** A single swatch token: chip (worn rendering) + authored values. */
@@ -227,7 +262,7 @@ function SwatchToken(props: { name: string; doc: unknown }): JSX.Element {
   );
   const value = ink ? `${base}  ·  ink ${ink}` : base;
   return (
-    <div class="flex items-center gap-2.5">
+    <div class="flex items-center gap-3">
       <div
         class={`h-7 w-12 shrink-0 rounded-sm border border-border-strong bg-${props.name}`}
       />
