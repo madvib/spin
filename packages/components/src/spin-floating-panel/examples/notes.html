@@ -14,7 +14,7 @@
           <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
           <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
-<div data-notes class="grid flex-1 content-start gap-2 overflow-y-auto p-4">
+<div data-notes class="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto p-4">
         <div class="rounded-lg border border-solid border-border p-3 hover:bg-surface">
           <div class="flex items-start justify-between gap-2"><p class="m-0 text-sm font-medium text-text">Meeting Notes</p><span class="shrink-0 text-xs text-muted">Today</span></div>
           <p class="m-0 mt-1 text-xs text-muted">Discussed project timeline and deliverables.</p>
@@ -28,9 +28,9 @@
           <p class="m-0 mt-1 text-xs text-muted">Milk, bread, eggs, tomatoes.</p>
         </div>
       </div>
-      <div class="grid gap-2 border-t border-border bg-surface p-3">
+      <div class="grid shrink-0 gap-2 border-t border-border bg-surface p-3">
         <label class="text-xs font-medium text-text" for="notes-quick">Quick Note</label>
-        <textarea data-note-input id="notes-quick" rows="2" placeholder="Jot down a quick note…" class="w-full rounded-md border border-solid border-border bg-surface-raised px-3 py-2 text-sm text-text"></textarea>
+        <textarea data-note-input id="notes-quick" rows="2" placeholder="Jot down a quick note…" class="h-20 max-h-20 min-h-0 w-full resize-none rounded-md border border-solid border-border bg-surface-raised px-3 py-2 text-sm text-text"></textarea>
         <button type="button" data-save class="flex min-h-0 items-center justify-center rounded-md bg-primary p-2 text-sm font-medium text-on-primary hover:bg-primary">Save Note</button>
       </div>
             <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
