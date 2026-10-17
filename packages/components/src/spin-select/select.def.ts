@@ -422,6 +422,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         return {
           id: scope.id(""),
           dir: scope.props["dir"],
+          "data-scope": "select",
+          "data-part": "root",
           "data-state": open ? "open" : "closed",
           "data-focused": scope.attr(scope.state !== "idle"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
@@ -436,6 +438,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
+          "data-scope": "select",
+          "data-part": "label",
         dir: scope.props["dir"],
         for: scope.id("trigger"),
         "data-state": scope.state === "open" ? "open" : "closed",
@@ -446,6 +450,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
+          "data-scope": "select",
+          "data-part": "control",
         dir: scope.props["dir"],
         "data-state": scope.state === "open" ? "open" : "closed",
         "data-disabled": dataAttr(scope.props["disabled"] === true),
@@ -461,6 +467,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         const open = scope.state === "open";
         return {
           id: scope.id("trigger"),
+          "data-scope": "select",
+          "data-part": "trigger",
           type: "button",
           dir: scope.props["dir"],
           role: "combobox",
@@ -500,6 +508,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         const has = asCtx(scope.context).value.length > 0;
         return {
           id: scope.id("clearTrigger"),
+          "data-scope": "select",
+          "data-part": "clear-trigger",
           type: "button",
           tabIndex: -1,
           "aria-label": scope.props["clearTriggerLabel"],
@@ -517,6 +527,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       sig: (scope) => [selectLabel(asCtx(scope.context))].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
+          "data-scope": "select",
+          "data-part": "value-text",
         "data-placeholder": dataAttr(asCtx(scope.context).value.length === 0),
       }),
     },
@@ -526,6 +538,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         const open = scope.state === "open";
         return {
           id: scope.id("positioner"),
+          "data-scope": "select",
+          "data-part": "positioner",
           dir: scope.props["dir"],
           "data-state": open ? "open" : "closed",
           hidden: !open,
@@ -548,6 +562,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           : scope.id("item", ctx.highlightedValue as unknown as number);
         return {
           id: scope.id("content"),
+          "data-scope": "select",
+          "data-part": "content",
           dir: scope.props["dir"],
           role: "listbox",
           "aria-labelledby": scope.id("label"),
@@ -599,6 +615,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       sig: (scope) => [scope.state, scope.props["dir"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("list"),
+          "data-scope": "select",
+          "data-part": "list",
         dir: scope.props["dir"],
         role: "group",
         "data-state": scope.state === "open" ? "open" : "closed",
@@ -614,6 +632,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         const ctx = asCtx(scope.context);
         return {
           id: scope.id("hiddenSelect"),
+          "data-scope": "select",
+          "data-part": "hidden-select",
           "aria-hidden": true,
           tabIndex: -1,
           name: scope.props["name"] || undefined,
@@ -657,6 +677,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.value),
+          "data-scope": "select",
+          "data-part": "item",
           role: "option",
           "aria-selected": state.selected,
           "data-state": state.highlighted ? "highlighted" : "idle",
@@ -679,6 +701,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
         const row = scope.slot as unknown as SelectRow;
         return {
           id: scope.id("itemText", row.value),
+          "data-scope": "select",
+          "data-part": "item-text",
           "data-state": state.highlighted ? "highlighted" : "idle",
           "data-selected": dataAttr(state.selected),
         };
