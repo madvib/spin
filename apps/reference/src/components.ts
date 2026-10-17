@@ -69,26 +69,6 @@ for (const [path, html] of Object.entries(recipeModules)) {
  * writes in their own code (see the note in the example source). */
 
 const EXAMPLE_ONLOAD: Record<string, string> = {
-  "toggle/controlled": `
-    document.querySelectorAll("toggle-controlled").forEach((host) => {
-      if (host.getAttribute("data-wired") === "true") return;
-      host.setAttribute("data-wired", "true");
-      const root = () => host.querySelector('[data-part="root"]');
-      const status = host.querySelector("#tg-status");
-      const external = host.querySelector("#tg-external");
-      const paint = (pressed) => {
-        if (status) status.textContent = pressed ? "Volume is muted" : "Volume is unmuted";
-      };
-      external?.addEventListener("click", () => {
-        const isPressed = root()?.getAttribute("aria-pressed") === "true";
-        if (typeof host.setPressed === "function") host.setPressed(!isPressed);
-        else root()?.click();
-      });
-      host.addEventListener("pressed-change", (event) => {
-        paint(event.detail?.pressed === true);
-      });
-    });
-  `,
 "toast/basic": `
     document.querySelectorAll("toast-basic").forEach((pg) => {
       const btn = pg.querySelector("[data-fire]");
@@ -751,7 +731,7 @@ export const COMPONENT_GROUPS: readonly {
   readonly label: string;
   readonly members: readonly string[];
 }[] = [
-  { id: "inputs", label: "Inputs", members: ["angle-slider", "color-picker", "date-input", "date-picker", "editable", "file-upload", "number-input", "pin-input", "rating-group", "slider", "tags-input", "toggle", "toggle-group"] },
+  { id: "inputs", label: "Inputs", members: ["angle-slider", "color-picker", "date-input", "date-picker", "editable", "file-upload", "number-input", "pin-input", "rating-group", "slider", "tags-input", "toggle-group"] },
   { id: "selectors", label: "Selection", members: ["cascade-select", "combobox", "listbox", "menu", "navigation-menu", "select", "tree-view"] },
   { id: "display", label: "Display", members: ["async-list", "avatar", "carousel", "pagination", "steps", "tabs", "timer", "tour"] },
   { id: "overlays", label: "Overlays", members: ["floating-panel", "hover-card", "popover", "toast", "tooltip"] },
@@ -793,7 +773,6 @@ export const COMPONENT_ICONS: Readonly<Record<string, string>> = {
   tabs: "i-lucide-layout-list",
   "tags-input": "i-lucide-tags",
   timer: "i-lucide-timer",
-  toggle: "i-lucide-toggle-right",
   toast: "i-lucide-bell",
   "toggle-group": "i-lucide-toggle-left",
   tooltip: "i-lucide-message-circle-off",
