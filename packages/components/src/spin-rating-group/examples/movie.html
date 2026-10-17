@@ -1,0 +1,33 @@
+<scope>props={ defaultValue: string = "0", allowHalf: bool = true } consume={ ratingGroup }</scope>
+
+<div class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface text-text" {...ratingGroup.getRootProps()}>
+  <div class="flex items-center gap-3 border-b border-solid border-border p-4">
+    <div class="grid h-14 w-10 place-items-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-lg text-white" aria-hidden="true">▶</div>
+    <div>
+      <h3 class="text-sm font-semibold">The Great Adventure</h3>
+      <p class="text-xs text-muted">Action • Adventure • 2024</p>
+    </div>
+  </div>
+  <div class="space-y-4 p-4">
+    <div>
+      <div class="mb-2 block text-xs font-medium" {...ratingGroup.getLabelProps()}>Rate this movie</div>
+      <div class="inline-flex" {...ratingGroup.getControlProps()}>
+        <template for={ratingGroup.getItems()} as={row} key={row}>
+          <span
+            class="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all data-[highlighted]:scale-110 data-[highlighted]:text-purple-400 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+            {...ratingGroup.getItemProps({ index: row })}
+          >
+            <span class="relative" aria-hidden="true">★︎<span class="absolute inset-y-0 right-0 w-1/2 overflow-hidden" show={ratingGroup.getItemState({ index: row }).half}><span class="absolute top-0 right-0 text-border-strong">★︎</span></span></span>
+          </span>
+        </template>
+      </div>
+      <input {...ratingGroup.getHiddenInputProps()} />
+      <p class="mt-1 text-xs text-muted" show={ratingGroup.value > 0}>You rated this {ratingGroup.value} out of 5 stars</p>
+    </div>
+    <div class="flex gap-2">
+      <button variant="filled" id="rt-trailer">Watch Trailer</button>
+      <button id="rt-list">Add to List</button>
+    </div>
+    <p class="text-xs text-muted" id="rt-note"></p>
+  </div>
+</div>

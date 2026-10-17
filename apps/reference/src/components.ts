@@ -528,6 +528,37 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       };
       wait();
     });`,
+"rating-group/product-review": `
+    document.querySelectorAll("rating-group-product-review").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const submit = host.querySelector("#rv-submit");
+      const text = host.querySelector("#rv-text");
+      const note = host.querySelector("#rv-note");
+      submit?.addEventListener("click", () => {
+        const stars = host.querySelector("[data-valuetext], [role=radiogroup]")?.getAttribute("aria-label") ?? "";
+        const words = (text?.value ?? "").trim();
+        if (note) note.textContent = words === "" ? "Write a few words first." : "Thanks — review received.";
+      });
+    });
+  `,
+"rating-group/movie": `
+    document.querySelectorAll("rating-group-movie").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const trailer = host.querySelector("#rt-trailer");
+      const list = host.querySelector("#rt-list");
+      const note = host.querySelector("#rt-note");
+      let playing = false;
+      trailer?.addEventListener("click", () => {
+        playing = !playing;
+        if (note) note.textContent = playing ? "Now playing: trailer" : "";
+      });
+      list?.addEventListener("click", () => {
+        if (note) note.textContent = "Added to your list";
+      });
+    });
+  `,
 "floating-panel/video-call": `
     document.querySelectorAll("floating-panel-video-call").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
