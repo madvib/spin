@@ -251,3 +251,18 @@ Deno.test("Given staged-to-staged moves / When restoring / Then the original geo
   assertEquals(h.api.position, { x: 0, y: 0 }, "and the position");
   h.dispose();
 });
+
+Deno.test("Given min and max sizes / When resizing past them / Then the size clamps", () => {
+  const h = harness({ defaultOpen: true, defaultMinSize: '{"w":280,"h":180}', defaultMaxSize: '{"w":500,"h":400}' });
+  const se = h.api.getResizeTriggerProps("se");
+  press(se);
+  move(se, 500, 500);
+  release(se);
+  assertEquals(h.api.size, { w: 500, h: 400 }, "resize clamps to the max");
+  const nw = h.api.getResizeTriggerProps("nw");
+  press(nw);
+  move(nw, 500, 500);
+  release(nw);
+  assertEquals(h.api.size, { w: 280, h: 180 }, "resize clamps to the min");
+  h.dispose();
+});

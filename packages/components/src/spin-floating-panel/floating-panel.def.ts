@@ -82,6 +82,16 @@ const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -
   sw: { x: -1, y: 1 },
 };
 
+/** A size already through the channel parse: an object with numeric sides. */
+const asSize = (raw: unknown): FloatingPanelSize | null => {
+  if (typeof raw !== "object" || raw === null) return null;
+  const bag = raw as Record<string, unknown>;
+  const w = bag["w"];
+  const h = bag["h"];
+  if (typeof w !== "number" || typeof h !== "number") return null;
+  return { w, h };
+};
+
 /** The JSON transport for a size: `{"w":360,"h":240}`. */
 const parseSize = (raw: unknown): FloatingPanelSize | null => {
   if (typeof raw !== "string" || raw.length === 0) return null;
@@ -165,7 +175,9 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     draggable: props["draggable"] !== false,
     resizable: props["resizable"] !== false,
     closeOnEscape: props["closeOnEscape"] !== false,
-    size: parseSize(authored("size") ? props["size"] : props["defaultSize"]) ?? { w: 360, h: 240 },
+    size: asSize(authored("size") ? props["size"] : props["defaultSize"]) ?? { w: 360, h: 240 },
+    minSize: asSize(authored("minSize") ? props["minSize"] : props["defaultMinSize"]) ?? { w: 120, h: 80 },
+    maxSize: asSize(authored("maxSize") ? props["maxSize"] : props["defaultMaxSize"]) ?? { w: 1024, h: 768 },
   }),
   establish: () => {
     // Detach the fork's shared initial context: two panels on a page
@@ -190,11 +202,15 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
       },
     },
     defaultSize: { parse: parseSize },
+    minSize: { parse: parseSize },
+    defaultMinSize: { parse: parseSize },
+    maxSize: { parse: parseSize },
+    defaultMaxSize: { parse: parseSize },
     open: {
       controlled: true,
       parse: (raw) => raw === true,
       event: (value: boolean) => ({ type: value ? "OPEN" : "CLOSE" }),
-      current: (_context, state) => state === "open",
+      current: (_context, state) => state !== "closed",
     },
     defaultOpen: { parse: (raw) => raw === true },
     stage: {
@@ -228,7 +244,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     trigger: {
       sig: (scope) => [`${scope.state === "open"}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => {
-        const open = scope.state === "open";
+        const open = scope.state !== "closed";
         return {
           id: scope.id("trigger"),
           "aria-label": scope.props["label"],
@@ -251,7 +267,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
       },
       attrs: (scope) => {
         const ctx = asCtx(scope.context);
-        const open = scope.state === "open";
+        const open = scope.state !== "closed";
         return {
           id: scope.id("positioner"),
           role: "dialog",
@@ -285,7 +301,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
         // The closed-state utilities (invisible, scale, opacity) live on
         // this element's class list, so the state they key on must live
         // here too — the positioner carries its own copy for its own list.
-        "data-state": scope.state === "open" ? "open" : "closed",
+        "data-state": scope.state === "closed" ? "closed" : "open",
         "data-stage": asCtx(scope.context).stage,
       }),
     },
@@ -373,7 +389,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     restore: { event: () => ({ type: "RESTORE" }) },
   },
   readers: {
-    isOpen: { read: (_context, state) => state === "open" },
+    isOpen: { read: (_context, state) => state !== "closed" },
     stage: { read: (context) => asCtx(context).stage },
     position: { read: (context) => ({ ...asCtx(context).position }) },
     size: { read: (context) => ({ ...asCtx(context).size }) },
@@ -382,7 +398,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   events: {
     "open-change": {
       prop: "onOpenChange",
-      watch: (_context, state) => [state === "open"],
+      watch: (_context, state) => [state !== "closed"],
       detail: (watched) => ({ open: watched[0] as boolean }),
     },
     "size-change": {

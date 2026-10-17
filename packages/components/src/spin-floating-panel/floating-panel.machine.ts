@@ -38,6 +38,10 @@ export interface FloatingPanelContext {
   stage: FloatingPanelStage;
   /** The position the drag started from, for an Escape cancel. */
   dragFrom: { readonly x: number; readonly y: number } | null;
+  /** The floor a resize clamps to. */
+  minSize: FloatingPanelSize;
+  /** The ceiling a resize clamps to. */
+  maxSize: FloatingPanelSize;
   /** The size AND position a resize started from, for the cancel. */
   resizeFrom: { readonly size: FloatingPanelSize; readonly position: { readonly x: number; readonly y: number } } | null;
   /** Which resize handle the gesture came from. */
@@ -89,6 +93,8 @@ export const config = {
     size: { w: 360, h: 240 },
     restoreSize: null,
     restorePosition: null,
+    minSize: { w: 120, h: 80 },
+    maxSize: { w: 1024, h: 768 },
     stage: "restored" as FloatingPanelStage,
     dragFrom: null,
     resizeFrom: null,
@@ -227,8 +233,10 @@ export const implementations = {
       const origin = ctx.resizeFrom;
       if (origin === null) return {};
       const axis = ctx.axis ?? { x: 0, y: 0 };
-      const w = Math.max(120, origin.size.w + (axis.x === 1 ? e.dx : axis.x === -1 ? -e.dx : 0));
-      const h = Math.max(80, origin.size.h + (axis.y === 1 ? e.dy : axis.y === -1 ? -e.dy : 0));
+      const lo = ctx.minSize;
+      const hi = ctx.maxSize;
+      const w = Math.min(hi.w, Math.max(lo.w, origin.size.w + (axis.x === 1 ? e.dx : axis.x === -1 ? -e.dx : 0)));
+      const h = Math.min(hi.h, Math.max(lo.h, origin.size.h + (axis.y === 1 ? e.dy : axis.y === -1 ? -e.dy : 0)));
       const back: {
         position?: { readonly x: number; readonly y: number };
       } = {};
@@ -263,6 +271,8 @@ export const implementations = {
         position: ctx.restorePosition ?? ctx.position,
         restoreSize: null,
         restorePosition: null,
+    minSize: { w: 120, h: 80 },
+    maxSize: { w: 1024, h: 768 },
       };
     },
   },
