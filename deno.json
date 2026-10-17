@@ -6,6 +6,7 @@
     "./packages/animation",
     "./packages/preset",
     "./packages/lint",
+    "./packages/kit",
     "./packages/api",
     "./apps/studio",
     "./apps/reference",
@@ -34,7 +35,8 @@
     "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.0",
     "@unocss/preset-tagify": "npm:@unocss/preset-tagify@66.10.5",
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
-    "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0"
+    "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",
+    "@spin/kit": "./packages/kit/src/index.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run packages/ apps/studio/src/",

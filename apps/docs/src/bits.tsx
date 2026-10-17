@@ -10,7 +10,7 @@
  */
 import type { JSX } from "solid-js";
 import { starterThemes } from "@spin/theme/themes";
-import { mode, theme } from "./shell.tsx";
+import { mode, theme } from "@spin/kit";
 
 export interface ThemeDocument {
   color?: Record<string, unknown>;

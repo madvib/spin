@@ -177,6 +177,11 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       replacement: source.apiIndex,
       targets: [source.apiIndex],
     },
+    {
+      find: "@spin/kit",
+      replacement: pkg("../../kit/src/index.ts"),
+      targets: [pkg("../../kit/src/index.ts")],
+    },
     // Pure id-shaping: every `npm:` specifier the packages carry drops the
     // prefix so rolldown can find it in node_modules. No target to outlive.
     { find: /^npm:(.+)$/, replacement: "$1", targets: [] },

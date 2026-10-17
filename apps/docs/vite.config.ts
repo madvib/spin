@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import { spin } from "../../packages/preset/src/plugin.ts";
+import { mountSpinApp } from "../../packages/api/src/index.ts";
 import { starterThemes } from "../../packages/theme/src/themes/index.ts";
 
 const here = import.meta.dirname!;
@@ -19,8 +20,12 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      launcher: false,
       themes: { ...starterThemes },
+      // The studio, same as the reference: the FAB the overlay launcher
+      // drops into every served app opens this site's own theme documents.
+      mount: mountSpinApp(here, {
+        studioDir: resolve(here, "../studio/dist"),
+      }),
       content: {
         filesystem: [
           // The examples carry the classes a consumer writes; scanning them
@@ -31,6 +36,9 @@ export default defineConfig({
             "../../packages/preset/src/rules/primitives/*.examples.ts",
           ),
           resolve(here, "src/**/*.{tsx,ts}"),
+          // The shared kit styles itself with the same vocabulary; scan it
+          // so the picker's classes exist in the sheet.
+          resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),
         ],
       },
     }),

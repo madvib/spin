@@ -1,0 +1,13 @@
+{
+  "name": "@spin/kit",
+  "version": "0.1.0",
+  "exports": "./src/index.ts",
+  "imports": {
+    "@spin/theme/themes": "../theme/src/themes/index.ts",
+    "solid-js": "npm:solid-js@^1.9.3"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "solid-js"
+  }
+}

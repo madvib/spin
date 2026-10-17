@@ -5,18 +5,11 @@
  * a `_`-prefixed file is shared code without being a route. Adding a page
  * is adding a file — there is no list to maintain.
  */
-import { A, Router } from "@solidjs/router";
+import { A, Router, useLocation } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { For, lazy, Show } from "solid-js";
-import {
-  mode,
-  modesFor,
-  setMode,
-  setTheme,
-  starterList,
-  theme,
-} from "./shell.tsx";
+import { createMemo, For, lazy } from "solid-js";
+import { ThemePicker } from "@spin/kit";
 import { Mark } from "./mark.tsx";
 
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
@@ -49,27 +42,36 @@ const ROUTES: RouteDefinition[] = Object.entries(pages)
   }));
 
 /** The rail's links are the real routes: every page, root first. */
-const LINKS: readonly string[] = [
-  "/",
-  ...ROUTES
-    .map((route) => route.path)
-    .filter((path) =>
-      path !== undefined && path !== "/" && path !== "*" &&
-      !path.includes(":")
-    ),
-].sort((a, b) => (a === "/" ? -1 : b === "/" ? 1 : a.localeCompare(b)));
+const LINKS: readonly string[] = ROUTES
+  .map((route) => route.path)
+  .filter((path) =>
+    path !== undefined && path !== "/" && path !== "*" && !path.includes(":")
+  )
+  .sort();
 
 const labelFor = (path: string): string =>
   path === "/" ? "home" : path.slice(1);
 
 function Layout(props: RouteSectionProps): JSX.Element {
+  const location = useLocation();
+  const landing = createMemo(() => location.pathname === "/");
+
+  // The landing owns the whole viewport; every other page is the rail's.
+  if (landing()) {
+    return (
+      <div class="min-h-dvh bg-surface text-text font-sans text-md">
+        {props.children}
+      </div>
+    );
+  }
+
   return (
     <div class="flex min-h-dvh bg-surface text-text font-sans text-md">
       <nav
         class="sticky top-0 flex h-screen shrink-0 flex-col gap-6 border-e border-border px-4 py-6"
         aria-label="site"
       >
-        <A href="/" end class="flex items-center gap-3 text-text">
+        <A href="/" end class="flex items-center gap-3 text-text no-underline">
           <Mark class="h-8 w-8" />
           <span class="font-heading text-lg tracking-tighter">spin</span>
         </A>
@@ -80,7 +82,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
             {(path) => (
               <A
                 href={path}
-                class="block py-1 px-2 text-sm rounded-sm transition-colors duration-fast"
+                class="block py-1 px-2 text-sm rounded-sm no-underline transition-colors duration-fast"
                 activeClass="bg-surface-raised text-text font-semibold"
                 inactiveClass="text-text-muted hover:text-text"
               >
@@ -92,25 +94,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
 
         <div class="grid gap-2">
           <p class="m-0 text-xs font-semibold text-text-muted">theme</p>
-          <select
-            aria-label="starter theme"
-            class="border border-border bg-surface-raised text-text text-sm rounded-sm px-2 py-1"
-            value={theme()}
-            onChange={(event) => setTheme(event.currentTarget.value)}
-          >
-            <For each={starterList}>
-              {(name) => <option value={name}>{name}</option>}
-            </For>
-          </select>
-          <Show when={modesFor(theme()).length > 1}>
-            <button
-              type="button"
-              onClick={() => setMode(mode() === "dark" ? "light" : "dark")}
-              class="border border-border bg-surface-raised text-text text-sm rounded-sm px-2 py-1 hover:border-border-strong transition-colors duration-fast"
-            >
-              {mode() === "dark" ? "light" : "dark"}
-            </button>
-          </Show>
+          <ThemePicker />
         </div>
 
         <p class="m-0 mt-auto text-xs text-text-muted">v0.1</p>
