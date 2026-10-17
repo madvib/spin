@@ -13,13 +13,6 @@ import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "../mark.tsx";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
 
-const WIRING = `import { spin } from "@spin/preset/plugin";
-import solid from "vite-plugin-solid";
-
-export default {
-  plugins: [solid(), spin.vite()],
-};`;
-
 const PAGES = [
   {
     href: "/guide",
@@ -40,49 +33,67 @@ const PAGES = [
 
 /** The landing's below-the-fold argument: one section, four layers,
  * progressive disclosure — the radios are the tabs primitive itself. */
+
 const TOKEN_JSON = `{
   "color": {
     "primary": {
       "$value": "#c8102e",
       "$modes": { "dark": "#f4646e" }
     }
-  }
+  },
+  "radius": { "md": { "$value": "0.25rem" } },
+  "spacing": { "4": { "$value": "1rem" } }
 }`;
 
-const UTILITIES_CODE = `<button>Ship it</button>
-<button class="secondary">Cancel</button>
-<button class="ghost">Later</button>`;
+const CARD_CODE =
+  `<article class="flex flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
+  <div class="flex items-baseline justify-between gap-3">
+    <h3 class="m-0 text-lg font-semibold">Ethiopia Guji</h3>
+    <span class="text-sm text-text-muted">$19</span>
+  </div>
+  <p class="m-0 text-sm text-text-muted">Apricot, jasmine, black tea</p>
+  <button type="button" class="s-sm">Add to box</button>
+</article>`;
 
-const PRIMITIVE_CODE =
-  `<label><input type="checkbox" role="switch"> Notify me</label>
-<badge variant="success">shipped</badge>`;
+const DIALOG_CODE = `<dialog id="sold-out">
+  <p>Next roast lands Tuesday.</p>
+  <button type="button" onclick="sold-out.close()">Close</button>
+</dialog>
+<button type="button" onclick="sold-out.showModal()">Check stock</button>`;
+
+const SWATCHES: readonly (readonly [string, string])[] = [
+  ["--color-primary", "bg-primary"],
+  ["--color-surface", "bg-surface"],
+  ["--color-text", "bg-text"],
+  ["--radius-md", "rounded-md"],
+];
 
 const layers = (): readonly { label: string; panel: JSX.Element }[] => [
   {
     label: "0 · design tokens",
     panel: (
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-6 md:grid-cols-2">
         <div>
           <p class="m-0">
-            Named values in one JSON document — both modes, validated against
-            the legibility floor. The sheet emits them as custom properties;
-            everything above them spends those.
+            One JSON file per theme: your colors, spacing, type, radii, shadows,
+            and durations — light and dark side by side. The build emits it as
+            CSS custom properties (the swatches here are four of them), and
+            everything above this layer spends those names. Replace the file and
+            you have a different product.
           </p>
-          <Code class="mt-3 text-xs" code={TOKEN_JSON} />
+          <Code class="mt-4 text-xs" code={TOKEN_JSON} />
         </div>
-        <div class="flex flex-col justify-center gap-3">
-          <span class="flex items-center gap-3">
-            <span class="h-7 w-14 shrink-0 rounded-sm border border-border-strong bg-primary" />
-            <code class="text-xs">--color-primary</code>
-          </span>
-          <span class="flex items-center gap-3">
-            <span class="h-7 w-14 shrink-0 rounded-sm border border-border-strong bg-surface" />
-            <code class="text-xs">--color-surface</code>
-          </span>
-          <span class="flex items-center gap-3">
-            <span class="h-7 w-14 shrink-0 rounded-sm border border-border-strong bg-text" />
-            <code class="text-xs">--color-text</code>
-          </span>
+        <div class="flex flex-col justify-center gap-4">
+          <For each={SWATCHES}>
+            {([name, paint]) => (
+              <span class="flex items-center gap-3">
+                <span
+                  class={`h-8 w-16 shrink-0 border border-border-strong ${paint}`}
+                />
+                <code class="text-xs">{name}</code>
+              </span>
+            )}
+          </For>
         </div>
       </div>
     ),
@@ -90,18 +101,30 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
   {
     label: "1 · utilities",
     panel: (
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-6 md:grid-cols-2">
         <div>
           <p class="m-0">
-            Classes spend those variables: the class exists because the token
-            does, and a new starter re-resolves every one of them.
+            Utility classes replace CSS files. Every name is generated from the
+            theme: <code class="text-xs">bg-primary</code> is your primary,{" "}
+            <code class="text-xs">p-4</code>{" "}
+            is a step on your spacing scale, and hover and focus states come
+            from the same scale. The default theme alone generates 957 of them,
+            across color, spacing, type, layout, borders, shadows, and motion —
+            and the ones you never use are never generated.
           </p>
-          <Code class="mt-3 text-xs" code={UTILITIES_CODE} />
+          <Code class="mt-4 text-xs" code={CARD_CODE} />
         </div>
-        <div class="flex flex-wrap items-center gap-3 self-center">
-          <button type="button">Ship it</button>
-          <button type="button" class="secondary">Cancel</button>
-          <button type="button" class="ghost">Later</button>
+        <div class="flex items-center justify-center">
+          <article class="flex w-full max-w-xs flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
+            <div class="flex items-baseline justify-between gap-3">
+              <h3 class="m-0 text-lg font-semibold">Ethiopia Guji</h3>
+              <span class="text-sm text-text-muted">$19</span>
+            </div>
+            <p class="m-0 text-sm text-text-muted">
+              Apricot, jasmine, black tea
+            </p>
+            <button type="button" class="s-sm">Add to box</button>
+          </article>
         </div>
       </div>
     ),
@@ -109,24 +132,64 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
   {
     label: "2 · primitives",
     panel: (
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-6 md:grid-cols-2">
         <div>
           <p class="m-0">
-            Semantic elements that ship styled and interactive — the behavior
-            comes with them, classes change the tone.
+            Thirty elements, for the parts of an interface that have behavior:
+            dialog, tabs, switch, checkbox, radio, select, range, rating,
+            popover, table, progress, meter, disclosure, avatar, alert, badge,
+            card, breadcrumbs, kbd — styled HTML, not widgets built from divs. A
+            switch is a checkbox wearing{" "}
+            <code class="text-xs">role="switch"</code>; a dialog is a{" "}
+            <code class="text-xs">&lt;dialog&gt;</code>, so focus trapping,
+            Escape, and the backdrop come from the browser.
           </p>
-          <Code class="mt-3 text-xs" code={PRIMITIVE_CODE} />
+          <Code class="mt-4 text-xs" code={DIALOG_CODE} />
         </div>
         <div class="flex flex-col justify-center gap-5">
-          <div class="flex flex-wrap items-center gap-4">
-            <label>
-              <input type="checkbox" role="switch" checked /> Notify me
-            </label>
-          </div>
+          <label>
+            <input type="checkbox" role="switch" checked />{" "}
+            Notify me when the roast lands
+          </label>
           <div class="flex flex-wrap items-center gap-2">
             <badge variant="success">shipped</badge>
-            <badge variant="accent">accent</badge>
-            <badge variant="neutral">neutral</badge>
+            <badge variant="accent">roaster's pick</badge>
+            <badge variant="neutral">decaf</badge>
+          </div>
+          <div>
+            <button
+              type="button"
+              ref={(el) => {
+                el.addEventListener("click", () =>
+                  el.nextElementSibling instanceof HTMLDialogElement &&
+                  el.nextElementSibling.showModal());
+              }}
+            >
+              Check stock
+            </button>
+            <dialog
+              aria-label="Stock"
+              ref={(el) => {
+                el.addEventListener("close", () =>
+                  el.close());
+              }}
+              class="w-80 rounded-md border border-border bg-surface-raised p-4 text-text shadow-lg"
+            >
+              <p class="m-0">
+                Next roast lands Tuesday. Focus is trapped until you close this
+                — the browser does it.
+              </p>
+              <div class="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  class="secondary"
+                  onClick={(e) =>
+                    e.currentTarget.closest("dialog")?.close()}
+                >
+                  Close
+                </button>
+              </div>
+            </dialog>
           </div>
         </div>
       </div>
@@ -135,26 +198,43 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
   {
     label: "3 · component runtime",
     panel: (
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-6 md:grid-cols-2">
         <div>
           <p class="m-0">
-            Custom elements that carry the theme with them: branded components
-            you embed in any rendering framework, painted from the same
-            document.
+            The runtime turns these elements into custom elements —
+            <code class="text-xs">&lt;ui-button&gt;</code>,{" "}
+            <code class="text-xs">&lt;ui-dialog&gt;</code>{" "}
+            — branded components that carry the theme with them. The theme is
+            CSS custom properties, and custom elements are native platform: drop
+            the same component into React, Svelte, Vue, or a page with no
+            framework at all, and it arrives already painted in your brand. One
+            component, every framework, no runtime to ship for it — which is
+            also where the speed comes from.
           </p>
-          <div class="mt-3">
-            <badge variant="warning">in development</badge>
-          </div>
+          <p class="mt-3 mb-0 text-sm text-text-muted">
+            Building it now. The primitives above are the same components, and
+            the theme document you write today is the one they will wear.
+          </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 self-center">
           <Chip>react</Chip>
           <Chip>svelte</Chip>
           <Chip>vue</Chip>
-          <Chip>vanilla</Chip>
+          <Chip>solid</Chip>
+          <Chip>plain html</Chip>
         </div>
       </div>
     ),
   },
+];
+
+const STUDIO_FEATURES: readonly string[] = [
+  "Every theme on disk, palette and all — click one and the app re-themes",
+  "Editors for color, type, icons, motion, spacing, radius, and shadows, each with live specimens",
+  "Light and dark per theme, flipped while the app repaints",
+  "New theme from a copy of one you have, or scaffolded from the required roles",
+  "An issues list: values that fail validation, linked to the editor that fixes them",
+  "Undo, redo, save — it writes spin/*.json in your repo, the file your build reads",
 ];
 
 const CTA = "no-underline";
@@ -186,12 +266,42 @@ export default function Home(): JSX.Element {
   return (
     <main class="min-h-dvh bg-surface text-text font-sans text-md">
       {/* The first screen: mark, pitch, switch. */}
-      <section class="grid min-h-dvh md:grid-cols-2">
-        <div class="flex flex-col justify-between px-6 py-5 md:px-12 md:py-10">
-          <header class="flex items-center justify-between">
-            <Logo size="lg" class="text-text" />
-          </header>
+      <section class="relative grid min-h-dvh md:grid-cols-2">
+        <header class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-6 py-5 md:px-12">
+          <Logo size="lg" class="text-text" />
+          <div class="flex items-center gap-3">
+            <span class="hidden text-xs font-semibold text-text-muted sm:block">
+              theme
+            </span>
+            <div class="flex flex-wrap items-center gap-2">
+              <For each={starterList}>
+                {(name) => (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.documentElement.style.removeProperty(
+                        "--color-primary",
+                      );
+                      setTheme(name);
+                      requestAnimationFrame(syncBrand);
+                    }}
+                    aria-pressed={theme() === name}
+                    title={`Switch to the ${name} theme`}
+                    class={`px-3 py-2 text-sm rounded-sm transition-colors duration-fast ${
+                      theme() === name
+                        ? "bg-primary text-on-primary"
+                        : "border border-border bg-surface-raised text-text hover:border-border-strong"
+                    }`}
+                  >
+                    {name}
+                  </button>
+                )}
+              </For>
+            </div>
+          </div>
+        </header>
 
+        <div class="flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
           <div class="max-w-screen-md py-12">
             <h1 class="m-0 text-3xl tracking-tighter">
               Spin your own web.
@@ -210,34 +320,6 @@ export default function Home(): JSX.Element {
               </A>
             </div>
           </div>
-
-          <div>
-            <p class="m-0 text-xs font-semibold text-text-muted">theme</p>
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-              <For each={starterList}>
-                {(name) => (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      document.documentElement.style.removeProperty(
-                        "--color-primary",
-                      );
-                      setTheme(name);
-                      requestAnimationFrame(syncBrand);
-                    }}
-                    aria-pressed={theme() === name}
-                    class={`px-3 py-2 text-sm rounded-sm transition-colors duration-fast ${
-                      theme() === name
-                        ? "bg-primary text-on-primary"
-                        : "border border-border bg-surface-raised text-text hover:border-border-strong"
-                    }`}
-                  >
-                    {name}
-                  </button>
-                )}
-              </For>
-            </div>
-          </div>
         </div>
 
         <div class="flex items-center justify-center overflow-hidden border-t border-border md:border-t-0 md:border-l">
@@ -249,6 +331,14 @@ export default function Home(): JSX.Element {
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
         <Reveal>
           <Section title="The layers">
+            <p class="m-0 mb-6 max-w-prose text-text-muted">
+              Nothing here is all-or-nothing. Bring tokens to an app you already
+              have, add utility classes where you want to stop writing CSS, pull
+              in an element when you want its behavior, and take the component
+              runtime when you want the same branded component in a second
+              framework. Each layer reads the one below it, and you can stop at
+              any of them.
+            </p>
             <tabs>
               <For each={layers()}>
                 {(layer, i) => (
@@ -270,20 +360,42 @@ export default function Home(): JSX.Element {
         </Reveal>
 
         <Reveal>
-          <div class="mt-10">
+          <div class="mt-16">
             <Section title="The studio">
               <div class="grid gap-6 md:grid-cols-2">
-                <div>
-                  <p class="m-0">
-                    In dev it mounts into the app you're running — the button in
-                    the corner opens it. The theme is a file in your repo; edit
-                    it and the running page repaints, both modes.
-                  </p>
-                  <p class="mt-3 mb-0 text-sm">
-                    The mechanism is on this page: move primary and every
-                    button, bar, and badge spends it.
-                  </p>
+                <p class="m-0 max-w-prose">
+                  The studio is the theme editor, mounted into the app you're
+                  already running. This is it docked beside a real one: every
+                  card, badge, and button on the left is spending the tokens
+                  being edited on the right, live. It docks to either side or
+                  takes the whole screen, and it opens from any page in dev —
+                  the <strong>Theme</strong>{" "}
+                  button in the corner of this page opens it on this page.
+                </p>
+                <div class="flex flex-col justify-center gap-2 md:max-w-xs">
+                  <For each={STUDIO_FEATURES}>
+                    {(line) => (
+                      <span class="flex gap-2 text-sm">
+                        <span class="shrink-0 font-semibold text-primary">
+                          —
+                        </span>
+                        <span class="text-text-muted">{line}</span>
+                      </span>
+                    )}
+                  </For>
                 </div>
+              </div>
+              <img
+                src="/studio.png"
+                loading="lazy"
+                alt="The studio docked to the right of a coffee shop app, editing the theme the app is wearing"
+                class="mt-6 w-full rounded-md border border-border"
+              />
+              <div class="mt-6 grid gap-6 md:grid-cols-2">
+                <p class="m-0">
+                  One token moves and everything repaints — this is that, live.
+                  Drag primary and watch this page follow it.
+                </p>
                 <div class="border border-border bg-surface-raised rounded-md p-4">
                   <div class="flex items-center justify-between gap-3">
                     <span class="font-mono text-sm">color.primary</span>
@@ -302,8 +414,8 @@ export default function Home(): JSX.Element {
                     </button>
                   </div>
                   <div class="mt-4 flex flex-wrap items-center gap-3">
-                    <button type="button">Ship it</button>
-                    <badge variant="accent">accent</badge>
+                    <button type="button">Add to box</button>
+                    <badge variant="success">shipped</badge>
                     <span class="h-7 w-16 rounded-sm border border-border-strong bg-primary" />
                   </div>
                 </div>
@@ -313,51 +425,47 @@ export default function Home(): JSX.Element {
         </Reveal>
 
         <Reveal>
-          <div class="mt-10">
+          <div class="mt-16">
             <Section title="Tooling for agents">
               <div class="grid gap-4 md:grid-cols-3">
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">
-                    Vocabulary over MCP.
+                    Your agent learns your system.
                   </p>
                   <p class="m-0 mt-2 text-sm">
-                    <code class="text-xs">spin daemon</code>{" "}
-                    runs one process on one port: the CLI, the MCP server, and
-                    the studio speak to the same surface, and a client lists
-                    what's available while your app runs.
+                    Point an MCP client at the dev server and it reads your live
+                    theme and element vocabulary — the colors you actually use,
+                    the elements you actually ship. The code it writes comes
+                    back on-theme instead of guessing.
                   </p>
                 </div>
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">
-                    Markup that fails the lint.
+                    The errors tell it what to do.
                   </p>
                   <p class="m-0 mt-2 text-sm">
                     <code class="text-xs">@spin/lint</code>{" "}
-                    is an oxlint plugin — rules like{" "}
-                    <code class="text-xs">no-raw-colors</code> and{" "}
-                    <code class="text-xs">closed-vocabulary</code>{" "}
-                    — so authored UI that steps outside the system fails before
-                    it ships.
+                    runs in oxlint, and every message names the fix: a hardcoded
+                    {" "}
+                    <code class="text-xs">#c8102e</code> gets told to use{" "}
+                    <code class="text-xs">text-text</code> or{" "}
+                    <code class="text-xs">bg-surface</code>{" "}
+                    instead; a class outside the vocabulary is told it generates
+                    nothing. Your agent reads the fix and applies it.
                   </p>
                 </div>
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
                   <p class="m-0 font-semibold text-text">
-                    Rendered, not eyeballed.
+                    Broken dark mode doesn't ship.
                   </p>
                   <p class="m-0 mt-2 text-sm">
-                    Oracles open every starter in a real browser: contrast,
-                    layout, overflow — every theme, both modes.
+                    The gates open every theme in a real browser, both modes,
+                    and check what eyeballs miss: contrast under the legibility
+                    floor, layout that overflows, elements stacking wrong. Dark
+                    mode fails quietly on its own; here it fails a build.
                   </p>
                 </div>
               </div>
-            </Section>
-          </div>
-        </Reveal>
-
-        <Reveal>
-          <div class="mt-10">
-            <Section title="One line of wiring">
-              <Code code={WIRING} />
             </Section>
           </div>
         </Reveal>

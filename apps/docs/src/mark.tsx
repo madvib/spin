@@ -20,6 +20,7 @@
  */
 import type { JSX } from "solid-js";
 import { onCleanup, onMount } from "solid-js";
+import { For } from "solid-js";
 
 const RAD = Math.PI / 180;
 const HUB = { x: 60, y: 13 };
@@ -116,7 +117,9 @@ export function Mark(props: { class?: string }) {
         stroke-dasharray="1"
         stroke-dashoffset={reduced ? 0 : 1}
       >
-        {SPOKE_PATHS.map((d) => <path key={d} pathLength="1" d={d} />)}
+        <For each={SPOKE_PATHS}>
+          {(d) => <path pathLength="1" d={d} />}
+        </For>
         {!reduced && DRAW("0.05s", "0.55s")}
       </g>
 
@@ -130,7 +133,7 @@ export function Mark(props: { class?: string }) {
           stroke-dasharray="1"
           stroke-dashoffset={reduced ? 0 : 1}
         >
-          {ring.map((d) => <path key={d} pathLength="1" d={d} />)}
+          <For each={ring}>{(d) => <path pathLength="1" d={d} />}</For>
           {!reduced && DRAW(`${0.3 + i * 0.18}s`, "0.5s")}
         </g>
       ))}
