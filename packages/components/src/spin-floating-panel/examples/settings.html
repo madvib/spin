@@ -9,10 +9,10 @@
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Preferences</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
 <div class="grid min-h-0 flex-1 content-start gap-5 overflow-y-auto p-4">
         <div>
@@ -20,7 +20,7 @@
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
             <div><p class="m-0 text-sm text-text">Dark Mode</p><p class="m-0 text-xs text-muted">Switch to dark theme</p></div>
-            <input type="checkbox" role="switch" data-toggle="dark" aria-label="Dark Mode" class="switch" />
+            <input type="checkbox" role="switch" data-toggle="dark" aria-label="Dark Mode" />
           </div>
           </div>
         </div>
@@ -29,7 +29,7 @@
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
             <div><p class="m-0 text-sm text-text">Push Notifications</p><p class="m-0 text-xs text-muted">Receive notifications on your device</p></div>
-            <input type="checkbox" role="switch" data-toggle="notifications" aria-label="Push Notifications" class="switch" checked />
+            <input type="checkbox" role="switch" data-toggle="notifications" aria-label="Push Notifications" checked />
           </div>
           </div>
         </div>
@@ -38,7 +38,7 @@
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
             <div><p class="m-0 text-sm text-text">Auto-save</p><p class="m-0 text-xs text-muted">Automatically save your work</p></div>
-            <input type="checkbox" role="switch" data-toggle="autosave" aria-label="Auto-save" class="switch" checked />
+            <input type="checkbox" role="switch" data-toggle="autosave" aria-label="Auto-save" checked />
           </div>
             <button type="button" data-clear class="grid w-full justify-items-start gap-1 rounded-lg border border-solid border-border p-3 text-left hover:bg-surface">
               <p class="m-0 text-sm text-text">Clear Cache</p>
