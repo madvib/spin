@@ -410,6 +410,53 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       };
       wait();
     });`,
+"floating-panel/notes": `
+    document.querySelectorAll("floating-panel-notes").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-note-input]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const list = root.querySelector("[data-notes]");
+        const input = root.querySelector("[data-note-input]");
+        const save = root.querySelector("[data-save]");
+        const add = () => {
+          const text = input.value.trim();
+          if (text === "") return;
+          const card = document.createElement("div");
+          card.className = "rounded-lg border border-solid border-border p-3 hover:bg-surface";
+          const head = document.createElement("div");
+          head.className = "flex items-start justify-between gap-2";
+          const title = document.createElement("p");
+          title.className = "m-0 text-sm font-medium text-text";
+          title.textContent = text.length > 42 ? text.slice(0, 42) + "…" : text;
+          const date = document.createElement("span");
+          date.className = "shrink-0 text-xs text-muted";
+          date.textContent = "Just now";
+          head.appendChild(title);
+          head.appendChild(date);
+          const preview = document.createElement("p");
+          preview.className = "m-0 mt-1 text-xs text-muted";
+          preview.textContent = text;
+          card.appendChild(head);
+          card.appendChild(preview);
+          list.appendChild(card);
+          list.scrollTop = list.scrollHeight;
+          input.value = "";
+        };
+        save.addEventListener("click", add);
+      };
+      wait();
+    });`,
   "floating-panel/calculator": `
     document.querySelectorAll("floating-panel-calculator").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
