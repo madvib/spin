@@ -425,10 +425,21 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   name: "splitter",
   config,
   implementations,
-  seed: (props, authored) => {
-    const list = (authored("panels") ? props["panels"] : props["defaultPanels"]) as SplitterPanel[];
-    const panels = Array.isArray(list) ? list : [];
-    const spec = sizesProp(authored("size") ? props["size"] : props["defaultSize"]) ?? [];
+  // Scope defaults arrive in props without being authored (authored tracks
+  // element attributes only), so a required plain-name prop like `panels`
+  // seeds from props directly — the authored gate would read the absent
+  // `defaultPanels` and reseed empty. Controlled attributes are in props
+  // at seed either way.
+  seed: (props, _authored) => {
+    // Parsed absent channels are `[]`, not nullish, so `??` alone keeps
+    // an empty `size` over an authored `defaultSize`: prefer non-empty.
+    const panelsOf = (value: unknown): SplitterPanel[] =>
+      Array.isArray(value) && value.length > 0 ? value as SplitterPanel[] : [];
+    const list = panelsOf(props["panels"]).length > 0 ? props["panels"] : props["defaultPanels"];
+    const panels = panelsOf(list);
+    const sizesOf = (value: unknown): number[] => sizesProp(value) ?? [];
+    const sized = sizesOf(props["size"]);
+    const spec = sized.length > 0 ? sized : sizesOf(props["defaultSize"]);
     let size: number[];
     try {
       size = validateSizes(panels, defaultSizes(panels.length, spec));
