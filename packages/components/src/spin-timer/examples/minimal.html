@@ -4,8 +4,10 @@
   <div class="text-center" {...timer.getAreaProps()}>
     <div class="inline-flex items-center text-xl tabular-nums text-text">
       <template for={timer.getUnits()} as={unit} key={unit.type}>
-        <div class="flex flex-col items-center" show={unit.type === "minutes" || unit.type === "seconds"} {...timer.getItemProps({ type: unit.type })}>
-          <span class="" {...timer.getItemValueProps({ type: unit.type })}>{timer.formattedTime[unit.type]}</span>
+        <div class="flex items-center" show={unit.type === "minutes" || unit.type === "seconds"}>
+          <div class="flex flex-col items-center" {...timer.getItemProps({ type: unit.type })}>
+            <span class="min-w-[2ch] text-center" {...timer.getItemValueProps({ type: unit.type })}>{timer.formattedTime[unit.type]}</span>
+          </div><span aria-hidden="true" class="text-muted" {...timer.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
         </div>
       </template>
     </div>
