@@ -64,7 +64,188 @@ for (const [path, html] of Object.entries(recipeModules)) {
 /** Mount glue a static file cannot carry: property functions. Keyed by
  * `machine/stem`. The loading example's `loadChildren` is what a consumer
  * writes in their own code (see the note in the example source). */
+
 const EXAMPLE_ONLOAD: Record<string, string> = {
+  "toast/basic": `
+    document.querySelectorAll("toast-basic").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/action": `
+    document.querySelectorAll("toast-action").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/duration": `
+    document.querySelectorAll("toast-duration").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/types": `
+    document.querySelectorAll("toast-types").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/topleft": `
+    document.querySelectorAll("toast-topleft").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/topcenter": `
+    document.querySelectorAll("toast-topcenter").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/topright": `
+    document.querySelectorAll("toast-topright").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/bottomleft": `
+    document.querySelectorAll("toast-bottomleft").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/bottomcenter": `
+    document.querySelectorAll("toast-bottomcenter").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/bottomright": `
+    document.querySelectorAll("toast-bottomright").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
   "toast/promise": `
     document.querySelectorAll("toast-promise").forEach((pg) => {
       const id = "upload";

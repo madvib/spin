@@ -1,0 +1,33 @@
+<scope>props={ src: string = "https://picsum.photos/seed/crop/800/600", alt: string = "Crop me" } consume={ imageCropper }</scope>
+
+<div class="w-full" {...imageCropper.getRootProps()}>
+  <div
+    class="relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken select-none transition-colors duration-fast ease-decelerate"
+    {...imageCropper.getViewportProps()}
+  >
+    <img
+      class="absolute inset-0 h-full w-full object-contain"
+      draggable="false"
+      {...imageCropper.getImageProps()}
+    />
+    <div
+      class="absolute rounded-sm border-2 border-solid border-primary shadow-lg transition-shadow duration-fast ease-decelerate"
+      {...imageCropper.getSelectionProps()}
+    >
+      <div class="pointer-events-none absolute inset-0" {...imageCropper.getGridProps({ axis: "horizontal" })}>
+        <div class="absolute inset-x-0 top-1/3 border-t border-on-primary"></div>
+        <div class="absolute inset-x-0 top-2/3 border-t border-on-primary"></div>
+      </div>
+      <div class="pointer-events-none absolute inset-0" {...imageCropper.getGridProps({ axis: "vertical" })}>
+        <div class="absolute inset-y-0 left-1/3 border-l border-on-primary"></div>
+        <div class="absolute inset-y-0 left-2/3 border-l border-on-primary"></div>
+      </div>
+      <template for={imageCropper.handles} as={row} key={row}>
+        <div
+          class="absolute h-3 w-3 rounded-sm border border-solid border-on-primary bg-primary data-[position=nw]:left-0 data-[position=nw]:top-0 data-[position=n]:left-1/2 data-[position=n]:top-0 data-[position=ne]:right-0 data-[position=ne]:top-0 data-[position=e]:right-0 data-[position=e]:top-1/2 data-[position=se]:bottom-0 data-[position=se]:right-0 data-[position=s]:bottom-0 data-[position=s]:left-1/2 data-[position=sw]:bottom-0 data-[position=sw]:left-0 data-[position=w]:left-0 data-[position=w]:top-1/2"
+          {...imageCropper.getHandleProps({ position: row })}
+        ></div>
+      </template>
+    </div>
+  </div>
+</div>

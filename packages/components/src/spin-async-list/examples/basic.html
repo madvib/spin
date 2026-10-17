@@ -1,0 +1,68 @@
+<scope>props={ initialItems: { value: string, label: string }[] = [{"value":"ada","label":"Ada Lovelace"},{"value":"grace","label":"Grace Hopper"},{"value":"margaret","label":"Margaret Hamilton"}] } consume={ asyncList }</scope>
+
+<div class="w-full" {...asyncList.getRootProps()}>
+  <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-1">
+      <button
+        class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
+        aria-label="Sort ascending"
+        {...asyncList.getSortTriggerProps({ column: "name", direction: "ascending" })}
+      ><span aria-hidden="true">A</span><span class="i-lucide-arrow-right text-xs" aria-hidden="true"></span><span aria-hidden="true">Z</span></button>
+      <button
+        class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[active]:border-primary data-[active]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
+        aria-label="Sort descending"
+        {...asyncList.getSortTriggerProps({ column: "name", direction: "descending" })}
+      ><span aria-hidden="true">Z</span><span class="i-lucide-arrow-right text-xs" aria-hidden="true"></span><span aria-hidden="true">A</span></button>
+    </div>
+    <div class="flex items-center gap-2">
+      <input
+        class="h-7 w-36 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text transition-colors duration-fast ease-decelerate placeholder:text-muted focus-visible:ring-2 focus-visible:ring-border-strong"
+        aria-label="Filter"
+        {...asyncList.getFilterInputProps()}
+      />
+      <button
+        class="hidden rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[filled]:inline-flex focus-visible:ring-2 focus-visible:ring-border-strong"
+        {...asyncList.getClearFilterProps()}
+      >Clear</button>
+      <button
+        class="rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-muted transition-colors duration-fast ease-decelerate hover:bg-surface data-[state=loading]:text-primary focus-visible:ring-2 focus-visible:ring-border-strong"
+        {...asyncList.getReloadProps()}
+      >Reload</button>
+    </div>
+  </div>
+
+  <div
+    class="relative max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate data-[empty]:shadow-none"
+    {...asyncList.getListProps()}
+  >
+    <div class="relative p-1">
+      <div
+        class="pointer-events-none absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 rounded-full bg-primary transition-transform duration-fast ease-out data-[state=loading]:scale-x-100 data-[state=sorting]:scale-x-100"
+        {...asyncList.getProgressProps()}
+      ></div>
+      <template for={asyncList.getRows()} as={row} key={row.value}>
+        <div
+          class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate"
+          {...asyncList.getItemProps(row)}
+        >
+          <span class="min-w-0 flex-1 truncate">{row.label}</span>
+          <span class="text-xs text-muted tabular-nums">{row.value}</span>
+        </div>
+      </template>
+      <span class="hidden px-2 py-6 text-center text-sm text-muted transition-colors duration-fast ease-decelerate data-[empty]:block" {...asyncList.getEmptyProps()}>Nothing loaded yet</span>
+      <div class="h-px" {...asyncList.getSentinelProps()}></div>
+    </div>
+  </div>
+
+  <div class="mt-2 flex justify-center">
+    <button
+      class="hidden rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50 data-[more]:inline-flex focus-visible:ring-2 focus-visible:ring-border-strong"
+      {...asyncList.getLoadMoreProps()}
+    >Load more</button>
+  </div>
+
+  <div
+    class="mt-2 hidden rounded-md border border-solid border-border bg-surface px-3 py-2 text-sm text-text transition-colors duration-fast ease-decelerate data-[state=error]:block"
+    {...asyncList.getErrorProps()}
+  >Something went wrong.</div>
+</div>

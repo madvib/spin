@@ -3,13 +3,15 @@
 <div class="w-full" {...steps.getRootProps()}>
   <ol class="flex flex-col gap-4" {...steps.getListProps()}>
     <template for={steps.getItems()} as={row} key={row}>
-      <li class="flex items-start gap-3" {...steps.getItemProps({ index: row })}>
+      <li class="relative flex min-w-0 flex-col items-stretch" {...steps.getItemProps({ index: row })}>
         <button
           type="button"
-          class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-solid border-border bg-surface-raised text-xs font-medium text-muted transition-all duration-fast ease-decelerate hover:border-primary data-[current]:border-primary data-[current]:bg-primary data-[current]:text-on-primary data-[complete]:border-primary data-[complete]:bg-primary data-[complete]:text-on-primary"
+          class="flex shrink-0 items-center gap-3 rounded-md bg-transparent text-left"
           {...steps.getTriggerProps({ index: row })}
-        ><span class="i-lucide-check hidden data-[complete]:block"></span><span class="data-[complete]:hidden">{row}</span></button>
-        <span class="text-sm font-medium text-text" {...steps.getSeparatorProps({ index: row })}>{steps.getItemTitle(row)}</span>
+        ><span
+            class="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid border-border bg-surface-raised text-sm font-semibold text-muted data-[current]:border-primary data-[current]:bg-primary data-[current]:text-on-primary data-[completed]:border-primary data-[completed]:bg-primary data-[completed]:text-on-primary"
+            {...steps.getIndicatorProps({ index: row })}
+          ><span aria-hidden="true" show={steps.getItemState({ index: row }).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={steps.getItemState({ index: row }).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{steps.getItemTitle(row)}</span></button><span aria-hidden="true" class="mx-3 h-0.5 flex-1 bg-border data-[completed]:bg-primary" {...steps.getSeparatorProps({ index: row })}></span>
       </li>
     </template>
   </ol>
