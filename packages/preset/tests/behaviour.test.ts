@@ -364,6 +364,25 @@ Deno.test("a boolean token decides a component's shape", async () => {
     !("border-radius" in offDecls),
     "a theme that does not declare the flag ships no radius",
   );
+  // And the third answer: a theme that picks NO — explicitly. The branch
+  // lives in the declaration, not in its presence: the rule prints the same
+  // flag branch for a yes and a no, and the theme's own sheet — which
+  // declares `--badge-pill: 1` for an on and nothing for an off — is what
+  // the branch reads, so the browser resolves the answer per deck.
+  const denied = structuredClone(theme) as Record<string, unknown>;
+  (denied["badge"] as Record<string, unknown>)["pill"] = {
+    $type: "boolean",
+    $value: false,
+  };
+  const no = await generate("<badge>New</badge>", {
+    themes: { light: denied },
+  });
+  const noRadius = declarations(bodyFor(no, "badge"))["border-radius"];
+  assert(
+    noRadius !== undefined && noRadius.includes("var(--badge-pill") &&
+      noRadius.includes("var(--radius-full)"),
+    "a declared false keeps the branch — the flag variable carries the no the deck gave",
+  );
 });
 
 Deno.test("a badge with no badge group in the theme renders from global tokens", async () => {

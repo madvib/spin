@@ -42,10 +42,13 @@ function badgeBase(mode: Mode): Rule {
       const sizeXs = token(ctx, "font.size.xs");
       const weightMedium = token(ctx, "font.weight.medium");
       const edge = named(ctx, "badge", "edge") ?? borderWidth;
-      // `badge.pill` is a boolean token: a theme declares it true for the
-      // pill and false (or omits it) for the square tag. The flag IS the
-      // decision — the rule asks one question instead of carrying a radius
-      // scale a badge has no use for.
+      // `badge.pill` is a boolean token. The rule context carries references,
+      // not values — every deck builds one shared rule — so the decision
+      // cannot be structural here; the fan reads the variable the theme's own
+      // sheet declares: a deck that answers yes carries `--badge-pill: 1`, a
+      // deck that answers no — or never decides — carries nothing, and the
+      // branch computes to its own square. Presence asks once for the whole
+      // system; the browser answers per deck.
       const pill = named(ctx, "badge", "pill") !== undefined;
       const pillRadius = token(ctx, "radius.full");
       yield {
@@ -54,7 +57,7 @@ function badgeBase(mode: Mode): Rule {
         "align-items": "center",
         ...(spacing1 !== undefined ? { gap: spacing1 } : {}),
         ...(pill && pillRadius !== undefined
-          ? { "border-radius": pillRadius }
+          ? { "border-radius": `calc(var(--badge-pill, 0) * ${pillRadius})` }
           : {}),
         ...(sizeXs !== undefined ? { "font-size": sizeXs } : {}),
         ...(weightMedium !== undefined ? { "font-weight": weightMedium } : {}),

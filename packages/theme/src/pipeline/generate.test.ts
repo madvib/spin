@@ -218,9 +218,12 @@ Deno.test("a token's per-mode values emit the same CSS as a dark group", () => {
   }
 });
 
-Deno.test("a boolean token emits its flag when on and nothing when off", () => {
-  // The flag is the whole mechanism: a rule asks whether the theme declared
-  // it, and a false flag is the same answer as no declaration at all.
+Deno.test("a boolean token emits its answer loudly: 1 when on, 0 when off", () => {
+  // The flag is a switch a rule reads through the sheet, and custom
+  // properties inherit: the boot deck's full token set stands at `:root`,
+  // so silence would inherit that deck's answer instead of carrying the
+  // no. A declared `false` is the deck's own answer — it projects `0` and
+  // overrides the inherited one. Only an UNdeclared flag is absent.
   const tree = treeOf(parseTokens({
     badge: {
       $type: "boolean",
@@ -229,8 +232,8 @@ Deno.test("a boolean token emits its flag when on and nothing when off", () => {
     },
   }));
   const css = generateCss(tree);
-  assert(css.includes("--badge-pill: 1;"), "a true flag emits 1");
-  assert(!css.includes("--badge-sharp"), "a false flag emits nothing at all");
+  assert(css.includes("--badge-pill: 1"), "a true flag emits 1");
+  assert(css.includes("--badge-sharp: 0"), "a false flag emits the no it gave");
 });
 
 Deno.test("generateCss honours a custom prefix on every property name", () => {

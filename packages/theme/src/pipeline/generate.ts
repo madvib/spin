@@ -61,10 +61,13 @@ function valueAsCss(
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);
   // A boolean is a switch the rules read, not a value CSS consumes: `true`
-  // emits as the flag `1` and `false` emits as nothing. A false flag is
-  // absence — the same shape a missing token has — which is what lets a rule
-  // ask `is this declared?` and get a per-theme answer.
-  if (typeof value === "boolean") return value ? "1" : "";
+  // projects as the flag `1` and `false` projects as `0` — not silence.
+  // Custom properties inherit, and the boot deck's token set stands at
+  // `:root`, so an omitted answer would inherit that deck's truth instead
+  // of carrying the no the theme gave. A declared `false` is the deck's
+  // own answer and overrides it; only an undeclared flag is absent, which
+  // is what lets a rule ask `is this decided?` and get a per-theme answer.
+  if (typeof value === "boolean") return value ? "1" : "0";
   return JSON.stringify(value);
 }
 
