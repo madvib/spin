@@ -1,4 +1,4 @@
-<scope>props={ label: string = "Now Playing", defaultOpen: bool = true } consume={ floatingPanel }</scope>
+<scope>props={ label: string = "Now Playing", defaultOpen: bool = true, defaultSize: string = '{"w":400,"h":480}', defaultMinSize: string = '{"w":340,"h":420}', defaultMaxSize: string = '{"w":500,"h":600}' } consume={ floatingPanel }</scope>
 
 <div class="grid gap-2">
   <button type="button" class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
@@ -9,32 +9,34 @@
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Media Player</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
-      <div class="grid content-start gap-4 p-4">
+      <div class="grid flex-1 content-start gap-4 overflow-y-auto bg-text p-4 text-on-primary">
         <div class="flex items-center gap-3">
-          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-info to-purple-500 text-white"><span class="i-lucide-music text-md" aria-hidden="true"></span></span>
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-info to-purple-500 text-on-primary shadow-lg"><span class="i-lucide-music text-lg" aria-hidden="true"></span></span>
           <div class="min-w-0 flex-1">
-            <p class="m-0 truncate text-sm font-medium text-text">Midnight Drive</p>
+            <p class="m-0 truncate text-sm font-semibold text-on-primary">Midnight Drive</p>
             <p class="m-0 truncate text-xs text-muted">Neon Coast</p>
           </div>
-          <span class="i-lucide-heart text-sm text-danger" aria-hidden="true"></span>
+          <button type="button" data-fav class="flex h-8 max-h-8 min-h-0 w-8 items-center justify-center rounded-md p-0 text-pink-400 hover:text-pink-300"><span class="i-lucide-heart text-md" aria-hidden="true"></span></button>
         </div>
         <div class="grid gap-1">
-          <div class="h-1 overflow-hidden rounded-full bg-surface"><div class="h-full w-1/3 rounded-full bg-info"></div></div>
-          <div class="flex justify-between text-xs text-muted"><span>1:12</span><span>3:48</span></div>
+          <div class="h-1 overflow-hidden rounded-full bg-surface-raised/20"><div data-progress class="h-full w-1/3 rounded-full bg-surface-raised"></div></div>
+          <div class="flex justify-between text-xs text-muted"><span data-elapsed>1:12</span><span>3:48</span></div>
         </div>
         <div class="flex items-center justify-center gap-4">
-          <span class="i-lucide-skip-back text-md text-muted" aria-hidden="true"></span>
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-info text-white"><span class="i-lucide-play text-sm" aria-hidden="true"></span></span>
-          <span class="i-lucide-skip-forward text-md text-muted" aria-hidden="true"></span>
+          <span class="flex h-8 w-8 items-center justify-center text-muted"><span class="i-lucide-shuffle text-sm" aria-hidden="true"></span></span>
+          <span class="flex h-8 w-8 items-center justify-center text-muted"><span class="i-lucide-skip-back text-md" aria-hidden="true"></span></span>
+          <button type="button" data-play class="flex h-12 max-h-12 min-h-0 w-12 items-center justify-center rounded-full bg-surface-raised p-0 text-gray-900 shadow-lg"><span class="i-lucide-play text-md" aria-hidden="true"></span></button>
+          <span class="flex h-8 w-8 items-center justify-center text-muted"><span class="i-lucide-skip-forward text-md" aria-hidden="true"></span></span>
+          <span class="flex h-8 w-8 items-center justify-center text-muted"><span class="i-lucide-repeat text-sm" aria-hidden="true"></span></span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="i-lucide-volume-2 text-sm text-muted" aria-hidden="true"></span>
+          <div class="h-1 flex-1 overflow-hidden rounded-full bg-surface-raised/20"><div class="h-full w-3/4 rounded-full bg-surface-raised"></div></div>
         </div>
       </div>
-      
-      <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
+            <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
       <button type="button" class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
       <button type="button" class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
       <button type="button" class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>

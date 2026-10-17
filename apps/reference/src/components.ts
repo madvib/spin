@@ -45,7 +45,10 @@ for (const [path, html] of Object.entries(exampleSources)) {
   const machine = exampleMachineOf(path);
   const stem = path.split("/").at(-1)?.slice(0, -".html".length) ?? path;
   const group = grouped.get(machine) ?? { examples: [] };
-  const tag = stem.includes("-") ? stem : `${machine}-${stem}`;
+  // Machine-qualified, always: a dashed stem (`media-player`) is not a
+  // usable bare tag — the compiled element registers machine-stem, and
+  // the mount must name the same element.
+  const tag = `${machine}-${stem}`;
   group.examples.push({
     name: `${machine} — ${titleOf(stem)}`,
     html: `<${tag}></${tag}>`,
@@ -348,6 +351,61 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         sendBtn.addEventListener("click", send);
         input.addEventListener("keydown", (event) => {
           if (event.key === "Enter") send();
+        });
+      };
+      wait();
+    });`,
+"floating-panel/media-player": `
+    document.querySelectorAll("floating-panel-media-player").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-play]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const play = root.querySelector("[data-play]");
+        const icon = play.querySelector("span");
+        const bar = root.querySelector("[data-progress]");
+        const elapsed = root.querySelector("[data-elapsed]");
+        const fav = root.querySelector("[data-fav]");
+        let playing = false;
+        let seconds = 72;
+        let timer = 0;
+        const fmt = (total) => {
+          const mins = Math.floor(total / 60);
+          const secs = total % 60;
+          return mins + ":" + String(secs).padStart(2, "0");
+        };
+        const tick = () => {
+          seconds = Math.min(228, seconds + 1);
+          elapsed.textContent = fmt(seconds);
+          bar.style.width = (seconds / 228) * 100 + "%";
+          if (seconds >= 228) setPlaying(false);
+        };
+        const setPlaying = (next) => {
+          playing = next;
+          icon.className = next
+            ? "i-lucide-pause text-md"
+            : "i-lucide-play text-md";
+          if (next) {
+            timer = setInterval(tick, 1000);
+          } else {
+            clearInterval(timer);
+          }
+        };
+        play.addEventListener("click", () => setPlaying(!playing));
+        let liked = true;
+        fav.addEventListener("click", () => {
+          liked = !liked;
+          fav.style.opacity = liked ? "1" : "0.4";
         });
       };
       wait();
