@@ -1,7 +1,23 @@
 {
   "$extensions": {
     "spin": {
-      "id": "console"
+      "id": "console",
+      "fonts": [
+        {
+          "family": "Inter",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
     }
   },
   "color": {
@@ -15,8 +31,9 @@
       "$description": "A terminal suns its rows into the phosphor floor: one step below the page, still a surface."
     },
     "surface-raised": {
-      "$value": "oklch(16% 0.01 220)",
-      "$type": "color"
+      "$value": "oklch(18% 0.012 220)",
+      "$type": "color",
+      "$description": "A raised panel steps one lightness up from the page and wears the ring; on black, a shadow alone would not separate it."
     },
     "text": {
       "$value": "oklch(92% 0.06 145)",
@@ -187,7 +204,7 @@
         "$description": "Long-form editorial text."
       },
       "mono": {
-        "$value": "\"JetBrains Mono Variable\", \"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
+        "$value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
         "$type": "fontFamily"
       }
     },
@@ -338,7 +355,7 @@
   },
   "shadow": {
     "$type": "shadow",
-    "$description": "Elevation, as CSS box-shadow values.",
+    "$description": "Elevation: a phosphor ring, and the dark offset that grounds it. Three steps on purpose — a component that needs a more specific edge states it, and a step nothing spends stops being a step.",
     "sm": {
       "$value": "0 1px 2px oklch(0 0 0 / 50%), 0 0 0 1px oklch(0.78 0.20 145 / 12%)",
       "$type": "shadow"
@@ -349,34 +366,6 @@
     },
     "lg": {
       "$value": "0 0 0 1px oklch(0.78 0.20 145 / 40%), 0 8px 0 -2px oklch(0 0 0 / 70%)",
-      "$type": "shadow"
-    },
-    "xs": {
-      "$value": "0 0 0 1px oklch(0.78 0.20 145 / 10%)",
-      "$type": "shadow"
-    },
-    "xl": {
-      "$value": "0 24px 64px oklch(0 0 0 / 70%)",
-      "$type": "shadow"
-    },
-    "card-rest": {
-      "$value": "0 0 0 1px oklch(0.78 0.20 145 / 30%)",
-      "$type": "shadow"
-    },
-    "hover": {
-      "$value": "0 0 0 1px oklch(0.78 0.20 145 / 60%), 0 0 0 3px oklch(0.78 0.20 145 / 10%)",
-      "$type": "shadow"
-    },
-    "sticky": {
-      "$value": "0 1px 0 oklch(0.78 0.20 145 / 24%)",
-      "$type": "shadow"
-    },
-    "accent": {
-      "$value": "0 0 0 2px oklch(0.78 0.20 145 / 55%), 0 0 18px oklch(0.78 0.20 145 / 18%)",
-      "$type": "shadow"
-    },
-    "edge-top": {
-      "$value": "0 -1px 0 oklch(0.78 0.20 145 / 30%)",
       "$type": "shadow"
     }
   },
