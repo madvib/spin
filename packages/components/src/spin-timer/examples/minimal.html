@@ -2,9 +2,9 @@
 
 <div class="mx-auto w-full max-w-xs" {...timer.getRootProps()}>
   <div class="text-center" {...timer.getAreaProps()}>
-    <div class="inline-flex text-xl tabular-nums text-text">
+    <div class="inline-flex items-center text-xl tabular-nums text-text">
       <template for={timer.getUnits()} as={unit} key={unit.type}>
-        <div class="flex flex-col items-center" {...timer.getItemProps({ type: unit.type })}>
+        <div class="flex flex-col items-center" show={unit.type === "minutes" || unit.type === "seconds"} {...timer.getItemProps({ type: unit.type })}>
           <span class="" {...timer.getItemValueProps({ type: unit.type })}>{timer.formattedTime[unit.type]}</span>
         </div>
       </template>
