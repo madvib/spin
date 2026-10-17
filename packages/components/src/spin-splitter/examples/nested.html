@@ -1,0 +1,21 @@
+<scope>props={ panels: string = '[{"id":"left","minSize":20},{"id":"middle","minSize":20},{"id":"right","minSize":20}]', defaultSize: string = '[20, 60, 20]' } consume={ splitter }</scope>
+
+<div class="h-60 w-full">
+<div class="gap-2" {...splitter.getRootProps()}>
+  <template for={splitter.getItems()} as={row} key={row.id}>
+    <div
+      class="min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate data-[type=handle]:grid data-[type=handle]:shrink-0 data-[type=handle]:place-items-center data-[type=handle]:border-transparent data-[type=handle]:bg-transparent data-[type=handle]:hover:bg-surface-sunken data-[type=handle]:data-[focus]:bg-surface-sunken data-[orientation=horizontal]:data-[type=handle]:w-2 data-[orientation=horizontal]:data-[type=handle]:cursor-col-resize data-[orientation=vertical]:data-[type=handle]:h-2 data-[orientation=vertical]:data-[type=handle]:cursor-row-resize"
+      {...splitter.getItemProps(row)}
+    ><span class="block p-2 text-xs text-muted data-[type=handle]:hidden" {...splitter.getItemLabelProps(row)}>{row.id}</span><span
+      class="hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate data-[type=handle]:block data-[focus]:bg-primary data-[dragging]:bg-primary data-[orientation=horizontal]:data-[type=handle]:h-8 data-[orientation=horizontal]:data-[type=handle]:w-1 data-[orientation=vertical]:data-[type=handle]:h-1 data-[orientation=vertical]:data-[type=handle]:w-8"
+      {...splitter.getItemIndicatorProps(row)}
+    ></span><spin-splitter
+      class="h-full min-h-0"
+      panels='[{"id":"top"},{"id":"bottom","collapsible":true}]'
+      defaultSize="[50, 50]"
+      orientation="vertical"
+      show={row.id === "middle"}
+    ></spin-splitter></div>
+  </template>
+</div>
+</div>
