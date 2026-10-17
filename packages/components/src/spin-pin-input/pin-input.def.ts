@@ -440,6 +440,8 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
         const ctx = asCtx(scope.context);
         return {
           id: scope.id("root"),
+            "data-scope": "pin-input",
+            "data-part": "root",
           dir: scope.props["dir"],
           "data-invalid": scope.attr(scope.props["invalid"] === true),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -455,6 +457,8 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
       },
       attrs: (scope) => ({
         id: scope.id("label"),
+          "data-scope": "pin-input",
+          "data-part": "label",
         dir: scope.props["dir"],
         for: scope.id("hidden"),
         "data-invalid": scope.attr(scope.props["invalid"] === true),
@@ -480,6 +484,8 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
       sig: (scope) => [scope.props["dir"]].join(""),
       attrs: (scope) => ({
         id: scope.id("control"),
+          "data-scope": "pin-input",
+          "data-part": "control",
         dir: scope.props["dir"],
       }),
     },
@@ -495,6 +501,8 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
         const joined = pinView(ctx.value, ctx.count);
         return {
           id: scope.id("hiddenInput"),
+            "data-scope": "pin-input",
+            "data-part": "hidden-input",
           "aria-hidden": true,
           type: "text",
           tabIndex: -1,
@@ -538,6 +546,8 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
         const interactive = props["disabled"] !== true && props["readOnly"] !== true;
         return {
           id: scope.id("input", index),
+            "data-scope": "pin-input",
+            "data-part": "input",
           dir: props["dir"],
           disabled: props["disabled"],
           tabIndex: index === tabbable ? 0 : -1,

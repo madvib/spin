@@ -97,10 +97,12 @@ const parseSteps = (raw: unknown): readonly TourStepRecord[] | null => {
     const target = bag["target"];
     const title = bag["title"];
     const description = bag["description"];
-    if (typeof id !== "string" || typeof target !== "string") continue;
+    if (typeof id !== "string") continue;
     steps.push({
       id,
-      target,
+      // A step without a target is a dialog: the card stands alone,
+      // centered, with no spotlight. Tark's welcome step has none.
+      target: typeof target === "string" ? target : "",
       title: typeof title === "string" ? title : "",
       description: typeof description === "string" ? description : "",
     });
@@ -158,6 +160,22 @@ const resolveAndScroll = (
   // The first attempt is synchronous: the target is usually there. A
   // rAF poll throttles in a hidden tab (a frames-based budget would
   // never run out), so the retries are timers against a wall clock.
+  if (target === "") {
+    const w = typeof window === "undefined" ? 0 : window.innerWidth;
+    const h = typeof window === "undefined" ? 0 : window.innerHeight;
+    const cardW = Math.min(320, w * 0.9);
+    const cardH = 160;
+    viewOf(root).spotlight = {
+      x: (w - cardW) / 2,
+      y: (h - cardH) / 2,
+      w: cardW,
+      h: cardH,
+      placement: "bottom",
+    };
+    send({ type: "TARGET.RESOLVED" });
+    send({ type: "SCROLL.END" });
+    return;
+  }
   const attempt = (): void => {
     const el = typeof document === "undefined" ? null : document.querySelector(target);
     if (el instanceof HTMLElement) {
@@ -263,6 +281,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
         const geo = viewOf(scope.root()).spotlight;
         return {
           id: scope.id("backdrop"),
+            "data-scope": "tour",
+            "data-part": "backdrop",
           "aria-hidden": true,
           "data-state": runningState(scope.state) ? "open" : "closed",
           "data-disabled": dataAttr(scope.props["disabled"] === true),
@@ -278,14 +298,23 @@ const def: ComponentDef<TourContext, TourEvent> = {
     spotlight: {
       sig: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
-        return [`${runningState(scope.state)}`, geo.x, geo.y, geo.w, geo.h].join(" ");
+        const ctx = asCtx(scope.context);
+        const step = ctx.steps[ctx.step] ?? null;
+        return [`${runningState(scope.state)}`, step?.target ?? "", geo.x, geo.y, geo.w, geo.h].join(" ");
       },
       attrs: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
+        const ctx = asCtx(scope.context);
+        const step = ctx.steps[ctx.step] ?? null;
+        const dialog = step !== null && step.target === "";
+        const open = runningState(scope.state) && !dialog;
         return {
           id: scope.id("spotlight"),
+            "data-scope": "tour",
+            "data-part": "spotlight",
           "aria-hidden": true,
-          "data-state": runningState(scope.state) ? "open" : "closed",
+          "data-state": open ? "open" : "closed",
+          hidden: !open,
           style: {
             "--tour-x": `${geo.x}px`,
             "--tour-y": `${geo.y}px`,
@@ -304,6 +333,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
         const geo = viewOf(scope.root()).spotlight;
         return {
           id: scope.id("positioner"),
+            "data-scope": "tour",
+            "data-part": "positioner",
           "data-state": scope.state === "active" ? "active" : runningState(scope.state) ? "running" : "closed",
           style: {
             "--tour-x": `${geo.x}px`,
@@ -325,6 +356,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
         const step = ctx.steps[ctx.step] ?? null;
         return {
           id: scope.id("content"),
+            "data-scope": "tour",
+            "data-part": "content",
           role: "dialog",
           "aria-label": step === null ? scope.props["label"] : step.title,
           "data-state": scope.state === "active" ? "open" : "closed",
@@ -336,12 +369,16 @@ const def: ComponentDef<TourContext, TourEvent> = {
       sig: (scope) => [`${asCtx(scope.context).step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("title"),
+          "data-scope": "tour",
+          "data-part": "title",
       }),
     },
     description: {
       sig: (scope) => [`${asCtx(scope.context).step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("description"),
+          "data-scope": "tour",
+          "data-part": "description",
       }),
     },
     progressText: {
@@ -354,6 +391,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
         const ctx = asCtx(scope.context);
         return {
           id: scope.id("progressText"),
+            "data-scope": "tour",
+            "data-part": "progress-text",
           text: `${ctx.step + 1} of ${ctx.steps.length}`,
         };
       },
@@ -363,6 +402,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
       sig: (scope) => [`${asCtx(scope.context).step}`, scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("prevTrigger"),
+          "data-scope": "tour",
+          "data-part": "prev-trigger",
         "aria-label": "Previous step",
         hidden: asCtx(scope.context).step <= 0,
         onClick: (): void => scope.send({ type: "STEP.PREV" }),
@@ -376,6 +417,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
       },
       attrs: (scope) => ({
         id: scope.id("nextTrigger"),
+          "data-scope": "tour",
+          "data-part": "next-trigger",
         "aria-label": "Next step",
         onClick: (): void => scope.send({ type: "STEP.NEXT" }),
       }),
@@ -385,6 +428,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
       sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("dismissTrigger"),
+          "data-scope": "tour",
+          "data-part": "dismiss-trigger",
         "aria-label": "End tour",
         onClick: (): void => scope.send({ type: "DISMISS" }),
       }),
@@ -394,6 +439,8 @@ const def: ComponentDef<TourContext, TourEvent> = {
       sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("skipTrigger"),
+          "data-scope": "tour",
+          "data-part": "skip-trigger",
         "aria-label": "Skip tour",
         onClick: (): void => scope.send({ type: "SKIP" }),
       }),

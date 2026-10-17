@@ -1,7 +1,8 @@
-<scope>props={ label: string = "Tour", steps: string = '[{"id":"welcome","target":"#tour-basic-target","title":"Welcome","description":"This button starts nothing, but the spotlight finds it."}]' } consume={ tour }</scope>
+<scope>props={ label: string = "Tour", steps: string = '[{"id":"welcome","target":"#tour-basic-target","title":"Welcome","description":"This button starts nothing, but the spotlight finds it."},{"id":"confirm","target":"#tour-basic-confirm","title":"Confirm","description":"The spotlight follows to the next target."},{"id":"done","title":"Done","description":"No target — the card stands alone."}]' } consume={ tour }</scope>
 
 <div class="mx-auto flex w-full max-w-xs flex-col items-center gap-4">
   <button id="tour-basic-target" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">Feature button</button>
+  <button id="tour-basic-confirm" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">Confirm button</button>
   <button class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary" data-start>Start tour</button>
 </div>
 <div class="contents" {...tour.getRootProps()}>
