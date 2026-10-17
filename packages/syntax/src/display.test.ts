@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "@std/assert";
+import { assert } from "@std/assert";
 import { formatExampleHtml, tokenizeHtml } from "./display.ts";
 
 /** The viewer shows formatted source with each token wearing its kind.

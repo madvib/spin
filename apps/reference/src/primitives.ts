@@ -217,9 +217,6 @@ export const CATEGORIES: readonly {
   },
 ];
 
-/** A component with no group is its own; the rail shows it ungrouped. */
-const UNGROUPED = "Ungrouped";
-
 export const PRIMITIVES: readonly PrimitivePage[] = [
   {
     id: "alert",
