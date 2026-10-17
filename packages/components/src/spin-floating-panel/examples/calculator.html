@@ -1,0 +1,50 @@
+<scope>props={ label: string = "Calculator", defaultOpen: string = "true" } consume={ floatingPanel }</scope>
+
+<div class="relative h-96">
+  <div class="relative" {...floatingPanel.getPositionerProps()}>
+    <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden data-[stage=maximized]:left-0 data-[stage=maximized]:top-0 data-[stage=maximized]:h-full data-[stage=maximized]:w-full [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)]" {...floatingPanel.getContentProps()}>
+      <div class="flex items-center justify-between gap-2 border-b border-border p-3" {...floatingPanel.getDragTriggerProps()}>
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
+          <span class="truncate text-sm font-medium text-text">Calculator</span>
+        </div>
+        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getMinimizeProps()}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+      </div>
+      <div class="grid content-start gap-3 p-4">
+        <div class="rounded-lg bg-surface p-3 text-right font-mono text-xl text-text">1,284</div>
+        <div class="grid grid-cols-4 gap-2">
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-danger-soft text-danger ">C</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">±</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">%</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">÷</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">7</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">8</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">9</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">×</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">4</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">5</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">6</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">−</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">1</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">2</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">3</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">+</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text col-span-2">0</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">.</span>
+          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">=</span>
+        </div>
+      </div>
+      
+      <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button type="button" class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button type="button" class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button type="button" class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button type="button" class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button type="button" class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button type="button" class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button type="button" class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+    </div>
+  </div>
+</div>
+

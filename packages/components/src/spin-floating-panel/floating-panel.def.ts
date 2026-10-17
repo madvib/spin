@@ -51,6 +51,9 @@ export interface FloatingPanelApi {
   getContentProps(): Record<string, unknown>;
   getDragTriggerProps(): Record<string, unknown>;
   getStageProps(): Record<string, unknown>;
+  getMinimizeProps(): Record<string, unknown>;
+  getMaximizeProps(): Record<string, unknown>;
+  getRestoreProps(): Record<string, unknown>;
   /** The stage icon's own bag: it carries data-stage so the spans can key
    * on it (select's trigger indicator is the same shape). */
   getStageIconProps(): Record<string, unknown>;
@@ -301,6 +304,36 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
           onClick: (): void => scope.send({ type: stage === "restored" ? "MINIMIZE" : "RESTORE" }),
         };
       },
+    },
+    minimize: {
+      id: "minimize",
+      sig: (scope) => [asCtx(scope.context).stage].join(" "),
+      attrs: (scope) => ({
+        id: scope.id("minimize"),
+        "data-stage": asCtx(scope.context).stage,
+        "aria-label": "Minimize",
+        onClick: (): void => scope.send({ type: "MINIMIZE" }),
+      }),
+    },
+    maximize: {
+      id: "maximize",
+      sig: (scope) => [asCtx(scope.context).stage].join(" "),
+      attrs: (scope) => ({
+        id: scope.id("maximize"),
+        "data-stage": asCtx(scope.context).stage,
+        "aria-label": "Maximize",
+        onClick: (): void => scope.send({ type: "MAXIMIZE" }),
+      }),
+    },
+    restore: {
+      id: "restore",
+      sig: (scope) => [asCtx(scope.context).stage].join(" "),
+      attrs: (scope) => ({
+        id: scope.id("restore"),
+        "data-stage": asCtx(scope.context).stage,
+        "aria-label": "Restore",
+        onClick: (): void => scope.send({ type: "RESTORE" }),
+      }),
     },
     stageIcon: {
       id: "stage-icon",

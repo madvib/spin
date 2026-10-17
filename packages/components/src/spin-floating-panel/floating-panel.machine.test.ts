@@ -220,3 +220,20 @@ Deno.test("Given a boundary / When a drag pushes past it / Then the position cla
   assertEquals(h.api.position.y < 768, true, "y clamps inside the boundary");
   h.dispose();
 });
+
+Deno.test("Given the stage trigger bags / When called / Then each sends its own event", () => {
+  const h = harness({ defaultOpen: true });
+  const min = h.api.getMinimizeProps();
+  const max = h.api.getMaximizeProps();
+  const res = h.api.getRestoreProps();
+  assertEquals(typeof min["onClick"], "function", "minimize carries a click");
+  assertEquals(typeof max["onClick"], "function", "maximize carries a click");
+  assertEquals(typeof res["onClick"], "function", "restore carries a click");
+  (min["onClick"] as () => void)();
+  assertEquals(h.api.stage, "minimized", "minimize minimizes");
+  (max["onClick"] as () => void)();
+  assertEquals(h.api.stage, "maximized", "maximize maximizes");
+  (res["onClick"] as () => void)();
+  assertEquals(h.api.stage, "restored", "restore restores");
+  h.dispose();
+});

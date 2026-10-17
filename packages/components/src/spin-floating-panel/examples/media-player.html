@@ -1,0 +1,45 @@
+<scope>props={ label: string = "Now Playing", defaultOpen: string = "true" } consume={ floatingPanel }</scope>
+
+<div class="relative h-96">
+  <div class="relative" {...floatingPanel.getPositionerProps()}>
+    <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden data-[stage=maximized]:left-0 data-[stage=maximized]:top-0 data-[stage=maximized]:h-full data-[stage=maximized]:w-full [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)]" {...floatingPanel.getContentProps()}>
+      <div class="flex items-center justify-between gap-2 border-b border-border p-3" {...floatingPanel.getDragTriggerProps()}>
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
+          <span class="truncate text-sm font-medium text-text">Media Player</span>
+        </div>
+        <div class="flex shrink-0 items-center gap-1"><button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getMinimizeProps()}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button type="button" class="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+      </div>
+      <div class="grid content-start gap-4 p-4">
+        <div class="flex items-center gap-3">
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-info text-white"><span class="i-lucide-music text-md" aria-hidden="true"></span></span>
+          <div class="min-w-0 flex-1">
+            <p class="m-0 truncate text-sm font-medium text-text">Midnight Drive</p>
+            <p class="m-0 truncate text-xs text-muted">Neon Coast</p>
+          </div>
+          <span class="i-lucide-heart text-sm text-danger" aria-hidden="true"></span>
+        </div>
+        <div class="grid gap-1">
+          <div class="h-1 overflow-hidden rounded-full bg-surface"><div class="h-full w-1/3 rounded-full bg-info"></div></div>
+          <div class="flex justify-between text-xs text-muted"><span>1:12</span><span>3:48</span></div>
+        </div>
+        <div class="flex items-center justify-center gap-4">
+          <span class="i-lucide-skip-back text-md text-muted" aria-hidden="true"></span>
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-info text-white"><span class="i-lucide-play text-sm" aria-hidden="true"></span></span>
+          <span class="i-lucide-skip-forward text-md text-muted" aria-hidden="true"></span>
+        </div>
+      </div>
+      
+      <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button type="button" class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button type="button" class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button type="button" class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button type="button" class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button type="button" class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button type="button" class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...floatingPanel.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button type="button" class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...floatingPanel.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+    </div>
+  </div>
+</div>
+
