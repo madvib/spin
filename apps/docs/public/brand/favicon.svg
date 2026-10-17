@@ -1,0 +1,22 @@
+<!--
+  The spin favicon: the spider, reduced to what survives 16px.
+  Paper chip, ink linework, one red hourglass — the brand colors, stated
+  statically, so the mark reads identically in every browser chrome.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="9" fill="#f7f7f8"
+    stroke="#0c0c0c" stroke-width="3" />
+  <g fill="none" stroke="#0c0c0c" stroke-width="3.6" stroke-linecap="round">
+    <path d="M25 34 C19 29 15 28 11 31" />
+    <path d="M39 34 C45 29 49 28 53 31" />
+    <path d="M23 42 C17 41 13 43 10 48" />
+    <path d="M41 42 C47 41 51 43 54 48" />
+    <path d="M27 46 C25 50 26 53 28 56" />
+    <path d="M37 46 C39 50 38 53 36 56" />
+  </g>
+  <circle cx="32" cy="37" r="5.6" fill="#f7f7f8" stroke="#0c0c0c"
+    stroke-width="3.6" />
+  <ellipse cx="32" cy="43.6" rx="8.4" ry="10.4" fill="#f7f7f8" stroke="#0c0c0c"
+    stroke-width="3.6" />
+  <path d="M32.2 37.6 L34.2 40.6 L32 43.6 L29.8 40.6 Z" fill="#c8102e" />
+</svg>

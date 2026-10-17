@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { defineConfig, searchForWorkspaceRoot } from "vite";
+import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
@@ -9,9 +9,10 @@ import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 const here = import.meta.dirname!;
 
 /**
- * `spin.vite` is the whole toolchain: it globs, generates, and safelists
+ * `spin.vite` is the whole toolchain: it globs, generates, safelists
  * the catalog so the utilities the pages choose from the catalog at
- * runtime still have a rule to demonstrate them with.
+ * runtime still have a rule to demonstrate them with, and carries the
+ * specifier table — no app keeps a copy of the resolution.
  */
 
 export default defineConfig({
@@ -48,69 +49,4 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: {
-    alias: [
-      {
-        find: "@spin/theme/base",
-        replacement: resolve(
-          here,
-          "../../packages/theme/src/base/index.ts",
-        ),
-      },
-      {
-        find: /^@spin\/theme\/(.+)$/,
-        replacement: resolve(here, "../../packages/theme/src/$1"),
-      },
-      {
-        find: "@spin/theme",
-        replacement: resolve(
-          here,
-          "../../packages/theme/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/animation",
-        replacement: resolve(
-          here,
-          "../../packages/animation/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/primitives-procedures",
-        replacement: resolve(
-          here,
-          "../../packages/preset/src/primitives-procedures.ts",
-        ),
-      },
-      {
-        find: /^@spin\/preset\/(.+)$/,
-        replacement: resolve(here, "../../packages/preset/src/$1"),
-      },
-      {
-        find: "@spin/preset",
-        replacement: resolve(
-          here,
-          "../../packages/preset/src/index.ts",
-        ),
-      },
-      { find: /^npm:(.+)$/, replacement: "$1" },
-      {
-        find: "@unocss/core",
-        replacement: resolve(
-          here,
-          "../../node_modules/@unocss/core/dist/index.mjs",
-        ),
-      },
-    ],
-  },
-  server: {
-    fs: {
-      allow: [
-        searchForWorkspaceRoot(process.cwd()),
-        "/__uno.css",
-        "/__uno.css?inline",
-        "/@unocss",
-      ],
-    },
-  },
 });

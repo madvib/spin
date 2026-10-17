@@ -22,6 +22,189 @@ export interface DevServer {
   ws: { send: (payload: object) => void };
   httpServer?: { once: (event: string, fn: () => void) => void } | null;
 }
+
+/**
+ * One specifier the app graph needs bridged, and what it becomes.
+ *
+ * The app graph is bundled by rolldown, which does not read the Deno
+ * import maps the packages live in; these entries are the bridge. Nobody
+ * edits this table per app — every spin app in the workspace consumes it
+ * through the plugin's `config` hook, so a package that moves moves
+ * everywhere at once.
+ */
+interface Specifier {
+  /** What an import may spell: an exact id or a prefix pattern. */
+  readonly find: string | RegExp;
+  /** What it becomes. A prefix capture carries `$1`. */
+  readonly replacement: string;
+  /**
+   * Files the replacement's existence depends on. Every one must exist
+   * for the entry to live. Empty for entries that are pure id-prescription
+   * (the `npm:` strip), which need no target.
+   */
+  readonly targets: readonly string[];
+}
+
+async function spinWorkspaceRoot(): Promise<string> {
+  // Walk up until a real workspace manifest is found: a deno.json with a
+  // `workspace` member, or a package.json with `workspaces`. Every package
+  // in the repo has its own deno.json, so "first manifest wins" would stop
+  // at the preset itself — and the specifier this walk exists for (the uno
+  // pin) lives in the hoisted root, not the member dir.
+  const { dirname, join } = await import("node:path");
+  const { readFile, readdir } = await import("node:fs/promises");
+  const { fileURLToPath } = await import("node:url");
+  let dir = dirname(dirname(fileURLToPath(import.meta.url))); // this file's package dir
+  let fallback = dir;
+  for (;;) {
+    let names: string[];
+    try {
+      names = await readdir(dir);
+    } catch {
+      names = [];
+    }
+    let isWorkspace = false;
+    let isProject = false;
+    if (names.includes("deno.json")) {
+      try {
+        const manifest = JSON.parse(
+          await readFile(join(dir, "deno.json"), "utf8"),
+        ) as { workspace?: unknown };
+        if (Array.isArray(manifest["workspace"])) {
+          isWorkspace = manifest["workspace"].length > 0;
+        } else {
+          // A manifest without the member list is one of the packages: the
+          // nearest one is the fallback when the walk dries up.
+          fallback = dir;
+        }
+      } catch {
+        // Unreadable manifest: keep walking.
+      }
+    } else if (names.includes("package.json")) {
+      try {
+        const manifest = JSON.parse(
+          await readFile(join(dir, "package.json"), "utf8"),
+        ) as { workspaces?: unknown };
+        // A package.json without workspaces is a single npm project: its
+        // root is where its node_modules lives, which is what the uno pin
+        // and the dev-server's file reads need.
+        isProject = manifest["workspaces"] === undefined;
+        isWorkspace = manifest["workspaces"] !== undefined;
+      } catch {
+        // Unreadable manifest: keep walking.
+      }
+    }
+    if (isWorkspace) return dir;
+    if (isProject) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) return fallback;
+    dir = parent;
+  }
+}
+
+/** The public half of an entry: specifier in, id out. */
+interface SpecTableEntry {
+  /** What an import may spell: an exact id or a prefix pattern. */
+  find: string | RegExp;
+  /** What it becomes. */
+  replacement: string;
+}
+
+/**
+ * The specifier table, minus entries whose targets do not exist.
+ *
+ * A package consumed from npm has no source tree to point at: its entries
+ * fall away and resolution runs natively, which is exactly what that
+ * consumption wants. In-repo, the table is the whole bridge.
+ */
+export async function spinAliases(): Promise<SpecTableEntry[]> {
+  const { stat } = await import("node:fs/promises");
+  const { fileURLToPath } = await import("node:url");
+  const { join } = await import("node:path");
+  const pkg = (rel: string): string =>
+    fileURLToPath(new URL(rel, import.meta.url));
+  const source = {
+    themeSrc: pkg("../../theme/src/"),
+    themeIndex: pkg("../../theme/src/index.ts"),
+    animationIndex: pkg("../../animation/src/index.ts"),
+    presetSrc: pkg("./"),
+    presetIndex: pkg("./index.ts"),
+    procedures: pkg("./primitives-procedures.ts"),
+    apiIndex: pkg("../../api/src/index.ts"),
+  };
+  const unoCore = join(
+    await spinWorkspaceRoot(),
+    "node_modules/@unocss/core/dist/index.mjs",
+  );
+  const table: readonly Specifier[] = [
+    {
+      find: "@spin/theme/base",
+      replacement: pkg("../../theme/src/base/index.ts"),
+      targets: [source.themeIndex],
+    },
+    {
+      find: /^@spin\/theme\/(.+)$/,
+      replacement: `${source.themeSrc}$1`,
+      targets: [source.themeIndex],
+    },
+    {
+      find: "@spin/theme",
+      replacement: source.themeIndex,
+      targets: [source.themeIndex],
+    },
+    {
+      find: "@spin/animation",
+      replacement: source.animationIndex,
+      targets: [source.animationIndex],
+    },
+    {
+      find: /^@spin\/preset\/(.+)$/,
+      replacement: `${source.presetSrc}$1`,
+      targets: [source.presetIndex],
+    },
+    {
+      find: "@spin/preset",
+      replacement: source.presetIndex,
+      targets: [source.presetIndex],
+    },
+    {
+      find: "@spin/primitives-procedures",
+      replacement: source.procedures,
+      targets: [source.procedures],
+    },
+    {
+      find: "@spin/api",
+      replacement: source.apiIndex,
+      targets: [source.apiIndex],
+    },
+    // Pure id-shaping: every `npm:` specifier the packages carry drops the
+    // prefix so rolldown can find it in node_modules. No target to outlive.
+    { find: /^npm:(.+)$/, replacement: "$1", targets: [] },
+    {
+      // The ONE copy: two uno cores in one sheet resolves tokens from
+      // different instances. Pinned only while the module is hoisted there.
+      find: /^@unocss\/core$/,
+      replacement: unoCore,
+      targets: [unoCore],
+    },
+  ];
+  const alive = await Promise.all(
+    table.map(async (entry) => {
+      for (const target of entry.targets) {
+        try {
+          await stat(target);
+        } catch {
+          return null;
+        }
+      }
+      return entry;
+    }),
+  );
+  return alive
+    .filter((entry): entry is Specifier => entry !== null)
+    .map(({ find, replacement }) => ({ find, replacement }));
+}
+
 import { spinPreset } from "./index.ts";
 
 // The Deno global the plugin defaults its root from. Declared, not
@@ -191,6 +374,27 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
     name: "spin",
     enforce: "post",
     vite: {
+      // The toolchain carries its own specifier table: the app graph is
+      // bundled by rolldown, which does not read the Deno import maps the
+      // packages live in, and this is the bridge — declared here, so no
+      // app maintains a copy that drifts. The `fs.allow` entries keep the
+      // dev server able to read the workspace and the two virtual URLs
+      // the stylesheet serves under.
+      async config() {
+        return {
+          resolve: { alias: await spinAliases() },
+          server: {
+            fs: {
+              allow: [
+                await spinWorkspaceRoot(),
+                "/__uno.css",
+                "/__uno.css?inline",
+                "/@unocss",
+              ],
+            },
+          },
+        };
+      },
       configResolved(config: { root: string; command: string }) {
         root = config.root;
         envMode = config.command === "serve" ? "dev" : "build";

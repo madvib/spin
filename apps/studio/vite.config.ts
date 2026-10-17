@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { defineConfig, searchForWorkspaceRoot } from "vite";
+import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
@@ -78,76 +78,4 @@ export default defineConfig(({ command }) => ({
     // origin the bundle was served from, which is the whole point.
     solid(),
   ],
-  resolve: {
-    alias: [
-      // Longest match first: a bare `@spin/theme` alias is a prefix match and
-      // would otherwise swallow `@spin/theme/base`.
-      {
-        find: "@spin/theme/base",
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/theme/src/base/index.ts",
-        ),
-      },
-      {
-        find: /^@spin\/theme\/(.+)$/,
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/theme/src/$1",
-        ),
-      },
-      {
-        find: "@spin/theme",
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/theme/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/animation",
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/animation/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/primitives-procedures",
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/preset/src/primitives-procedures.ts",
-        ),
-      },
-      {
-        find: "@spin/preset",
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/preset/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/api",
-        replacement: resolve(
-          import.meta.dirname,
-          "../../packages/api/src/index.ts",
-        ),
-      },
-      { find: /^npm:(.+)$/, replacement: "$1" },
-      {
-        find: "@unocss/core",
-        replacement: resolve(
-          import.meta.dirname,
-          "node_modules/@unocss/core/dist/index.mjs",
-        ),
-      },
-    ],
-  },
-  server: {
-    fs: {
-      allow: [
-        searchForWorkspaceRoot(process.cwd()),
-        "/__uno.css",
-        "/__uno.css?inline",
-      ],
-    },
-  },
 }));
