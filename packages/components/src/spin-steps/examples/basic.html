@@ -4,7 +4,7 @@
 <div class="w-full" {...steps.getRootProps()}>
   <div class="mb-3 flex items-center justify-between gap-2">
     <span class="text-sm font-medium text-text">{label}</span>
-    <span class="text-xs text-muted">Step {steps.value} of {steps.count}</span>
+    <span class="text-xs text-muted">Step {steps.value + 1} of {steps.count}</span>
   </div>
 
   <ol class="flex items-start gap-1" {...steps.getListProps()}>
