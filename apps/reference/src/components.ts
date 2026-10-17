@@ -290,6 +290,104 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         tour.start();
       });
     });`,
+  "floating-panel/calculator": `
+    document.querySelectorAll("floating-panel-calculator").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // The inner content renders on element upgrade, which races this
+      // glue: poll until the display exists, then wire exactly once.
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-display]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const display = root.querySelector("[data-display]");
+        let shown = "0";
+        let previous = null;
+        let operation = null;
+        let waiting = false;
+        const render = () => {
+          display.textContent = shown;
+        };
+        const inputNumber = (num) => {
+          if (waiting) {
+            shown = num;
+            waiting = false;
+          } else {
+            shown = shown === "0" ? num : shown + num;
+          }
+          render();
+        };
+        const calculate = (first, second, op) => {
+          switch (op) {
+            case "+": return first + second;
+            case "−": return first - second;
+            case "×": return first * second;
+            case "÷": return second === 0 ? NaN : first / second;
+            case "=": return second;
+            default: return second;
+          }
+        };
+        const inputOperation = (next) => {
+          const input = parseFloat(shown);
+          if (Number.isNaN(input)) return;
+          if (previous === null) {
+            previous = input;
+          } else if (operation !== null) {
+            const value = calculate(previous, input, operation);
+            shown = Number.isNaN(value) ? "Error" : String(value);
+            previous = value;
+            render();
+          }
+          waiting = true;
+          operation = next;
+        };
+        root.querySelectorAll("[data-key]").forEach((key) => {
+          key.addEventListener("click", () => {
+            const label = key.getAttribute("data-key") ?? "";
+            const act = key.getAttribute("data-act") ?? "";
+            if (act === "clear") {
+              shown = "0";
+              previous = null;
+              operation = null;
+              waiting = false;
+              render();
+            } else if (act === "negate") {
+              shown = shown.startsWith("-") ? shown.slice(1) : "-" + shown;
+              render();
+            } else if (act === "percent") {
+              const value = parseFloat(shown);
+              if (!Number.isNaN(value)) {
+                shown = String(value / 100);
+                render();
+              }
+            } else if (act === "digit") {
+              if (label === "." && shown.includes(".") && !waiting) return;
+              inputNumber(label);
+            } else if (act === "op") {
+              inputOperation(label);
+            } else if (act === "eq") {
+              if (previous !== null && operation !== null) {
+                const value = calculate(previous, parseFloat(shown), operation);
+                shown = Number.isNaN(value) ? "Error" : String(value);
+                previous = null;
+                operation = null;
+                waiting = true;
+                render();
+              }
+            }
+          });
+        });
+      };
+      wait();
+    });`,
   "tree-view/loading": `
     document.querySelectorAll("tree-view-loading").forEach((tree) => {
       const t = tree;

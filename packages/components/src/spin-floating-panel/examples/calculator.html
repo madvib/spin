@@ -1,4 +1,4 @@
-<scope>props={ label: string = "Calculator", defaultOpen: bool = true } consume={ floatingPanel }</scope>
+<scope>props={ label: string = "Calculator", defaultOpen: bool = true, defaultSize: string = '{"w":300,"h":430}', defaultMinSize: string = '{"w":280,"h":380}', defaultMaxSize: string = '{"w":360,"h":520}'  } consume={ floatingPanel }</scope>
 
 <div class="grid gap-2">
   <button type="button" class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...floatingPanel.getTriggerProps()}>Open panel</button>
@@ -15,31 +15,30 @@
           <button type="button" class="flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...floatingPanel.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-3 p-4">
-        <div class="rounded-lg bg-surface p-3 text-right font-mono text-xl text-text">1,284</div>
+        <div data-display class="rounded-lg bg-black p-4 text-right font-mono text-2xl text-white">0</div>
         <div class="grid grid-cols-4 gap-2">
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-danger-soft text-danger ">C</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">±</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">%</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">÷</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">7</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">8</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">9</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">×</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">4</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">5</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">6</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">−</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">1</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">2</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">3</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">+</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text col-span-2">0</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-surface text-text ">.</span>
-          <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium bg-info text-white ">=</span>
+          <button type="button" data-key="C" data-act="clear" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-danger text-white hover:bg-danger-strong">C</button>
+          <button type="button" data-key="±" data-act="negate" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">±</button>
+          <button type="button" data-key="%" data-act="percent" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">%</button>
+          <button type="button" data-key="÷" data-act="op" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-warning text-white hover:bg-warning-strong">÷</button>
+          <button type="button" data-key="7" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">7</button>
+          <button type="button" data-key="8" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">8</button>
+          <button type="button" data-key="9" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">9</button>
+          <button type="button" data-key="×" data-act="op" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-warning text-white hover:bg-warning-strong">×</button>
+          <button type="button" data-key="4" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">4</button>
+          <button type="button" data-key="5" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">5</button>
+          <button type="button" data-key="6" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">6</button>
+          <button type="button" data-key="−" data-act="op" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-warning text-white hover:bg-warning-strong">−</button>
+          <button type="button" data-key="1" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">1</button>
+          <button type="button" data-key="2" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">2</button>
+          <button type="button" data-key="3" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">3</button>
+          <button type="button" data-key="+" data-act="op" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-warning text-white hover:bg-warning-strong">+</button>
+          <button type="button" data-key="0" data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">0</button>
+          <button type="button" data-key="." data-act="digit" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-surface text-text hover:bg-border">.</button>
+          <button type="button" data-key="=" data-act="eq" class="flex h-12 min-h-0 items-center justify-center rounded-lg p-0 text-md font-medium bg-warning text-white hover:bg-warning-strong">=</button>
         </div>
       </div>
-      
-      <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
+            <button type="button" class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("n")} aria-hidden="true"></button>
       <button type="button" class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...floatingPanel.getResizeTriggerProps("s")} aria-hidden="true"></button>
       <button type="button" class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("e")} aria-hidden="true"></button>
       <button type="button" class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...floatingPanel.getResizeTriggerProps("w")} aria-hidden="true"></button>
