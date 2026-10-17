@@ -307,6 +307,86 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
   `,
 };
 
+
+/** Purpose groups for the machines, the same shape as the primitives'
+ * CATEGORIES: a reader looks for the thing it does, not its name. */
+export const COMPONENT_GROUPS: readonly {
+  readonly id: string;
+  readonly label: string;
+  readonly members: readonly string[];
+}[] = [
+  { id: "inputs", label: "Inputs", members: ["angle-slider", "color-picker", "date-input", "date-picker", "editable", "file-upload", "number-input", "pin-input", "rating-group", "slider", "tags-input", "toggle-group"] },
+  { id: "selectors", label: "Selection", members: ["cascade-select", "combobox", "listbox", "menu", "navigation-menu", "select", "tree-view"] },
+  { id: "display", label: "Display", members: ["async-list", "avatar", "carousel", "pagination", "steps", "tabs", "timer", "tour"] },
+  { id: "overlays", label: "Overlays", members: ["floating-panel", "hover-card", "popover", "toast", "tooltip"] },
+  { id: "layout", label: "Layout", members: ["splitter"] },
+  { id: "media", label: "Media", members: ["image-cropper", "signature-pad"] },
+];
+
+/** One glyph per machine, beside the groups that list them. Controllers
+ * (tabs, tooltip, popover, hover-card) share the mapping — the rail looks
+ * up by machine id, not by tier. */
+export const COMPONENT_ICONS: Readonly<Record<string, string>> = {
+  "angle-slider": "i-lucide-compass",
+  "async-list": "i-lucide-list-filter",
+  avatar: "i-lucide-circle-user",
+  carousel: "i-lucide-gallery-horizontal",
+  "cascade-select": "i-lucide-list-tree",
+  "color-picker": "i-lucide-palette",
+  combobox: "i-lucide-chevrons-up-down",
+  "date-input": "i-lucide-calendar-days",
+  "date-picker": "i-lucide-calendar",
+  editable: "i-lucide-pencil",
+  "file-upload": "i-lucide-upload",
+  "floating-panel": "i-lucide-panel-top",
+  "hover-card": "i-lucide-square-mouse-pointer",
+  "image-cropper": "i-lucide-crop",
+  listbox: "i-lucide-listbox",
+  menu: "i-lucide-menu",
+  "navigation-menu": "i-lucide-navigation",
+  "number-input": "i-lucide-hash",
+  pagination: "i-lucide-chevrons-left-right",
+  "pin-input": "i-lucide-key-round",
+  popover: "i-lucide-message-circle",
+  "rating-group": "i-lucide-star",
+  select: "i-lucide-chevron-down",
+  "signature-pad": "i-lucide-pen-line",
+  slider: "i-lucide-sliders-horizontal",
+  splitter: "i-lucide-columns-2",
+  steps: "i-lucide-list-ordered",
+  tabs: "i-lucide-layout-list",
+  "tags-input": "i-lucide-tags",
+  timer: "i-lucide-timer",
+  toast: "i-lucide-bell",
+  "toggle-group": "i-lucide-toggle-left",
+  tooltip: "i-lucide-message-circle-off",
+  tour: "i-lucide-route",
+  "tree-view": "i-lucide-folder-tree",
+};
+
+/** Controllers: platform-backed glue, no machine. Everything else on the
+ * rail runs a statechart and needs the runtime. */
+const CONTROLLERS: readonly string[] = ["tabs", "tooltip", "popover", "hover-card"];
+
+/** The dependency line the detail view shows: what a consumer must have
+ * before the markup works. */
+export const componentRequirement = (id: string): string => {
+  const machine = id.startsWith("component-") ? id.slice("component-".length) : id;
+  if ((CONTROLLERS as readonly string[]).includes(machine)) return "Needs the controller glue (@spin/runtime, no statechart).";
+  return "Requires the runtime (@spin/runtime): markup drives a statechart.";
+};
+
+// A machine the groups and the icons both miss is a machine the rail
+// cannot place — checked here, where all three are in view.
+for (const entry of [...grouped.entries()].map(([id]) => id)) {
+  if (!COMPONENT_GROUPS.some((g) => (g.members as readonly string[]).includes(entry))) {
+    throw new Error(`COMPONENT_GROUPS: ${entry} is in no group`);
+  }
+  if (COMPONENT_ICONS[entry] === undefined) {
+    throw new Error(`COMPONENT_ICONS: ${entry} has no icon`);
+  }
+}
+
 export const COMPONENTS: readonly PrimitivePage[] = [...grouped.entries()]
   .map(([id, group]) => ({
     id: `component-${id}`,

@@ -13,7 +13,7 @@ import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes, themeModes } from "@spin/theme/themes";
 import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
-import { COMPONENTS } from "./components.ts";
+import { COMPONENT_GROUPS, COMPONENT_ICONS, COMPONENTS, componentRequirement } from "./components.ts";
 import "@spin/components/elements";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
@@ -454,6 +454,11 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
                 <div class="font-mono text-xs text-text-muted">
                   {f().kind}
                 </div>
+                <Show when={f().id.startsWith("component-")}>
+                  <div class="mt-1 text-xs text-text-muted">
+                    {componentRequirement(f().id)}
+                  </div>
+                </Show>
               </div>
             </div>
             <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
@@ -787,20 +792,29 @@ function Rail(props: {
               })),
           }))
           .filter((group) => group.rows.length > 0),
-        {
-          label: "Machines",
-          rows: COMPONENTS
-            .filter((page) =>
-              page.title.toLowerCase().includes(
-                props.query().trim().toLowerCase(),
+        ...COMPONENT_GROUPS
+          .map((group) => ({
+            label: group.label,
+            rows: COMPONENTS
+              .filter((page) =>
+                (group.members as readonly string[]).includes(
+                  page.id.startsWith("component-")
+                    ? page.id.slice("component-".length)
+                    : page.id,
+                ) &&
+                page.title.toLowerCase().includes(
+                  props.query().trim().toLowerCase(),
+                )
               )
-            )
-            .map((page) => ({
-              id: page.id,
-              title: page.title,
-              icon: "i-lucide-cog",
-            })),
-        },
+              .map((page) => ({
+                id: page.id,
+                title: page.title,
+                icon: COMPONENT_ICONS[page.id.startsWith("component-")
+                  ? page.id.slice("component-".length)
+                  : page.id] ?? "i-lucide-cog",
+              })),
+          }))
+          .filter((group) => group.rows.length > 0),
       ].filter((group) => group.rows.length > 0)
   );
 
