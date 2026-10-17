@@ -1,7 +1,16 @@
 {
   "$extensions": {
     "spin": {
-      "id": "spin-neobrut"
+      "id": "spin-neobrut",
+      "fonts": [
+        {
+          "family": "DM Sans",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/dm-sans:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 1000",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
     }
   },
   "color": {
