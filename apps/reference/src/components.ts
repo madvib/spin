@@ -457,6 +457,46 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       };
       wait();
     });`,
+"floating-panel/settings": `
+    document.querySelectorAll("floating-panel-settings").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-toggle]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const setToggle = (btn, on) => {
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+          btn.classList.toggle("bg-primary", on);
+          btn.classList.toggle("bg-border", !on);
+          const knob = btn.querySelector("[data-knob]");
+          if (knob) knob.style.transform = on ? "translateX(1.25rem)" : "translateX(0)";
+        };
+        root.querySelectorAll("[data-toggle]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const pressed = btn.getAttribute("aria-pressed") === "true";
+            setToggle(btn, !pressed);
+          });
+        });
+        const clear = root.querySelector("[data-clear]");
+        const freed = root.querySelector("[data-freed]");
+        const storage = root.querySelector("[data-storage]");
+        if (clear) clear.addEventListener("click", () => {
+          if (freed) freed.classList.remove("hidden");
+          if (storage) storage.textContent = "0 MB";
+          clear.setAttribute("disabled", "true");
+        });
+      };
+      wait();
+    });`,
   "floating-panel/calculator": `
     document.querySelectorAll("floating-panel-calculator").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
