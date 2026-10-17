@@ -2,16 +2,17 @@
  * Page bits the docs share: sections, code blocks, and the two-column mode
  * probe used by the threads page.
  *
- * The probe is the honest demo of the whole product: a subtree that re-declares
- * `data-theme` and `data-mode` carries that deck and mode's variables, so the
- * same `bg-primary` utility resolves to ink inside it and paper outside it.
- * Nothing is styled by hand; nothing needs JS to resolve a color.
+ * The probe is the honest demo of the whole product: a subtree that
+ * re-declares `data-theme` and `data-mode` carries that theme and mode's
+ * variables, so the same `bg-primary` utility resolves to dark inside it
+ * and light outside it. Nothing is styled by hand; nothing needs JS to
+ * resolve a color
  */
 import type { JSX } from "solid-js";
 import { starterThemes } from "@spin/theme/themes";
-import { mode, theme } from "../shell.tsx";
+import { mode, theme } from "./shell.tsx";
 
-export interface DeckDocument {
+export interface ThemeDocument {
   color?: Record<string, unknown>;
   [key: string]: unknown;
 }
@@ -66,37 +67,22 @@ export function Chip(props: { children: JSX.Element }): JSX.Element {
 }
 
 /**
- * The document of the deck the site currently wears. Reading `theme()` twice
- * — once to invalidate, once to fetch — is what makes callers re-resolve on
- * a deck switch.
+ * The document of the active starter. Reading `theme()` twice — once to
+ * invalidate, once to fetch — is what makes callers re-resolve when the
+ * theme changes.
  */
-export function deckOf(): DeckDocument {
+export function starterDoc(): ThemeDocument {
   return starterThemes[
     theme() as keyof typeof starterThemes
-  ] as DeckDocument;
-}
-
-/** The value a color token states for the paper (base) rendering. */
-export function colorValue(doc: DeckDocument, name: string): string {
-  const leaf = (doc.color?.[name] ?? {}) as Record<string, unknown>;
-  const value = leaf["$value"];
-  return typeof value === "string" ? value : "";
-}
-
-/** The value a color token restates for ink mode, when it does. */
-export function colorInk(doc: DeckDocument, name: string): string {
-  const leaf = (doc.color?.[name] ?? {}) as Record<string, unknown>;
-  const modes = (leaf["modes"] ?? {}) as Record<string, unknown> | undefined;
-  const dark = modes?.["dark"];
-  return typeof dark === "string" ? dark : "";
+  ] as ThemeDocument;
 }
 
 /**
- * One deck, both modes, side by side.
+ * One theme, both modes, side by side.
  *
- * The subtree re-declares the deck and the OTHER mode of it, so the theme
+ * The subtree re-declares the theme and the OTHER mode of it, so the theme
  * utilities the children use resolve against that rendering. Single-mode
- * decks (console) show one column and say so.
+ * themes (console) show one column and say so.
  */
 export function Probe(props: { children: JSX.Element }): JSX.Element {
   return (

@@ -2,17 +2,18 @@
  * Threads: the token system, shown live.
  *
  * Every swatch chip is a theme utility (`bg-surface`, `bg-primary`, …) —
- * the same class the product spends, resolved by the sheet for the deck
- * the page wears. The ink column sits in a probe subtree that re-declares
+ * the same class the product spends, resolved by the sheet for the theme
+ * the page renders with. The mode column sits in a probe subtree that
+ * re-declares
  * `data-theme` and `data-mode`, so both renderings of a token hang side by
- * side, resolved by the CSS, not by JS. The character table reads the four
- * starter documents and shows exactly where each one disagrees.
+ * side, resolved by the CSS, not by JS. The character table reads the
+ * starter documents and shows exactly where they disagree.
  */
 import { createMemo, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { starterThemes } from "@spin/theme/themes";
 import { mode, starterList, theme } from "../shell.tsx";
-import { Chip, deckOf, Probe, Section } from "./bits.tsx";
+import { Chip, Probe, Section, starterDoc } from "../bits.tsx";
 
 type Cell = Record<string, unknown>;
 const leaf = (root: unknown, path: string): unknown => {
@@ -29,23 +30,25 @@ const stated = (doc: unknown, path: string): string => {
   return v === undefined || v === null ? "—" : String(v);
 };
 
-/** The other mode of the worn deck, if it has one. */
+/** The other mode of the active theme, if it has one. */
 const otherMode = () => (mode() === "dark" ? "light" : "dark");
 
-export function Threads(): JSX.Element {
-  const doc = createMemo(() => deckOf());
-  const worn = theme;
+export default function Threads(): JSX.Element {
+  const doc = createMemo(() => starterDoc());
+  const active = theme;
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
       <h1 class="text-2xl tracking-tight">Threads</h1>
       <p class="text-text-muted max-w-screen-md mt-1">
-        A theme is a document; a deck is the CSS it becomes. The thread is the
-        custom property: one name, strung between every element that spends it.
-        This page wears <strong class="text-text">{worn()}</strong>{" "}
-        — switch the header deck and everything below re-resolves.
+        Watch your theme work. Every swatch below is a real utility class,
+        painted by the active theme (<strong class="text-text">
+          {active()}
+        </strong>
+        ). Flip light and dark in the rail — the sheet re-resolves in front of
+        you.
       </p>
 
-      <Section id="pipeline" title="Document → deck">
+      <Section id="pipeline" title="Document → sheet">
         <p>
           A theme document states tokens (colors, scales, character), the modes
           it answers to, and the faces it loads. The pipeline parses it,
@@ -54,7 +57,7 @@ export function Threads(): JSX.Element {
           <code class="font-mono">data-theme</code>, mode restatements scoped by
           {" "}
           <code class="font-mono">data-mode</code>, and font preflights that
-          load only what the deck promises.
+          load only what the theme promises.
         </p>
         <p class="mt-2">
           The property name is the token's identity:{" "}
@@ -70,17 +73,16 @@ export function Threads(): JSX.Element {
       <Section id="palette" title="The palette, live">
         <p>
           Each row is a token. The left chip is this page's rendering, in the
-          mode the page wears right now. The right chip renders inside a probe
-          that has re-declared the deck for{" "}
-          <em class="text-text">{otherMode()}</em>{" "}
-          — the deck's other rendering, by the same CSS. Values shown are what
+          active mode. The right chip renders inside a probe that has
+          re-declared the theme as <em class="text-text">{otherMode()}</em>{" "}
+          — the theme's other rendering, by the same CSS. Values shown are what
           the DOCUMENT states: references ({"{"}color.neutral.50{"}"}-style)
           name their thread instead of restating a hex.
         </p>
         <div class="mt-5 grid gap-x-10 gap-y-7 md:grid-cols-2">
           <div>
             <p class="m-0 mb-3 text-sm font-semibold text-text">
-              page and separates
+              the page
             </p>
             <div class="grid gap-2">
               <For
@@ -123,12 +125,11 @@ export function Threads(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="ink" title="Paper and ink, side by side">
+      <Section id="modes" title="Light and dark, side by side">
         <p>
-          The same worn-deck swatches, rendered under a subtree that has
-          re-declared{" "}
-          <code class="font-mono">data-mode="…"</code>. Decks with two modes
-          (this one) show the other rendering; decks with one show the truth of
+          The same swatches, rendered under a subtree that has re-declared{" "}
+          <code class="font-mono">data-mode="…"</code>. Themes with two modes
+          (this one) show the other rendering; themes with one show the truth of
           one.
         </p>
         <div class="mt-4 border border-border rounded-md bg-surface-raised p-4">
@@ -153,8 +154,7 @@ export function Threads(): JSX.Element {
 
       <Section id="character" title="Where the starters disagree">
         <p>
-          Four decks, four opinions — read straight out of each document, so the
-          table follows them wherever they change their minds.
+          Every starter, read straight out of its own document.
         </p>
         <div class="mt-4 overflow-x-auto">
           <table class="w-full border-collapse text-sm">
@@ -200,13 +200,13 @@ export function Threads(): JSX.Element {
 
       <Section id="fonts" title="Faces">
         <p>
-          A deck declares the faces it loads (<code class="font-mono">
+          A theme declares the faces it loads (<code class="font-mono">
             $extensions.spin.fonts
           </code>), and nothing else is fetched. The didone this page's headings
           speak is{" "}
           {stated(doc(), "font.family.heading").split(",")[0]}, declared by{" "}
-          {worn()}; ink or paper, they are the same face — the mode changes the
-          sheet, not the voice.
+          {active()}; light or dark, they are the same face — the mode changes
+          the sheet, not the voice.
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={Object.keys(doc().font as Record<string, unknown>)}>
@@ -214,10 +214,10 @@ export function Threads(): JSX.Element {
           </For>
         </div>
         <p class="mt-3 mb-0">
-          The faces <code class="font-mono">{worn()}</code>{" "}
+          The faces <code class="font-mono">{active()}</code>{" "}
           declares — the load manifest the sheet turns into{" "}
           <code class="font-mono">@font-face</code>{" "}
-          rules, so a deck owns its own voices and fetches nothing beyond them:
+          rules, so a theme owns its own voices and fetches nothing beyond them:
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={faces(doc())}>
@@ -240,7 +240,7 @@ export function Threads(): JSX.Element {
   );
 }
 
-/** The deck's load manifest: the faces declared under `$extensions.spin.fonts`. */
+/** The theme's load manifest: the faces declared under `$extensions.spin.fonts`. */
 function faces(
   doc: unknown,
 ): readonly { family: string; weight?: string }[] {
@@ -251,16 +251,16 @@ function faces(
     : [];
 }
 
-/** A single swatch token: chip (worn rendering) + authored values. */
+/** A single swatch token: chip (the active rendering) + authored values. */
 function SwatchToken(props: { name: string; doc: unknown }): JSX.Element {
   const d = props.doc as Cell;
   const color = (d["color"] ?? {}) as Cell;
   const token = (color[props.name] ?? {}) as Cell;
   const base = String(token["$value"] ?? "—");
-  const ink = String(
+  const dark = String(
     (token["modes"] as Cell | undefined)?.["dark"] ?? "",
   );
-  const value = ink ? `${base}  ·  ink ${ink}` : base;
+  const value = dark ? `${base}  ·  dark ${dark}` : base;
   return (
     <div class="flex items-center gap-3">
       <div

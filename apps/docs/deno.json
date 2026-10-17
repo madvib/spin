@@ -6,11 +6,12 @@
     "check": "deno check src/"
   },
   "imports": {
-    "solid-js": "npm:solid-js@^1.9.3",
+    "@solidjs/router": "npm:@solidjs/router@^1.0.0",
+    "@spin/preset": "../../packages/preset/src/index.ts",
+    "@spin/preset/rules/primitives/examples-index.ts": "../../packages/preset/src/rules/primitives/examples-index.ts",
     "@spin/theme": "../../packages/theme/src/index.ts",
     "@spin/theme/themes": "../../packages/theme/src/themes/index.ts",
-    "@spin/preset": "../../packages/preset/src/index.ts",
-    "@spin/preset/rules/primitives/examples-index.ts": "../../packages/preset/src/rules/primitives/examples-index.ts"
+    "solid-js": "npm:solid-js@^1.9.3"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

@@ -1,57 +1,12 @@
 /**
- * The router and the theme state, hand-rolled.
+ * Theme state only now that the router does the routing.
  *
- * Two reasons a library is not pulled in: the routes are five, and the theme
- * state is the demo. Setting `data-theme` on the document element is the
- * product's whole switching story, and the docs site doing it live — four
- * starters, real CSS, no iframe — is the pitch working on itself.
+ * Setting `data-theme` on the document element is the product's whole
+ * switching story; the site doing it live — the shipped starters, real CSS,
+ * no iframe — is the product working on itself.
  */
 import { createEffect, createSignal } from "solid-js";
-import type { JSX } from "solid-js";
 import { starterThemes, themeModes } from "@spin/theme/themes";
-
-const [path, setPath] = createSignal(
-  typeof location === "undefined" ? "/" : location.pathname,
-);
-
-addEventListener("popstate", () => setPath(location.pathname));
-
-/** Route to an internal path. All links go through here. */
-export function navigate(to: string): void {
-  if (to === path()) return;
-  history.pushState(null, "", to);
-  setPath(to);
-  scrollTo({ top: 0 });
-}
-
-export { path };
-
-/** An internal link that routes instead of reloading. */
-export function Link(
-  props: { href: string; class?: string; children: JSX.Element },
-): JSX.Element {
-  return (
-    <a
-      href={props.href}
-      class={props.class}
-      onClick={(event) => {
-        if (
-          event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
-        ) {
-          return;
-        }
-        event.preventDefault();
-        navigate(props.href);
-      }}
-    >
-      {props.children}
-    </a>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Theme state: the starter the site wears, and the mode of it.
- * ------------------------------------------------------------------ */
 
 type StarterName = keyof typeof starterThemes;
 
@@ -71,7 +26,7 @@ export const modesFor = (name: string): readonly string[] => {
   return document_ ? themeModes(document_) : ["light"];
 };
 
-/** The starters, in a stable order that reads: product, poster, terminal, widow. */
+/** The shipped starters, in a stable order. */
 export const starterList: readonly string[] = [
   "default",
   "neobrut",

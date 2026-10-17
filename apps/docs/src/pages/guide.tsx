@@ -1,10 +1,10 @@
 /**
  * The guide: the install story as it honestly is — v0.1 is source-first,
- * npm distributions land at launch — the one-plugin wiring, and the layer
- * boundary: what ships now, what merges after.
+ * npm distributions land at launch — the one-plugin wiring, and the
+ * vocabulary rules.
  */
 import type { JSX } from "solid-js";
-import { Code, Section } from "./bits.tsx";
+import { Code, Section } from "../bits.tsx";
 import { componentExamples } from "@spin/preset/rules/primitives/examples-index.ts";
 import { ExampleRow } from "../example-row.tsx";
 
@@ -22,13 +22,13 @@ export default {
 
 const WIRE_THEMES = `import { spin } from "@spin/preset/plugin";
 import { starterThemes } from "@spin/theme/themes";
-import myDeck from "./deck.json" with { type: "json" };
+import myTheme from "./theme.json" with { type: "json" };
 
 export default {
   plugins: [spin.vite({
     // Omit this and the plugin owns spin/*.json off your root — the
     // files the studio edits. Pass a map to own the documents yourself.
-    themes: { myDeck, ...starterThemes },
+    themes: { myTheme, ...starterThemes },
   })],
 };`;
 
@@ -48,33 +48,28 @@ const MARKUP =
 <button class="ghost">quiet</button>
 <input placeholder="search the web…" />`;
 
-export function Guide(): JSX.Element {
+export default function Guide(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
       <h1 class="text-2xl tracking-tight">Guide</h1>
       <p class="text-text-muted max-w-screen-md mt-1">
-        The whole story, in order: what the layer is, how it lands, how markup
-        consumes it, and where its edges are.
+        Install it, wire it, write markup, ship. Every section is the real
+        product — this site runs on it.
       </p>
 
       <Section id="what" title="What spin is">
         <p>
-          spin is the{" "}
-          <strong class="text-text">
-            styling layer for agent-authored UI
-          </strong>. Agents generate markup well; what they lack is a body of
-          decisions to draw from. spin is that body: a theme (every decision, as
-          tokens), a preset (the utilities and the finished elements that spend
-          them), and oracles that verify the result stays inside the system.
+          Agents write markup all day. What they don't have is a system of
+          decisions that makes every screen look like it belongs together. spin
+          gives them one: bring your design as a theme, and every button, badge,
+          and input your agent writes comes out consistent, accessible, and
+          yours.
         </p>
         <p>
-          It is deliberately <em>not</em> a component library. The elements are
+          spin is not a component library. The elements carry paint only — a
           {" "}
-          <em>paint</em>: a <code class="font-mono">&lt;button&gt;</code>{" "}
-          carries its look from the theme; your app carries its state. The
-          behavior layer is a separate stack that lands after v0.1 —{" "}
-          <a href="/runtime" class="text-primary underline">runtime</a>
-          explains it.
+          <code class="font-mono">&lt;button&gt;</code>{" "}
+          gets its look from the theme, and state stays in your app.
         </p>
       </Section>
 
@@ -84,25 +79,24 @@ export function Guide(): JSX.Element {
         </p>
         <Code code={ADD} />
         <p class="mt-3">
-          <strong class="text-text">Honesty note:</strong>{" "}
-          the npm distributions publish at the v0.1 launch. Until then the
-          packages eat from source — point your imports at the modules in the
-          repo (every app in the workspace does exactly that, including this
-          site) and the npm path will be a one-line change when it lands.
+          <strong class="text-text">Heads-up:</strong>{" "}
+          the npm packages publish at the v0.1 launch. Until then, point your
+          imports at the modules in the repo — the same map you see above.
+          Moving to npm later is that one line again.
         </p>
       </Section>
 
       <Section id="wire" title="Wire the plugin">
         <p>
           <code class="font-mono">spin.vite()</code> replaces{" "}
-          <code class="font-mono">@unocss/vite</code>. It composes the preset
-          itself — no <code class="font-mono">uno.config.ts</code>{" "}
-          exists anywhere in a spin app, which is the point: the theme documents
-          are the config. Without a <code class="font-mono">themes</code>{" "}
-          option, the plugin reads <code class="font-mono">spin/*.json</code>
+          <code class="font-mono">@unocss/vite</code>{" "}
+          and that's all the Uno config you'll ever write — your theme documents
           {" "}
-          at your project root (the same files the studio edits and reloads
-          live). With one, you own the documents:
+          <em>are</em>{" "}
+          the config. Point it at your own documents, or let it read{" "}
+          <code class="font-mono">spin/*.json</code>{" "}
+          from your project root (the studio edits those files and reloads
+          live):
         </p>
         <Code code={WIRE} class="mb-3" />
         <Code code={WIRE_THEMES} class="mb-3" />
@@ -118,9 +112,8 @@ export function Guide(): JSX.Element {
         <p>
           <strong class="text-text">Tags are the opt-in.</strong> A bare{" "}
           <code class="font-mono">&lt;button&gt;</code>{" "}
-          carries the base the theme decides for buttons; variant and size
-          classes are words on the same tag; scale utilities spend the deck. The
-          row is the primitives' example data, live:
+          already carries your theme; variant and size classes change it;
+          utilities fine-tune it. Live, with the markup to copy below:
         </p>
         <ExampleRow
           name="buttons"
@@ -136,46 +129,40 @@ export function Guide(): JSX.Element {
         <Code code={MARKUP} />
       </Section>
 
-      <Section id="decks" title="Switch decks, switch modes">
+      <Section id="themes" title="Theme anything, including one island">
         <p>
-          Any wrapper element carries the theme and the mode:
+          One attribute themes anything — the whole app or a single card:
         </p>
         <Code
           code={`<html data-theme="widow" data-mode="dark">  <!-- the whole app -->
 <div data-theme="console">                 <!-- one island, any subtree -->`}
         />
         <p class="mt-3">
-          Modes are data, not themes: a deck either states a{" "}
-          <code class="font-mono">$modes.dark</code>{" "}
-          group or it has one rendering (the terminal deck has one, on purpose).
-          The header switcher on this very site is the product's whole switching
-          story.
+          Add <code class="font-mono">data-mode="dark"</code>{" "}
+          and the same markup flips to its dark rendering. There is no second
+          system: the switch in this site's rail is the product's, unchanged.
         </p>
       </Section>
 
-      <Section id="layer" title="What v0.1 ships — and doesn't">
+      <Section id="layer" title="What's in the box">
         <p>
-          v0.1 ships the styling layer: the theme package (parse, validate,
-          emit), the preset (utilities + the finished elements' paint), the lint
-          plugin that keeps authored UI inside the vocabulary, and the three
-          surfaces — this site, the reference, the studio. The component runtime
-          — claimed elements with behavior, the daemon, the live studio loop —
-          {" "}
-          <a href="/runtime" class="text-primary underline">comes after</a>.
-          Nothing you write against the styling layer is thrown away; paint is
-          the runtime's skin, not a separate truth.
+          Your starter kit: the theme pipeline (parse, validate, emit), the
+          utility preset with the finished elements, and a lint plugin that
+          keeps agent-written UI inside your vocabulary. State and behavior stay
+          yours — spin only paints.
         </p>
       </Section>
 
       <Section id="verify" title="Verify">
         <p>
-          The layer is checkable, which is the whole reason it exists:{" "}
-          <code class="font-mono">@spin/lint</code>{" "}
-          refuses utility-name mistakes the compiler cannot see; the theme
-          pipeline refuses any fill without a readable foreground; the visual
-          and layout oracles render real pages and assert on what came out. If
-          an agent wrote your UI, you can know it stayed in the system —
-          mechanically.
+          You don't have to take any of it on faith: the pipeline rejects
+          unreadable contrast at build time,{" "}
+          <code class="font-mono">
+            @spin/lint
+          </code>{" "}
+          catches the utility-name mistakes no compiler sees, and the visual and
+          layout oracles render real pages and assert on what came out. When an
+          agent writes your UI, you can prove it stayed inside the system.
         </p>
       </Section>
     </main>

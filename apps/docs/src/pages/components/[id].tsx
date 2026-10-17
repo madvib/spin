@@ -1,80 +1,31 @@
 /**
- * The components pages — generated from two sources of truth and no third:
- * `primitiveContracts` (tags, variants, reads, character) and
- * `componentExamples` (the markup an author actually writes). Nothing on
- * these pages is hand-maintained; when a primitive changes its mind, the
- * page changes with it.
+ * components/[id] — one primitive's contract, from the same two sources
+ * of truth as the index. The id arrives as a route param.
  */
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { type PrimitiveContract, primitiveContracts } from "@spin/preset";
 import { examplesFor } from "@spin/preset/rules/primitives/examples-index.ts";
-import { Link } from "../shell.tsx";
-import { Chip, Section } from "./bits.tsx";
-import { ExampleRow } from "../example-row.tsx";
+import { A, useParams } from "@solidjs/router";
+import { Chip, Section } from "../../bits.tsx";
+import { ExampleRow } from "../../example-row.tsx";
 
-const componentIds: readonly string[] = Object.keys(primitiveContracts)
-  .filter((id) => id !== "a11y") // a11y is a utility family, not a primitive
-  .sort();
-
-export function ComponentsIndex(): JSX.Element {
-  return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Components</h1>
-      <p class="text-text-muted max-w-screen-md mt-1">
-        Every element the primitives paint, with its contract: the tags it
-        claims, the variants it answers to, and the threads it spends. Count
-        {" "}
-        <strong class="text-text">{componentIds.length}</strong>{" "}
-        — open one and the markup on the page is the primitives' own example
-        data, rendered live, all of it wearing{" "}
-        <strong class="text-text">whatever deck this page wears</strong>.
-      </p>
-      <div class="mt-6 grid gap-3 sm:grid-cols-2">
-        <For each={componentIds}>
-          {(id) => {
-            const contract: PrimitiveContract = primitiveContracts[id];
-            const examples = examplesFor(id);
-            return (
-              <Link
-                href={`/components/${id}`}
-                class="block border border-border bg-surface-raised rounded-md p-4 hover:border-border-strong transition-colors duration-fast"
-              >
-                <p class="m-0 flex items-baseline gap-2">
-                  <span class="font-heading text-lg tracking-tight">{id}</span>
-                  <span class="text-xs text-text-muted">
-                    {contract.tags.length} tags · {contract.variants.length}
-                    {" "}
-                    variants · {contract.reads.length} reads
-                    {examples ? ` · ${examples.rows.length} examples` : ""}
-                  </span>
-                </p>
-                <p class="m-0 mt-2 text-sm text-text-muted">
-                  {examples?.note ??
-                    "A utility family — see the page for what it provides."}
-                </p>
-              </Link>
-            );
-          }}
-        </For>
-      </div>
-    </main>
+export default function ComponentPage(): JSX.Element {
+  const params = useParams<{ id: string }>();
+  const contract = createMemo<PrimitiveContract | undefined>(
+    () => primitiveContracts[params.id],
   );
-}
-
-export function ComponentPage(props: { id: string }): JSX.Element {
-  const contract = createMemo(() => primitiveContracts[props.id]);
-  const examples = createMemo(() => examplesFor(props.id));
+  const examples = createMemo(() => examplesFor(params.id));
   const known = createMemo(() => !!contract());
   return (
-    <Show when={known()} fallback={<NotFound id={props.id} />}>
+    <Show when={known()} fallback={<NotFound id={params.id} />}>
       <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
         <p class="text-sm">
-          <Link href="/components" class="text-text-muted hover:text-text">
+          <A href="/components" class="text-text-muted hover:text-text">
             ← components
-          </Link>
+          </A>
         </p>
-        <h1 class="mt-1 text-2xl tracking-tight">{props.id}</h1>
+        <h1 class="mt-1 text-2xl tracking-tight">{params.id}</h1>
         <Show when={examples()}>
           {(ex) => (
             <p class="text-text-muted max-w-screen-md mt-1">{ex().note}</p>
@@ -126,11 +77,12 @@ export function ComponentPage(props: { id: string }): JSX.Element {
 
         <Section title="What it spends">
           <p>
-            These are the threads this element reads from the deck — the names
+            These are the threads this element reads from the theme — the names
             are the custom properties, the tokens are resolved by whatever{" "}
             <code class="font-mono">data-theme</code>{" "}
             scope the element sits in. The live specimens above are already
-            spending them: switch the header deck to watch them re-resolve.
+            spending them: switch the theme in the rail to watch them
+            re-resolve.
           </p>
           <div class="mt-3 flex flex-wrap gap-2">
             <For each={contract()!.reads}>
@@ -188,9 +140,9 @@ function NotFound(props: { id: string }): JSX.Element {
     <main class="mx-auto max-w-screen-md px-4 py-24 text-center">
       <p class="text-text-muted">
         No primitive is named <code class="font-mono">{props.id}</code>.{" "}
-        <Link href="/components" class="text-primary underline">
+        <A href="/components" class="text-primary underline">
           See the index.
-        </Link>
+        </A>
       </p>
     </main>
   );
