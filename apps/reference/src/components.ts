@@ -427,18 +427,27 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       };
       const wire = (root) => {
         const notes = [
-          { title: "Meeting Notes", preview: "Discussed project timeline and deliverables…", date: "Today" },
-          { title: "Ideas", preview: "New feature ideas for the dashboard…", date: "Yesterday" },
-          { title: "Shopping List", preview: "Milk, Bread, Eggs, Coffee beans…", date: "2 days ago" },
+          { title: "Meeting Notes", body: "Discussed project timeline and deliverables…", date: "Today" },
+          { title: "Ideas", body: "New feature ideas for the dashboard…", date: "Yesterday" },
+          { title: "Shopping List", body: "Milk, Bread, Eggs, Coffee beans…", date: "2 days ago" },
         ];
+        let current = 0;
         const title = root.querySelector("[data-title]");
         const body = root.querySelector("[data-body]");
         const edited = root.querySelector("[data-edited]");
+        const previewOf = (index) => {
+          const card = root.querySelector('[data-note="' + index + '"]');
+          if (!card) return;
+          const ps = card.querySelectorAll("p");
+          if (ps[0]) ps[0].textContent = notes[index].title;
+          if (ps[1]) ps[1].textContent = notes[index].body.slice(0, 48) + "…";
+        };
         const select = (index) => {
           const note = notes[index];
           if (!note) return;
-          title.textContent = note.title;
-          body.textContent = note.preview;
+          current = index;
+          title.value = note.title;
+          body.value = note.body;
           edited.textContent = "Last edited " + note.date;
           root.querySelectorAll("[data-note]").forEach((btn) => {
             const active = btn.getAttribute("data-note") === String(index);
@@ -448,23 +457,32 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
         root.querySelectorAll("[data-note]").forEach((btn) => {
           btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
         });
+        const commit = () => {
+          const note = notes[current];
+          if (!note) return;
+          note.title = title.value;
+          note.body = body.value;
+          note.date = "Just now";
+          edited.textContent = "Last edited Just now";
+          previewOf(current);
+        };
+        title.addEventListener("input", commit);
+        body.addEventListener("input", commit);
         const add = root.querySelector("[data-new]");
         if (add) add.addEventListener("click", () => {
           const index = notes.length;
-          notes.push({ title: "Untitled Note", preview: "Start writing…", date: "Just now" });
-          select(index - 0);
-          title.textContent = "Untitled Note";
+          notes.push({ title: "Untitled Note", body: "", date: "Just now" });
           const list = root.querySelector("[data-notes]");
           const btn = document.createElement("button");
           btn.type = "button";
           btn.setAttribute("data-note", String(index));
-          btn.className = "grid justify-items-start gap-1 rounded-md p-3 text-left hover:bg-surface";
+          btn.className = "grid justify-items-start gap-1 whitespace-normal rounded-md p-3 text-left hover:bg-surface";
           const t = document.createElement("p");
           t.className = "m-0 text-sm font-medium text-text";
           t.textContent = "Untitled Note";
           const pv = document.createElement("p");
           pv.className = "m-0 text-xs text-muted";
-          pv.textContent = "Start writing…";
+          pv.textContent = "…";
           const dt = document.createElement("p");
           dt.className = "m-0 text-xs text-muted";
           dt.textContent = "Just now";
@@ -472,6 +490,7 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
           btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
           list.appendChild(btn);
           select(index);
+          title.focus();
         });
       };
       wait();
