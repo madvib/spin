@@ -216,6 +216,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const placeholderShown = (asCtx(scope.context).value as string).trim() === "";
         return {
           id: scope.id("area"),
+            "data-scope": "editable",
+            "data-part": "area",
           dir: scope.props["dir"],
           "data-state": focused ? "edit" : "preview",
           "data-focus": scope.attr(focused),
@@ -233,6 +235,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const focused = editingOf(scope);
         return {
           id: scope.id("label"),
+            "data-scope": "editable",
+            "data-part": "label",
           dir: scope.props["dir"],
           for: scope.id("input"),
           "data-state": focused ? "edit" : "preview",
@@ -263,6 +267,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const placeholder = scope.props["placeholder"] as string;
         return {
           id: scope.id("input"),
+            "data-scope": "editable",
+            "data-part": "input",
           dir: scope.props["dir"],
           type: "text",
           name: scope.props["name"],
@@ -346,6 +352,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const removed = focused && scope.props["autoResize"] !== true;
         return {
           id: scope.id("preview"),
+            "data-scope": "editable",
+            "data-part": "preview",
           dir: scope.props["dir"],
           "data-state": focused ? "edit" : "preview",
           "data-placeholder-shown": scope.attr(placeholderShown),
@@ -393,6 +401,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const focused = editingOf(scope);
         return {
           id: scope.id("editTrigger"),
+            "data-scope": "editable",
+            "data-part": "edit-trigger",
           dir: scope.props["dir"],
           type: "button",
           "data-state": focused ? "edit" : "preview",
@@ -419,6 +429,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const focused = editingOf(scope);
         return {
           id: scope.id("submitTrigger"),
+            "data-scope": "editable",
+            "data-part": "submit-trigger",
           dir: scope.props["dir"],
           type: "button",
           "data-state": focused ? "edit" : "preview",
@@ -441,6 +453,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
         const focused = editingOf(scope);
         return {
           id: scope.id("cancelTrigger"),
+            "data-scope": "editable",
+            "data-part": "cancel-trigger",
           dir: scope.props["dir"],
           type: "button",
           "data-state": focused ? "edit" : "preview",

@@ -598,6 +598,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         return {
           type: "button",
           id: scope.id("trigger"),
+            "data-scope": "menu",
+            "data-part": "trigger",
           "aria-haspopup": scope.props["composite"] !== false ? "menu" : "dialog",
           "aria-expanded": open,
           "aria-controls": scope.id("content"),
@@ -646,6 +648,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
       sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("positioner"),
+          "data-scope": "menu",
+          "data-part": "positioner",
         "data-state": scope.state === "open" ? "open" : "closed",
         style: geometryStyle(scope),
       }),
@@ -662,6 +666,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         const highlightedValue = asCtx(scope.context).highlightedValue;
         return {
           id: scope.id("content"),
+            "data-scope": "menu",
+            "data-part": "content",
           role: scope.props["composite"] !== false ? "menu" : "dialog",
           tabindex: 0,
           // A leaf row's instance has no rows to show: keep it out of the
@@ -699,6 +705,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         const block = scope.slot as unknown as MenuBlock;
         return {
           id: scope.id("itemGroup", block.id),
+            "data-scope": "menu",
+            "data-part": "item-group",
           role: "group",
           "aria-labelledby": block.label === null ? undefined : scope.id("itemGroupLabel", block.id),
         };
@@ -711,6 +719,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         const block = scope.slot as unknown as MenuBlock;
         return {
           id: scope.id("itemGroupLabel", block.id),
+            "data-scope": "menu",
+            "data-part": "item-group-label",
           hidden: block.label === null,
         };
       },
@@ -735,6 +745,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         const highlighted = ctx.highlightedValue === row.value;
         const bag: Record<string, unknown> = {
           id: scope.id("item", row.value),
+            "data-scope": "menu",
+            "data-part": "item",
           role: row.checked === undefined ? "menuitem" : "menuitemcheckbox",
           ...(row.checked === undefined ? {} : { "aria-checked": row.checked }),
           ...(row.disabled ? { "aria-disabled": true, "data-disabled": "" } : {}),
@@ -823,6 +835,8 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         const row = scope.slot as unknown as MenuRow;
         return {
           id: scope.id("submenu", row.value),
+            "data-scope": "menu",
+            "data-part": "submenu",
           open: asCtx(scope.context).openSubmenu === row.value ? "true" : "false",
           items: JSON.stringify(row.children),
           label: row.label,

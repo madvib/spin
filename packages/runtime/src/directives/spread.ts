@@ -30,7 +30,11 @@ export function bindActionProps(
     }
     for (const [name, value] of Object.entries(props)) {
       if (name.startsWith("on")) continue;
-      if (Object.is(value, last[name])) continue;
+      // Assignable IDL props always write: user typing bypasses this
+      // cache, so a machine revert to the cached value (editable cancel)
+      // would otherwise skip and leave stale text. Same-value assignment
+      // is caret-safe.
+      if (!ASSIGNABLE.has(name) && Object.is(value, last[name])) continue;
       if (ASSIGNABLE.has(name)) {
         (el as unknown as Record<string, unknown>)[name] = value;
       } else if (
@@ -86,9 +90,12 @@ export function bindSpread(
       }
     }
     const seen = new Set<string>();
+    // DOM spellings that lowercasing the bag key misses: `dblclick`
+    // arrives as `onDoubleClick`, never as `ondblclick`.
+    const EVENT_ALIASES: Record<string, string> = { doubleclick: "dblclick" };
     for (const [name, value] of Object.entries(props)) {
       if (name.startsWith("on") && typeof value === "function") {
-        const type = name.slice(2).toLowerCase();
+        const type = EVENT_ALIASES[name.slice(2).toLowerCase()] ?? name.slice(2).toLowerCase();
         const listener = value as EventListener;
         seen.add(type);
         if (attached.get(type) !== listener) {
