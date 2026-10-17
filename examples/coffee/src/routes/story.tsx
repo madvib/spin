@@ -7,7 +7,9 @@
  * swatches, and the studio's judgements should be made against copy.
  */
 
-export default function Story() {
+import type { JSX } from "solid-js";
+
+export default function Story(): JSX.Element {
   return (
     <div class="flex flex-col gap-8 max-w-3xl mx-auto p-8">
       <header class="flex flex-col gap-4">
