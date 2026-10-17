@@ -314,6 +314,7 @@ const DECLARED_MODES = {
   default: ["light", "dark"],
   neobrut: ["light"],
   console: ["dark"],
+  widow: ["light", "dark"],
 } satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
 
 Deno.test("a theme states its modes at the root", async () => {

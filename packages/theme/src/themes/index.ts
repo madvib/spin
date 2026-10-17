@@ -19,6 +19,7 @@
 import console_ from "./console.json" with { type: "json" };
 import default_ from "./default.json" with { type: "json" };
 import neobrut from "./neobrut.json" with { type: "json" };
+import widow from "./widow.json" with { type: "json" };
 import type { ThemeDocument } from "../index.ts";
 
 /**
@@ -34,6 +35,9 @@ export const neobrutTheme = neobrut as ThemeDocument;
 /** A third: a terminal palette, where a field is sunk rather than raised. */
 export const consoleTheme = console_ as ThemeDocument;
 
+/** A fourth: the brand. Monochrome with one red thread; a didone speaks. */
+export const widowTheme = widow as ThemeDocument;
+
 /**
  * The themes a consumer can start from, by name.
  *
@@ -47,6 +51,7 @@ export const starterThemes = {
   default: defaultTheme,
   neobrut: neobrutTheme,
   console: consoleTheme,
+  widow: widowTheme,
 } as const;
 
 export type StarterThemeName = keyof typeof starterThemes;
