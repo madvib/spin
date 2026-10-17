@@ -406,11 +406,7 @@ export default function Home(): JSX.Element {
                 class="mt-6 w-full rounded-md border border-border"
               />
               <div class="mt-6 grid gap-6 md:grid-cols-2">
-                <p class="m-0">
-                  Drag <code class="text-xs">color.primary</code>{" "}
-                  and every button, badge, and bar on this page repaints with
-                  it. The value below is the one the page is using right now.
-                </p>
+                <p class="m-0">Update your theme live in the studio.</p>
                 <div class="border border-border bg-surface-raised rounded-md p-4">
                   <div class="flex items-center justify-between gap-3">
                     <span class="font-mono text-sm">color.primary</span>
