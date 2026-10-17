@@ -7,7 +7,7 @@
         <div class="flex flex-col items-center" {...timer.getItemProps({ type: unit.type })}>
           <span class="min-w-[2ch] text-center" {...timer.getItemValueProps({ type: unit.type })}>{timer.formattedTime[unit.type]}</span>
         </div>
-      <span aria-hidden="true" class="text-muted" {...timer.getSeparatorProps({ after: unit.type })}>:</span>
+      <span aria-hidden="true" class="text-muted" {...timer.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
       </template>
     </div>
     <div class="mt-3 flex items-center justify-center gap-2" {...timer.getControlProps()}>

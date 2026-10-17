@@ -114,3 +114,32 @@ Deno.test("the for re-syncs on the machine-move signal", () => {
   machineTick(machineTick() + 1);
   assertEquals(host.querySelectorAll("div").length, 2, "the new row renders from the move");
 });
+
+Deno.test("multi-root rows keep source order (item then twin)", () => {
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const anchor = document.createComment("for");
+  host.appendChild(anchor);
+  bindFor<string>({
+    anchor,
+    items: () => ["h", "m", "s"],
+    key: (_item, i) => i,
+    render: (row) => {
+      const frag = document.createDocumentFragment();
+      const div = document.createElement("div");
+      div.textContent = row;
+      const twin = document.createElement("span");
+      twin.textContent = ":";
+      frag.appendChild(div);
+      frag.appendChild(twin);
+      return { nodes: [...frag.childNodes] };
+    },
+  });
+  const order = [...host.childNodes]
+    .filter((n) => n.nodeName !== "#comment")
+    .map((n) => (n as Element).textContent ?? "?")
+    .join("");
+  assertEquals(order, "h:m:s:",
+    `row twins follow their item (got ${[...host.childNodes].map((n) => (n as Element).textContent ?? "?").join("|")})`,
+  );
+});

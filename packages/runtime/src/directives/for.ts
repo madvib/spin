@@ -89,6 +89,9 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
     // the first cell or after the anchor — are never touched. The old walk
     // started at host.firstChild and dragged every row before any preceding
     // sibling (radio group labels, tab strips ended up after their rows).
+    // Backward walk, forward order: within a cell the nodes insert
+    // front-to-back before the cursor (multi-root rows — the twin
+    // pattern — reversed when each insert reused the same cursor).
     let cursor: Node | null = anchor;
     for (let idx = next.length - 1; idx >= 0; idx--) {
       const cell = next[idx]!;
@@ -97,8 +100,8 @@ export function bindFor<T>(opts: BindForOptions<T>): () => void {
         const n = cell.nodes[k]!;
         if (n.parentNode !== host) host.insertBefore(n, cursor);
         else if (n.nextSibling !== cursor) host.insertBefore(n, cursor);
+        cursor = n;
       }
-      cursor = cell.nodes[0]!;
     }
 
     for (let i = 0; i < next.length; i++) {

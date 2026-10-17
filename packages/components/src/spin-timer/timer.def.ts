@@ -43,9 +43,12 @@ export interface TimerItem {
 }
 
 /** A separator part, addressed by the unit it follows so a hidden unit
- * leaves no dangling separator behind it. */
+ * leaves no dangling separator behind it. `last` hides the trailing
+ * separator — `show=` on a second row root misplaces (framework bug), so
+ * the bag owns it. */
 export interface TimerSeparator {
   readonly after: TimePart;
+  readonly last?: boolean | undefined;
 }
 
 export type TimerAction = "start" | "pause" | "resume" | "reset" | "restart";
@@ -383,14 +386,14 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         return `${after === "days" && timeOf(scope.context).days === 0}`;
       },
       attrs: (scope) => {
-        const after = (scope.slot as unknown as TimerSeparator).after;
-        const followsHiddenDays = after === "days" && timeOf(scope.context).days === 0;
+        const slot = scope.slot as unknown as TimerSeparator;
+        const followsHiddenDays = slot.after === "days" && timeOf(scope.context).days === 0;
         return {
           "aria-hidden": true,
           "data-scope": "timer",
           "data-part": "separator",
-          "data-after": after,
-          hidden: followsHiddenDays,
+          "data-after": slot.after,
+          hidden: followsHiddenDays || slot.last === true,
         };
       },
     },
