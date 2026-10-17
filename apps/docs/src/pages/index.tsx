@@ -79,13 +79,16 @@ export default function Home(): JSX.Element {
               Spin your own web.
             </h1>
             <p class="mt-5 text-md text-text-muted">
-              spin is a frontend framework for style and components, built on
-              Vite and UnoCSS, usable from any framework. It ships themes as
-              JSON documents, a utility-class layer, a library of component
-              primitives, and browser-based verification that checks the
-              rendered result for contrast, layout, and accessibility. A
-              web-component runtime is in development.
+              spin is a frontend framework for style and components: themes,
+              utility classes, primitives, and components, all kept in sync.
+              Built so AI agents write consistent, themed UI — and it embeds
+              into the framework you already use.
             </p>
+            <Code
+              class="mt-6 max-w-fit text-xs"
+              code={`<button>Ship it</button>
+<button class="secondary">Cancel</button>`}
+            />
             <div class="mt-8 flex flex-wrap items-center gap-3">
               <A href="/guide" role="button" class={CTA}>get started</A>
               <A href="/components" role="button" class={GHOST}>
