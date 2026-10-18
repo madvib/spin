@@ -515,8 +515,11 @@ function parseAuthored(text: string): Map<string, Authored> {
       "";
     out.set(name, {
       header: header.replace(/\n+$/, ""),
-      character: /^ {4}character: \[[\s\S]*?\],/m.exec(part)?.[0] ??
-        "    character: [],",
+      // A comment on its own lines above `character` is part of the authored
+      // field: lose it here and the next codegen run deletes it for good.
+      character:
+        /^(?: {4}\/\/.*\n)* {4}character: \[[\s\S]*?\],/m.exec(part)?.[0] ??
+          "    character: [],",
       comment: comment.replace(/\n+$/, ""),
     });
   }
@@ -533,8 +536,13 @@ const DEFAULT_HEADER = `/**
  * \`tests/manifest.test.ts\` fails when the checked-in file goes stale.
  */`;
 
-export async function writeManifest(): Promise<void> {
-  const existing = await readIfPresent(MANIFEST_OUT);
+/**
+ * Regenerate the manifest into `to`, preserving every authored field read out
+ * of the file being written. The destination is a parameter so a test can
+ * round-trip a copy rather than dirty the checked-in file.
+ */
+export async function writeManifest(to: URL = MANIFEST_OUT): Promise<void> {
+  const existing = await readIfPresent(to);
   const authored = parseAuthored(existing);
 
   // Refuse to write over authored fields this cannot read back: silently
@@ -573,7 +581,7 @@ export async function writeManifest(): Promise<void> {
   });
 
   await Deno.writeTextFile(
-    MANIFEST_OUT,
+    to,
     [header, "", DECL, ...blocks, "};", tail].join("\n"),
   );
   console.log(`manifest.ts written (${names.length} components)`);
