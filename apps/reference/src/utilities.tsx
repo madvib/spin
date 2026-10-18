@@ -34,7 +34,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.default as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.silk as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -80,7 +80,7 @@ function colorValues(
 
 /** The values the utilities pages read, for the theme they demonstrate. */
 const COLOR_VALUES: Readonly<Record<string, string>> = colorValues(
-  "default",
+  "silk",
   "base",
 );
 

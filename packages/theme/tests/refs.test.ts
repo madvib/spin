@@ -18,7 +18,7 @@ function refOf(name: keyof typeof starterThemes) {
 }
 
 Deno.test("the projection carries every token of a theme", () => {
-  const { tree, ref } = refOf("default");
+  const { tree, ref } = refOf("silk");
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     const name = themeKey(leaf.path.join("."));
     assertEquals(
@@ -30,7 +30,7 @@ Deno.test("the projection carries every token of a theme", () => {
 });
 
 Deno.test("a dotted path and its dashes name one entry", () => {
-  const { ref } = refOf("default");
+  const { ref } = refOf("silk");
   assertEquals(ref[themeKey("font.family.sans")], "var(--font-family-sans)");
   assertEquals(ref[themeKey("color.neutral.500")], "var(--color-neutral-500)");
   assertEquals(

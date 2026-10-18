@@ -3,6 +3,7 @@ import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
 import { parseTokens, type ThemeDocument } from "@spin/theme";
+import { starterThemes } from "@spin/theme/themes";
 import {
   noteDiskDocuments,
   onOverlayChange,
@@ -229,7 +230,11 @@ declare const Deno: { cwd(): string } | undefined;
 const VIRTUAL_ID = "/__uno.css";
 
 export interface SpinPluginOptions {
-  /** Themes off disk. The overlay overrides these while the studio is open. */
+  /**
+   * The documents to serve verbatim. Omitted, the project serves the shipped
+   * starters, forked by `spin/*.json` at its root. The overlay overrides
+   * whichever set is in play while the studio is open.
+   */
   readonly themes?: Record<string, ThemeDocument>;
   /** Presets to compose alongside ours — icons are the usual reason. */
   readonly presets?: readonly Preset[];
@@ -337,6 +342,21 @@ async function themesFromDisk(
   return themes;
 }
 
+/**
+ * The themes a project serves: the shipped starters, forked by files of the
+ * same name.
+ *
+ * A project never restates a starter to render it — deleting every file
+ * still leaves four themes — and a `spin/*.json` file named after one forks
+ * it for that project. The daemon answers from the same base, so the studio
+ * lists what the app renders.
+ */
+export function projectThemes(
+  overrides: Record<string, ThemeDocument>,
+): Record<string, ThemeDocument> {
+  return { ...starterThemes, ...overrides };
+}
+
 export const spin = createUnplugin<SpinPluginOptions>((options) => {
   // `configResolved` sets this before anything generates; the default only
   // covers non-vite hosts. Guarded because the studio typechecks this file
@@ -350,12 +370,12 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
   let cachedSources: string | null = null;
 
   async function generate(): Promise<string> {
-    // No `themes` option means the project owns them: `spin/*.json` at the
-    // root, the shape a real app has. Reading them on every generate is
-    // cheap — a handful of small files — and means a theme added while the
-    // server is running is live on the next edit rather than needing a
+    // No `themes` option means the project's own: the shipped starters,
+    // forked by `spin/*.json` at the root. Reading disk on every generate is
+    // cheap — a handful of small files — and means a theme forked while the
+    // server is running is live on the next generate rather than needing a
     // restart.
-    const themes = options.themes ?? await themesFromDisk(root);
+    const themes = options.themes ?? projectThemes(await themesFromDisk(root));
     noteDiskDocuments(themes);
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens

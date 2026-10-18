@@ -25,7 +25,7 @@ set; `@spin/theme/theme-types` the generated token types.
   basePreflights · PreflightProvider · documentDefaults · readFonts · fontFaces
 
 @spin/theme/themes
-  defaultTheme · neobrutTheme · consoleTheme · starterThemes · themeModes · supportsDark
+  silkTheme · neobrutTheme · consoleTheme · spinTheme · starterThemes · themeModes · supportsDark
 
 @spin/theme/theme-types
   ThemeTokens · ThemeTokenPath · ThemeCssVar

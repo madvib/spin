@@ -70,7 +70,7 @@ Deno.test("schema.json matches the derived builder output", async () => {
   assertEquals(artifact, derived);
 });
 for (
-  const name of ["default.json", "neobrut.json", "console.json"]
+  const name of ["silk.json", "neobrut.json", "console.json"]
 ) {
   Deno.test(`${name} meets every legibility floor`, () => {
     const parsed = parseTokens(example(name));

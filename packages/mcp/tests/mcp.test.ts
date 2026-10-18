@@ -92,8 +92,12 @@ describe("the spin MCP server", () => {
   it("lists the themes the project holds", async () => {
     const result = await mcp.callTool({ name: "list_themes", arguments: {} });
     assertEquals(jsonOf(result), [
+      { name: "console", file: null },
       { name: "darkless", file: "spin/darkless.json" },
+      { name: "neobrut", file: null },
       { name: "sample", file: "spin/sample.json" },
+      { name: "silk", file: null },
+      { name: "spin", file: null },
     ]);
   });
 

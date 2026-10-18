@@ -1,12 +1,26 @@
 {
   "$extensions": {
     "spin": {
-      "id": "spin-light",
+      "id": "spin",
       "fonts": [
         {
           "family": "Inter",
           "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
           "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Bodoni Moda",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bodoni-moda:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "400 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
           "style": "normal",
           "display": "swap"
         },
@@ -20,115 +34,116 @@
       ]
     }
   },
+  "$description": "Carries a paper base and a full ink restatement: this one theme answers to both modes.",
   "color": {
     "$type": "color",
-    "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
+    "$description": "Two greys and a red. The light mode is paper; the dark mode is ink; the ramp carries both, mirrored, untinted, so nothing competes with the red.",
     "primary": {
-      "$value": "#1c62c2",
-      "$description": "Brand accent: primary actions, links, focus rings.",
+      "$value": "#c8102e",
+      "$description": "The spin red itself: primary actions, links, focus rings. Deep enough to hold white text at 4.5:1.",
       "$modes": {
-        "dark": "#8db9fa"
+        "dark": "#f4646e"
       }
     },
     "secondary": {
-      "$value": "#1a2434",
-      "$description": "Brand accent: secondary actions and highlights.",
+      "$value": "#141414",
+      "$description": "The ink block: a solid near-black control on paper, the poster's second voice.",
       "$modes": {
-        "dark": "#dadee5"
+        "dark": "#f4f4f5"
       }
     },
     "accent": {
-      "$value": "#006974",
-      "$description": "Brand accent: supporting emphasis, distinct from primary.",
+      "$value": "#d81f36",
+      "$description": "The lit red: same thread, one read brighter, for emphasis that should feel like it is on.",
       "$modes": {
-        "dark": "#71c7d1"
+        "dark": "#ff7d86"
       }
     },
     "neutral": {
       "50": {
-        "$value": "#f7f8fb",
+        "$value": "#fafafa",
         "$modes": {
-          "dark": "#0d121a"
+          "dark": "#0e0e10"
         }
       },
       "100": {
-        "$value": "#f1f4f8",
+        "$value": "#f2f2f2",
         "$modes": {
-          "dark": "#131922"
+          "dark": "#151517"
         }
       },
       "200": {
-        "$value": "#e4e8ef",
+        "$value": "#e5e5e5",
         "$modes": {
-          "dark": "#1d242f"
+          "dark": "#1e1e21"
         }
       },
       "300": {
-        "$value": "#cfd5de",
+        "$value": "#d4d4d4",
         "$modes": {
-          "dark": "#2b333f"
+          "dark": "#2c2c30"
         }
       },
       "400": {
-        "$value": "#a6afbb",
+        "$value": "#a3a3a3",
         "$modes": {
-          "dark": "#434b57"
+          "dark": "#46464a"
         }
       },
       "500": {
-        "$value": "#78818f",
+        "$value": "#737373",
         "$modes": {
-          "dark": "#6e757f"
+          "dark": "#707075"
         }
       },
       "600": {
-        "$value": "#525c6a",
+        "$value": "#525252",
         "$modes": {
-          "dark": "#999fa7"
+          "dark": "#9b9ba0"
         }
       },
       "700": {
-        "$value": "#333e4d",
+        "$value": "#404040",
         "$modes": {
-          "dark": "#bdc1c7"
+          "dark": "#c4c4c8"
         }
       },
       "800": {
-        "$value": "#1a2434",
+        "$value": "#262626",
         "$modes": {
-          "dark": "#dbdee2"
+          "dark": "#e9e9eb"
         }
       },
       "900": {
-        "$value": "#050d1c",
+        "$value": "#0c0c0c",
         "$modes": {
-          "dark": "#f3f5f8"
+          "dark": "#f7f7f8"
         }
       },
-      "$description": "The grey ramp, 50 (lightest) through 900 (darkest)."
+      "$description": "The ink ramp, 50 (paper end) through 900 (ink end). Zero chroma on purpose: the spin grey is a grey, never a guest hue, so the red stands alone at full strength."
     },
     "semantic": {
-      "$description": "Status colors. Named by meaning, never by hue.",
+      "$description": "Status colors. Named by meaning, never by hue — on a red brand, danger slices itself narrower than the primary so the two reds never read as one.",
       "success": {
-        "$value": "#26753e",
+        "$value": "#2f7d46",
         "$modes": {
-          "dark": "#72cf88"
+          "dark": "#7cd397"
         }
       },
       "warning": {
-        "$value": "#886108",
+        "$value": "#8a5d0a",
         "$modes": {
           "dark": "#eac26b"
         }
       },
       "error": {
-        "$value": "#a6312b",
+        "$value": "#9e1b2f",
         "$modes": {
-          "dark": "#f38277"
+          "dark": "#ff7a82"
         }
       },
       "info": {
-        "$value": "#0e629a",
+        "$value": "#135e8e",
         "$modes": {
           "dark": "#6dbbe8"
         }
@@ -136,122 +151,122 @@
     },
     "surface": {
       "$value": "{color.neutral.50}",
-      "$description": "Page background.",
+      "$description": "The page. Paper in the light mode; the ramp carries the ink page in the dark one.",
       "$modes": {
-        "dark": "#0d121a"
+        "dark": "{color.neutral.50}"
       }
     },
     "surface-sunken": {
       "$value": "{color.neutral.100}",
       "$description": "Background of elements that sit below the page: table stripes, inset wells.",
       "$modes": {
-        "dark": "{color.neutral.200}"
+        "dark": "{color.neutral.100}"
       }
     },
     "surface-raised": {
       "$value": "#ffffff",
-      "$description": "Background of elements that sit above the page: cards, popovers, menus.",
+      "$description": "Background of elements that sit above the page: cards, popovers, menus. Pure white on the paper page; on ink, one clean step up in the same language.",
       "$modes": {
-        "dark": "#18202a"
+        "dark": "#1a1a1e"
       }
     },
     "text": {
       "$value": "{color.neutral.900}",
-      "$description": "Default body text.",
+      "$description": "Body text: ink on paper, paper on ink.",
       "$modes": {
-        "dark": "#f3f5f8"
+        "dark": "{color.neutral.900}"
       }
     },
     "text-muted": {
       "$value": "{color.neutral.600}",
       "$description": "Secondary text: captions, helper copy, placeholders.",
       "$modes": {
-        "dark": "#999fa7"
+        "dark": "{color.neutral.600}"
       }
     },
     "border": {
       "$value": "{color.neutral.200}",
-      "$description": "Default hairline and divider.",
+      "$description": "The hairline. Spin draws in thread: one-pixel strokes, stronger here than in softer themes, because the sheet is held together by its lines.",
       "$modes": {
-        "dark": "#1d242f"
+        "dark": "{color.neutral.200}"
       }
     },
     "scrim": {
-      "$value": "rgb(15 19 30 / 45%)",
-      "$description": "What dims the page behind a modal. A theme closes its dialogs over its own ink, not a neutral black.",
+      "$value": "rgb(12 12 14 / 45%)",
+      "$description": "What dims the page behind a modal — the theme's own ink.",
       "$modes": {
-        "dark": "rgb(15 19 30 / 60%)"
+        "dark": "rgb(12 12 14 / 60%)"
       }
     },
     "on-primary": {
       "$value": "#ffffff",
       "$type": "color",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "on-danger": {
       "$value": "#ffffff",
       "$type": "color",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "focus-ring": {
-      "$value": "#1c62c2",
+      "$value": "#c8102e",
       "$modes": {
-        "dark": "#8db9fa"
+        "dark": "#f4646e"
       }
     },
     "link": {
-      "$value": "#1c62c2",
-      "$description": "Links read against body text, so they follow the primary.",
+      "$value": "#c8102e",
+      "$description": "The red thread through running text: a link is the spin red, no underline of another color.",
       "$modes": {
-        "dark": "#8db9fa"
+        "dark": "#f4646e"
       }
     },
     "on-secondary": {
       "$type": "color",
       "$value": "#ffffff",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "on-accent": {
       "$type": "color",
       "$value": "#ffffff",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "on-semantic-success": {
       "$type": "color",
       "$value": "#ffffff",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "on-semantic-warning": {
       "$type": "color",
       "$value": "#ffffff",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "field": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "A field's own surface. Distinct from `surface`, so a control reads as an inset object rather than a hole in the page, and distinct from `surface-raised`, so a card on a field is still two things.",
+      "$description": "A field's own surface: white on paper, a lifted step on ink. — a control reads as an object set on the page, not a hole punched through it.",
       "$modes": {
-        "dark": "#1d242f"
+        "dark": "#1c1c20"
       }
     },
     "border-strong": {
       "$type": "color",
-      "$value": "#a6afbb",
-      "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance.",
+      "$value": "#a3a3a3",
+      "$description": "A control's own edge — the thread drawn tighter. Stronger than `border`, which divides content.",
       "$modes": {
-        "dark": "#434b57"
+        "dark": "#46464a"
       }
     },
     "on-semantic-error": {
@@ -259,15 +274,14 @@
       "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     },
     "on-semantic-info": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#0b0b0d"
       }
     }
   },
@@ -318,27 +332,27 @@
     "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
   },
   "font": {
-    "$description": "Typography: which face, how large, how heavy, and how open the tracking sits.",
+    "$description": "Typography: a didone speaks, the grotesk works, the mono is code. The display face is the brand's voice; the working faces stay quiet so it carries.",
     "family": {
       "$type": "fontFamily",
       "sans": {
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
-        "$description": "Body and UI text."
+        "$description": "Body and UI text: the working voice, quiet and even."
       },
       "heading": {
-        "$value": "{font.family.sans}",
-        "$description": "The display face. The default answers with the sans; a theme with a display voice states its own."
+        "$value": "Bodoni Moda, Didot, \"Bodoni MT\", \"Times New Roman\", serif",
+        "$description": "The display voice. A didone: hairline serifs, strong stems, all menace and poise — the spin red's natural partner."
       },
       "body": {
         "$value": "{font.family.sans}",
-        "$description": "The body face. Distinct from `sans` only when a theme wants the two to differ."
+        "$description": "The body face: the sans, named so the surface is whole."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
-        "$description": "Long-form editorial text."
+        "$description": "Long-form editorial text. The didone is too sharp to read for pages; the editorial voice stays a book serif."
       },
       "mono": {
-        "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
+        "$value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
         "$description": "Code, identifiers, tabular figures."
       },
       "brand": {
@@ -356,23 +370,24 @@
         "$value": "0.75rem"
       },
       "sm": {
-        "$value": "0.875rem"
+        "$value": "0.8125rem"
       },
       "md": {
-        "$value": "1rem"
+        "$value": "0.9375rem"
       },
       "lg": {
         "$value": "1.125rem"
       },
       "xl": {
-        "$value": "1.25rem"
+        "$value": "1.375rem"
       },
       "2xl": {
-        "$value": "1.5rem"
+        "$value": "1.75rem"
       },
       "3xl": {
-        "$value": "1.875rem"
-      }
+        "$value": "2.5rem"
+      },
+      "$description": "The display end reaches further than most themes dare: a didone is measured in headlines, not paragraphs."
     },
     "weight": {
       "$type": "fontWeight",
@@ -391,47 +406,47 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A didone is spaced open where the hairlines need air and closed nowhere.",
       "tighter": {
-        "$value": "-0.05em",
-        "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
+        "$value": "-0.02em",
+        "$description": "Display type only. A didone carries its own tension; a theme never pinches it."
       },
       "tight": {
-        "$value": "-0.025em",
-        "$description": "A heading at reading size, where the face's own sidebearings already crowd the word."
+        "$value": "-0.01em",
+        "$description": "A heading at reading size."
       },
       "normal": {
         "$value": "0em",
-        "$description": "Body copy and anything unlabelled. The ramp's middle is a decision, not its absence."
+        "$description": "Body copy and anything unlabelled."
       },
       "wide": {
-        "$value": "0.025em",
-        "$description": "The small uppercase label that reads as a clump of strokes at text size."
+        "$value": "0.04em",
+        "$description": "The small uppercase label, spun into thread."
       },
       "wider": {
-        "$value": "0.05em",
-        "$description": "An eyebrow or category mark set above the copy it introduces."
+        "$value": "0.08em",
+        "$description": "An eyebrow or category mark above the copy it introduces."
       },
       "widest": {
-        "$value": "0.1em",
-        "$description": "A single word carrying a whole section. Past this the word stops being a word."
+        "$value": "0.14em",
+        "$description": "A single word carrying a whole section. Poster spacing."
       }
     }
   },
   "radius": {
     "$type": "dimension",
-    "$description": "Corner rounding, from square to fully round.",
+    "$description": "Corner rounding, barely there: a thread ends blunt, and sharp corners are the poster's geometry.",
     "none": {
       "$value": "0"
     },
     "sm": {
-      "$value": "0.25rem"
+      "$value": "0.125rem"
     },
     "md": {
-      "$value": "0.5rem"
+      "$value": "0.1875rem"
     },
     "lg": {
-      "$value": "0.875rem"
+      "$value": "0.25rem"
     },
     "full": {
       "$value": "9999px"
@@ -487,15 +502,24 @@
   },
   "shadow": {
     "$type": "shadow",
-    "$description": "Elevation, as CSS box-shadow values.",
+    "$description": "Elevation, as CSS box-shadow values. Spin separates with line, not with light; shadows stay small and drop straight down.",
     "sm": {
-      "$value": "0 1px 2px -1px rgb(15 19 30 / 0.08), 0 1px 3px 0 rgb(15 19 30 / 0.06)"
+      "$value": "0 1px 2px 0 rgb(6 6 7 / 0.12)",
+      "$modes": {
+        "dark": "0 1px 2px 0 rgb(0 0 0 / 0.45)"
+      }
     },
     "md": {
-      "$value": "0 4px 8px -2px rgb(15 19 30 / 0.10), 0 2px 4px -2px rgb(15 19 30 / 0.06)"
+      "$value": "0 3px 8px -2px rgb(6 6 7 / 0.16)",
+      "$modes": {
+        "dark": "0 3px 10px -2px rgb(0 0 0 / 0.55)"
+      }
     },
     "lg": {
-      "$value": "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)"
+      "$value": "0 12px 32px -10px rgb(6 6 7 / 0.28)",
+      "$modes": {
+        "dark": "0 14px 36px -10px rgb(0 0 0 / 0.65)"
+      }
     }
   },
   "breakpoint": {
@@ -531,17 +555,17 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. Spin is quick: a spider responds, it does not glide.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "120ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "200ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "320ms"
       }
     },
     "easing": {
@@ -550,42 +574,43 @@
         "$value": "linear"
       },
       "standard": {
-        "$value": "cubic-bezier(0.2, 0, 0, 1)"
+        "$value": "cubic-bezier(0.3, 0, 0, 1)"
       },
       "decelerate": {
         "$value": "cubic-bezier(0, 0, 0, 1)"
       },
       "accelerate": {
-        "$value": "cubic-bezier(0.3, 0, 1, 1)"
+        "$value": "cubic-bezier(0.4, 0, 1, 1)"
       }
     }
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Character: the decisions a theme owns for its buttons. Spin's button is a small poster — uppercase, tracked open, flat — drawn rather than lit.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
       "$value": "600"
     },
     "case": {
-      "$value": "none",
-      "$type": "textTransform"
+      "$value": "uppercase",
+      "$type": "textTransform",
+      "$description": "Labels are set in capitals: the poster voice, even in a control."
     },
     "tracking": {
       "$type": "dimension",
-      "$description": "Label tracking. Slightly tight, because a 600-weight label in a small control needs the width back.",
-      "$value": "-0.01em"
+      "$description": "Label tracking. Open, because uppercase 600 needs the air to read as words rather than a wall.",
+      "$value": "0.05em"
     },
     "shadow": {
       "$type": "shadow",
-      "$description": "The resting elevation. A control with no shadow sits on the page rather than in it.",
-      "$value": "0 1px 2px 0 rgb(15 19 30 / 0.08)"
+      "$description": "The resting elevation: a whisper of drop, no lit pedestal.",
+      "$value": "0 1px 3px 0 rgb(6 6 7 / 0.10)"
     },
     "shadow-hover": {
       "$type": "shadow",
-      "$description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
-      "$value": "0 4px 12px -2px rgb(15 19 30 / 0.14)"
+      "$description": "The hovered elevation: the thread catches light. Red, not black — a button does not grow darker when it wakes.",
+      "$value": "0 2px 12px -2px rgb(200 16 46 / 0.40)"
     }
   },
   "border": {
@@ -593,7 +618,7 @@
     "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
     "width": {
       "$value": "1px",
-      "$description": "The hairline every control and surface draws with."
+      "$description": "The hairline every control and surface draws with — the thread itself."
     },
     "width-2": {
       "$value": "2px",
@@ -641,33 +666,32 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Character: the decisions a theme owns for its badges. Spin's badge is a square tag with an edge drawn like thread — no pills.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
-      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge."
+      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page."
     },
     "pill": {
       "$type": "boolean",
-      "$value": true,
-      "$description": "Fully round reads as a pill; false squares it into a tag."
+      "$value": false,
+      "$description": "A pill is a soft word. Spin squares its badges into tags."
     }
   },
   "checkbox": {
-    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
+    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn — spin's controls are drawn, not lit.",
     "depth": {
       "$type": "number",
-      "$value": 1.5
+      "$value": 0
     }
   },
   "switch": {
     "$description": "How physical a switch is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
     "depth": {
       "$type": "number",
-      "$value": 1.5
+      "$value": 0
     }
   },
-  "$description": "Carries a `dark` group, so this one theme answers to both modes.",
   "avatar": {
     "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
     "sm": {

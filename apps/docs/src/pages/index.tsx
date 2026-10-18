@@ -245,7 +245,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
 ];
 
 const STUDIO_FEATURES: readonly string[] = [
-  "Every theme on disk, palette and all — click one and the app re-themes",
+  "Every theme, palette and all — click one and the app re-themes",
   "Editors for color, type, icons, motion, spacing, radius, and shadows, each with live specimens",
   "Light and dark per theme, flipped while the app repaints",
   "New theme from a copy of one you have, or scaffolded from the required roles",

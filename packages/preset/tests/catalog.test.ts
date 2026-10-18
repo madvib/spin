@@ -14,7 +14,7 @@ import { claims } from "../src/utils/claimed.ts";
  */
 const THEME = JSON.parse(
   await Deno.readTextFile(
-    new URL("../../theme/src/themes/default.json", import.meta.url),
+    new URL("../../theme/src/themes/silk.json", import.meta.url),
   ),
 ) as Record<string, unknown>;
 

@@ -72,15 +72,16 @@ export function ModePicker() {
 /**
  * The project theme picker.
  *
- * Lists what is on disk in the project's themes directory — not what the
- * studio shipped with. The selected theme drives the preview surface only;
- * a `<label>` names it rather than a bare floating select.
+ * Lists the themes the project serves — the shipped starters, forked by its
+ * own files — not the studio's own chrome. The selected theme drives the
+ * preview surface only; a `<label>` names it rather than a bare floating
+ * select.
  */
 export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
   let select: HTMLSelectElement | undefined;
   // The options arrive after the select does, and the browser answers an
   // option list it just filled by selecting the first one — so the picker
-  // read `console` while the editor was editing `default`. Writing the value
+  // read `console` while the editor was editing `silk`. Writing the value
   // once both are settled is the only thing that keeps them honest.
   createEffect(() => {
     if (select !== undefined && projectThemes() !== undefined) {

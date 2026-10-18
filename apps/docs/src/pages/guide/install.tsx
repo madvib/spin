@@ -23,8 +23,9 @@ import myTheme from "./theme.json" with { type: "json" };
 
 export default {
   plugins: [spin.vite({
-    // Omit this and the plugin owns spin/*.json off your root — the
-    // files the studio edits. Pass a map to own the documents yourself.
+    // A host that owns its documents passes them here. Omit the option
+    // and the app serves the shipped starters, forked by spin/*.json —
+    // the files the studio edits.
     themes: { myTheme, ...starterThemes },
   })],
 };`;
@@ -56,9 +57,11 @@ export default function Install(): JSX.Element {
         </p>
         <Code code={WIRE} />
         <p>
-          Omit the options and the plugin owns <code>spin/*.json</code>{" "}
-          off your root — the files the studio edits. Pass a map to own the
-          documents yourself:
+          Omit the options and the app serves the shipped starters, forked by
+          {" "}
+          <code>spin/*.json</code>{" "}
+          off your root — the files the studio edits. Pass a map when the
+          documents come from somewhere else:
         </p>
         <Code code={WIRE_THEMES} />
         <p>

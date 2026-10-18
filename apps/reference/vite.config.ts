@@ -19,9 +19,10 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      // No `themes`: the project owns them. `spin/*.json` at this root —
-      // the same files the studio edits — so a theme change in the studio
-      // re-themes this app and nothing has to be re-imported.
+      // No `themes`: the app serves the shipped starters, forked by
+      // `spin/*.json` at this root — the same files the studio edits — so a
+      // theme change in the studio re-themes this app and nothing has to be
+      // re-imported. This project defines no themes of its own.
 
       presets: [presetIcons({ collections: { lucide } as never })],
       // The studio bundle, built by `apps/studio/deno task build`. Absent

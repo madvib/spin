@@ -147,7 +147,7 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
     {
       title: "List themes",
       description:
-        "Every theme in the project, with its path relative to the project root.",
+        "Every theme the project serves, with the path of its file when it has one.",
       inputSchema: {},
     },
     async () => {

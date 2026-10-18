@@ -44,6 +44,24 @@ const os = implement(projectContract);
 const CONFIG_FILENAME = "uno.config.ts";
 
 /**
+ * The shipped starters by name.
+ *
+ * Canonical JSON, not the package's file bytes: a theme is a document, and
+ * this is the text the system writes for one. A project inherits the
+ * starters rather than restating them, so an unforked theme lists as text
+ * from here and a read falls back to it.
+ */
+async function shippedThemes(): Promise<Record<string, unknown>> {
+  const { starterThemes } = await import("@spin/theme/themes");
+  return starterThemes as Record<string, unknown>;
+}
+
+/** A theme document as the text written for it. */
+function themeJson(document: unknown): string {
+  return JSON.stringify(document, null, 2) + "\n";
+}
+
+/**
  * The project report for a root: the shared body of `detect` and `current`.
  *
  * One function because the two procedures differ only in which root they
@@ -132,9 +150,13 @@ export const projectRouter = os.router({
         try {
           entries = await readdir(join(root, PROJECT_DIR));
         } catch {
-          return [];
+          entries = [];
         }
-        const themes: Array<{ name: string; text: string; file: string }> = [];
+        const themes: Array<{
+          name: string;
+          text: string;
+          file: string | null;
+        }> = [];
         for (const entry of entries.sort()) {
           if (!entry.endsWith(".json")) continue;
           themes.push({
@@ -146,7 +168,17 @@ export const projectRouter = os.router({
             file: join(PROJECT_DIR, entry),
           });
         }
-        return themes;
+        // The starters a project has not forked, beside its own files: the
+        // same base the plugin serves, so the studio lists what an app
+        // renders. A fork replaces its entry rather than joining it.
+        const forked = new Set(themes.map((theme) => theme.name));
+        for (const [name, document] of Object.entries(await shippedThemes())) {
+          if (forked.has(name)) continue;
+          themes.push({ name, text: themeJson(document), file: null });
+        }
+        return themes.sort((a, b) =>
+          a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+        );
       }),
 
       read: os.project.themes.read.handler(async ({ input }) => {
@@ -161,7 +193,8 @@ export const projectRouter = os.router({
             ),
           };
         } catch {
-          return { text: null };
+          const document = (await shippedThemes())[input.name];
+          return { text: document === undefined ? null : themeJson(document) };
         }
       }),
 
@@ -207,21 +240,27 @@ export const projectRouter = os.router({
       }),
 
       copy: os.project.themes.copy.handler(async ({ input }) => {
-        const { copyFile, readFile } = await import("node:fs/promises");
+        const { mkdir, readFile, writeFile } = await import("node:fs/promises");
         const { join } = await import("node:path");
         const { PROJECT_DIR } = await import("./project-contract.ts");
         try {
-          const from = join(
-            rootFor(input),
-            PROJECT_DIR,
-            `${input.from}.json`,
-          );
-          // Read first so a missing source is an error, not an empty file.
-          await readFile(from, "utf8");
-          await copyFile(
-            from,
-            join(rootFor(input), PROJECT_DIR, `${input.to}.json`),
-          );
+          const dir = join(rootFor(input), PROJECT_DIR);
+          const source = join(dir, `${input.from}.json`);
+          // Read first so a missing source is an error, not an empty file —
+          // and so a shipped starter answers for a name the project never
+          // wrote. The copy is the text, so a fork copies byte for byte.
+          let text: string;
+          try {
+            text = await readFile(source, "utf8");
+          } catch {
+            const document = (await shippedThemes())[input.from];
+            if (document === undefined) {
+              throw new Error(`no theme named ${input.from}`);
+            }
+            text = themeJson(document);
+          }
+          await mkdir(dir, { recursive: true });
+          await writeFile(join(dir, `${input.to}.json`), text, "utf8");
           return { error: null };
         } catch (err) {
           return { error: err instanceof Error ? err.message : String(err) };

@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { indexTree, parseTokens, type TokenTree } from "@spin/theme";
+import { silkTheme } from "@spin/theme/themes";
 import { borderUtilityOf, editorRouteFor, tokenRowAt, toPx } from "./tokens.ts";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
 
@@ -80,11 +81,10 @@ Deno.test("tokenRowAt does not read a token under a path as the path itself", ()
   assertEquals(tokenRowAt(rowFixture(), "color.neutral", "light"), undefined);
 });
 
-Deno.test("every token in the reference theme links to a route that exists", async () => {
-  const text = await Deno.readTextFile(
-    new URL("../../../reference/spin/default.json", import.meta.url),
-  );
-  const parsed = parseTokens(JSON.parse(text));
+Deno.test("every token in the reference theme links to a route that exists", () => {
+  // The reference app serves the shipped default as its own theme: the
+  // document is the package's, not a file anyone maintains a copy of.
+  const parsed = parseTokens(silkTheme);
   if (!parsed.ok) {
     throw new Error(`reference theme does not parse: ${parsed.error}`);
   }

@@ -2,9 +2,9 @@
  * The theme registry the studio edits.
  *
  * Themes are not bundled and they are not the studio's own: they are the
- * project's, found on disk. The studio is a tool pointed at a project, so the
- * list comes from the filesystem at request time — a theme added while the
- * studio is running has to be visible without a rebuild.
+ * project's — the shipped starters, forked by the files in its themes
+ * directory. The daemon answers the merge at request time, so a theme added
+ * or forked while the studio is running has to be visible without a rebuild.
  *
  * The chrome is deliberately not in this list. It is styled by the studio's own
  * static theme so that editing a theme cannot restyle the tool you are editing
@@ -19,8 +19,11 @@ export interface StudioTheme {
   name: string;
   /** The raw JSON text, which is what an author edits. */
   text: string;
-  /** Path relative to the workspace, shown so the author knows what they are editing. */
-  file: string;
+  /**
+   * Path relative to the workspace, shown so the author knows what they are
+   * editing — `null` while the theme is a shipped starter no save has forked.
+   */
+  file: string | null;
 }
 
 /**
@@ -62,7 +65,7 @@ export async function loadProjectTheme(
   return read.text ?? undefined;
 }
 
-/** Duplicates a theme on disk. The copy's name is the new theme's name. */
+/** Duplicates a theme — a project file, or an unforked starter. The copy's name is the new theme's name. */
 export async function copyTheme(
   from: string,
   to: string,

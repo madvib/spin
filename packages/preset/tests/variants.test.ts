@@ -30,7 +30,7 @@ const IMPLEMENTED = ["hover", "focus"] as const;
 async function theme() {
   return JSON.parse(
     await readFile(
-      new URL("../../theme/src/themes/default.json", import.meta.url),
+      new URL("../../theme/src/themes/silk.json", import.meta.url),
       "utf8",
     ),
   );
@@ -90,7 +90,7 @@ Deno.test("a responsive prefix emits the theme's width as a media query", async 
   // produced `(min-width: var(--breakpoint-md))`, which never matches, and
   // every responsive rule in the product was silently dead. The width must
   // arrive as the literal the theme declared.
-  const theme = starterThemes.default;
+  const theme = starterThemes.silk;
   const gen = await createGenerator({
     presets: [spinPreset({ themes: { default: theme } })],
   });

@@ -42,7 +42,7 @@ export function colorRules(): Rule[] {
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
         // `text-lg` is a size; only a colour name reaches this branch. A theme
-        // may name a colour after the utility itself — the default theme's
+        // may name a colour after the utility itself — the baseline theme's
         // `text-muted` is `color.text-muted` — so the prefixed name is tried
         // alongside the bare one.
         const resolved = colorOf(ctx, name, "color") ??

@@ -222,7 +222,7 @@ export function Mark(props: { class?: string }) {
               stroke="currentColor"
               stroke-width="1.6"
             />
-            {/* The mark itself: the widow's hourglass, the one loud color. */}
+            {/* The mark itself: spin's hourglass, the one loud color. */}
             <path
               d="M60.2 82.5 L63.4 86.8 L60 92.2 L56.6 86.8 Z"
               fill="var(--color-primary, #c8102e)"

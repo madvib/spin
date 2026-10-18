@@ -23,7 +23,7 @@ const read = (key: string): string | null =>
   typeof localStorage === "undefined" ? null : localStorage.getItem(key);
 
 const [themeName, setThemeName] = createSignal<string>(
-  read("spin:theme") ?? "widow",
+  read("spin:theme") ?? "spin",
 );
 const [modeName, setModeName] = createSignal<string>(
   read("spin:mode") ?? "light",
@@ -32,7 +32,7 @@ const [modeName, setModeName] = createSignal<string>(
 // A stored choice that no longer exists falls back cleanly, and a starter
 // that loses a mode drops to one it has.
 createEffect(() => {
-  if (!(themeName() in starterThemes)) setThemeName("widow");
+  if (!(themeName() in starterThemes)) setThemeName("spin");
   const supported = modesFor(themeName());
   if (!supported.includes(modeName())) setModeName(supported[0]);
 });

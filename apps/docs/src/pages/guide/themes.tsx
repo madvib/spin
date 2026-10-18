@@ -8,12 +8,11 @@ import { mode } from "@spin/kit";
 import { Code, Probe, Section } from "../../bits.tsx";
 
 const WIRE_THEMES = `import { spin } from "@spin/preset/plugin";
-import { starterThemes } from "@spin/theme/themes";
-import myTheme from "./theme.json" with { type: "json" };
 
 export default {
   plugins: [spin.vite({
-    themes: { myTheme, ...starterThemes },
+    // No themes option: the shipped starters are served, and a file in
+    // spin/ forks one. A host that owns its documents passes a map.
   })],
 };`;
 

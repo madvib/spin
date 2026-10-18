@@ -351,9 +351,11 @@ test("one step dragged lands the whole scale", async () => {
  * Save writes the document to disk and the dirty set empties.
  *
  * The edit is made and saved against the theme the status line names, and
- * the file is put back exactly as it was found — this run edits a checkout,
- * not a fixture. The assertion reads the button and the overlay, not the
- * file: the claim is about the studio's own state after its own write.
+ * the checkout is left exactly as it was found: a project file goes back
+ * byte for byte, and a shipped starter the save forked is un-forked by
+ * removing the file again. The assertion reads the button and the overlay,
+ * not the file: the claim is about the studio's own state after its own
+ * write.
  */
 test("save clears the dirty set", async () => {
   await withPage(async (page) => {
@@ -379,7 +381,14 @@ test("save clears the dirty set", async () => {
       `(async () => {
         const rpc = (proc, input) => fetch("/__spin/rpc" + proc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ json: input }) }).then((x) => x.json()).then((b) => b.json);
         const theme = ${JSON.stringify(theme)};
+        const listed = await rpc("/project/themes/list", {});
         const original = (await rpc("/project/themes/read", { name: theme })).text;
+        const forked = listed.some((t) => t.name === theme && t.file !== null);
+        const restore = async () => {
+          if (forked) await rpc("/project/themes/write", { name: theme, text: original });
+          else await rpc("/project/themes/remove", { name: theme });
+          await rpc("/overlay/clear", {});
+        };
         const saveButton = () => [...document.querySelectorAll("button")].find((b) => b.getAttribute("aria-label") === "Save to disk");
         const input = document.querySelector('[id="token-color.primary-light"]');
         if (!input) return { edited: "no-input", restored: false };
@@ -388,14 +397,13 @@ test("save clears the dirty set", async () => {
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await new Promise((r) => setTimeout(r, 1200));
         const save = saveButton();
-        if (!save) { await rpc("/project/themes/write", { name: theme, text: original }); return { edited: "no-save-control", restored: true }; }
-        if (save.disabled) { await rpc("/project/themes/write", { name: theme, text: original }); await rpc("/overlay/clear", {}); return { edited: "disabled-before-save", disabledBefore: true, restored: true }; }
+        if (!save) { await restore(); return { edited: "no-save-control", restored: true }; }
+        if (save.disabled) { await restore(); return { edited: "disabled-before-save", disabledBefore: true, restored: true }; }
         save.click();
         await new Promise((r) => setTimeout(r, 2000));
         const after = saveButton();
         const state = await rpc("/overlay/get", {});
-        await rpc("/project/themes/write", { name: theme, text: original });
-        await rpc("/overlay/clear", {});
+        await restore();
         return { edited: "edited", disabledBefore: false, disabledAfter: after ? after.disabled : null, dirty: state.dirty, restored: true };
       })()`,
     );

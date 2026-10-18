@@ -56,7 +56,7 @@ Deno.test("a project without themes in config reads spin/*.json from disk", asyn
   // config, which is the shape a real app has.
   const root = await Deno.makeTempDir();
   await Deno.mkdir(`${root}/spin`);
-  const doc = structuredClone(starterThemes.default) as Record<
+  const doc = structuredClone(starterThemes.silk) as Record<
     string,
     Record<string, Record<string, string>>
   >;

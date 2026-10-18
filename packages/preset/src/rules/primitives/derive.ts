@@ -375,12 +375,12 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   fieldset: () => fieldsetRules(["fieldset"], { classless: true }),
 };
 
-/** The custom properties the default theme actually declares. */
+/** The custom properties the baseline theme actually declares. */
 export const declaredVars: ReadonlySet<string> = (() => {
   try {
     const doc = JSON.parse(
       Deno.readTextFileSync(
-        new URL("../../../../theme/src/themes/default.json", import.meta.url),
+        new URL("../../../../theme/src/themes/silk.json", import.meta.url),
       ),
     ) as ThemeDocument;
     const parsed = parseTokens(doc);
@@ -394,7 +394,7 @@ export const declaredVars: ReadonlySet<string> = (() => {
     // — the exact failure this was built to prevent, wearing the costume of a
     // check that passed.
     throw new Error(
-      `derive: cannot read the default theme, so reads cannot be filtered: ${
+      `derive: cannot read the baseline theme, so reads cannot be filtered: ${
         String(error).slice(0, 160)
       }`,
     );

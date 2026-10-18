@@ -219,8 +219,8 @@ Deno.test("the ink a theme declares is read from the theme itself", () => {
 });
 
 Deno.test("the example theme's light document parses into a token tree", async () => {
-  const source = await Deno.readTextFile(new URL("default.json", THEMES_DIR));
-  const tree = treeOf(parseTokens(source), "default.json");
+  const source = await Deno.readTextFile(new URL("silk.json", THEMES_DIR));
+  const tree = treeOf(parseTokens(source), "silk.json");
 
   // The groups the theme MUST have, not every group it happens to have. An
   // exact list makes adding a legitimate group an edit to this file, and the
@@ -273,14 +273,14 @@ function leavesOf(node: TokenNode): TokenLeaf[] {
   return node.children.flatMap(leavesOf);
 }
 
-Deno.test("the default theme carries a dark MODE rather than being a second theme", async () => {
+Deno.test("the baseline theme carries a dark MODE rather than being a second theme", async () => {
   // `light` and `dark` are two modes of ONE theme. There is no theme named
   // `light` and no document named `dark` — the dark side lives on the tokens
   // themselves as `$modes.dark`, which `generateCss` scopes to
   // `[data-theme="<name>"][data-mode="dark"]`.
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
 
   // The dark side restates colours and the focus ring; metrics are inherited,
@@ -297,8 +297,8 @@ Deno.test("the default theme carries a dark MODE rather than being a second them
 
 Deno.test("the example theme defines every token path it advertises", async () => {
   const theme = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const report = validateTokens(theme, { required: REQUIRED });
 
@@ -307,8 +307,8 @@ Deno.test("the example theme defines every token path it advertises", async () =
 });
 
 Deno.test("the example theme's light document validates on its own", async () => {
-  const source = await Deno.readTextFile(new URL("default.json", THEMES_DIR));
-  const light = treeOf(parseTokens(source), "default.json");
+  const source = await Deno.readTextFile(new URL("silk.json", THEMES_DIR));
+  const light = treeOf(parseTokens(source), "silk.json");
 
   assertEquals(validateTokens(light).issues, []);
 });
@@ -321,10 +321,10 @@ Deno.test("the example theme's light document validates on its own", async () =>
  * written down here, so this list can never quietly skip a theme.
  */
 const DECLARED_MODES = {
-  default: ["light", "dark"],
+  silk: ["light", "dark"],
   neobrut: ["light"],
   console: ["dark"],
-  widow: ["light", "dark"],
+  spin: ["light", "dark"],
 } satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
 
 Deno.test("a theme states its modes at the root", async () => {
@@ -344,15 +344,15 @@ Deno.test("a theme states its modes at the root", async () => {
   }
 });
 
-Deno.test("default's dark mode restates every color and focus leaf", async () => {
+Deno.test("silk's dark mode restates every color and focus leaf", async () => {
   // A `modes: ["light", "dark"]` theme that only restates SOME colors is a
   // theme that ships half a dark mode: `border-strong` keeps its light value
   // under a dark selector, and the stripe that reads `surface-sunken` paints
   // a light cell on a dark row. The mode key is a promise to restate all of
   // them, and the validator holds it — not the dark group's existence.
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   assertEquals(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
 });
@@ -410,24 +410,24 @@ Deno.test("every starter's loop duration holds the strobe floor", async () => {
 
 Deno.test("the example theme's stylesheet is a light block and a dark block", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   // The NAMED path, which is what a consumer calls. It scopes a theme's dark
   // mode to `[data-theme=<name>][data-mode="dark"]` — so the mode belongs to
   // its theme, and two themes can each carry a dark mode without fighting.
-  const css = generateThemeCss({ default: tree });
+  const css = generateThemeCss({ silk: tree });
 
   assertEquals(
     blocks(css).map((block) => block.selector),
-    ['[data-theme="default"]', '[data-theme="default"][data-mode="dark"]'],
+    ['[data-theme="silk"]', '[data-theme="silk"][data-mode="dark"]'],
   );
 });
 
 Deno.test("the light block of the example theme carries the light document's values", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const root = blockWithSelector(generateCss(tree), ":root");
 
@@ -454,8 +454,8 @@ Deno.test("the light block of the example theme carries the light document's val
 
 Deno.test("every dark declaration lands on a property the light theme declares", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
@@ -473,8 +473,8 @@ Deno.test("every dark declaration lands on a property the light theme declares",
 
 Deno.test("the dark block emits every token the dark document declares", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const css = generateCss(tree);
   const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
@@ -500,8 +500,8 @@ Deno.test("the dark block emits every token the dark document declares", async (
 
 Deno.test("a dark-mode consumer reads the dark document's colors", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "dark");
 
@@ -515,8 +515,8 @@ Deno.test("a dark-mode consumer reads the dark document's colors", async () => {
 
 Deno.test("roles that reference the neutral ramp follow it into dark mode", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
@@ -538,8 +538,8 @@ Deno.test("roles that reference the neutral ramp follow it into dark mode", asyn
 
 Deno.test("spacing, typography and layering are the same scale in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
@@ -571,8 +571,8 @@ Deno.test("spacing, typography and layering are the same scale in both modes", a
 
 Deno.test("the example theme's spacing scale grows with its step number", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
 
@@ -586,8 +586,8 @@ Deno.test("the example theme's spacing scale grows with its step number", async 
 
 Deno.test("the example theme's radii round off from square to fully round", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
 
@@ -601,8 +601,8 @@ Deno.test("the example theme's radii round off from square to fully round", asyn
 
 Deno.test("the example theme's breakpoints and z-index layers are ordered", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
 
@@ -623,8 +623,8 @@ Deno.test("the example theme's breakpoints and z-index layers are ordered", asyn
 
 Deno.test("the example theme's text is legible on its own surfaces in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const css = generateCss(tree);
 
@@ -649,8 +649,8 @@ Deno.test("the example theme's text is legible on its own surfaces in both modes
 
 Deno.test("the example theme's status colors are legible in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const css = generateCss(tree);
 
@@ -720,42 +720,42 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
   }
 });
 
-Deno.test("the example theme is addressable as the named 'default' theme", async () => {
+Deno.test("the example theme is addressable as the named 'silk' theme", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
-  const css = generateThemeCss({ default: tree });
+  const css = generateThemeCss({ silk: tree });
 
   assertEquals(
     blocks(css).map((block) => block.selector),
-    ['[data-theme="default"]', '[data-theme="default"][data-mode="dark"]'],
+    ['[data-theme="silk"]', '[data-theme="silk"][data-mode="dark"]'],
   );
   assertEquals(
     blockWithSelector(
       css,
-      '[data-theme="default"]',
+      '[data-theme="silk"]',
     ).declarations["--color-primary"],
     "#1c62c2",
   );
   assertEquals(
     blockWithSelector(
       css,
-      '[data-theme="default"][data-mode="dark"]',
+      '[data-theme="silk"][data-mode="dark"]',
     ).declarations["--color-primary"],
     "#8db9fa",
   );
 });
 
-Deno.test("the checked-in token types are what the default theme generates", async () => {
+Deno.test("the checked-in token types are what the baseline generates", async () => {
   // `theme-types.d.ts` is a generated artifact: it says which tokens the
-  // default theme carries, and a component that spends a token the artifact
+  // baseline carries, and a component that spends a token the artifact
   // does not name does not compile. Drift therefore surfaces as a compile
   // error in someone else's checkout, so the freshness check lives here with
   // the theme that generates it.
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("default.json", THEMES_DIR))),
-    "default.json",
+    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    "silk.json",
   );
   const checkedIn = await Deno.readTextFile(
     new URL("../src/theme-types.d.ts", import.meta.url),

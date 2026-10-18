@@ -48,7 +48,10 @@ const writeTheme = (name: string, text: string) =>
   clientFor<{ error: string | null }>(`/project/themes/write`, { name, text });
 
 const listThemes = () =>
-  clientFor<Array<{ name: string; file: string }>>(`/project/themes/list`, {});
+  clientFor<Array<{ name: string; file: string | null }>>(
+    `/project/themes/list`,
+    {},
+  );
 
 const analyze = (text: string) =>
   clientFor<{
@@ -105,6 +108,27 @@ describe("the theme surface over RPC, against the fixture app", () => {
     const written = await writeTheme("acme", original);
     assertEquals(written.error, null, "the write succeeds");
     assertEquals((await themeText("acme")).text, original, "byte for byte");
+  });
+
+  it("serves the shipped starters a project has not forked", async () => {
+    const read = await themeText("silk");
+    const doc = JSON.parse(read.text ?? "{}") as { color?: unknown };
+    assertEquals(
+      doc.color !== undefined,
+      true,
+      "an unforked starter reads as a document",
+    );
+    const out = await preview(
+      read.text as string,
+      "silk",
+      "<button>x</button>",
+    );
+    assertEquals(out.error, null, "and generates a stylesheet");
+    assertEquals(
+      out.css.includes('data-theme="silk"'),
+      true,
+      "scoped to its own name",
+    );
   });
 
   it("reports a theme that fails a legibility floor at the boundary", async () => {
@@ -207,9 +231,14 @@ describe("the theme surface over RPC, against the fixture app", () => {
   it("keeps the reported path relative to the project", async () => {
     const listed = await listThemes();
     assertEquals(
-      listed.map((t) => t.file).sort(),
+      listed.filter((t) => t.file !== null).map((t) => t.file).sort(),
       ["spin/acme.json", "spin/starter.json"],
       "no machine's filesystem layout travels with a theme",
+    );
+    assertEquals(
+      listed.filter((t) => t.file === null).map((t) => t.name).sort(),
+      ["console", "neobrut", "silk", "spin"],
+      "the unforked starters carry no path at all",
     );
   });
 

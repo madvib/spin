@@ -135,9 +135,9 @@ export default function OverviewPage() {
   /**
    * What the copy starts from.
    *
-   * The first theme on disk rather than a name the registry may not have:
-   * the picker used to be seeded with `starter` while the select beside it
-   * showed `default`, so creating a theme copied something that did not
+   * The first theme in the registry rather than a name it may not have:
+   * the picker was once seeded with one name while the select beside it
+   * showed another, so creating a theme copied something that did not
    * exist and said nothing about it.
    */
   const chosen = () => source() ?? registry()?.[0]?.name ?? "";
@@ -217,7 +217,7 @@ export default function OverviewPage() {
 
         <section class="stack-sm" aria-label="Themes">
           <div class="split">
-            <h2 class="text-xl">On disk</h2>
+            <h2 class="text-xl">Themes</h2>
             <span class="text-sm text-text-muted">
               {summaries().length} themes
             </span>
@@ -265,7 +265,10 @@ export default function OverviewPage() {
                           : `${summary.issues.length} issues`}
                       </span>
                     </Show>
-                    <Show when={summary.name !== activeName()}>
+                    <Show
+                      when={summary.name !== activeName() &&
+                        summary.file !== null}
+                    >
                       <button
                         type="button"
                         class="bare shrink-0 text-sm text-text-muted"
@@ -318,7 +321,7 @@ export default function OverviewPage() {
                     </div>
                   </Show>
                   <p class="truncate text-xs text-text-muted">
-                    {summary.tokens} tokens · {summary.file}
+                    {summary.tokens} tokens · {summary.file ?? "@spin/theme"}
                   </p>
                 </article>
               )}
@@ -386,7 +389,7 @@ export default function OverviewPage() {
 
         <footer class="stack-sm border-t border-border pt-4 text-xs text-text-muted">
           <div class="flex flex-wrap gap-x-4 gap-y-1">
-            <span>{active()?.file ?? ""}</span>
+            <span>{active()?.file ?? "@spin/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
             <span>Modes: {activeModes().join(", ")}</span>
             <span>
@@ -424,7 +427,7 @@ export default function OverviewPage() {
                 checked={!blanks()}
                 onChange={() => setBlanks(false)}
               />
-              <span>Copy a theme on disk</span>
+              <span>Copy a theme</span>
             </label>
             <Show when={!blanks()}>
               <select

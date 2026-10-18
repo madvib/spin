@@ -23,7 +23,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.default as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.silk as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -33,7 +33,7 @@ function themeTreeOrParse(): TokenTree {
 
 function useTheme() {
   const [theme, setTheme] = createSignal(
-    localStorage.getItem("spin-theme") ?? "default",
+    localStorage.getItem("spin-theme") ?? "silk",
   );
   const doc = () =>
     (starterThemes as unknown as Record<string, unknown>)[theme()] as never;

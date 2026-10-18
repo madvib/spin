@@ -46,8 +46,13 @@ const ProjectTheme = v.object({
   name: ThemeName,
   /** The raw JSON text, which is what an author edits. */
   text: v.string(),
-  /** Path within the project, shown so the author knows what they edit. */
-  file: v.string(),
+  /**
+   * Path within the project, shown so the author knows what they edit.
+   *
+   * `null` for a shipped starter the project has not forked: the theme comes
+   * from `@spin/theme`, and a save writes `spin/<name>.json` to fork it.
+   */
+  file: v.nullable(v.string()),
 });
 
 /**
@@ -71,7 +76,8 @@ export const listThemes = oc
   .route({
     method: "GET",
     path: "/project/themes/list",
-    summary: "List the project's themes on disk",
+    summary:
+      "List the project's themes: the shipped starters, forked by its files",
   });
 
 export const readTheme = oc
@@ -80,7 +86,7 @@ export const readTheme = oc
   .route({
     method: "GET",
     path: "/project/themes/read",
-    summary: "Read one theme file by name",
+    summary: "Read one theme by name, disk first, then the shipped set",
   });
 
 export const writeTheme = oc

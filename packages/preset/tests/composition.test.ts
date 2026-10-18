@@ -20,7 +20,7 @@ import {
  */
 
 const DEFAULT = new URL(
-  "../../theme/src/themes/default.json",
+  "../../theme/src/themes/silk.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
@@ -158,7 +158,7 @@ Deno.test("a theme's tokens and extensions come from one parse", () => {
   const parsed = parseDocument(theme);
   assert(parsed.ok, `the example parses: ${JSON.stringify(parsed)}`);
   const spin = parsed.extensions["spin"] as Record<string, unknown>;
-  assertEquals(spin?.["id"], "spin-light");
+  assertEquals(spin?.["id"], "silk");
   const css = generateCss(parsed.tree);
   assert(css.includes("--color-primary"), "the tree emits its variables");
 });

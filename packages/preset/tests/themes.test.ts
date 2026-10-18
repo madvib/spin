@@ -47,7 +47,7 @@ Deno.test("a dark MODE restates what it flips and inherits the rest", () => {
   // changes. So the property to check is that every path it declares is one the
   // theme already declares — a mode that introduced a NEW token would be a
   // second theme wearing a mode's name.
-  const parsed = parseTokens(example("default.json"));
+  const parsed = parseTokens(example("silk.json"));
   if (!parsed.ok) throw new Error(parsed.error);
 
   // A token carries its mode values as `$modes.dark` beside its base, so the

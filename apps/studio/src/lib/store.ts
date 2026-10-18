@@ -20,7 +20,7 @@ import { spinClient, spinClientAt } from "./client.ts";
 import type { StudioTheme } from "./themes.ts";
 
 /**
- * Every theme on disk at load. Refresh is explicit: the user picks it up.
+ * Every theme the project serves, at load. Refresh is explicit: the user picks it up.
  *
  * Module scope, because there is no server: the studio is a static bundle,
  * so the browser is the only place this ever runs.
@@ -131,7 +131,7 @@ function legibilityIssues(text: string): readonly ValidationIssue[] {
   }
 }
 
-const [activeName, setActiveName] = createSignal("default");
+const [activeName, setActiveName] = createSignal("silk");
 const [activeMode, setActiveMode] = createSignal("light");
 const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
   typeof localStorage !== "undefined" &&
@@ -388,7 +388,7 @@ export function activeComponents(): string[] | undefined {
 
 export interface ThemeSummary {
   name: string;
-  file: string;
+  file: string | null;
   tokens: number;
   dirty: boolean;
   valid: boolean;
@@ -406,7 +406,7 @@ export interface ThemeSummary {
   swatches: SwatchGroup[];
 }
 
-/** One card per theme on disk, with its editor state attached. */
+/** One card per theme the project serves, with its editor state attached. */
 export function themeSummaries(): ThemeSummary[] {
   return (registry() ?? []).map((theme: StudioTheme) => {
     const text = seed(theme.name) ?? theme.text;

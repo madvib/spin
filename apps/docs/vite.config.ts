@@ -13,7 +13,7 @@ const here = import.meta.dirname!;
  *
  * Themes come from `@spin/theme/themes` — the shipped registry, not copies
  * on disk. A starter fixed in the package re-themes this site on the next
- * build, and the site demos its default posture honestly: `widow`, dark or
+ * build, and the site demos the brand posture honestly: `spin`, dark or
  * paper, chosen from the header switcher. No `resolve` block: the plugin
  * carries the specifier table.
  */
@@ -21,9 +21,9 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      // No `themes` option: the plugin owns spin/*.json off this root — the
-      // files the studio edits, so the editing loop has documents on disk.
-      // drops into every served app opens this site's own theme documents.
+      // No `themes` option: the app serves the shipped starters, forked by
+      // `spin/*.json` off this root — the files the studio edits when a
+      // theme is saved. This site defines no themes of its own.
       // Icons compose alongside the preset: the product does not ship them,
       // and the pages that show elements show their icons too.
       presets: [presetIcons({ collections: { lucide } as never })],

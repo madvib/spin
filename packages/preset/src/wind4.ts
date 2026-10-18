@@ -52,7 +52,7 @@ import type {
 import { symbols, toArray } from "@unocss/core";
 import { parseTokens, themeKey } from "@spin/theme";
 import type { ThemeRef } from "@spin/theme";
-import { defaultTheme } from "@spin/theme/themes";
+import { silkTheme } from "@spin/theme/themes";
 import {
   rules as wind4Rules,
   variants as wind4Variants,
@@ -312,7 +312,7 @@ function covered(rule: Rule, claim: string): boolean {
  * Every token becomes a `--<path-with-dashes>` variable, so the TOP-LEVEL
  * groups are the defined surface: `--color-primary` is defined because the
  * colour group carries a `primary`, and a rule reading one is reading
- * something real. The groups are read from the default theme — the canonical
+ * something real. The groups are read from the baseline theme — the canonical
  * surface every theme answers — so the set is data, not a list maintained
  * alongside the audit.
  *
@@ -321,9 +321,9 @@ function covered(rule: Rule, claim: string): boolean {
  */
 const definedNamespaces: readonly string[] = (() => {
   const parsed = parseTokens(
-    defaultTheme as Parameters<typeof parseTokens>[0],
+    silkTheme as Parameters<typeof parseTokens>[0],
   );
-  if (!parsed.ok) throw new Error(`spin default theme: ${parsed.error}`);
+  if (!parsed.ok) throw new Error(`silk theme: ${parsed.error}`);
   const groups = new Set<string>(["--grid-gutter"]);
   for (const node of parsed.tree) {
     if (node.kind === "group") groups.add("--" + themeKey(node.name));

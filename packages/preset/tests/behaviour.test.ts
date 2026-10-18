@@ -26,7 +26,7 @@ import { primitiveContracts } from "../src/rules/primitives/manifest.ts";
  */
 
 const DEFAULT = new URL(
-  "../../theme/src/themes/default.json",
+  "../../theme/src/themes/silk.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
