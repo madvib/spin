@@ -13,6 +13,19 @@
 import { createSpinClient, type SpinClient } from "@spin/api";
 
 /**
+ * The host app the studio was pointed at, read once.
+ *
+ * `?app=` names another project's mount, and the studio's own links carry
+ * paths, not queries — a rail click would otherwise drop the param and move
+ * every later write to the studio's own checkout without saying so. Read at
+ * load, the choice lasts the session; a reload without the param is a
+ * different mode, the studio's own project, and starts over.
+ */
+const namedAtLoad: string | null = new URLSearchParams(location.search).get(
+  "app",
+);
+
+/**
  * The API base, absolute against the page's own origin so it follows
  * whatever port the dev server took. Built at call time, not module scope:
  * the studio is a static bundle with no server, and the address follows
@@ -24,9 +37,8 @@ function rpcUrl(): string {
   // studio with a host app — it is named by `?app=`, and every call goes
   // there, not just the overlay write. Without this the studio would edit
   // whatever project its own checkout happens to mount.
-  const named = new URLSearchParams(location.search).get("app");
-  if (named !== null) {
-    return new URL("/__spin/rpc", new URL(named)).toString();
+  if (namedAtLoad !== null) {
+    return new URL("/__spin/rpc", new URL(namedAtLoad)).toString();
   }
   // A `file://` preview or an opaque origin reports `"null"`: fall back
   // to the page URL rather than a dead origin.
@@ -40,6 +52,20 @@ let instance: SpinClient | undefined;
 export async function spinClient(): Promise<SpinClient> {
   if (instance === undefined) instance = createSpinClient(rpcUrl());
   return instance;
+}
+
+/**
+ * One of the studio's own paths, still naming the host app.
+ *
+ * The rail's links carry paths, not queries, and a click that dropped
+ * `?app=` would leave the address bar — and any reload — pointed at the
+ * studio's own checkout. The param rides on the links so the URL keeps
+ * saying which project is being edited.
+ */
+export function hostPath(path: string): string {
+  return namedAtLoad === null
+    ? path
+    : `${path}?app=${encodeURIComponent(namedAtLoad)}`;
 }
 
 /**

@@ -9,6 +9,9 @@ function fixture(): string {
         "4": { $type: "dimension", $value: "1rem" },
         "8": { $type: "dimension", $value: "2rem" },
       },
+      badge: {
+        pill: { $type: "boolean", $value: true },
+      },
     },
     null,
     2,
@@ -107,4 +110,33 @@ Deno.test("createToken refuses to overwrite a token the theme already holds", ()
     Error,
     "spacing.4",
   );
+});
+
+Deno.test("an edit lands as the JSON type the token already holds", () => {
+  // Controls speak strings, but a boolean is a boolean in the document:
+  // `"false"` written over `true` would change the token's type, and the
+  // reader that asks the value's JSON type — the validator, every rule that
+  // branches on it — would see a string where the theme declared a boolean.
+  const doc = JSON.parse(
+    applyEdits(
+      fixture(),
+      [{ path: ["badge", "pill"], value: "false" }],
+      "base",
+    ),
+  ) as { badge: { pill: { $value: unknown } } };
+  assertEquals(doc.badge.pill.$value, false);
+});
+
+Deno.test("a creation lands its scaffold as the type it declares", () => {
+  // A character token's scaffold crosses from the manifest as text; the
+  // declared type is what makes it JSON. `checkbox.depth` is a number, and
+  // a number written as `"1"` stops comparing like one.
+  const boolean = JSON.parse(
+    createToken(fixture(), ["badge", "dot"], "boolean", "true"),
+  ) as { badge: { dot: { $value: unknown } } };
+  assertEquals(boolean.badge.dot.$value, true);
+  const number = JSON.parse(
+    createToken(fixture(), ["checkbox", "depth"], "number", "1"),
+  ) as { checkbox: { depth: { $value: unknown } } };
+  assertEquals(number.checkbox.depth.$value, 1);
 });

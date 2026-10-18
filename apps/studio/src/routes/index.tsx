@@ -29,7 +29,11 @@ import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { scaffoldTheme, treeToJson } from "@spin/theme";
 import PlayRig from "../components/demos/PlayRig.tsx";
-import { ModePicker, ThemePicker } from "../components/Settings.tsx";
+import {
+  ModePicker,
+  refetchProjectThemes,
+  ThemePicker,
+} from "../components/Settings.tsx";
 import { inDrawer } from "../app.tsx";
 import {
   activeComponents,
@@ -150,6 +154,7 @@ export default function OverviewPage() {
       return;
     }
     refetchThemes();
+    refetchProjectThemes();
     setOpen(false);
     setName("");
     setSource(undefined);
@@ -166,6 +171,7 @@ export default function OverviewPage() {
     if (error === null) {
       setConfirming(null);
       refetchThemes();
+      refetchProjectThemes();
     }
   }
 

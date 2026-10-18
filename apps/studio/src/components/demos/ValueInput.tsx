@@ -27,19 +27,20 @@ function asHex(value: string): string | undefined {
 }
 
 /** What the editor's control is, chosen by the value the theme holds. */
-type Control = "color" | "range" | "text";
+type Control = "color" | "range" | "boolean" | "text";
 
 /**
  * The control follows what the value IS.
  *
- * A colour picks; a number — a length, a duration, a plain number — is a
- * track, because a spinner makes an author click forty times to watch a
- * corner round, and dragging is how you look at a value while you change
- * it. Everything a slider cannot honestly step (a shadow is a list of
- * lengths and colours; a curve is four points) is text, where the value
- * can say all of itself.
+ * A colour picks; a boolean is one box with two answers; a number — a
+ * length, a duration, a plain number — is a track, because a spinner makes
+ * an author click forty times to watch a corner round, and dragging is how
+ * you look at a value while you change it. Everything a slider cannot
+ * honestly step (a shadow is a list of lengths and colours; a curve is four
+ * points) is text, where the value can say all of itself.
  */
 function controlFor(type: string, value: string): Control {
+  if (type === "boolean") return "boolean";
   if (type === "color") return "color";
   if (measure(value) !== undefined) return "range";
   return "text";
@@ -84,6 +85,9 @@ export default function ValueInput(props: {
       </Match>
       <Match when={isShadowValue(props.value)}>
         <ShadowEditor value={props.value} onCommit={props.onCommit} />
+      </Match>
+      <Match when={controlFor(props.type, props.value) === "boolean"}>
+        <CheckControl {...props} />
       </Match>
       <Match when={controlFor(props.type, props.value) === "color"}>
         <ColorControl {...props} />
@@ -146,6 +150,38 @@ function ColorControl(props: {
         </>
       )}
     </Show>
+  );
+}
+
+/** A boolean: one box, two answers, and the word beside it. */
+function CheckControl(props: {
+  value: string;
+  onCommit: (value: string) => boolean;
+  id?: string;
+  label?: string;
+}) {
+  const checked = () => props.value === "true";
+  return (
+    <div class="row-sm flex-wrap gap-2">
+      <input
+        id={props.id}
+        type="checkbox"
+        aria-label={props.label}
+        checked={checked()}
+        class="h-6 w-6 shrink-0"
+        onChange={(event) => {
+          // A refused commit reports it, and the box goes back to what the
+          // document says — the same honesty the colour and track keep.
+          if (
+            props.onCommit(event.currentTarget.checked ? "true" : "false") ===
+              false
+          ) {
+            event.currentTarget.checked = checked();
+          }
+        }}
+      />
+      <code class="text-sm">{props.value}</code>
+    </div>
   );
 }
 

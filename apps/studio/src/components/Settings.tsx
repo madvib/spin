@@ -12,8 +12,16 @@ import { listProjectThemes } from "../lib/themes.ts";
 /**
  * The project's themes, fetched once per session. Module scope so the
  * settings section and anywhere else that names a theme share one fetch.
+ *
+ * The one write that changes this list is the registry's own create/delete,
+ * which asks for a refetch — a picker still offering yesterday's names is a
+ * picker that edits a theme the project no longer has.
  */
-const [projectThemes] = createResource(listProjectThemes);
+const [projectThemes, { refetch: refetchProjectThemes }] = createResource(
+  listProjectThemes,
+);
+
+export { refetchProjectThemes };
 
 /**
  * The mode control.

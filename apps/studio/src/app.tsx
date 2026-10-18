@@ -28,6 +28,7 @@ import PreviewStyles from "./components/PreviewStyles.tsx";
 import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 
 import { saveTheme } from "./lib/themes.ts";
+import { hostPath } from "./lib/client.ts";
 import {
   activeMode,
   activeName,
@@ -197,7 +198,7 @@ export default function App() {
               }}
             >
               <A
-                href={MARK.path}
+                href={hostPath(MARK.path)}
                 class="row-sm mb-2 shrink-0 justify-center font-semibold"
                 title={MARK.label}
               >
@@ -211,7 +212,7 @@ export default function App() {
                   {(route) => (
                     <li>
                       <A
-                        href={route.path}
+                        href={hostPath(route.path)}
                         activeClass="text-text font-semibold underline"
                         inactiveClass="text-text"
                         class="row-sm justify-center"
@@ -271,7 +272,7 @@ export default function App() {
                   />
                 </button>
                 <A
-                  href={FOOT.path}
+                  href={hostPath(FOOT.path)}
                   activeClass="text-text font-semibold underline"
                   inactiveClass="text-text"
                   class="row-sm justify-center"

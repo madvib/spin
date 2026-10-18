@@ -33,7 +33,21 @@ export function analyzeTheme(text: string): ThemeState {
   return { tree: parsed.tree, error: undefined, issues };
 }
 
+/**
+ * A value string as the JSON the token's own slot says it is.
+ *
+ * A control speaks strings — a track, a field, a switch all hand back text —
+ * but the document's JSON type is what every reader asks first: a boolean
+ * written as `"true"` is a string to the tree, the validator and every rule,
+ * and a number written as `"500"` quietly stops comparing like one. Where the
+ * token's own type can say, the value lands as that type; where it cannot,
+ * the string passes through and the theme's validation is the judge.
+ */
 function coerceValue(current: unknown, value: string): unknown {
+  if (typeof current === "boolean") {
+    if (value.trim() === "true") return true;
+    if (value.trim() === "false") return false;
+  }
   if (
     typeof current === "number" && value.trim() !== "" &&
     !Number.isNaN(Number(value))
@@ -115,6 +129,20 @@ export function applyEdits(
   return doc;
 }
 
+/** The scaffold a creation lands, as the JSON type the declared type means. */
+function coerceScaffold(type: string, value: string): unknown {
+  if (type === "boolean") {
+    if (value.trim() === "true") return true;
+    if (value.trim() === "false") return false;
+  }
+  if (
+    type === "number" && value.trim() !== "" && !Number.isNaN(Number(value))
+  ) {
+    return Number(value);
+  }
+  return value;
+}
+
 /**
  * Insert a token at a path the document does not have yet, with its type.
  *
@@ -163,7 +191,7 @@ export function createToken(
   if (node[last] !== undefined) {
     throw new Error(`token ${path.join(".")} already exists`);
   }
-  node[last] = { $type: type, $value: value };
+  node[last] = { $type: type, $value: coerceScaffold(type, value) };
   return JSON.stringify(doc, null, 2);
 }
 
