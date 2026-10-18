@@ -49,12 +49,14 @@ to build from, and oracles that mechanically verify the result.
 
 Supporting trees:
 
-- `oracles/visual/` — visual verification oracles (rendering, contrast,
-  appearance).
-- `oracles/layout/` — layout verification oracles (geometry, overflow,
-  stacking).
 - `apps/reference/` — the reference application: every primitive and gate,
   exercised.
+- `apps/reference/visual/` — the reference's visual check: contrast,
+  reachability, motion, geometry — a browser on the running app.
+- `apps/studio/e2e/` — the studio's end-to-end tests: the editor driven in a
+  browser, read back through its own RPC.
+- `oracles/` — the engines the checks moved off: the taffy layout engine and the
+  CDP driver. Nothing points at them; pending a decision.
 
 ### Package rules
 
