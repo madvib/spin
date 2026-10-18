@@ -17,7 +17,12 @@ import { oc } from "@orpc/contract";
 import { implement } from "@orpc/server";
 import * as v from "valibot";
 import { parseTokens } from "@spin/theme";
-import { describeCatalog, spinPreset } from "@spin/preset";
+import {
+  claimedElements,
+  describeCatalog,
+  primitiveVariants,
+  spinPreset,
+} from "@spin/preset";
 import type { ThemeDocument } from "@spin/theme";
 import { createGenerator } from "@unocss/core";
 
@@ -69,34 +74,134 @@ export const previewContract = { preview: { css: previewCss } };
 function catalogUtilities(sections: readonly { utilities: string[] }[]) {
   return sections.flatMap((section) => section.utilities).join(" ");
 }
+
+/**
+ * The primitives' vocabulary, as text the scanner can read.
+ *
+ * The preview pane is authored in the same vocabulary it previews — its own
+ * controls are the active theme's controls — so the sheet must carry those
+ * rules whether or not the route's markup happened to mention them. Generated
+ * from markup alone the sheet changed with the page: the overview's "new
+ * theme" button rested on the project's theme and hovered on the studio's,
+ * because no sample on that page spelled `button`. Tags arrive as markup and
+ * variants as classes, because the element and variant extractors read those
+ * forms and a bare word would reach neither.
+ */
+function primitiveVocabulary(): string {
+  return [
+    ...[...claimedElements()].map((tag) => `<${tag}></${tag}>`),
+    ...[...primitiveVariants()].map((variant) => `class="${variant}"`),
+  ].join(" ");
+}
+
 /**
  * The selector the preview's utilities are scoped under. The studio marks
- * its preview host with it, so the injected sheet styles specimens and
- * never the chrome around them. :where() keeps the scope at zero
- * specificity, so the studio's own sheet wins every tie on chrome the
- * preview also names.
+ * its preview host with it, so the injected sheet styles the pane and never
+ * the chrome around it. :where() keeps the scope at zero specificity, so the
+ * studio's own sheet wins every tie on chrome the preview also names.
  */
 const PREVIEW_SCOPE = ":where(.spin-preview)";
 
+/** Braces opened minus closed, for stepping over a block. */
+function braceDelta(text: string): number {
+  let delta = 0;
+  for (const ch of text) {
+    if (ch === "{") delta += 1;
+    else if (ch === "}") delta -= 1;
+  }
+  return delta;
+}
+
 /**
- * Scope every utility rule under the preview host.
+ * The selectors in a selector list, split on its own commas.
  *
- * A line pass, not a CSS parser: the generator emits one rule per line in
- * minified form, and at-rules (`@media`) pass through untouched with their
- * inner rules scoped on their own lines. Theme variable blocks (`:root`,
- * `[data-theme]`) keep their own selectors — variables are read through
- * the cascade, not matched as utilities.
+ * A `,` inside `:is(…)` or an attribute value separates nothing — the button
+ * rule's own selector is a list inside `:is()` — so the split tracks depth
+ * and quotes rather than calling `String.split`.
+ */
+function splitSelectors(list: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let quote = "";
+  let start = 0;
+  for (let i = 0; i < list.length; i += 1) {
+    const ch = list[i] as string;
+    if (quote !== "") {
+      if (ch === quote && list[i - 1] !== "\\") quote = "";
+      continue;
+    }
+    if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === "(" || ch === "[") depth += 1;
+    else if (ch === ")" || ch === "]") depth = Math.max(0, depth - 1);
+    else if (ch === "," && depth === 0) {
+      out.push(list.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  out.push(list.slice(start).trim());
+  return out.filter((selector) => selector !== "");
+}
+
+/**
+ * Scope every rule under the preview host.
+ *
+ * A line pass, not a CSS parser. The generator's own rules come minified, one
+ * body per line with the selector list in front of it — a list may run over
+ * several lines, each ending in its comma — while the authored preflights
+ * come pretty-printed, the selector ending in `{` and the declarations under
+ * it. So a line is a selector line when it contains `{` or ends with `,`, and
+ * every selector in it takes the scope.
+ *
+ * At-rules pass untouched, with their inner rules scoped on their own lines;
+ * keyframe steps are stepped over (a `50%,` is not a selector); comments pass
+ * whole; and theme variable blocks (`:root`, `[data-theme]`) keep their own
+ * selectors — variables are read through the cascade, not matched as
+ * utilities. Elements are scoped like utilities: a preview rule that styles
+ * `button` may not restyle the tool around the pane.
  */
 function scopePreview(css: string): string {
-  return css
-    .split("\n")
-    .map((line) => {
-      const text = line.trimStart();
-      if (!text.startsWith(".")) return line;
-      const indent = line.slice(0, line.length - text.length);
-      return `${indent}${PREVIEW_SCOPE} ${text}`;
-    })
-    .join("\n");
+  const out: string[] = [];
+  let keyframes = 0;
+  let comment = false;
+  for (const line of css.split("\n")) {
+    const text = line.trimStart();
+    const indent = line.slice(0, line.length - text.length);
+    if (comment) {
+      out.push(line);
+      if (text.includes("*/")) comment = false;
+      continue;
+    }
+    if (text.startsWith("/*")) {
+      comment = !text.includes("*/");
+      out.push(line);
+      continue;
+    }
+    if (keyframes > 0 || text.startsWith("@keyframes")) {
+      keyframes = Math.max(0, keyframes + braceDelta(text));
+      out.push(line);
+      continue;
+    }
+    if (
+      text.startsWith("@") || text.startsWith(":root") ||
+      text.startsWith("[data-theme")
+    ) {
+      out.push(line);
+      continue;
+    }
+    if (text.endsWith(",") || text.includes("{")) {
+      const cut = text.endsWith(",") ? text.length - 1 : text.indexOf("{");
+      const selectors = splitSelectors(text.slice(0, cut));
+      if (selectors.length > 0) {
+        const scoped = selectors.map((selector) =>
+          `${PREVIEW_SCOPE} ${selector}`
+        ).join(", ");
+        out.push(`${indent}${scoped}${text.slice(cut)}`);
+        continue;
+      }
+    }
+    out.push(line);
+  }
+  return out.join("\n");
 }
 
 /**
@@ -114,11 +219,15 @@ export async function generatePreview(
     const uno = await createGenerator({
       presets: [spinPreset({ themes: { [input.name]: document } })],
     });
-    // The markup first, so its tokens emit the primitive rules and the
-    // utilities they reference; the catalog's utilities backstop every
-    // utility the explorer can name, which markup alone would not reach.
+    // The markup first, so its tokens emit the primitive rules it spells;
+    // the primitives' vocabulary after it, so the pane's own controls have
+    // the active theme's rules whichever route is mounted; the catalog's
+    // utilities last, as the backstop for every utility the explorer can
+    // name, which markup alone would not reach.
     const scanned = uno.generate(
-      `${input.markup ?? ""} ${catalogUtilities(describeCatalog(tree))}`,
+      `${input.markup ?? ""} ${primitiveVocabulary()} ${
+        catalogUtilities(describeCatalog(tree))
+      }`,
     );
     const { css } = await scanned;
     // The sheet is injected into the studio's own document, so every

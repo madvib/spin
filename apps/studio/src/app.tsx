@@ -287,14 +287,17 @@ export default function App() {
             </nav>
             {
               /* The preview carries the project's theme. Everything above is
-                chrome and stays on the studio's own. */
+                chrome and stays on the studio's own. `spin-preview` is the
+                sheet's scope: the theme's rules apply inside the pane — a
+                page that never spells a control still styles one — and
+                never to the chrome. */
             }
             <div
               data-theme={activeName()}
               data-mode={activeMode()}
               // Same debt as the chrome's: <html> is stamped light, so a
               // label that only inherits keeps that ink on a dark surface.
-              class="flex min-h-0 min-w-0 flex-1 flex-col text-text"
+              class="spin-preview flex min-h-0 min-w-0 flex-1 flex-col bg-surface text-text"
               // Modal, this column is the scroller: a page that brings its
               // own rail fills it exactly and never triggers this, and a
               // page that does not scrolls HERE rather than dragging the

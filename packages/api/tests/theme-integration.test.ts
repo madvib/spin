@@ -211,21 +211,42 @@ describe("the theme surface over RPC, against the fixture app", () => {
       true,
       "the theme's own name scopes the variables",
     );
+  });
 
-    it("scopes preview utilities under the preview host", async () => {
-      // The preview sheet is injected into the studio's own document, so its
-      // utilities must not restyle the chrome around it: a studio row using
-      // grid-cols-4 lost its responsive variant to the preview's own later
-      // grid-cols-4, which is the same specificity winning by order.
-      const text = (await themeText("acme")).text as string;
-      const out = await preview(text, "acme", "<div>hi</div>");
-      assertEquals(out.error, null, "the stylesheet generates");
-      assertEquals(
-        out.css.includes(":where(.spin-preview) .grid-cols-4"),
-        true,
-        "utilities carry the host scope",
-      );
-    });
+  it("carries the primitives' rules, scoped, for markup that never spells them", async () => {
+    // The pane's own controls are the project theme's controls on every
+    // route. Generated from markup alone, the sheet changed with the page:
+    // the overview's buttons hovered on the studio's rules because no sample
+    // there spelled `button`. The primitives' vocabulary is scanned on every
+    // generation, and element rules take the host scope like utilities do.
+    const text = (await themeText("neobrut")).text as string;
+    const out = await preview(text, "neobrut", "<div>hi</div>");
+    assertEquals(out.error, null, "the stylesheet generates");
+    assertEquals(
+      out.css.includes(":where(.spin-preview) :is(button"),
+      true,
+      "the button rule rides along under the host scope",
+    );
+    assertEquals(
+      out.css.includes("transform:translate(var(--button-hover-lift-x)"),
+      true,
+      "and the theme's own hover lift is in it",
+    );
+  });
+
+  it("scopes preview utilities under the preview host", async () => {
+    // The preview sheet is injected into the studio's own document, so its
+    // utilities must not restyle the chrome around it: a studio row using
+    // grid-cols-4 lost its responsive variant to the preview's own later
+    // grid-cols-4, which is the same specificity winning by order.
+    const text = (await themeText("acme")).text as string;
+    const out = await preview(text, "acme", "<div>hi</div>");
+    assertEquals(out.error, null, "the stylesheet generates");
+    assertEquals(
+      out.css.includes(":where(.spin-preview) .grid-cols-4"),
+      true,
+      "utilities carry the host scope",
+    );
   });
 
   it("keeps the reported path relative to the project", async () => {
