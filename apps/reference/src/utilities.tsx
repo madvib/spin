@@ -444,7 +444,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
         <b
-          class={`block h-4 w-8 shrink-0 rounded-sm bg-neutral-200 text-center font-mono text-xs leading-4 text-text ${
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center font-mono text-xs leading-4 text-text ${
             props.cls?.[i] ?? ""
           }`}
         >
@@ -1348,7 +1348,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
        behind it is a shadow on nothing. */
     case "lifted":
       return (
-        <span class="inline-flex h-16 w-full min-w-0 items-center justify-center rounded-md bg-neutral-200 p-4">
+        <span class="inline-flex h-16 w-full min-w-0 items-center justify-center rounded-md bg-surface-sunken p-4">
           <UnderTest
             base="block h-8 w-16 rounded-md border border-solid border-border bg-surface-raised"
             cls={cls()}
@@ -1668,7 +1668,7 @@ function InteractivityBench() {
           <span class={MONO_MUTED}>grab · scroll · resize</span>
           <For each={Array.from({ length: 12 }, (_, i) => i + 1)}>
             {(i) => (
-              <span class="shrink-0 rounded-sm bg-neutral-200 px-2 py-1 font-mono text-xs">
+              <span class="shrink-0 rounded-sm bg-surface-sunken px-2 py-1 font-mono text-xs text-text">
                 row {i}
               </span>
             )}
