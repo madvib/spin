@@ -118,7 +118,15 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--radius-full",
       "--radius-md",
     ],
-    character: [],
+    // The ladder is the avatar's whole palette: a face has no palette of its
+    // own, and the sizes are the one set of decisions the theme owns for it.
+    // Scaffolds carry the shipped defaults so a theme that never decided a
+    // size gets the one the reference renders.
+    character: [
+      { path: "avatar.sm", type: "dimension", value: "1.5rem" },
+      { path: "avatar.md", type: "dimension", value: "2.5rem" },
+      { path: "avatar.lg", type: "dimension", value: "4rem" },
+    ],
   },
   "avatar-group": {
     tags: [],
@@ -179,7 +187,11 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       // theme owns for its badges. Neobrut squares them off with a hard
       // border; the default keeps the pill with a hairline.
       { path: "badge.edge", type: "dimension", value: "{border.width}" },
-      { path: "badge.radius", type: "dimension", value: "{radius.full}" },
+      // The decision is the boolean, not a radius: `badge.pill` answers yes and
+      // the rule computes its corner from `radius.full`; a theme that says no
+      // gets the badge's own square. A character named after a radius would
+      // write a token no rule reads.
+      { path: "badge.pill", type: "boolean", value: "true" },
     ],
   },
   breadcrumbs: {
