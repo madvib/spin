@@ -59,6 +59,7 @@ export {
   themeSchema,
 } from "./contract/roles.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
+export { STROBE_FLOOR_MS } from "./contract/motion.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 
 // Authoring: changing and creating themes.

@@ -46,6 +46,7 @@ import {
   starterThemes,
   themeModes,
 } from "../../../packages/theme/src/themes/index.ts";
+import { STROBE_FLOOR_MS } from "../../../packages/theme/src/contract/motion.ts";
 
 /** The worktree root, so a relative path means the same thing wherever it is run. */
 const REPO_ROOT = new URL("../../../", import.meta.url).pathname;
@@ -57,11 +58,11 @@ const DEFAULT_BASELINE = new URL("./baseline.json", import.meta.url).pathname;
 /** Lowest ratio a text node may measure against its background. */
 const MIN_CONTRAST = 4.5;
 /**
- * An endless animation below this is a strobe: a sweep nobody can follow. The
- * reference's own loader sweeps at `motion.slow` (400ms), so anything under a
- * quarter of a second is a decision that has to be named.
+ * An endless animation below this is a strobe: a sweep nobody can follow.
+ * The number is the theme contract's (`STROBE_FLOOR_MS`): every starter's
+ * loop duration holds it, and this check holds what rendered to it.
  */
-const STROBE_MS = 250;
+const STROBE_MS = STROBE_FLOOR_MS;
 const VIEWPORT = { width: 1280, height: 800 };
 
 /** Parses the `--viewport` flag: `1440x900`, not `1440,900`. */

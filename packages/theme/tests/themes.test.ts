@@ -7,7 +7,9 @@ import {
   generateTypes,
   inkTokens,
   parseTokens,
+  STROBE_FLOOR_MS,
   validateTokens,
+  valuesInMode,
 } from "@spin/theme";
 import type {
   ParseResult,
@@ -117,6 +119,14 @@ function toNumber(value: string): number {
   const match = /^(-?\d*\.?\d+)(?:rem|px|em)?$/.exec(value.trim());
   if (match === null) throw new Error(`not a length: ${JSON.stringify(value)}`);
   return Number(match[1]);
+}
+
+/** A CSS duration as milliseconds, or `undefined` when it is not a duration. */
+function durationMs(value: string): number | undefined {
+  const match = /^(\d*\.?\d+)(ms|s)$/.exec(value.trim());
+  if (match === null) return undefined;
+  const n = Number(match[1]);
+  return match[2] === "s" ? n * 1000 : n;
 }
 
 /** Ordered numbers must already be ascending, naming the offender when not. */
@@ -366,6 +376,35 @@ Deno.test("a theme declares the modes it actually has", async () => {
       modes,
       `${name}: the reported modes must follow from its root field`,
     );
+  }
+});
+
+Deno.test("every starter's loop duration holds the strobe floor", async () => {
+  // `motion.duration.slow` is what every endless animation in the system
+  // spends: the skeleton's pulse and the `animate-spin` / `animate-ping` /
+  // `animate-pulse` utilities. A slow step under the floor turns each of
+  // them into a strobe — a defect rather than a character choice — so the
+  // browser check flags the loop and this suite refuses the theme that
+  // minted it.
+  for (const [name, modes] of Object.entries(DECLARED_MODES)) {
+    const tree = treeOf(
+      parseTokens(
+        await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
+      ),
+      `${name}.json`,
+    );
+    for (const mode of modes) {
+      const slow = valuesInMode(tree, mode).get("motion.duration.slow");
+      const ms = typeof slow === "string" ? durationMs(slow) : undefined;
+      assert(
+        ms !== undefined,
+        `${name}: motion.duration.slow must be a duration`,
+      );
+      assert(
+        ms >= STROBE_FLOOR_MS,
+        `${name} (${mode}): a ${ms}ms loop is a strobe; the floor is ${STROBE_FLOOR_MS}ms`,
+      );
+    }
   }
 });
 

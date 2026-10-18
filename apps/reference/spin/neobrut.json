@@ -445,7 +445,7 @@
         "$value": "130ms"
       },
       "slow": {
-        "$value": "200ms"
+        "$value": "250ms"
       }
     },
     "easing": {
