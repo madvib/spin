@@ -179,6 +179,9 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#175cd3",
     doc: "Prose links.",
+    // The role's warning made mechanical: a link that cannot be read on the
+    // page it sits on fails validation like any other text.
+    floor: { fg: "color.link", bg: "color.surface", min: 4.5 },
   },
   {
     path: "font.family.sans",

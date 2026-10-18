@@ -32,7 +32,7 @@
     "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
     "primary": {
       "$type": "color",
-      "$value": "#5194ff"
+      "$value": "#2b5fd0"
     },
     "secondary": {
       "$type": "color",
@@ -118,7 +118,7 @@
     },
     "on-primary": {
       "$type": "color",
-      "$value": "#000000"
+      "$value": "#ffffff"
     },
     "on-danger": {
       "$type": "color",
@@ -130,7 +130,7 @@
     },
     "link": {
       "$type": "color",
-      "$value": "#5194ff"
+      "$value": "#2b5fd0"
     },
     "on-secondary": {
       "$type": "color",
@@ -445,7 +445,7 @@
         "$value": "130ms"
       },
       "slow": {
-        "$value": "200ms"
+        "$value": "250ms"
       }
     },
     "easing": {
