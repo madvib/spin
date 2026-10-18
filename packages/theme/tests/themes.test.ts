@@ -139,6 +139,15 @@ function assertAscending(values: number[], label: string): void {
   }
 }
 
+/** A shadow's weight: the px lengths it moves, summed. `none` weighs nothing. */
+function shadowWeight(value: string): number {
+  let total = 0;
+  for (const [, length] of value.matchAll(/(-?\d*\.?\d+)px/g)) {
+    total += Math.abs(Number(length));
+  }
+  return total;
+}
+
 /**
  * The token paths the example theme promises to define, grouped the way a
  * consumer reaches for them.
@@ -619,6 +628,35 @@ Deno.test("the example theme's breakpoints and z-index layers are ordered", asyn
     "z-index",
   );
   assertEquals(Number(vars["--z-index-base"]), 0);
+});
+
+Deno.test("every starter's elevation ladder ascends in every mode", async () => {
+  // Three steps or none: a theme whose md and lg spell the same shadow
+  // spends one elevation wearing two names, and every surface that asks for
+  // "the step above the page" gets the resting picture back. The step a
+  // component spends is its role — a card rests ON the page, a dialog floats
+  // above it — and how loud each step is stays the theme's to state.
+  for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
+    const tree = treeOf(
+      parseTokens(await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR))),
+      `${name}.json`,
+    );
+    const css = generateCss(tree);
+    const hasDark = tree.find((node) =>
+      node.path.join(".") === "dark"
+    ) !== undefined;
+    const modes = hasDark ? ["light", "dark"] as const : ["light"] as const;
+
+    for (const mode of modes) {
+      const vars = varsInMode(css, mode);
+      assertAscending(
+        ["sm", "md", "lg"].map((step) =>
+          shadowWeight(resolve(vars, `--shadow-${step}`))
+        ),
+        `${name} ${mode} shadow`,
+      );
+    }
+  }
 });
 
 Deno.test("the example theme's text is legible on its own surfaces in both modes", async () => {

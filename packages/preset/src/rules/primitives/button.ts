@@ -179,6 +179,12 @@ const VARIANTS: Record<PaintedVariant, {
     body: (ctx) => ({
       "background-color": token(ctx, "color.surface-raised"),
       "border-color": token(ctx, "color.border"),
+      // The fill is a surface, so the base's resting shadow is a surface
+      // floating on itself — and that shadow is the loud variant's shout
+      // (in neobrut, the hard offset that makes a quiet fill read as a
+      // second primary action). The hover still spends the theme's hovered
+      // elevation: the theme keeps saying how loud a hover is.
+      "box-shadow": "none",
       color: token(ctx, "color.text"),
     }),
   },
@@ -310,8 +316,18 @@ const VARIANT_HOVER: Record<string, {
     }),
   },
   bare: {
+    // The base's hover spends the theme's lift — the button's movement, and
+    // part of its character the same way the shadow is. The opt-out takes
+    // the character back with the paint: chrome around a control does not
+    // move when it is pointed at, and a bare button that hops is a link
+    // wearing a button's gesture.
     selector: `${BUTTON}.bare:hover:not(:disabled):not([aria-busy="true"])`,
-    body: () => ({ "box-shadow": "none", background: "none", border: "none" }),
+    body: () => ({
+      "box-shadow": "none",
+      background: "none",
+      border: "none",
+      transform: "none",
+    }),
   },
 };
 
@@ -492,6 +508,11 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           [ctx.symbols.selector]: () => '[type="reset"]',
           "background-color": token(ctx, "color.surface-raised"),
           "border-color": token(ctx, "color.border"),
+          // The secondary's resting posture as well as its look: a reset
+          // button's fill is a surface, and the base's resting shadow is the
+          // loud variant's shout — a surface-filled button floating on
+          // itself reads as a second primary action in a hard-edged theme.
+          "box-shadow": "none",
           color: token(ctx, "color.text"),
         };
         yield {

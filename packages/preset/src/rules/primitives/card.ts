@@ -104,19 +104,22 @@ function cardTokens(ctx: ThemeContext | undefined): Tokens {
     sizeSm: token(ctx, "font.size.sm"),
     weightSemibold: token(ctx, "font.weight.semibold"),
 
-    shadow: token(ctx, "shadow.lg"),
+    shadow: token(ctx, "shadow.md"),
   };
 }
 
 /**
  * The surface: a column with a gap, raised, rounded, bordered, and elevated.
  *
- * The shadow is the theme's own elevation scale (`shadow.lg`), spent on the
+ * The shadow is the theme's own elevation scale (`shadow.md`), spent on the
  * surface and dropped when the theme states none — a card that sits on the
- * page rather than above it is a theme decision, not a default. No transition
- * is stated: the card is a static surface with no state change of its own, so
- * nothing moves. A hover step is deliberately absent — a card is a container,
- * not a control, and the card-action child carries its own hover feedback.
+ * page rather than above it is a theme decision, not a default. The step is
+ * the one for a surface resting ON the page; `shadow.lg` is for what floats
+ * above it, and a theme that wants its cards louder states a louder `md`
+ * rather than the card reaching for a bigger step. No transition is stated:
+ * the card is a static surface with no state change of its own, so nothing
+ * moves. A hover step is deliberately absent — a card is a container, not a
+ * control, and the card-action child carries its own hover feedback.
  */
 function cardSurface(card: string): Rule {
   return [

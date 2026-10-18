@@ -399,7 +399,7 @@
       "$value": "4px 4px 0 #000000"
     },
     "lg": {
-      "$value": "4px 4px 0 #000000"
+      "$value": "8px 8px 0 #000000"
     }
   },
   "breakpoint": {

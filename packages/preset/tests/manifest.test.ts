@@ -115,3 +115,26 @@ Deno.test("no component reads another component's tokens", () => {
     }
   }
 });
+
+Deno.test("the elevation ladder is spent by height", () => {
+  // A surface resting ON the page spends the resting step; what floats above
+  // the page spends the floating one. Breaks if a call site reaches for a
+  // bigger step instead of the theme stating a louder one — a card on the
+  // overlay's step is a card levitating over a page it sits on — or if an
+  // overlay sinks to the resting step.
+  assertEquals(
+    primitiveContracts["card"]?.reads.includes("--shadow-md"),
+    true,
+    "a card rests on the page's step",
+  );
+  assertEquals(
+    primitiveContracts["dialog"]?.reads.includes("--shadow-lg"),
+    true,
+    "a dialog floats above it",
+  );
+  assertEquals(
+    primitiveContracts["popover"]?.reads.includes("--shadow-lg"),
+    true,
+    "and a popover floats above it too",
+  );
+});

@@ -315,7 +315,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--font-size-sm",
       "--font-weight-semibold",
       "--radius-lg",
-      "--shadow-lg",
+      "--shadow-md",
       "--spacing-4",
     ],
     character: [],

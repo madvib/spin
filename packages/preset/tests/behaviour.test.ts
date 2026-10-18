@@ -34,6 +34,12 @@ const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
   unknown
 >;
 
+/** A theme that states a hover lift, for the decisions about movement. */
+const LIFTED = new URL(
+  "../../theme/src/themes/neobrut.json",
+  import.meta.url,
+);
+
 type Options = Parameters<typeof spinPreset>[0];
 type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
 
@@ -327,6 +333,42 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
     Object.keys(partial).length < Object.keys(full).length,
     "omitting a token must actually omit its declaration",
   );
+});
+
+Deno.test("a quiet variant states its own resting posture", async () => {
+  // Breaks if the secondary goes back to wearing the base rule's resting
+  // shadow: in a hard-edged theme that is the loudest offset on the page,
+  // spent by the fill whose background is a surface — a surface floating on
+  // itself, beside the primary action's shout. The hover still spends the
+  // theme's hovered elevation, so the theme keeps saying how loud a lift is.
+  const body = declarations(
+    bodyFor(
+      await generate('<button class="secondary">Save</button>'),
+      "secondary",
+    ),
+  );
+  assertEquals(body["box-shadow"], "none");
+});
+
+Deno.test("a bare control takes the character's movement back", async () => {
+  // The movement is part of the button's character the same way the shadow
+  // is, and the opt-out takes the character back with the paint: chrome
+  // around a control does not move when it is pointed at. Generated against
+  // a theme that states a lift, so the reset is proven against a lift that
+  // exists rather than against one the theme never mentions.
+  const lifting = JSON.parse(readFileSync(LIFTED, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  const body = declarations(
+    bodyFor(
+      await generate('<button class="bare">Go</button>', {
+        themes: { light: lifting },
+      }),
+      "bare",
+    ),
+  );
+  assertEquals(body["transform"], "none");
 });
 
 Deno.test("the motion clamp ships whenever an animated component does", async () => {
