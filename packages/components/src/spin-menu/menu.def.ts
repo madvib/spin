@@ -644,14 +644,19 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         },
       }),
     },
+    // The chrome lives here, not in the recipes: every menu positions
+    // and surfaces identically, so the bag carries the full class and
+    // the six examples write a bare spread. Trigger chrome stays in
+    // the recipes — the user example's identity block is real variance.
     positioner: {
-      sig: (scope) => [scope.state].join(" "),
+      sig: (scope) => [scope.state].join(""),
       attrs: (scope) => ({
         id: scope.id("positioner"),
           "data-scope": "menu",
           "data-part": "positioner",
         "data-state": scope.state === "open" ? "open" : "closed",
         style: geometryStyle(scope),
+        class: "absolute z-dropdown origin-top-left transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 [left:var(--menu-anchor-x,0px)] [top:var(--menu-anchor-y,100%)] [min-width:var(--menu-anchor-w,11rem)]",
       }),
     },
     content: {
@@ -678,6 +683,7 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
             : scope.id("item", highlightedValue),
           "aria-labelledby": scope.id("trigger"),
           "data-state": scope.state === "open" ? "open" : "closed",
+          class: "rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
           onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
           onSubmenuclose: (event: Event): void => onSubmenuClose(scope, event),
           "use:dismissable": {

@@ -4,8 +4,8 @@
   <div class="flex items-center justify-center w-64 h-32 rounded-lg border border-solid border-border bg-surface-raised text-sm text-muted cursor-context-menu" {...menu.getContextTriggerProps()}>
     Right-click here for context menu
   </div>
-  <div class="absolute z-dropdown origin-top-left transition duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 [left:var(--menu-anchor-x,0px)] [top:var(--menu-anchor-y,100%)] [min-width:var(--menu-anchor-w,11rem)]" {...menu.getPositionerProps()}>
-    <div class="rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg" {...menu.getContentProps()}>
+  <div {...menu.getPositionerProps()}>
+    <div {...menu.getContentProps()}>
       <template for={menu.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...menu.getItemGroupProps(block)}>
           <span class="block px-2 pb-1 text-xs font-medium text-muted" {...menu.getItemGroupLabelProps(block)}>{block.label}</span>
