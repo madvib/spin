@@ -48,6 +48,11 @@ export function refetchThemes(): void {
  * listed, take the first thing it did list rather than guessing.
  */
 createEffect(() => {
+  // A refetch in flight is a list that is about to change, and answering
+  // against the one still on screen would undo a seat its own write just
+  // made: a create appends to the registry, then seats the new name, and the
+  // stale list does not have it yet. Wait for the answer, then judge.
+  if (registryData.loading) return;
   const listed = registry();
   if (listed === undefined || listed.length === 0) return;
   const known = listed.some((theme) => theme.name === activeName());
