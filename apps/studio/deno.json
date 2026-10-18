@@ -4,6 +4,7 @@
     "build": "vite build",
     "test": "deno test --allow-read src/",
     "typecheck": "tsc --noEmit",
+    "e2e": "deno test --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run e2e/",
     "screenshots": "deno run -A ./visual/shot.ts",
     "check": "deno run -A ./visual/check.ts"
   },

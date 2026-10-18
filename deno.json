@@ -54,7 +54,7 @@
     "dev:daemon": "cd packages/api && deno task dev --root ../../examples/fixture-app --port 0",
     "dev:studio": "cd apps/studio && deno task dev",
     "build:studio": "cd apps/studio && deno task build",
-    "studio-check": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env oracles/studio/check.ts"
+    "e2e": "cd apps/studio && deno task e2e"
   },
   "fmt": {
     "exclude": [
