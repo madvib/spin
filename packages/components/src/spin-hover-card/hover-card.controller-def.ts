@@ -47,6 +47,7 @@ export interface HoverCardApi {
   getRootProps(): Record<string, unknown>;
   getTriggerProps(): Record<string, unknown>;
   getContentProps(): Record<string, unknown>;
+  setPlacement(next: "top" | "bottom"): void;
 }
 
 function panelOf(el: Element): HTMLElement | null {
@@ -67,7 +68,7 @@ export function attachHoverCard(el: Element): HoverCardApi {
   const disabled = el.hasAttribute("disabled");
   const openDelay = intAttr(el, "open-delay", 600);
   const closeDelay = intAttr(el, "close-delay", 300);
-
+  let placement = (el.getAttribute("placement") === "top" ? "top" : "bottom") as "top" | "bottom";
   const emit = (open: boolean): void => {
     el.dispatchEvent(new CustomEvent("open-change", { detail: { open }, bubbles: true }));
   };
@@ -99,6 +100,9 @@ export function attachHoverCard(el: Element): HoverCardApi {
   return {
     get open(): boolean {
       return readOpen();
+    },
+    setPlacement(next: "top" | "bottom"): void {
+      placement = next === "top" ? "top" : "bottom";
     },
     show,
     hide,
@@ -140,6 +144,7 @@ export function attachHoverCard(el: Element): HoverCardApi {
         "--anchor-w": `${geometry().w}px`,
       },
       "use:anchor": {
+        placement,
         onGeometry: (next: AnchorGeometry) => geometry(next),
       },
     }),
@@ -148,7 +153,7 @@ export function attachHoverCard(el: Element): HoverCardApi {
 
 export const hoverCard: ControllerDef = {
   attach: attachHoverCard,
-  commands: ["show", "hide"],
+  commands: ["show", "hide", "setPlacement"],
   events: {
     "open-change": {
       on: "onOpenChange",

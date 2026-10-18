@@ -1,10 +1,12 @@
-<scope>props={ label: string = "Hover for details", heading: string = "Ada Lovelace", body: string = "First programmer. The card stays while the pointer is over either side." } consume={ hoverCard }</scope>
+<scope>props={ label: string = "Hover me" } consume={ hoverCard }</scope>
 
 <div {...hoverCard.getRootProps()} class="inline-block">
-  <button {...hoverCard.getTriggerProps()} class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">{label}</button>
+  <span {...hoverCard.getTriggerProps()} class="inline-block cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-sm text-text transition-colors hover:bg-surface">{label}</span>
 
   <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-    <p class="m-0 text-sm font-medium text-text">{heading}</p>
-    <p class="m-0 mt-1 text-sm text-muted">{body}</p>
+    <div class="space-y-2">
+      <h3 class="m-0 text-sm font-semibold text-text">Hover Card</h3>
+      <p class="m-0 text-sm text-muted">This is a basic hover card that appears when you hover over the trigger element.</p>
+    </div>
   </div>
 </div>

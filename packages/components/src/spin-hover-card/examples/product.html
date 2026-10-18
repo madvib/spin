@@ -1,12 +1,24 @@
-<scope>props={ label: string = "Product", name: string = "Premium Wireless Headphones", price: string = "$299" } consume={ hoverCard }</scope>
+<scope>props={ name: string = "Premium Wireless Headphones", blurb: string = "High-quality wireless headphones with active noise cancellation and 30-hour battery life.", price: string = "$299", rating: string = "(4.8)" } consume={ hoverCard }</scope>
 
-<div {...hoverCard.getRootProps()} class="inline-block">
-  <div {...hoverCard.getTriggerProps()} class="grid h-32 w-32 place-items-center overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
-    <span class="i-lucide-headphones text-2xl text-text" aria-hidden="true"></span>
-  </div>
+<div class="flex items-center gap-4 p-6" {...hoverCard.getRootProps()}>
+  <span {...hoverCard.getTriggerProps()} class="block h-32 w-32 cursor-pointer overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
+    <span class="grid h-full w-full place-items-center transition-transform hover:scale-105" aria-hidden="true"><span class="i-lucide-headphones text-4xl text-text"></span></span>
+  </span>
 
-  <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-    <p class="m-0 text-sm font-medium text-text">{name}</p>
-    <p class="m-0 mt-1 text-sm text-muted">{price}</p>
+  <div {...hoverCard.getContentProps()} class="fixed m-0 max-w-[20rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+    <div class="grid aspect-square w-full place-items-center bg-surface-sunken">
+      <span class="i-lucide-headphones text-6xl text-text" aria-hidden="true"></span>
+    </div>
+    <div class="space-y-4 p-4">
+      <div class="space-y-2">
+        <h3 class="m-0 text-lg font-semibold text-text">{name}</h3>
+        <p class="m-0 text-sm text-muted">{blurb}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="m-0 text-lg font-semibold text-text">{price}</p>
+        <p class="m-0 text-sm text-muted">★★★★☆ {rating}</p>
+      </div>
+      <button class="w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Add to Cart</button>
+    </div>
   </div>
 </div>

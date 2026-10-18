@@ -1,17 +1,22 @@
 <scope>props={ label: string = "Controlled Hover Card" } consume={ hoverCard }</scope>
 
-<div class="w-full space-y-4">
-  <div class="flex items-center gap-2">
-    <button id="hc-show" class="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-on-primary">Show Hover Card</button>
-    <button id="hc-hide" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text">Hide Hover Card</button>
-    <p class="m-0 text-xs text-muted">Current state: <span class="font-medium" id="hc-state">Closed</span></p>
+<div class="w-full space-y-6 p-6">
+  <div class="space-y-3">
+    <h3 class="m-0 text-sm font-medium text-text">External Controls</h3>
+    <div class="flex gap-2">
+      <button id="hc-show" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Show Hover Card</button>
+      <button id="hc-hide" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Hide Hover Card</button>
+    </div>
+    <p class="m-0 text-sm text-muted">Current state: <span class="font-medium" id="hc-state">Closed</span></p>
   </div>
-  <div class="flex items-center justify-center py-8" {...hoverCard.getRootProps()}>
-    <button {...hoverCard.getTriggerProps()} class="rounded-md border border-solid border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">{label}</button>
+  <div class="flex items-center justify-center py-12" {...hoverCard.getRootProps()}>
+    <span {...hoverCard.getTriggerProps()} class="cursor-pointer rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 text-sm text-text transition-colors hover:bg-surface">{label}</span>
 
-    <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[16rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-      <p class="m-0 text-sm font-semibold text-text">Controlled Hover Card</p>
-      <p class="m-0 mt-1 text-sm text-muted">Driven by the buttons above through show and hide.</p>
+    <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+      <div class="space-y-3">
+        <h4 class="m-0 text-sm font-semibold text-text">Controlled Hover Card</h4>
+        <p class="m-0 text-sm text-muted">This hover card's open state is controlled externally via the buttons above.</p>
+      </div>
     </div>
   </div>
 </div>

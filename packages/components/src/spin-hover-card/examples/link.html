@@ -1,10 +1,5 @@
-<scope>props={ label: string = "Hover for details", heading: string = "Ada Lovelace", body: string = "First programmer." } consume={ hoverCard }</scope>
+<scope>props={ article: string = "building modern web applications", title: string = "Building Modern Web Applications with React and TypeScript", summary: string = "Learn how to create scalable and maintainable web applications using the latest tools and best practices.", date: string = "Dec 15, 2023", views: string = "12.4k views" } consume={ hoverCard }</scope>
 
-<div {...hoverCard.getRootProps()} class="inline-block">
-  <button {...hoverCard.getTriggerProps()} class="text-sm text-primary underline">{label}</button>
-
-  <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-    <p class="m-0 text-sm font-medium text-text">{heading}</p>
-    <p class="m-0 mt-1 text-sm text-muted">{body}</p>
-  </div>
+<div class="mx-auto max-w-md space-y-4 p-6">
+  <p class="m-0 text-sm text-muted">Check out this amazing article about <span {...hoverCard.getRootProps()} class="inline"><span {...hoverCard.getTriggerProps()} class="cursor-pointer text-primary underline">{article}</span><span {...hoverCard.getContentProps()} class="fixed m-0 max-w-[24rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[24rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left"><span class="block h-32 w-full bg-surface-sunken" aria-hidden="true"></span><span class="block space-y-3 p-4"><span class="block space-y-2"><span class="block text-lg font-semibold text-text">{title}</span><span class="block text-sm text-muted">{summary}</span></span><span class="flex items-center justify-between text-xs text-muted"><span>{date}</span><span>{views}</span></span></span></span></span>.</p>
 </div>
