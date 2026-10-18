@@ -51,8 +51,11 @@ Supporting trees:
 
 - `apps/reference/` — the reference application: every primitive and gate,
   exercised.
-- `apps/reference/visual/` — the reference's visual check: contrast,
-  reachability, motion, geometry — a browser on the running app.
+- `apps/reference/visual/` — the reference's config for the visual check:
+  routes, themes, geometry claims, page conventions — and the baseline it is
+  measured against.
+- `internal/check/` — the visual check harness: the browser probes and the
+  runner every app's config feeds. Internal tooling; nothing here is published.
 - `apps/studio/e2e/` — the studio's end-to-end tests: the editor driven in a
   browser, read back through its own RPC.
 - `oracles/` — the engines the checks moved off: the taffy layout engine and the

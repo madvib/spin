@@ -7,8 +7,7 @@
   },
   "imports": {
     "solid-js": "npm:solid-js@^1.9.3",
-    "@spin/preset": "../../packages/preset/src/index.ts",
-    "playwright-core": "npm:playwright-core@^1.63.0"
+    "@spin/preset": "../../packages/preset/src/index.ts"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

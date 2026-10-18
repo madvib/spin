@@ -12,13 +12,7 @@
  * simply missing where it runs.
  */
 
-/** One claim, and what the browser measured for it. */
-export interface GeometryClaim {
-  readonly id: string;
-  readonly ok: boolean;
-  /** What was measured, as one line. */
-  readonly detail: string;
-}
+import type { GeometryClaim } from "../../../internal/check/harness.ts";
 
 /** The claims each route of the reference is held to. */
 const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
