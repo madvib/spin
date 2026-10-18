@@ -129,6 +129,27 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       });
     });
   `,
+"tooltip/positioning": `
+    document.querySelectorAll("tooltip-positioning").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const label = host.querySelector("[data-part=trigger]");
+      const update = (placement) => {
+        if (typeof host.setPlacement === "function") host.setPlacement(placement);
+        host.querySelectorAll("[data-placement-choice]").forEach((btn) => {
+          const active = btn.getAttribute("data-placement-choice") === placement;
+          btn.setAttribute("data-active", active ? "true" : "false");
+        });
+        const tip = host.querySelector("[data-part=content]");
+        if (tip) tip.textContent = placement;
+        if (label) label.textContent = "Hover for " + placement + " placement";
+      };
+      host.querySelectorAll("[data-placement-choice]").forEach((btn) => {
+        btn.addEventListener("click", () => update(btn.getAttribute("data-placement-choice") ?? "bottom"));
+      });
+      update("bottom");
+    });
+  `,
 "hover-card/custom-positioning": `
     document.querySelectorAll("hover-card-custom-positioning").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;

@@ -1,5 +1,5 @@
 import { signal, type ControllerDef } from "@spin/runtime";
-import type { AnchorGeometry } from "@spin/runtime/actions";
+import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
 
 /**
  * Tooltip on the platform: the browser owns open/closed, the top layer,
@@ -37,6 +37,7 @@ export interface TooltipApi {
   hide(): void;
   getTriggerProps(): Record<string, unknown>;
   getContentProps(): Record<string, unknown>;
+  setPlacement(next: AnchorPlacement): void;
 }
 
 function panelOf(el: Element): HTMLElement | null {
@@ -69,6 +70,10 @@ export function attachTooltip(el: Element): TooltipApi {
     panel.hidePopover();
   };
 
+  let placement: AnchorPlacement = ((): AnchorPlacement => {
+    const raw = el.getAttribute("placement");
+    return raw === "top" || raw === "bottom" || raw === "left" || raw === "right" ? raw : "bottom";
+  })();
   const instance = el.id !== "" ? el.id : `${"tooltip-"}${++instanceCounter}`;
   const triggerId = `${instance}:trigger`;
   const panelId = `${instance}:panel`;
@@ -79,6 +84,9 @@ export function attachTooltip(el: Element): TooltipApi {
     },
     show,
     hide,
+    setPlacement(next: AnchorPlacement): void {
+      placement = next;
+    },
     getTriggerProps: () => ({
       id: triggerId,
       "data-scope": "tooltip",
@@ -105,6 +113,7 @@ export function attachTooltip(el: Element): TooltipApi {
         "--anchor-w": `${geometry().w}px`,
       },
       "use:anchor": {
+        placement,
         onGeometry: (next: AnchorGeometry) => geometry(next),
       },
     }),
@@ -113,7 +122,7 @@ export function attachTooltip(el: Element): TooltipApi {
 
 export const tooltip: ControllerDef = {
   attach: attachTooltip,
-  commands: ["show", "hide"],
+  commands: ["show", "hide", "setPlacement"],
   events: {
     "open-change": {
       on: "onOpenChange",

@@ -21,7 +21,7 @@ import type { ElementAction } from "./action.ts";
  * this action's.
  */
 
-export type AnchorPlacement = "top" | "bottom";
+export type AnchorPlacement = "top" | "bottom" | "left" | "right";
 
 export interface AnchorGeometry {
   /** Anchor's left edge relative to the positioner's offset parent. */
@@ -83,22 +83,42 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
     const hostTop = hostRect?.top ?? 0;
     const hostBottom = hostRect?.bottom ?? globalThis.innerHeight ?? 0;
     const panelHeight = node.offsetHeight;
+    const panelWidth = node.offsetWidth;
+    const hostRight = hostRect?.right ?? globalThis.innerWidth ?? 0;
     const roomBelow = hostBottom - anchorRect.bottom - gap;
     const roomAbove = anchorRect.top - hostTop - gap;
+    const roomRight = hostRight - anchorRect.right - gap;
+    const hostLeftEdge = hostRect?.left ?? 0;
+    const roomLeft = anchorRect.left - hostLeftEdge - gap;
+    const horizontal = want === "left" || want === "right";
     // The flip is sticky-free: each measurement answers from current room,
     // so a resize that restores room flips back without stored state.
-    const placement: AnchorPlacement = want === "bottom"
-      ? (roomBelow < panelHeight && roomAbove > roomBelow ? "top" : "bottom")
-      : (roomAbove < panelHeight && roomBelow > roomAbove ? "bottom" : "top");
-    const geometry: AnchorGeometry = {
-      x: anchorRect.left - hostLeft,
-      y: placement === "bottom"
-        ? anchorRect.bottom - hostTop + gap
-        : anchorRect.top - hostTop - panelHeight - gap,
-      w: anchorRect.width,
-      h: anchorRect.height,
-      placement,
-    };
+    const placement: AnchorPlacement = horizontal
+      ? (want === "right"
+        ? (roomRight < panelWidth && roomLeft > roomRight ? "left" : "right")
+        : (roomLeft < panelWidth && roomRight > roomLeft ? "right" : "left"))
+      : (want === "bottom"
+        ? (roomBelow < panelHeight && roomAbove > roomBelow ? "top" : "bottom")
+        : (roomAbove < panelHeight && roomBelow > roomAbove ? "bottom" : "top"));
+    const geometry: AnchorGeometry = horizontal
+      ? {
+        x: placement === "right"
+          ? anchorRect.right - hostLeft + gap
+          : anchorRect.left - hostLeft - panelWidth - gap,
+        y: anchorRect.top - hostTop + (anchorRect.height - panelHeight) / 2,
+        w: anchorRect.width,
+        h: anchorRect.height,
+        placement,
+      }
+      : {
+        x: anchorRect.left - hostLeft,
+        y: placement === "bottom"
+          ? anchorRect.bottom - hostTop + gap
+          : anchorRect.top - hostTop - panelHeight - gap,
+        w: anchorRect.width,
+        h: anchorRect.height,
+        placement,
+      };
     const key = `${geometry.x},${geometry.y},${geometry.w},${geometry.placement}`;
     if (key === last) return;
     last = key;

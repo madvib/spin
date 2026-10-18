@@ -1,0 +1,20 @@
+<scope>props={ label: string = "Hover for bottom placement", placement: string = "bottom" } consume={ tooltip }</scope>
+
+<div class="w-full space-y-6 p-6">
+  <div class="space-y-3">
+    <h3 class="m-0 text-sm font-medium text-text">Select Position</h3>
+    <div class="flex flex-wrap gap-2" data-positions>
+      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="top">Top</button>
+      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="bottom">Bottom</button>
+      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="left">Left</button>
+      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="right">Right</button>
+    </div>
+  </div>
+  <div class="flex items-center justify-center py-12">
+    <span {...tooltip.getTriggerProps()} class="cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm text-text transition-colors hover:bg-surface">{label}</span>
+
+    <div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+      {placement}
+    </div>
+  </div>
+</div>

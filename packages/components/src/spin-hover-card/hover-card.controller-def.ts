@@ -1,5 +1,5 @@
 import { signal, type ControllerDef } from "@spin/runtime";
-import type { AnchorGeometry } from "@spin/runtime/actions";
+import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
 
 /**
  * Hover-card on the platform: the browser owns open/closed, the top layer,
@@ -47,7 +47,7 @@ export interface HoverCardApi {
   getRootProps(): Record<string, unknown>;
   getTriggerProps(): Record<string, unknown>;
   getContentProps(): Record<string, unknown>;
-  setPlacement(next: "top" | "bottom"): void;
+  setPlacement(next: "top" | "bottom" | "left" | "right"): void;
 }
 
 function panelOf(el: Element): HTMLElement | null {
@@ -68,7 +68,10 @@ export function attachHoverCard(el: Element): HoverCardApi {
   const disabled = el.hasAttribute("disabled");
   const openDelay = intAttr(el, "open-delay", 600);
   const closeDelay = intAttr(el, "close-delay", 300);
-  let placement = (el.getAttribute("placement") === "top" ? "top" : "bottom") as "top" | "bottom";
+  let placement: AnchorPlacement = ((): AnchorPlacement => {
+    const raw = el.getAttribute("placement");
+    return raw === "top" || raw === "bottom" || raw === "left" || raw === "right" ? raw : "bottom";
+  })();
   const emit = (open: boolean): void => {
     el.dispatchEvent(new CustomEvent("open-change", { detail: { open }, bubbles: true }));
   };
@@ -101,8 +104,8 @@ export function attachHoverCard(el: Element): HoverCardApi {
     get open(): boolean {
       return readOpen();
     },
-    setPlacement(next: "top" | "bottom"): void {
-      placement = next === "top" ? "top" : "bottom";
+    setPlacement(next: "top" | "bottom" | "left" | "right"): void {
+      placement = next;
     },
     show,
     hide,
