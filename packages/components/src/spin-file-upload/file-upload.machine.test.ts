@@ -69,7 +69,7 @@ function harness(initial: Record<string, unknown> = {}): Harness {
   };
 }
 
-const file = (name: string, size = 100, type = ""): FileRecord => ({ name, size, type });
+const file = (name: string, size = 100, type = ""): FileRecord => ({ name, size, type, path: "" });
 
 const names = (api: FileUploadApi): string[] => api.acceptedFiles.map((entry) => entry.name);
 
@@ -109,7 +109,7 @@ Deno.test("Given a filled dropzone / When a drop arrives / Then multiple mode ap
   h.chooseFiles([file("a.png", 4, "image/png")]);
   handler<(e: DragEvent) => void>(h.api.getDropzoneProps(), "onDrop")({
     preventDefault: () => undefined,
-    dataTransfer: { files: [{ name: "b.png", size: 4, type: "image/png" }] },
+    dataTransfer: { files: [{ name: "b.png", size: 4, type: "image/png", path: "" }] },
   } as unknown as DragEvent);
   assertEquals(names(h.api), ["a.png", "b.png"], "the drop appends");
   h.dispose();
@@ -120,7 +120,7 @@ Deno.test("Given a count cap / When a drop would exceed it / Then the extra is r
   h.chooseFiles([file("a.png", 4, "image/png"), file("b.png", 4, "image/png")]);
   handler<(e: DragEvent) => void>(h.api.getDropzoneProps(), "onDrop")({
     preventDefault: () => undefined,
-    dataTransfer: { files: [{ name: "c.png", size: 4, type: "image/png" }] },
+    dataTransfer: { files: [{ name: "c.png", size: 4, type: "image/png", path: "" }] },
   } as unknown as DragEvent);
   assertEquals(names(h.api), ["a.png", "b.png"], "the cap holds");
   assertEquals(h.api.rejectedFiles.map((item) => `${item.file.name}:${item.code}`), ["c.png:too-many"], "and reports the rule");

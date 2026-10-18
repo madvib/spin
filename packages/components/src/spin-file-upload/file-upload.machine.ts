@@ -18,6 +18,8 @@ export interface FileRecord {
   readonly name: string;
   readonly size: number;
   readonly type: string;
+  /** The folder-relative path; empty for flat picks. */
+  readonly path: string;
 }
 
 export interface FileUploadContext {
@@ -27,6 +29,7 @@ export interface FileUploadContext {
   rejectedFiles: FileRejection[];
   /** The scalars the assigns read, synced from scope by the bridge. */
   multiple: boolean;
+  directory: boolean;
   /** A comma-joined accept list (`.png,image/*`); empty accepts all. */
   accept: string;
   /** The most files a selection may hold; 0 is unbounded. */
@@ -66,6 +69,7 @@ export const config = {
     acceptedFiles: [] as FileRecord[],
     rejectedFiles: [] as FileRejection[],
     multiple: false,
+    directory: false,
     accept: "",
     maxFiles: 0,
     maxSize: 0,

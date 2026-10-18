@@ -60,6 +60,7 @@ export interface FileUploadApi extends FileUploadCommands {
   getItemProps(row: FileRow): Record<string, unknown>;
   getItemNameProps(row: FileRow): Record<string, unknown>;
   getItemSizeText(row: FileRow): string;
+  getItemPathText(row: FileRow): string;
   getItemDeleteTriggerProps(row: FileRow): Record<string, unknown>;
   getClearTriggerProps(): Record<string, unknown>;
 }
@@ -86,7 +87,8 @@ const parseFiles = (raw: unknown): FileRecord[] | null => {
     const size = bag["size"];
     const type = bag["type"];
     if (typeof name !== "string" || typeof size !== "number") continue;
-    files.push({ name, size, type: typeof type === "string" ? type : "" });
+    const path = bag["path"];
+    files.push({ name, size, type: typeof type === "string" ? type : "", path: typeof path === "string" ? path : "" });
   }
   return files;
 };
@@ -107,7 +109,7 @@ const toRecords = (list: FileList | null): readonly FileRecord[] => {
   for (let at = 0; at < list.length; at++) {
     const file = list[at];
     if (file === undefined) continue;
-    files.push({ name: file.name, size: file.size, type: file.type });
+    files.push({ name: file.name, size: file.size, type: file.type, path: (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? "" });
   }
   return files;
 };
@@ -145,6 +147,7 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   implementations,
   seed: (props) => ({
     multiple: props["multiple"] === true,
+    directory: props["directory"] === true,
     accept: typeof props["accept"] === "string" ? props["accept"] : "",
     maxFiles: readInt(props, "maxFiles"),
     maxSize: readInt(props, "maxSize"),
@@ -187,6 +190,7 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     },
     files: { parse: (raw) => raw },
     multiple: { parse: (raw) => raw === true },
+    directory: { parse: (raw) => raw === true },
     accept: { parse: (raw) => (typeof raw === "string" ? raw : "") },
     maxFiles: { parse: (raw) => readInt({ value: raw }, "value") },
     maxSize: { parse: (raw) => readInt({ value: raw }, "value") },
@@ -194,7 +198,7 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     disabled: { parse: (raw) => raw === true },
     label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
   },
-  scalars: ["multiple", "accept", "maxFiles", "maxSize", "minSize", "disabled"],
+  scalars: ["multiple", "accept", "directory", "maxFiles", "maxSize", "minSize", "disabled"],
   parts: {
     root: {
       sig: (scope) => [`${scope.props["disabled"] === true}`].join(" "),
@@ -269,6 +273,7 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
           id: scope.id("hiddenInput"),
           type: "file",
           multiple: ctx.multiple,
+          webkitdirectory: ctx.directory ? true : undefined,
           accept: ctx.accept.length > 0 ? ctx.accept : undefined,
           disabled: scope.props["disabled"],
           hidden: true,
@@ -375,6 +380,12 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     },
     getItemSizeText: {
       call: (_context, _state, args) => formatBytes((args[0] as FileRow).file.size),
+    },
+    getItemPathText: {
+      call: (_context, _state, args) => {
+        const file = (args[0] as FileRow).file;
+        return file.path !== "" ? file.path : file.name;
+      },
     },
   },
   events: {

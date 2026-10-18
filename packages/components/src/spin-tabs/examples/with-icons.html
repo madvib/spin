@@ -1,0 +1,16 @@
+<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"overview","label":"Overview","content":"Dashboard with key metrics and insights."},{"value":"projects","label":"Projects","content":"Manage active development projects."},{"value":"packages","label":"Packages","content":"View and organize package dependencies."}], defaultValue: string = "tab1" } consume={ tabs }</scope>
+
+
+<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...tabs.getRootProps()}>
+  <div class="relative mb-4 flex w-fit gap-8 border-b border-solid border-border" {...tabs.getListProps()}>
+    <template for={items} as={row} key={row.value}>
+      <button
+        class="flex items-center gap-2 border-b-2 border-solid border-transparent px-1 py-2 text-sm font-medium text-muted transition-colors data-[state=active]:border-primary data-[state=active]:text-text"
+        {...tabs.getTriggerProps(row)}
+      ><span class="i-lucide-home text-sm" aria-hidden="true" show={row.value === "overview"}></span><span class="i-lucide-folder-open text-sm" aria-hidden="true" show={row.value === "projects"}></span><span class="i-lucide-package text-sm" aria-hidden="true" show={row.value === "packages"}></span><span>{row.label}</span></button>
+    </template>
+  </div>
+  <template for={items} as={row} key={row.value}>
+    <p class="m-0 text-center text-sm text-muted" {...tabs.getContentProps(row)}>{row.content}</p>
+  </template>
+</div>

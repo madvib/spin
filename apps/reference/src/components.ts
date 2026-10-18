@@ -150,6 +150,28 @@ const EXAMPLE_ONLOAD: Record<string, string> = {
       update("bottom");
     });
   `,
+"signature-pad/with-preview": `
+    document.querySelectorAll("signature-pad-with-preview").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const box = host.querySelector("[data-preview]");
+      const frame = host.querySelector("[data-preview-box]");
+      const render = () => {
+        const svg = host.querySelector("svg");
+        if (!svg || !frame || !box) return;
+        const clone = svg.cloneNode(true);
+        clone.setAttribute("class", "h-24 w-full");
+        frame.replaceChildren(clone);
+        box.hidden = false;
+      };
+      host.addEventListener("draw-end", render);
+      host.querySelector("[data-preview-clear]")?.addEventListener("click", () => {
+        if (typeof host.clear === "function") host.clear();
+        if (frame) frame.replaceChildren();
+        if (box) box.hidden = true;
+      });
+    });
+  `,
 "hover-card/custom-positioning": `
     document.querySelectorAll("hover-card-custom-positioning").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
