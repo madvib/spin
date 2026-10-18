@@ -3,7 +3,7 @@ import { parseHTML } from "@spin/runtime/testing";
 
 // The shim installs its own globals. Declaring them here, rather than in the
 // package, is what keeps linkedom's `Window` out of the shared program.
-import { define } from "./element.ts";
+import { attrParsers, define } from "./element.ts";
 import { effect, signal } from "../core/signal.ts";
 
 /**
@@ -187,4 +187,69 @@ Deno.test("each connection gets its own scope", () => {
 
   assertEquals(scopes.length, 2);
   assertEquals(scopes[0] === scopes[1], false);
+});
+
+Deno.test("a malformed JSON array attribute lands as empty rather than throwing", () => {
+  define("spin-malformed", {
+    attributes: {
+      tags: attrParsers["string[]"],
+      items: attrParsers["object[]"],
+    },
+    build({ el, props }) {
+      effect(() => {
+        el.setAttribute("seen", `${JSON.stringify(props.tags)}|${JSON.stringify(props.items)}`);
+      });
+    },
+  });
+
+  const el = document.createElement("spin-malformed");
+  el.setAttribute("tags", "not-json");
+  el.setAttribute("items", "{oops");
+  document.body.appendChild(el);
+
+  assertEquals(el.getAttribute("seen"), "[]|[]");
+});
+
+Deno.test("a host-written object/array arrives coerced, not raw, at the channel", () => {
+  define("spin-host-array", {
+    props: ["items"],
+    attributes: {
+      items: attrParsers["object[]"],
+    },
+    build({ el, props }) {
+      effect(() => {
+        el.setAttribute("seen", JSON.stringify(props.items));
+      });
+    },
+  });
+
+  const el = document.createElement("spin-host-array") as HTMLElement & { items?: unknown };
+  el.items = [{ value: "a" }, null, "junk", ["nested"]];
+  document.body.appendChild(el);
+
+  // The syntax layer's object-array grammar: plain objects survive, the rest drop.
+  assertEquals(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
+
+  el.items = [{ value: "b" }];
+  assertEquals(el.getAttribute("seen"), JSON.stringify([{ value: "b" }]));
+});
+
+Deno.test("a host-written JSON string property arrives parsed at the channel", () => {
+  define("spin-host-string", {
+    props: ["items"],
+    attributes: {
+      items: attrParsers["object[]"],
+    },
+    build({ el, props }) {
+      effect(() => {
+        el.setAttribute("seen", JSON.stringify(props.items));
+      });
+    },
+  });
+
+  const el = document.createElement("spin-host-string") as HTMLElement & { items?: unknown };
+  el.items = JSON.stringify([{ value: "a" }]);
+  document.body.appendChild(el);
+
+  assertEquals(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
 });

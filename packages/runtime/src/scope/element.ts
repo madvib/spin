@@ -8,6 +8,7 @@
 
 import { scope, signal, type OwnerScope } from "../core/signal.ts";
 import { createScopeTable, type Factory, type Handle, type ScopeTable } from "./table.ts";
+import { coerceBool, coerceInt, coerceJsonArray, coerceObjectArrayItems, coerceString } from "../props.ts";
 
 /** Turns an attribute's string into the value the component reads. */
 export type AttributeParser = (value: string | null) => unknown;
@@ -20,14 +21,11 @@ export type AttributeParser = (value: string | null) => unknown;
  * definition that consumes them, not beside the grammar that mirrors them.
  */
 export const attrParsers = {
-  bool: (value: string | null): boolean => value === null || value === "" || value === "true",
-  string: (value: string | null): string => value ?? "",
-  int: (value: string | null): number | undefined =>
-    value === null ? undefined : Number.parseInt(value, 10),
-  "string[]": (value: string | null): string[] =>
-    value === null || value === "" ? [] : (JSON.parse(value) as string[]),
-  "object[]": (value: string | null): unknown[] =>
-    value === null || value === "" ? [] : (JSON.parse(value) as unknown[]),
+  bool: (value: string | null): boolean | undefined => coerceBool(value, false),
+  string: (value: string | null): string => coerceString(value),
+  int: (value: string | null): number | undefined => coerceInt(value, undefined),
+  "string[]": (value: string | null): string[] => coerceJsonArray(value, []) as string[],
+  "object[]": (value: string | null): unknown[] => coerceJsonArray(value, []),
 } as const satisfies Record<string, AttributeParser>;
 
 export interface ElementSpec {
@@ -208,6 +206,21 @@ export function define(tag: string, spec: ElementSpec): void {
     }
   }
 
+/**
+ * The property-write boundary. A host's write coerces through the runtime's
+ * prop grammar, so the store holds grammar-shaped values whichever boundary
+ * the host wrote through. String writes take the component's own parser (the
+ * attribute path's grammar, verbatim); a host-written object or array takes
+ * the object-array branch: plain objects survive, everything else is dropped.
+ */
+function coerceWrite(name: string, next: unknown): unknown {
+  const parser = parsers[name];
+  if (parser === undefined) return next;
+  if (typeof next === "string") return parser(next);
+  if (parser !== attrParsers["object[]"]) return next;
+  return coerceObjectArrayItems(next, []);
+}
+
   for (const name of propNames) {
     Object.defineProperty(Component.prototype, name, {
       get(this: HTMLElement) {
@@ -215,7 +228,7 @@ export function define(tag: string, spec: ElementSpec): void {
       },
       set(this: HTMLElement, next: unknown) {
         authoredFor(this).add(name);
-        propFor(this, name)(next);
+        propFor(this, name)(coerceWrite(name, next));
       },
       configurable: true,
       enumerable: true,

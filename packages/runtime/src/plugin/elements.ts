@@ -220,9 +220,6 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const hasConsume = consumeCalls.length > 0;
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
-      const runtimeImport = hasConsume
-        ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots, controllerView, provideController } from "@spin/runtime";`
-        : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)
         .join(", ");
@@ -236,6 +233,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         string: "string",
         int: "int",
         "string[]": "string[]",
+        "object-array": "object[]",
         "object[]": "object[]",
       };
       const attributeEntries: string[] = [];
@@ -253,6 +251,11 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const attributeDecl = attributeEntries.length > 0
         ? ` attributes: { ${attributeEntries.join(", ")} },`
         : "";
+      // The generated define references `P` whenever a prop type has a parser,
+      // so the import covers that case too, not just consume.
+      const runtimeImport = hasConsume || attributeEntries.length > 0
+        ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots, controllerView, provideController } from "@spin/runtime";`
+        : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
       const defineHead = hasProps
         ? `define(${JSON.stringify(tag)}, { props: ${JSON.stringify(propNames)},${attributeDecl} build({ ${buildParams} }) {`
         : `define(${JSON.stringify(tag)}, {${attributeDecl} build({ ${buildParams} }) {`;

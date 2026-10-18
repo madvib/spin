@@ -5,6 +5,7 @@ import { parseHTML } from "@spin/runtime/testing";
 // Window out of the shared program, exactly as element.test.ts does.
 import unplugin from "./elements.ts";
 import {
+  attrParsers,
   machineTick,
   bindActionProps,
   bindAttr,
@@ -34,6 +35,7 @@ const plugin = unplugin.raw({}, { framework: "vite", versions: {} }) as {
 
 /** The runtime symbols the generated module imports. */
 const RUNTIME = {
+  P: attrParsers,
   machineTick,
   define,
   coerceProps,

@@ -7,6 +7,7 @@
     "./internal": "./src/internal.ts",
     "./plugin": "./src/plugin/index.ts",
     "./plugin/elements": "./src/plugin/elements.ts",
+    "./props": "./src/props.ts",
     "./fsm": "./src/machine/fsm/machine.ts"
   }
 }

@@ -10,11 +10,13 @@
     "./load": "./src/directives/load.ts",
     "./plugin": "./src/plugin/index.ts",
     "./plugin/elements": "./src/plugin/elements.ts",
+    "./props": "./src/props.ts",
   },
   "imports": {
     "@spin/runtime": "./src/index.ts",
     "@spin/runtime/zag": "./src/machine/adapter/index.ts",
     "@spin/runtime/element": "./src/element.ts",
+    "@spin/runtime/props": "./src/props.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "alien-signals": "npm:alien-signals@^3.2.1",
     "@zag-js/core": "npm:@zag-js/core@~1.44.0",

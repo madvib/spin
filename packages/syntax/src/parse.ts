@@ -1,5 +1,6 @@
-import { ParseError, type ComponentIr, type Diagnostic, type Node, type ObjectField, type PropDecl, type ScopeBlock, type ScopePropType } from "./ir.ts";
+import { ParseError, type ComponentIr, type Diagnostic, type Node, type ObjectField, type PropDecl, type ScopeBlock } from "./ir.ts";
 import { matchBrace } from "./braces.ts";
+import { isValidJsonDefault } from "@spin/runtime/props";
 
 const VOID = new Set([
   "area",
@@ -544,13 +545,9 @@ function parseScopeEntry(p: Parser, entry: string, start: number, end: number, p
   if (typeStr.startsWith("{") && typeStr.endsWith("}[]")) {
     const fields = parseObjectFields(typeStr.slice(1, -3).trim(), start, end, p);
     if (!fields) return;
-    if (def !== undefined) {
-      try {
-        JSON.parse(def);
-      } catch {
-        fail(p, "scope-default", `invalid JSON default for object-array '${name}'`, start, end);
-        return;
-      }
+    if (def !== undefined && !isValidJsonDefault(def)) {
+      fail(p, "scope-default", `invalid JSON default for object-array '${name}'`, start, end);
+      return;
     }
     props.push({ name, type: "object-array", fields, ...(def !== undefined ? { default: def } : {}) });
     return;
@@ -596,93 +593,7 @@ function parseObjectFields(inner: string, start: number, end: number, p: Parser)
   return fields;
 }
 
-export function coerceProps(
-  decls: readonly PropDecl[],
-  attrs: Record<string, string | null | undefined | object>,
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const decl of decls) {
-    const dashed = decl.name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-    const raw = attrs[dashed] ?? attrs[decl.name];
-    const value = coerceValue(decl, raw);
-    if (value !== undefined) {
-      out[decl.name] = value;
-      out[dashed] = value;
-    }
-  }
-  return out;
-}
-
-function coerceValue(decl: PropDecl, raw: string | null | undefined | object): unknown {
-  const def = decl.default !== undefined ? coerceByType(decl.type, decl.default, undefined, decl.fields) : undefined;
-  if (raw === undefined || raw === null) return def;
-  if (decl.type === "object-array" && typeof raw !== "string") {
-    return coerceObjectArrayObject(raw, def as unknown[] | undefined);
-  }
-  return coerceByType(decl.type, raw as string, def, decl.fields);
-}
-
-function coerceByType(type: ScopePropType, raw: string, def?: unknown, fields?: readonly ObjectField[]): unknown {
-  switch (type) {
-    case "bool":
-      if (raw === "" || raw === "true") return true;
-      if (raw === "false") return false;
-      return def;
-    case "int": {
-      const n = parseInt(raw, 10);
-      return Number.isNaN(n) ? def : n;
-    }
-    case "string[]": {
-      // Bracketed scope defaults (`[a, b]`) split like a bare list: the
-      // grammar reserves top-level commas for prop separation.
-      const inner = raw.trim().startsWith("[") && raw.trim().endsWith("]")
-        ? raw.trim().slice(1, -1)
-        : raw;
-      return inner.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
-    }
-    case "string":
-      return raw;
-    case "object-array": {
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        return def ?? [];
-      }
-      return coerceObjectArrayItems(parsed, def as unknown[] | undefined, fields);
-    }
-  }
-}
-
-function coerceObjectArrayItems(value: unknown, def: unknown[] | undefined, fields: readonly ObjectField[] | undefined): Record<string, unknown>[] {
-  if (!Array.isArray(value)) return (def ?? []) as Record<string, unknown>[];
-  const out: Record<string, unknown>[] = [];
-  for (const item of value) {
-    if (item === null || typeof item !== "object" || Array.isArray(item)) continue;
-    const obj = { ...(item as Record<string, unknown>) };
-    if (fields) {
-      for (const field of fields) {
-        if (field.type === "int") {
-          const v = obj[field.name];
-          const n = typeof v === "number" ? v : parseInt(String(v), 10);
-          obj[field.name] = Number.isNaN(n) ? undefined : n;
-        }
-      }
-    }
-    out.push(obj);
-  }
-  return out;
-}
-
-function coerceObjectArrayObject(value: unknown, def: unknown[] | undefined): Record<string, unknown>[] {
-  if (!Array.isArray(value)) return (def ?? []) as Record<string, unknown>[];
-  const out: Record<string, unknown>[] = [];
-  for (const item of value) {
-    if (item === null || typeof item !== "object" || Array.isArray(item)) continue;
-    out.push(item as Record<string, unknown>);
-  }
-  return out;
-}
+export { coerceProps } from "@spin/runtime/props";
 
 export function parse(source: string): ComponentIr {
   const p: Parser = { src: source, pos: 0, errors: [] };

@@ -6,7 +6,9 @@
   },
   "imports": {
     "@spin/syntax": "./src/index.ts",
-    "@std/assert": "jsr:@std/assert@^1.0.0"
+    "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@spin/runtime": "../runtime/src/index.ts",
+    "@spin/runtime/props": "../runtime/src/props.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-import src/",

@@ -13,6 +13,17 @@ export {
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
 export { focuser, ids, type IdFn } from "./component/ids.ts";
+export {
+  coerceBool,
+  coerceInt,
+  coerceJsonArray,
+  coerceList,
+  coerceObjectArrayItems,
+  coerceString,
+  type CoerceObjectField,
+  type CoercePropDecl,
+  type PropCoerceType,
+} from "./props.ts";
 export { defineComponent } from "./component/synthesize.ts";
 export {
   type ChannelDef,
