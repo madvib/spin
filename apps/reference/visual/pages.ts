@@ -31,7 +31,7 @@ export function pageState(): PageState {
  * The theme attribute is the app's own signal that it is running: the app
  * writes it as it mounts, so a page without it has not rendered anything yet.
  * Deliberately not a test of how much content arrived, because a route that
- * renders an error is still a route the oracle has to look at.
+ * renders an error is still a route the check has to look at.
  */
 export function renderReady(): boolean {
   if (document.querySelector("main") === null) return false;
@@ -39,8 +39,8 @@ export function renderReady(): boolean {
 }
 
 /**
- * True on the blank document the oracle navigates through. Waiting for this is
- * how the oracle knows the page it just left is gone: a route differs from
+ * True on the blank document the check navigates through. Waiting for this is
+ * how the check knows the page it just left is gone: a route differs from
  * the next by hash only, which a browser calls the same document.
  */
 export function blankDocument(): boolean {
@@ -51,7 +51,7 @@ export function blankDocument(): boolean {
  * True once nothing on the page is mid-motion.
  *
  * A text node measured while it fades in is a different measurement every run,
- * so the oracle waits for the page to hold still. Endless loops — a loader
+ * so the check waits for the page to hold still. Endless loops — a loader
  * that pulses forever — are exempt: they are the page, not a thing that
  * finishes.
  */

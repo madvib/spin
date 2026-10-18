@@ -2,11 +2,13 @@
   "tasks": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "visual": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env --allow-sys ./visual/check.ts"
   },
   "imports": {
     "solid-js": "npm:solid-js@^1.9.3",
-    "@spin/preset": "../../packages/preset/src/index.ts"
+    "@spin/preset": "../../packages/preset/src/index.ts",
+    "playwright-core": "npm:playwright-core@^1.63.0"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

@@ -65,7 +65,7 @@ export interface AuditResult {
   readonly measured: number;
 }
 
-/** The name the audit is reachable by inside a document the oracle loaded. */
+/** The name the audit is reachable by inside a document the check loaded. */
 export const AUDIT_GLOBAL = "spinVisualAudit";
 
 /**

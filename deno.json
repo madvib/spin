@@ -45,7 +45,7 @@
     "fmt": "deno fmt",
     "check": "deno check packages/",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
-    "visual": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env oracles/visual/check.ts",
+    "visual": "cd apps/reference && deno task visual",
     "test:oracles": "deno test --allow-read --allow-write --allow-run --allow-net ./oracles/visual/",
     "serve": "cd apps/reference && deno task dev",
     "dev": "deno task dev:studio & deno task dev:daemon & wait",
