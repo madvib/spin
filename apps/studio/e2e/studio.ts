@@ -253,6 +253,28 @@ export class StudioPage {
     return pressed;
   }
 
+  /**
+   * Point the pointer at the first match and let the hover state land.
+   *
+   * `eval` can synthesize a click, but only real pointer input raises
+   * `:hover` — so this one goes through playwright's own mouse. The settle
+   * outlasts the transition a themed control carries, so the caller reads a
+   * landed state rather than a frame of it.
+   */
+  async hover(selector: string): Promise<string> {
+    const target = this.#page.locator(selector).first();
+    if (await target.count() === 0) return "absent";
+    await target.hover();
+    await this.settle(600);
+    return "hovered";
+  }
+
+  /** Park the pointer in a corner, so nothing reads as hovered. */
+  async parkPointer(): Promise<void> {
+    await this.#page.mouse.move(0, 0);
+    await this.settle(100);
+  }
+
   /** Client-side, because a navigation would reset the mode this walk was given. */
   async followRail(route: string): Promise<void> {
     await this.eval(

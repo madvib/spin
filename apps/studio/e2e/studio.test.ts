@@ -12,7 +12,7 @@
  *   STUDIO_URL=http://localhost:9173 APP_URL=http://localhost:9174 deno task e2e
  */
 
-import { assert } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import type { Browser } from "playwright-core";
 import { ROUTE_PATHS } from "../src/lib/routes.ts";
 import {
@@ -775,6 +775,113 @@ test("a theme that declares one mode disables the other", async () => {
         `held=${probe.held} disabled=${probe.disabled} why=${probe.explained} ` +
         `route=${probe.onAnotherRoute} dark-only=${probe.darkOnlyClamped} ` +
         `light-off=${probe.lightDisabled} restored=${probe.restored}`,
+    );
+  });
+});
+
+/** The computed facts a parity claim compares. */
+interface Snap {
+  readonly transform: string;
+  readonly shadow: string;
+  readonly background: string;
+  readonly border: string;
+}
+
+/**
+ * The pane's controls are the theme's controls, wherever the author put them.
+ *
+ * The overview writes a classless `<button>New theme</button>` inside the
+ * preview, so it must rest and hover the way the button page's classless
+ * specimen does: the sheet carries the primitives' vocabulary whether or not
+ * the route's markup happens to spell it. Breaks if the preview goes back to
+ * generating from the page's own samples — the trigger then falls to the
+ * studio's sheet and behaves differently from the specimen one route away.
+ * Neobrut is seated because it states a lift and a hard shadow, so the
+ * difference this pins shows in computed style rather than in taste.
+ */
+test("a classless control behaves the theme's way on every route", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/`);
+    const before = await page.editingName();
+
+    const seat = await page.eval<string>(
+      `(async () => {
+        const picker = document.getElementById("theme-picker-compact");
+        if (!picker) return "no-picker";
+        picker.value = "neobrut";
+        picker.dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1200));
+        return "seated";
+      })()`,
+    );
+    assert(seat === "seated", `seating neobrut stopped at ${seat}`);
+
+    const trigger =
+      `[...document.querySelectorAll('[data-theme="neobrut"] button')].find((b) => b.textContent.trim() === "New theme")`;
+    const specimen =
+      `document.querySelector('[data-theme="neobrut"] button:not([class])')`;
+    const read = (element: string) =>
+      `(() => {
+        const b = ${element};
+        if (!b) return null;
+        const s = getComputedStyle(b);
+        return { transform: s.transform, shadow: s.boxShadow, background: s.backgroundColor, border: s.borderTopColor + " " + s.borderTopWidth };
+      })()`;
+
+    const triggerRest = await page.eval<Snap | null>(read(trigger));
+    const reachedTrigger = await page.hover('button:text-is("New theme")');
+    assert(
+      reachedTrigger === "hovered",
+      `the pointer reached the trigger: ${reachedTrigger}`,
+    );
+    const triggerHover = await page.eval<Snap | null>(read(trigger));
+
+    await page.followRail("/components/button");
+    // The pointer kept the coordinates it had on the overview, where it may
+    // already be over the specimen this page renders first.
+    await page.parkPointer();
+    const specimenRest = await page.eval<Snap | null>(read(specimen));
+    const reachedSpecimen = await page.hover(
+      '[data-theme="neobrut"] button:not([class])',
+    );
+    assert(
+      reachedSpecimen === "hovered",
+      `the pointer reached the specimen: ${reachedSpecimen}`,
+    );
+    const specimenHover = await page.eval<Snap | null>(read(specimen));
+
+    if (
+      triggerRest === null || triggerHover === null || specimenRest === null ||
+      specimenHover === null
+    ) {
+      throw new Error("a button was not on its page");
+    }
+    assertEquals(
+      triggerRest,
+      specimenRest,
+      "the same control rests the same way, a route apart",
+    );
+    assertEquals(
+      triggerHover,
+      specimenHover,
+      "and moves the same way under the pointer",
+    );
+    assert(
+      specimenHover.transform !== "none",
+      `neobrut states a lift, so the specimen moves: ${specimenHover.transform}`,
+    );
+
+    // Leave the studio where it was found.
+    await page.followRail("/");
+    await page.eval(
+      `(async () => {
+        const picker = document.getElementById("theme-picker-compact");
+        if (picker) { picker.value = ${
+        JSON.stringify(before)
+      }; picker.dispatchEvent(new Event("change", { bubbles: true })); }
+        await new Promise((r) => setTimeout(r, 400));
+        return "restored";
+      })()`,
     );
   });
 });
