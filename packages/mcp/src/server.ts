@@ -9,6 +9,12 @@
  * holding text across calls would also have to carry its own staleness), and
  * MCP's framing.
  *
+ * The surface is one tool per noun an agent acts on, with `action` naming the
+ * verb where a noun has more than one — seven tools rather than a tool per
+ * procedure. The read-only documents are resources as well
+ * (`spin://project`, `spin://themes/{name}`), so a client that renders
+ * resources can look without calling a tool.
+ *
  * When a tool needs something the RPC cannot answer, the fix is a procedure
  * in the daemon, never a workaround here.
  */
@@ -121,244 +127,214 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
   const server = new McpServer({ name: "spin", version: "0.1.0" });
 
   const theme = z.string().describe("Theme name, e.g. 'default'.");
-  const path = z.string().describe("Dotted token path, e.g. 'color.primary'.");
   const mode = z
     .enum([...MODES] as ["light", "dark"])
     .optional()
     .describe("A mode's override ($modes.<mode>) instead of the base value.");
 
-  // The project.
+  // Themes: the documents an agent edits.
 
   server.registerTool(
-    "project_info",
+    "theme",
     {
-      title: "Project info",
+      title: "Themes",
       description:
-        "The project this daemon serves: its root, whether it holds a spin/ directory and an uno config, and its theme file names.",
-      inputSchema: {},
-    },
-    async () => json(await client.project.current({})),
-  );
-
-  // Themes: the documents themselves.
-
-  server.registerTool(
-    "list_themes",
-    {
-      title: "List themes",
-      description:
-        "Every theme the project serves, with the path of its file when it has one.",
-      inputSchema: {},
-    },
-    async () => {
-      const themes = await client.project.themes.list({});
-      return json(
-        themes.map((entry) => ({ name: entry.name, file: entry.file })),
-      );
-    },
-  );
-
-  server.registerTool(
-    "read_theme",
-    {
-      title: "Read a theme",
-      description: "One theme document, as DTCG JSON text.",
-      inputSchema: { theme },
-    },
-    async ({ theme }) => {
-      const read = await client.project.themes.read({ name: theme });
-      if (read.text === null) {
-        return failed(`no theme named "${theme}" in this project`);
-      }
-      return { content: [{ type: "text", text: read.text }] };
-    },
-  );
-
-  server.registerTool(
-    "create_theme",
-    {
-      title: "Create a theme",
-      description:
-        "Create a theme: a copy of an existing one, or a scaffold of the required roles when no source is named.",
+        "A project's themes: list them, read one as DTCG JSON text, create one (a copy of an existing theme, or the scaffold of the required roles), write one whole, analyze one, or delete one. Write answers with the issues the written document still has.",
       inputSchema: {
-        theme,
-        from: z.string().optional().describe("An existing theme to copy."),
+        action: z
+          .enum(["list", "read", "create", "write", "analyze", "delete"])
+          .describe("What to do."),
+        name: z
+          .string()
+          .optional()
+          .describe(
+            "The theme's name — read, create, write, analyze and delete.",
+          ),
+        from: z
+          .string()
+          .optional()
+          .describe(
+            "create: an existing theme to copy; scaffolded when absent.",
+          ),
+        text: z
+          .string()
+          .optional()
+          .describe("write: the whole document, as DTCG JSON text."),
       },
     },
-    async ({ theme, from }) => {
-      if (from !== undefined) {
-        const copied = await client.project.themes.copy({ from, to: theme });
-        if (copied.error !== null) return failed(copied.error);
-        return json({ theme, copiedFrom: from });
+    async ({ action, name, from, text }) => {
+      switch (action) {
+        case "list": {
+          const themes = await client.project.themes.list({});
+          return json(
+            themes.map((entry) => ({ name: entry.name, file: entry.file })),
+          );
+        }
+        case "read": {
+          if (name === undefined) return failed("read needs a theme name");
+          const read = await client.project.themes.read({ name });
+          if (read.text === null) {
+            return failed(`no theme named "${name}" in this project`);
+          }
+          return { content: [{ type: "text", text: read.text }] };
+        }
+        case "create": {
+          if (name === undefined) return failed("create needs a theme name");
+          if (from !== undefined) {
+            const copied = await client.project.themes.copy({
+              from,
+              to: name,
+            });
+            if (copied.error !== null) return failed(copied.error);
+            return json({ theme: name, copiedFrom: from });
+          }
+          const scaffolded = await client.theme.scaffold({});
+          const written = await client.project.themes.write({
+            name,
+            text: scaffolded.text,
+          });
+          if (written.error !== null) return failed(written.error);
+          return json({ theme: name, copiedFrom: null });
+        }
+        case "write": {
+          if (name === undefined) return failed("write needs a theme name");
+          if (text === undefined) {
+            return failed("write needs the document text");
+          }
+          const written = await client.project.themes.write({ name, text });
+          if (written.error !== null) return failed(written.error);
+          const analysis = await analyzeWritten(client, text);
+          return json({ error: analysis.error, issues: analysis.issues });
+        }
+        case "analyze": {
+          if (name === undefined) return failed("analyze needs a theme name");
+          const read = await client.project.themes.read({ name });
+          if (read.text === null) {
+            return failed(`no theme named "${name}" in this project`);
+          }
+          const analysis = await analyzeWritten(client, read.text);
+          return json({ error: analysis.error, issues: analysis.issues });
+        }
+        case "delete": {
+          if (name === undefined) return failed("delete needs a theme name");
+          const removed = await client.project.themes.remove({ name });
+          if (removed.error !== null) return failed(removed.error);
+          return json({ theme: name, removed: true });
+        }
       }
-      const scaffolded = await client.theme.scaffold({});
-      const written = await client.project.themes.write({
-        name: theme,
-        text: scaffolded.text,
-      });
-      if (written.error !== null) return failed(written.error);
-      return json({ theme, copiedFrom: null });
-    },
-  );
-
-  server.registerTool(
-    "delete_theme",
-    {
-      title: "Delete a theme",
-      description: "Delete a theme's file from the project.",
-      inputSchema: { theme },
-    },
-    async ({ theme }) => {
-      const removed = await client.project.themes.remove({ name: theme });
-      if (removed.error !== null) return failed(removed.error);
-      return json({ theme, removed: true });
-    },
-  );
-
-  server.registerTool(
-    "write_theme",
-    {
-      title: "Write a theme",
-      description:
-        "Replace a theme document with the given DTCG JSON text. Answers with the issues the written document still has.",
-      inputSchema: {
-        theme,
-        text: z.string().describe("The whole document, as DTCG JSON text."),
-      },
-    },
-    async ({ theme, text }) => {
-      const written = await client.project.themes.write({ name: theme, text });
-      if (written.error !== null) return failed(written.error);
-      const analysis = await analyzeWritten(client, text);
-      return json({ error: analysis.error, issues: analysis.issues });
-    },
-  );
-
-  server.registerTool(
-    "analyze_theme",
-    {
-      title: "Analyze a theme",
-      description:
-        "Parse, validate and legibility-check a theme file, including dark coverage when the document declares a dark mode. Writes nothing.",
-      inputSchema: { theme },
-    },
-    async ({ theme }) => {
-      const read = await client.project.themes.read({ name: theme });
-      if (read.text === null) {
-        return failed(`no theme named "${theme}" in this project`);
-      }
-      const analysis = await analyzeWritten(client, read.text);
-      return json({ error: analysis.error, issues: analysis.issues });
     },
   );
 
   // Tokens: one edit per call, each validated on the way out.
 
   server.registerTool(
-    "set_token",
+    "token",
     {
-      title: "Set a token",
+      title: "Tokens",
       description:
-        "Set a token's value, creating it when the path is new ($type is then required). With mode, writes that mode's override. Answers with the issues the edited document still has.",
+        "One theme's tokens: set a value (creating the token when the path is new), remove one, or rename one — a rename carries the value and its mode overrides. Every edit reads, mutates, writes and validates in one call, and answers with the issues the document still has.",
       inputSchema: {
+        action: z.enum(["set", "remove", "rename"]).describe("What to do."),
         theme,
-        path,
+        path: z
+          .string()
+          .optional()
+          .describe("set and remove: dotted path, e.g. 'color.primary'."),
         value: z
           .unknown()
+          .optional()
           .describe(
-            "The $value as JSON: a string like '#1d4ed8', a number, or an object for composite types.",
+            "set: the $value as JSON: a string like '#1d4ed8', a number, or an object for composite types.",
           ),
         type: z
           .enum(TOKEN_TYPES)
           .optional()
           .describe(
-            "The DTCG $type; required when the token does not exist yet.",
+            "set: the DTCG $type; required when the token does not exist yet.",
           ),
         mode,
+        from: z
+          .string()
+          .optional()
+          .describe("rename: the token's current dotted path."),
+        to: z.string().optional().describe("rename: its new dotted path."),
       },
     },
-    async ({ theme, path, value, type, mode }) =>
-      await edit(client, theme, (text) =>
-        client.theme.tokens.set({
-          text,
-          path: path.split("."),
-          value,
-          ...(type !== undefined ? { type } : {}),
-          ...(mode !== undefined ? { mode } : {}),
-        })),
-  );
-
-  server.registerTool(
-    "remove_token",
-    {
-      title: "Remove a token",
-      description:
-        "Remove a token by path. Refused when the path names a required role. Answers with the issues the edited document still has.",
-      inputSchema: { theme, path },
+    async ({ action, theme, path, value, type, mode, from, to }) => {
+      switch (action) {
+        case "set": {
+          if (path === undefined) return failed("set needs a token path");
+          if (value === undefined) return failed("set needs a value");
+          return await edit(
+            client,
+            theme,
+            (text) =>
+              client.theme.tokens.set({
+                text,
+                path: path.split("."),
+                value,
+                ...(type !== undefined ? { type } : {}),
+                ...(mode !== undefined ? { mode } : {}),
+              }),
+          );
+        }
+        case "remove": {
+          if (path === undefined) return failed("remove needs a token path");
+          return await edit(
+            client,
+            theme,
+            (text) =>
+              client.theme.tokens.remove({ text, path: path.split(".") }),
+          );
+        }
+        case "rename": {
+          if (from === undefined || to === undefined) {
+            return failed("rename needs both a from and a to path");
+          }
+          return await edit(
+            client,
+            theme,
+            (text) =>
+              client.theme.tokens.rename({
+                text,
+                from: from.split("."),
+                to: to.split("."),
+              }),
+          );
+        }
+      }
     },
-    async ({ theme, path }) =>
-      await edit(
-        client,
-        theme,
-        (text) => client.theme.tokens.remove({ text, path: path.split(".") }),
-      ),
-  );
-
-  server.registerTool(
-    "rename_token",
-    {
-      title: "Rename a token",
-      description:
-        "Move a token to a new path, carrying its value and mode overrides. Answers with the issues the edited document still has.",
-      inputSchema: {
-        theme,
-        from: z.string().describe("The token's current dotted path."),
-        to: z.string().describe("Its new dotted path."),
-      },
-    },
-    async ({ theme, from, to }) =>
-      await edit(client, theme, (text) =>
-        client.theme.tokens.rename({
-          text,
-          from: from.split("."),
-          to: to.split("."),
-        })),
   );
 
   // Components and the utility surface.
 
   server.registerTool(
-    "list_components",
+    "component",
     {
-      title: "List components",
+      title: "Primitive components",
       description:
-        "Every primitive component: its name, tags, variants, and the theme tokens it reads.",
-      inputSchema: {},
-    },
-    async () => {
-      const components = await client.primitives.list({});
-      return json(
-        components.map((entry) => ({
-          name: entry.name,
-          tags: entry.tags,
-          variants: entry.variants,
-          reads: entry.reads,
-        })),
-      );
-    },
-  );
-
-  server.registerTool(
-    "component_contract",
-    {
-      title: "One component's contract",
-      description:
-        "One component's contract — tags, variants, token reads, and its character tokens — plus the example markup it ships.",
+        "The primitive library: list every component with its tags, variants and token reads, or one component's contract — tags, variants, reads, its character tokens, and the example markup it ships.",
       inputSchema: {
-        name: z.string().describe("Component name, e.g. 'button'."),
+        action: z.enum(["list", "contract"]).describe("What to return."),
+        name: z
+          .string()
+          .optional()
+          .describe("contract: a component name, e.g. 'button'."),
       },
     },
-    async ({ name }) => {
+    async ({ action, name }) => {
+      if (action === "list") {
+        const components = await client.primitives.list({});
+        return json(
+          components.map((entry) => ({
+            name: entry.name,
+            tags: entry.tags,
+            variants: entry.variants,
+            reads: entry.reads,
+          })),
+        );
+      }
+      if (name === undefined) return failed("contract needs a component name");
       const contract = await client.primitives.contract({ name });
       if ("error" in contract) return failed(contract.error);
       const summary = (await client.primitives.list({})).find(
@@ -369,9 +345,9 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
   );
 
   server.registerTool(
-    "list_utilities",
+    "utility",
     {
-      title: "List utilities",
+      title: "Utility classes",
       description:
         "The utility classes a theme can produce, grouped by reader intent (colors, spacing, typography, …) with each section's purpose.",
       inputSchema: { theme },
@@ -387,54 +363,57 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
     },
   );
 
-  // Icons and fonts.
+  // Icons and fonts: the installed catalogues.
 
   server.registerTool(
-    "search_icons",
+    "icon",
     {
-      title: "Search icons",
+      title: "Icons",
       description:
-        "Find glyph names in the installed iconify collections (lucide, material-symbols, tabler, carbon, ph).",
+        "The installed iconify collections (lucide, material-symbols, tabler, carbon, ph): find glyph names, or fetch one glyph's inline SVG body and its box, for rendering at the theme's icon sizes.",
       inputSchema: {
+        action: z.enum(["search", "body"]).describe("What to return."),
         query: z
           .string()
           .optional()
-          .describe("Case-insensitive substring of the glyph name."),
-        collection: z.string().optional().describe("One collection prefix."),
+          .describe("search: case-insensitive substring of the glyph name."),
+        collection: z
+          .string()
+          .optional()
+          .describe(
+            "search: one collection prefix; body: the glyph's, e.g. 'lucide'.",
+          ),
+        name: z
+          .string()
+          .optional()
+          .describe("body: the glyph name, e.g. 'layout-dashboard'."),
         limit: z
           .number()
           .int()
           .positive()
           .max(200)
           .optional()
-          .describe("Rows to return (default 40)."),
+          .describe("search: rows to return (default 40)."),
       },
     },
-    async ({ query, collection, limit }) => {
-      const needle = query?.trim().toLowerCase() ?? "";
-      const rows = (await client.icons.catalog({}))
-        .filter((row) =>
-          collection === undefined || row.collection === collection
-        )
-        .filter((row) =>
-          needle === "" || row.name.toLowerCase().includes(needle)
-        );
-      return json({ matching: rows.length, icons: rows.slice(0, limit ?? 40) });
-    },
-  );
-
-  server.registerTool(
-    "icon_body",
-    {
-      title: "One icon's body",
-      description:
-        "One glyph's inline SVG body and its box, for rendering at the theme's icon sizes.",
-      inputSchema: {
-        collection: z.string().describe("Collection prefix, e.g. 'lucide'."),
-        name: z.string().describe("Glyph name, e.g. 'layout-dashboard'."),
-      },
-    },
-    async ({ collection, name }) => {
+    async ({ action, query, collection, name, limit }) => {
+      if (action === "search") {
+        const needle = query?.trim().toLowerCase() ?? "";
+        const rows = (await client.icons.catalog({}))
+          .filter((row) =>
+            collection === undefined || row.collection === collection
+          )
+          .filter((row) =>
+            needle === "" || row.name.toLowerCase().includes(needle)
+          );
+        return json({
+          matching: rows.length,
+          icons: rows.slice(0, limit ?? 40),
+        });
+      }
+      if (collection === undefined || name === undefined) {
+        return failed("body needs a collection and a glyph name");
+      }
       const body = await client.icons.body({ collection, name });
       if (body === null) {
         return failed(`no glyph "${name}" in collection "${collection}"`);
@@ -444,10 +423,11 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
   );
 
   server.registerTool(
-    "search_fonts",
+    "font",
     {
-      title: "Search fonts",
-      description: "Search the fontsource catalogue by family name.",
+      title: "Fonts",
+      description:
+        "The fontsource catalogue by family name — what a theme's `font.family.*` may name.",
       inputSchema: {
         query: z.string().optional().describe("Case-insensitive substring."),
       },
@@ -463,7 +443,7 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
   // The preview: the stylesheet a theme plus markup produces.
 
   server.registerTool(
-    "preview_css",
+    "preview",
     {
       title: "Preview a theme",
       description:

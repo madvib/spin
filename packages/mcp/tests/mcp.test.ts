@@ -90,7 +90,10 @@ describe("the spin MCP server", () => {
   });
 
   it("lists the themes the project holds", async () => {
-    const result = await mcp.callTool({ name: "list_themes", arguments: {} });
+    const result = await mcp.callTool({
+      name: "theme",
+      arguments: { action: "list" },
+    });
     assertEquals(jsonOf(result), [
       { name: "console", file: null },
       { name: "darkless", file: "spin/darkless.json" },
@@ -101,17 +104,23 @@ describe("the spin MCP server", () => {
     ]);
   });
 
-  it("reports the project the daemon serves", async () => {
-    const result = await mcp.callTool({ name: "project_info", arguments: {} });
-    const report = jsonOf(result) as { root: string; themes: string[] };
-    assertEquals(report.root, dir);
-    assertEquals(report.themes, ["darkless.json", "sample.json"]);
+  it("refuses a read that names no theme", async () => {
+    const result = await mcp.callTool({
+      name: "theme",
+      arguments: { action: "read" },
+    });
+    assertEquals(result.isError, true);
+    const refusal = jsonOf(result) as { error: string };
+    assert(
+      refusal.error.includes("theme name"),
+      `the refusal names what is missing: ${refusal.error}`,
+    );
   });
 
   it("reads a theme document", async () => {
     const result = await mcp.callTool({
-      name: "read_theme",
-      arguments: { theme: "sample" },
+      name: "theme",
+      arguments: { action: "read", name: "sample" },
     });
     assertEquals(
       textOf(result),
@@ -121,8 +130,13 @@ describe("the spin MCP server", () => {
 
   it("sets a token without losing the document's $modes", async () => {
     const result = await mcp.callTool({
-      name: "set_token",
-      arguments: { theme: "sample", path: "color.primary", value: "#123456" },
+      name: "token",
+      arguments: {
+        action: "set",
+        theme: "sample",
+        path: "color.primary",
+        value: "#123456",
+      },
     });
     assertEquals(result.isError, undefined);
     const doc = JSON.parse(
@@ -139,8 +153,9 @@ describe("the spin MCP server", () => {
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
     ) as { color: { primary: { $value: string } } };
     await mcp.callTool({
-      name: "set_token",
+      name: "token",
       arguments: {
+        action: "set",
         theme: "sample",
         path: "color.primary",
         value: "#654321",
@@ -158,8 +173,8 @@ describe("the spin MCP server", () => {
 
   it("refuses to remove a required token, with the refusal's code", async () => {
     const result = await mcp.callTool({
-      name: "remove_token",
-      arguments: { theme: "sample", path: "color.primary" },
+      name: "token",
+      arguments: { action: "remove", theme: "sample", path: "color.primary" },
     });
     assertEquals(result.isError, true);
     const refusal = jsonOf(result) as { error: string; code: string };
@@ -172,12 +187,13 @@ describe("the spin MCP server", () => {
 
   it("renames a token, carrying its $modes to the new path", async () => {
     await mcp.callTool({
-      name: "create_theme",
-      arguments: { theme: "rename-me", from: "sample" },
+      name: "theme",
+      arguments: { action: "create", name: "rename-me", from: "sample" },
     });
     const result = await mcp.callTool({
-      name: "rename_token",
+      name: "token",
       arguments: {
+        action: "rename",
         theme: "rename-me",
         from: "color.primary",
         to: "color.brand",
@@ -201,8 +217,8 @@ describe("the spin MCP server", () => {
 
   it("creates a theme from another and deletes it", async () => {
     const created = await mcp.callTool({
-      name: "create_theme",
-      arguments: { theme: "copy", from: "sample" },
+      name: "theme",
+      arguments: { action: "create", name: "copy", from: "sample" },
     });
     assertEquals(created.isError, undefined);
     assertEquals(
@@ -210,8 +226,8 @@ describe("the spin MCP server", () => {
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
     );
     const deleted = await mcp.callTool({
-      name: "delete_theme",
-      arguments: { theme: "copy" },
+      name: "theme",
+      arguments: { action: "delete", name: "copy" },
     });
     assertEquals(deleted.isError, undefined);
     assertEquals(existsSync(join(dir, "spin", "copy.json")), false);
@@ -219,8 +235,8 @@ describe("the spin MCP server", () => {
 
   it("creates a theme from the scaffold when no source is named", async () => {
     const created = await mcp.callTool({
-      name: "create_theme",
-      arguments: { theme: "fresh" },
+      name: "theme",
+      arguments: { action: "create", name: "fresh" },
     });
     assertEquals(created.isError, undefined);
     const doc = JSON.parse(
@@ -232,8 +248,8 @@ describe("the spin MCP server", () => {
   it("writes a whole document and reports its validation", async () => {
     const text = treeToJson(scaffoldTheme());
     const written = await mcp.callTool({
-      name: "write_theme",
-      arguments: { theme: "whole", text },
+      name: "theme",
+      arguments: { action: "write", name: "whole", text },
     });
     assertEquals(written.isError, undefined);
     assertEquals(
@@ -245,8 +261,8 @@ describe("the spin MCP server", () => {
 
   it("reports the coverage failure of a theme that declares dark", async () => {
     const result = await mcp.callTool({
-      name: "analyze_theme",
-      arguments: { theme: "darkless" },
+      name: "theme",
+      arguments: { action: "analyze", name: "darkless" },
     });
     const analysis = jsonOf(result) as {
       error: string | null;
@@ -263,8 +279,8 @@ describe("the spin MCP server", () => {
 
   it("lists the components, and one component's contract with its examples", async () => {
     const listed = await mcp.callTool({
-      name: "list_components",
-      arguments: {},
+      name: "component",
+      arguments: { action: "list" },
     });
     const names = (jsonOf(listed) as Array<{ name: string }>).map((c) =>
       c.name
@@ -272,8 +288,8 @@ describe("the spin MCP server", () => {
     assert(names.includes("card"), `card among ${names.join(",")}`);
 
     const one = await mcp.callTool({
-      name: "component_contract",
-      arguments: { name: "card" },
+      name: "component",
+      arguments: { action: "contract", name: "card" },
     });
     const contract = jsonOf(one) as {
       reads: string[];
@@ -288,7 +304,7 @@ describe("the spin MCP server", () => {
 
   it("lists the utilities under reader intent", async () => {
     const result = await mcp.callTool({
-      name: "list_utilities",
+      name: "utility",
       arguments: { theme: "sample" },
     });
     const sections = (jsonOf(result) as {
@@ -307,8 +323,8 @@ describe("the spin MCP server", () => {
 
   it("finds an icon and draws its body", async () => {
     const found = await mcp.callTool({
-      name: "search_icons",
-      arguments: { query: "arrow-up", collection: "lucide" },
+      name: "icon",
+      arguments: { action: "search", query: "arrow-up", collection: "lucide" },
     });
     const icons = (jsonOf(found) as {
       icons: Array<{ collection: string; name: string }>;
@@ -321,8 +337,8 @@ describe("the spin MCP server", () => {
     );
 
     const body = await mcp.callTool({
-      name: "icon_body",
-      arguments: { collection: "lucide", name: "arrow-up" },
+      name: "icon",
+      arguments: { action: "body", collection: "lucide", name: "arrow-up" },
     });
     const glyph = jsonOf(body) as {
       body: string;
@@ -335,7 +351,7 @@ describe("the spin MCP server", () => {
 
   it("previews a theme's stylesheet", async () => {
     const result = await mcp.callTool({
-      name: "preview_css",
+      name: "preview",
       arguments: { theme: "sample", markup: '<button class="btn">Go</button>' },
     });
     assertEquals(result.isError, undefined);
@@ -361,6 +377,20 @@ describe("the spin MCP server", () => {
     assertEquals(
       contents[0]?.text,
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+    );
+
+    // The project's own facts live here rather than on a tool: a client that
+    // renders resources looks, and one that acts calls.
+    const project = await mcp.readResource({ uri: "spin://project" });
+    const facts = project.contents as Array<{ text?: string }>;
+    const report = JSON.parse(facts[0]?.text ?? "") as {
+      root: string;
+      themes: string[];
+    };
+    assertEquals(report.root, dir);
+    assert(
+      report.themes.includes("sample.json"),
+      `sample.json among ${report.themes.join(",")}`,
     );
   });
 });
