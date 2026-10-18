@@ -1,6 +1,7 @@
 import { createEffect, createResource, For, Show } from "solid-js";
 import {
   activeMode,
+  activeModes,
   activeName,
   dockSide,
   setActiveMode,
@@ -31,6 +32,10 @@ export { refetchProjectThemes };
  * not on is the affordance a tool needs. One control drives both the
  * chrome and the preview — working in dark means the whole studio is
  * dark, and the preview still declares the edited theme's own dark values.
+ *
+ * The theme owns its modes, so a mode it does not declare disables rather
+ * than letting the press lie: the store clamps the editor on the way in,
+ * and the control explains itself on the way out.
  */
 export function ModePicker() {
   return (
@@ -42,6 +47,10 @@ export function ModePicker() {
       <button
         type="button"
         class="bare row-sm whitespace-nowrap text-text"
+        disabled={!activeModes().includes("light")}
+        title={activeModes().includes("light")
+          ? undefined
+          : "The theme declares no light mode"}
         aria-pressed={activeMode() === "light"}
         aria-label="Light"
         onClick={() => setActiveMode("light")}
@@ -55,6 +64,10 @@ export function ModePicker() {
       <button
         type="button"
         class="bare row-sm whitespace-nowrap text-text"
+        disabled={!activeModes().includes("dark")}
+        title={activeModes().includes("dark")
+          ? undefined
+          : "The theme declares no dark mode"}
         aria-pressed={activeMode() === "dark"}
         aria-label="Dark"
         onClick={() => setActiveMode("dark")}

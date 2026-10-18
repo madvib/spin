@@ -680,3 +680,101 @@ test("the dark slot writes $modes.dark and the app renders it", async () => {
     await watcher.reload();
   });
 });
+
+/**
+ * A theme owns its modes, and the control obeys the theme.
+ *
+ * The mode control drives the chrome and the preview at once, so a theme
+ * that declares one mode cannot be worn in the other: seating neobrut
+ * (light only) while working in dark returns the editor to light, disables
+ * the dark button and says why, and the walk to another route keeps it —
+ * the failure this pins is a dark chrome over a theme with no dark values
+ * to show. Console (dark only) proves the clamp is not "always light".
+ */
+test("a theme that declares one mode disables the other", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/`);
+    const probe = await page.eval<{
+      dark: boolean;
+      seatedLightOnly: boolean;
+      clamped: boolean;
+      held: boolean;
+      disabled: boolean;
+      explained: boolean;
+      onAnotherRoute: boolean;
+      darkOnlyClamped: boolean;
+      lightDisabled: boolean;
+      restored: boolean;
+    }>(
+      `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const picker = () => document.getElementById("theme-picker-compact");
+        const seat = async (name) => {
+          const p = picker();
+          if (!p) return "no-picker";
+          p.value = name;
+          p.dispatchEvent(new Event("change", { bubbles: true }));
+          await wait(900);
+          return "seated";
+        };
+        const modeButton = (label) => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
+        const paneMode = (name) => {
+          const pane = document.querySelector('[data-theme="' + name + '"]');
+          return pane ? pane.getAttribute("data-mode") : null;
+        };
+
+        // Work in dark, on a theme that has one.
+        await seat("silk");
+        const first = modeButton("Dark");
+        if (first && first.getAttribute("aria-pressed") !== "true") { first.click(); await wait(500); }
+        const dark = paneMode("silk") === "dark";
+
+        // Seat the light-only theme while working in dark.
+        const seatedLightOnly = (await seat("neobrut")) === "seated";
+        await wait(400);
+        const clamped = paneMode("neobrut") === "light";
+        const darkButton = modeButton("Dark");
+        const disabled = darkButton ? darkButton.disabled === true : false;
+        const explained = darkButton ? (darkButton.getAttribute("title") ?? "").indexOf("no dark mode") > -1 : false;
+        if (darkButton) { darkButton.click(); await wait(400); }
+        const held = paneMode("neobrut") === "light";
+
+        // Off the overview, the pane still wears the theme's own mode.
+        const link = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").indexOf("/colors") === 0);
+        if (link) link.click();
+        await wait(1200);
+        const onAnotherRoute = paneMode("neobrut") === "light" && (document.getElementById("app")?.innerText ?? "").indexOf("does not build") === -1;
+
+        // Back to the overview, where the pickers live.
+        const home = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "") === "/");
+        if (home) home.click();
+        await wait(1200);
+
+        // The dark-only theme clamps the other way.
+        await seat("console");
+        await wait(400);
+        const darkOnlyClamped = paneMode("console") === "dark";
+        const lightButton = modeButton("Light");
+        const lightDisabled = lightButton ? lightButton.disabled === true : false;
+
+        // Leave the studio where it was found.
+        await seat("silk");
+        const back = modeButton("Light");
+        if (back && back.getAttribute("aria-pressed") !== "true") { back.click(); await wait(400); }
+        const restored = paneMode("silk") === "light";
+
+        return { dark, seatedLightOnly, clamped, held, disabled, explained, onAnotherRoute, darkOnlyClamped, lightDisabled, restored };
+      })()`,
+    );
+
+    assert(
+      probe.dark && probe.seatedLightOnly && probe.clamped && probe.held &&
+        probe.disabled && probe.explained && probe.onAnotherRoute &&
+        probe.darkOnlyClamped && probe.lightDisabled && probe.restored,
+      `dark=${probe.dark} seated=${probe.seatedLightOnly} clamp=${probe.clamped} ` +
+        `held=${probe.held} disabled=${probe.disabled} why=${probe.explained} ` +
+        `route=${probe.onAnotherRoute} dark-only=${probe.darkOnlyClamped} ` +
+        `light-off=${probe.lightDisabled} restored=${probe.restored}`,
+    );
+  });
+});

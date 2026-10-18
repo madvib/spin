@@ -366,6 +366,16 @@ export function activeModes(): string[] {
   return ["light", "dark"];
 }
 
+/**
+ * A mode the theme does not declare cannot be worn. The theme owns its modes:
+ * landing on a theme without dark mode leaves the editor on the mode that
+ * theme has rather than rendering its values under the other one's name.
+ */
+createEffect(() => {
+  const modes = activeModes();
+  if (!modes.includes(activeMode())) setActiveMode(modes[0]!);
+});
+
 /** The preview component selection, read from the active theme's raw text. */
 export function activeComponents(): string[] | undefined {
   try {
