@@ -13,8 +13,14 @@
  * longer exists.
  */
 
-import { CSS_WIDE_COLORS, indexTree, scaffoldTheme } from "@spin/theme";
+import {
+  CSS_WIDE_COLORS,
+  indexTree,
+  parseTokens,
+  scaffoldTheme,
+} from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
+import { starterThemes } from "@spin/theme/themes";
 import {
   claimedElements,
   paintedElements,
@@ -128,12 +134,41 @@ function primitiveVocab(): {
   };
 }
 
+/**
+ * The fills and inks the shipped themes declare, by the palettes' own
+ * spelling: a colour named `neutral-700` is a fill candidate, a colour named
+ * `on-primary` is an ink, and `bg-primary` therefore pairs with
+ * `text-on-primary` because `on-primary` exists to be that ink.
+ *
+ * The starters are the vocabulary rather than a fixture list: they are what
+ * an author copies and customises, so a pairing they declare is a pairing
+ * authored code may use, and a step no theme gives an ink (`on-neutral-700`)
+ * is not a pairing at all. A colour one document invents is invisible here,
+ * quietly — which is what the closed-vocabulary rule already exists to say.
+ */
+function pairVocabulary(): { colors: Set<string>; inks: Set<string> } {
+  const colors = new Set<string>();
+  for (const doc of Object.values(starterThemes)) {
+    const parsed = parseTokens(doc);
+    if (!parsed.ok) continue;
+    for (const leaf of Object.values(indexTree(parsed.tree).leaves)) {
+      if (leaf.type !== "color" || leaf.path[0] !== "color") continue;
+      colors.add(leaf.path.slice(1).join("-"));
+    }
+  }
+  return {
+    colors,
+    inks: new Set([...colors].filter((name) => name.startsWith("on-"))),
+  };
+}
+
 let cached: {
   claims: Set<string>;
   painted: Set<string>;
   variants: Set<string>;
   utilities: Set<string>;
   rawColor: RegExp;
+  pairings: ReturnType<typeof pairVocabulary>;
 } | undefined;
 
 /** Resolved once per process: these walk the theme, which does not change mid-run. */
@@ -142,6 +177,7 @@ function vocab() {
     ...primitiveVocab(),
     utilities: utilityNames(),
     rawColor: rawColor(),
+    pairings: pairVocabulary(),
   });
 }
 
@@ -297,6 +333,92 @@ const noHandwrittenTokens: GateRule = {
   },
 };
 
+/**
+ * Disallow ink that the fill underneath never declared.
+ *
+ * A fill's foreground is a fact of the palette, not a convention a call site
+ * invents: the starters pair `bg-primary` with `text-on-primary` and give a
+ * ramp step no foreground at all, because a step does not flip with the mode
+ * while `text-text` does. Body ink on a filled control is legible in one
+ * theme and a dark-on-dark box in the next — and it is a non-event to write,
+ * which is why a gate has to read it.
+ */
+const noUnpairedInk: GateRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow text ink on a fill the palette pairs with a different ink.",
+    },
+    schema: [],
+    messages: {
+      mismatch:
+        "`bg-{{fill}}` is paired with `{{expected}}`; `{{ink}}` is a different ink on the same fill.",
+      undeclared:
+        "`bg-{{fill}}` declares no ink, so nothing says `{{ink}}` reads on it. Paint a paired fill, or declare the pairing in the theme.",
+    },
+  },
+  create(context) {
+    return {
+      JSXAttribute(node) {
+        const raw = stringValue(node);
+        if (!isClassAttribute(node) || raw === undefined) return;
+        const { colors, inks: declared } = vocab().pairings;
+        // A fill constrains the ink of its OWN state: `hover:bg-accent` is
+        // the hover state's pairing, and a chip that brightens its resting
+        // ink is not painting that ink on the fill that arrives under a
+        // pointer. Inks are collected per state for the same reason.
+        const fills = new Map<string, string[]>();
+        const inks = new Map<string, string[]>();
+        for (const cls of classTokens(raw)) {
+          const cut = cls.lastIndexOf(":");
+          const state = cut === -1 ? "" : cls.slice(0, cut);
+          const core = cut === -1 ? cls : cls.slice(cut + 1);
+          if (core.startsWith("bg-")) {
+            const fill = core.slice(3);
+            // A surface is the page rather than a fill: body ink sits on it
+            // by definition, which is where every floor is measured.
+            if (colors.has(fill) && !fill.startsWith("surface")) {
+              fills.set(state, [...(fills.get(state) ?? []), fill]);
+            }
+          } else if (core.startsWith("text-")) {
+            const ink = core.slice(5);
+            if (colors.has(ink)) {
+              inks.set(state, [...(inks.get(state) ?? []), ink]);
+            }
+          }
+        }
+        for (const [state, stated] of inks) {
+          const painted = fills.get(state);
+          if (painted === undefined) continue;
+          for (const ink of stated) {
+            for (const fill of painted) {
+              const expected = `on-${fill}`;
+              if (!declared.has(expected)) {
+                context.report({
+                  node,
+                  messageId: "undeclared",
+                  data: { ink: `text-${ink}`, fill },
+                });
+              } else if (ink !== expected) {
+                context.report({
+                  node,
+                  messageId: "mismatch",
+                  data: {
+                    ink: `text-${ink}`,
+                    fill,
+                    expected: `text-${expected}`,
+                  },
+                });
+              }
+            }
+          }
+        }
+      },
+    };
+  },
+};
+
 export default {
   meta: { name: "spin" },
   rules: {
@@ -304,5 +426,6 @@ export default {
     "closed-vocabulary": closedVocabulary,
     "no-raw-colors": noRawColors,
     "no-handwritten-tokens": noHandwrittenTokens,
+    "no-unpaired-ink": noUnpairedInk,
   },
 };

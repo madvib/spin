@@ -7,7 +7,8 @@
     "spin/no-utilities-on-semantic": "error",
     "spin/closed-vocabulary": "error",
     "spin/no-raw-colors": "error",
-    "spin/no-handwritten-tokens": "error"
+    "spin/no-handwritten-tokens": "error",
+    "spin/no-unpaired-ink": "error"
   },
   "overrides": [
     {
