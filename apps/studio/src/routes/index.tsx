@@ -226,7 +226,7 @@ export default function OverviewPage() {
             class="grid gap-3 grid-cols-1"
             classList={{
               "sm:grid-cols-2": !inDrawer(),
-              "xl:grid-cols-3": !inDrawer(),
+              "xl:grid-cols-4": !inDrawer(),
             }}
           >
             <For each={summaries()}>
@@ -338,7 +338,7 @@ export default function OverviewPage() {
         }
         <section class="stack-sm" aria-label="Concerns">
           <div
-            class="grid gap-3 grid-cols-1 items-start"
+            class="grid gap-3 grid-cols-1"
             classList={{
               "sm:grid-cols-2": !inDrawer(),
               "xl:grid-cols-3": !inDrawer(),
@@ -479,10 +479,21 @@ function ConcernCard(props: {
   path: RoutePath;
   title: string;
   blurb: string;
+  /** Stretches the card across the row: for a specimen that needs width. */
+  wide?: boolean;
   children?: JSX.Element;
 }) {
   return (
-    <article class="stack-sm rounded-lg border border-border bg-surface-raised p-4">
+    <article
+      class="stack-sm rounded-lg border border-border bg-surface-raised p-4"
+      // The span rides the ARTICLE, because the article is the grid item —
+      // and it follows the drawer, which drops the grid to a single column
+      // where a span would conjure a second one.
+      classList={{
+        "sm:col-span-2": props.wide === true && !inDrawer(),
+        "xl:col-span-3": props.wide === true && !inDrawer(),
+      }}
+    >
       <h3 class="text-lg">
         <A href={props.path} class="row-sm no-underline hover:underline">
           <span class="min-w-0">{props.title}</span>
@@ -503,35 +514,34 @@ function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
     <ConcernCard
       path="/colors"
       title="Palette"
-      blurb="The colours a theme is for — accents first, then status."
+      wide={props.wide === true}
+      blurb="The named colour roles in palette order — accents first, then status — resolved for the active mode."
     >
-      <div classList={{ "sm:col-span-2": props.wide === true }}>
-        <Show
-          when={props.chips.length > 0}
-          fallback={
-            <p class="text-sm text-text-muted">
-              This theme declares no palette roles yet.
-            </p>
-          }
-        >
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <For each={props.chips}>
-              {(chip) => (
-                <div class="stack-sm">
-                  <span
-                    class={`h-10 rounded-md border border-border ${chip.paint}`}
-                    title={`${chip.label} ${chip.value}`}
-                  />
-                  <code class="truncate text-xs">{chip.label}</code>
-                  <code class="truncate text-xs text-text-muted">
-                    {chip.value}
-                  </code>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
-      </div>
+      <Show
+        when={props.chips.length > 0}
+        fallback={
+          <p class="text-sm text-text-muted">
+            This theme declares no palette roles yet.
+          </p>
+        }
+      >
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <For each={props.chips}>
+            {(chip) => (
+              <div class="stack-sm">
+                <span
+                  class={`h-10 rounded-md border border-border ${chip.paint}`}
+                  title={`${chip.label} ${chip.value}`}
+                />
+                <code class="truncate text-xs">{chip.label}</code>
+                <code class="truncate text-xs text-text-muted">
+                  {chip.value}
+                </code>
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
     </ConcernCard>
   );
 }
@@ -574,7 +584,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
     <ConcernCard
       path="/colors"
       title="Surface"
-      blurb="What sits below the page, the page, and what sits above it."
+      blurb="The three depths nested — sunken, page, raised — so a step that does not separate fails visibly."
     >
       <Show
         when={props.steps.length > 0}
@@ -601,7 +611,7 @@ function TypeCard(props: { faces: readonly Face[] }) {
     <ConcernCard
       path="/type"
       title="Type"
-      blurb="The faces this theme spends, slot by slot."
+      blurb="Every face slot the theme declares, set in the face it names."
     >
       <Show
         when={props.faces.length > 0}
@@ -644,7 +654,7 @@ function ShapeCard(props: {
     <ConcernCard
       path="/style"
       title="Shape"
-      blurb="Corners, and what each shadow lifts."
+      blurb="How round the theme's corners are, and how high each shadow step lifts."
     >
       <Show
         when={!empty()}
@@ -692,7 +702,7 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
     <ConcernCard
       path="/spacing"
       title="Space"
-      blurb="The scale sampled: where it starts, its middle, where it ends."
+      blurb="First, middle and last of the scale: the rhythm, without the whole table."
     >
       <Show
         when={props.steps.length > 0}
@@ -734,7 +744,7 @@ function MotionCard(props: {
     <ConcernCard
       path="/motion"
       title="Motion"
-      blurb="A duration, played — the one family a static sample cannot show."
+      blurb="A duration, playing on a loop: the one family a still sample cannot show."
     >
       <Show
         when={props.play}
@@ -761,7 +771,7 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
     <ConcernCard
       path="/components"
       title="Elements"
-      blurb="The primitives this theme styles, read from the library."
+      blurb="Three of the library's primitives, dressed by this theme alone."
     >
       <Show
         when={props.samples.length > 0}
@@ -778,14 +788,10 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
                 </code>
                 <div
                   class="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border p-3"
-                  // The daemon scopes every class rule it generates under
-                  // `.spin-preview` — that is the contract that keeps a
-                  // preview's rules out of the app around it. A sample
-                  // rendered without that class on an ancestor gets the tag
-                  // rules (`<alert>` lights up) and none of the class ones
-                  // (`<avatar>` stays a raw image), which reads as a card
-                  // that half works.
-                  classList={{ "spin-preview": true }}
+                  // The daemon scopes every rule it generates for a theme —
+                  // tag rules included — under `.spin-preview`, and the
+                  // preview pane carries it: the theme dresses what is
+                  // inside the pane, and nothing outside it.
                   innerHTML={sample.row.html}
                 />
               </div>
