@@ -338,12 +338,22 @@ class Driver {
     this.#log.reset();
     await this.#load(`${this.#options.url}#${route.hash}`);
     await this.neutralPointer();
-    const state = await this.#call<FrameState>(
+    let state = await this.#call<FrameState>(
       this.#config.page.pageState.toString(),
     );
 
-    // A theme or mode that did not take means everything below measures some
-    // other rendering, so the run stops instead of reporting a lie.
+    // A boot that beat the theme write reads null; one reload is about
+    // catching that race, not about tolerating a wrong rendering.
+    if (state.theme !== theme || state.mode !== mode) {
+      await this.#load(`${this.#options.url}#${route.hash}`);
+      await this.neutralPointer();
+      state = await this.#call<FrameState>(
+        this.#config.page.pageState.toString(),
+      );
+    }
+    // A theme or mode that still did not take means everything below
+    // measures some other rendering, so the run stops instead of reporting
+    // a lie.
     if (state.theme !== theme || state.mode !== mode) {
       throw new Error(
         `${route.hash} · ${theme}/${mode}: rendered as ${state.theme}/${state.mode}`,
