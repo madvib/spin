@@ -12,8 +12,7 @@
     "./apps/studio",
     "./apps/reference",
     "./apps/docs",
-    "./examples/coffee",
-    "./oracles/layout"
+    "./examples/coffee"
   ],
   "exports": {
     ".": "./packages/theme/src/index.ts",
@@ -47,7 +46,6 @@
     "check": "deno check packages/ internal/",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
     "visual": "cd apps/reference && deno task visual",
-    "test:oracles": "deno test --allow-read --allow-write --allow-run --allow-net ./oracles/visual/",
     "serve": "cd apps/reference && deno task dev",
     "dev": "deno task dev:studio & deno task dev:daemon & wait",
     "dev:docs": "cd apps/docs && deno task dev",

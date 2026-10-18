@@ -58,8 +58,6 @@ Supporting trees:
   runner every app's config feeds. Internal tooling; nothing here is published.
 - `apps/studio/e2e/` — the studio's end-to-end tests: the editor driven in a
   browser, read back through its own RPC.
-- `oracles/` — the engines the checks moved off: the taffy layout engine and the
-  CDP driver. Nothing points at them; pending a decision.
 
 ### Package rules
 
