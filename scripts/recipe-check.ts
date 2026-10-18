@@ -25,8 +25,65 @@
 import { walk } from "@std/fs/walk";
 import * as components from "../packages/components/src/index.ts";
 
+/**
+ * Grandfathered var(--x) usage in recipes: each entry is a port waiting
+ * to happen (chrome into bags, positioning into actions). A port deletes
+ * its lines here; new files with vars fail the gate. Empty is the goal.
+ */
+const VAR_GRANDFATHERED = new Set([
+  "packages/components/src/spin-cascade-select/examples/basic.html",
+  "packages/components/src/spin-floating-panel/examples/basic.html",
+  "packages/components/src/spin-floating-panel/examples/calculator.html",
+  "packages/components/src/spin-floating-panel/examples/chat.html",
+  "packages/components/src/spin-floating-panel/examples/media-player.html",
+  "packages/components/src/spin-floating-panel/examples/notes.html",
+  "packages/components/src/spin-floating-panel/examples/settings.html",
+  "packages/components/src/spin-floating-panel/examples/task.html",
+  "packages/components/src/spin-floating-panel/examples/video-call.html",
+  "packages/components/src/spin-hover-card/examples/basic.html",
+  "packages/components/src/spin-hover-card/examples/controlled.html",
+  "packages/components/src/spin-hover-card/examples/custom-positioning.html",
+  "packages/components/src/spin-hover-card/examples/link.html",
+  "packages/components/src/spin-hover-card/examples/product.html",
+  "packages/components/src/spin-hover-card/examples/user.html",
+  "packages/components/src/spin-hover-card/examples/with-arrow.html",
+  "packages/components/src/spin-navigation-menu/examples/basic.html",
+  "packages/components/src/spin-number-input/examples/basic.html",
+  "packages/components/src/spin-number-input/examples/scrubber.html",
+  "packages/components/src/spin-select/examples/basic.html",
+  "packages/components/src/spin-select/examples/category.html",
+  "packages/components/src/spin-select/examples/country.html",
+  "packages/components/src/spin-select/examples/language.html",
+  "packages/components/src/spin-select/examples/multiple.html",
+  "packages/components/src/spin-select/examples/profile.html",
+  "packages/components/src/spin-select/examples/theme.html",
+  "packages/components/src/spin-select/examples/with-overlapping-label.html",
+  "packages/components/src/spin-steps/examples/basic.html",
+  "packages/components/src/spin-steps/examples/vertical.html",
+  "packages/components/src/spin-tabs/examples/underline.html",
+  "packages/components/src/spin-toast/examples/action.html",
+  "packages/components/src/spin-toast/examples/basic.html",
+  "packages/components/src/spin-toast/examples/bottomcenter.html",
+  "packages/components/src/spin-toast/examples/bottomleft.html",
+  "packages/components/src/spin-toast/examples/bottomright.html",
+  "packages/components/src/spin-toast/examples/duration.html",
+  "packages/components/src/spin-toast/examples/promise.html",
+  "packages/components/src/spin-toast/examples/topcenter.html",
+  "packages/components/src/spin-toast/examples/topleft.html",
+  "packages/components/src/spin-toast/examples/topright.html",
+  "packages/components/src/spin-toast/examples/types.html",
+  "packages/components/src/spin-toast/examples/updatable.html",
+  "packages/components/src/spin-tooltip/examples/basic.html",
+  "packages/components/src/spin-tooltip/examples/metrics.html",
+  "packages/components/src/spin-tooltip/examples/positioning.html",
+  "packages/components/src/spin-tooltip/examples/status.html",
+  "packages/components/src/spin-tooltip/examples/video.html",
+  "packages/components/src/spin-tooltip/examples/with-arrow.html",
+  "packages/components/src/spin-tour/examples/basic.html",
+  "packages/components/src/spin-tree-view/examples/basic.html",
+  "packages/components/src/spin-tree-view/examples/loading.html",
+]);
 const ROOT = "packages/components/src";
-
 type Manifest = {
   readonly parts: readonly string[];
   readonly slots: readonly string[];
@@ -115,8 +172,14 @@ function elementsOf(path: string, source: string): void {
     // A static style on a spread element is stripped on first run. A
     // style carrying a template expression is a reactive binding, not a
     // static attribute, and survives.
-    if (hasSpread && staticStyle !== undefined && !staticStyle.includes("{")) {
-      problems.push(`${path}: <${tag}> static style is stripped by the spread`);
+    // Custom properties are framework transport, never author markup.
+    // Geometry and offsets arrive through bags (menu chrome) or actions
+    // (anchor writes position itself); a recipe spelling var(--x) is
+    // routing around the typed boundary. Grandfathered until each
+    // component's port lands — see the allowlist below.
+    const varUse = attrs.match(/var\(--[a-z0-9-]+/)?.[0];
+    if (varUse !== undefined && !VAR_GRANDFATHERED.has(path)) {
+      problems.push(`${path}: <${tag}> ${varUse} in authored markup — vars live in defs/actions, not recipes`);
     }
     // The bag owns `type` on spread elements; a static one never fires.
     // Off-spread, the attr only matters inside a form (submit default).
