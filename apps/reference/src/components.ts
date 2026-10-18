@@ -916,7 +916,7 @@ export const COMPONENT_ICONS: Readonly<Record<string, string>> = {
 
 /** Controllers: platform-backed glue, no machine. Everything else on the
  * rail runs a statechart and needs the runtime. */
-const CONTROLLERS: readonly string[] = ["tabs", "tooltip", "popover", "hover-card"];
+const CONTROLLERS: readonly string[] = ["tooltip", "popover", "hover-card"];
 
 /** The dependency line the detail view shows: what a consumer must have
  * before the markup works. */
