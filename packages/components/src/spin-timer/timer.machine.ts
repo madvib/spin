@@ -39,6 +39,83 @@ export interface TimerContext {
   interval: number;
 }
 
+/** Seed inputs: transport-coerced values for a fresh run. The machine
+ * knows nothing of props; it takes numbers and flags and validates. */
+export interface TimerInitial {
+  readonly startMs?: unknown;
+  readonly targetMs?: unknown;
+  readonly countdown?: unknown;
+  readonly interval?: unknown;
+}
+
+/** Coerce a seed value to milliseconds: a finite number, a numeric
+ * string, or a parseable date — otherwise undefined. Date strings are
+ * the one shaping this machine keeps (the transport grammar has no
+ * date type). */
+export function parseMs(raw: unknown): number | undefined {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : undefined;
+  if (typeof raw !== "string") return undefined;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return undefined;
+  const numeric = Number(trimmed);
+  if (!Number.isNaN(numeric)) return numeric;
+  const at = new Date(trimmed).getTime();
+  return Number.isNaN(at) ? undefined : at;
+}
+
+/** Zag's `validateProps`, verbatim: an impossible clock refuses to build
+ * rather than running one. Checked once, at seed. */
+export function validateTimer(
+  startMs: number | undefined,
+  targetMs: number | undefined,
+  countdown: boolean,
+  interval: number,
+): void {
+  if (typeof interval !== "number" || interval <= 0) {
+    throw new Error(`[timer] Invalid interval: ${interval}. Must be a positive number.`);
+  }
+  if (startMs !== undefined && (typeof startMs !== "number" || startMs < 0)) {
+    throw new Error(`[timer] Invalid startMs: ${startMs}. Must be a non-negative number.`);
+  }
+  if (targetMs !== undefined && (typeof targetMs !== "number" || targetMs < 0)) {
+    throw new Error(`[timer] Invalid targetMs: ${targetMs}. Must be a non-negative number.`);
+  }
+  if (countdown && startMs !== undefined && targetMs !== undefined && startMs <= targetMs) {
+    throw new Error(
+      `[timer] Invalid countdown configuration: startMs (${startMs}) must be greater than targetMs (${targetMs}).`,
+    );
+  }
+  if (!countdown && startMs !== undefined && targetMs !== undefined && startMs >= targetMs) {
+    throw new Error(
+      `[timer] Invalid stopwatch configuration: startMs (${startMs}) must be less than targetMs (${targetMs}).`,
+    );
+  }
+  if (countdown && targetMs === undefined && startMs !== undefined && startMs <= 0) {
+    throw new Error(
+      `[timer] Invalid countdown configuration: startMs (${startMs}) must be greater than 0 when no targetMs is provided.`,
+    );
+  }
+}
+
+export function initial(raw: TimerInitial): TimerContext {
+  const startMs = parseMs(raw.startMs);
+  const targetMs = parseMs(raw.targetMs);
+  const countdown = raw.countdown === true;
+  const rawInterval = raw.interval;
+  // A non-numeric write has no meaning; every other value is validated
+  // verbatim, so a zero refuses to build rather than silently defaulting.
+  const interval = typeof rawInterval === "number" ? Math.trunc(rawInterval) : 1000;
+  validateTimer(startMs, targetMs, countdown, interval);
+  const start = startMs ?? 0;
+  return {
+    startMs: start,
+    targetMs: targetMs ?? null,
+    countdown,
+    interval,
+    currentMs: start,
+  };
+}
+
 export type TimerEvent =
   | { type: "START" }
   | { type: "PAUSE" }
