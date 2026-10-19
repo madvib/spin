@@ -122,12 +122,18 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
     const key = `${geometry.x},${geometry.y},${geometry.w},${geometry.placement}`;
     if (key === last) return;
     last = key;
+    // Action owns positioning end-to-end: write literals directly, no
+    // render cycle, no vars.
+    if (node instanceof HTMLElement) {
+      node.style.left = `${geometry.x}px`;
+      node.style.top = `${geometry.y}px`;
+      node.style.minWidth = `${geometry.w}px`;
+    }
     current?.onGeometry?.(geometry);
-    // A geometry change is a view move: the bags that read the vars must
+    // A geometry change is a view move: consumers reading placement
     // refresh the same way a machine move refreshes them.
     machineTick(machineTick() + 1);
   };
-
   // The observer is a re-measure trigger, not the measure itself: without
   // one (a layout-less DOM) scroll, resize, and param changes still report.
   const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => measure()) : undefined;

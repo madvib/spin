@@ -115,12 +115,26 @@ export interface DismissableParam {
   onEscape?: () => void;
   /** Defer the outside listener a frame so the opening press doesn't dismiss. */
   armedByFrame?: boolean;
+  /** An id whose element counts as inside: presses on it are the trigger's
+   * business, not a dismissal. Resolved by id so defs never query. */
+  excludeId?: string;
+  /** Treat the host's parent element as inside (submenu levels dismiss
+   * through their parent, not past it). */
+  excludeParent?: boolean;
 }
 
 export const dismissable: ElementAction<DismissableParam | undefined> = createAction((node, param) => {
   const outside = (event: Event): void => {
     const target = event.target as Node | null;
     if (target && node.contains(target)) return;
+    if (param?.excludeId !== undefined && target instanceof Element) {
+      const excluded = node.ownerDocument.getElementById(param.excludeId);
+      if (excluded !== null && excluded.contains(target)) return;
+    }
+    if (param?.excludeParent === true) {
+      const parent = node.parentElement;
+      if (parent !== null && target instanceof Element && parent.contains(target)) return;
+    }
     param?.onOutside?.(event as PointerEvent);
   };
   const escape = (event: Event): void => {

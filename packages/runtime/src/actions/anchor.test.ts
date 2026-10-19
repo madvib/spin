@@ -89,3 +89,37 @@ Deno.test("Given a top-layer panel / When attached / Then geometry is viewport-r
   assertEquals(seen[0]?.y, 128, "y is the anchor's client bottom plus the gap");
   result?.destroy?.();
 });
+
+Deno.test("Given room below / When attached / Then the action writes literal styles to the node", () => {
+  const host = document.createElement("div");
+  const trigger = document.createElement("button");
+  const panel = document.createElement("div");
+  host.appendChild(trigger);
+  host.appendChild(panel);
+  document.body.appendChild(host);
+  trigger.getBoundingClientRect = () => rect(40, 100, 120, 120);
+  Object.defineProperty(host, "getBoundingClientRect", { value: () => rect(0, 0, 800, 600) });
+  Object.defineProperty(panel, "offsetHeight", { value: 100 });
+  Object.defineProperty(panel, "offsetParent", { value: host });
+
+  anchor(panel, { placement: "bottom", offset: 8 });
+  assertEquals((panel as HTMLElement).style.left, "40px", "left is the anchor's left edge");
+  assertEquals((panel as HTMLElement).style.top, "128px", "top is the anchor's bottom plus gap");
+  assertEquals((panel as HTMLElement).style.minWidth, "120px", "min-width matches the anchor");
+});
+
+Deno.test("Given no room below / When attached / Then the written styles place the flipped panel", () => {
+  const host = document.createElement("div");
+  const trigger = document.createElement("button");
+  const panel = document.createElement("div");
+  host.appendChild(trigger);
+  host.appendChild(panel);
+  document.body.appendChild(host);
+  trigger.getBoundingClientRect = () => rect(40, 500, 120, 520);
+  Object.defineProperty(host, "getBoundingClientRect", { value: () => rect(0, 0, 800, 600) });
+  Object.defineProperty(panel, "offsetHeight", { value: 100 });
+  Object.defineProperty(panel, "offsetParent", { value: host });
+
+  anchor(panel, { placement: "bottom", offset: 8 });
+  assertEquals((panel as HTMLElement).style.top, "392px", "top is the anchor's top minus panel height and gap");
+});
