@@ -1,7 +1,6 @@
 import {
   defineComponent,
   isComposing,
-  textProp,
   type ComponentDef,
 } from "@spin/runtime";
 import {
@@ -10,19 +9,20 @@ import {
   isHovering,
   isInteractive,
   itemState,
+  initial,
   type RatingGroupContext,
   type RatingGroupEvent,
   type RatingGroupValueChange,
+  type RatingGroupInitial,
   type RatingItemState,
 } from "./rating-group.machine.ts";
 
 /**
  * Rating-group definition: the DOM contract as data. The machine owns the
  * three phases, the value, the hover preview, and the half-step math; this
- * file maps props to channels, parts to attribute bags, commands to sends,
+ * file maps props to scalars, parts to attribute bags, commands to sends,
  * and value/hover transitions to their events. The halfway hover flag is
- * measured against the item node and sent in with the event; the
- * checked-radio focus after a keyboard move is a view reflex.
+ * measured against the item node and sent in with the event.
  */
 
 export interface RatingGroupHoverChange {
@@ -45,33 +45,11 @@ export interface RatingGroupApi {
   getHiddenInputProps(): Record<string, unknown>;
 }
 
-// Scope props arrive as strings; hooks write numbers. Accept both — a
-// string-authored `defaultValue="45"` seeds 45, not 0.
-const numProp = (raw: unknown): number | null => {
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-};
+export type { RatingGroupValueChange };
 
-const countProp = (raw: unknown): number => {
-  const count = numProp(raw);
-  return count === null ? 5 : Math.max(1, Math.floor(count));
-};
-
-type Ctx = RatingGroupContext;
-
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
-
-const slotIndex = (slot: unknown): number => (slot as { readonly index: number }).index;
-
-/** The view reflex: after a keyboard move the checked radio takes focus. */
-const focusActiveRadio = (id: (part: string, slot?: unknown) => string, value: number): void => {
-  if (typeof document === "undefined") return;
-  document.getElementById(id("item", Math.max(1, Math.ceil(value))))?.focus({ preventScroll: true });
-};
+const slotIndex = (slot: unknown): number => (typeof slot === "object" && slot !== null && "index" in slot && typeof Reflect.get(slot, "index") === "number") ? (Number(Reflect.get(slot, "index"))) : 0;
+const isIndexArg = (value: unknown): value is { readonly index: number } =>
+  typeof value === "object" && value !== null && "index" in value && typeof Reflect.get(value, "index") === "number";
 
 /** Thumb slots are a pure function of the count: cache per length so the
  * recipe's iteration never re-stamps. */
@@ -84,36 +62,25 @@ const itemIndexes = (length: number): readonly number[] => {
   return made;
 };
 
+/** Transport guarantees the raw prop bag is a RatingGroupInitial-shaped object. */
+const isRatingGroupInitial = (raw: unknown): raw is RatingGroupInitial =>
+  raw !== null && typeof raw === "object";
+
 const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
   config,
   implementations,
   start: "idle",
-  seed: (props, authored) => ({
-    count: countProp(props["count"]),
-    allowHalf: props["allowHalf"] === true,
-    disabled: props["disabled"] === true,
-    readOnly: props["readOnly"] === true,
-    value: numProp(authored("value") ? props["value"] : props["defaultValue"]) ?? -1,
-  }),
-  channels: {
-    value: {
-      controlled: true,
-      parse: numProp,
-      event: (value: number) => ({ type: "SET_VALUE", value }),
-    },
-    defaultValue: { parse: numProp },
-    count: { parse: countProp },
-    allowHalf: { parse: (raw) => raw === true },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    name: { parse: textProp },
-    form: { parse: textProp },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    label: { parse: textProp },
-  },
+  seed: (raw, _authored) => ({ ...initial(isRatingGroupInitial(raw) ? raw : {}) }),
   scalars: ["count", "allowHalf", "disabled", "readOnly"],
+  reconcile: ({ context, parsed, authored, send }) => {
+    const ctx = context;
+    if (!authored("value")) return false;
+    const seeded = initial(isRatingGroupInitial(parsed) ? parsed : {});
+    if (ctx.value === seeded.value) return false;
+    send({ type: "SET_VALUE", value: seeded.value });
+    return true;
+  },
   parts: {
     root: {
       sig: (scope) => [scope.props["dir"]].join("|"),
@@ -136,9 +103,8 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
         for: scope.id("hiddenInput"),
         onClick: (event: MouseEvent) => {
           if (event.defaultPrevented) return;
-          if (!isInteractive(asCtx(scope.context))) return;
+          if (!isInteractive(scope.context)) return;
           event.preventDefault();
-          focusActiveRadio(scope.id, asCtx(scope.context).value as number);
         },
       }),
     },
@@ -155,23 +121,23 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
         "data-readonly": scope.attr(scope.props["readOnly"] === true),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
         onPointermove: (event: PointerEvent) => {
-          if (!isInteractive(asCtx(scope.context))) return;
+          if (!isInteractive(scope.context)) return;
           if (event.pointerType === "touch") return;
           scope.send({ type: "GROUP_POINTER_OVER" });
         },
         onPointerleave: () => {
-          if (!isInteractive(asCtx(scope.context))) return;
-          if (typeof document === "undefined") return;
-          const radioFocused = document.getElementById(scope.id("control"))?.contains(document.activeElement) === true;
+          if (!isInteractive(scope.context)) return;
+          const radioFocused = scope.state === "focus";
           scope.send({ type: "GROUP_POINTER_LEAVE", radioFocused });
         },
       }),
     },
     hiddenInput: {
       id: "input",
-      sig: (scope) => [scope.props["name"], asCtx(scope.context).value, scope.props["disabled"]].join("|"),
+      sig: (scope) => [scope.props["name"], scope.context.value, scope.props["disabled"]].join("|"),
       attrs: (scope) => {
-        const name = scope.props["name"] as string;
+        const rawName = scope.props["name"];
+        const name = typeof rawName === "string" ? rawName : "";
         return {
           id: scope.id("hiddenInput"),
           name: name.length > 0 ? name : undefined,
@@ -181,21 +147,21 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
           disabled: scope.props["disabled"] === true ? true : undefined,
           readonly: scope.props["readOnly"] === true ? true : undefined,
           required: scope.props["required"] === true ? true : undefined,
-          value: String(asCtx(scope.context).value),
+          value: String(scope.context.value),
         };
       },
     },
   },
   slots: {
     item: {
-      indexes: (context) => itemIndexes(asCtx(context).count),
+      indexes: (context) => itemIndexes(context.count),
       sig: (scope) => {
-        const state = itemState(asCtx(scope.context), slotIndex(scope.slot));
+        const state = itemState(scope.context, slotIndex(scope.slot));
         return [scope.state, state.highlighted, state.half, state.checked, scope.props["disabled"], scope.props["readOnly"], scope.props["dir"]].join("|");
       },
       attrs: (scope) => {
         const index = slotIndex(scope.slot);
-        const context = asCtx(scope.context);
+        const context = scope.context;
         const state = itemState(context, index);
         const interactive = isInteractive(context);
         return {
@@ -223,24 +189,22 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
             event.preventDefault();
           },
           onPointermove: (event: PointerEvent) => {
-            if (!isInteractive(asCtx(scope.context))) return;
-            const target = event.currentTarget as Element | null;
-            if (target === null || typeof target.getBoundingClientRect !== "function") return;
-            const rect = target.getBoundingClientRect();
-            const dir = scope.props["dir"] as string;
+            if (!isInteractive(scope.context)) return;
+            const rect = scope.measure("item", index);
+            if (rect === null) return;
+            const dir = typeof scope.props["dir"] === "string" ? scope.props["dir"] : "ltr";
             const x = dir === "rtl" ? rect.right - event.clientX : event.clientX - rect.left;
             const isMidway = rect.width > 0 && x / rect.width < 0.5;
             scope.send({ type: "POINTER_OVER", index, isMidway });
           },
           onKeydown: (event: KeyboardEvent) => {
             if (event.defaultPrevented) return;
-            if (!isInteractive(asCtx(scope.context))) return;
+            if (!isInteractive(scope.context)) return;
             if (isComposing(event)) return;
-            const dir = scope.props["dir"] as string;
+            const dir = typeof scope.props["dir"] === "string" ? scope.props["dir"] : "ltr";
             const move = (type: string): boolean => {
               event.preventDefault();
               scope.send({ type });
-              focusActiveRadio(scope.id, asCtx(scope.context).value as number);
               return true;
             };
             switch (event.key) {
@@ -255,7 +219,6 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
               case " ":
                 event.preventDefault();
                 scope.send({ type: "SPACE", value: index });
-                focusActiveRadio(scope.id, asCtx(scope.context).value as number);
                 break;
               case "Home":
                 move("HOME");
@@ -268,15 +231,15 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
             }
           },
           onClick: () => {
-            if (!isInteractive(asCtx(scope.context))) return;
+            if (!isInteractive(scope.context)) return;
             scope.send({ type: "CLICK", value: index });
           },
           onFocus: () => {
-            if (!isInteractive(asCtx(scope.context))) return;
+            if (!isInteractive(scope.context)) return;
             scope.send({ type: "FOCUS" });
           },
           onBlur: () => {
-            if (!isInteractive(asCtx(scope.context))) return;
+            if (!isInteractive(scope.context)) return;
             scope.send({ type: "BLUR" });
           },
         };
@@ -284,34 +247,53 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "SET_VALUE", value: args[0] as number }) },
+    setValue: { event: (args) => ({ type: "SET_VALUE", value: args[0] }) },
     clearValue: { event: () => ({ type: "CLEAR_VALUE" }) },
   },
   readers: {
-    value: { read: (context) => asCtx(context).value },
-    hoveredValue: { read: (context) => asCtx(context).hoveredValue },
-    hovering: { read: (context) => isHovering(asCtx(context)) },
-    count: { read: (context) => asCtx(context).count },
+    value: { read: (context) => context.value },
+    hoveredValue: { read: (context) => context.hoveredValue },
+    hovering: { read: (context) => isHovering(context) },
+    count: { read: (context) => context.count },
   },
   methods: {
     getItems: {
-      call: (context) => itemIndexes(asCtx(context).count),
+      call: (context) => itemIndexes(context.count),
     },
     getItemState: {
-      call: (context, _state, args) => itemState(asCtx(context), (args[0] as { readonly index: number }).index),
+      call: (context, _state, args) => {
+        const a = args[0];
+        const i = isIndexArg(a) ? a.index : 0;
+        return itemState(context, i);
+      },
     },
   },
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [asCtx(context).value],
-      detail: (watched) => ({ value: watched[0] as number }),
+      watch: (context) => [context.value],
+      detail: (watched) => ({ value: typeof watched[0] === "number" ? watched[0] : 0 }),
     },
     "hover-change": {
       prop: "onHoverChange",
-      watch: (context) => [asCtx(context).hoveredValue],
-      detail: (watched) => ({ hoveredValue: watched[0] as number }),
+      watch: (context) => [context.hoveredValue],
+      detail: (watched) => ({ hoveredValue: typeof watched[0] === "number" ? watched[0] : 0 }),
     },
+  },
+  settled: ({ event, after, focus }) => {
+    const types: Record<string, true> = {
+      ARROW_LEFT: true,
+      ARROW_RIGHT: true,
+      HOME: true,
+      END: true,
+      SPACE: true,
+    };
+    if (types[event.type] !== true) return;
+    const afterRecord: Record<string, unknown> = Object.assign({}, (after && typeof after === "object") ? after : {});
+    const ctx = afterRecord["context"];
+    if (!ctx || typeof ctx !== "object" || !("value" in ctx)) return;
+    const value = (ctx).value;
+    if (typeof value === "number" && value > 0) focus("item", Math.max(1, Math.ceil(value)));
   },
 };
 

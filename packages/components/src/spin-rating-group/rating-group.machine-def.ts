@@ -1,6 +1,6 @@
-import { ratingGroup } from "./rating-group.def.ts";
+import { ratingGroup } from "./rating-group.bindings.ts";
 import type { RatingGroupValueChange } from "./rating-group.machine.ts";
-import type { RatingGroupHoverChange } from "./rating-group.def.ts";
+import type { RatingGroupHoverChange } from "./rating-group.bindings.ts";
 
 /**
  * The rating-group's seam: the synthesized bridge, the element's imperative

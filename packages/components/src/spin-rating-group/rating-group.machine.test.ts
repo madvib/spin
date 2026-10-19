@@ -1,10 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { ratingGroup } from "./rating-group.def.ts";
+import { ratingGroup } from "./rating-group.bindings.ts";
 const createRatingGroupBridge = ratingGroup.createBridge;
-import type { RatingGroupHoverChange } from "./rating-group.def.ts";
-import type { RatingGroupApi } from "./rating-group.def.ts";
+import type { RatingGroupHoverChange } from "./rating-group.bindings.ts";
+import type { RatingGroupApi } from "./rating-group.bindings.ts";
 import type { RatingGroupValueChange } from "./rating-group.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -106,6 +106,14 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     () => root,
     "stars",
   );
+  const count = typeof overrides["count"] === "number" ? overrides["count"] : 5;
+  for (let i = 1; i <= count; i++) {
+    const el = document.createElement("div");
+    el.id = `rating-group:stars:item:${i}`;
+    el.getBoundingClientRect = (): DOMRect =>
+      ({ left: 0, right: 40, width: 40, top: 0, bottom: 0, x: 0, y: 0, height: 0, toJSON: () => ({}) }) as DOMRect;
+    document.body.appendChild(el);
+  }
   return { api: bridge.api, root, events, write };
 }
 

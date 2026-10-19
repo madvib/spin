@@ -74,6 +74,40 @@ export function itemState(ctx: RatingGroupContext, index: number): RatingItemSta
     checked: equal || (ctx.value <= 0 && index === 1),
   };
 }
+export interface RatingGroupInitial {
+  readonly count?: unknown;
+  readonly allowHalf?: unknown;
+  readonly disabled?: unknown;
+  readonly readOnly?: unknown;
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+}
+
+const numProp = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+/** Shape transport-coerced props into the machine's initial context. */
+export function initial(raw: RatingGroupInitial): RatingGroupContext {
+  const countRaw = numProp(raw.count);
+  const count = countRaw === null ? 5 : Math.max(1, Math.floor(countRaw));
+  const valueRaw = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const value = numProp(valueRaw) ?? -1;
+  return {
+    value,
+    hoveredValue: -1,
+    count,
+    allowHalf: raw.allowHalf === true,
+    disabled: raw.disabled === true,
+    readOnly: raw.readOnly === true,
+  };
+}
+
 
 const step = (ctx: RatingGroupContext): number => (ctx.allowHalf ? 0.5 : 1);
 
