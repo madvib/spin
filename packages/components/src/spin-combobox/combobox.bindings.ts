@@ -3,7 +3,8 @@ import {
   isComposing,
   textProp,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
@@ -11,10 +12,11 @@ import {
   isOpenPhase,
   pickOutcome,
   stringifyValues,
+  initial,
   type ComboboxContext,
   type ComboboxEvent,
+  type ComboboxInitial,
 } from "./combobox.machine.ts";
-
 /**
  * Combobox definition: the DOM contract as data. The machine owns the four
  * phases, the selection, the input text, the highlight, and the inline
@@ -223,10 +225,25 @@ function seedInputValue(
 
 type Ctx = ComboboxContext;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface ScopeLike extends PartScope<unknown, ComboboxContext> {}
 
-const rowsOf = (parsed: Record<string, unknown>): readonly ComboboxRow[] =>
-  parsed["items"] as readonly ComboboxRow[];
+interface SlotLike<R> extends SlotScope<R, ComboboxContext> {}
+
+const rowsCache = new WeakMap<readonly ComboboxItem[], readonly ComboboxRow[]>();
+const rowsOf = (parsed: Record<string, unknown>): readonly ComboboxRow[] => {
+  const raw: unknown = parsed["items"];
+  if (!Array.isArray(raw)) return [];
+  const hit = rowsCache.get(raw);
+  if (hit !== undefined) return hit;
+  const built = toRows(raw);
+  rowsCache.set(raw, built);
+  return built;
+};
+
+const itemsOf = (props: Record<string, unknown>): readonly ComboboxRow[] => {
+  const raw: unknown = props["items"];
+  return Array.isArray(raw) ? parseItems(raw) : [];
+};
 
 const orderOf = (parsed: Record<string, unknown>): string[] =>
   rowsOf(parsed).map((row) => row.value);
@@ -286,7 +303,7 @@ const resolveKey = (event: KeyboardEvent, dir: string): string => {
 const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
   const list = rowsOf(scope.props);
   if (list.length === 0) return null;
-  const current = asCtx(scope.context).highlightedValue;
+  const current = scope.context.highlightedValue;
   if (current === null) {
     const row = delta > 0 ? list[0] : list[list.length - 1];
     return row === undefined ? null : row.value;
@@ -323,15 +340,16 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   // A composing keystroke and any modifier are the host's, not the
   // machine's: Zag routes the whole key map behind this guard.
   if (event.ctrlKey || event.shiftKey || isComposing(event)) return;
-  const ctx = asCtx(scope.context);
+  const ctx = scope.context;
   const isOpen = isOpenPhase(scope.state);
   const valueAsString = ctx.value
     .map((value) => ctx.labels[value])
     .filter((label) => label !== undefined)
     .join(", ");
-  switch (resolveKey(event, props["dir"] as string)) {
+  const dir = props["dir"];
+  switch (resolveKey(event, typeof dir === "string" ? dir : "ltr")) {
     case "ArrowDown": {
-      if (props["openOnKeyPress"] !== true && !isOpen) return;
+      if (props["openOnKeyPress"] === false && !isOpen) return;
       event.preventDefault();
       if (event.altKey) {
         scope.send({ type: "OPEN" });
@@ -341,7 +359,7 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       return;
     }
     case "ArrowUp": {
-      if (props["openOnKeyPress"] !== true && !isOpen) return;
+      if (props["openOnKeyPress"] === false && !isOpen) return;
       event.preventDefault();
       if (event.altKey) {
         scope.send({ type: "CLOSE" });
@@ -418,7 +436,7 @@ const rowHandlers = (
     onPointerMove: (event: PointerEvent): void => {
       if (scope.props["disabled"] === true) return;
       if (row.disabled || event.pointerType !== "mouse") return;
-      if (asCtx(scope.context).highlightedValue === row.value) return;
+      if (scope.context.highlightedValue === row.value) return;
       scope.send({ type: "ITEM.POINTER_MOVE", value: row.value });
     },
     onPointerLeave: (): void => {
@@ -452,122 +470,20 @@ const rowHandlers = (
 const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => ({
   value: row.value,
   disabled: scope.props["disabled"] === true || row.disabled,
-  highlighted: asCtx(scope.context).highlightedValue === row.value,
-  selected: asCtx(scope.context).value.includes(row.value),
+  highlighted: scope.context.highlightedValue === row.value,
+  selected: scope.context.value.includes(row.value),
 });
+
+/** Transport guarantees the raw prop bag is a ComboboxInitial-shaped object. */
+const isComboboxInitial = (raw: unknown): raw is ComboboxInitial =>
+  raw !== null && typeof raw === "object";
 
 const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   name: "combobox",
   config,
   implementations,
   start: (props) => (props["open"] === true || props["defaultOpen"] === true ? "suggesting" : "idle"),
-  seed: (props, authored) => {
-    const multiple = props["multiple"] === true;
-    const selection = props["selectionBehavior"];
-    const selectionBehavior = selection === "preserve" || selection === "clear"
-      ? selection
-      : multiple
-        ? "clear"
-        : "replace";
-    const behavior = props["inputBehavior"];
-    const value = parseKeys(authored("value") ? props["value"] : props["defaultValue"]);
-    const highlighted = authored("highlightedValue")
-      ? nullableProp(props["highlightedValue"])
-      : nullableProp(props["defaultHighlightedValue"]);
-    const order = orderOf(props);
-    const labels = labelsOf(props);
-    const seedCtx: Ctx = {
-      value,
-      order,
-      labels,
-      highlightedValue: highlighted,
-      multiple,
-      closeOnSelect: authored("closeOnSelect") ? props["closeOnSelect"] === true : !multiple,
-      allowCustomValue: props["allowCustomValue"] === true,
-      inputBehavior: behavior === "autocomplete" || behavior === "autohighlight" ? behavior : "none",
-      selectionBehavior,
-      openOnChange: props["openOnChange"] !== false,
-    } as Ctx;
-    return {
-      ...seedCtx,
-      inputValue: seedInputValue(
-        textProp(props["inputValue"] as string),
-        textProp(props["defaultInputValue"] as string),
-        selectionBehavior as string,
-        multiple,
-        stringifyValues(seedCtx, value),
-      ),
-    };
-  },
-  channels: {
-    items: { parse: parseItems },
-    value: {
-      controlled: true,
-      parse: parseKeys,
-      event: (value: readonly string[]) => ({ type: "VALUE.SET", value: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) && sameKeys(current as string[], outer as string[]),
-    },
-    defaultValue: { parse: parseKeys },
-    inputValue: {
-      controlled: true,
-      parse: textProp,
-      event: (value: string) => ({ type: "INPUT_VALUE.SET", value }),
-    },
-    defaultInputValue: { parse: textProp },
-    highlightedValue: {
-      controlled: true,
-      parse: nullableProp,
-      nullable: true,
-      event: (value: string | null) =>
-        value === null ? { type: "HIGHLIGHTED_VALUE.CLEAR" } : { type: "HIGHLIGHTED_VALUE.SET", value },
-    },
-    defaultHighlightedValue: { parse: nullableProp },
-    open: {
-      controlled: true,
-      parse: (raw) => raw === true,
-      event: (value: boolean) => ({ type: value ? "OPEN" : "CLOSE" }),
-      current: (_context, state) => isOpenPhase(state),
-    },
-    defaultOpen: { parse: (raw) => raw === true },
-    multiple: { parse: (raw) => raw === true },
-    closeOnSelect: { parse: (raw) => raw },
-    allowCustomValue: { parse: (raw) => raw === true },
-    inputBehavior: { parse: textProp },
-    selectionBehavior: { parse: textProp },
-    openOnChange: { parse: (raw) => raw !== false },
-    composite: { parse: (raw) => raw !== false },
-    loopFocus: { parse: (raw) => raw === true },
-    openOnClick: { parse: (raw) => raw !== false },
-    openOnKeyPress: { parse: (raw) => raw !== false },
-    alwaysSubmitOnEnter: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    placement: {
-      parse: (raw) => {
-        const placement = textProp(raw);
-        return placement.length > 0 ? placement : "bottom";
-      },
-    },
-    name: { parse: textProp },
-    form: { parse: textProp },
-    placeholder: { parse: textProp },
-    triggerLabel: {
-      parse: (raw) => {
-        const label = textProp(raw);
-        return label.length > 0 ? label : "Toggle suggestions";
-      },
-    },
-    clearTriggerLabel: {
-      parse: (raw) => {
-        const label = textProp(raw);
-        return label.length > 0 ? label : "Clear value";
-      },
-    },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-  },
+  seed: (raw, _authored) => ({ ...initial(isComboboxInitial(raw) ? raw : {}) }),
   scalarsOf: (parsed, authored) => {
     const multiple = parsed["multiple"] === true;
     return {
@@ -577,13 +493,13 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       // overrides the mode's own answer.
       closeOnSelect: authored("closeOnSelect") ? parsed["closeOnSelect"] === true : !multiple,
       allowCustomValue: parsed["allowCustomValue"] === true,
-      inputBehavior: parsed["inputBehavior"],
-      selectionBehavior: parsed["selectionBehavior"],
-      openOnChange: parsed["openOnChange"],
+      inputBehavior: parsed["inputBehavior"] === "autocomplete" || parsed["inputBehavior"] === "autohighlight" ? parsed["inputBehavior"] : "none",
+      selectionBehavior: parsed["selectionBehavior"] === "preserve" || parsed["selectionBehavior"] === "clear" ? parsed["selectionBehavior"] : (parsed["multiple"] === true ? "clear" : "replace"),
+      openOnChange: parsed["openOnChange"] === undefined ? true : parsed["openOnChange"] !== false,
     };
   },
   reconcile: ({ context, state, parsed, send }) => {
-    const ctx = asCtx(context);
+    const ctx = context;
     const order = orderOf(parsed);
     if (sameKeys(ctx.order, order)) return false;
     ctx.order = order;
@@ -596,20 +512,20 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     return true;
   },
   settled: ({ event, before, after, focus }) => {
-    const wasOpen = isOpenPhase((before as { readonly state: string }).state);
-    const isOpenNow = isOpenPhase((after as { readonly state: string }).state);
+    const wasOpen = isOpenPhase(before.state);
+    const isOpenNow = isOpenPhase(after.state);
     // Zag's `open.entry` and `setFinalFocus`: the panel's opening owes the
     // field its focus, and a close the host asked for gives it back.
     if (wasOpen !== isOpenNow && (isOpenNow || event.type === "CLOSE")) focus("input");
   },
   parts: {
     root: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], scope.props["dir"], scope.props["composite"]].join("\u0000"),
-      attrs: (scope) => {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"]].join("\u0000"),
+      attrs: (scope: ScopeLike) => {
         const open = isOpenPhase(scope.state);
         return {
           id: scope.id("root"),
-          dir: scope.props["dir"],
+          dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           "data-scope": "combobox",
           "data-part": "root",
           "data-state": open ? "open" : "closed",
@@ -634,10 +550,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     label: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], scope.props["dir"], scope.props["composite"]].join("\u0000"),
-      attrs: (scope) => ({
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"]].join("\u0000"),
+      attrs: (scope: ScopeLike) => ({
         id: scope.id("label"),
-        dir: scope.props["dir"],
+        dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
         htmlFor: scope.id("input"),
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
         "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -646,17 +562,14 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         "data-required": scope.attr(scope.props["required"] === true),
         "data-focused": scope.attr(scope.state !== "idle"),
         onClick: (): void => {
-          // The label's click is the input's: the control keeps its own
-          // behaviour only when the host asked for the dialog shape.
-          if (scope.props["composite"] !== false) return;
-          if (typeof document === "undefined") return;
-          document.getElementById(scope.id("input"))?.focus();
+          // The label's click is the input's: native focus follows the
+          // label activation, no framework path needed.
         },
       }),
     },
     control: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["invalid"]].join("\u0000"),
-      attrs: (scope) => ({
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["invalid"]].join("\u0000"),
+      attrs: (scope: ScopeLike) => ({
         id: scope.id("control"),
           "data-scope": "combobox",
           "data-part": "control",
@@ -667,9 +580,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }),
     },
     positioner: {
-      sig: (scope) => [scope.state, scope.props["placement"]].join("\u0000"),
-      attrs: (scope) => {
-        const placement = scope.props["placement"] as string;
+      sig: (scope: ScopeLike) => [scope.state, scope.props["placement"]].join("\u0000"),
+      attrs: (scope: ScopeLike) => {
+        const _placementRaw = scope.props["placement"];
+        const placement = typeof _placementRaw === "string" && _placementRaw.length > 0 ? _placementRaw : "bottom";
         return {
           id: scope.id("positioner"),
           "data-scope": "combobox",
@@ -685,16 +599,16 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     input: {
-      sig: (scope) => {
-        const ctx = asCtx(scope.context);
-        return [scope.state, scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], scope.props["name"], scope.props["form"], scope.props["placeholder"], ctx.highlightedValue, ctx.autofill ?? ctx.inputValue, ctx.inputValue].join("\u0000");
+      sig: (scope: ScopeLike) => {
+        const ctx = scope.context;
+        return [scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], scope.props["name"], scope.props["form"], scope.props["placeholder"], ctx.highlightedValue, ctx.autofill ?? ctx.inputValue, ctx.inputValue].join("\u0000");
       },
-      attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+      attrs: (scope: ScopeLike) => {
+        const ctx = scope.context;
         const display = ctx.autofill ?? ctx.inputValue;
         return {
           id: scope.id("input"),
-          dir: scope.props["dir"],
+          dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           "data-scope": "combobox",
           "data-part": "input",
           type: "text",
@@ -716,9 +630,9 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
           "aria-autocomplete": ctx.inputBehavior === "autocomplete" ? "both" : "list",
           "aria-controls": scope.id("content"),
           "aria-expanded": isOpenPhase(scope.state),
-          "aria-activedescendant": ctx.highlightedValue === null
-            ? undefined
-            : scope.id("item", ctx.highlightedValue as unknown as number),
+        "aria-activedescendant": ctx.highlightedValue === null
+          ? undefined
+          : scope.id("item", ctx.highlightedValue),
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           "data-invalid": scope.attr(scope.props["invalid"] === true),
@@ -747,15 +661,15 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     trigger: {
-      sig: (scope, arg) => [scope.state, scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"], scope.props["dir"], scope.props["composite"], scope.props["triggerLabel"], (arg as { readonly focusable?: boolean } | undefined)?.focusable === true].join("\u0000"),
+      sig: (scope, arg) => [scope.state, scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"], scope.props["triggerLabel"], (typeof arg === "object" && arg !== null && "focusable" in arg && arg.focusable === true)].join("\u0000"),
       attrs: (scope, arg) => {
-        const focusable = (arg as { readonly focusable?: boolean } | undefined)?.focusable === true;
+        const focusable = typeof arg === "object" && arg !== null && "focusable" in arg && arg.focusable === true;
         const open = isOpenPhase(scope.state);
         return {
           id: scope.id("trigger"),
           "data-scope": "combobox",
           "data-part": "trigger",
-          dir: scope.props["dir"],
+          dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           type: "button",
           "aria-haspopup": scope.props["composite"] !== false ? "listbox" : "dialog",
           "aria-label": scope.props["triggerLabel"],
@@ -785,8 +699,6 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
             if (event.pointerType === "touch") return;
             if (event.button !== 0) return;
             event.preventDefault();
-            if (typeof document === "undefined") return;
-            document.getElementById(scope.id("input"))?.focus();
           },
           // The non-composite shape has no input driving the panel, so the
           // trigger owns the arrows.
@@ -794,7 +706,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
             if (event.defaultPrevented) return;
             if (scope.props["composite"] !== false) return;
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
-            const key = resolveKey(event, scope.props["dir"] as string);
+            const key = resolveKey(event, scope.props["dir"] === "rtl" ? "rtl" : "ltr");
             if (key !== "ArrowDown" && key !== "ArrowUp") return;
             event.preventDefault();
             scope.send({ type: key === "ArrowDown" ? "INPUT.ARROW_DOWN" : "INPUT.ARROW_UP" });
@@ -803,16 +715,16 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     triggerIndicator: {
-      sig: (scope) => ["indicator", scope.state, scope.props["dir"]].join("\u0000"),
-      attrs: (scope) => ({
+      sig: (scope: ScopeLike) => ["indicator", scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr")].join("\u0000"),
+      attrs: (scope: ScopeLike) => ({
         "aria-hidden": true,
-        dir: scope.props["dir"],
+        dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
       }),
     },
     clearTrigger: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["invalid"], asCtx(scope.context).value.length, scope.props["clearTriggerLabel"]].join("\u0000"),
-      attrs: (scope) => ({
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["invalid"], scope.context.value.length, scope.props["clearTriggerLabel"]].join("\u0000"),
+      attrs: (scope: ScopeLike) => ({
         id: scope.id("clearTrigger"),
           "data-scope": "combobox",
           "data-part": "clear-trigger",
@@ -824,7 +736,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
         "data-invalid": scope.attr(scope.props["invalid"] === true),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        hidden: asCtx(scope.context).value.length === 0,
+        hidden: scope.context.value.length === 0,
         onPointerDown: (event: PointerEvent): void => {
           if (event.button !== 0) return;
           event.preventDefault();
@@ -837,14 +749,15 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }),
     },
     content: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["dir"], scope.props["composite"], asCtx(scope.context).multiple, scope.props["placement"], (scope.props["items"] as readonly ComboboxRow[]).length, asCtx(scope.context).highlightedValue].join("\u0000"),
-      attrs: (scope) => {
-        const ctx = asCtx(scope.context);
-        const placement = scope.props["placement"] as string;
-        const rows = scope.props["items"] as readonly ComboboxRow[];
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"], scope.context.multiple, scope.props["placement"], itemsOf(scope.props).length, scope.context.highlightedValue].join("\u0000"),
+      attrs: (scope: ScopeLike) => {
+        const ctx = scope.context;
+        const _placementRaw = scope.props["placement"];
+        const placement = typeof _placementRaw === "string" && _placementRaw.length > 0 ? _placementRaw : "bottom";
+        const rows = itemsOf(scope.props);
         return {
           id: scope.id("content"),
-          dir: scope.props["dir"],
+          dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           "data-scope": "combobox",
           "data-part": "content",
           role: scope.props["composite"] !== false ? "listbox" : "dialog",
@@ -865,7 +778,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
           // and the lists go home when it goes away.
           "use:scroll-into-view": {
             activeId: (): string => {
-              const highlighted = asCtx(scope.context).highlightedValue;
+              const highlighted = scope.context.highlightedValue;
               if (!isOpenPhase(scope.state) || highlighted === null) return "";
               return scope.id("item", highlighted);
             },
@@ -874,18 +787,18 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     list: {
-      sig: (scope) => [scope.state, scope.props["dir"], scope.props["composite"], asCtx(scope.context).multiple, (scope.props["items"] as readonly ComboboxRow[]).length].join("\u0000"),
-      attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+      sig: (scope: ScopeLike) => [scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"], scope.context.multiple, itemsOf(scope.props).length].join("\u0000"),
+      attrs: (scope: ScopeLike) => {
+        const ctx = scope.context;
         const composite = scope.props["composite"] !== false;
         return {
-          dir: scope.props["dir"],
+          dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           "data-scope": "combobox",
           "data-part": "list",
           role: composite ? undefined : "listbox",
           "aria-labelledby": scope.id("label"),
           "aria-multiselectable": composite ? undefined : ctx.multiple ? true : undefined,
-          "data-empty": scope.attr((scope.props["items"] as readonly ComboboxRow[]).length === 0),
+          "data-empty": scope.attr(itemsOf(scope.props).length === 0),
         };
       },
     },
@@ -894,12 +807,12 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     item: {
       id: "item",
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as ComboboxRow);
+      sig: (scope: SlotLike<ComboboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return `${state.highlighted}\u0000${state.selected}\u0000${state.disabled}`;
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as ComboboxRow;
+      attrs: (scope: SlotLike<ComboboxRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.value),
@@ -919,12 +832,12 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     },
     itemText: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as ComboboxRow);
+      sig: (scope: SlotLike<ComboboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return `${state.highlighted}\u0000${state.selected}\u0000${state.disabled}`;
       },
-      attrs: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as ComboboxRow);
+      attrs: (scope: SlotLike<ComboboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return {
           "data-state": state.selected ? "checked" : "unchecked",
           "data-highlighted": scope.attr(state.highlighted),
@@ -934,9 +847,9 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     },
     itemIndicator: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => `${itemStateOf(scope, scope.slot as unknown as ComboboxRow).selected}`,
-      attrs: (scope) => {
-        const selected = itemStateOf(scope, scope.slot as unknown as ComboboxRow).selected;
+      sig: (scope: SlotLike<ComboboxRow>) => `${itemStateOf(scope, scope.slot).selected}`,
+      attrs: (scope: SlotLike<ComboboxRow>) => {
+        const selected = itemStateOf(scope, scope.slot).selected;
         return {
           "aria-hidden": true,
           "data-state": selected ? "checked" : "unchecked",
@@ -947,12 +860,12 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     itemGroup: {
       id: "item-group",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
-      sig: (scope) => [scope.state, scope.props["dir"], rowsOf(scope.props).length].join("\u0000"),
-      attrs: (scope) => {
-        const block = scope.slot as unknown as ComboboxBlock;
+      sig: (scope: SlotLike<ComboboxBlock>) => [scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), rowsOf(scope.props).length].join("\u0000"),
+      attrs: (scope: SlotLike<ComboboxBlock>) => {
+        const block = scope.slot;
         return {
           id: scope.id("itemGroup", block.id),
-          dir: scope.props["dir"],
+          dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           role: "group",
           "aria-labelledby": scope.id("itemGroupLabel", block.id),
           "data-empty": scope.attr(rowsOf(scope.props).length === 0),
@@ -962,9 +875,9 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     itemGroupLabel: {
       id: "item-group-label",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
-      sig: (scope) => `${(scope.slot as unknown as ComboboxBlock).label}`,
-      attrs: (scope) => {
-        const block = scope.slot as unknown as ComboboxBlock;
+      sig: (scope: SlotLike<ComboboxBlock>) => `${scope.slot.label}`,
+      attrs: (scope: SlotLike<ComboboxBlock>) => {
+        const block = scope.slot;
         return {
           id: scope.id("itemGroupLabel", block.id),
           role: "presentation",
@@ -975,55 +888,55 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   },
   commands: {
     syncSelectedItems: { event: () => ({ type: "SELECTED_ITEMS.SYNC" }) },
-    setHighlightValue: { event: (args) => ({ type: "HIGHLIGHTED_VALUE.SET", value: args[0] as string }) },
+    setHighlightValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "HIGHLIGHTED_VALUE.SET", value: typeof v === "string" ? v : null }; } },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE.CLEAR" }) },
-    selectValue: { event: (args) => ({ type: "ITEM.SELECT", value: args[0] as string }) },
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: [...(args[0] as readonly string[])] }) },
-    setInputValue: { event: (args) => ({ type: "INPUT_VALUE.SET", value: args[0] as string }) },
+    selectValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "ITEM.SELECT", value: typeof v === "string" ? v : "" }; } },
+    setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: Array.isArray(v) && v.every((x): x is string => typeof x === "string") ? [...v] : [] }; } },
+    setInputValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "INPUT_VALUE.SET", value: typeof v === "string" ? v : "" }; } },
     clearValue: {
       event: (args) => args[0] === undefined
         ? ({ type: "VALUE.CLEAR" })
-        : ({ type: "ITEM.CLEAR", value: args[0] as string }),
+        : (() => { const v = args[0]; return { type: "ITEM.CLEAR", value: typeof v === "string" ? v : "" }; })(),
     },
     focus: { view: ({ focus }) => focus("input") },
-    setOpen: { event: (args) => ({ type: (args[0] as boolean) ? "OPEN" : "CLOSE" }) },
+    setOpen: { event: (args: readonly unknown[]) => ({ type: args[0] === true ? "OPEN" : "CLOSE" }) },
   },
   readers: {
     open: { read: (_context, state) => isOpenPhase(state) },
     focused: { read: (_context, state) => state !== "idle" },
     inputValue: {
       read: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return ctx.autofill ?? ctx.inputValue;
       },
     },
-    highlightedValue: { read: (context) => asCtx(context).highlightedValue },
+    highlightedValue: { read: (context) => context.highlightedValue },
     highlightedItem: {
       read: (context, _state, props) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         if (ctx.highlightedValue === null) return null;
         return rowsOf(props).find((row) => row.value === ctx.highlightedValue) ?? null;
       },
     },
-    value: { read: (context) => [...asCtx(context).value] },
+    value: { read: (context) => [...context.value] },
     valueAsString: {
       read: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return ctx.value.map((value) => ctx.labels[value]).filter((label) => label !== undefined).join(", ");
       },
     },
-    hasSelectedItems: { read: (context) => asCtx(context).value.length > 0 },
+    hasSelectedItems: { read: (context) => context.value.length > 0 },
     selectedItems: {
       read: (context, _state, props) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         const rows = rowsOf(props);
         return ctx.value
           .map((value) => rows.find((row) => row.value === value))
           .filter((row): row is ComboboxRow => row !== undefined);
       },
     },
-    multiple: { read: (context) => asCtx(context).multiple },
-    disabled: { read: (_context, _state, props) => (props["disabled"] as boolean) === true },
+    multiple: { read: (context) => context.multiple },
+    disabled: { read: (_context, _state, props) => props["disabled"] === true },
     empty: { read: (_context, _state, props) => rowsOf(props).length === 0 },
   },
   methods: {
@@ -1031,17 +944,21 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       call: (_context, _state, _args, props) => blocksOf(rowsOf(props)),
     },
     getRows: {
-      call: (_context, _state, args) => (args[0] as ComboboxBlock).rows,
+      call: (_context, _state, args) => {
+        const block = args[0];
+        if (typeof block !== "object" || block === null || !("rows" in block) || !Array.isArray(block.rows)) return [];
+        return block.rows.filter((row): row is ComboboxRow => typeof row === "object" && row !== null);
+      },
     },
     getItemState: {
-      call: (context, _state, args, props) => {
-        const ctx = asCtx(context);
-        const row = args[0] as ComboboxRow;
+      call: (context: ComboboxContext, _state, args, props) => {
+        const row = args[0];
+        if (typeof row !== "object" || row === null || !("value" in row) || typeof row.value !== "string") return { value: "", disabled: true, highlighted: false, selected: false };
         return {
           value: row.value,
-          disabled: (props["disabled"] as boolean) === true || row.disabled,
-          highlighted: ctx.highlightedValue === row.value,
-          selected: ctx.value.includes(row.value),
+          disabled: props["disabled"] === true || (("disabled" in row && typeof row.disabled === "boolean") ? row.disabled : false),
+          highlighted: context.highlightedValue === row.value,
+          selected: context.value.includes(row.value),
         };
       },
     },
@@ -1049,10 +966,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched, _event, props) => {
-        const rows = rowsOf(props as Record<string, unknown>);
-        const value = watched as string[];
+      watch: (context) => [...context.value],
+      detail: (watched: readonly string[], _event, props) => {
+        const rows = props === undefined ? [] : rowsOf(props);
+        const value = watched;
         return {
           value: [...value],
           items: value.map((item) => rows.find((row) => row.value === item)).filter((row) => row !== undefined),
@@ -1061,46 +978,49 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     },
     "highlight-change": {
       prop: "onHighlightChange",
-      watch: (context) => [asCtx(context).highlightedValue],
-      detail: (watched, _event, props) => {
-        const highlighted = watched[0] as string | null;
+      watch: (context) => [context.highlightedValue],
+      detail: (watched: readonly [string | null], _event, props) => {
+        const highlighted = watched[0];
+        const rows = props === undefined ? [] : rowsOf(props);
         return {
           highlightedValue: highlighted,
           highlightedItem: highlighted === null
             ? null
-            : rowsOf(props as Record<string, unknown>).find((row) => row.value === highlighted) ?? null,
+            : rows.find((row) => row.value === highlighted) ?? null,
         };
       },
     },
     "input-value-change": {
       prop: "onInputValueChange",
-      watch: (context) => [asCtx(context).inputValue],
-      detail: (watched, event) => ({
-        inputValue: watched[0] as string,
+      watch: (context) => [context.inputValue],
+      detail: (watched: readonly [string], event) => ({
+        inputValue: watched[0],
         reason: (event !== undefined ? INPUT_REASON[event.type] : undefined) ?? "script",
       }),
     },
     "open-change": {
       prop: "onOpenChange",
       watch: (_context, state) => [isOpenPhase(state)],
-      detail: (watched, event, _props, context) => ({
-        open: watched[0] as boolean,
+      detail: (watched: readonly [boolean], event, _props, context) => ({
+        open: watched[0],
         reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ?? "script",
-        value: [...((context as Record<string, unknown> | undefined)?.["value"] as string[] ?? [])],
+        value: [...(context !== undefined && Array.isArray(context.value) ? context.value.filter((v): v is string => typeof v === "string") : [])],
       }),
     },
     select: {
       prop: "onSelect",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched) => ({ value: [...watched] as string[], itemValue: "" }),
-      select: (event, before, after) => {
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
+      watch: (context) => [...context.value],
+      detail: (watched: readonly string[]) => ({ value: [...watched], itemValue: "" }),
+      select: (event, before: ComboboxContext, after: ComboboxContext) => {
+        const beforeCtx = before;
+        const afterCtx = after;
         let outcome: string[] | null = null;
         let itemValue = "";
         if (event.type === "ITEM.SELECT" || event.type === "ITEM.CLICK") {
-          outcome = pickOutcome(beforeCtx, (event as Record<string, string>)["value"] as string);
-          itemValue = (event as Record<string, string>)["value"] as string;
+          const ev = event["value"];
+          if (typeof ev !== "string") return null;
+          outcome = pickOutcome(beforeCtx, ev);
+          itemValue = ev;
         } else if (event.type === "INPUT.ENTER") {
           const highlighted = beforeCtx.highlightedValue;
           if (highlighted === null || !beforeCtx.order.includes(highlighted)) return null;

@@ -1,11 +1,11 @@
-import { combobox } from "./combobox.def.ts";
+import { combobox } from "./combobox.bindings.ts";
 import type {
   ComboboxHighlightChange,
   ComboboxInputValueChange,
   ComboboxOpenChange,
   ComboboxSelect,
   ComboboxValueChange,
-} from "./combobox.def.ts";
+} from "./combobox.bindings.ts";
 
 /**
  * The combobox's seam: the synthesized bridge, the element's imperative

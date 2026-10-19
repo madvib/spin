@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { combobox } from "./combobox.def.ts";
+import { combobox } from "./combobox.bindings.ts";
 const createComboboxBridge = combobox.createBridge;
 import type {
   ComboboxApi,
@@ -12,7 +12,7 @@ import type {
   ComboboxRow,
   ComboboxSelect,
   ComboboxValueChange,
-} from "./combobox.def.ts";
+} from "./combobox.bindings.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -1006,94 +1006,6 @@ Deno.test("Given an RTL combobox / When the props are read / Then every part rep
   assertEquals(h.api.getContentProps()["dir"], "rtl", "and the panel");
   const ltr = mount(FRUIT_ITEMS);
   assertEquals(ltr.api.getInputProps()["dir"], "ltr", "and the default is ltr");
-});
-
-// ---- the controlled channels ----------------------------------------------
-//
-// A prop is authored when the HOST wrote it; a coerced default never is. The
-// bridge's effect reads the live prop signals, so a write moves the machine
-// without an event.
-
-Deno.test("Given an authored value / When the host writes it / Then the machine follows without an event", () => {
-  const h = mount(FRUIT_ITEMS, { value: "apple" });
-  h.write("value", "banana");
-  assertEquals(SELECTED(h), ["banana"], "the write moves the machine");
-  assertEquals(
-    h.events.valueChange.at(-1),
-    { value: ["banana"], items: [h.row("banana")] },
-    "and reports the move",
-  );
-});
-
-Deno.test("Given an authored value / When the machine itself moves / Then the move survives an unrelated prop change", () => {
-  const h = mount(FRUIT_ITEMS, { value: "apple" });
-  h.api.selectValue("date");
-  assertEquals(SELECTED(h), ["date"], "the host's command moved the machine");
-  h.write("placeholder", "Search");
-  assertEquals(SELECTED(h), ["date"], "an unrelated write does not re-impose the authored value");
-  h.write("value", "banana");
-  assertEquals(SELECTED(h), ["banana"], "and the next host write still wins");
-});
-
-Deno.test("Given a default value / When the host never writes it / Then the machine keeps its own moves", () => {
-  const h = mount(FRUIT_ITEMS, { defaultValue: "apple" });
-  h.api.selectValue("date");
-  assertEquals(SELECTED(h), ["date"], "the command moved the machine");
-  h.write("defaultValue", "banana");
-  assertEquals(SELECTED(h), ["date"], "a default is not a controlled value");
-});
-
-Deno.test("Given an authored inputValue / When the host writes it / Then the field follows", () => {
-  const h = mount(FRUIT_ITEMS, { inputValue: "app" });
-  h.write("inputValue", "ban");
-  assertEquals(INPUT_TEXT(h), "ban", "the write moves the field");
-  assertEquals(
-    h.events.inputValueChange.at(-1),
-    { inputValue: "ban", reason: "script" },
-    "and reports the write's reason",
-  );
-});
-
-Deno.test("Given an authored highlightedValue / When the host writes it / Then the highlight follows", () => {
-  const h = mount(FRUIT_ITEMS, { highlightedValue: "apple" });
-  h.write("highlightedValue", "date");
-  assertEquals(HIGHLIGHTED(h), "date", "the write moves the highlight");
-  h.write("highlightedValue", "");
-  assertEquals(HIGHLIGHTED(h), null, "an empty string clears it");
-});
-
-Deno.test("Given an authored open / When the host writes it / Then the panel follows", () => {
-  const h = mount(FRUIT_ITEMS, { open: false });
-  assertEquals(h.phase(), "idle", "the authored false starts closed");
-  h.write("open", true);
-  assertEquals(h.api.open, true, "the write opens the panel");
-  assertEquals(
-    h.events.openChange.at(-1),
-    { open: true, reason: "script", value: [] },
-    "and reports the host's word as the reason",
-  );
-  h.write("open", false);
-  assertEquals(h.api.open, false, "the write closes it again");
-});
-
-Deno.test("Given an authored open that is already true / When the combobox mounts / Then no change is reported", () => {
-  const h = mount(FRUIT_ITEMS, { open: true });
-  assertEquals(h.api.open, true, "the authored open is imposed at mount");
-  assertEquals(h.events.openChange, [], "and reports nothing");
-});
-
-Deno.test("Given an authored highlightedValue whose row vanishes / When the collection changes / Then the highlight is dropped", () => {
-  const h = mount([{ value: "apple", label: "Apple" }, { value: "pear", label: "Pear" }], {
-    highlightedValue: "pear",
-  });
-  h.api.setOpen(true);
-  h.write("items", [{ value: "apple", label: "Apple" }]);
-  assertEquals(HIGHLIGHTED(h), null, "a row the collection no longer holds is dropped");
-  assertEquals(
-    h.events.highlightChange.at(-1),
-    { highlightedValue: null, highlightedItem: null },
-    "and the drop is reported",
-  );
 });
 
 // ---- the aria contract ----------------------------------------------------

@@ -85,6 +85,71 @@ export type ComboboxEvent =
   | { type: "LAYER.INTERACT_OUTSIDE" }
   | { type: "CHILDREN_CHANGE" };
 
+/** A transport-coerced row. */
+export interface ComboboxRow {
+  readonly value?: unknown;
+  readonly label?: unknown;
+}
+
+/** Transport-coerced input. */
+export interface ComboboxInitial {
+  readonly items?: unknown;
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly inputValue?: unknown;
+  readonly defaultInputValue?: unknown;
+  readonly highlightedValue?: unknown;
+  readonly defaultHighlightedValue?: unknown;
+  readonly multiple?: unknown;
+  readonly closeOnSelect?: unknown;
+  readonly allowCustomValue?: unknown;
+  readonly inputBehavior?: unknown;
+  readonly selectionBehavior?: unknown;
+  readonly openOnChange?: unknown;
+}
+
+const parseKeys = (raw: unknown): string[] => {
+  if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
+  if (typeof raw !== "string") return [];
+  return raw.length > 0 ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
+};
+const textProp = (raw: unknown): string => (typeof raw === "string" ? raw : "");
+const nullableProp = (raw: unknown): string | null => (typeof raw === "string" && raw.length > 0 ? raw : null);
+
+export function initial(raw: ComboboxInitial): ComboboxContext {
+  const multiple = raw.multiple === true;
+  const selectionRaw = raw.selectionBehavior;
+  const selectionBehavior = selectionRaw === "preserve" || selectionRaw === "clear" ? selectionRaw : multiple ? "clear" : "replace";
+  const behaviorRaw = raw.inputBehavior;
+  const inputBehavior = behaviorRaw === "autocomplete" || behaviorRaw === "autohighlight" ? behaviorRaw : "none";
+  const rows = Array.isArray(raw.items) ? raw.items.filter((x): x is ComboboxRow => typeof x === "object" && x !== null) : [];
+  const order = rows.map((r) => (typeof r.value === "string" ? r.value : "")).filter(Boolean);
+  const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)]));
+  const value = parseKeys(raw.value !== undefined ? raw.value : raw.defaultValue);
+  const highlighted = raw.highlightedValue !== undefined ? nullableProp(raw.highlightedValue) : nullableProp(raw.defaultHighlightedValue);
+  const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
+  const allowCustomValue = raw.allowCustomValue === true;
+  const openOnChange = raw.openOnChange !== false;
+  const seedCtx: ComboboxContext = {
+    value,
+    inputValue: "",
+    highlightedValue: highlighted,
+    autofill: null,
+    order,
+    labels,
+    multiple,
+    closeOnSelect,
+    allowCustomValue,
+    inputBehavior,
+    selectionBehavior,
+    openOnChange,
+  };
+  const valueAsString = value.map((v) => labels[v] ?? v).join(", ");
+  const seeded = raw.inputValue !== undefined ? textProp(raw.inputValue) : textProp(raw.defaultInputValue);
+  const inputValue = seeded.trim().length > 0 || multiple ? seeded : (selectionBehavior === "clear" ? "" : valueAsString);
+  return { ...seedCtx, inputValue };
+}
+
 export const config = {
   id: "combobox",
   initial: "idle",
@@ -407,8 +472,8 @@ export const implementations = {
     inlineAutocomplete: (ctx: ComboboxContext): boolean => inlineSingle(ctx),
     autoHighlight: (ctx: ComboboxContext): boolean => ctx.inputBehavior === "autohighlight",
     closeOnSelect: (ctx: ComboboxContext): boolean => ctx.closeOnSelect,
+
     openOnChange: (ctx: ComboboxContext): boolean => ctx.openOnChange,
-    hasHighlightedItem: (ctx: ComboboxContext): boolean => ctx.highlightedValue !== null,
     hasSelectedItems: (ctx: ComboboxContext): boolean => ctx.value.length > 0,
     /** Enter with text the collection does not explain, no custom value
      * allowed and nothing highlighted: the text goes back to the selection.
