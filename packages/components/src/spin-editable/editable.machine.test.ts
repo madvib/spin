@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { editable } from "./editable.def.ts";
+import { editable } from "./editable.bindings.ts";
 const createEditableBridge = editable.createBridge;
-import type { EditableEditChange, EditableValueChange } from "./editable.def.ts";
-import type { EditableApi } from "./editable.def.ts";
+import type { EditableEditChange, EditableValueChange } from "./editable.bindings.ts";
+import type { EditableApi } from "./editable.bindings.ts";
 import type { InteractOutsideEvent } from "./actions/interact-outside.action.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

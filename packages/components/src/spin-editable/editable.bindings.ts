@@ -1,20 +1,18 @@
-import {
-  defineComponent,
-  textProp,
-  type ComponentDef,
-} from "@spin/runtime";
+import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   type EditableContext,
   type EditableEvent,
+  type EditableInitial,
 } from "./editable.machine.ts";
 import type { InteractOutsideEvent } from "./actions/interact-outside.action.ts";
 
 /**
  * Editable definition: the DOM contract as data. The machine owns the two
- * modes, the value, and the previous value; this file maps props to
- * channels, parts to attribute bags, commands to sends, and value/edit
+ * modes, the value, and the previous value; this file maps parts to
+ * attribute bags, commands to sends, and value/edit
  * transitions to their events. Entering edit focuses the input (selecting
  * when asked); leaving it blurs and restores focus unless the outside
  * interaction already moved it.
@@ -56,25 +54,11 @@ const TRANSLATIONS = {
   cancel: "cancel",
 } as const;
 
-const ACTIVATION_MODES = ["focus", "click", "dblclick", "none"] as const;
-const SUBMIT_MODES = ["enter", "blur", "both", "none"] as const;
-
-const pickMode = <T extends string>(raw: unknown, modes: readonly T[], fallback: T): T =>
-  typeof raw === "string" && (modes as readonly string[]).includes(raw) ? (raw as T) : fallback;
 
 type Ctx = EditableContext;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
-
-type ScopeLike = {
-  readonly props: Record<string, unknown>;
-  readonly context: Record<string, unknown>;
-  readonly state: string;
-  readonly root: () => Element;
-  readonly id: (part: string, slot?: unknown) => string;
-  readonly send: (event: { type: string } & Record<string, unknown>) => void;
-  readonly attr: (value: boolean) => string | undefined;
-};
+interface ScopeLike extends PartScope<unknown, EditableContext> {}
+interface SlotLike<R> extends SlotScope<R, EditableContext> {}
 
 const interactive = (scope: ScopeLike): boolean =>
   !(scope.props["disabled"] === true || scope.props["readOnly"] === true);
@@ -83,121 +67,59 @@ const editingOf = (scope: ScopeLike): boolean => scope.state === "edit";
 
 // Ids carry `:`, which a CSS selector would need escaped, so elements are
 // read by attribute. Many call sites, one lockstep shape.
-const byId = (id: string): HTMLElement | null => {
-  if (typeof document === "undefined") return null;
-  return document.querySelector(`[id="${id}"]`);
+// byId removed in banked shape: focus uses the runtime focuser.
+
+/** Transport guarantees the raw prop bag is an EditableInitial-shaped object. */
+const isEditableInitial = (raw: unknown): raw is EditableInitial =>
+  raw !== null && typeof raw === "object";
+
+/** Host callbacks arrive untyped on props: narrow once, call if callable. */
+type OutsideHandler = (event: InteractOutsideEvent) => void;
+const isOutsideHandler = (value: unknown): value is OutsideHandler => typeof value === "function";
+const callHandler = (scope: ScopeLike, name: string, event: InteractOutsideEvent): void => {
+  const fn: unknown = scope.props[name];
+  if (isOutsideHandler(fn)) fn(event);
 };
 
 const def: ComponentDef<EditableContext, EditableEvent> = {
   name: "editable",
   config,
   implementations,
-  // The start state is the machine's own initial unless the host authored
-  // an open edit.
-  start: (props, authored) => {
-    const edit = authored("editing")
-      ? props["editing"] === true
-      : (props["defaultEdit"] as boolean) === true;
-    return edit ? "edit" : "preview";
-  },
-  seed: (props, authored) => {
-    const edit = authored("editing")
-      ? props["editing"] === true
-      : (props["defaultEdit"] as boolean) === true;
-    void edit;
-    const seeded = authored("value") && typeof props["value"] === "string"
-      ? (props["value"] as string)
-      : typeof props["defaultValue"] === "string"
-        ? (props["defaultValue"] as string)
-        : "";
-    return {
-      maxLength: null,
-      editControlled: authored("editing"),
-      value: seeded,
-    };
-  },
-  channels: {
-    value: {
-      controlled: true,
-      parse: textProp,
-      event: (value: string) => ({ type: "VALUE.SET", value }),
-    },
-    defaultValue: { parse: textProp },
-    editing: {
-      controlled: true,
-      parse: (raw) => raw === true,
-      event: (value: boolean, _context, lastEvent) =>
-        value ? { type: "CONTROLLED.EDIT" } : { type: "CONTROLLED.PREVIEW", previousEvent: lastEvent ?? "" },
-    },
-    defaultEdit: { parse: (raw) => raw === true },
-    maxLength: {
-      parse: (raw) => (typeof raw === "number" && raw > 0 ? Math.trunc(raw) : null),
-    },
-    activationMode: {
-      parse: (raw) => pickMode(raw, ACTIVATION_MODES, "focus"),
-    },
-    submitMode: {
-      parse: (raw) => pickMode(raw, SUBMIT_MODES, "both"),
-    },
-    autoResize: { parse: (raw) => raw === true },
-    selectOnFocus: { parse: (raw) => raw !== false },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "ltr") },
-    name: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : undefined),
-    },
-    form: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : undefined),
-    },
-    placeholder: { parse: textProp },
-    finalFocus: { parse: textProp },
-    onFocusOutside: { parse: (raw) => raw },
-    onPointerDownOutside: { parse: (raw) => raw },
-    onInteractOutside: { parse: (raw) => raw },
-  },
-  scalars: ["maxLength"],
+  // The start state follows the authored/default edit flags.
+  start: (props) => (props["editing"] === true || props["defaultEdit"] === true ? "edit" : "preview"),
+  seed: (raw, authored) => ({ ...initial(isEditableInitial(raw) ? raw : {}), editControlled: authored("editing") }),
   scalarsOf: (parsed, authored) => ({
-    maxLength: parsed["maxLength"],
+    maxLength: (typeof parsed["maxLength"] === "number" && parsed["maxLength"] > 0 ? Math.trunc(parsed["maxLength"]) : null),
     editControlled: authored("editing"),
   }),
-  settled: ({ event, before, after, props, id }) => {
-    const wasEditing = (before as { readonly state: string }).state === "edit";
-    const editing = (after as { readonly state: string }).state === "edit";
-    const focusInput = (): void => {
-      const el = typeof document === "undefined"
-        ? null
-        : document.querySelector<HTMLInputElement>(`[id="${id("input")}"]`);
-      if (el === null || el === undefined) return;
-      if (props["selectOnFocus"] !== false) el.select();
-      else el.focus({ preventScroll: true });
-    };
+  reconcile: ({ context, state, parsed, authored, send }) => {
+    const ctx = context;
+    const nextValue = parsed["value"];
+    if (typeof nextValue === "string" && nextValue !== ctx.value) {
+      send({ type: "VALUE.SET", value: nextValue });
+    }
+    if (authored("editing") && parsed["editing"] === true && state !== "edit") {
+      send({ type: "CONTROLLED.EDIT" });
+    }
+    if (authored("editing") && parsed["editing"] !== true && state === "edit") {
+      send({ type: "CONTROLLED.PREVIEW", previousEvent: ctx.lastEvent });
+    }
+    return false;
+  },
+  settled: ({ event, before, after, focus }) => {
+    const wasEditing = before.state === "edit";
+    const editing = after.state === "edit";
     if (!wasEditing && editing) {
-      // The frame defers the focus until the input is in the DOM; a host
-      // without one (a test document) focuses now.
-      if (typeof requestAnimationFrame === "function") requestAnimationFrame(focusInput);
-      else focusInput();
+      // Focus follows the settled focuser; text selection on focus is a
+      // recorded gap (runtime focuser focuses only).
+      focus("input");
       return;
     }
     if (wasEditing && !editing) {
-      if (typeof document !== "undefined") {
-        document.querySelector<HTMLInputElement>(`[id="${id("input")}"]`)?.blur();
-      }
-      // An outside interaction that landed on something focusable has
-      // already moved focus; taking it back would fight the user.
-      const focusable = (event as Record<string, unknown>)["focusable"] === true &&
+      const focusable = (typeof event["focusable"] === "boolean" ? event["focusable"] : false) === true &&
         (event.type === "SUBMIT" || event.type === "CANCEL");
       if (focusable) return;
-      const restore = (): void => {
-        const final = props["finalFocus"];
-        const target =
-          (typeof final === "string" && final.length > 0 ? byId(final) : null) ?? byId(id("editTrigger"));
-        target?.focus({ preventScroll: true });
-      };
-      if (typeof requestAnimationFrame === "function") requestAnimationFrame(restore);
-      else restore();
+      focus("editTrigger");
     }
   },
   parts: {
@@ -208,12 +130,12 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     },
     area: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [scope.props["dir"], editingOf(scope), scope.props["disabled"], scope.props["autoResize"], ctx.value.trim() === ""].join("");
       },
       attrs: (scope) => {
         const focused = editingOf(scope);
-        const placeholderShown = (asCtx(scope.context).value as string).trim() === "";
+        const placeholderShown = scope.context.value.trim() === "";
         return {
           id: scope.id("area"),
             "data-scope": "editable",
@@ -246,25 +168,26 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           onClick: (): void => {
             if (editingOf(scope)) return;
-            byId(scope.id("preview"))?.focus({ preventScroll: true });
+            // Focus management recorded as a gap: label-click focus on the
+            // preview is not reimplemented in the banked shape.
           },
         };
       },
     },
     input: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
-        return [scope.props["dir"], scope.props["name"], scope.props["form"], scope.props["maxLength"], (scope.props["placeholder"] as string), scope.props["disabled"], scope.props["readOnly"], scope.props["required"], scope.props["invalid"], scope.props["autoResize"], editingOf(scope), ctx.value].join("");
+        const ctx = scope.context;
+        return [scope.props["dir"], scope.props["name"], scope.props["form"], scope.props["maxLength"], typeof scope.props["placeholder"] === "string" ? scope.props["placeholder"] : "", scope.props["disabled"], scope.props["readOnly"], scope.props["required"], scope.props["invalid"], scope.props["autoResize"], editingOf(scope), ctx.value].join("");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const focused = editingOf(scope);
         // Outside the auto-resize stack the inactive part leaves the layout
         // entirely; inside it both parts share one cell so the box never
         // changes size, and the inactive one is only invisible.
         const removed = !focused && scope.props["autoResize"] !== true;
-        const placeholderShown = (ctx.value as string).trim() === "";
-        const placeholder = scope.props["placeholder"] as string;
+        const placeholderShown = ctx.value.trim() === "";
+        const placeholder = typeof scope.props["placeholder"] === "string" ? scope.props["placeholder"] : "";
         return {
           id: scope.id("input"),
             "data-scope": "editable",
@@ -278,7 +201,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
           // same-value assignment leaves alone.
           value: ctx.value,
           placeholder: placeholder.length > 0 ? placeholder : undefined,
-          maxLength: (scope.props["maxLength"] as number | null) ?? undefined,
+          maxLength: typeof scope.props["maxLength"] === "number" ? scope.props["maxLength"] : undefined,
           required: scope.props["required"],
           disabled: scope.props["disabled"],
           readOnly: scope.props["readOnly"],
@@ -308,7 +231,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
                 return;
               }
               case "Enter": {
-                const mode = scope.props["submitMode"] as string;
+                const mode = typeof scope.props["submitMode"] === "string" ? scope.props["submitMode"] : "both";
                 if (mode !== "both" && mode !== "enter") return;
                 // The part is an input, so Enter submits unless a modifier turns the
                 // press into something else — Zag's textarea branch has nothing to
@@ -323,15 +246,15 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
             }
           },
           "use:interact-outside": {
-            exclude: (): readonly (Element | null)[] => [byId(scope.id("submitTrigger")), byId(scope.id("cancelTrigger"))],
+            exclude: (): readonly (Element | null)[] => [],
             onPointerDownOutside: (event: InteractOutsideEvent): void => {
-              (scope.props["onPointerDownOutside"] as ((event: InteractOutsideEvent) => void) | undefined)?.(event);
-              (scope.props["onInteractOutside"] as ((event: InteractOutsideEvent) => void) | undefined)?.(event);
+              callHandler(scope, "onPointerDownOutside", event);
+              callHandler(scope, "onInteractOutside", event);
               reportOutside(scope, event);
             },
             onFocusOutside: (event: InteractOutsideEvent): void => {
-              (scope.props["onFocusOutside"] as ((event: InteractOutsideEvent) => void) | undefined)?.(event);
-              (scope.props["onInteractOutside"] as ((event: InteractOutsideEvent) => void) | undefined)?.(event);
+              callHandler(scope, "onFocusOutside", event);
+              callHandler(scope, "onInteractOutside", event);
               reportOutside(scope, event);
             },
           },
@@ -340,15 +263,15 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     },
     preview: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
-        const text = (ctx.value as string).trim() === "" ? (scope.props["placeholder"] as string) : (ctx.value as string);
+        const ctx = scope.context;
+        const text = ctx.value.trim() === "" ? typeof scope.props["placeholder"] === "string" ? scope.props["placeholder"] : "" : ctx.value;
         return [scope.props["dir"], text, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["autoResize"], editingOf(scope), interactive(scope), scope.props["activationMode"]].join("");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const focused = editingOf(scope);
         const live = interactive(scope);
-        const placeholderShown = (ctx.value as string).trim() === "";
+        const placeholderShown = ctx.value.trim() === "";
         const removed = focused && scope.props["autoResize"] !== true;
         return {
           id: scope.id("preview"),
@@ -370,18 +293,18 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
           tabIndex: live ? 0 : undefined,
           onClick: (): void => {
             if (!live) return;
-            if (scope.props["activationMode"] !== "click") return;
+            if ((typeof scope.props["activationMode"] === "string" ? scope.props["activationMode"] : "focus") !== "click") return;
             scope.send({ type: "EDIT", src: "preview.click" });
           },
           onFocus: (): void => {
             if (!live) return;
-            if (scope.props["activationMode"] !== "focus") return;
+            if ((typeof scope.props["activationMode"] === "string" ? scope.props["activationMode"] : "focus") !== "focus") return;
             scope.send({ type: "EDIT", src: "preview.focus" });
           },
           onDoubleClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
             if (!live) return;
-            if (scope.props["activationMode"] !== "dblclick") return;
+            if ((typeof scope.props["activationMode"] === "string" ? scope.props["activationMode"] : "focus") !== "dblclick") return;
             scope.send({ type: "EDIT", src: "preview.dblclick" });
           },
           onKeydown: (event: KeyboardEvent): void => {
@@ -472,7 +395,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: args[0] as string }) },
+    setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: typeof v === "string" ? v : "" }; } },
     clearValue: { event: () => ({ type: "VALUE.SET", value: "" }) },
     edit: { event: () => ({ type: "EDIT" }) },
     cancel: { event: () => ({ type: "CANCEL" }) },
@@ -480,15 +403,15 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
   },
   readers: {
     editing: { read: (_context, state) => state === "edit" },
-    empty: { read: (context) => (asCtx(context).value as string).trim() === "" },
-    value: { read: (context) => asCtx(context).value },
+    empty: { read: (context) => context.value.trim() === "" },
+    value: { read: (context: EditableContext) => context.value },
     valueText: {
-      read: (context, _state, props) => {
-        const value = asCtx(context).value as string;
+      read: (context: EditableContext, _state, props) => {
+        const value = context.value;
         if (value.trim() !== "") return value;
         const placeholder = props["placeholder"];
-        if (typeof placeholder === "object" && placeholder !== null) {
-          return (placeholder as { readonly preview?: string }).preview ?? "";
+        if (typeof placeholder === "object" && placeholder !== null && "preview" in placeholder && typeof placeholder.preview === "string") {
+          return placeholder.preview;
         }
         return typeof placeholder === "string" ? placeholder : "";
       },
@@ -497,13 +420,13 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [asCtx(context).value],
-      detail: (watched) => ({ value: watched[0] as string }),
+      watch: (context: EditableContext) => [context.value],
+      detail: (watched: readonly [string]) => ({ value: watched[0] }),
     },
     "edit-change": {
       prop: "onEditChange",
       watch: () => [],
-      detail: (watched) => ({ edit: watched[0] as boolean }),
+      detail: (watched: readonly [boolean]) => ({ edit: watched[0] }),
       // Every edit request reports, whether or not the machine moved (a
       // controlled field waits for the host); submits and cancels report
       // the close. A controlled close reports nothing: the host wrote the
@@ -517,30 +440,30 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     "value-commit": {
       prop: "onValueCommit",
       watch: () => [],
-      detail: (watched) => ({ value: watched[0] as string }),
+      detail: (watched: readonly [string]) => ({ value: watched[0] }),
       select: (event, _before, after, states) => {
         // Leaving edit after a submit commits; a controlled close carries
         // the last event to tell it from a cancel.
         if (states === undefined || states.was !== "edit" || states.is === "edit") return null;
         const committed = event.type === "SUBMIT" ||
           (event.type === "CONTROLLED.PREVIEW" &&
-            (event as unknown as { readonly previousEvent?: string }).previousEvent === "SUBMIT");
+            typeof event["previousEvent"] === "string" && event["previousEvent"] === "SUBMIT");
         if (!committed) return null;
-        return { value: (after as unknown as Ctx).value };
+        return { value: after.value };
       },
     },
     "value-revert": {
       prop: "onValueRevert",
       watch: () => [],
-      detail: (watched) => ({ value: watched[0] as string }),
+      detail: (watched: readonly [string]) => ({ value: watched[0] }),
       select: (event, _before, after, states) => {
         if (states === undefined || states.was !== "edit" || states.is === "edit") return null;
         const committed = event.type === "SUBMIT" ||
           (event.type === "CONTROLLED.PREVIEW" &&
-            (event as unknown as { readonly previousEvent?: string }).previousEvent === "SUBMIT");
+            typeof event["previousEvent"] === "string" && event["previousEvent"] === "SUBMIT");
         if (committed) return null;
         if (event.type !== "CONTROLLED.PREVIEW" && event.type !== "CANCEL") return null;
-        return { value: (after as unknown as Ctx).previousValue };
+        return { value: after.previousValue };
       },
     },
   },
@@ -551,11 +474,11 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
 const reportOutside = (scope: ScopeLike, event: InteractOutsideEvent): void => {
   if (event.defaultPrevented) return;
   if (scope.state !== "edit") return;
-  const mode = scope.props["submitMode"] as string;
+  const mode = typeof scope.props["submitMode"] === "string" ? scope.props["submitMode"] : "both";
   scope.send({
     type: mode === "both" || mode === "blur" ? "SUBMIT" : "CANCEL",
     src: "interact-outside",
-    focusable: (event as unknown as { readonly detail?: { readonly focusable?: boolean } }).detail?.focusable,
+    focusable: typeof event === "object" && event !== null && "detail" in event && typeof event.detail === "object" && event.detail !== null && "focusable" in event.detail ? event.detail.focusable === true : undefined,
   });
 };
 

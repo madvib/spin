@@ -1,6 +1,5 @@
-import { editable } from "./editable.def.ts";
-import type { EditableEditChange, EditableValueChange } from "./editable.def.ts";
-
+import { editable } from "./editable.bindings.ts";
+import type { EditableEditChange, EditableValueChange } from "./editable.bindings.ts";
 /**
  * The editable's seam: the synthesized bridge, the element's imperative
  * commands and the CustomEvents the host reads.

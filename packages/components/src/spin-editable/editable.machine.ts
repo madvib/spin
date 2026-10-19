@@ -25,6 +25,8 @@ export interface EditableContext {
   maxLength: number | null;
   /** True when the host authors `editing`, which is the controlled channel. */
   editControlled: boolean;
+  /** The type of the last gesture sent, for controlled-close commit/revert. */
+  lastEvent: string;
 }
 
 export type EditableEvent =
@@ -37,6 +39,25 @@ export type EditableEvent =
    * right after a submit commits, anything else reverts. */
   | { type: "CONTROLLED.PREVIEW"; previousEvent: string };
 
+/** The transport-coerced input to `initial`: every field optional. */
+export interface EditableInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+}
+
+/** Shape the transport-coerced props into the machine's initial context. */
+export function initial(raw: EditableInitial): EditableContext {
+  const text = (field: unknown): string => (typeof field === "string" ? field : "");
+  const seeded = text(raw.value) || text(raw.defaultValue);
+  return {
+    value: seeded,
+    previousValue: seeded,
+    maxLength: null,
+    editControlled: false,
+    lastEvent: "",
+  };
+}
+
 export const config = {
   id: "editable",
   initial: "preview",
@@ -45,6 +66,7 @@ export const config = {
     previousValue: "",
     maxLength: null as number | null,
     editControlled: false,
+    lastEvent: "",
   },
   // Zag's root tier: the value is set wherever the machine is, which is how
   // a host's imperative `setValue` reaches a previewing field.
@@ -71,12 +93,12 @@ export const config = {
           { target: "preview", actions: [{ assign: "revertValue" }] },
         ],
         CANCEL: [
-          { cond: "isEditControlled" },
-          { target: "preview", actions: [{ assign: "revertValue" }] },
+          { cond: "isEditControlled", actions: [{ assign: "setLastEvent" }] },
+          { target: "preview", actions: [{ assign: "revertValue" }, { assign: "setLastEvent" }] },
         ],
         SUBMIT: [
-          { cond: "isEditControlled" },
-          { target: "preview", actions: [{ assign: "setPreviousValue" }] },
+          { cond: "isEditControlled", actions: [{ assign: "setLastEvent" }] },
+          { target: "preview", actions: [{ assign: "setPreviousValue" }, { assign: "setLastEvent" }] },
         ],
       },
     },
@@ -98,6 +120,9 @@ export const implementations = {
     },
     setPreviousValue: (ctx: EditableContext): Partial<EditableContext> => ({
       previousValue: ctx.value,
+    }),
+    setLastEvent: (_ctx: EditableContext, e: EditableEvent): Partial<EditableContext> => ({
+      lastEvent: e.type,
     }),
     /** Zag's revert: a field that started empty is never reverted to empty,
      * so a cancel on a blank field keeps what was typed. */
