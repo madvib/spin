@@ -1,5 +1,5 @@
-import { toast } from "./toast.def.ts";
-import type { ToastStatusChange } from "./toast.def.ts";
+import { toast } from "./toast.bindings.ts";
+import type { ToastStatusChange } from "./toast.bindings.ts";
 
 /**
  * The toast's seam: the synthesized bridge, the element's imperative

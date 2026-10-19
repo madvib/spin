@@ -215,6 +215,29 @@ const QUEUE_EVENTS = {
   "HEIGHT.SET": { actions: [{ assign: "setHeight" }] },
 } as const;
 
+/** Transport-coerced input. */
+export interface ToastInitial {
+  readonly overlap?: unknown;
+  readonly max?: unknown;
+  readonly removeDelay?: unknown;
+}
+
+const asCountMachine = (raw: unknown, fallback: number): number =>
+  typeof raw === "number" && Number.isFinite(raw) ? Math.trunc(raw) : fallback;
+
+export function initial(raw: ToastInitial): ToastContext {
+  return {
+    toasts: [],
+    queued: [],
+    overlap: raw.overlap === true,
+    max: Math.max(1, asCountMachine(raw.max, 24)),
+    removeDelay: Math.max(0, asCountMachine(raw.removeDelay, 200)),
+    pointerWithin: false,
+    focusWithin: false,
+    pageIdle: false,
+  };
+}
+
 export const config = {
   id: "toast",
   initial: "stack",

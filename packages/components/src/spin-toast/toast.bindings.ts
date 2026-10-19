@@ -3,14 +3,17 @@ import {
   defineComponent,
   machineTick,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   type ToastContext,
   type ToastEntry,
   type ToastEvent,
+  type ToastInitial,
   type ToastStatus,
   type ToastType,
 } from "./toast.machine.ts";
@@ -92,12 +95,13 @@ export interface ToastApi {
 }
 
 /** The types the machine knows, in the order a host spells them. */
-const TYPES: readonly string[] = ["info", "success", "warning", "error", "loading"];
+const isToastType = (raw: unknown): raw is ToastType =>
+  raw === "info" || raw === "success" || raw === "warning" || raw === "error" || raw === "loading";
 
-const asType = (raw: unknown): ToastType => {
-  if (typeof raw === "string" && TYPES.includes(raw)) return raw as ToastType;
-  return "info";
-};
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const asType = (raw: unknown): ToastType => isToastType(raw) ? raw : "info";
 
 const asText = (raw: unknown): string => (typeof raw === "string" ? raw : "");
 
@@ -140,12 +144,10 @@ const sameEntry = (a: ToastItem, b: ToastEntry): boolean =>
   // A duration the host did not author keeps the clock it already has.
   (a.duration <= 0 || a.duration === b.remaining);
 
+interface ScopeLike extends PartScope<unknown, ToastContext> {}
+interface SlotLike<R> extends SlotScope<R, ToastContext> {}
 type Ctx = ToastContext;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
-
-const beforeToasts = (before: Record<string, unknown>): readonly ToastEntry[] =>
-  (before["toasts"] as readonly ToastEntry[] | undefined) ?? [];
 
 /** Tolls the machine removed on its own; a host write never revives them.
  * Keyed by the context object, which is stable per service — assigns
@@ -200,7 +202,7 @@ const onGroupBlur = (scope: ScopeLike, event: FocusEvent): void => {
   const inside = related !== null && related instanceof Element && scope.root().contains(related);
   if (!inside) scope.send({ type: "REGION.BLUR" });
   const last = lastFocusedOf(scope).current;
-  if (!asCtx(scope.context).pointerWithin && last instanceof HTMLElement) {
+  if (!scope.context.pointerWithin && last instanceof HTMLElement) {
     last.focus({ preventScroll: true });
     lastFocusedOf(scope).current = undefined;
   }
@@ -210,16 +212,21 @@ const onGroupPointerLeave = (scope: ScopeLike): void => {
   scope.send({ type: "REGION.POINTER_LEAVE" });
   // The region giving up the pointer gives back the focus it borrowed.
   const last = lastFocusedOf(scope).current;
-  if (!asCtx(scope.context).focusWithin && last instanceof HTMLElement) {
+  if (!scope.context.focusWithin && last instanceof HTMLElement) {
     last.focus({ preventScroll: true });
     lastFocusedOf(scope).current = undefined;
   }
 };
 
 /** Zag's `heightBefore` plus the gaps: how far behind the front a row sits. */
+const placementOf = (props: Record<string, unknown>): string => {
+  const raw: unknown = props["placement"];
+  return typeof raw === "string" && raw.length > 0 ? raw : "bottom";
+};
+
 const stackOffset = (scope: ScopeLike, index: number): number => {
   const gap = asCount(scope.props["gap"], 16);
-  const list = asCtx(scope.context).toasts;
+  const list = scope.context.toasts;
   let before = index * gap;
   for (let position = 0; position < index; position += 1) before += list[position]?.height ?? 0;
   return before;
@@ -232,7 +239,8 @@ const stackOffset = (scope: ScopeLike, index: number): number => {
  * for its entry beat.
  */
 const offsetY = (scope: ScopeLike, index: number): string => {
-  const { side } = posture(scope.props["placement"] as string);
+  const placement = placementOf(scope.props);
+  const { side } = posture(placement);
   const gap = asCount(scope.props["gap"], 16);
   const distance = scope.state === "overlap" ? index * gap : stackOffset(scope, index);
   // A settled front row is at the origin, not at negative zero.
@@ -252,42 +260,25 @@ const scaleOf = (entry: ToastEntry, index: number, overlapped: boolean): string 
   return String(Math.max(0.6, 1 - index * 0.05));
 };
 
+/** Transport guarantees the raw prop bag is a ToastInitial-shaped object;
+ * the guard asserts that trust point instead of a silent `as`. */
+const isToastInitial = (raw: unknown): raw is ToastInitial =>
+  raw !== null && typeof raw === "object";
+
 const def: ComponentDef<ToastContext, ToastEvent> = {
   name: "toast",
   config,
   implementations,
-  seed: (props) => ({
-    overlap: props["overlap"] === true,
-    max: Math.max(1, asCount(props["max"], 24)),
-    removeDelay: Math.max(0, asCount(props["removeDelay"], 200)),
+  seed: (raw, _authored) => ({ ...initial(isToastInitial(raw) ? raw : {}) }),
+  scalarsOf: (parsed, _authored) => ({
+    overlap: parsed["overlap"] === true,
+    max: Math.max(1, asCount(parsed["max"], 24)),
+    removeDelay: Math.max(0, asCount(parsed["removeDelay"], 200)),
   }),
-  // The authored overlap prop is the group's initial posture: the fork's
-  // `initial` is static, so the region enters overlap as the prop says,
-  // exactly as Zag's `initialState({ prop })`.
   establish: (props) =>
-    (props["overlap"] as boolean) === true ? [{ type: "REGION.OVERLAP" }] : [],
-  channels: {
-    items: { parse: parseItems },
-    overlap: { parse: (raw) => raw === true },
-    max: { parse: (raw) => Math.max(1, asCount(raw, 24)) },
-    removeDelay: { parse: (raw) => Math.max(0, asCount(raw, 200)) },
-    placement: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "bottom"),
-    },
-    gap: { parse: (raw) => Math.max(0, asCount(raw, 16)) },
-    offsets: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "1rem"),
-    },
-    hotkey: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    pauseOnPageIdle: { parse: (raw) => raw !== false },
-    label: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "Notifications"),
-    },
-    closable: { parse: (raw) => raw !== false },
-  },
-  scalars: ["overlap", "max", "removeDelay"],
+    props["overlap"] === true ? [{ type: "REGION.OVERLAP" }] : [],
   reconcile: ({ context, state, parsed, send }) => {
-    const ctx = asCtx(context);
+    const ctx = context;
     let moved = false;
     const overlap = parsed["overlap"] === true;
     if (overlap && state !== "overlap") {
@@ -301,7 +292,7 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
     // The host's list is the queue's source, so the diff is one-way: ids
     // the host added are created, ids the host dropped are removed, and a
     // changed field is an update.
-    const incoming = parsed["items"] as readonly ToastItem[];
+    const incoming = parseItems(parsed["items"]);
     const before = [...ctx.toasts, ...ctx.queued];
     const removed = removedOf(context);
     for (const item of incoming) {
@@ -342,8 +333,8 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
   },
   parts: {
     group: {
-      sig: (scope) => {
-        const ctx = asCtx(scope.context);
+      sig: (scope: SlotLike<ToastEntry>) => {
+        const ctx = scope.context;
         return [
           scope.props["placement"],
           scope.props["gap"],
@@ -354,20 +345,23 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
           scope.state,
         ].join(" ");
       },
-      attrs: (scope) => {
-        const ctx = asCtx(scope.context);
-        const placement = scope.props["placement"] as string;
+      attrs: (scope: SlotLike<ToastEntry>) => {
+        const ctx = scope.context;
+        const placementRaw: unknown = scope.props["placement"];
+        const placement = typeof placementRaw === "string" && placementRaw.length > 0 ? placementRaw : "bottom";
         const { side, align } = posture(placement);
         const count = ctx.toasts.length;
         const overlapped = scope.state === "overlap";
-        const hotkey = scope.props["hotkey"] as string;
+        const hotkey = typeof scope.props["hotkey"] === "string" ? scope.props["hotkey"] : "";
+        const labelRaw: unknown = scope.props["label"];
+        const label = typeof labelRaw === "string" && labelRaw.length > 0 ? labelRaw : "Notifications";
         return {
           id: scope.id("group"),
           role: "region",
           tabindex: -1,
           "aria-label": hotkey.length > 0
-            ? `${scope.props["label"]}, ${placement} (${hotkey})`
-            : `${scope.props["label"]}, ${placement}`,
+          ? `${label}, ${placement} (${hotkey})`
+          : `${label}, ${placement}`,
           "aria-live": "polite",
           "aria-relevant": "additions text",
           "aria-atomic": "false",
@@ -382,7 +376,7 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
           // land is the recipe's decision.
           style: {
             "--toast-gap": `${asCount(scope.props["gap"], 16)}px`,
-            "--toast-offset": scope.props["offsets"],
+            "--toast-offset": (() => { const v = scope.props["offsets"]; return typeof v === "string" && v.length > 0 ? v : "1rem"; })(),
           },
           "use:toast-region": {
             hotkey: hotkey.split(",").map((key) => key.trim()).filter((key) => key.length > 0),
@@ -402,10 +396,10 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
   },
   slots: {
     toast: {
-      indexes: (context) => [...asCtx(context).toasts],
-      sig: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
-        const ctx = asCtx(scope.context);
+      indexes: (context) => [...context.toasts],
+      sig: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
+        const ctx = scope.context;
         return [
           entry.status,
           entry.mounted,
@@ -421,10 +415,11 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
           scope.props["removeDelay"],
         ].join(" ");
       },
-      attrs: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
-        const ctx = asCtx(scope.context);
-        const placement = scope.props["placement"] as string;
+      attrs: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
+        const ctx = scope.context;
+        const placementRaw: unknown = scope.props["placement"];
+        const placement = typeof placementRaw === "string" && placementRaw.length > 0 ? placementRaw : "bottom";
         const { side, align } = posture(placement);
         const index = ctx.toasts.findIndex((candidate) => candidate.id === entry.id);
         const at = index === -1 ? ctx.toasts.length : index;
@@ -488,13 +483,13 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
     },
     title: {
       id: "toast",
-      indexes: (context) => [...asCtx(context).toasts],
-      sig: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
+      indexes: (context) => [...context.toasts],
+      sig: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
         return `${entry.title} ${entry.type}`;
       },
-      attrs: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
+      attrs: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
         return {
           id: scope.id("toast", `${entry.id}:title`),
           "data-type": entry.type,
@@ -503,10 +498,10 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
     },
     description: {
       id: "toast",
-      indexes: (context) => [...asCtx(context).toasts],
-      sig: (scope) => `${(scope.slot as unknown as ToastEntry).description}`,
-      attrs: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
+      indexes: (context) => [...context.toasts],
+      sig: (scope: SlotLike<ToastEntry>) => `${(scope.slot).description}`,
+      attrs: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
         return {
           id: scope.id("toast", `${entry.id}:description`),
         };
@@ -514,10 +509,10 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
     },
     actionTrigger: {
       id: "toast",
-      indexes: (context) => [...asCtx(context).toasts],
-      sig: (scope) => `${(scope.slot as unknown as ToastEntry).action}`,
-      attrs: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
+      indexes: (context) => [...context.toasts],
+      sig: (scope: SlotLike<ToastEntry>) => `${(scope.slot).action}`,
+      attrs: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
         return {
           id: scope.id("toast", `${entry.id}:action`),
           type: "button",
@@ -537,13 +532,13 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
     },
     closeTrigger: {
       id: "toast",
-      indexes: (context) => [...asCtx(context).toasts],
-      sig: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
+      indexes: (context) => [...context.toasts],
+      sig: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
         return `${entry.id} ${scope.props["closable"] !== false}`;
       },
-      attrs: (scope) => {
-        const entry = scope.slot as unknown as ToastEntry;
+      attrs: (scope: SlotLike<ToastEntry>) => {
+        const entry = scope.slot;
         return {
           id: scope.id("toast", `${entry.id}:close`),
           type: "button",
@@ -559,57 +554,79 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
   },
   commands: {
     create: {
-      event: (args) => {
-        const item = args[0] as ToastItem;
+      event: (args: readonly unknown[]) => {
+        const item: unknown = args[0];
+        if (typeof item !== "object" || item === null) throw new Error("[toast] create requires an item object");
+        if (!isRecord(item)) throw new Error("[toast] create requires an object item");
+        const field = (name: string): unknown => item[name];
+        const id = field("id");
+        if (typeof id !== "string" || id.length === 0) throw new Error("[toast] create requires a string id");
+        const text = (name: string): string => { const v = field(name); return typeof v === "string" ? v : ""; };
+        const count = (name: string): number => { const v = field(name); return typeof v === "number" && Number.isFinite(v) ? Math.trunc(v) : 0; };
         return {
           type: "TOAST.CREATE",
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          toastType: asType(item.type),
-          duration: item.duration,
-          priority: item.priority,
-          action: item.action,
+          id,
+          title: text("title"),
+          description: text("description"),
+          toastType: asType(field("type")),
+          duration: count("duration"),
+          priority: count("priority"),
+          action: text("action"),
         };
       },
     },
     update: {
-      event: (args, context) => {
-        const id = args[0] as string;
-        const item = args[1] as Partial<ToastItem>;
-        const ctx = context as unknown as Ctx;
-        const current = ctx.toasts.find((entry) => entry.id === id) ??
-          ctx.queued.find((entry) => entry.id === id);
+      event: (args: readonly unknown[], context: Ctx) => {
+        const id = args[0];
+        const item: unknown = args[1];
+        if (typeof id !== "string") throw new Error("[toast] update requires a string id");
+        if (!isRecord(item)) throw new Error("[toast] update requires a partial item object");
+        const field = (name: string): unknown => item[name];
+        const textOr = (name: string, fallback: string): string => {
+          const v = field(name);
+          return typeof v === "string" ? v : fallback;
+        };
+        const count = (name: string): number => {
+          const v = field(name);
+          return typeof v === "number" && Number.isFinite(v) ? Math.trunc(v) : 0;
+        };
+        const current = context.toasts.find((entry) => entry.id === id) ??
+          context.queued.find((entry) => entry.id === id);
         // A partial item merges over the entry the queue already holds.
         return {
           type: "TOAST.UPDATE",
           id,
-          title: item.title ?? current?.title ?? "",
-          description: item.description ?? current?.description ?? "",
-          toastType: asType(item.type ?? current?.type),
-          duration: item.duration ?? 0,
-          priority: item.priority ?? 0,
-          action: item.action ?? current?.action ?? "",
+          title: textOr("title", current?.title ?? ""),
+          description: textOr("description", current?.description ?? ""),
+          toastType: asType(field("type") ?? current?.type),
+          duration: count("duration"),
+          priority: count("priority"),
+          action: textOr("action", current?.action ?? ""),
         };
       },
     },
     dismiss: {
-      event: (args) => ({
-        type: "TOAST.DISMISS",
-        id: args[0] as string,
-        src: (args[1] as string | undefined) ?? "programmatic",
-      }),
+      event: (args: readonly unknown[]) => {
+        const id = args[0];
+        const src = args[1];
+        return {
+          type: "TOAST.DISMISS",
+          id: typeof id === "string" ? id : "",
+          src: typeof src === "string" ? src : "programmatic",
+        };
+      },
     },
     remove: {
-      event: (args) => ({ type: "TOAST.REMOVE", id: args[0] as string }),
+      event: (args: readonly unknown[]) => { const id = args[0]; return { type: "TOAST.REMOVE", id: typeof id === "string" ? id : "" }; },
     },
     dismissAll: {
       event: () => ({ type: "DISMISS.ALL" }),
     },
     pause: {
-      event: (args, context) => {
-        const id = args[0] as string;
-        const ctx = context as unknown as Ctx;
+      event: (args: readonly unknown[], context: Ctx) => {
+        const id = args[0];
+        if (typeof id !== "string") return { type: "TOAST.PAUSE", id: "", remaining: 0 };
+        const ctx = context;
         return {
           type: "TOAST.PAUSE",
           id,
@@ -618,17 +635,17 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
       },
     },
     resume: {
-      event: (args) => ({ type: "TOAST.RESUME", id: args[0] as string }),
+      event: (args: readonly unknown[]) => { const id = args[0]; return { type: "TOAST.RESUME", id: typeof id === "string" ? id : "" }; },
     },
   },
   readers: {
-    count: { read: (context) => asCtx(context).toasts.length },
+    count: { read: (context) => context.toasts.length },
     layout: { read: (_context, state) => (state === "overlap" ? "overlap" : "stack") },
-    placement: { read: (_context, _state, props) => props["placement"] },
+    placement: { read: (_context, _state, props) => placementOf(props) },
     overlapping: { read: (_context, state) => state === "overlap" },
     paused: {
       read: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return ctx.pointerWithin || ctx.focusWithin || ctx.pageIdle;
       },
     },
@@ -641,7 +658,7 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
         // Rows rebind on resync (the row update repoints the binding),
         // so plain entries are enough — no live getters needed.
         machineTick();
-        return [...(context as unknown as Ctx).toasts];
+        return [...context.toasts];
       },
     },
   },
@@ -649,15 +666,15 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
     "status-change": {
       prop: "onStatusChange",
       watch: () => [],
-      detail: (watched) => ({ id: watched[0] as string }),
+      detail: (watched: readonly unknown[]) => { const v = watched[0]; return { id: typeof v === "string" ? v : "" }; },
       // Zag's per-toast `onStatusChange`, reported by diffing each toast's
       // status across a send: `visible` on the way in, `dismissing` when
       // the exit starts, `unmounted` when the queue lets go. A removal the
       // machine made on its own is remembered (a host source never
       // revives it); a removal the host asked for is not.
       select: (event, before, after, _states, source) => {
-        const beforeList = beforeToasts(before);
-        const afterCtx = after as unknown as Ctx;
+        const beforeList = before.toasts;
+        const afterCtx = after as Ctx;
         const afterList = afterCtx.toasts;
         const remembered = source !== "reconcile";
         const src = event.type === "TOAST.DISMISS"
