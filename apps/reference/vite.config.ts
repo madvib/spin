@@ -125,6 +125,13 @@ export default defineConfig({
         ),
       },
       {
+        find: "@spin/runtime/props",
+        replacement: resolve(
+          here,
+          "../../packages/runtime/src/props.ts",
+        ),
+      },
+      {
         find: "@spin/runtime/fsm",
         replacement: resolve(
           here,

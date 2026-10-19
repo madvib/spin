@@ -13,7 +13,6 @@ export {
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
 export { focuser, ids, measurer, type IdFn } from "./component/ids.ts";
-export { positionStyle, type PositionStyle } from "./component/position.ts";
 export {
   coerceBool,
   coerceInt,

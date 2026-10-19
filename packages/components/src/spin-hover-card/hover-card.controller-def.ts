@@ -141,11 +141,7 @@ export function attachHoverCard(el: Element): HoverCardApi {
       popover: "",
       "data-state": readOpen() ? "open" : "closed",
       "data-placement": geometry().placement,
-      style: {
-        "--anchor-x": `${geometry().x}px`,
-        "--anchor-y": `${geometry().y}px`,
-        "--anchor-w": `${geometry().w}px`,
-      },
+      // positioning owned by use:anchor (direct writes)
       "use:anchor": {
         placement,
         onGeometry: (next: AnchorGeometry) => geometry(next),

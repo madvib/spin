@@ -234,11 +234,7 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
           "aria-label": `${item.label} sub menu`,
           "data-state": open ? "open" : "closed",
           hidden: !open,
-          style: {
-            "--anchor-x": `${geo.x}px`,
-            "--anchor-y": `${geo.y}px`,
-            "--anchor-w": `${geo.w}px`,
-          },
+          // positioning owned by use:anchor (direct writes)
           "use:anchor": {
             onGeometry: (next: AnchorGeometry): void => setGeometry(scope, item.value, next),
           },
