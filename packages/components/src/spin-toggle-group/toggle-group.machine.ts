@@ -20,6 +20,8 @@ export interface ToggleGroupItem {
 
 export interface ToggleGroupContext {
   value: string[];
+  /** The shaped rows, supplied once at instantiation via `initial`. */
+  items: readonly ToggleGroupItem[];
   /** The focused item id, null when focus is outside the group. */
   focusedId: string | null;
   multiple: boolean;
@@ -61,11 +63,87 @@ export function isPressed(ctx: ToggleGroupContext, value: string): boolean {
   return ctx.value.includes(value);
 }
 
+export interface ToggleGroupRow {
+  readonly value?: unknown;
+  readonly label?: unknown;
+  readonly disabled?: unknown;
+}
+
+export interface ToggleGroupInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly items?: unknown;
+  readonly multiple?: unknown;
+  readonly deselectable?: unknown;
+  readonly rovingFocus?: unknown;
+  readonly loopFocus?: unknown;
+  readonly orientation?: unknown;
+  readonly disabled?: unknown;
+}
+
+const parseValues = (raw: unknown): string[] | null => {
+  const list: unknown = typeof raw === "string"
+    ? ((): unknown => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    })()
+    : raw;
+  if (!Array.isArray(list)) return null;
+  return list.every((item) => typeof item === "string") ? [...(list as string[])] : null;
+};
+
+export function initial(raw: ToggleGroupInitial): ToggleGroupContext {
+  const list: unknown = typeof raw.items === "string"
+    ? ((): unknown => {
+      try {
+        return JSON.parse(raw.items as string);
+      } catch {
+        return null;
+      }
+    })()
+    : raw.items;
+  const items: ToggleGroupItem[] = [];
+  if (Array.isArray(list)) {
+    for (const entry of list) {
+      if (typeof entry === "object" && entry !== null) {
+        const record = entry as Record<string, unknown>;
+        const value = record["value"];
+        if (typeof value !== "string" || value.length === 0) continue;
+        const label = record["label"];
+        items.push({
+          value,
+          label: typeof label === "string" && label.length > 0 ? label : value,
+          ...(record["disabled"] === true ? { disabled: true as const } : {}),
+        });
+      } else if (typeof entry === "string" && entry.length > 0) {
+        items.push({ value: entry, label: entry });
+      }
+    }
+  }
+  return {
+    value: parseValues(raw.value) ?? parseValues(raw.defaultValue) ?? [],
+    items,
+    focusedId: null,
+    multiple: raw.multiple === true,
+    deselectable: raw.deselectable !== false,
+    rovingFocus: raw.rovingFocus !== false,
+    loopFocus: raw.loopFocus !== false,
+    orientation: raw.orientation === "vertical" ? "vertical" : "horizontal",
+    disabled: raw.disabled === true,
+    clickFocus: false,
+    tabbingBackward: false,
+  };
+}
+
 export const config = {
   id: "toggle-group",
   initial: "idle",
   context: {
     value: [] as string[],
+    items: [] as ToggleGroupItem[],
     focusedId: null as string | null,
     multiple: false,
     deselectable: true,

@@ -1,4 +1,4 @@
-import { toggleGroup } from "./toggle-group.def.ts";
+import { toggleGroup } from "./toggle-group.bindings.ts";
 import type { ToggleGroupValueChange } from "./toggle-group.machine.ts";
 
 /**

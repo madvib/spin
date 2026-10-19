@@ -1,9 +1,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { toggleGroup } from "./toggle-group.def.ts";
+import { toggleGroup } from "./toggle-group.bindings.ts";
 const createToggleGroupBridge = toggleGroup.createBridge;
-import type { ToggleGroupApi } from "./toggle-group.def.ts";
+import type { ToggleGroupApi } from "./toggle-group.bindings.ts";
 import type { ToggleGroupValueChange } from "./toggle-group.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
