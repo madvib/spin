@@ -1,4 +1,4 @@
-import { tabs } from "./tabs.def.ts";
+import { tabs } from "./tabs.bindings.ts";
 import type { TabsValueChange } from "./tabs.machine.ts";
 
 /**
