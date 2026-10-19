@@ -128,7 +128,14 @@ export default function CarouselFsm() {
           drag the track →
         </button>
       </DemoControls>
-      <spin-carousel ref={setCarouselEl} />
+      <spin-carousel
+        ref={(node: HTMLElement) => {
+          setCarouselEl(node);
+          // Seeds are read during build: they land before connect.
+          const host = node as { items: unknown };
+          host.items = SLIDES;
+        }}
+      />
       <DemoReadout>
         <span class="mr-4">
           index: <span id="carousel-index">{index()}</span>
