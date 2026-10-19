@@ -1,4 +1,4 @@
-import { slider } from "./slider.def.ts";
+import { slider } from "./slider.bindings.ts";
 import type {
   SliderFocusChange,
   SliderValueChange,

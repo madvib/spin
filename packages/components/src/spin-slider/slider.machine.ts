@@ -71,7 +71,6 @@ export type SliderEvent =
   | { type: "SET_STEP"; step: number }
   | { type: "SET_DISABLED"; disabled: boolean }
   | { type: "SET_READ_ONLY"; readOnly: boolean };
-
 export type SliderValueChange = {
   readonly value: number[];
 };
@@ -197,6 +196,82 @@ export function valueOfPercent(ctx: SliderContext, percent: number): number {
   return getPercentValue(percent, ctx.min, ctx.max, ctx.step) as number;
 }
 
+export interface SliderInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly markers?: unknown;
+  readonly min?: unknown;
+  readonly max?: unknown;
+  readonly step?: unknown;
+  readonly largeStep?: unknown;
+  readonly minStepsBetweenThumbs?: unknown;
+  readonly origin?: unknown;
+  readonly orientation?: unknown;
+  readonly thumbCollisionBehavior?: unknown;
+  readonly disabled?: unknown;
+  readonly readOnly?: unknown;
+  readonly invalid?: unknown;
+}
+
+const numProp = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+export const valuesProp = (raw: unknown): number[] | null => {
+  if (Array.isArray(raw)) {
+    return raw.every((item) => typeof item === "number" && Number.isFinite(item))
+      ? [...(raw as number[])]
+      : null;
+  }
+  if (typeof raw !== "string") return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) &&
+        parsed.every((item) => typeof item === "number" && Number.isFinite(item))
+      ? [...(parsed as number[])]
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+export function initial(raw: SliderInitial): SliderContext {
+  const min = numProp(raw.min) ?? 0;
+  const max = numProp(raw.max) ?? 100;
+  const step = numProp(raw.step) ?? 1;
+  const seeded = (valuesProp(
+    raw.value !== undefined ? raw.value : raw.defaultValue,
+  ) ?? [min]) as number[];
+  return {
+    min,
+    max,
+    step,
+    largeStep: numProp(raw.largeStep) ?? 10 * step,
+    minStepsBetweenThumbs: Math.max(0, Math.floor(numProp(raw.minStepsBetweenThumbs) ?? 0)),
+    origin:
+      raw.origin === "center" || raw.origin === "end"
+        ? (raw.origin as "center" | "end")
+        : "start",
+    orientation: raw.orientation === "vertical" ? "vertical" : "horizontal",
+    thumbCollisionBehavior:
+      raw.thumbCollisionBehavior === "push" || raw.thumbCollisionBehavior === "swap"
+        ? (raw.thumbCollisionBehavior as ThumbCollisionBehavior)
+        : "none",
+    disabled: raw.disabled === true,
+    readOnly: raw.readOnly === true,
+    invalid: raw.invalid === true,
+    value: seeded,
+    markers: valuesProp(raw.markers) ?? [],
+    focusedIndex: -1,
+    dragOffset: null,
+    dragStartValue: null,
+  };
+}
 export const config = {
   id: "slider",
   initial: "idle",

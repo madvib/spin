@@ -1,9 +1,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { slider } from "./slider.def.ts";
+import { slider } from "./slider.bindings.ts";
 const createSliderBridge = slider.createBridge;
-import type { SliderApi } from "./slider.def.ts";
+import type { SliderApi } from "./slider.bindings.ts";
 import type {
   SliderFocusChange,
   SliderValueChange,
@@ -225,7 +225,7 @@ Deno.test("thumb percents feed the geometry channel", () => {
   assertEquals(api.getThumbPercent(0), 25);
   const bag = thumb(api, 0);
   const style = bag["style"] as Record<string, unknown>;
-  assertEquals(style["--slider-thumb"], "25%");
+  assertEquals(style["left"], "25%");
 });
 
 Deno.test("shift+arrow moves by the parsed large step, not the raw prop", () => {
