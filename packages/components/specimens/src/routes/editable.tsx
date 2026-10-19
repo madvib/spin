@@ -3,7 +3,7 @@ import { createSpinComponent } from "@spin/hooks/solid";
 import type {
   EditableEditChange,
   EditableValueChange,
-} from "../../../src/spin-editable/editable.bridge.ts";
+} from "../../../src/spin-editable/editable.bindings.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

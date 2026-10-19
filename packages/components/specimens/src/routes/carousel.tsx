@@ -4,7 +4,7 @@ import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import type { CarouselSlide } from "../../../src/spin-carousel/carousel.def.ts";
+import type { CarouselSlide } from "../../../src/spin-carousel/carousel.bindings.ts";
 
 /** The element's host surface, from its machine-def's commands. */
 interface CarouselCommands {

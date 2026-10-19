@@ -113,6 +113,13 @@ export interface CarouselApi {
   getAutoplayProgressFillProps(): Record<string, unknown>;
 }
 
+/** The in-view threshold is a percentage; the observer wants a 0..1
+ * fraction. Normalizing here keeps the prop's authored unit. */
+const intersectThreshold = (raw: unknown): number => {
+  const percent = typeof raw === "number" && Number.isFinite(raw) ? raw : 60;
+  return Math.min(1, Math.max(0, percent / 100));
+};
+
 const asInt = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value)
     ? Math.trunc(value)
@@ -697,7 +704,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
           // One observer per slide: the slide says whether it is on
           // screen, and the machine decides what that means.
           "use:intersect": {
-            threshold: scope.props["inViewThreshold"],
+            threshold: intersectThreshold(scope.props["inViewThreshold"]),
             onVisibility: (visible: boolean): void => {
               scope.send({ type: "SLIDE.VIEW", index: item.index, inView: visible });
             },

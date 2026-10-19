@@ -8,9 +8,9 @@ import { DemoReadout } from "../demo-readout.tsx";
 import type {
   LoadDetails,
   LoadResult,
-} from "../../../src/spin-async-list/async-list.bridge.ts";
-import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.bridge.ts";
-import type { SortDetails } from "../../../src/spin-async-list/async-list.bridge.ts";
+} from "../../../src/spin-async-list/async-list.bindings.ts";
+import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.bindings.ts";
+import type { SortDetails } from "../../../src/spin-async-list/async-list.bindings.ts";
 import type { SortDescriptor } from "../../../src/spin-async-list/async-list.machine.ts";
 
 /** The element as a host writes it. */
