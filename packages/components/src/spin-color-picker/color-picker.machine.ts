@@ -320,6 +320,54 @@ export const implementations = {
   },
 };
 
+export interface ColorPickerInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly format?: unknown;
+  readonly defaultFormat?: unknown;
+  readonly open?: unknown;
+  readonly defaultOpen?: unknown;
+  readonly inline?: unknown;
+  readonly disabled?: unknown;
+  readonly readOnly?: unknown;
+  readonly closeOnSelect?: unknown;
+}
+
+const FORMATS: readonly string[] = ["hex", "hexa", "rgb", "rgba", "hsl", "hsla", "hsb", "hsba"];
+
+const isFormat = (raw: unknown): raw is ColorFormat =>
+  typeof raw === "string" && (FORMATS as readonly string[]).includes(raw);
+
+const textOf = (raw: unknown, fallback: string): string =>
+  typeof raw === "string" && raw.length > 0 ? raw : fallback;
+
+/** Seed shaping: flags name themselves; the value, format and open
+ * arrive through establish (parsed there). */
+export function initial(raw: ColorPickerInitial): Pick<ColorPickerContext, "disabled" | "readOnly" | "closeOnSelect" | "inline" | "areaX" | "areaY"> {
+  return {
+    disabled: raw.disabled === true,
+    readOnly: raw.readOnly === true,
+    closeOnSelect: raw.closeOnSelect === true,
+    inline: raw.inline === true,
+    areaX: "saturation",
+    areaY: "brightness",
+  };
+}
+
+/** The seeded format: authored wins, else its default, else hex. */
+export function formatOf(raw: ColorPickerInitial): ColorFormat {
+  const authored: unknown = raw.format;
+  if (isFormat(authored)) return authored;
+  const fallback: unknown = raw.defaultFormat;
+  return isFormat(fallback) ? fallback : "hex";
+}
+
+/** The seeded open state: authored wins, else inline/default-open. */
+export function startOpen(raw: ColorPickerInitial): boolean {
+  if (typeof raw.open === "boolean") return raw.open;
+  return raw.inline === true || raw.defaultOpen === true;
+}
+
 /** True when the panel shows. Inline is always open: the host owns it. */
 export const isOpenPhase = (phase: string, inline: boolean): boolean =>
   inline || phase === "active" || phase === "dragging";

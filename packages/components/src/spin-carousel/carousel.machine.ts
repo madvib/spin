@@ -56,6 +56,14 @@ export interface CarouselContext {
   loop: boolean;
   /** Slides advanced per page, so a slide index maps to its page. */
   perMove: number;
+  /** The slide params the page count derives from, so `refresh` recomputes
+   * without the props (commands never see them). Synced by the bridge. */
+  slideParams: {
+    readonly perMove: number;
+    readonly slidesPerPage: number;
+    readonly autoSize: boolean;
+    readonly slideCount: number;
+  };
 }
 
 export type CarouselEvent =
@@ -106,6 +114,7 @@ export const config = {
     dragStatus: "idle" as CarouselDragStatus,
     loop: false,
     perMove: 1,
+    slideParams: { perMove: 1, slidesPerPage: 1, autoSize: false, slideCount: 0 },
   },
   // Root tier: the programmatic commands and the reflexes that answer in
   // every state. `AUTOPLAY.TICK` is the one event this does NOT carry —
@@ -215,6 +224,26 @@ export const implementations = {
     }),
   },
 };
+
+export interface CarouselInitial {
+  readonly index?: unknown;
+  readonly defaultIndex?: unknown;
+  readonly loop?: unknown;
+}
+
+const asInt = (value: unknown, fallback: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
+
+/** Seed shaping: the index falls back to its default, then zero, clamped
+ * to the derived page count. */
+export function initial(raw: CarouselInitial, pageCount: number): Pick<CarouselContext, "index" | "loop"> {
+  const last = Math.max(0, pageCount - 1);
+  const at = asInt(raw.index, asInt(raw.defaultIndex, 0));
+  return {
+    index: Math.min(Math.max(0, at), last),
+    loop: raw.loop === true,
+  };
+}
 
 /** Zag's page snap points, read as slide indices: what the machine derives. */
 export function pageCountFor(

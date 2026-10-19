@@ -54,6 +54,43 @@ export function isInteractive(ctx: AngleSliderContext): boolean {
   return !ctx.disabled && !ctx.readOnly;
 }
 
+export interface AngleSliderInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly step?: unknown;
+  readonly largeStep?: unknown;
+  readonly dir?: unknown;
+  readonly disabled?: unknown;
+  readonly readOnly?: unknown;
+  readonly invalid?: unknown;
+}
+
+/** A numeric prop: numbers pass, numeric strings parse, everything else
+ * absent. Named once; transport owns the grammar. */
+const asCount = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw.trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+/** Seed shaping: the value falls back to its default, then zero; the step
+ * grid and flags follow. Transport guarantees the bag is object-shaped. */
+export function initial(raw: AngleSliderInitial): Omit<AngleSliderContext, "dragOffset"> {
+  const step = asCount(raw.step) ?? 1;
+  return {
+    value: asCount(raw.value) ?? asCount(raw.defaultValue) ?? 0,
+    step,
+    largeStep: asCount(raw.largeStep) ?? 10 * step,
+    dir: raw.dir === "rtl" ? "rtl" : "ltr",
+    disabled: raw.disabled === true,
+    readOnly: raw.readOnly === true,
+    invalid: raw.invalid === true,
+  };
+}
+
 /** Zag's mirrorAngle: RTL mirrors the dial. */
 function mirrorAngle(angle: number): number {
   return (360 - angle) % 360;

@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { tagsInput } from "./tags.def.ts";
+import { tagsInput } from "./tags.bindings.ts";
 const createTagsBridge = tagsInput.createBridge;
-import type { TagsCommands } from "./tags.def.ts";
-import type { TagsApi, TagsRow } from "./tags.def.ts";
+import type { TagsCommands } from "./tags.bindings.ts";
+import type { TagsApi, TagsRow } from "./tags.bindings.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

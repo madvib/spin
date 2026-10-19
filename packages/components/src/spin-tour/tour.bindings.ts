@@ -2,15 +2,20 @@ import {
   dataAttr,
   defineComponent,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import type { AnchorGeometry } from "@spin/runtime/actions";
 import {
   config,
   implementations,
+  initial,
+  stepOf,
+  stepsOf,
   type TourContext,
   type TourDismissChange,
   type TourEvent,
+  type TourInitial,
   type TourStepChange,
   type TourStepRecord,
 } from "./tour.machine.ts";
@@ -79,40 +84,18 @@ export interface TourApi {
   getBackdropProps(): Record<string, unknown>;
 }
 
-/** The JSON transport for the step collection. */
-const parseSteps = (raw: unknown): readonly TourStepRecord[] | null => {
-  if (typeof raw !== "string" || raw.length === 0) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!Array.isArray(parsed)) return null;
-  const steps: TourStepRecord[] = [];
-  for (const entry of parsed) {
-    if (typeof entry !== "object" || entry === null) continue;
-    const bag = entry as Record<string, unknown>;
-    const id = bag["id"];
-    const target = bag["target"];
-    const title = bag["title"];
-    const description = bag["description"];
-    if (typeof id !== "string") continue;
-    steps.push({
-      id,
-      // A step without a target is a dialog: the card stands alone,
-      // centered, with no spotlight. Tark's welcome step has none.
-      target: typeof target === "string" ? target : "",
-      title: typeof title === "string" ? title : "",
-      description: typeof description === "string" ? description : "",
-    });
-  }
-  return steps;
+interface ScopeLike extends PartScope<unknown, TourContext> {}
+
+interface SlotLike<R> extends SlotScope<R, TourContext> {}
+
+/** Transport guarantees the raw prop bag is a TourInitial-shaped object. */
+const isTourInitial = (raw: unknown): raw is TourInitial =>
+  raw !== null && typeof raw === "object";
+
+const textOf = (props: Record<string, unknown>): string => {
+  const label: unknown = props["label"];
+  return typeof label === "string" ? label : "";
 };
-
-type Ctx = TourContext;
-
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
 
 /** The lookup's budget: two seconds, then the target counts as missing. */
 const RESOLVE_BUDGET_MS = 2000;
@@ -215,19 +198,16 @@ const def: ComponentDef<TourContext, TourEvent> = {
   name: "tour",
   config,
   implementations,
-  seed: (props, authored) => {
-    // Already parsed by the `steps` channel: a seeded `steps` beats
-    // `defaultSteps`, exactly as the bridge read the authored collection
-    // first.
-    const steps = (props["steps"] as readonly TourStepRecord[]).length > 0
-      ? (props["steps"] as readonly TourStepRecord[])
-      : (props["defaultSteps"] as readonly TourStepRecord[]);
-    const raw = authored("step") ? props["step"] : undefined;
-    return {
-      steps,
-      step: typeof raw === "number" && raw >= 0 && raw < steps.length ? raw : -1,
-      previousStep: -1,
-    };
+  seed: (raw, _authored) => {
+    const props: TourInitial = isTourInitial(raw) ? raw : {};
+    return { ...initial(props) };
+  },
+  reconcile: ({ context, parsed, authored, send }) => {
+    if (!authored("step")) return false;
+    const outer = stepOf(parsed["step"], context.steps.length);
+    if (context.step === outer) return false;
+    send({ type: "STEP.SET", step: outer });
+    return true;
   },
   // Every command that can enter the resolving phase drives the lookup
   // and scroll right after its send: the poll resolves the new target,
@@ -241,27 +221,13 @@ const def: ComponentDef<TourContext, TourEvent> = {
     ) {
       return;
     }
-    const state = (after as { readonly state?: string }).state;
-    if (state !== "resolving") return;
-    const context = (after as { readonly context?: Ctx }).context;
-    if (context === undefined) return;
+    if (after.state !== "resolving") return;
+    const context = after.context;
     const node = root();
     const step = context.steps[context.step] ?? null;
     if (step === null) return;
     const padding = typeof props["spotlightPadding"] === "number" ? props["spotlightPadding"] : 8;
     resolveAndScroll(node, send, step.target, padding);
-  },
-  channels: {
-    steps: { parse: (raw) => parseSteps(raw) ?? [] },
-    defaultSteps: { parse: (raw) => parseSteps(raw) ?? [] },
-    step: {
-      controlled: true,
-      parse: (raw) => (typeof raw === "number" ? raw : -1),
-      event: (value: number) => ({ type: "STEP.SET", step: value }),
-    },
-    label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    spotlightPadding: { parse: (raw) => (typeof raw === "number" ? raw : 8) },
-    disabled: { parse: (raw) => raw === true },
   },
   parts: {
     root: {
@@ -298,13 +264,13 @@ const def: ComponentDef<TourContext, TourEvent> = {
     spotlight: {
       sig: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const step = ctx.steps[ctx.step] ?? null;
         return [`${runningState(scope.state)}`, step?.target ?? "", geo.x, geo.y, geo.w, geo.h].join(" ");
       },
       attrs: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const step = ctx.steps[ctx.step] ?? null;
         const dialog = step !== null && step.target === "";
         const open = runningState(scope.state) && !dialog;
@@ -350,9 +316,9 @@ const def: ComponentDef<TourContext, TourEvent> = {
       },
     },
     content: {
-      sig: (scope) => [scope.state, asCtx(scope.context).step].join(" "),
+      sig: (scope) => [scope.state, scope.context.step].join(" "),
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const step = ctx.steps[ctx.step] ?? null;
         return {
           id: scope.id("content"),
@@ -366,7 +332,7 @@ const def: ComponentDef<TourContext, TourEvent> = {
       },
     },
     title: {
-      sig: (scope) => [`${asCtx(scope.context).step}`].join(" "),
+      sig: (scope) => [`${scope.context.step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("title"),
           "data-scope": "tour",
@@ -374,7 +340,7 @@ const def: ComponentDef<TourContext, TourEvent> = {
       }),
     },
     description: {
-      sig: (scope) => [`${asCtx(scope.context).step}`].join(" "),
+      sig: (scope) => [`${scope.context.step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("description"),
           "data-scope": "tour",
@@ -384,11 +350,11 @@ const def: ComponentDef<TourContext, TourEvent> = {
     progressText: {
       id: "progress",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [`${ctx.step}`, `${ctx.steps.length}`].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("progressText"),
             "data-scope": "tour",
@@ -399,20 +365,20 @@ const def: ComponentDef<TourContext, TourEvent> = {
     },
     prevTrigger: {
       id: "prev",
-      sig: (scope) => [`${asCtx(scope.context).step}`, scope.state].join(" "),
+      sig: (scope) => [`${scope.context.step}`, scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("prevTrigger"),
           "data-scope": "tour",
           "data-part": "prev-trigger",
         "aria-label": "Previous step",
-        hidden: asCtx(scope.context).step <= 0,
+        hidden: scope.context.step <= 0,
         onClick: (): void => scope.send({ type: "STEP.PREV" }),
       }),
     },
     nextTrigger: {
       id: "next",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [`${ctx.step}`, `${ctx.steps.length}`, scope.state].join(" ");
       },
       attrs: (scope) => ({
@@ -452,28 +418,27 @@ const def: ComponentDef<TourContext, TourEvent> = {
     prev: { event: () => ({ type: "STEP.PREV" }) },
     dismiss: { event: () => ({ type: "DISMISS" }) },
     skip: { event: () => ({ type: "SKIP" }) },
-    setStep: { event: (args) => ({ type: "STEP.SET", step: args[0] as number }) },
+    setStep: { event: (args) => ({ type: "STEP.SET", step: typeof args[0] === "number" ? args[0] : -1 }) },
     notifyTargetResolved: { event: () => ({ type: "TARGET.RESOLVED" }) },
     notifyTargetNotFound: { event: () => ({ type: "TARGET.NOT_FOUND" }) },
     notifyScrollEnd: { event: () => ({ type: "SCROLL.END" }) },
   },
   readers: {
-    step: { read: (context) => asCtx(context).step },
-    steps: { read: (context) => asCtx(context).steps },
+    step: { read: (context) => context.step },
+    steps: { read: (context) => context.steps },
     running: { read: (_context, state) => runningState(state) },
     active: { read: (_context, state) => state === "active" },
     state: { read: (_context, state) => state },
   },
   methods: {
     getTextRows: {
-      call: (context, _state, _args, props, id) => {
-        void id;
-        const ctx = context as unknown as Ctx;
+      call: (context: TourContext, _state, _args, props) => {
+        const ctx = context;
         const step = ctx.steps[ctx.step] ?? null;
         // Stable holders the row's getters read; the step rewrites them.
         // Keyed per call site is unnecessary — one row, rewritten per read.
         const holders = {
-          title: step === null ? (props["label"] as string) : step.title,
+          title: step === null ? textOf(props) : step.title,
           description: step === null ? "" : step.description,
           progress: `${ctx.step + 1} of ${ctx.steps.length}`,
         };
@@ -496,61 +461,55 @@ const def: ComponentDef<TourContext, TourEvent> = {
     start: {
       prop: "onStart",
       watch: () => [],
-      detail: (watched) => ({ step: watched[0] as number }),
-      select: (event, _before, after, states) => {
+      detail: () => ({ step: -1 }),
+      select: (event, _before, after: TourContext, states) => {
         if (states === undefined || runningState(states.was) || !runningState(states.is)) return null;
         void event;
-        return { step: (after as unknown as Ctx).step };
+        return { step: after.step };
       },
     },
     "step-change": {
       prop: "onStepChange",
       watch: () => [],
-      detail: (watched) => ({ step: watched[0] as number }),
+      detail: () => ({ step: -1 }),
       // A real step move only: the closing reset (step -1) reports through
       // dismiss/complete, and reporting it here would overwrite that reason
       // with an empty step id.
-      select: (event, before, after) => {
+      select: (event, before: TourContext, after: TourContext) => {
         void event;
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
-        if (afterCtx.step === beforeCtx.step || afterCtx.step < 0) return null;
+        if (after.step === before.step || after.step < 0) return null;
         return {
-          step: afterCtx.step,
-          stepId: afterCtx.steps[afterCtx.step]?.id ?? "",
+          step: after.step,
+          stepId: after.steps[after.step]?.id ?? "",
         };
       },
     },
     dismiss: {
       prop: "onDismiss",
       watch: () => [],
-      detail: (watched) => ({ reason: watched[0] as string }),
-      select: (event, before, after, states) => {
+      detail: () => ({ reason: "dismiss" }),
+      select: (event, before: TourContext, after: TourContext, states) => {
         if (states === undefined || !runningState(states.was) || runningState(states.is)) return null;
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
         // The run ended: the event that ended it names the reason.
         const reason = event.type === "SKIP"
           ? "skip"
           : event.type === "TARGET.NOT_FOUND"
           ? "not-found"
           : states.was === "active" &&
-              beforeCtx.step === afterCtx.steps.length - 1 &&
+              before.step === after.steps.length - 1 &&
               event.type === "DISMISS"
           ? "complete"
           : "dismiss";
-        return { reason, step: beforeCtx.step };
+        return { reason, step: before.step };
       },
     },
     complete: {
       prop: "onComplete",
       watch: () => [],
       detail: () => ({}),
-      select: (event, before, after, states) => {
+      select: (event, before: TourContext, after: TourContext, states) => {
         if (event.type !== "DISMISS" || states?.was !== "active") return null;
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
-        if (beforeCtx.step !== afterCtx.steps.length - 1) return null;
+        if (before.step !== after.steps.length - 1) return null;
         return {};
       },
     },

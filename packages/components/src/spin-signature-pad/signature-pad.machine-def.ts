@@ -1,5 +1,5 @@
-import { signaturePad } from "./signature-pad.def.ts";
-import type { SignaturePadDrawDetails } from "./signature-pad.def.ts";
+import { signaturePad } from "./signature-pad.bindings.ts";
+import type { SignaturePadDrawDetails } from "./signature-pad.bindings.ts";
 
 /**
  * The signature-pad's seam: the synthesized bridge, the element's

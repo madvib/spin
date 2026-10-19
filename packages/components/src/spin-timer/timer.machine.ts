@@ -46,6 +46,7 @@ export interface TimerInitial {
   readonly targetMs?: unknown;
   readonly countdown?: unknown;
   readonly interval?: unknown;
+  readonly autoStart?: unknown;
 }
 
 /** Coerce a seed value to milliseconds: a finite number, a numeric

@@ -3,18 +3,22 @@ import {
   dataAttr,
   defineComponent,
   isComposing,
-  textProp,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
+  formatOf,
   implementations,
+  initial,
   isOpenPhase,
+  startOpen,
   valueAsString,
   type ColorFormat,
   type ColorPickerContext,
   type ColorPickerEvent,
+  type ColorPickerInitial,
 } from "./color-picker.machine.ts";
 
 /**
@@ -107,38 +111,112 @@ export interface ColorPickerApi {
   getSwatchProps(props: SwatchSlotProps): Record<string, unknown>;
 }
 
-const FORMATS: readonly ColorFormat[] = ["hex", "hexa", "rgb", "rgba", "hsl", "hsla", "hsb", "hsba"];
-
-const parseFormat = (raw: unknown): ColorFormat | null =>
-  typeof raw === "string" && (FORMATS as readonly string[]).includes(raw) ? (raw as ColorFormat) : null;
-
 const sameValue = (a: string, b: string): boolean => a.toLowerCase() === b.toLowerCase();
 
-type Ctx = ColorPickerContext;
+const isColorFormat = (raw: unknown): raw is ColorFormat =>
+  raw === "hex" || raw === "hexa" || raw === "rgb" || raw === "rgba" || raw === "hsl" || raw === "hsla" || raw === "hsb" || raw === "hsba";
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface ScopeLike extends PartScope<unknown, ColorPickerContext> {}
+
+interface SlotLike<R> extends SlotScope<R, ColorPickerContext> {}
+
+/** Transport guarantees the raw prop bag is a ColorPickerInitial-shaped object. */
+const isColorPickerInitial = (raw: unknown): raw is ColorPickerInitial =>
+  raw !== null && typeof raw === "object";
 
 const openOf = (scope: ScopeLike): boolean =>
-  isOpenPhase(scope.state, asCtx(scope.context).inline);
+  isOpenPhase(scope.state, scope.context.inline);
 
 /** The live color object, parsed from the serialized context. */
 const colorOf = (scope: ScopeLike): ReturnType<typeof parseColor> => {
   try {
-    return parseColor(asCtx(scope.context).value);
+    return parseColor(scope.context.value);
   } catch {
     return parseColor("#000000");
   }
 };
 
-const areaChannels = (props?: AreaSlotProps): { x: ColorChannel; y: ColorChannel } => ({
-  x: props?.xChannel ?? "saturation",
-  y: props?.yChannel ?? "brightness",
-});
+const CHANNELS: readonly string[] = ["hue", "saturation", "brightness", "lightness", "red", "green", "blue", "alpha"];
 
-/** Percent of a pointer within a node, 0..1 on each axis. */
-const pointPercent = (node: Element, clientX: number, clientY: number): { x: number; y: number } => {
-  const rect = node.getBoundingClientRect();
-  if (rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
+const isChannel = (raw: unknown): raw is ColorChannel =>
+  typeof raw === "string" && (CHANNELS as readonly string[]).includes(raw);
+
+const areaChannels = (props: unknown): { x: ColorChannel; y: ColorChannel } => {
+  const x: unknown = isRecord(props) ? props["xChannel"] : undefined;
+  const y: unknown = isRecord(props) ? props["yChannel"] : undefined;
+  return {
+    x: isChannel(x) ? x : "saturation",
+    y: isChannel(y) ? y : "brightness",
+  };
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** The text off the event's own input: its value, or empty. */
+const textOf = (target: EventTarget | null): string => {
+  if (!isRecord(target)) return "";
+  const value: unknown = target["value"];
+  return typeof value === "string" ? value : "";
+};
+
+/** A text prop off the bag: parsed text arrives as a string. */
+const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
+
+/** Select the event input's text, when the target supports it. */
+/** Whether the platform ships the eyedropper: read off the global
+ * with a feature check, never assumed. */
+const eyeDropperSupported = (): boolean => {
+  const api: unknown = Reflect.get(globalThis, "EyeDropper");
+  return api !== undefined && api !== null;
+};
+
+/** Select the event input's text, when the target supports it. */
+const selectText = (target: EventTarget | null): void => {
+  if (!isRecord(target)) return;
+  const select: unknown = target["select"];
+  if (typeof select === "function") select();
+};
+
+const channelOf = (arg: unknown): ChannelSlotProps => {
+  const channel: unknown = isRecord(arg) ? arg["channel"] : undefined;
+  const orientation: unknown = isRecord(arg) ? arg["orientation"] : undefined;
+  return {
+    channel: isChannel(channel) ? channel : "hue",
+    ...(orientation === "vertical" || orientation === "horizontal" ? { orientation } : {}),
+  };
+};
+
+const swatchOf = (arg: unknown): SwatchSlotProps => {
+  if (!isRecord(arg)) return { value: "" };
+  const value: unknown = arg["value"];
+  const disabled: unknown = arg["disabled"];
+  return {
+    value: typeof value === "string" ? value : "",
+    ...(disabled === true ? { disabled: true as const } : {}),
+  };
+};
+
+const hexSlotOf = (arg: unknown): { channel: ColorChannel | "hex" } => {
+  const channel: unknown = isRecord(arg) ? arg["channel"] : undefined;
+  return { channel: channel === "hex" || isChannel(channel) ? channel : "hex" };
+};
+
+const areaPropsOf = (arg: unknown): AreaSlotProps => {
+  if (!isRecord(arg)) return {};
+  const x: unknown = arg["xChannel"];
+  const y: unknown = arg["yChannel"];
+  return {
+    ...(isChannel(x) ? { xChannel: x } : {}),
+    ...(isChannel(y) ? { yChannel: y } : {}),
+  };
+};
+
+/** Percent of a pointer within a measured rect, 0..1 on each axis.
+ * The rect comes from the framework measure or the event's own node —
+ * defs never query the document. */
+const pointPercent = (rect: Pick<DOMRect, "left" | "top" | "width" | "height"> | null, clientX: number, clientY: number): { x: number; y: number } => {
+  if (rect === null || rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
   const clamp = (n: number): number => Math.min(1, Math.max(0, n));
   return {
     x: clamp((clientX - rect.left) / rect.width),
@@ -148,20 +226,41 @@ const pointPercent = (node: Element, clientX: number, clientY: number): { x: num
 
 /** Percent along a channel track, honoring orientation and direction. */
 const trackPercent = (
-  node: Element,
+  rect: Pick<DOMRect, "left" | "top" | "width" | "height"> | null,
   orientation: "horizontal" | "vertical",
   clientX: number,
   clientY: number,
   dir: "ltr" | "rtl",
 ): number => {
-  const rect = node.getBoundingClientRect();
+  if (rect === null) return 0;
   const clamp = (n: number): number => Math.min(1, Math.max(0, n));
   if (orientation === "vertical") return clamp((clientY - rect.top) / rect.height);
   const raw = clamp((clientX - rect.left) / rect.width);
   return dir === "rtl" ? 1 - raw : raw;
 };
 
-type Capturable = Element & { setPointerCapture?: (id: number) => void };
+const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
+  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
+  const fn: unknown = value.setPointerCapture;
+  return typeof fn === "function";
+};
+
+const capturePointer = (target: EventTarget | null, pointerId: number): void => {
+  if (isCapturable(target)) target.setPointerCapture(pointerId);
+};
+
+const dirOf = (props: Record<string, unknown>): "ltr" | "rtl" =>
+  props["dir"] === "rtl" ? "rtl" : "ltr";
+
+/** The event target's own rect: the node the gesture is over, never a
+ * document lookup. */
+const rectOf = (target: EventTarget | null): Pick<DOMRect, "left" | "top" | "width" | "height"> | null => {
+  if (!(target instanceof Element)) return null;
+  if (typeof target.getBoundingClientRect !== "function") return null;
+  const rect: DOMRect = target.getBoundingClientRect();
+  if (typeof rect.width !== "number" || typeof rect.height !== "number") return null;
+  return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+};
 
 /** The arrow step: shift multiplies by ten, like a native range input. */
 const arrowStep = (event: KeyboardEvent): number => (event.shiftKey ? 10 : 1);
@@ -230,56 +329,25 @@ const onChannelKeydown = (scope: ScopeLike, event: KeyboardEvent, channel: Color
   }
 };
 
-interface BagMemo {
-  sig: string;
-  bag: Record<string, unknown>;
-}
-
-/** Per-slot memos keyed by stable owner objects: the recipe hands the
- * getters fresh literals per render, which would defeat an identity memo.
- * Owners persist by channel key, so bags survive re-renders. */
-const ownerBags = new WeakMap<object, BagMemo>();
-const keyedOwner = (
-  owner: object,
-  sig: string,
-  build: () => Record<string, unknown>,
-): Record<string, unknown> => {
-  const hit = ownerBags.get(owner);
-  if (hit !== undefined && hit.sig === sig) return hit.bag;
-  const bag = build();
-  ownerBags.set(owner, { sig, bag });
-  return bag;
-};
-const owners = new Map<string, object>();
-const ownerFor = (key: string): object => {
-  let owner = owners.get(key);
-  if (owner === undefined) {
-    owner = { key };
-    owners.set(key, owner);
-  }
-  return owner;
-};
-
 /** Zag's `getItemState` for a swatch: what one preset color is worth. */
 const swatchState = (scope: ScopeLike, props: SwatchSlotProps): ColorPickerItemState => ({
   value: props.value,
   disabled: scope.props["disabled"] === true || props.disabled === true,
-  checked: asCtx(scope.context).value.toLowerCase() === props.value.toLowerCase(),
+  checked: scope.context.value.toLowerCase() === props.value.toLowerCase(),
 });
 
 const channelValueOf = (
-  context: Record<string, unknown>,
-  props: Record<string, unknown>,
+  context: ColorPickerContext,
+  _props: Record<string, unknown>,
   channel: ColorChannel | "hex",
 ): string => {
-  const ctx = asCtx(context);
+  const ctx = context;
   let color: ReturnType<typeof parseColor>;
   try {
     color = parseColor(ctx.value);
   } catch {
     color = parseColor("#000000");
   }
-  void props;
   if (channel === "hex") {
     try {
       return color.toString("hex");
@@ -302,79 +370,56 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
   name: "color-picker",
   config,
   implementations,
-  start: (props, authored) => {
-    if (authored("open")) return (props["open"] as boolean) === true ? "active" : "idle";
-    const inline = props["inline"] === true;
-    if (inline || props["open"] === true || props["defaultOpen"] === true) return "active";
-    return "idle";
+  start: (raw, _authored) => {
+    const props: ColorPickerInitial = isColorPickerInitial(raw) ? raw : {};
+    return startOpen(props) ? "active" : "idle";
   },
-  seed: (props, authored) => ({
-    // The authored value wins; the default seeds. A coerced channel
-    // default is never a host write — `@@authored` is the distinction.
-    disabled: props["disabled"] === true,
-    readOnly: props["readOnly"] === true,
-    closeOnSelect: props["closeOnSelect"] === true,
-    inline: props["inline"] === true,
-    areaX: "saturation" as ColorPickerContext["areaX"],
-    areaY: "brightness" as ColorPickerContext["areaY"],
-    value: (authored("value") ? props["value"] : props["defaultValue"]) as string,
-    format: (authored("format") ? props["format"] : props["defaultFormat"]) as ColorFormat,
-  }),
-  establish: (props, authored) => {
+  seed: (raw, _authored) => {
+    const props: ColorPickerInitial = isColorPickerInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    return {
+      ...shaped,
+      value: "#000000",
+      format: "hex" as const,
+      activeChannel: null,
+    };
+  },
+  establish: (raw, authored) => {
     // Normalize the seed through the machine's own parser, so the context
     // always holds a serialized color rather than the host's raw text.
     // Silent: establish sends run before the watch cursors prime.
+    const props: ColorPickerInitial = isColorPickerInitial(raw) ? raw : {};
+    const value: unknown = authored("value") ? props.value : props.defaultValue;
+    const format = formatOf(props);
     return [
-      {
-        type: "VALUE.SET",
-        value: authored("value") ? props["value"] : props["defaultValue"],
-      },
-      {
-        type: "FORMAT.SET",
-        format: authored("format") ? props["format"] : props["defaultFormat"],
-      },
+      { type: "VALUE.SET", value: typeof value === "string" ? value : "#000000" },
+      { type: "FORMAT.SET", format },
     ];
   },
-  channels: {
-    value: {
-      controlled: true,
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "#000000"),
-      event: (value: string) => ({ type: "VALUE.SET", value }),
-      equal: (current, outer) =>
-        typeof current === "string" && typeof outer === "string" && sameValue(current, outer),
-    },
-    defaultValue: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "#000000"),
-    },
-    format: {
-      controlled: true,
-      parse: (raw) => parseFormat(raw) ?? "hex",
-      event: (value: ColorFormat) => ({ type: "FORMAT.SET", format: value }),
-    },
-    defaultFormat: {
-      parse: (raw) => parseFormat(raw) ?? "hex",
-    },
-    open: {
-      controlled: true,
-      parse: (raw) => raw === true,
-      event: (value: boolean) => ({ type: value ? "CONTROLLED.OPEN" : "CONTROLLED.CLOSE" }),
-      current: (context, state) =>
-        isOpenPhase(state, (context["inline"] as boolean) === true),
-    },
-    defaultOpen: { parse: (raw) => raw === true },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    closeOnSelect: { parse: (raw) => raw === true },
-    inline: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    name: { parse: textProp },
-    swatches: {
-      parse: (raw) => Array.isArray(raw)
-        ? (raw as readonly unknown[]).filter((v): v is string => typeof v === "string")
-        : [],
-    },
+  reconcile: ({ context, parsed, authored, send, state }) => {
+    if (authored("value")) {
+      const outer: unknown = parsed["value"];
+      if (typeof outer === "string" && !sameValue(context.value, outer)) {
+        send({ type: "VALUE.SET", value: outer });
+        return true;
+      }
+    }
+    if (authored("format")) {
+      const outer: unknown = parsed["format"];
+      if (typeof outer === "string" && isColorFormat(outer) && context.format !== outer) {
+        send({ type: "FORMAT.SET", format: outer });
+        return true;
+      }
+    }
+    if (authored("open")) {
+      const outer = parsed["open"] === true;
+      const open = isOpenPhase(state, context.inline);
+      if (open !== outer) {
+        send(outer ? { type: "CONTROLLED.OPEN" } : { type: "CONTROLLED.CLOSE" });
+        return true;
+      }
+    }
+    return false;
   },
   scalars: ["disabled", "readOnly", "closeOnSelect", "inline"],
   parts: {
@@ -403,11 +448,11 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     trigger: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [scope.state, ctx.value, scope.props["disabled"], scope.props["readOnly"]].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const value = valueAsString(ctx);
         const open = openOf(scope);
         return {
@@ -443,7 +488,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       }),
     },
     content: {
-      sig: (scope) => [scope.state, asCtx(scope.context).value].join(" "),
+      sig: (scope) => [scope.state, scope.context.value].join(" "),
       attrs: (scope) => {
         const open = openOf(scope);
         return {
@@ -470,7 +515,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     valueText: {
       id: "value-text",
-      sig: (scope) => [asCtx(scope.context).value].join(" "),
+      sig: (scope) => [scope.context.value].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
         dir: scope.props["dir"],
@@ -478,15 +523,15 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       }),
     },
     area: {
-      sig: (scope, arg) => {
-        const { x, y } = areaChannels(arg as AreaSlotProps | undefined);
-        return [asCtx(scope.context).value, x, y, scope.props["disabled"], scope.props["readOnly"]].join(" ");
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const { x, y } = areaChannels(arg);
+        return [scope.context.value, x, y, scope.props["disabled"], scope.props["readOnly"]].join(" ");
       },
       attrs: (scope, arg) => {
-        const slots = arg as AreaSlotProps | undefined;
+        const slots = arg === undefined ? undefined : areaPropsOf(arg);
         const { x, y } = areaChannels(slots);
         const color = colorOf(scope);
-        return keyedOwner(ownerFor(`area:${x}:${y}`), `${asCtx(scope.context).value}:${x}:${y}`, () => ({
+        return {
           id: scope.id("area"),
           role: "group",
           "data-disabled": dataAttr(scope.props["disabled"] === true),
@@ -497,35 +542,31 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           onPointerdown: (event: PointerEvent): void => {
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
             if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
-            const node = event.currentTarget as Element | null;
-            if (node === null) return;
-            const at = pointPercent(node, event.clientX, event.clientY);
+            const at = pointPercent(scope.measure("area"), event.clientX, event.clientY);
             event.preventDefault();
-            (node as Capturable).setPointerCapture?.(event.pointerId);
+            capturePointer(event.currentTarget, event.pointerId);
             scope.send({ type: "AREA.POINTER_DOWN", x: at.x, y: at.y });
           },
           onPointermove: (event: PointerEvent): void => {
             if (scope.state !== "dragging") return;
-            const node = event.currentTarget as Element | null;
-            if (node === null) return;
-            const at = pointPercent(node, event.clientX, event.clientY);
+            const at = pointPercent(scope.measure("area"), event.clientX, event.clientY);
             scope.send({ type: "AREA.POINTER_MOVE", x: at.x, y: at.y });
           },
           onPointerup: (): void => {
             if (scope.state !== "dragging") return;
             scope.send({ type: "AREA.POINTER_UP" });
           },
-        }));
+        };
       },
     },
     areaBackground: {
       id: "area-background",
-      sig: (scope, arg) => {
-        const { x, y } = areaChannels(arg as AreaSlotProps | undefined);
-        return [asCtx(scope.context).value, x, y].join(" ");
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const { x, y } = areaChannels(arg);
+        return [scope.context.value, x, y].join(" ");
       },
-      attrs: (scope, arg) => {
-        const { x, y } = areaChannels(arg as AreaSlotProps | undefined);
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const { x, y } = areaChannels(arg);
         return {
           id: scope.id("areaBackground"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
@@ -539,13 +580,13 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     areaThumb: {
       id: "area-thumb",
-      sig: (scope, arg) => {
-        const { x, y } = areaChannels(arg as AreaSlotProps | undefined);
-        return [asCtx(scope.context).value, x, y, scope.props["dir"], scope.props["disabled"]].join(" ");
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const { x, y } = areaChannels(arg);
+        return [scope.context.value, x, y, scope.props["dir"], scope.props["disabled"]].join(" ");
       },
-      attrs: (scope, arg) => {
-        const { x, y } = areaChannels(arg as AreaSlotProps | undefined);
-        const ctx = asCtx(scope.context);
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const { x, y } = areaChannels(arg);
+        const ctx = scope.context;
         const color = colorOf(scope);
         // The area's channels live in the area format: read them off the
         // converted value, because an rgb color has no saturation channel
@@ -614,51 +655,51 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSlider: {
       id: "channel-slider",
-      sig: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
         return [scope.props["disabled"], scope.props["readOnly"], orientation].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        return keyedOwner(ownerFor(`slider:${slots.channel}:${orientation}`), `${orientation}`, () => ({
+        return {
           role: "presentation",
           "data-channel": slots.channel,
           "data-orientation": orientation,
           onPointerdown: (event: PointerEvent): void => {
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
             if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
-            const node = event.currentTarget as Element | null;
-            if (node === null) return;
-            const percent = trackPercent(node, orientation, event.clientX, event.clientY, scope.props["dir"] as "ltr" | "rtl");
+            const rect = rectOf(event.currentTarget);
+            if (rect === null) return;
+            const percent = trackPercent(rect, orientation, event.clientX, event.clientY, dirOf(scope.props));
             event.preventDefault();
-            (node as Capturable).setPointerCapture?.(event.pointerId);
+            capturePointer(event.currentTarget, event.pointerId);
             scope.send({ type: "CHANNEL_SLIDER.POINTER_DOWN", channel: slots.channel, percent });
           },
           onPointermove: (event: PointerEvent): void => {
             if (scope.state !== "dragging") return;
-            const node = event.currentTarget as Element | null;
-            if (node === null) return;
-            const percent = trackPercent(node, orientation, event.clientX, event.clientY, scope.props["dir"] as "ltr" | "rtl");
+            const rect = rectOf(event.currentTarget);
+            if (rect === null) return;
+            const percent = trackPercent(rect, orientation, event.clientX, event.clientY, dirOf(scope.props));
             scope.send({ type: "CHANNEL_SLIDER.POINTER_MOVE", channel: slots.channel, percent });
           },
           onPointerup: (): void => {
             if (scope.state !== "dragging") return;
             scope.send({ type: "CHANNEL_SLIDER.POINTER_UP" });
           },
-        }));
+        };
       },
     },
     channelSliderTrack: {
       id: "track",
-      sig: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        return [asCtx(scope.context).value, orientation, scope.props["dir"]].join(" ");
+        return [scope.context.value, orientation, scope.props["dir"]].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
         const color = colorOf(scope);
         return {
@@ -675,15 +716,15 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderThumb: {
       id: "thumb",
-      sig: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        return [asCtx(scope.context).value, orientation, scope.props["dir"], scope.props["disabled"]].join(" ");
+        return [scope.context.value, orientation, scope.props["dir"], scope.props["disabled"]].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const color = colorOf(scope);
         // Hue/saturation/brightness are not rgb channels: read them off
         // the area value, the way the machine steps them. Alpha natively.
@@ -738,28 +779,28 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     channelSliderLabel: {
       id: "channel-slider-label",
       sig: (scope) => [`${scope.props["dir"]}`].join(" "),
-      attrs: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         return { "data-channel": slots.channel, dir: scope.props["dir"] };
       },
     },
     channelSliderValueText: {
       id: "channel-slider-value-text",
-      sig: (scope) => [asCtx(scope.context).value].join(" "),
-      attrs: (scope, arg) => {
-        const slots = arg as ChannelSlotProps;
+      sig: (scope) => [scope.context.value].join(" "),
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
         return { "data-channel": slots.channel };
       },
     },
     channelInput: {
       id: "channel-input",
-      sig: (scope, arg) => {
-        const slots = arg as { channel: ColorChannel | "hex" };
-        const ctx = asCtx(scope.context);
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = hexSlotOf(arg);
+        const ctx = scope.context;
         return [slots.channel, channelValueOf(scope.context, scope.props, slots.channel), scope.props["disabled"], scope.props["readOnly"]].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as { channel: ColorChannel | "hex" };
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = hexSlotOf(arg);
         const isText = slots.channel === "hex";
         const current = channelValueOf(scope.context, scope.props, slots.channel);
         return {
@@ -773,20 +814,18 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           onFocus: (event: FocusEvent): void => {
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
             scope.send({ type: "CHANNEL_INPUT.FOCUS", channel: slots.channel });
-            (event.currentTarget as HTMLInputElement | null)?.select?.();
+            selectText(event.currentTarget);
           },
           onBlur: (event: FocusEvent): void => {
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
-            const node = event.currentTarget as HTMLInputElement | null;
-            const raw = node === null ? "" : node.value;
+            const raw = textOf(event.currentTarget);
             scope.send({ type: "CHANNEL_INPUT.BLUR", channel: slots.channel, value: raw });
           },
           onKeydown: (event: KeyboardEvent): void => {
             if (event.defaultPrevented || isComposing(event)) return;
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
             if (event.key !== "Enter") return;
-            const node = event.currentTarget as HTMLInputElement | null;
-            const raw = node === null ? "" : node.value;
+            const raw = textOf(event.currentTarget);
             event.preventDefault();
             scope.send({ type: "CHANNEL_INPUT.CHANGE", channel: slots.channel, value: raw });
           },
@@ -795,27 +834,27 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => [asCtx(scope.context).value, `${scope.props["name"]}`].join(" "),
-      attrs: (scope) => {
-        const name = scope.props["name"] as string;
+      sig: (scope) => [scope.context.value, `${scope.props["name"]}`].join(" "),
+      attrs: (scope: ScopeLike) => {
+        const name = propText(scope.props["name"]);
         return {
           id: scope.id("hiddenInput"),
           type: "text",
           name: name.length > 0 ? name : undefined,
           tabindex: "-1",
           readonly: scope.props["readOnly"] === true ? "" : undefined,
-          value: valueAsString(asCtx(scope.context)),
+          value: valueAsString(scope.context),
         };
       },
     },
     eyeDropperTrigger: {
       id: "eyedropper",
       sig: (scope) => {
-        const supported = typeof (globalThis as Record<string, unknown>)["EyeDropper"] !== "undefined";
+        const supported = eyeDropperSupported();
         return [`${scope.props["disabled"] === true}`, `${supported}`].join(" ");
       },
       attrs: (scope) => {
-        const supported = typeof (globalThis as Record<string, unknown>)["EyeDropper"] !== "undefined";
+        const supported = eyeDropperSupported();
         return {
           id: scope.id("eyeDropper"),
           type: "button",
@@ -832,20 +871,16 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     formatSelect: {
       id: "format-select",
-      sig: (scope) => [asCtx(scope.context).format, `${scope.props["disabled"] === true}`].join(" "),
+      sig: (scope) => [scope.context.format, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("formatSelect"),
         dir: scope.props["dir"],
         "data-disabled": dataAttr(scope.props["disabled"] === true),
-        value: asCtx(scope.context).format,
+        value: scope.context.format,
         onChange: (event: Event): void => {
-          const node = event.currentTarget as HTMLSelectElement | null;
-          const next = node === null ? "" : node.value;
-          const format = (["hex", "hexa", "rgb", "rgba", "hsl", "hsla", "hsb", "hsba"] as const).find(
-            (f) => f === next,
-          );
-          if (format === undefined) return;
-          scope.send({ type: "FORMAT.SET", format });
+          const next = textOf(event.currentTarget);
+          if (!isColorFormat(next)) return;
+          scope.send({ type: "FORMAT.SET", format: next });
         },
       }),
     },
@@ -856,13 +891,13 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     swatchTrigger: {
       id: "swatch",
-      sig: (scope, arg) => {
-        const slots = arg as SwatchSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = swatchOf(arg);
         const state = swatchState(scope, slots);
-        return [state.checked, state.disabled, asCtx(scope.context).format].join(" ");
+        return [state.checked, state.disabled, scope.context.format].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as SwatchSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = swatchOf(arg);
         const state = swatchState(scope, slots);
         return {
           id: scope.id("swatch", slots.value),
@@ -882,12 +917,12 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     swatchIndicator: {
       id: "swatch-indicator",
-      sig: (scope, arg) => {
-        const slots = arg as SwatchSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = swatchOf(arg);
         return [`${swatchState(scope, slots).checked}`].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as SwatchSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = swatchOf(arg);
         const checked = swatchState(scope, slots).checked;
         return {
           "aria-hidden": "true",
@@ -898,12 +933,12 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     swatch: {
       id: "swatch",
-      sig: (scope, arg) => {
-        const slots = arg as SwatchSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = swatchOf(arg);
         return [`${swatchState(scope, slots).checked}`].join(" ");
       },
-      attrs: (scope, arg) => {
-        const slots = arg as SwatchSlotProps;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const slots = swatchOf(arg);
         const checked = swatchState(scope, slots).checked;
         return {
           "data-state": checked ? "checked" : "unchecked",
@@ -914,65 +949,77 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: args[0] as string }) },
-    setFormat: { event: (args) => ({ type: "FORMAT.SET", format: args[0] as ColorFormat }) },
-    setOpen: { event: (args) => ({ type: (args[0] as boolean) ? "OPEN" : "CLOSE" }) },
+    setValue: {
+      event: (args) => {
+        const value = args[0];
+        return { type: "VALUE.SET", value: typeof value === "string" ? value : "#000000" };
+      },
+    },
+    setFormat: {
+      event: (args) => {
+        const format = args[0];
+        return { type: "FORMAT.SET", format: isColorFormat(format) ? format : "hex" as const };
+      },
+    },
+    setOpen: { event: (args) => ({ type: args[0] === true ? "OPEN" : "CLOSE" }) },
   },
   readers: {
     open: {
-      read: (context, state) =>
-        isOpenPhase(state, (context as unknown as Ctx).inline),
+      read: (context: ColorPickerContext, state) => isOpenPhase(state, context.inline),
     },
-    value: { read: (context) => asCtx(context).value },
-    valueAsString: { read: (context) => valueAsString(asCtx(context)) },
-    format: { read: (context) => asCtx(context).format },
-    disabled: { read: (_context, _state, props) => (props["disabled"] as boolean) === true },
+    value: { read: (context) => context.value },
+    valueAsString: { read: (context) => valueAsString(context) },
+    format: { read: (context) => context.format },
+    disabled: { read: (_context, _state, props) => props["disabled"] === true },
     empty: { read: () => false },
   },
   methods: {
     getChannelValue: {
-      call: (context, _state, args, props) =>
-        channelValueOf(context, props, args[0] as ColorChannel | "hex"),
+      call: (context: ColorPickerContext, _state, args, props) => {
+        const channel = args[0];
+        return channelValueOf(context, props, channel === "hex" || isChannel(channel) ? channel : "hex");
+      },
     },
   },
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [asCtx(context).value.toLowerCase()],
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        const ctx = context as unknown as Ctx;
-        return { value: ctx.value, format: ctx.format };
-      },
+      watch: (context) => [context.value.toLowerCase()],
+      detail: (_watched, _event, _props, context: ColorPickerContext) => ({
+        value: context.value,
+        format: context.format,
+      }),
     },
     "open-change": {
       prop: "onOpenChange",
-      watch: (context, state) => [isOpenPhase(state, asCtx(context).inline)],
-      detail: (watched) => ({ open: watched[0] as boolean }),
+      watch: (context, state) => [isOpenPhase(state, context.inline)],
+      detail: (watched: readonly unknown[]) => ({ open: watched[0] === true }),
     },
     "format-change": {
       prop: "onFormatChange",
-      watch: (context) => [asCtx(context).format],
-      detail: (watched) => ({ format: watched[0] as ColorFormat }),
+      watch: (context) => [context.format],
+      detail: (watched: readonly unknown[]) => {
+        const format = watched[0];
+        return { format: isColorFormat(format) ? format : "hex" as const };
+      },
     },
     "value-change-end": {
       prop: "onValueChangeEnd",
-      watch: (context) => [asCtx(context).value.toLowerCase()],
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        const ctx = context as unknown as Ctx;
-        return { value: ctx.value, format: ctx.format };
-      },
+      watch: (context) => [context.value.toLowerCase()],
+      detail: (_watched, _event, _props, context: ColorPickerContext) => ({
+        value: context.value,
+        format: context.format,
+      }),
       // Drag release and committed inputs only — every move already
       // reported above.
-      select: (event, _before, after) =>
+      select: (event, _before, after: ColorPickerContext) =>
         event.type === "AREA.POINTER_UP" ||
           event.type === "CHANNEL_SLIDER.POINTER_UP" ||
           event.type === "CHANNEL_INPUT.BLUR" ||
           event.type === "SWATCH_TRIGGER.CLICK"
           ? {
-            value: (after as unknown as Ctx).value,
-            format: (after as unknown as Ctx).format,
+            value: after.value,
+            format: after.format,
           }
           : null,
     },

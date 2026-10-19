@@ -99,6 +99,68 @@ function sortKey(value: DatePickerValue): number {
   return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
 }
 
+export interface DatePickerInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly focusedValue?: unknown;
+  readonly defaultFocusedValue?: unknown;
+  readonly view?: unknown;
+  readonly defaultView?: unknown;
+  readonly open?: unknown;
+  readonly selectionMode?: unknown;
+  readonly numOfMonths?: unknown;
+  readonly min?: unknown;
+  readonly max?: unknown;
+  readonly closeOnSelect?: unknown;
+}
+
+/** An ISO string parses to a day; anything else is not a day. */
+export function parseDay(raw: unknown): DatePickerValue | null {
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  const time = Date.parse(`${raw}T00:00:00Z`);
+  if (Number.isNaN(time)) return null;
+  const at = new Date(time);
+  return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
+}
+
+/** Days off the transport: `["2024-01-15"]` JSON, or a bare ISO string
+ * as the single-day shorthand. Well-shaped only. */
+export function parseDays(raw: unknown): DatePickerValue[] {
+  if (typeof raw !== "string" || raw.length === 0) return [];
+  if (raw.startsWith("[")) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      const days: DatePickerValue[] = [];
+      for (const entry of parsed) {
+        const day = parseDay(entry);
+        if (day !== null) days.push(day);
+      }
+      return days;
+    } catch {
+      return [];
+    }
+  }
+  const day = parseDay(raw);
+  return day === null ? [] : [day];
+}
+
+/** Seed shaping: mode/count/bounds/flags name themselves. The value,
+ * focus and view arrive through establish (parsed there). */
+export function initial(raw: DatePickerInitial): Pick<DatePickerContext, "selectionMode" | "numOfMonths" | "min" | "max" | "closeOnSelect"> {
+  const mode: unknown = raw.selectionMode;
+  const count: unknown = raw.numOfMonths;
+  const text = (value: unknown): string | null =>
+    typeof value === "string" && value.length > 0 ? value : null;
+  return {
+    selectionMode: mode === "multiple" || mode === "range" ? mode : "single",
+    numOfMonths: typeof count === "number" && Number.isFinite(count) ? count : 1,
+    min: text(raw.min),
+    max: text(raw.max),
+    closeOnSelect: raw.closeOnSelect !== false,
+  };
+}
+
 /** The ISO string a host reads for one day. */
 export function dayAsString(value: DatePickerValue): string {
   return iso(value);

@@ -39,6 +39,40 @@ export interface NavigationMenuValueChange {
   readonly previousValue: NavValue;
 }
 
+export interface NavigationMenuInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly openDelay?: unknown;
+  readonly closeDelay?: unknown;
+  readonly orientation?: unknown;
+  readonly disabled?: unknown;
+}
+
+/** A text prop: strings pass, everything else is absent. */
+const asText = (raw: unknown): string | null =>
+  typeof raw === "string" ? raw : null;
+
+/** Seed shaping: an authored value wins, else its default, else closed. */
+export function initial(raw: NavigationMenuInitial): NavigationMenuContext {
+  const seeded = asText(raw.value) ?? asText(raw.defaultValue) ?? "";
+  const count = (value: unknown, fallback: number): number =>
+    typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  return {
+    value: seeded,
+    previousValue: "",
+    openDelay: count(raw.openDelay, 200),
+    closeDelay: count(raw.closeDelay, 300),
+    orientation: raw.orientation === "vertical" ? "vertical" : "horizontal",
+    disabled: raw.disabled === true,
+  };
+}
+
+/** The seeded state: an authored value opens the menu, else idle. */
+export function startState(raw: NavigationMenuInitial): string {
+  const seeded = asText(raw.value) ?? asText(raw.defaultValue) ?? "";
+  return seeded.length > 0 ? "open" : "idle";
+}
+
 export type NavigationMenuEvent =
   | { type: "ITEM.ENTER"; value: NavValue }
   | { type: "ITEM.TOGGLE"; value: NavValue }

@@ -51,6 +51,36 @@ export interface FileUploadValueChange {
   readonly rejectedFiles: readonly FileRejection[];
 }
 
+export interface FileUploadInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly multiple?: unknown;
+  readonly directory?: unknown;
+  readonly accept?: unknown;
+  readonly maxFiles?: unknown;
+  readonly maxSize?: unknown;
+  readonly minSize?: unknown;
+  readonly disabled?: unknown;
+}
+
+/** Seed shaping: scalars only — the selection arrives through VALUE.SET
+ * (the establish path), never through the seed, so two dropzones never
+ * share one seeded context. */
+export function initial(raw: FileUploadInitial): Omit<FileUploadContext, "acceptedFiles" | "rejectedFiles"> {
+  const count = (value: unknown): number =>
+    typeof value === "number" && Number.isFinite(value) ? value : 0;
+  const text = (value: unknown): string => typeof value === "string" ? value : "";
+  return {
+    multiple: raw.multiple === true,
+    directory: raw.directory === true,
+    accept: text(raw.accept),
+    maxFiles: count(raw.maxFiles),
+    maxSize: count(raw.maxSize),
+    minSize: count(raw.minSize),
+    disabled: raw.disabled === true,
+  };
+}
+
 export type FileUploadEvent =
   | { type: "INPUT.CHANGE"; files: readonly FileRecord[] }
   | { type: "DROP"; files: readonly FileRecord[] }

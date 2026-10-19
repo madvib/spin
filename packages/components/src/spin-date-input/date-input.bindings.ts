@@ -2,7 +2,8 @@ import {
   dataAttr,
   defineComponent,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   clampValue,
@@ -11,12 +12,15 @@ import {
   daysInMonth,
   FIELD_LIMITS,
   implementations,
+  initial,
+  parseValue,
   segmentFields,
   valueAsString,
   type DateGranularity,
   type DateInputContext,
   type DateInputEvent,
   type DateInputField,
+  type DateInputInitial,
   type DateInputValueChange,
   type DateValue,
 } from "./date-input.machine.ts";
@@ -99,25 +103,13 @@ const placeholderFor = (field: DateInputField): string => {
   }
 };
 
-/** An ISO date string parses to a value; anything else is not a value. */
-const parseValue = (raw: unknown): DateValue | null => {
-  if (typeof raw !== "string" || raw.length === 0) return null;
-  const time = Date.parse(raw);
-  if (Number.isNaN(time)) return null;
-  const at = new Date(time);
-  return {
-    year: at.getUTCFullYear(),
-    month: at.getUTCMonth() + 1,
-    day: at.getUTCDate(),
-    hour: 0,
-    minute: 0,
-    second: 0,
-  };
-};
+interface ScopeLike extends PartScope<unknown, DateInputContext> {}
 
-type Ctx = DateInputContext;
+interface SlotLike<R> extends SlotScope<R, DateInputContext> {}
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+/** Transport guarantees the raw prop bag is a DateInputInitial-shaped object. */
+const isDateInputInitial = (raw: unknown): raw is DateInputInitial =>
+  raw !== null && typeof raw === "object";
 
 /** An Intl part names its field; the probe date keeps every value distinct. */
 const partToField = (type: string, hourCycle: 12 | 24): DateInputField | null => {
@@ -235,7 +227,9 @@ const handlersFor = (scope: ScopeLike, index: number): SegmentHandlers => {
       }
     },
     onBeforeInput: (event: InputEvent): void => {
-      const data = (event as InputEvent & { data?: unknown }).data;
+      // `data` is on the spec but missing from lib.dom's InputEvent —
+      // read it structurally, the way the webkit path reads.
+      const data: unknown = "data" in event ? event.data : undefined;
       if (typeof data !== "string" || data.length === 0) return;
       event.preventDefault();
       scope.send({ type: "SEGMENT.INPUT", index, input: data });
@@ -249,6 +243,38 @@ const handlersFor = (scope: ScopeLike, index: number): SegmentHandlers => {
   byIndex.set(index, made);
   return made;
 };
+
+const granularityOf = (props: Record<string, unknown>, fallback: DateGranularity): DateGranularity => {
+  const raw: unknown = props["granularity"];
+  return raw === "hour" || raw === "minute" || raw === "second" ? raw : fallback;
+};
+
+const hourCycleOf = (props: Record<string, unknown>, fallback: 12 | 24): 12 | 24 => {
+  const raw: unknown = props["hourCycle"];
+  return raw === 24 ? 24 : raw === 12 ? raw : fallback;
+};
+
+/** A date value off the host: the six fields name themselves, anything
+ * else is not a value. */
+const isDateValue = (raw: unknown): raw is DateValue => {
+  if (!isRecord(raw)) return false;
+  return ["year", "month", "day", "hour", "minute", "second"].every((key) => {
+    const field: unknown = raw[key];
+    return typeof field === "number" && Number.isFinite(field);
+  });
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isIdFn = (id: unknown): id is IdFn =>
+  typeof id === "function";
+
+const fallbackId: IdFn = () => "";
+
+/** A segment index off the recipe: numbers pass, everything else is -1. */
+const segmentIndexOf = (arg: unknown): number =>
+  typeof arg === "number" && Number.isInteger(arg) && arg >= 0 ? arg : -1;
 
 /** Stable holders the for-rows close over: the text effect a row compiles
  * reads `row.text` off the render-time object, so a fresh object per read
@@ -269,100 +295,59 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
   name: "date-input",
   config,
   implementations,
-  seed: (props, authored) => {
-    const granularity = props["granularity"] as DateGranularity;
-    const hourCycle = props["hourCycle"] as 12 | 24;
-    // A send first: the fork's initial context is the config's object
-    // until a transition folds a copy, and two date inputs on a page
-    // would otherwise share one context until the first keystroke. The
-    // establish CLEAR below detaches it instead.
-    void authored;
-    return {
-      granularity,
-      hourCycle,
-      min: props["min"] as string | null,
-      max: props["max"] as string | null,
-      fields: dateToFields(null, hourCycle),
-      value: null,
-      activeSegment: -1,
-    };
+  seed: (raw, _authored) => {
+    const props: DateInputInitial = isDateInputInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    // The fork's initial context is the config's object until a
+    // transition folds a copy — the establish CLEAR below detaches it.
+    return { ...shaped, enteredKeys: "" };
   },
-  establish: (props, authored) => {
-    // Already parsed by the channels: `defaultValue` arrives as a value,
-    // not the ISO string the host wrote.
-    const seed = (authored("value") ? props["value"] : props["defaultValue"]) as DateValue | null;
-    if (seed === null || seed === undefined) return [{ type: "VALUE.CLEAR" }];
-    const min = props["min"] as string | null;
-    const max = props["max"] as string | null;
+  establish: (raw, authored) => {
+    const props: DateInputInitial = isDateInputInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    const seed = authored("value") ? parseValue(props.value) : parseValue(props.defaultValue);
+    if (seed === null) return [{ type: "VALUE.CLEAR" }];
     return [
       { type: "VALUE.CLEAR" },
-      { type: "VALUE.SET", value: clampValue(seed, min, max) },
+      { type: "VALUE.SET", value: clampValue(seed, shaped.min, shaped.max) },
     ];
   },
   // The active segment moved → the segment it names takes DOM focus.
   settled: ({ before, after, focus }) => {
-    const was = (before as unknown as Ctx).activeSegment;
-    const at = (after as unknown as Ctx).activeSegment;
+    const was = before.context.activeSegment;
+    const at = after.context.activeSegment;
     if (at !== was && at >= 0) focus("segment", at);
   },
   mounted: ({ props, focus }) => {
     if (props["autoFocus"] === true) focus("segment", 0);
   },
-  channels: {
-    value: {
-      controlled: true,
-      parse: parseValue,
-      nullable: true,
-      event: (value: DateValue | null, context) => {
-        const ctx = context as unknown as Ctx | undefined;
-        return { type: "VALUE.SET", value: clampValue(value, ctx?.min ?? null, ctx?.max ?? null) };
-      },
-    },
-    defaultValue: { parse: parseValue },
-    granularity: {
-      parse: (raw) => (raw === "hour" || raw === "minute" || raw === "second" ? raw : "day"),
-    },
-    hourCycle: { parse: (raw) => (raw === 24 ? 24 : 12) },
-    min: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : null),
-    },
-    max: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : null),
-    },
-    label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    name: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : undefined),
-    },
-    form: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : undefined),
-    },
-    placeholder: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    autoFocus: { parse: (raw) => raw === true },
-  },
   scalars: ["granularity", "hourCycle", "min", "max"],
-  reconcile: ({ context, parsed }) => {
-    const ctx = asCtx(context);
+  reconcile: ({ context, parsed, authored, send }) => {
+    const ctx = context;
     // An hour-cycle change rebuilds the fields the segments read.
-    const hourCycle = parsed["hourCycle"] as 12 | 24;
+    const hourCycle = parsed["hourCycle"] === 24 ? 24 : 12;
     if (ctx.hourCycle !== hourCycle) {
-      ctx.hourCycle = hourCycle;
-      ctx.fields = dateToFields(ctx.value, hourCycle);
+      send({ type: "HOUR_CYCLE.SET", hourCycle });
       return true;
+    }
+    if (authored("value")) {
+      const outer = parseValue(parsed["value"]);
+      const same = (a: DateValue | null, b: DateValue | null): boolean =>
+        valueAsString(a) === valueAsString(b);
+      if (!same(ctx.value, outer)) {
+        send({ type: "VALUE.SET", value: clampValue(outer, ctx.min, ctx.max) });
+        return true;
+      }
     }
     return false;
   },
   parts: {
     segment: {
-      sig: (scope, arg) => {
-        const ctx = asCtx(scope.context);
-        const index = arg as number;
-        const granularity = (scope.props["granularity"] ?? ctx.granularity) as DateGranularity;
-        const hourCycle = (scope.props["hourCycle"] ?? ctx.hourCycle) as 12 | 24;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const ctx = scope.context;
+        const index = segmentIndexOf(arg);
+        const granularity = granularityOf(scope.props, ctx.granularity);
+        const hourCycle = hourCycleOf(scope.props, ctx.hourCycle);
         const field = orderFields(granularity, hourCycle)[index];
         return [
           index,
@@ -374,11 +359,11 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
           scope.props["invalid"],
         ].join(" ");
       },
-      attrs: (scope, arg) => {
-        const ctx = asCtx(scope.context);
-        const index = arg as number;
-        const granularity = (scope.props["granularity"] ?? ctx.granularity) as DateGranularity;
-        const hourCycle = (scope.props["hourCycle"] ?? ctx.hourCycle) as 12 | 24;
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const ctx = scope.context;
+        const index = segmentIndexOf(arg);
+        const granularity = granularityOf(scope.props, ctx.granularity);
+        const hourCycle = hourCycleOf(scope.props, ctx.hourCycle);
         const field = orderFields(granularity, hourCycle)[index];
         if (field === undefined) return {};
         const value = ctx.fields[field];
@@ -437,11 +422,11 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
     hiddenInput: {
       id: "hidden",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [valueAsString(ctx.value), `${scope.props["name"]}`].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("hiddenInput"),
           type: "hidden",
@@ -456,29 +441,30 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
   commands: {
     focus: { view: ({ focus }) => focus("segment", 0) },
     setValue: {
-      event: (args, context) => {
-        const ctx = context as unknown as Ctx;
+      event: (args, context: DateInputContext) => {
+        const value = args[0];
+        const shaped = isDateValue(value) ? value : null;
         return {
           type: "VALUE.SET",
-          value: clampValue(args[0] as DateValue | null, ctx.min, ctx.max),
+          value: clampValue(shaped, context.min, context.max),
         };
       },
     },
     clearValue: { event: () => ({ type: "VALUE.CLEAR" }) },
   },
   readers: {
-    value: { read: (context) => asCtx(context).value },
-    valueAsString: { read: (context) => valueAsString(asCtx(context).value) },
+    value: { read: (context) => context.value },
+    valueAsString: { read: (context) => valueAsString(context.value) },
     focused: { read: (_context, state) => state === "focused" },
   },
   methods: {
     getSegments: {
-      call: (context, _state, _args, props, id) => {
-        const ctx = context as unknown as Ctx;
-        const granularity = (props["granularity"] ?? ctx.granularity) as DateGranularity;
-        const hourCycle = (props["hourCycle"] ?? ctx.hourCycle) as 12 | 24;
+      call: (context: DateInputContext, _state, _args, props, id) => {
+        const ctx = context;
+        const granularity = granularityOf(props, ctx.granularity);
+        const hourCycle = hourCycleOf(props, ctx.hourCycle);
         const ordered = orderFields(granularity, hourCycle);
-        const holders = holdersOf(id as unknown as IdFn);
+        const holders = holdersOf(isIdFn(id) ? id : fallbackId);
         const views: DateSegmentView[] = [];
         let fieldIndex = 0;
         for (const field of ordered) {
@@ -511,15 +497,11 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [valueAsString(asCtx(context).value)],
-      detail: (watched, _event, _props, context) => {
-        const value = (context as unknown as Ctx | undefined)?.value ?? null;
-        void watched;
-        return {
-          value,
-          valueAsString: valueAsString(value),
-        };
-      },
+      watch: (context) => [valueAsString(context.value)],
+      detail: (_watched, _event, _props, context: DateInputContext) => ({
+        value: context.value,
+        valueAsString: valueAsString(context.value),
+      }),
     },
   },
 };

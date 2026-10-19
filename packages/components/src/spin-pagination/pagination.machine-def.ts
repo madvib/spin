@@ -1,4 +1,4 @@
-import { pagination } from "./pagination.def.ts";
+import { pagination } from "./pagination.bindings.ts";
 import type { PaginationPageChange, PaginationPageSizeChange } from "./pagination.machine.ts";
 
 /**

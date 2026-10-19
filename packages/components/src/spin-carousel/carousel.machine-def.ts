@@ -1,9 +1,4 @@
-import { carousel } from "./carousel.def.ts";
-import type {
-  CarouselAutoplayStatusChange,
-  CarouselDragStatusChange,
-  CarouselIndexChange,
-} from "./carousel.def.ts";
+import { carousel } from "./carousel.bindings.ts";
 
 /**
  * The carousel machine-def: the seam file codegen finds by consume name.
@@ -18,26 +13,10 @@ import type {
  * and `page` is one word for two ideas.
  */
 
-export interface CarouselIndexChange {
-  readonly index: number;
-  readonly pageCount: number;
-}
-
-export type CarouselDragStatus = "idle" | "focus" | "dragging" | "settling";
-
-export interface CarouselDragStatusChange {
-  readonly status: CarouselDragStatus;
-  readonly index: number;
-}
-
-export interface CarouselAutoplayStatusChange {
-  readonly status: "playing" | "stopped";
-  readonly index: number;
-}
-
 export { carousel };
 export type {
   CarouselAutoplayStatusChange,
+  CarouselDragStatus,
   CarouselDragStatusChange,
   CarouselIndexChange,
-};
+} from "./carousel.bindings.ts";

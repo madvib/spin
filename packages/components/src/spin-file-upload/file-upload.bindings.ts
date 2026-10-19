@@ -2,15 +2,19 @@ import {
   dataAttr,
   defineComponent,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
+import { coerceJsonArray } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   type FileRecord,
   type FileRejection,
   type FileUploadContext,
   type FileUploadEvent,
+  type FileUploadInitial,
   type FileUploadValueChange,
 } from "./file-upload.machine.ts";
 
@@ -70,24 +74,40 @@ export interface FileUploadApi extends FileUploadCommands {
  * "type":"image/png"}]`. Live files cannot travel as attributes; the
  * seeded channel carries their records.
  */
+const isRecord = (entry: unknown): entry is Record<string, unknown> =>
+  typeof entry === "object" && entry !== null && !Array.isArray(entry);
+
+/** The seeded selection off the JSON transport: live files cannot travel
+ * as attributes, so the seeded channel carries their records. Well-shaped
+ * entries survive; anything else is no seed, not a throw. */
 const parseFiles = (raw: unknown): FileRecord[] | null => {
-  if (typeof raw !== "string" || raw.length === 0) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!Array.isArray(parsed)) return null;
+  const list: readonly unknown[] = Array.isArray(raw)
+    ? raw
+    : (typeof raw === "string" && raw.length > 0 ? coerceJsonArray(raw, []) : []);
+  if (list.length === 0) return null;
   const files: FileRecord[] = [];
-  for (const entry of parsed) {
-    if (typeof entry !== "object" || entry === null) continue;
-    const bag = entry as Record<string, unknown>;
-    const name = bag["name"];
-    const size = bag["size"];
-    const type = bag["type"];
-    if (typeof name !== "string" || typeof size !== "number") continue;
-    const path = bag["path"];
+  for (const entry of list) {
+    if (!isRecord(entry)) continue;
+    const name: unknown = entry["name"];
+    const size: unknown = entry["size"];
+    if (typeof name !== "string" || typeof size !== "number" || !Number.isFinite(size)) continue;
+    const type: unknown = entry["type"];
+    const path: unknown = entry["path"];
+    files.push({ name, size, type: typeof type === "string" ? type : "", path: typeof path === "string" ? path : "" });
+  }
+  return files;
+};
+
+/** A raw array into records: well-shaped entries survive, the rest drop. */
+const shapeFiles = (list: readonly unknown[]): FileRecord[] => {
+  const files: FileRecord[] = [];
+  for (const entry of list) {
+    if (!isRecord(entry)) continue;
+    const name: unknown = entry["name"];
+    const size: unknown = entry["size"];
+    if (typeof name !== "string" || typeof size !== "number" || !Number.isFinite(size)) continue;
+    const type: unknown = entry["type"];
+    const path: unknown = entry["path"];
     files.push({ name, size, type: typeof type === "string" ? type : "", path: typeof path === "string" ? path : "" });
   }
   return files;
@@ -98,9 +118,40 @@ const readInt = (parsed: Record<string, unknown>, name: string): number => {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 };
 
-type Ctx = FileUploadContext;
+interface ScopeLike extends PartScope<unknown, FileUploadContext> {}
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface SlotLike<R> extends SlotScope<R, FileUploadContext> {}
+
+/** The hidden input picker: opening it is a view reflex, not a machine
+ * move — the press that opened it must not be re-read by the input's own
+ * click handling, so the click waits a frame. Reads the node through the
+ * framework id path, never a held reference. */
+const openPicker = (id: (part: string, slot?: unknown) => string): void => {
+  if (typeof document === "undefined") return;
+  const node = document.getElementById(id("hiddenInput"));
+  if (!(node instanceof HTMLInputElement)) return;
+  const request = typeof requestAnimationFrame === "function"
+    ? requestAnimationFrame
+    : (fn: () => void): number => {
+      fn();
+      return 0;
+    };
+  request(() => node.click());
+};
+
+/** Transport guarantees the raw prop bag is a FileUploadInitial-shaped object. */
+const isFileUploadInitial = (raw: unknown): raw is FileUploadInitial =>
+  raw !== null && typeof raw === "object";
+
+const isDirectoryFile = (file: File): file is File & { readonly webkitRelativePath: unknown } =>
+  "webkitRelativePath" in file;
+
+/** The folder-relative path a directory pick carries; empty for flat picks. */
+const relativePath = (file: File): string => {
+  if (!isDirectoryFile(file)) return "";
+  const path: unknown = file.webkitRelativePath;
+  return typeof path === "string" ? path : "";
+};
 
 /** The records a `FileList` holds, read once at the event. */
 const toRecords = (list: FileList | null): readonly FileRecord[] => {
@@ -109,7 +160,7 @@ const toRecords = (list: FileList | null): readonly FileRecord[] => {
   for (let at = 0; at < list.length; at++) {
     const file = list[at];
     if (file === undefined) continue;
-    files.push({ name: file.name, size: file.size, type: file.type, path: (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? "" });
+    files.push({ name: file.name, size: file.size, type: file.type, path: relativePath(file) });
   }
   return files;
 };
@@ -145,58 +196,31 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   name: "file-upload",
   config,
   implementations,
-  seed: (props) => ({
-    multiple: props["multiple"] === true,
-    directory: props["directory"] === true,
-    accept: typeof props["accept"] === "string" ? props["accept"] : "",
-    maxFiles: readInt(props, "maxFiles"),
-    maxSize: readInt(props, "maxSize"),
-    minSize: readInt(props, "minSize"),
-    disabled: props["disabled"] === true,
-    acceptedFiles: [],
-    rejectedFiles: [],
-  }),
-  establish: (props, authored) => {
-    // Already parsed by the `value` channel; the CLEAR detaches the fork's
-    // shared initial context (two dropzones on a page would otherwise share
-    // one context until the first drop), and the SET validates the seed.
-    const seeded = (authored("value") ? props["value"] : props["defaultValue"]) as readonly FileRecord[];
-    const files = Array.isArray(seeded) ? seeded : parseFiles(seeded) ?? [];
+  seed: (raw) => {
+    const props: FileUploadInitial = isFileUploadInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    return { ...shaped, acceptedFiles: [], rejectedFiles: [] };
+  },
+  establish: (raw, authored) => {
+    // The CLEAR detaches the fork's shared initial context (two dropzones
+    // on a page would otherwise share one context until the first drop),
+    // and the SET validates the seed.
+    const props: FileUploadInitial = isFileUploadInitial(raw) ? raw : {};
+    const seeded: unknown = authored("value") ? props.value : props.defaultValue;
+    const files = Array.isArray(seeded) ? shapeFiles(seeded) : parseFiles(seeded) ?? [];
     return files.length > 0
       ? [{ type: "VALUE.CLEAR" }, { type: "VALUE.SET", files: [...files] }]
       : [{ type: "VALUE.CLEAR" }];
   },
-  channels: {
-    value: {
-      controlled: true,
-      parse: (raw) => {
-        if (Array.isArray(raw)) {
-          return (raw as readonly unknown[]).filter(
-            (entry): entry is FileRecord =>
-              typeof entry === "object" && entry !== null &&
-              typeof (entry as Record<string, unknown>)["name"] === "string",
-          );
-        }
-        return parseFiles(raw) ?? [];
-      },
-      event: (value: readonly FileRecord[]) => ({ type: "VALUE.SET", files: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        (current as readonly FileRecord[]).map((file) => file.name).join(",") ===
-          (outer as readonly FileRecord[]).map((file) => file.name).join(","),
-    },
-    defaultValue: {
-      parse: (raw) => (typeof raw === "string" ? raw : ""),
-    },
-    files: { parse: (raw) => raw },
-    multiple: { parse: (raw) => raw === true },
-    directory: { parse: (raw) => raw === true },
-    accept: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    maxFiles: { parse: (raw) => readInt({ value: raw }, "value") },
-    maxSize: { parse: (raw) => readInt({ value: raw }, "value") },
-    minSize: { parse: (raw) => readInt({ value: raw }, "value") },
-    disabled: { parse: (raw) => raw === true },
-    label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
+  reconcile: ({ context, parsed, authored, send }) => {
+    if (!authored("value")) return false;
+    const raw: unknown = parsed["value"];
+    const outer = Array.isArray(raw) ? shapeFiles(raw) : parseFiles(raw) ?? [];
+    const names = (list: readonly FileRecord[]): string => list.map((file) => file.name).join(",");
+    if (names(context.acceptedFiles) === names(outer)) return false;
+    send({ type: "VALUE.CLEAR" });
+    if (outer.length > 0) send({ type: "VALUE.SET", files: [...outer] });
+    return true;
   },
   scalars: ["multiple", "accept", "directory", "maxFiles", "maxSize", "minSize", "disabled"],
   parts: {
@@ -231,19 +255,7 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
           "data-disabled": dataAttr(disabled),
           onClick: (): void => {
             if (disabled) return;
-            const node = typeof document === "undefined"
-              ? null
-              : document.getElementById(scope.id("hiddenInput"));
-            if (!(node instanceof HTMLInputElement)) return;
-            // The rAF: the press that opened the picker must not be
-            // re-read by the input's own click handling.
-            const request = typeof requestAnimationFrame === "function"
-              ? requestAnimationFrame
-              : (fn: () => void): number => {
-                fn();
-                return 0;
-              };
-            request(() => node.click());
+            openPicker(scope.id);
           },
           onFocus: (): void => scope.send({ type: "DROPZONE.FOCUS" }),
           onBlur: (): void => scope.send({ type: "DROPZONE.BLUR" }),
@@ -264,11 +276,11 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     hiddenInput: {
       id: "hidden-input",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [`${ctx.multiple}`, ctx.accept, `${scope.props["disabled"] === true}`].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("hiddenInput"),
           type: "file",
@@ -279,16 +291,15 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
           hidden: true,
           onChange: (event: Event): void => {
             const node = event.target;
-            if (typeof HTMLInputElement !== "undefined" && !(node instanceof HTMLInputElement)) return;
-            const files = (node as HTMLInputElement).files;
-            scope.send({ type: "INPUT.CHANGE", files: toRecords(files) });
+            if (!(node instanceof HTMLInputElement)) return;
+            scope.send({ type: "INPUT.CHANGE", files: toRecords(node.files) });
           },
         };
       },
     },
     itemGroup: {
       id: "items",
-      sig: (scope) => asCtx(scope.context).acceptedFiles.map((file) => file.name).join(","),
+      sig: (scope) => scope.context.acceptedFiles.map((file) => file.name).join(","),
       attrs: (scope) => ({
         id: scope.id("itemGroup"),
         role: "list",
@@ -296,22 +307,22 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     },
     clearTrigger: {
       id: "clear",
-      sig: (scope) => [`${asCtx(scope.context).acceptedFiles.length}`, `${scope.props["disabled"] === true}`].join(" "),
+      sig: (scope) => [`${scope.context.acceptedFiles.length}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("clearTrigger"),
         "aria-label": "Clear",
-        hidden: asCtx(scope.context).acceptedFiles.length === 0,
+        hidden: scope.context.acceptedFiles.length === 0,
         onClick: (): void => scope.send({ type: "VALUE.CLEAR" }),
       }),
     },
   },
   slots: {
     item: {
-      indexes: (context) =>
-        asCtx(context).acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
-      sig: (scope) => `${(scope.slot as unknown as FileRow).value}`,
-      attrs: (scope) => {
-        const row = scope.slot as unknown as FileRow;
+      indexes: (context: FileUploadContext) =>
+        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+      sig: (scope: SlotLike<FileRow>) => `${scope.slot.value}`,
+      attrs: (scope: SlotLike<FileRow>) => {
+        const row = scope.slot;
         return {
           id: scope.id("item", row.value),
           role: "listitem",
@@ -320,11 +331,11 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     },
     itemName: {
       id: "name",
-      indexes: (context) =>
-        asCtx(context).acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
-      sig: (scope) => `${(scope.slot as unknown as FileRow).value}`,
-      attrs: (scope) => {
-        const row = scope.slot as unknown as FileRow;
+      indexes: (context: FileUploadContext) =>
+        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+      sig: (scope: SlotLike<FileRow>) => `${scope.slot.value}`,
+      attrs: (scope: SlotLike<FileRow>) => {
+        const row = scope.slot;
         return {
           id: scope.id("itemName", row.value),
         };
@@ -332,14 +343,11 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     },
     itemDeleteTrigger: {
       id: "delete",
-      indexes: (context) =>
-        asCtx(context).acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
-      sig: (scope) => {
-        const row = scope.slot as unknown as FileRow;
-        return `${row.value} ${scope.props["disabled"] === true}`;
-      },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as FileRow;
+      indexes: (context: FileUploadContext) =>
+        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+      sig: (scope: SlotLike<FileRow>) => `${scope.slot.value} ${scope.props["disabled"] === true}`,
+      attrs: (scope: SlotLike<FileRow>) => {
+        const row = scope.slot;
         return {
           id: scope.id("itemDeleteTrigger", row.value),
           "aria-label": `Remove ${row.value}`,
@@ -352,39 +360,43 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   commands: {
     openFilePicker: {
       view: ({ id }) => {
-        if (typeof document === "undefined") return;
-        const node = document.getElementById(id("hiddenInput"));
-        if (!(node instanceof HTMLInputElement)) return;
-        const request = typeof requestAnimationFrame === "function"
-          ? requestAnimationFrame
-          : (fn: () => void): number => {
-            fn();
-            return 0;
-          };
-        request(() => node.click());
+        openPicker(id);
       },
     },
-    removeFile: { event: (args) => ({ type: "FILE.REMOVE", name: args[0] as string }) },
+    removeFile: { event: (args) => ({ type: "FILE.REMOVE", name: typeof args[0] === "string" ? args[0] : "" }) },
     clear: { event: () => ({ type: "VALUE.CLEAR" }) },
   },
   readers: {
-    acceptedFiles: { read: (context) => asCtx(context).acceptedFiles },
-    rejectedFiles: { read: (context) => asCtx(context).rejectedFiles },
+    acceptedFiles: { read: (context) => context.acceptedFiles },
+    rejectedFiles: { read: (context) => context.rejectedFiles },
     focused: { read: (_context, state) => state === "focused" },
     dragging: { read: (_context, state) => state === "dragging" },
   },
   methods: {
     getAcceptedRows: {
-      call: (context) =>
-        (context as unknown as Ctx).acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+      call: (context: FileUploadContext) =>
+        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
     },
     getItemSizeText: {
-      call: (_context, _state, args) => formatBytes((args[0] as FileRow).file.size),
+      call: (_context, _state, args) => {
+        const row = args[0];
+        if (!isRecord(row)) return formatBytes(0);
+        const file: unknown = row["file"];
+        if (!isRecord(file)) return formatBytes(0);
+        const size: unknown = file["size"];
+        return formatBytes(typeof size === "number" && Number.isFinite(size) ? size : 0);
+      },
     },
     getItemPathText: {
       call: (_context, _state, args) => {
-        const file = (args[0] as FileRow).file;
-        return file.path !== "" ? file.path : file.name;
+        const row = args[0];
+        if (!isRecord(row)) return "";
+        const file: unknown = row["file"];
+        if (!isRecord(file)) return "";
+        const path: unknown = file["path"];
+        const name: unknown = file["name"];
+        if (typeof path === "string" && path.length > 0) return path;
+        return typeof name === "string" ? name : "";
       },
     },
   },
@@ -392,20 +404,16 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
     "value-change": {
       prop: "onValueChange",
       watch: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return [
           ctx.acceptedFiles.map((file) => file.name).join(","),
           ctx.rejectedFiles.map((item) => `${item.file.name}:${item.code}`).join(","),
         ];
       },
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        const ctx = context as unknown as Ctx;
-        return {
-          acceptedFiles: [...ctx.acceptedFiles],
-          rejectedFiles: [...ctx.rejectedFiles],
-        };
-      },
+      detail: (_watched, _event, _props, context: FileUploadContext) => ({
+        acceptedFiles: [...context.acceptedFiles],
+        rejectedFiles: [...context.rejectedFiles],
+      }),
     },
   },
 };

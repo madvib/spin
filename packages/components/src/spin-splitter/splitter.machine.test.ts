@@ -1,9 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { parsePanels, splitter } from "./splitter.def.ts";
+import { parsePanels } from "./splitter.machine.ts";
+import { splitter } from "./splitter.bindings.ts";
 const createSplitterBridge = splitter.createBridge;
-import type { SplitterApi } from "./splitter.def.ts";
+import type { SplitterApi } from "./splitter.bindings.ts";
 import type { SplitterResizeDetails } from "./splitter.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -131,7 +132,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
       return record;
     },
     () => root,
-    "group",
+    "splitter:group",
   );
   return { api: bridge.api, root, events, write };
 }

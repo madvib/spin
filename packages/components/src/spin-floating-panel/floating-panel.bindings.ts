@@ -2,14 +2,20 @@ import {
   dataAttr,
   defineComponent,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import type { DragDelta } from "@spin/runtime/actions";
 import {
   config,
   implementations,
+  initial,
+  sizeOf,
+  startOpen,
+  startStage,
   type FloatingPanelContext,
   type FloatingPanelEvent,
+  type FloatingPanelInitial,
   type FloatingPanelSize,
   type FloatingPanelStage,
 } from "./floating-panel.machine.ts";
@@ -82,39 +88,32 @@ const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -
   sw: { x: -1, y: 1 },
 };
 
-/** A size already through the channel parse: an object with numeric sides. */
-const asSize = (raw: unknown): FloatingPanelSize | null => {
-  if (typeof raw !== "object" || raw === null) return null;
-  const bag = raw as Record<string, unknown>;
-  const w = bag["w"];
-  const h = bag["h"];
-  if (typeof w !== "number" || typeof h !== "number") return null;
-  return { w, h };
-};
-
-/** The JSON transport for a size: `{"w":360,"h":240}`. */
-const parseSize = (raw: unknown): FloatingPanelSize | null => {
-  if (typeof raw !== "string" || raw.length === 0) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (typeof parsed !== "object" || parsed === null) return null;
-  const bag = parsed as Record<string, unknown>;
-  const w = bag["w"];
-  const h = bag["h"];
-  if (typeof w !== "number" || typeof h !== "number") return null;
-  return { w, h };
-};
-
 const sameSize = (a: FloatingPanelSize, b: FloatingPanelSize): boolean =>
   a.w === b.w && a.h === b.h;
 
-type Ctx = FloatingPanelContext;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+/** A stage-trigger arg: ark's three stages, defaulting to restore. */
+const stageOf = (arg: unknown): FloatingPanelStageTrigger["stage"] => {
+  if (!isRecord(arg)) return "default";
+  const stage: unknown = arg["stage"];
+  return stage === "minimized" || stage === "maximized" ? stage : "default";
+};
+
+/** A resize edge off the recipe: the eight handles, defaulting to se. */
+const isEdge = (arg: unknown): arg is ResizeEdge =>
+  typeof arg === "string" && (Object.keys(EDGES) as readonly string[]).includes(arg);
+
+const edgeOf = (arg: unknown): ResizeEdge => (isEdge(arg) ? arg : "se");
+
+interface ScopeLike extends PartScope<unknown, FloatingPanelContext> {}
+
+interface SlotLike<R> extends SlotScope<R, FloatingPanelContext> {}
+
+/** Transport guarantees the raw prop bag is a FloatingPanelInitial-shaped object. */
+const isFloatingPanelInitial = (raw: unknown): raw is FloatingPanelInitial =>
+  raw !== null && typeof raw === "object";
 
 type IdFn = (part: string, slot?: unknown) => string;
 
@@ -154,7 +153,7 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
 
 /** The geometry bag: the panel reads position and size as data. */
 const geometryStyle = (scope: ScopeLike): Record<string, string> => {
-  const at = asCtx(scope.context);
+  const at = scope.context;
   return {
     "--panel-x": `${at.position.x}px`,
     "--panel-y": `${at.position.y}px`,
@@ -167,77 +166,55 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   name: "floating-panel",
   config,
   implementations,
-  start: (props, authored) => {
-    if (authored("open")) return (props["open"] as boolean) === true ? "open" : "closed";
-    return (props["defaultOpen"] as boolean) === true ? "open" : "closed";
+  start: (raw, _authored) => {
+    const props: FloatingPanelInitial = isFloatingPanelInitial(raw) ? raw : {};
+    return startOpen(props) ? "open" : "closed";
   },
-  seed: (props, authored) => ({
-    draggable: props["draggable"] !== false,
-    resizable: props["resizable"] !== false,
-    closeOnEscape: props["closeOnEscape"] !== false,
-    size: asSize(authored("size") ? props["size"] : props["defaultSize"]) ?? { w: 360, h: 240 },
-    minSize: asSize(authored("minSize") ? props["minSize"] : props["defaultMinSize"]) ?? { w: 120, h: 80 },
-    maxSize: asSize(authored("maxSize") ? props["maxSize"] : props["defaultMaxSize"]) ?? { w: 1024, h: 768 },
-  }),
+  seed: (raw, _authored) => {
+    const props: FloatingPanelInitial = isFloatingPanelInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    return {
+      ...shaped,
+      position: { x: 0, y: 0 },
+      restoreSize: null,
+      restorePosition: null,
+      stage: startStage(props),
+      dragFrom: null,
+      resizeFrom: null,
+      axis: null,
+      boundary: { w: 1024, h: 768 },
+    };
+  },
+  reconcile: ({ context, state, parsed, authored, send }) => {
+    if (authored("stage")) {
+      const stage: unknown = parsed["stage"];
+      const outer = stage === "minimized" || stage === "maximized" || stage === "restored" ? stage : null;
+      if (outer !== null && context.stage !== outer) {
+        send(outer === "minimized" ? { type: "MINIMIZE" } : outer === "maximized" ? { type: "MAXIMIZE" } : { type: "RESTORE" });
+        return true;
+      }
+    }
+    if (authored("open")) {
+      const outer = parsed["open"] === true;
+      const open = state !== "closed";
+      if (open !== outer) {
+        send(outer ? { type: "OPEN" } : { type: "CLOSE" });
+        return true;
+      }
+    }
+    if (authored("size")) {
+      const outer = sizeOf(parsed["size"]);
+      if (outer !== null && !sameSize(context.size, outer)) {
+        send({ type: "SIZE.SET", size: { ...outer } });
+        return true;
+      }
+    }
+    return false;
+  },
   establish: () => {
     // Detach the fork's shared initial context: two panels on a page
     // would otherwise share one position until the first gesture.
     return [{ type: "DRAG.END" }];
-  },
-  channels: {
-    size: {
-      controlled: true,
-      parse: (raw) => parseSize(raw),
-      nullable: true,
-      event: (value: FloatingPanelSize | null) =>
-        value === null ? { type: "SIZE.SET", size: { w: 360, h: 240 } } : { type: "SIZE.SET", size: value },
-      equal: (current, outer) => {
-        if (current === null || current === undefined || outer === null || outer === undefined) {
-          return current == null && outer == null;
-        }
-        return sameSize(
-          current as FloatingPanelSize,
-          outer as unknown as FloatingPanelSize,
-        );
-      },
-    },
-    defaultSize: { parse: parseSize },
-    minSize: { parse: parseSize },
-    defaultMinSize: { parse: parseSize },
-    maxSize: { parse: parseSize },
-    defaultMaxSize: { parse: parseSize },
-    open: {
-      controlled: true,
-      parse: (raw) => raw === true,
-      event: (value: boolean) => ({ type: value ? "OPEN" : "CLOSE" }),
-      current: (_context, state) => state !== "closed",
-    },
-    defaultOpen: { parse: (raw) => raw === true },
-    stage: {
-      controlled: true,
-      parse: (raw) =>
-        raw === "minimized" || raw === "maximized" || raw === "restored" ? raw : null,
-      nullable: true,
-      // The stage is prop-driven: a host write alternates it from any
-      // state, and the stage only gates which gestures are legal.
-      event: (value: FloatingPanelStage | null) =>
-        value === null
-          ? { type: "RESTORE" }
-          : value === "minimized"
-          ? { type: "MINIMIZE" }
-          : value === "maximized"
-          ? { type: "MAXIMIZE" }
-          : { type: "RESTORE" },
-    },
-    defaultStage: {
-      parse: (raw) =>
-        raw === "minimized" || raw === "maximized" || raw === "restored" ? raw : null,
-    },
-    draggable: { parse: (raw) => raw !== false },
-    resizable: { parse: (raw) => raw !== false },
-    closeOnEscape: { parse: (raw) => raw !== false },
-    label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    disabled: { parse: (raw) => raw === true },
   },
   scalars: ["draggable", "resizable", "closeOnEscape"],
   parts: {
@@ -258,7 +235,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     },
     positioner: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [
           scope.state,
           ctx.position.x, ctx.position.y, ctx.size.w, ctx.size.h,
@@ -266,7 +243,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
         ].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const open = scope.state !== "closed";
         return {
           id: scope.id("positioner"),
@@ -289,7 +266,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     },
     content: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [
           scope.state,
           ctx.position.x, ctx.position.y, ctx.size.w, ctx.size.h,
@@ -302,14 +279,14 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
         // this element's class list, so the state they key on must live
         // here too — the positioner carries its own copy for its own list.
         "data-state": scope.state === "closed" ? "closed" : "open",
-        "data-stage": asCtx(scope.context).stage,
+        "data-stage": scope.context.stage,
       }),
     },
     dragTrigger: {
       id: "drag",
-      sig: (scope) => [scope.state, asCtx(scope.context).stage].join(" "),
+      sig: (scope) => [scope.state, scope.context.stage].join(" "),
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const disabled = scope.props["disabled"] === true;
         return {
           id: scope.id("dragTrigger"),
@@ -322,13 +299,13 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     },
     stageTrigger: {
       id: "stage",
-      sig: (scope, arg) => {
-        const want = (arg as FloatingPanelStageTrigger).stage;
-        return [want, asCtx(scope.context).stage].join(" ");
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const want = stageOf(arg);
+        return [want, scope.context.stage].join(" ");
       },
-      attrs: (scope, arg) => {
-        const want = (arg as FloatingPanelStageTrigger).stage;
-        const staged = asCtx(scope.context).stage !== "restored";
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const want = stageOf(arg);
+        const staged = scope.context.stage !== "restored";
         const self = want === "default" ? !staged : staged;
         return {
           id: scope.id("stage", want),
@@ -358,13 +335,13 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     // handlers stay stable through the per-bridge drag cache.
     resizeTrigger: {
       id: "resize",
-      sig: (scope, arg) => {
-        const edge = arg as ResizeEdge;
-        return [edge, scope.state, asCtx(scope.context).stage, `${scope.props["disabled"] === true}`].join(" ");
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const edge = edgeOf(arg);
+        return [edge, scope.state, scope.context.stage, `${scope.props["disabled"] === true}`].join(" ");
       },
-      attrs: (scope, arg) => {
-        const edge = arg as ResizeEdge;
-        const ctx = asCtx(scope.context);
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const edge = edgeOf(arg);
+        const ctx = scope.context;
         const disabled = scope.props["disabled"] === true;
         return {
           id: scope.id("resizeTrigger", edge),
@@ -390,43 +367,48 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   },
   readers: {
     isOpen: { read: (_context, state) => state !== "closed" },
-    stage: { read: (context) => asCtx(context).stage },
-    position: { read: (context) => ({ ...asCtx(context).position }) },
-    size: { read: (context) => ({ ...asCtx(context).size }) },
+    stage: { read: (context) => context.stage },
+    position: { read: (context) => ({ ...context.position }) },
+    size: { read: (context) => ({ ...context.size }) },
     state: { read: (_context, state) => state },
   },
   events: {
     "open-change": {
       prop: "onOpenChange",
       watch: (_context, state) => [state !== "closed"],
-      detail: (watched) => ({ open: watched[0] as boolean }),
+      detail: (watched: readonly unknown[]) => {
+        const open = watched[0];
+        return { open: open === true };
+      },
     },
     "size-change": {
       prop: "onSizeChange",
       watch: (context) => {
-        const size = asCtx(context).size;
+        const size = context.size;
         return [size.w, size.h];
       },
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        return { size: { ...(context as unknown as Ctx).size } };
-      },
+      detail: (_watched, _event, _props, context: FloatingPanelContext) => ({
+        size: { ...context.size },
+      }),
     },
     "position-change": {
       prop: "onPositionChange",
       watch: (context) => {
-        const position = asCtx(context).position;
+        const position = context.position;
         return [position.x, position.y];
       },
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        return { position: { ...(context as unknown as Ctx).position } };
-      },
+      detail: (_watched, _event, _props, context: FloatingPanelContext) => ({
+        position: { ...context.position },
+      }),
     },
     "stage-change": {
       prop: "onStageChange",
-      watch: (context) => [asCtx(context).stage],
-      detail: (watched) => ({ stage: watched[0] as FloatingPanelStage }),
+      watch: (context) => [context.stage],
+      detail: (watched: readonly unknown[]) => {
+        const stage = watched[0];
+        const known: FloatingPanelStage = stage === "minimized" || stage === "maximized" ? stage : "restored";
+        return { stage: known };
+      },
     },
   },
 };

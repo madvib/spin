@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { cascade } from "./cascade.def.ts";
+import { cascade } from "./cascade.bindings.ts";
 const createCascadeBridge = cascade.createBridge;
 import type {
   CascadeApi,
@@ -11,7 +11,7 @@ import type {
   CascadeNode,
   CascadeOpenChange,
   CascadeValueChange,
-} from "./cascade.def.ts";
+} from "./cascade.bindings.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

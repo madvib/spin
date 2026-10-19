@@ -30,6 +30,72 @@
 
 import type { Service } from "@spin/runtime/fsm";
 
+export interface CascadeInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly highlightedValue?: unknown;
+  readonly defaultHighlightedValue?: unknown;
+  readonly open?: unknown;
+  readonly defaultOpen?: unknown;
+  readonly closeOnSelect?: unknown;
+  readonly allowParentSelection?: unknown;
+  readonly multiple?: unknown;
+  readonly loopFocus?: unknown;
+  readonly highlightTrigger?: unknown;
+}
+
+/** Parse JSON-text-or-array helpers shared with the bindings. */
+const coerceList = (raw: unknown): readonly unknown[] => {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw !== "string" || raw.length === 0) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const isString = (segment: unknown): segment is string => typeof segment === "string";
+
+/** A value path: well-shaped segments only. */
+export function parsePath(raw: unknown): readonly string[] {
+  if (typeof raw === "string") return raw.split(",");
+  return coerceList(raw).filter(isString);
+}
+
+/** A list of value paths. */
+export function parsePaths(raw: unknown): readonly string[][] {
+  const list = coerceList(raw);
+  const out: string[][] = [];
+  for (const entry of list) {
+    if (typeof entry === "string") {
+      out.push(entry.split(","));
+      continue;
+    }
+    if (Array.isArray(entry)) out.push(entry.filter(isString));
+  }
+  return out;
+}
+
+/** Seed shaping: flags name themselves; the value/highlight/open arrive
+ * through establish (parsed there). */
+export function initial(raw: CascadeInitial): Pick<CascadeContext, "closeOnSelect" | "allowParentSelection" | "multiple" | "loopFocus" | "highlightTrigger"> {
+  return {
+    closeOnSelect: raw.closeOnSelect !== false,
+    allowParentSelection: raw.allowParentSelection === true,
+    multiple: raw.multiple === true,
+    loopFocus: raw.loopFocus === true,
+    highlightTrigger: raw.highlightTrigger === "hover" ? "hover" : "click",
+  };
+}
+
+/** The seeded open state: an authored open wins, else its default. */
+export function startOpen(raw: CascadeInitial): boolean {
+  if (typeof raw.open === "boolean") return raw.open;
+  return raw.defaultOpen === true;
+}
+
 /** Two paths are the same when every segment matches, in order. */
 const samePath = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((v, i) => v === b[i]);

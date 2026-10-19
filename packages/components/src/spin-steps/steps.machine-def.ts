@@ -1,6 +1,6 @@
-import { steps } from "./steps.def.ts";
+import { steps } from "./steps.bindings.ts";
 import type { StepsInvalid, StepsStepChange } from "./steps.machine.ts";
-import type { StepsComplete } from "./steps.def.ts";
+import type { StepsComplete } from "./steps.bindings.ts";
 
 /**
  * The steps' seam: the synthesized bridge, the element's imperative

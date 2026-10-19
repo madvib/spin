@@ -1,5 +1,5 @@
-import { asyncList } from "./async-list.def.ts";
-import type { AsyncListFailure, AsyncListSuccess } from "./async-list.def.ts";
+import { asyncList } from "./async-list.bindings.ts";
+import type { AsyncListFailure, AsyncListSuccess } from "./async-list.bindings.ts";
 /**
  * The async-list's seam: the synthesized bridge, the element's
  * imperative commands and the CustomEvents the host reads.

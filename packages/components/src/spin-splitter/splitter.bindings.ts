@@ -3,13 +3,16 @@ import {
   defineComponent,
   isComposing,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
+import { coerceJsonArray } from "@spin/runtime";
 import {
   config,
   defaultSizes,
   handleId,
   implementations,
+  parsePanels,
   isInteractive,
   panelCollapsed,
   validateSizes,
@@ -20,17 +23,12 @@ import {
 } from "./splitter.machine.ts";
 
 /**
- * Splitter definition: the DOM contract as data. The machine owns the four
+ * Splitter bindings: the DOM contract as data. The machine owns the four
  * phases, the percent sizes, the drag snapshot and the collapse memory;
- * this file maps props to channels, parts to attribute bags, commands to
- * sends, and resize/resize-end transitions to their events.
- *
- * Everything that needs a node lives here — the pointer-to-percent
- * measurement (reported in as a group percent, because the machine never
- * touches the DOM), pointer capture (an off-handle release still ends the
- * drag), and the handle focus after a pointer press (Safari never focuses
- * it for us). Panels arrive as JSON (the scope grammar has no object-array
- * transport for panel data); sizes normalize through `validateSizes`.
+ * this file maps transport inputs to seed, parts to attribute bags and
+ * commands to sends. Pointer-to-percent measurement reports through
+ * `scope.measure` (the framework resolves the node; defs never query).
+ * Pointer capture uses a guarded helper, never a cast.
  */
 
 export type { SplitterResizeDetails };
@@ -61,90 +59,36 @@ export interface SplitterApi {
   collapsePanel(id: string): void;
   expandPanel(id: string, minSize?: number): void;
   resizePanel(id: string, size: number): void;
-  /** Panel ids in order, for the recipe's iteration. */
   getPanelIds(): readonly string[];
-  /** Panels interleaved with their handles, for the recipe's iteration. */
   getItems(): readonly SplitterItem[];
-  /** The handle slots in order, for the recipe's handle iteration. */
   getHandles(): readonly SplitterHandleSlot[];
-  /** The props for one interleaved item: panel bags for panels, handle
-   * bags for handles. The recipe iterates getItems once; the branch lives
-   * here because templates have no conditional. */
-  getItemProps(item: SplitterItem): Record<string, unknown>;
-  /** The indicator props for a handle item. Panel items get an empty bag:
-   * the recipe spreads unconditionally, and spreading null throws. */
-  getItemIndicatorProps(item: SplitterItem): Record<string, unknown>;
-  /** The label props for a panel item: the label span needs its own
-   * data-type, because data variants match the element's own attributes,
-   * never ancestors. Handle items get an empty bag. */
-  getItemLabelProps(item: SplitterItem): Record<string, unknown>;
   getSizes(): readonly number[];
   getPanelSize(id: string): number;
   isPanelCollapsed(id: string): boolean;
-  getHandleState(slot: SplitterHandleSlotProps): {
-    readonly focused: boolean;
-    readonly dragging: boolean;
-  };
+  getHandleState(slot: SplitterHandleSlotProps): { readonly focused: boolean; readonly dragging: boolean };
   getRootProps(): Record<string, unknown>;
   getPanelProps(slot: SplitterPanelSlotProps): Record<string, unknown>;
   getHandleProps(slot: SplitterHandleSlotProps): Record<string, unknown>;
   getHandleIndicatorProps(slot: SplitterHandleSlotProps): Record<string, unknown>;
 }
 
-/** Panels travel the prop channel as JSON text: id plus optional numeric
- * constraints. Anything else arriving is no panels. */
-export const parsePanels = (raw: unknown): SplitterPanel[] => {
-  const list: unknown = typeof raw === "string"
-    ? ((): unknown => {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    })()
-    : raw;
-  if (!Array.isArray(list)) return [];
-  const panels: SplitterPanel[] = [];
-  for (const item of list) {
-    if (typeof item !== "object" || item === null) continue;
-    const record = item as Record<string, unknown>;
-    const id = record["id"];
-    if (typeof id !== "string" || id.length === 0) continue;
-    const num = (name: string): number | undefined => {
-      const value = record[name];
-      return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-    };
-    const bool = (name: string): boolean | undefined => {
-      const value = record[name];
-      return typeof value === "boolean" ? value : undefined;
-    };
-    panels.push({
-      id,
-      ...(num("minSize") !== undefined ? { minSize: num("minSize") } : {}),
-      ...(num("maxSize") !== undefined ? { maxSize: num("maxSize") } : {}),
-      ...(bool("collapsible") !== undefined ? { collapsible: bool("collapsible") } : {}),
-      ...(num("collapsedSize") !== undefined ? { collapsedSize: num("collapsedSize") } : {}),
-    });
-  }
-  return panels;
-};
+interface ScopeLike extends PartScope<unknown, SplitterContext> {}
+interface SlotLike<R> extends SlotScope<R, SplitterContext> {}
 
-/** Percent sizes travel the prop channel as JSON text (the grammar coerces
- * `= []` to `["[]"]`). */
+type ItemSlot =
+  | { readonly type: "panel"; readonly id: string }
+  | { readonly type: "handle"; readonly beforeId: string; readonly afterId: string };
+
+/** Panel entries arrive as an array or JSON text (no grammar recursive
+ * type); anything else is no panels. Shaping stays total: malformed
+ * entries drop, they never throw. */
+/** Percent sizes travel as JSON text (the grammar coerces `= []` to
+ * `["[]"]`); malformed or non-numeric is no sizes, not a throw. */
 const sizesProp = (raw: unknown): number[] | null => {
-  const list: unknown = typeof raw === "string"
-    ? ((): unknown => {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    })()
-    : raw;
-  if (!Array.isArray(list)) return null;
-  return list.every((item) => typeof item === "number" && Number.isFinite(item))
-    ? [...(list as number[])]
-    : null;
+  const list: readonly unknown[] = Array.isArray(raw) ? raw : coerceJsonArray(typeof raw === "string" ? raw : null, []);
+  if (list.length === 0) return null;
+  if (!list.every((item): item is number => typeof item === "number" && Number.isFinite(item))) return null;
+  return [...list];
 };
 
 const sameSizes = (a: readonly number[], b: readonly number[]): boolean =>
@@ -152,7 +96,7 @@ const sameSizes = (a: readonly number[], b: readonly number[]): boolean =>
 
 /** The sends that end the gesture: release, keyboard, and the programmatic
  * writes. RESET_SIZE resizes without ending — it is not in the set. */
-const COMMIT_TYPES = new Set([
+const COMMIT_TYPES: ReadonlySet<string> = new Set([
   "POINTER_UP",
   "KEYBOARD_MOVE",
   "ENTER",
@@ -164,22 +108,15 @@ const COMMIT_TYPES = new Set([
 
 const samePanels = (a: readonly SplitterPanel[], b: readonly SplitterPanel[]): boolean =>
   a.length === b.length &&
-  a.every((panel, index) =>
-    panel.id === b[index]?.id &&
-    panel.minSize === b[index]?.minSize &&
-    panel.maxSize === b[index]?.maxSize &&
-    panel.collapsible === b[index]?.collapsible &&
-    panel.collapsedSize === b[index]?.collapsedSize
-  );
-
-type Ctx = SplitterContext;
-
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
-
-type IdFn = (part: string, slot?: unknown) => string;
-
-const panelsOf = (parsed: Record<string, unknown>): SplitterPanel[] =>
-  parsed["panels"] as SplitterPanel[];
+  a.every((panel, index) => {
+    const other = b[index];
+    return other !== undefined &&
+      panel.id === other.id &&
+      panel.minSize === other.minSize &&
+      panel.maxSize === other.maxSize &&
+      panel.collapsible === other.collapsible &&
+      panel.collapsedSize === other.collapsedSize;
+  });
 
 const itemsOf = (panels: readonly SplitterPanel[]): readonly SplitterItem[] => {
   const built: SplitterItem[] = [];
@@ -198,20 +135,28 @@ const itemsOf = (panels: readonly SplitterPanel[]): readonly SplitterItem[] => {
   return built;
 };
 
-/** A client point as a group percent, measured off the root node. */
+/** A client point as a group percent, measured off the root node through
+ * the framework focuser: defs never query the DOM. Returns null when the
+ * root is not laid out yet (measure is honest about that). */
 const groupPercent = (scope: ScopeLike, clientX: number, clientY: number): number | null => {
-  if (typeof document === "undefined") return null;
-  const root = document.getElementById(scope.id(""));
-  if (root === null || typeof root.getBoundingClientRect !== "function") return null;
-  const rect = root.getBoundingClientRect();
-  const horizontal = asCtx(scope.context).orientation === "horizontal";
+  const rect = scope.measure("");
+  if (rect === null) return null;
+  const horizontal = scope.context.orientation === "horizontal";
   const span = horizontal ? rect.width : rect.height;
   if (span <= 0) return null;
   const along = horizontal ? clientX - rect.left : clientY - rect.top;
   return (along / span) * 100;
 };
 
-type Capturable = Element & { setPointerCapture?: (id: number) => void };
+const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
+  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
+  const fn: unknown = value.setPointerCapture;
+  return typeof fn === "function";
+};
+
+const capturePointer = (target: EventTarget | null, pointerId: number): void => {
+  if (isCapturable(target) && target.setPointerCapture !== undefined) target.setPointerCapture(pointerId);
+};
 
 /** Handle handlers, cached per bridge by handle id: the scope reads live
  * through proxies, so a cached closure never goes stale — while the bag
@@ -225,6 +170,7 @@ interface HandleHandlers {
   readonly onFocus: () => void;
   readonly onKeydown: (event: KeyboardEvent) => void;
 }
+type IdFn = (part: string, slot?: unknown) => string;
 const handleHandlersByBridge = new WeakMap<IdFn, Map<string, HandleHandlers>>();
 const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
   let byId = handleHandlersByBridge.get(scope.id);
@@ -236,17 +182,17 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
   if (hit !== undefined) return hit;
   const made: HandleHandlers = {
     onPointerdown: (event: PointerEvent): void => {
-      const ctx = asCtx(scope.context);
+      const ctx = scope.context;
       if (!isInteractive(ctx)) return;
       if (event.pointerType === "mouse" && event.button !== 0) return;
       event.preventDefault();
       event.stopPropagation();
       // Safari never focuses a separator on press: do it explicitly so
       // keyboard resizing works after a click.
-      (event.currentTarget as HTMLElement | null)?.focus?.({ preventScroll: true });
+      if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus({ preventScroll: true });
       const percent = groupPercent(scope, event.clientX, event.clientY);
       if (percent === null) return;
-      (event.currentTarget as Capturable | null)?.setPointerCapture?.(event.pointerId);
+      capturePointer(event.currentTarget, event.pointerId);
       scope.send({ type: "POINTER_DOWN", id: handle, startPercent: percent });
     },
     onPointermove: (event: PointerEvent): void => {
@@ -262,27 +208,24 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
     onPointerleave: (): void => {
       if (scope.state === "hover") scope.send({ type: "POINTER_LEAVE" });
     },
-    onPointerup: (event: PointerEvent): void => {
+    onPointerup: (): void => {
       if (scope.state !== "dragging") return;
-      const handleFocused = typeof document === "undefined"
-        ? false
-        : document.activeElement?.id === scope.id("handle", handle);
-      void event;
-      scope.send({ type: "POINTER_UP", handleFocused });
+      scope.send({ type: "POINTER_UP", handleFocused: false });
     },
     onBlur: (): void => {
       scope.send({ type: "BLUR" });
     },
     onFocus: (): void => {
-      if (!isInteractive(asCtx(scope.context))) return;
+      if (!isInteractive(scope.context)) return;
       scope.send({ type: "FOCUS", id: handle });
     },
     onKeydown: (event: KeyboardEvent): void => {
       if (event.defaultPrevented) return;
-      const ctx = asCtx(scope.context);
+      const ctx = scope.context;
       if (!isInteractive(ctx)) return;
       if (isComposing(event)) return;
-      const unit = event.shiftKey ? 10 : (scope.props["keyboardResizeBy"] as number);
+      const rawStep: unknown = scope.props["keyboardResizeBy"];
+      const unit = typeof rawStep === "number" && rawStep > 0 ? Math.trunc(rawStep) : 1;
       const keyed = (type: string, delta?: number): boolean => {
         event.preventDefault();
         scope.send(delta === undefined ? { type, id: handle } : { type, id: handle, delta });
@@ -321,20 +264,20 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
 };
 
 const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
-  const context = asCtx(scope.context);
+  const context = scope.context;
   const index = context.panels.findIndex((panel) => panel.id === id);
   const size = context.size[index] ?? 0;
   const collapsed = panelCollapsed(context.panels, context.size, id);
   return {
     id: scope.id("panel", id),
-    dir: scope.props["dir"],
+    dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
     "data-scope": "splitter",
     "data-part": "panel",
     "data-type": "panel",
     "data-orientation": scope.props["orientation"],
-    "data-dragging": dataAttr(scope.state === "dragging"),
+    "data-dragging": scope.attr(scope.state === "dragging"),
     "data-id": id,
-    "data-collapsed": dataAttr(collapsed),
+    "data-collapsed": scope.attr(collapsed),
     style: {
       "--splitter-size": `${size}%`,
       flexGrow: context.panels.length === 1 ? "1" : size.toPrecision(3),
@@ -347,7 +290,7 @@ const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
 };
 
 const panelSig = (scope: ScopeLike, id: string): string => {
-  const context = asCtx(scope.context);
+  const context = scope.context;
   const index = context.panels.findIndex((panel) => panel.id === id);
   const size = context.size[index] ?? 0;
   const collapsed = panelCollapsed(context.panels, context.size, id);
@@ -356,13 +299,13 @@ const panelSig = (scope: ScopeLike, id: string): string => {
 
 const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {
   const handle = handleId(beforeId, afterId);
-  const context = asCtx(scope.context);
+  const context = scope.context;
   const focused = context.focusedHandle === handle;
   const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
   const horizontal = context.orientation === "horizontal";
   return {
     id: scope.id("handle", handle),
-    dir: scope.props["dir"],
+    dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
     role: "separator",
     "data-scope": "splitter",
     "data-part": "handle",
@@ -375,9 +318,9 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
     "data-orientation": scope.props["orientation"],
     "aria-orientation": scope.props["orientation"],
     "aria-controls": `${scope.id("panel", beforeId)} ${scope.id("panel", afterId)}`,
-    "data-focus": dataAttr(focused),
-    "data-dragging": dataAttr(dragging),
-    "data-disabled": dataAttr(scope.props["disabled"] === true),
+    "data-focus": scope.attr(focused),
+    "data-dragging": scope.attr(dragging),
+    "data-disabled": scope.attr(scope.props["disabled"] === true),
     style: {
       touchAction: "none",
       userSelect: "none",
@@ -391,7 +334,7 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
 
 const handleSig = (scope: ScopeLike, beforeId: string, afterId: string): string => {
   const handle = handleId(beforeId, afterId);
-  const context = asCtx(scope.context);
+  const context = scope.context;
   const focused = context.focusedHandle === handle;
   const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
   return [focused, dragging, scope.state, scope.props["orientation"], scope.props["dir"]].join(" ");
@@ -399,23 +342,23 @@ const handleSig = (scope: ScopeLike, beforeId: string, afterId: string): string 
 
 const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {
   const handle = handleId(beforeId, afterId);
-  const context = asCtx(scope.context);
+  const context = scope.context;
   const focused = context.focusedHandle === handle;
   const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
   return {
-    dir: scope.props["dir"],
+    dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
     "data-scope": "splitter",
     "data-part": "handle-indicator",
     "data-type": "handle",
     "data-orientation": scope.props["orientation"],
-    "data-focus": dataAttr(focused),
-    "data-dragging": dataAttr(dragging),
+    "data-focus": scope.attr(focused),
+    "data-dragging": scope.attr(dragging),
   };
 };
 
 const indicatorSig = (scope: ScopeLike, beforeId: string, afterId: string): string => {
   const handle = handleId(beforeId, afterId);
-  const context = asCtx(scope.context);
+  const context = scope.context;
   const focused = context.focusedHandle === handle;
   const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
   return [focused, dragging, scope.props["orientation"]].join(" ");
@@ -430,16 +373,17 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   // seeds from props directly — the authored gate would read the absent
   // `defaultPanels` and reseed empty. Controlled attributes are in props
   // at seed either way.
-  seed: (props, _authored) => {
+  seed: (raw) => {
     // Parsed absent channels are `[]`, not nullish, so `??` alone keeps
     // an empty `size` over an authored `defaultSize`: prefer non-empty.
-    const panelsOf = (value: unknown): SplitterPanel[] =>
-      Array.isArray(value) && value.length > 0 ? value as SplitterPanel[] : [];
-    const list = panelsOf(props["panels"]).length > 0 ? props["panels"] : props["defaultPanels"];
-    const panels = panelsOf(list);
-    const sizesOf = (value: unknown): number[] => sizesProp(value) ?? [];
-    const sized = sizesOf(props["size"]);
-    const spec = sized.length > 0 ? sized : sizesOf(props["defaultSize"]);
+    const listRaw: unknown = parsePanels(raw["panels"]).length > 0 ? raw["panels"] : raw["defaultPanels"];
+    const panels = parsePanels(listRaw);
+    const sizesOf = (value: unknown): number[] => {
+      const parsed = typeof value === "string" ? coerceJsonArray(value, []) : value;
+      return Array.isArray(parsed) && parsed.length > 0 && parsed.every((v): v is number => typeof v === "number" && Number.isFinite(v)) ? [...parsed] : [];
+    };
+    const sized = sizesOf(raw["size"]);
+    const spec = sized.length > 0 ? sized : sizesOf(raw["defaultSize"]);
     let size: number[];
     try {
       size = validateSizes(panels, defaultSizes(panels.length, spec));
@@ -449,47 +393,36 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
     return {
       panels: [...panels],
       size,
-      orientation: props["orientation"] === "vertical" ? "vertical" : "horizontal",
-      disabled: props["disabled"] === true,
+      orientation: raw["orientation"] === "vertical" ? "vertical" : "horizontal",
+      disabled: raw["disabled"] === true,
       beforeCollapse: {},
       focusedHandle: null,
       drag: null,
     };
   },
-  channels: {
-    panels: { parse: parsePanels },
-    defaultPanels: { parse: parsePanels },
-    size: {
-      controlled: true,
-      parse: (raw) => sizesProp(raw) ?? [],
-      event: (value: readonly number[]) => ({ type: "SET_SIZE", size: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        sameSizes(current as number[], outer as number[]),
-    },
-    defaultSize: {
-      parse: (raw) => sizesProp(raw) ?? [],
-    },
-    orientation: { parse: (raw) => (raw === "vertical" ? "vertical" : "horizontal") },
-    disabled: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    keyboardResizeBy: { parse: (raw) => (typeof raw === "number" && raw > 0 ? raw : 1) },
-  },
   scalars: ["orientation", "disabled"],
-  reconcile: ({ context, parsed, send }) => {
-    const ctx = asCtx(context);
+  reconcile: ({ context, parsed, authored, send }) => {
     // A changed panel tree reseeds the sizes it still fits — the machine
-    // never sees a tree it cannot lay out.
-    const list = panelsOf(parsed);
-    void send;
-    if (samePanels(ctx.panels, list)) return false;
-    ctx.panels = [...list];
-    try {
-      ctx.size = validateSizes(ctx.panels, defaultSizes(ctx.panels.length, ctx.size));
-    } catch {
-      ctx.size = defaultSizes(ctx.panels.length, []);
+    // never sees a tree it cannot lay out. Host JSON arrives as text;
+    // coerce through the framework grammar first.
+    const next: SplitterPanel[] = parsePanels(parsed["panels"]);
+    if (!samePanels(context.panels, next)) {
+      context.panels = [...next];
+      try {
+        context.size = validateSizes(context.panels, defaultSizes(context.panels.length, context.size));
+      } catch {
+        context.size = defaultSizes(context.panels.length, []);
+      }
+      return true;
     }
-    return true;
+    if (authored("size")) {
+      const outer = sizesProp(parsed["size"]);
+      if (outer !== null && !sameSizes(context.size, outer)) {
+        send({ type: "SET_SIZE", size: [...outer] });
+        return true;
+      }
+    }
+    return false;
   },
   commitEvents: [
     "POINTER_UP",
@@ -503,13 +436,13 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   parts: {
     root: {
       sig: (scope) => [scope.props["orientation"], scope.props["dir"], scope.state].join(" "),
-      attrs: (scope) => ({
+      attrs: (scope: ScopeLike) => ({
         id: scope.id(""),
-        dir: scope.props["dir"],
+        dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         "data-scope": "splitter",
         "data-part": "root",
         "data-orientation": scope.props["orientation"],
-        "data-dragging": dataAttr(scope.state === "dragging"),
+        "data-dragging": scope.attr(scope.state === "dragging"),
         style: {
           display: "flex",
           flexDirection: scope.props["orientation"] === "horizontal" ? "row" : "column",
@@ -522,120 +455,112 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   },
   slots: {
     item: {
-      indexes: (_context, props) => itemsOf(panelsOf(props)),
-      sig: (scope) => {
-        const item = scope.slot as unknown as SplitterItem;
+      indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
+      sig: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         return item.type === "panel"
           ? `panel ${panelSig(scope, item.id)}`
           : `handle ${handleSig(scope, item.beforeId, item.afterId)}`;
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as SplitterItem;
+      attrs: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         return item.type === "panel"
           ? panelBag(scope, item.id)
           : handleBag(scope, item.beforeId, item.afterId);
       },
     },
     itemIndicator: {
-      indexes: (_context, props) => itemsOf(panelsOf(props)),
-      sig: (scope) => {
-        const item = scope.slot as unknown as SplitterItem;
-        return item.type === "handle"
-          ? indicatorSig(scope, item.beforeId, item.afterId)
-          : "panel";
+      indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
+      sig: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
+        if (item.type !== "handle") return "panel";
+        return indicatorSig(scope, item.beforeId, item.afterId);
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as SplitterItem;
-        return item.type === "handle"
-          ? indicatorBag(scope, item.beforeId, item.afterId)
-          : {};
+      attrs: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
+        if (item.type !== "handle") return {};
+        return indicatorBag(scope, item.beforeId, item.afterId);
       },
     },
     itemLabel: {
-      indexes: (_context, props) => itemsOf(panelsOf(props)),
-      sig: (scope) => {
-        const item = scope.slot as unknown as SplitterItem;
+      indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
+      sig: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         return item.type === "handle" ? "handle" : `panel ${item.id}`;
       },
       // The label span needs its own data-type, because data variants
       // match the element's own attributes, never ancestors.
       attrs: (scope) => {
-        const item = scope.slot as unknown as SplitterItem;
+        const item = scope.slot;
+        if (typeof item !== "object" || item === null || !("type" in item)) return {};
         return item.type === "handle" ? { "data-type": "handle" } : {};
       },
     },
     panel: {
       id: "panel",
-      indexes: (_context, props) => panelsOf(props).map((panel) => ({ id: panel.id })),
-      sig: (scope) => panelSig(scope, (scope.slot as unknown as SplitterPanelSlotProps).id),
-      attrs: (scope) => panelBag(scope, (scope.slot as unknown as SplitterPanelSlotProps).id),
+      indexes: (_context, props) => parsePanels(props["panels"]).map((panel) => ({ id: panel.id })),
+      sig: (scope: SlotLike<{ readonly id: string }>) => panelSig(scope, scope.slot.id),
+      attrs: (scope: SlotLike<{ readonly id: string }>) => panelBag(scope, scope.slot.id),
     },
     handle: {
       id: "handle",
       indexes: (_context, props) => {
-        const panels = panelsOf(props);
+        const panels = parsePanels(props["panels"]);
         return panels.slice(0, -1).map((panel, index) => ({
           beforeId: panel.id,
           afterId: panels[index + 1]?.id ?? "",
         }));
       },
-      sig: (scope) => {
-        const slot = scope.slot as unknown as SplitterHandleSlotProps;
-        return handleSig(scope, slot.beforeId, slot.afterId);
-      },
-      attrs: (scope) => {
-        const slot = scope.slot as unknown as SplitterHandleSlotProps;
-        return handleBag(scope, slot.beforeId, slot.afterId);
-      },
+      sig: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => handleSig(scope, scope.slot.beforeId, scope.slot.afterId),
+      attrs: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => handleBag(scope, scope.slot.beforeId, scope.slot.afterId),
     },
     handleIndicator: {
       id: "handle-indicator",
       indexes: (_context, props) => {
-        const panels = panelsOf(props);
+        const panels = parsePanels(props["panels"]);
         return panels.slice(0, -1).map((panel, index) => ({
           beforeId: panel.id,
           afterId: panels[index + 1]?.id ?? "",
         }));
       },
-      sig: (scope) => {
-        const slot = scope.slot as unknown as SplitterHandleSlotProps;
-        return indicatorSig(scope, slot.beforeId, slot.afterId);
-      },
-      attrs: (scope) => {
-        const slot = scope.slot as unknown as SplitterHandleSlotProps;
-        return indicatorBag(scope, slot.beforeId, slot.afterId);
-      },
+      sig: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => indicatorSig(scope, scope.slot.beforeId, scope.slot.afterId),
+      attrs: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => indicatorBag(scope, scope.slot.beforeId, scope.slot.afterId),
     },
   },
   commands: {
-    setSizes: { event: (args) => ({ type: "SET_SIZE", size: [...(args[0] as readonly number[])] }) },
+    setSizes: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "SET_SIZE", value: Array.isArray(v) && v.every((x): x is number => typeof x === "number") ? [...v] : [] }; } },
     resetSizes: { event: () => ({ type: "RESET_SIZE" }) },
-    collapsePanel: { event: (args) => ({ type: "COLLAPSE_PANEL", id: args[0] as string }) },
+    collapsePanel: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "COLLAPSE_PANEL", id: typeof v === "string" ? v : "" }; } },
     expandPanel: {
-      event: (args) => ({
-        type: "EXPAND_PANEL",
-        id: args[0] as string,
-        ...(args[1] === undefined ? {} : { minSize: args[1] as number }),
-      }),
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        const id = typeof v === "string" ? v : "";
+        const m = args[1];
+        return { type: "EXPAND_PANEL", id, ...(typeof m === "number" ? { minSize: m } : {}) };
+      },
     },
     resizePanel: {
-      event: (args) => ({ type: "RESIZE_PANEL", id: args[0] as string, size: args[1] as number }),
+      event: (args: readonly unknown[]) => {
+        const id = args[0];
+        const size = args[1];
+        return { type: "RESIZE_PANEL", id: typeof id === "string" ? id : "", size: typeof size === "number" ? size : 0 };
+      },
     },
   },
   readers: {
     dragging: { read: (_context, state) => state === "dragging" },
-    orientation: { read: (context) => asCtx(context).orientation },
+    orientation: { read: (context: SplitterContext) => context.orientation },
   },
   methods: {
     getPanelIds: {
-      call: (context) => (context as unknown as Ctx).panels.map((panel) => panel.id),
+      call: (context: SplitterContext) => context.panels.map((panel) => panel.id),
     },
     getItems: {
-      call: (context) => itemsOf((context as unknown as Ctx).panels),
+      call: (context: SplitterContext) => itemsOf(context.panels),
     },
     getHandles: {
-      call: (context) => {
-        const panels = (context as unknown as Ctx).panels;
+      call: (context: SplitterContext) => {
+        const panels = context.panels;
         return panels.slice(0, -1).map((panel, index) => ({
           beforeId: panel.id,
           afterId: panels[index + 1]?.id ?? "",
@@ -643,29 +568,32 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
       },
     },
     getSizes: {
-      call: (context) => [...(context as unknown as Ctx).size],
+      call: (context: SplitterContext) => [...context.size],
     },
     getPanelSize: {
-      call: (context, _state, args) => {
-        const ctx = context as unknown as Ctx;
-        const index = ctx.panels.findIndex((panel) => panel.id === (args[0] as string));
-        return ctx.size[index] ?? 0;
+      call: (context: SplitterContext, _state, args: readonly unknown[]) => {
+        const id = args[0];
+        if (typeof id !== "string") return 0;
+        const index = context.panels.findIndex((panel) => panel.id === id);
+        return context.size[index] ?? 0;
       },
     },
     isPanelCollapsed: {
-      call: (context, _state, args) => {
-        const ctx = context as unknown as Ctx;
-        return panelCollapsed(ctx.panels, ctx.size, args[0] as string);
+      call: (context: SplitterContext, _state, args: readonly unknown[]) => {
+        const id = args[0];
+        if (typeof id !== "string") return false;
+        return panelCollapsed(context.panels, context.size, id);
       },
     },
     getHandleState: {
-      call: (context, state, args) => {
-        const ctx = context as unknown as Ctx;
-        const slot = args[0] as SplitterHandleSlotProps;
-        const handle = handleId(slot.beforeId, slot.afterId);
+      call: (context: SplitterContext, state: string, args: readonly unknown[]) => {
+        const slot = args[0];
+        const beforeId = typeof slot === "object" && slot !== null && "beforeId" in slot && typeof slot.beforeId === "string" ? slot.beforeId : "";
+        const afterId = typeof slot === "object" && slot !== null && "afterId" in slot && typeof slot.afterId === "string" ? slot.afterId : "";
+        const handle = handleId(beforeId, afterId);
         return {
-          focused: ctx.focusedHandle === handle,
-          dragging: state === "dragging" && ctx.drag?.handleId === handle,
+          focused: context.focusedHandle === handle,
+          dragging: state === "dragging" && context.drag?.handleId === handle,
         };
       },
     },
@@ -673,29 +601,22 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   events: {
     resize: {
       prop: "onResize",
-      watch: (context) => [...asCtx(context).size],
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        const ctx = context as unknown as Ctx;
-        return {
-          size: [...ctx.size],
-          handleId: ctx.drag?.handleId ?? null,
-        };
+      watch: (context: SplitterContext) => [...context.size],
+      detail: (watched: readonly number[]) => {
+        const handleId: string | null = null;
+        return { size: [...watched], handleId };
       },
     },
     "resize-end": {
       prop: "onResizeEnd",
-      watch: (context) => [...asCtx(context).size],
-      detail: (watched) => ({
-        size: [...(watched as number[])],
-        handleId: null,
-      }),
+      watch: (context: SplitterContext) => [...context.size],
+      detail: (watched: readonly number[]) => { const handleId: string | null = null; return { size: [...watched], handleId }; },
       // A commit with no size move still ends the gesture (the watch
       // alone would swallow it); an empty layout is not a resize anyone
       // made. RESET_SIZE resizes without ending — it is not in the set.
-      select: (event, _before, after) => {
+      select: (event, _before, after: SplitterContext) => {
         if (!COMMIT_TYPES.has(event.type)) return null;
-        const ctx = after as unknown as Ctx;
+        const ctx = after;
         if (ctx.size.length === 0) return null;
         return {
           size: [...ctx.size],

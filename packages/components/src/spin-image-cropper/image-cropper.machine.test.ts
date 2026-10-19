@@ -1,15 +1,15 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { imageCropper } from "./image-cropper.def.ts";
+import { imageCropper } from "./image-cropper.bindings.ts";
 const createImageCropperBridge = imageCropper.createBridge;
 import type {
   ImageCropperCropChange,
   ImageCropperFlipChange,
   ImageCropperRotationChange,
   ImageCropperZoomChange,
-} from "./image-cropper.def.ts";
-import type { ImageCropperApi } from "./image-cropper.def.ts";
+} from "./image-cropper.bindings.ts";
+import type { ImageCropperApi } from "./image-cropper.bindings.ts";
 import type { CropHandle, CropRect } from "./image-cropper.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -118,6 +118,12 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   write("onZoomChange", (change: ImageCropperZoomChange) => events.zoomChange.push(change));
   write("onRotationChange", (change: ImageCropperRotationChange) => events.rotationChange.push(change));
   write("onFlipChange", (change: ImageCropperFlipChange) => events.flipChange.push(change));
+  const realDocument = globalThis.document as Document;
+  const holder = realDocument.createElement("div");
+  holder.id = "image-cropper:photo:viewport";
+  const rect = { left: 0, right: 400, width: 400, top: 0, bottom: 300, height: 300 };
+  holder.getBoundingClientRect = () => ({ ...rect }) as DOMRect;
+  realDocument.body.appendChild(holder);
   const bridge = createImageCropperBridge(
     () => {
       const record: Record<string, unknown> = {};

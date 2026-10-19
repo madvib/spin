@@ -108,14 +108,59 @@ export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
     pages.push(...range(1, total));
   }
   // An ellipsis hiding a single page becomes the page.
+  const at = (index: number): number | null => {
+    const value: unknown = pages[index];
+    return typeof value === "number" ? value : null;
+  };
   for (let index = 0; index < pages.length; index += 1) {
     if (pages[index] === "ellipsis") {
-      const prev = typeof pages[index - 1] === "number" ? (pages[index - 1] as number) : 0;
-      const next = typeof pages[index + 1] === "number" ? (pages[index + 1] as number) : total + 1;
+      const prev = at(index - 1) ?? 0;
+      const next = at(index + 1) ?? total + 1;
       if (next - prev === 2) pages[index] = prev + 1;
     }
   }
   return pages;
+}
+
+/** The shape the view iterates: numbers become page rows, gaps ellipses. */
+export interface PaginationInitial {
+  readonly page?: unknown;
+  readonly defaultPage?: unknown;
+  readonly pageSize?: unknown;
+  readonly defaultPageSize?: unknown;
+  readonly count?: unknown;
+  readonly siblingCount?: unknown;
+  readonly boundaryCount?: unknown;
+}
+
+/** A numeric prop: numbers pass, numeric strings parse, everything else
+ * absent. Named once; transport owns the grammar. */
+const asCount = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw.trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+/** Seed shaping: the page falls back to its default, then one; same for
+ * the size. Transport guarantees the bag; the guard asserts that point. */
+export function initial(raw: PaginationInitial): PaginationContext {
+  const pick = (name: "page" | "pageSize", fallback: number): number => {
+    const live = asCount(raw[name]);
+    if (live !== null) return live;
+    const fallbacked = asCount(name === "page" ? raw.defaultPage : raw.defaultPageSize);
+    if (fallbacked !== null) return fallbacked;
+    return fallback;
+  };
+  return {
+    page: pick("page", 1),
+    pageSize: pick("pageSize", 10),
+    count: asCount(raw.count) ?? 0,
+    siblingCount: asCount(raw.siblingCount) ?? 1,
+    boundaryCount: asCount(raw.boundaryCount) ?? 1,
+  };
 }
 
 /** Zag's transform: numbers become page items, gaps become ellipses. */

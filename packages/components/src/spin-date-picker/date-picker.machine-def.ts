@@ -1,5 +1,5 @@
-import { datePicker } from "./date-picker.def.ts";
-import type { DatePickerValueChange } from "./date-picker.def.ts";
+import { datePicker } from "./date-picker.bindings.ts";
+import type { DatePickerValueChange } from "./date-picker.bindings.ts";
 
 /**
  * The date-picker's seam: the synthesized bridge, the element's

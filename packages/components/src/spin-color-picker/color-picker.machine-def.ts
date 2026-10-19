@@ -1,9 +1,9 @@
-import { colorPicker } from "./color-picker.def.ts";
+import { colorPicker } from "./color-picker.bindings.ts";
 import type {
   ColorPickerFormatChange,
   ColorPickerOpenChange,
   ColorPickerValueChange,
-} from "./color-picker.def.ts";
+} from "./color-picker.bindings.ts";
 
 /**
  * The color-picker's seam: the synthesized bridge, the element's

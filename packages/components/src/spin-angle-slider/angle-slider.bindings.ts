@@ -2,19 +2,20 @@ import {
   dataAttr,
   defineComponent,
   isComposing,
-  textProp,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   displayAngle,
   implementations,
+  initial,
   isInteractive,
-  pointAngle,
   valueAsDegree,
   type AngleSliderContext,
   type AngleSliderEvent,
+  type AngleSliderInitial,
   type AngleSliderValueChange,
 } from "./angle-slider.machine.ts";
 
@@ -93,9 +94,13 @@ const numProp = (raw: unknown): number | null => {
   return null;
 };
 
-type Ctx = AngleSliderContext;
+interface ScopeLike extends PartScope<unknown, AngleSliderContext> {}
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface SlotLike<R> extends SlotScope<R, AngleSliderContext> {}
+
+/** Transport guarantees the raw prop bag is an AngleSliderInitial-shaped object. */
+const isAngleSliderInitial = (raw: unknown): raw is AngleSliderInitial =>
+  raw !== null && typeof raw === "object";
 
 const MARKERS = [0, 45, 90, 135, 180, 225, 270, 315];
 
@@ -108,65 +113,94 @@ const rimPlacement = (angle: number, radius: number): { left: string; top: strin
   return { left: `${left}%`, top: `${top}%` };
 };
 
-type Capturable = Element & { setPointerCapture?: (id: number) => void };
+const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
+  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
+  const fn: unknown = value.setPointerCapture;
+  return typeof fn === "function";
+};
+
+const capturePointer = (target: EventTarget | null, pointerId: number): void => {
+  if (isCapturable(target)) target.setPointerCapture(pointerId);
+};
+
+/** A text prop: strings pass, everything else is empty. */
+const textProp = (raw: unknown): string => typeof raw === "string" ? raw : "";
+
+/** A marker row: the indexes carry bare numbers, so the row is the value.
+ * `getMarkerProps({ value, radius, diameter })` shapes the same way. */
+const markerSlot = (slot: unknown): AngleSliderMarkerSlotProps & { readonly value: number } => {
+  if (typeof slot === "number" && Number.isFinite(slot)) return { value: slot };
+  if (typeof slot !== "object" || slot === null || Array.isArray(slot)) return { value: NaN };
+  const bag: Record<string, unknown> = { ...slot };
+  const value: unknown = bag["value"];
+  const radius: unknown = bag["radius"];
+  const diameter: unknown = bag["diameter"];
+  return {
+    value: typeof value === "number" && Number.isFinite(value) ? value : NaN,
+    ...(typeof radius === "number" && Number.isFinite(radius) ? { radius } : {}),
+    ...(diameter === true ? { diameter: true as const } : {}),
+  };
+};
+
+/** The thumb's optional slot arg: the recipe's per-usage geometry rides
+ * here (`getThumbProps({ radius })`). Anything else is no geometry. */
+const thumbSlot = (arg: unknown): AngleSliderThumbSlotProps => {
+  if (typeof arg !== "object" || arg === null || Array.isArray(arg)) return {};
+  const bag: Record<string, unknown> = { ...arg };
+  const radius: unknown = bag["radius"];
+  const needle: unknown = bag["needle"];
+  return {
+    ...(typeof radius === "number" && Number.isFinite(radius) ? { radius } : {}),
+    ...(needle === true ? { needle: true as const } : {}),
+  };
+};
+
+/** atan2 around the center, in dial degrees (zero top, clockwise). */
+const pointAngle = (centerX: number, centerY: number, clientX: number, clientY: number): number => {
+  const x = clientX - centerX;
+  const y = clientY - centerY;
+  const deg = Math.atan2(x, y) * (180 / Math.PI) + 180;
+  return 360 - deg;
+};
 
 /** The raw pointer angle around the control center, in degrees. */
 const rawAngle = (scope: ScopeLike, clientX: number, clientY: number): number | null => {
-  if (typeof document === "undefined") return null;
-  const control = document.getElementById(scope.id("control"));
-  if (control === null || typeof control.getBoundingClientRect !== "function") return null;
-  const rect = control.getBoundingClientRect();
+  const rect = scope.measure("control");
+  if (rect === null) return null;
   return pointAngle(rect.left + rect.width / 2, rect.top + rect.height / 2, clientX, clientY);
 };
 
 /** Whether the press landed on the thumb: relative drags grab, elsewhere
- * jumps. */
+ * jumps. The press target carries its own id — no node lookup. */
 const overThumb = (scope: ScopeLike, target: EventTarget | null): boolean => {
-  if (target === null || typeof document === "undefined") return false;
-  const thumb = document.getElementById(scope.id("thumb"));
-  if (thumb === null || !(target instanceof Element)) return false;
-  return thumb === target || thumb.contains(target);
+  if (target === null || !(target instanceof Element)) return false;
+  const thumbId = scope.id("thumb");
+  return target.id === thumbId || target.closest(`[id="${thumbId}"]`) !== null;
 };
 
 /** The view reflex: after a press or keyboard move the thumb takes focus. */
-const focusThumb = (scope: ScopeLike): void => {
+const focusThumb = (id: (part: string, slot?: unknown) => string): void => {
   if (typeof document === "undefined") return;
-  document.getElementById(scope.id("thumb"))?.focus({ preventScroll: true });
+  document.getElementById(id("thumb"))?.focus({ preventScroll: true });
 };
 
 const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   name: "angle-slider",
   config,
   implementations,
-  seed: (props, authored) => ({
-    step: numProp(props["step"]) ?? 1,
-    largeStep: numProp(props["largeStep"]) ?? 10 * (numProp(props["step"]) ?? 1),
-    dir: props["dir"] === "rtl" ? "rtl" : "ltr",
-    disabled: props["disabled"] === true,
-    readOnly: props["readOnly"] === true,
-    invalid: props["invalid"] === true,
-    value: numProp(authored("value") ? props["value"] : props["defaultValue"]) ?? 0,
-  }),
-  channels: {
-    value: {
-      controlled: true,
-      parse: (raw) => {
-        const value = numProp(raw);
-        return value === null ? 0 : value;
-      },
-      event: (value: number) => ({ type: "VALUE.SET", value }),
-    },
-    defaultValue: { parse: (raw) => numProp(raw) ?? 0 },
-    step: { parse: (raw) => numProp(raw) ?? 1 },
-    largeStep: { parse: (raw) => numProp(raw) ?? 0 },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    name: { parse: textProp },
-    label: { parse: textProp },
-    ariaLabel: { parse: textProp },
+  seed: (raw, authored) => {
+    const props: AngleSliderInitial = isAngleSliderInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    // An authored channel starts at its value, not its default.
+    const value = authored("value") ? numProp(props.value) ?? shaped.value : shaped.value;
+    return { ...shaped, value, dragOffset: null };
+  },
+  reconcile: ({ context, parsed, authored, send }) => {
+    if (!authored("value")) return false;
+    const value = numProp(parsed["value"]);
+    if (value === null || context.value === value) return false;
+    send({ type: "VALUE.SET", value });
+    return true;
   },
   scalars: ["step", "dir", "disabled", "readOnly", "invalid"],
   scalarsOf: (parsed) => {
@@ -191,11 +225,11 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   parts: {
     root: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [ctx.value, scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"]].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const shown = displayAngle(ctx.value, ctx.dir);
         return {
           id: scope.id(""),
@@ -221,22 +255,22 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
         "data-readonly": dataAttr(scope.props["readOnly"] === true),
         for: scope.id("hiddenInput"),
         onClick: (event: MouseEvent): void => {
-          if (!isInteractive(asCtx(scope.context))) return;
+          if (!isInteractive(scope.context)) return;
           event.preventDefault();
-          focusThumb(scope);
+          focusThumb(scope.id);
         },
       }),
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => [`${scope.props["name"]}`, `${asCtx(scope.context).value}`].join(" "),
+      sig: (scope) => [`${scope.props["name"]}`, `${scope.context.value}`].join(" "),
       attrs: (scope) => {
-        const name = scope.props["name"] as string;
+        const name = textProp(scope.props["name"]);
         return {
           id: scope.id("hiddenInput"),
           type: "hidden",
           name: name.length > 0 ? name : undefined,
-          value: String(asCtx(scope.context).value),
+          value: String(scope.context.value),
         };
       },
     },
@@ -258,7 +292,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
         "data-readonly": dataAttr(scope.props["readOnly"] === true),
         style: { position: "relative", touchAction: "none", userSelect: "none" },
         onPointerdown: (event: PointerEvent): void => {
-          const ctx = asCtx(scope.context);
+          const ctx = scope.context;
           if (!isInteractive(ctx)) return;
           if (event.pointerType === "mouse" && event.button !== 0) return;
           const angle = rawAngle(scope, event.clientX, event.clientY);
@@ -267,9 +301,9 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           // the dial jumps to the pointer.
           const angularOffset = overThumb(scope, event.target) ? angle - ctx.value : null;
           event.stopPropagation();
-          (event.currentTarget as Capturable | null)?.setPointerCapture?.(event.pointerId);
+          capturePointer(event.currentTarget, event.pointerId);
           scope.send({ type: "CONTROL.POINTER_DOWN", rawAngle: angle, angularOffset });
-          focusThumb(scope);
+          focusThumb(scope.id);
         },
         onPointermove: (event: PointerEvent): void => {
           if (scope.state !== "dragging") return;
@@ -284,16 +318,16 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       }),
     },
     thumb: {
-      sig: (scope, arg) => {
-        const ctx = asCtx(scope.context);
-        const slot = (arg ?? {}) as AngleSliderThumbSlotProps;
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const ctx = scope.context;
+        const slot = thumbSlot(arg);
         return [ctx.value, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state, slot.radius ?? 40, slot.needle === true].join(" ");
       },
-      attrs: (scope, arg) => {
-        const ctx = asCtx(scope.context);
+      attrs: (scope: ScopeLike, arg?: unknown) => {
+        const ctx = scope.context;
         const shown = displayAngle(ctx.value, ctx.dir);
-        const slot = (arg ?? {}) as AngleSliderThumbSlotProps;
-        const ariaLabel = scope.props["ariaLabel"] as string;
+        const slot = thumbSlot(arg);
+        const ariaLabel = textProp(scope.props["ariaLabel"]);
         return {
           id: scope.id("thumb"),
           role: "slider",
@@ -327,14 +361,14 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           },
           onKeydown: (event: KeyboardEvent): void => {
             if (event.defaultPrevented) return;
-            const live = asCtx(scope.context);
+            const live = scope.context;
             if (!isInteractive(live)) return;
             if (isComposing(event)) return;
             const large = event.shiftKey ? live.largeStep : undefined;
             const keyed = (type: string): boolean => {
               event.preventDefault();
               scope.send({ type, ...(large !== undefined ? { step: large } : {}) });
-              focusThumb(scope);
+              focusThumb(scope.id);
               return true;
             };
             switch (event.key) {
@@ -385,13 +419,13 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   slots: {
     marker: {
       indexes: () => MARKERS,
-      sig: (scope) => {
-        const slot = scope.slot as unknown as AngleSliderMarkerSlotProps;
-        return [slot.value, slot.radius ?? 46, slot.diameter === true, asCtx(scope.context).value].join(" ");
+      sig: (scope: SlotLike<{ readonly value: number }>) => {
+        const slot = markerSlot(scope.slot);
+        return [slot.value, slot.radius ?? 46, slot.diameter === true, scope.context.value].join(" ");
       },
-      attrs: (scope) => {
-        const slot = scope.slot as unknown as AngleSliderMarkerSlotProps;
-        const context = asCtx(scope.context);
+      attrs: (scope: SlotLike<{ readonly value: number }>) => {
+        const slot = markerSlot(scope.slot);
+        const context = scope.context;
         const shown = displayAngle(slot.value, context.dir);
         const radius = slot.radius ?? 46;
         const state = slot.value < context.value
@@ -411,7 +445,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
             "--marker-angle": `${shown}deg`,
             // Diameter markup centers itself; the bag keeps rotation only.
             // Rim ticks keep point + orientation together (see above).
-            ...((slot as AngleSliderMarkerSlotProps).diameter === true ? {
+            ...(slot.diameter === true ? {
               rotate: `${shown}deg`,
             } : {
               ...rimPlacement(shown, radius),
@@ -423,7 +457,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: args[0] as number }) },
+    setValue: { event: (args) => ({ type: "VALUE.SET", value: typeof args[0] === "number" ? args[0] : 0 }) },
     // The thumb carries no tabindex while disabled or read-only, so a DOM
     // focus then is a harmless no-op — the guard the bridge held.
     focus: {
@@ -431,8 +465,8 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
     },
   },
   readers: {
-    value: { read: (context) => asCtx(context).value },
-    valueAsDegree: { read: (context) => valueAsDegree(asCtx(context).value) },
+    value: { read: (context) => context.value },
+    valueAsDegree: { read: (context) => valueAsDegree(context.value) },
     dragging: { read: (_context, state) => state === "dragging" },
   },
   methods: {
@@ -440,11 +474,11 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       call: () => MARKERS,
     },
     getMarkerState: {
-      call: (context, _state, args) => {
-        const value = args[0] as number;
-        const current = (context as unknown as Ctx).value;
-        if (value < current) return "under-value";
-        if (value > current) return "over-value";
+      call: (context: AngleSliderContext, _state, args) => {
+        const value = args[0];
+        if (typeof value !== "number" || !Number.isFinite(value)) return "at-value";
+        if (value < context.value) return "under-value";
+        if (value > context.value) return "over-value";
         return "at-value";
       },
     },
@@ -452,20 +486,22 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [asCtx(context).value],
-      detail: (watched) => ({
-        value: watched[0] as number,
-        valueAsDegree: `${watched[0] as number}deg`,
-      }),
+      watch: (context: AngleSliderContext) => [context.value],
+      detail: (watched: readonly unknown[]) => {
+        const value = watched[0];
+        const degrees = typeof value === "number" && Number.isFinite(value) ? value : 0;
+        return { value: degrees, valueAsDegree: `${degrees}deg` };
+      },
     },
     "value-change-end": {
       prop: "onValueChangeEnd",
       on: "commit",
-      watch: (context) => [asCtx(context).value],
-      detail: (watched) => ({
-        value: watched[0] as number,
-        valueAsDegree: `${watched[0] as number}deg`,
-      }),
+      watch: (context: AngleSliderContext) => [context.value],
+      detail: (watched: readonly unknown[]) => {
+        const value = watched[0];
+        const degrees = typeof value === "number" && Number.isFinite(value) ? value : 0;
+        return { value: degrees, valueAsDegree: `${degrees}deg` };
+      },
     },
   },
 };

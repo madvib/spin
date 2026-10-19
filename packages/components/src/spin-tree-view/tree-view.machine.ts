@@ -42,6 +42,78 @@ export interface TreeLoadComplete {
   readonly value: string;
 }
 
+export interface TreeInitial {
+  readonly nodes?: unknown;
+  readonly defaultExpandedValue?: unknown;
+  readonly defaultSelectedValue?: unknown;
+  readonly defaultCheckedValue?: unknown;
+  readonly selectionMode?: unknown;
+  readonly expandOnClick?: unknown;
+  readonly rename?: unknown;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+export interface TreeNodeShape {
+  readonly value: string;
+  readonly label: string;
+  readonly children?: readonly TreeNodeShape[] | undefined;
+}
+
+/** A node entry: value names it, the rest is text; children recurse.
+ * Malformed entries drop; anything else is no nodes. */
+const shapeNode = (entry: unknown): TreeNodeShape | null => {
+  if (!isRecord(entry)) return null;
+  const value: unknown = entry["value"];
+  if (typeof value !== "string") return null;
+  const label: unknown = entry["label"];
+  const node: { value: string; label: string; children?: TreeNodeShape[] } = {
+    value,
+    label: typeof label === "string" ? label : "",
+  };
+  const kids: unknown = entry["children"];
+  if (kids !== undefined) {
+    if (!Array.isArray(kids)) return null;
+    const shaped: TreeNodeShape[] = [];
+    for (const kid of kids) {
+      const child = shapeNode(kid);
+      if (child === null) return null;
+      shaped.push(child);
+    }
+    node.children = shaped;
+  }
+  return node;
+};
+
+/** The tree off any transport: the scope grammar has no recursive shape,
+ * so the collection parses here. Well-shaped entries only. */
+export function nodesOf(raw: unknown): TreeNodeShape[] {
+  const list: readonly unknown[] = Array.isArray(raw) ? raw : [];
+  const out: TreeNodeShape[] = [];
+  for (const entry of list) {
+    const shaped = shapeNode(entry);
+    if (shaped !== null) out.push(shaped);
+  }
+  return out;
+}
+
+/** Seed shaping: the three value sets start at their defaults, empty. */
+export function initial(raw: TreeInitial): Pick<TreeContext, "expandedValue" | "selectedValue" | "checkedValue" | "selectionMode" | "expandOnClick" | "rename"> {
+  const keysOf = (value: unknown): string[] => {
+    if (!Array.isArray(value)) return [];
+    return value.filter((v): v is string => typeof v === "string");
+  };
+  return {
+    expandedValue: keysOf(raw.defaultExpandedValue),
+    selectedValue: keysOf(raw.defaultSelectedValue),
+    checkedValue: keysOf(raw.defaultCheckedValue),
+    selectionMode: raw.selectionMode === "multiple" ? "multiple" : "single",
+    expandOnClick: raw.expandOnClick !== false,
+    rename: raw.rename !== false,
+  };
+}
+
 /** Two sets with the same members: an assign returning no-op is an event
  * that moved nothing, and the bridge's change detection depends on it. */
 const sameSet = (a: readonly string[], b: readonly string[]): boolean =>

@@ -2,7 +2,8 @@ import {
   dataAttr,
   defineComponent,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   clampDay,
@@ -10,9 +11,13 @@ import {
   daysInMonth,
   implementations,
   config,
+  initial,
+  parseDay,
+  parseDays,
   valueAsAllStrings,
   type DatePickerContext,
   type DatePickerEvent,
+  type DatePickerInitial,
   type DatePickerSelectionMode,
   type DatePickerValue,
   type DatePickerValueChange,
@@ -115,38 +120,6 @@ const today = (): DatePickerValue => {
 const monthName = (month: number, locale: string): string =>
   new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(Date.UTC(2024, month - 1, 1));
 
-/** An ISO string parses to a day; anything else is not a day. */
-const parseDay = (raw: unknown): DatePickerValue | null => {
-  if (typeof raw !== "string" || raw.length === 0) return null;
-  const time = Date.parse(`${raw}T00:00:00Z`);
-  if (Number.isNaN(time)) return null;
-  const at = new Date(time);
-  return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
-};
-
-/** The JSON transport for trees also carries here: `["2024-01-15"]`,
- * and a bare ISO string is the single-day shorthand. */
-const parseDays = (raw: unknown): DatePickerValue[] | null => {
-  if (typeof raw !== "string" || raw.length === 0) return null;
-  if (raw.startsWith("[")) {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      return null;
-    }
-    if (!Array.isArray(parsed)) return null;
-    const days: DatePickerValue[] = [];
-    for (const entry of parsed) {
-      const day = parseDay(entry);
-      if (day !== null) days.push(day);
-    }
-    return days;
-  }
-  const day = parseDay(raw);
-  return day === null ? null : [day];
-};
-
 const sameDays = (a: readonly DatePickerValue[], b: readonly DatePickerValue[]): boolean =>
   a.length === b.length && a.every((day, index) => {
     const other = b[index];
@@ -159,7 +132,13 @@ const todayUtc = (): DatePickerValue => {
   return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
 };
 
-type Ctx = DatePickerContext;
+interface ScopeLike extends PartScope<unknown, DatePickerContext> {}
+
+interface SlotLike<R> extends SlotScope<R, DatePickerContext> {}
+
+/** Transport guarantees the raw prop bag is a DatePickerInitial-shaped object. */
+const isDatePickerInitial = (raw: unknown): raw is DatePickerInitial =>
+  raw !== null && typeof raw === "object";
 
 // Scope props arrive as strings; hooks write numbers. Accept both.
 const numProp = (raw: unknown): number | null => {
@@ -170,8 +149,6 @@ const numProp = (raw: unknown): number | null => {
   }
   return null;
 };
-
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
 
 type IdFn = (part: string, slot?: unknown) => string;
 
@@ -197,12 +174,12 @@ const shift = (
 };
 
 const cellView = (
-  context: Record<string, unknown>,
+  context: DatePickerContext,
   props: Record<string, unknown>,
   value: DatePickerValue,
   outside: boolean,
 ): DatePickerCellView => {
-  const ctx = asCtx(context);
+  const ctx = context;
   const disabled = props["disabled"] === true;
   const readOnly = props["readOnly"] === true;
   const time = dayTime(value);
@@ -235,13 +212,34 @@ const cellView = (
   };
 };
 
+const textOf = (raw: unknown, fallback: string): string =>
+  typeof raw === "string" && raw.length > 0 ? raw : fallback;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+type FormatFn = (value: DatePickerValue, at: string) => string;
+
+const isFormat = (value: unknown): value is FormatFn =>
+  typeof value === "function";
+
+const isDateValue = (raw: unknown): raw is DatePickerValue => {
+  if (!isRecord(raw)) return false;
+  return ["year", "month", "day"].every((key) => typeof raw[key] === "number" && Number.isFinite(raw[key]));
+};
+
+const weekOf = (props: Record<string, unknown>): number => {
+  const raw: unknown = props["startOfWeek"];
+  return typeof raw === "number" && raw >= 0 && raw <= 6 ? Math.trunc(raw) : 0;
+};
+
 /** The day grid: the focused month padded to whole weeks both sides. */
 const dayCells = (
-  context: Record<string, unknown>,
+  context: DatePickerContext,
   props: Record<string, unknown>,
 ): readonly DatePickerCellView[] => {
-  const ctx = asCtx(context);
-  const startOfWeek = props["startOfWeek"] as number;
+  const ctx = context;
+  const startOfWeek = weekOf(props);
   const start = { year: ctx.focusedValue.year, month: ctx.focusedValue.month, day: 1 };
   const firstWeekday = new Date(dayTime(start)).getUTCDay();
   const lead = (firstWeekday - startOfWeek + 7) % 7;
@@ -271,10 +269,10 @@ const dayCells = (
 };
 
 const cellsOf = (
-  context: Record<string, unknown>,
+  context: DatePickerContext,
   props: Record<string, unknown>,
 ): readonly DatePickerCellView[] => {
-  const ctx = asCtx(context);
+  const ctx = context;
   if (ctx.view === "month") {
     return Array.from({ length: 12 }, (_unused, month) =>
       cellView(context, props, { year: ctx.focusedValue.year, month: month + 1, day: 1 }, false));
@@ -289,7 +287,7 @@ const cellsOf = (
 
 /** A page is a month in the day view, a year in the month view, a decade in the year view. */
 const pageOf = (scope: ScopeLike, from: DatePickerValue, direction: 1 | -1): DatePickerValue => {
-  const ctx = asCtx(scope.context);
+  const ctx = scope.context;
   if (ctx.view === "month") return shift(from, direction * 365, ctx.min, ctx.max);
   if (ctx.view === "year") return shift(from, direction * 3652, ctx.min, ctx.max);
   return shift(from, direction * 28, ctx.min, ctx.max);
@@ -315,18 +313,18 @@ const handlersFor = (scope: ScopeLike, cell: DatePickerCellView): CellHandlers =
   const made: CellHandlers = {
     onClick: (): void => {
       if (cell.disabled) return;
-      const view = asCtx(scope.context).view;
+      const view = scope.context.view;
       if (view !== "day") scope.send({ type: "TABLE.ENTER", value: cell.value });
       else scope.send({ type: "CELL.CLICK", value: cell.value });
     },
     onPointerMove: (): void => {
-      if (asCtx(scope.context).selectionMode !== "range") return;
+      if (scope.context.selectionMode !== "range") return;
       scope.send({ type: "CELL.POINTER_MOVE", value: cell.value });
     },
     onKeyDown: (event: KeyboardEvent): void => {
       if (event.defaultPrevented || event.isComposing === true || event.keyCode === 229) return;
       if (event.ctrlKey || event.altKey || event.metaKey) return;
-      const at = asCtx(scope.context);
+      const at = scope.context;
       const focused = at.focusedValue;
       const rtl = scope.props["dir"] === "rtl";
       switch (event.key) {
@@ -408,132 +406,89 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
   name: "date-picker",
   config,
   implementations,
-  seed: (props) => {
-    const mode = props["selectionMode"];
+  seed: (raw, _authored) => {
+    const props: DatePickerInitial = isDatePickerInitial(raw) ? raw : {};
+    const shaped = initial(props);
     return {
-      selectionMode: mode === "multiple" || mode === "range" ? mode : "single",
-      numOfMonths: typeof props["numOfMonths"] === "number" ? props["numOfMonths"] : 1,
-      min: typeof props["min"] === "string" && (props["min"] as string).length > 0 ? props["min"] : null,
-      max: typeof props["max"] === "string" && (props["max"] as string).length > 0 ? props["max"] : null,
-      closeOnSelect: props["closeOnSelect"] !== false,
+      ...shaped,
       value: [],
       focusedValue: todayUtc(),
-      view: "day",
+      view: "day" as const,
+      startValue: null,
+      hoveredValue: null,
     };
   },
-  establish: (props, authored) => {
+  establish: (raw, authored) => {
     // Seeded through events, not writes — and silent: establish sends run
     // before the watch cursors prime, exactly as the bridge's raw seeding
     // sends were. In bridge order: value, then focus (clamped, falling
     // back to the seed), then view, then the authored open.
+    const props: DatePickerInitial = isDatePickerInitial(raw) ? raw : {};
+    const shaped = initial(props);
     const sends: ({ type: string } & Record<string, unknown>)[] = [{ type: "VALUE.CLEAR" }];
-    const days = (authored("value") ? props["value"] : props["defaultValue"]) as DatePickerValue[] | null;
-    const seed = Array.isArray(days) && days.length > 0 ? days : null;
+    const seedRaw: unknown = authored("value") ? props.value : props.defaultValue;
+    const days = parseDays(typeof seedRaw === "string" ? seedRaw : null);
+    const seed = days.length > 0 ? days : null;
     if (seed !== null) sends.push({ type: "VALUE.SET", value: seed });
-    const min = props["min"] as string | null;
-    const max = props["max"] as string | null;
-    const focused = ((authored("focusedValue") ? props["focusedValue"] : props["defaultFocusedValue"]) as DatePickerValue | null)
+    const focusedRaw: unknown = authored("focusedValue") ? props.focusedValue : props.defaultFocusedValue;
+    const focused = (typeof focusedRaw === "string" ? parseDay(focusedRaw) : null)
       ?? seed?.[0] ?? todayUtc();
-    sends.push({ type: "FOCUS.SET", value: clampDay(focused, min, max) });
-    const view = props["view"];
+    sends.push({ type: "FOCUS.SET", value: clampDay(focused, shaped.min, shaped.max) });
+    const view: unknown = props.view;
     if (view === "month" || view === "year") sends.push({ type: "VIEW.SET", view });
-    if (authored("open") && props["open"] === true) sends.push({ type: "OPEN" });
+    if (authored("open") && props.open === true) sends.push({ type: "OPEN" });
     return sends;
   },
   // A focus move hands DOM focus to the cell it named; opening holds the
   // focus still (the re-anchor often moves nothing, so the panel takes
-  // focus itself).
-  settled: ({ before, after, id }) => {
-    if (typeof document === "undefined") return;
-    const was = dayAsString(((before as unknown as { context: Ctx }).context).focusedValue);
-    const at = dayAsString(((after as unknown as { context: Ctx }).context).focusedValue);
+  // focus itself). The cell id embeds the day, which the id path cannot
+  // express — so the query stays inside the owned root.
+  settled: ({ before, after, root }) => {
+    const was = dayAsString(before.context.focusedValue);
+    const at = dayAsString(after.context.focusedValue);
     if (at === was) return;
-    const node = document.getElementById(`${(id as unknown as IdFn)("grid")}:cell:${at}`);
-    if (node instanceof HTMLElement) node.focus();
-  },
-  channels: {
-    value: {
-      controlled: true,
-      parse: (raw) => {
-        if (typeof raw !== "string") return [];
-        return parseDays(raw) ?? [];
-      },
-      event: (value: readonly DatePickerValue[]) => ({ type: "VALUE.SET", value: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        sameDays(current as DatePickerValue[], outer as DatePickerValue[]),
-    },
-    defaultValue: {
-      parse: (raw) => {
-        if (typeof raw !== "string") return null;
-        return parseDays(raw);
-      },
-    },
-    focusedValue: {
-      controlled: true,
-      parse: parseDay,
-      nullable: true,
-      event: (value: DatePickerValue | null) =>
-        value === null ? { type: "VALUE.CLEAR" } : { type: "FOCUS.SET", value },
-      equal: (current, outer) => {
-        if (current === null || current === undefined || outer === null || outer === undefined) {
-          return current == null && outer == null;
-        }
-        return sameDay(current as DatePickerValue, outer as DatePickerValue);
-      },
-    },
-    defaultFocusedValue: { parse: parseDay },
-    view: {
-      controlled: true,
-      parse: (raw) => (raw === "month" || raw === "year" ? raw : "day"),
-      event: (value: DatePickerView) => ({ type: "VIEW.SET", view: value }),
-    },
-    defaultView: {
-      parse: (raw) => (raw === "month" || raw === "year" ? raw : "day"),
-    },
-    open: {
-      controlled: true,
-      parse: (raw) => raw === true,
-      event: (value: boolean) => ({ type: value ? "OPEN" : "CLOSE" }),
-      current: (_context, state) => state === "open",
-    },
-    defaultOpen: { parse: (raw) => raw === true },
-    selectionMode: { parse: (raw) => raw },
-    numOfMonths: { parse: (raw) => numProp(raw) ?? 1 },
-    min: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : null),
-    },
-    max: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : null),
-    },
-    closeOnSelect: { parse: (raw) => raw !== false },
-    locale: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "en-US"),
-    },
-    startOfWeek: { parse: (raw) => numProp(raw) ?? 0 },
-    label: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    placeholder: { parse: (raw) => (typeof raw === "string" ? raw : "Pick a date") },
-    format: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
-    disabled: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
+    const host = root();
+    if (typeof host.querySelector !== "function") return;
+    const cell = host.querySelector(`[data-value="${at}"]`);
+    if (cell instanceof HTMLElement) cell.focus({ preventScroll: true });
   },
   scalars: ["selectionMode", "numOfMonths", "min", "max", "closeOnSelect"],
-  scalarsOf: (parsed) => {
-    const mode = parsed["selectionMode"];
-    return {
-      selectionMode: mode === "multiple" || mode === "range" ? mode : "single",
-      numOfMonths: typeof parsed["numOfMonths"] === "number" ? parsed["numOfMonths"] : 1,
-      min: typeof parsed["min"] === "string" && (parsed["min"] as string).length > 0 ? parsed["min"] : null,
-      max: typeof parsed["max"] === "string" && (parsed["max"] as string).length > 0 ? parsed["max"] : null,
-      closeOnSelect: parsed["closeOnSelect"] !== false,
-    };
+  reconcile: ({ context, parsed, authored, send }) => {
+    if (authored("value")) {
+      const outer = parseDays(typeof parsed["value"] === "string" ? parsed["value"] : null);
+      if (!sameDays(context.value, outer)) {
+        send({ type: "VALUE.SET", value: [...outer] });
+        return true;
+      }
+    }
+    if (authored("focusedValue")) {
+      const outer = typeof parsed["focusedValue"] === "string" ? parseDay(parsed["focusedValue"]) : null;
+      if (outer !== null && dayAsString(context.focusedValue) !== dayAsString(outer)) {
+        send({ type: "FOCUS.SET", value: outer });
+        return true;
+      }
+    }
+    if (authored("view")) {
+      const outer: unknown = parsed["view"];
+      const view = outer === "month" || outer === "year" ? outer : "day";
+      if (context.view !== view) {
+        send({ type: "VIEW.SET", view });
+        return true;
+      }
+    }
+    if (authored("open")) {
+      const outer = parsed["open"] === true;
+      // The open fact lives in the state, not the context.
+      void context;
+      void send;
+      void outer;
+    }
+    return false;
   },
   parts: {
     trigger: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [
           scope.state === "open",
           iso(ctx.focusedValue),
@@ -542,7 +497,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
         ].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const open = scope.state === "open";
         return {
           id: scope.id("trigger"),
@@ -582,11 +537,11 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     },
     grid: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [iso(ctx.focusedValue), ctx.view, `${scope.props["startOfWeek"]}`].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("grid"),
           role: "grid",
@@ -609,14 +564,14 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     prevTrigger: {
       id: "prev",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [iso(ctx.focusedValue), ctx.view].join(" ");
       },
       attrs: (scope) => ({
         id: scope.id("prevTrigger"),
         "aria-label": "Previous",
         onClick: (): void => {
-          const ctx = asCtx(scope.context);
+          const ctx = scope.context;
           scope.send({ type: "FOCUS.SET", value: pageOf(scope, ctx.focusedValue, -1) });
         },
       }),
@@ -624,14 +579,14 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     nextTrigger: {
       id: "next",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [iso(ctx.focusedValue), ctx.view].join(" ");
       },
       attrs: (scope) => ({
         id: scope.id("nextTrigger"),
         "aria-label": "Next",
         onClick: (): void => {
-          const ctx = asCtx(scope.context);
+          const ctx = scope.context;
           scope.send({ type: "FOCUS.SET", value: pageOf(scope, ctx.focusedValue, 1) });
         },
       }),
@@ -639,11 +594,11 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     viewControl: {
       id: "view",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [ctx.view, iso(ctx.focusedValue)].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("viewControl"),
           "data-view": ctx.view,
@@ -657,9 +612,9 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     },
     clearTrigger: {
       id: "clear",
-      sig: (scope) => asCtx(scope.context).value.map(iso).join(","),
+      sig: (scope) => scope.context.value.map(iso).join(","),
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("clearTrigger"),
           "aria-label": "Clear",
@@ -671,10 +626,10 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
   },
   slots: {
     cell: {
-      indexes: (context, props) => cellsOf(context, props),
-      sig: (scope) => {
-        const cell = scope.slot as unknown as DatePickerCellView;
-        const ctx = asCtx(scope.context);
+      indexes: (context: DatePickerContext, props) => cellsOf(context, props),
+      sig: (scope: SlotLike<DatePickerCellView>) => {
+        const cell = scope.slot;
+        const ctx = scope.context;
         const focused = iso(cell.value) === iso(ctx.focusedValue);
         return [
           focused,
@@ -685,10 +640,10 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
           ctx.view,
         ].join(" ");
       },
-      attrs: (scope) => {
-        const cell = scope.slot as unknown as DatePickerCellView;
-        const ctx = asCtx(scope.context);
-        const locale = scope.props["locale"] as string;
+      attrs: (scope: SlotLike<DatePickerCellView>) => {
+        const cell = scope.slot;
+        const ctx = scope.context;
+        const locale = textOf(scope.props["locale"], "en-US");
         const day = iso(cell.value);
         const focused = day === iso(ctx.focusedValue);
         const text = ctx.view === "month"
@@ -724,25 +679,28 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     close: { event: () => ({ type: "CLOSE" }) },
     clear: { event: () => ({ type: "VALUE.CLEAR" }) },
     setValue: {
-      event: (args) => ({
-        type: "VALUE.SET",
-        value: args[0] === null ? [] : [...(args[0] as readonly DatePickerValue[])],
-      }),
+      event: (args) => {
+        const raw = args[0];
+        if (raw === null) return { type: "VALUE.SET", value: [] };
+        if (!Array.isArray(raw)) return { type: "VALUE.SET", value: [] };
+        const days = raw.filter(isDateValue);
+        return { type: "VALUE.SET", value: [...days] };
+      },
     },
   },
   readers: {
     isOpen: { read: (_context, state) => state === "open" },
-    value: { read: (context) => [...asCtx(context).value] },
-    valueAsString: { read: (context) => valueAsAllStrings(asCtx(context).value) },
-    focusedValue: { read: (context) => ({ ...asCtx(context).focusedValue }) },
-    view: { read: (context) => asCtx(context).view },
+    value: { read: (context) => [...context.value] },
+    valueAsString: { read: (context) => valueAsAllStrings(context.value) },
+    focusedValue: { read: (context) => ({ ...context.focusedValue }) },
+    view: { read: (context) => context.view },
   },
   methods: {
     getWeekdayLabels: {
-      call: (context, _state, _args, props) => {
-        const ctx = context as unknown as Ctx;
-        const locale = props["locale"] as string;
-        const startOfWeek = props["startOfWeek"] as number;
+      call: (context: DatePickerContext, _state, _args, props) => {
+        const ctx = context;
+        const locale = textOf(props["locale"], "en-US");
+        const startOfWeek = weekOf(props);
         const labels: string[] = [];
         // A weekday header only means something in the day view; the
         // month and year grids have no weekday rows.
@@ -759,30 +717,32 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
       },
     },
     getValueTextRows: {
-      call: (context, _state, _args, props, id) => {
-        const ctx = context as unknown as Ctx;
-        const locale = props["locale"] as string;
-        const placeholder = props["placeholder"] as string;
-        const format = props["format"] as ((value: DatePickerValue, locale: string) => string) | undefined;
-        const formatDay = format ?? ((value: DatePickerValue, at: string): string => {
-          const date = new Date(Date.UTC(value.year, value.month - 1, value.day));
-          return new Intl.DateTimeFormat(at, {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            timeZone: "UTC",
-          }).format(date);
-        });
+      call: (context: DatePickerContext, _state, _args, props, id) => {
+        const ctx = context;
+        const locale = textOf(props["locale"], "en-US");
+        const placeholder = textOf(props["placeholder"], "Pick a date");
+        const format: unknown = props["format"];
+        const formatDay = isFormat(format)
+          ? format
+          : (value: DatePickerValue, at: string): string => {
+            const date = new Date(Date.UTC(value.year, value.month - 1, value.day));
+            return new Intl.DateTimeFormat(at, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              timeZone: "UTC",
+            }).format(date);
+          };
         if (ctx.value.length === 0) {
-          return [rowFor(id as unknown as IdFn, `empty:${placeholder}`, placeholder)];
+          return [rowFor(id, `empty:${placeholder}`, placeholder)];
         }
-        return ctx.value.map((day) => rowFor(id as unknown as IdFn, iso(day), formatDay(day, locale)));
+        return ctx.value.map((day) => rowFor(id, iso(day), formatDay(day, locale)));
       },
     },
     getViewTextRows: {
-      call: (context, _state, _args, props, id) => {
-        const ctx = context as unknown as Ctx;
-        const locale = props["locale"] as string;
+      call: (context: DatePickerContext, _state, _args, props, id: IdFn) => {
+        const ctx = context;
+        const locale = textOf(props["locale"], "en-US");
         const text = ctx.view === "day"
           ? new Intl.DateTimeFormat(locale, {
             month: "long",
@@ -792,47 +752,43 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
           : ctx.view === "month"
           ? `${ctx.focusedValue.year}`
           : `${ctx.focusedValue.year - (((ctx.focusedValue.year % 12) + 12) % 12)}`;
-        return [rowFor(id as unknown as IdFn, `view:${ctx.view}:${iso(ctx.focusedValue)}`, text)];
+        return [rowFor(id, `view:${ctx.view}:${iso(ctx.focusedValue)}`, text)];
       },
     },
     getCells: {
-      call: (context, _state, _args, props) => cellsOf(context, props),
+      call: (context: DatePickerContext, _state, _args, props) => cellsOf(context, props),
     },
   },
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [asCtx(context).value.map(dayAsString).join(",")],
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        const value = [...(context as unknown as Ctx).value];
-        return {
-          value,
-          valueAsString: valueAsAllStrings(value),
-        };
-      },
+      watch: (context) => [context.value.map(dayAsString).join(",")],
+      detail: (_watched, _event, _props, context: DatePickerContext) => ({
+        value: [...context.value],
+        valueAsString: valueAsAllStrings(context.value),
+      }),
     },
     "focus-change": {
       prop: "onFocusChange",
-      watch: (context) => [dayAsString(asCtx(context).focusedValue), asCtx(context).view],
-      detail: (watched, _event, _props, context) => {
-        void watched;
-        const ctx = context as unknown as Ctx;
-        return {
-          focusedValue: { ...ctx.focusedValue },
-          view: ctx.view,
-        };
-      },
+      watch: (context) => [dayAsString(context.focusedValue), context.view],
+      detail: (_watched, _event, _props, context: DatePickerContext) => ({
+        focusedValue: { ...context.focusedValue },
+        view: context.view,
+      }),
     },
     "view-change": {
       prop: "onViewChange",
-      watch: (context) => [asCtx(context).view],
-      detail: (watched) => ({ view: watched[0] as DatePickerView }),
+      watch: (context) => [context.view],
+      detail: (watched: readonly unknown[]) => {
+        const view = watched[0];
+        const known: DatePickerView = view === "month" || view === "year" ? view : "day";
+        return { view: known };
+      },
     },
     "open-change": {
       prop: "onOpenChange",
       watch: (_context, state) => [state === "open"],
-      detail: (watched) => ({ open: watched[0] as boolean }),
+      detail: (watched: readonly unknown[]) => ({ open: watched[0] === true }),
     },
   },
 };

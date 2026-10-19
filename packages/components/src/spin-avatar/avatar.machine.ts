@@ -16,6 +16,18 @@ export interface AvatarContext {
   src: string;
 }
 
+export interface AvatarInitial {
+  readonly src?: unknown;
+  readonly defaultSrc?: unknown;
+}
+
+/** Seed shaping: the src falls back to its default, then empty. Transport
+ * guarantees the bag is object-shaped; the guard asserts that point. */
+export function initial(raw: AvatarInitial): AvatarContext {
+  const pick = (value: unknown): string | null => typeof value === "string" ? value : null;
+  return { src: pick(raw.src) ?? pick(raw.defaultSrc) ?? "" };
+}
+
 export type AvatarEvent =
   | { type: "IMG.LOADED" }
   | { type: "IMG.ERROR" }

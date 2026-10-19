@@ -1,5 +1,5 @@
-import { timer } from "./timer.def.ts";
-import type { TimerTickChange } from "./timer.def.ts";
+import { timer } from "./timer.bindings.ts";
+import type { TimerTickChange } from "./timer.bindings.ts";
 
 /**
  * The timer's seam: the synthesized bridge, the element's imperative

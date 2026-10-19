@@ -1,5 +1,5 @@
-import { fileUpload } from "./file-upload.def.ts";
-import type { FileUploadValueChange } from "./file-upload.def.ts";
+import { fileUpload } from "./file-upload.bindings.ts";
+import type { FileUploadValueChange } from "./file-upload.bindings.ts";
 
 /**
  * The file-upload's seam: the synthesized bridge, the element's

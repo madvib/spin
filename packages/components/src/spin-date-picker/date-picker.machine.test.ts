@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { datePicker } from "./date-picker.def.ts";
+import { datePicker } from "./date-picker.bindings.ts";
 const createDatePickerBridge = datePicker.createBridge;
-import type { DatePickerApi, DatePickerCellView } from "./date-picker.def.ts";
+import type { DatePickerApi, DatePickerCellView } from "./date-picker.bindings.ts";
 import type { DatePickerValue } from "./date-picker.machine.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
@@ -155,7 +155,6 @@ Deno.test("Given an open multiple picker / When a day is clicked twice / Then it
 
 Deno.test("Given a focused day / When ArrowRight fires / Then focus moves one day and stays in month", () => {
   const h = harness({ defaultValue: "[\"2024-02-15\"]" });
-  console.log("DBG isOpen:", h.api.isOpen, "focused:", JSON.stringify(h.api.focusedValue), "keys:", Object.keys(h.api).length);
   handler<() => void>(trigger(h), "onClick")();
   const day = cellBag(h, "2024-02-15");
   handler<(e: KeyboardEvent) => void>(day, "onKeyDown")(keydown("ArrowRight"));

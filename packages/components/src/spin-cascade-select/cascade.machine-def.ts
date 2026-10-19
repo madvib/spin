@@ -1,9 +1,9 @@
-import { cascade } from "./cascade.def.ts";
+import { cascade } from "./cascade.bindings.ts";
 import type {
   CascadeHighlightChange,
   CascadeOpenChange,
   CascadeValueChange,
-} from "./cascade.def.ts";
+} from "./cascade.bindings.ts";
 
 /**
  * The cascade-select's seam: the synthesized bridge, the element's

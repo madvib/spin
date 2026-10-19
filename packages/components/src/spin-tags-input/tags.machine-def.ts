@@ -1,4 +1,4 @@
-import { tagsInput } from "./tags.def.ts";
+import { tagsInput } from "./tags.bindings.ts";
 import type {
   TagsApi,
   TagsCommands,
@@ -8,7 +8,7 @@ import type {
   TagsTranslations,
   TagsValueChange,
   TagsValueInvalid,
-} from "./tags.def.ts";
+} from "./tags.bindings.ts";
 
 /**
  * The tags-input's seam: the synthesized bridge, the element's imperative

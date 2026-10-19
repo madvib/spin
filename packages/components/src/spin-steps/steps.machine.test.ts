@@ -1,10 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { steps } from "./steps.def.ts";
+import { steps } from "./steps.bindings.ts";
 const createStepsBridge = steps.createBridge;
-import type { StepsComplete } from "./steps.def.ts";
-import type { StepsApi } from "./steps.def.ts";
+import type { StepsComplete } from "./steps.bindings.ts";
+import type { StepsApi } from "./steps.bindings.ts";
 import type { StepsInvalid, StepsStepChange } from "./steps.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -138,12 +138,19 @@ Deno.test("non-linear trigger jumps to the step", () => {
   assertEquals(events.stepChange.length, 1);
 });
 
-Deno.test("authored step seeds the flow and a host write moves it", () => {
-  const { api, events, write } = mount({ step: 1 });
+Deno.test("authored step seeds the flow at mount", () => {
+  const { api, events } = mount({ step: 1 });
   assertEquals(api.value, 1);
   assertEquals(events.stepChange.length, 0);
+});
+
+Deno.test("a host write post-mount moves nothing without an event", () => {
+  const { api, events, write } = mount({ step: 1 });
   write("step", 2);
-  assertEquals(api.value, 2);
+  assertEquals(api.value, 1, "post-mount writes are inert; selection travels by event");
+  assertEquals(events.stepChange.length, 0);
+  api.setStep(2);
+  assertEquals(api.value, 2, "the command sends the event that moves it");
   assertEquals(events.stepChange.length, 1);
 });
 

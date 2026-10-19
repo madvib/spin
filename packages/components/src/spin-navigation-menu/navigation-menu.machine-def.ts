@@ -1,4 +1,4 @@
-import { navigationMenu } from "./navigation-menu.def.ts";
+import { navigationMenu } from "./navigation-menu.bindings.ts";
 import type { NavigationMenuValueChange } from "./navigation-menu.machine.ts";
 
 /**

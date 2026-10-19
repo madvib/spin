@@ -1,14 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { colorPicker } from "./color-picker.def.ts";
+import { colorPicker } from "./color-picker.bindings.ts";
 const createColorPickerBridge = colorPicker.createBridge;
 import type {
   ColorPickerFormatChange,
   ColorPickerOpenChange,
   ColorPickerValueChange,
-} from "./color-picker.def.ts";
-import type { ColorPickerApi } from "./color-picker.def.ts";
+} from "./color-picker.bindings.ts";
+import type { ColorPickerApi } from "./color-picker.bindings.ts";
 import type { ColorFormat } from "./color-picker.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

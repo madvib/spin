@@ -1,14 +1,20 @@
 import {
+  coerceJsonArray,
   defineComponent,
-  textProp,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
+  parsePath,
+  parsePaths,
+  startOpen,
   type CascadeContext,
   type CascadeEvent,
+  type CascadeInitial,
 } from "./cascade.machine.ts";
 
 /**
@@ -159,9 +165,10 @@ export const pathKey = (path: readonly string[]): string => path.join(SEP);
 /** Validate the host's tree: a row without a string value and label is
  *  dropped rather than poisoning the level stack. */
 const parseNode = (raw: unknown): CascadeNode | undefined => {
-  if (typeof raw !== "object" || raw === null) return undefined;
-  const value = Reflect.get(raw, "value");
-  const label = Reflect.get(raw, "label");
+  if (!isRecord(raw)) return undefined;
+  const bag: Record<string, unknown> = isRecord(raw) ? raw : {};
+  const value: unknown = bag["value"];
+  const label: unknown = bag["label"];
   if (typeof value !== "string" || value.length === 0) return undefined;
   const node: {
     value: string;
@@ -169,9 +176,9 @@ const parseNode = (raw: unknown): CascadeNode | undefined => {
     disabled?: boolean;
     children?: readonly CascadeNode[];
   } = { value, label: typeof label === "string" ? label : value };
-  const disabled = Reflect.get(raw, "disabled");
+  const disabled: unknown = isRecord(raw) ? raw["disabled"] : undefined;
   if (typeof disabled === "boolean") node.disabled = disabled;
-  const children = Reflect.get(raw, "children");
+  const children: unknown = isRecord(raw) ? raw["children"] : undefined;
   if (Array.isArray(children)) {
     node.children = children.flatMap((child) => {
       const parsed = parseNode(child);
@@ -204,38 +211,6 @@ export const parseCollection = (raw: unknown): readonly CascadeNode[] => {
 };
 
 const isString = (segment: unknown): segment is string => typeof segment === "string";
-
-/**
- * The value crosses the prop channel as JSON text: the grammar has no
- * nested array type, and a value path is `string[]`. A malformed path drops
- * its bad segments rather than poisoning the machine.
- */
-const parsePath = (raw: unknown): readonly string[] => {
-  if (Array.isArray(raw)) return raw.filter(isString);
-  if (typeof raw !== "string" || raw.length === 0) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed.filter(isString);
-  } catch {
-    return [];
-  }
-  return [];
-};
-
-/** A list of value paths: `[["Asia","India"],["Europe","France"]]`. */
-const parsePaths = (raw: unknown): readonly string[][] => {
-  if (Array.isArray(raw)) {
-    return raw.flatMap((path) => (Array.isArray(path) ? [path.filter(isString)] : []));
-  }
-  if (typeof raw !== "string" || raw.length === 0) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsePaths(parsed);
-  } catch {
-    return [];
-  }
-  return [];
-};
 
 /** The node a path leads to, or undefined when the path left the tree. */
 export const nodeAtPath = (
@@ -284,12 +259,46 @@ const samePath = (a: readonly string[], b: readonly string[]): boolean =>
 const samePaths = (a: readonly string[][], b: readonly string[][]): boolean =>
   a.length === b.length && a.every((path, i) => samePath(path, b[i] ?? []));
 
-type Ctx = CascadeContext;
+interface ScopeLike extends PartScope<unknown, CascadeContext> {}
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface SlotLike<R> extends SlotScope<R, CascadeContext> {}
 
-const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] =>
-  parsed["collection"] as readonly CascadeNode[];
+/** Transport guarantees the raw prop bag is a CascadeInitial-shaped object. */
+const isCascadeInitial = (raw: unknown): raw is CascadeInitial =>
+  raw !== null && typeof raw === "object";
+const isNode = (value: unknown): value is CascadeNode => {
+  if (!isRecord(value)) return false;
+  if (typeof value["value"] !== "string") return false;
+  const children: unknown = value["children"];
+  return children === undefined || Array.isArray(children);
+};
+
+/** The collection off the transport: the grammar coerces `= []` to
+ * `["[]"]`, and a host array passes through. Well-shaped only. */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const collectionCache = new WeakMap<object, readonly CascadeNode[]>();
+let jsonCollection: { readonly raw: string; readonly nodes: readonly CascadeNode[] } | undefined;
+
+/** The collection, memoized on the transport's identity: the parse shapes
+ * on every read, and the levels cache keys on the array — an unmemoized
+ * parse would defeat both the level and the handler identity. */
+const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] => {
+  const raw: unknown = parsed["collection"];
+  if (typeof raw === "object" && raw !== null) {
+    const hit = collectionCache.get(raw);
+    if (hit !== undefined) return hit;
+    const shaped = Array.isArray(raw) ? parseNodes(raw) : [];
+    collectionCache.set(raw, shaped);
+    return shaped;
+  }
+  if (typeof raw !== "string") return [];
+  if (jsonCollection !== undefined && jsonCollection.raw === raw) return jsonCollection.nodes;
+  const shaped = parseNodes(coerceJsonArray(raw, []));
+  jsonCollection = { raw, nodes: shaped };
+  return shaped;
+};
 
 /** Derive the visible levels: every node along the highlighted path
  *  contributes its children as the next level. Memoized on the collection
@@ -358,7 +367,7 @@ const itemByPath = (
 };
 
 const itemStateOf = (scope: ScopeLike, item: CascadeItem): CascadeItemState => {
-  const ctx = asCtx(scope.context);
+  const ctx = scope.context;
   const highlight = ctx.highlightedValue;
   const selected = ctx.value.some((path) => samePath(path, item.path));
   // Zag's `highlighted`: every segment of the item's path matches the
@@ -441,14 +450,14 @@ const highlightPath = (scope: ScopeLike, path: readonly string[]): void => {
 
 /** The rows of the level holding `path`: its parent's children. */
 const siblingsOf = (scope: ScopeLike, path: readonly string[]): readonly CascadeItem[] => {
-  const level = levelsOf(collectionOf(scope.props), asCtx(scope.context).highlightedValue)
+  const level = levelsOf(collectionOf(scope.props), scope.context.highlightedValue)
     .find((candidate) => samePath(candidate.path, path.slice(0, -1)));
   return level === undefined ? [] : level.items;
 };
 
 /** The first (or last) enabled row of the root level. */
 const rootEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undefined => {
-  const level = levelsOf(collectionOf(scope.props), asCtx(scope.context).highlightedValue)
+  const level = levelsOf(collectionOf(scope.props), scope.context.highlightedValue)
     .find((candidate) => candidate.depth === 0);
   const items = level === undefined ? [] : level.items;
   return edge === "first"
@@ -458,15 +467,15 @@ const rootEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undef
 
 /** The first (or last) enabled row of the level the highlight sits in. */
 const levelEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undefined => {
-  const items = siblingsOf(scope, asCtx(scope.context).highlightedValue);
+  const items = siblingsOf(scope, scope.context.highlightedValue);
   return edge === "first"
     ? items.find((item) => !item.disabled)
     : [...items].reverse().find((item) => !item.disabled);
 };
 
 const moveHighlight = (scope: ScopeLike, delta: number): void => {
-  const items = siblingsOf(scope, asCtx(scope.context).highlightedValue);
-  const at = items.findIndex((item) => samePath(item.path, asCtx(scope.context).highlightedValue));
+  const items = siblingsOf(scope, scope.context.highlightedValue);
+  const at = items.findIndex((item) => samePath(item.path, scope.context.highlightedValue));
   // Zag's `not(hasHighlightedValue)` branch: an edge is picked regardless of
   // loopFocus, because there is no current row to wrap from.
   if (at === -1) {
@@ -494,7 +503,7 @@ const moveHighlight = (scope: ScopeLike, delta: number): void => {
 
 /** Zag's `canNavigateToChild` + `highlightFirstChild`. */
 const enterChild = (scope: ScopeLike): void => {
-  const path = asCtx(scope.context).highlightedValue;
+  const path = scope.context.highlightedValue;
   const children = nodeAtPath(collectionOf(scope.props), path)?.children ?? [];
   if (path.length === 0 || children.length === 0) return;
   const child = children.find((node) => node.disabled !== true);
@@ -504,10 +513,9 @@ const enterChild = (scope: ScopeLike): void => {
 /** Zag's `canNavigateToParent` + `highlightParent`, closing at the root
  *  level with focus back on the trigger. */
 const leaveChild = (scope: ScopeLike): void => {
-  const path = asCtx(scope.context).highlightedValue;
+  const path = scope.context.highlightedValue;
   if (path.length <= 1) {
-    scope.send({ type: "CLOSE" });
-    focusPart(scope, "trigger");
+    scope.send({ type: "CLOSE", restoreFocus: true });
     return;
   }
   highlightPath(scope, path.slice(0, -1));
@@ -516,31 +524,48 @@ const leaveChild = (scope: ScopeLike): void => {
 /** Zag's `selectHighlightedItem`; a branch that may not be selected is
  *  inert, exactly as CONTENT.ENTER has no fallback for it. */
 const selectHighlighted = (scope: ScopeLike): void => {
-  const path = asCtx(scope.context).highlightedValue;
+  const path = scope.context.highlightedValue;
   const item = itemByPath(collectionOf(scope.props), path, path);
   if (item === undefined) return;
   if (scope.props["allowParentSelection"] !== true && item.hasChildren) return;
   scope.send({ type: "ITEM_CLICK", value: [...path], hasChildren: item.hasChildren });
 };
 
-const focusPart = (scope: ScopeLike, part: string): void => {
-  if (typeof document === "undefined") return;
-  document.getElementById(scope.id(part))?.focus();
-};
-
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 const isExcludedTarget = (scope: ScopeLike, target: EventTarget | null): boolean => {
-  if (!(target instanceof Element) || typeof document === "undefined") return false;
+  if (!(target instanceof Element)) return false;
+  const host = scope.root();
+  if (typeof host.querySelector !== "function") return false;
   for (const part of ["trigger", "clearTrigger"] as const) {
-    const node = document.getElementById(scope.id(part));
-    if (node !== null && node.contains(target)) return true;
+    const node = host.querySelector(`[id="${scope.id(part)}"]`);
+    if (node !== null && node instanceof Element && node.contains(target)) return true;
   }
   return false;
 };
 
 const focusableTarget = (target: unknown): boolean =>
   target instanceof Element && target.matches(FOCUSABLE);
+
+type HostEventFn = (event: PointerEvent | FocusEvent) => void;
+
+const isEventFn = (value: unknown): value is HostEventFn =>
+  typeof value === "function";
+
+type HostInteractFn = (details: CascadeOutsideDetails) => void;
+
+const isInteractFn = (value: unknown): value is HostInteractFn =>
+  typeof value === "function";
+
+const callInteract = (fn: unknown, details: CascadeOutsideDetails): void => {
+  if (!isInteractFn(fn)) return;
+  fn(details);
+};
+
+const callHost = (fn: unknown, event: PointerEvent | FocusEvent): void => {
+  if (!isEventFn(fn)) return;
+  fn(event);
+};
 
 const reportOutside = (
   scope: ScopeLike,
@@ -549,42 +574,27 @@ const reportOutside = (
   contextmenu: boolean,
 ): void => {
   const focusable = focusableTarget(event.target);
-  if (kind === "pointer") {
-    const fn = scope.props["onPointerDownOutside"];
-    if (typeof fn === "function") (fn as (event: PointerEvent) => void)(event as PointerEvent);
-  } else {
-    const fn = scope.props["onFocusOutside"];
-    if (typeof fn === "function") (fn as (event: FocusEvent) => void)(event as FocusEvent);
-  }
-  const interact = scope.props["onInteractOutside"];
-  if (typeof interact === "function") {
-    (interact as (details: CascadeOutsideDetails) => void)({
-      focusable,
-      contextmenu,
-      originalEvent: event,
-    });
-  }
+  if (kind === "pointer") callHost(scope.props["onPointerDownOutside"], event);
+  else callHost(scope.props["onFocusOutside"], event);
+  callInteract(scope.props["onInteractOutside"], { focusable, contextmenu, originalEvent: event });
 };
 
 const dismissSelf = (scope: ScopeLike, restoreFocus: boolean): void => {
-  scope.send({ type: "CLOSE", restoreFocus });
   // Zag's focusTriggerEl honors restoreFocusFn; the machine's `focused`
-  // target is the same decision, so the focus call follows it.
-  if (restoreFocus) focusPart(scope, "trigger");
+  // target is the same decision, so the settled reflex focuses from it.
+  scope.send({ type: "CLOSE", restoreFocus });
 };
 
 const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (event.defaultPrevented || !isInteractive(scope)) return;
-  const forward = scope.props["dir"] === "rtl" ? "ArrowLeft" : "ArrowRight";
-  const back = scope.props["dir"] === "rtl" ? "ArrowRight" : "ArrowLeft";
+  const forward = dirOf(scope.props) === "rtl" ? "ArrowLeft" : "ArrowRight";
+  const back = dirOf(scope.props) === "rtl" ? "ArrowRight" : "ArrowLeft";
   const openWithEdge = (end: "first" | "last"): void => {
     const target = rootEdge(scope, end);
     scope.send({ type: "TRIGGER_OPEN", highlight: target === undefined ? [] : [...target.path] });
-    focusPart(scope, "content");
   };
   const openPlain = (): void => {
     scope.send({ type: "TRIGGER_OPEN", highlight: [] });
-    focusPart(scope, "content");
   };
   switch (event.key) {
     case "ArrowUp":
@@ -612,8 +622,8 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (event.defaultPrevented || !isInteractive(scope)) return;
-  const forward = scope.props["dir"] === "rtl" ? "ArrowLeft" : "ArrowRight";
-  const back = scope.props["dir"] === "rtl" ? "ArrowRight" : "ArrowLeft";
+  const forward = dirOf(scope.props) === "rtl" ? "ArrowLeft" : "ArrowRight";
+  const back = dirOf(scope.props) === "rtl" ? "ArrowRight" : "ArrowLeft";
   switch (event.key) {
     case "Tab":
       // Zag's isValidTabEvent: the content is the only tabbable element
@@ -663,16 +673,97 @@ const onContentFocusOut = (scope: ScopeLike, event: FocusEvent): void => {
   dismissSelf(scope, false);
 };
 
-/** Zag's computed `valueAsString`: labels along each path, one selection
- *  per entry. */
-const valueAsString = (scope: ScopeLike): string => {
-  const chains = asCtx(scope.context).value.map((path) => itemsAlongPath(collectionOf(scope.props), path));
-  const custom = scope.props["formatValue"];
-  if (typeof custom === "function") return (custom as CascadeFormatValue)(chains);
-  if (scope.props["multiple"] === true) {
+/** The readout text: labels along each path, one selection per entry —
+ * shared by the bag, the methods and the event-free rows. */
+const textFor = (context: CascadeContext, props: Record<string, unknown>): string => {
+  const chains = context.value.map((path) => itemsAlongPath(collectionOf(props), path));
+  const custom: unknown = props["formatValue"];
+  if (typeof custom === "function") return formatWith(custom, chains);
+  if (props["multiple"] === true) {
     return chains.map((chain) => chain[chain.length - 1]?.label ?? "").join(", ");
   }
   return chains.map((chain) => chain.map((node) => node.label).join(" / ")).join(", ");
+};
+
+/** Zag's computed `valueAsString`: labels along each path, one selection
+ *  per entry. */
+const valueAsString = (scope: ScopeLike): string => textFor(scope.context, scope.props);
+
+/** A host readout formatter: functions cannot cross the scope channel, so
+ * the shape is checked at the call — anything else is the default text. */
+type HostFormatFn = (items: readonly (readonly CascadeNode[])[]) => unknown;
+
+const isFormatFn = (value: unknown): value is HostFormatFn =>
+  typeof value === "function";
+
+const formatWith = (custom: unknown, chains: readonly (readonly CascadeNode[])[]): string => {
+  if (!isFormatFn(custom)) return "";
+  const out: unknown = custom(chains);
+  return typeof out === "string" ? out : "";
+};
+
+type HostScrollFn = (details: CascadeScrollDetails) => void;
+
+const isScrollFn = (value: unknown): value is HostScrollFn =>
+  typeof value === "function";
+
+const callScroll = (custom: unknown, details: CascadeScrollDetails): void => {
+  if (!isScrollFn(custom)) return;
+  custom(details);
+};
+
+const dirOf = (props: Record<string, unknown>): "ltr" | "rtl" =>
+  props["dir"] === "rtl" ? "rtl" : "ltr";
+
+const placementOf = (props: Record<string, unknown>): string => {
+  const placement: unknown = props["placement"];
+  return typeof placement === "string" && placement.length > 0 ? placement : "bottom-start";
+};
+
+const placementSide = (props: Record<string, unknown>): string =>
+  placementOf(props).split("-")[0] ?? "bottom";
+
+const placementTop = (props: Record<string, unknown>): boolean =>
+  placementOf(props).startsWith("top");
+
+const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
+
+const levelOf = (arg: unknown): CascadeLevel => {
+  if (!isRecord(arg)) return { depth: 0, path: [], key: "root", items: [] };
+  const items: unknown = arg["items"];
+  const depth: unknown = arg["depth"];
+  const path: unknown = arg["path"];
+  return {
+    depth: typeof depth === "number" ? depth : 0,
+    path: Array.isArray(path) && path.every((p): p is string => typeof p === "string") ? path : [],
+    key: typeof arg["key"] === "string" ? arg["key"] : "root",
+    items: Array.isArray(items) ? items.filter(isCascadeItem) : [],
+  };
+};
+
+const isCascadeItem = (value: unknown): value is CascadeItem => {
+  if (!isRecord(value)) return false;
+  return typeof value["value"] === "string" && Array.isArray(value["path"]);
+};
+
+const itemOf = (arg: unknown): CascadeItem => {
+  if (isCascadeItem(arg)) {
+    const depth: unknown = arg["depth"];
+    const indexInLevel: unknown = arg["indexInLevel"];
+    const indexPath: unknown = arg["indexPath"];
+    return {
+      key: typeof arg["key"] === "string" ? arg["key"] : "",
+      path: arg["path"].filter((p): p is string => typeof p === "string"),
+      value: arg["value"],
+      label: typeof arg["label"] === "string" ? arg["label"] : "",
+      disabled: arg["disabled"] === true,
+      hasChildren: arg["hasChildren"] === true,
+      depth: typeof depth === "number" ? depth : 0,
+      indexInLevel: typeof indexInLevel === "number" ? indexInLevel : 0,
+      indexPath: Array.isArray(indexPath) && indexPath.every((n): n is number => typeof n === "number") ? indexPath : [],
+    };
+  }
+  return { key: "", path: [], value: "", label: "", disabled: false, hasChildren: false, depth: 0, indexInLevel: 0, indexPath: [] };
 };
 
 /** Zag's `scrollToIndexFn`: a host that scrolls its own content supplies the
@@ -682,7 +773,7 @@ const scrollParam = (
   scope: ScopeLike,
 ): { readonly activeId: () => string; readonly reveal?: () => void } => {
   const activeId = (): string => {
-    const highlighted = asCtx(scope.context).highlightedValue;
+    const highlighted = scope.context.highlightedValue;
     return highlighted.length === 0 ? "" : scope.id("item", pathKey(highlighted));
   };
   const custom = scope.props["scrollToIndexFn"];
@@ -690,13 +781,13 @@ const scrollParam = (
   return {
     activeId,
     reveal: (): void => {
-      const path = asCtx(scope.context).highlightedValue;
+      const path = scope.context.highlightedValue;
       const level = levelsOf(collectionOf(scope.props), path)
         .find((candidate) => samePath(candidate.path, path.slice(0, -1)));
       const at = level === undefined
         ? -1
         : level.items.findIndex((item) => samePath(item.path, path));
-      (custom as (details: CascadeScrollDetails) => void)({
+      callScroll(custom, {
         index: at < 0 ? 0 : at,
         immediate: true,
         depth: level === undefined ? 0 : level.depth,
@@ -709,91 +800,69 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
   name: "cascade",
   config,
   implementations,
-  start: (props, authored) => {
-    if (authored("open")) return (props["open"] as boolean) === true ? "open" : "idle";
-    return (props["defaultOpen"] as boolean) === true ? "open" : "idle";
+  // Focus follows the gesture: opening lands in the content, a restoring
+  // close and a clear land back on the trigger.
+  settled: ({ event, before, after, focus }) => {
+    if (after.state === "open" && before.state !== "open") focus("content");
+    if (event.type === "CLOSE" && event.restoreFocus === true) focus("trigger");
+    if (event.type === "CLEAR_TRIGGER_CLICK") focus("trigger");
   },
-  seed: (props, authored) => ({
-    closeOnSelect: props["closeOnSelect"] !== false,
-    allowParentSelection: props["allowParentSelection"] === true,
-    multiple: props["multiple"] === true,
-    loopFocus: props["loopFocus"] === true,
-    highlightTrigger: props["highlightTrigger"] === "hover" ? "hover" : "click",
-    value: parsePaths(authored("value") ? props["value"] : props["defaultValue"])
-      .map((path) => [...path]),
-    highlightedValue: [
-      ...parsePath(authored("highlightedValue") ? props["highlightedValue"] : props["defaultHighlightedValue"]),
-    ],
-  }),
-  channels: {
-    collection: { parse: parseCollection },
-    value: {
-      controlled: true,
-      parse: parsePaths,
-      event: (value: readonly string[][]) => ({ type: "VALUE_SET", value: value.map((path) => [...path]) }),
-      // The host's write alternates on its own: the machine holds no
-      // collection to validate a path against at sync time, so the value
-      // lands directly and the guards read it from context thereafter.
-      assign: true,
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        samePaths(current as string[][], outer as string[][]),
-    },
-    defaultValue: { parse: parsePaths },
-    highlightedValue: {
-      controlled: true,
-      parse: parsePath,
-      event: (value: readonly string[]) => ({ type: "HIGHLIGHTED_VALUE_SET", value: [...value] }),
-      assign: true,
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        samePath(current as string[], outer as string[]),
-    },
-    defaultHighlightedValue: { parse: parsePath },
-    open: {
-      controlled: true,
-      parse: (raw) => {
-        // The attribute text is the channel when present (a bare `open`
-        // opens, `"false"` closes); otherwise the coerced prop.
-        if (typeof raw !== "string") return raw === true;
-        if (raw.length === 0) return true;
-        return raw === "true";
-      },
-      event: (value: boolean) => ({ type: value ? "CONTROLLED_OPEN" : "CONTROLLED_CLOSE" }),
-      current: (_context, state) => state === "open",
-    },
-    defaultOpen: { parse: (raw) => raw === true },
-    closeOnSelect: { parse: (raw) => raw !== false },
-    allowParentSelection: { parse: (raw) => raw === true },
-    multiple: { parse: (raw) => raw === true },
-    loopFocus: { parse: (raw) => raw === true },
-    highlightTrigger: { parse: (raw) => (raw === "hover" ? "hover" : "click") },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    placement: {
-      parse: (raw) => (typeof raw === "string" && raw.length > 0 ? raw : "bottom-start"),
-    },
-    name: { parse: textProp },
-    form: { parse: textProp },
-    formatValue: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
-    scrollToIndexFn: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
-    onPointerDownOutside: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
-    onFocusOutside: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
-    onInteractOutside: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
+  start: (raw, _authored) => {
+    const props: CascadeInitial = isCascadeInitial(raw) ? raw : {};
+    return startOpen(props) ? "open" : "idle";
+  },
+  seed: (raw, _authored) => {
+    const props: CascadeInitial = isCascadeInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    return {
+      ...shaped,
+      value: [],
+      highlightedValue: [],
+      openSignal: false,
+    };
+  },
+  establish: (raw, authored) => {
+    const props: CascadeInitial = isCascadeInitial(raw) ? raw : {};
+    const valueRaw: unknown = authored("value") ? props.value : props.defaultValue;
+    const highlightRaw: unknown = authored("highlightedValue") ? props.highlightedValue : props.defaultHighlightedValue;
+    const value = parsePaths(typeof valueRaw === "string" || Array.isArray(valueRaw) ? valueRaw : null);
+    const highlighted = parsePath(typeof highlightRaw === "string" || Array.isArray(highlightRaw) ? highlightRaw : null);
+    const sends: ({ type: string } & Record<string, unknown>)[] = [];
+    if (value.length > 0) sends.push({ type: "VALUE_SET", value: value.map((path) => [...path]) });
+    if (highlighted.length > 0) sends.push({ type: "HIGHLIGHTED_VALUE_SET", value: [...highlighted] });
+    if (authored("open") && props.open === true) sends.push({ type: "CONTROLLED_OPEN" });
+    return sends;
+  },
+  scalarsOf: (parsed, authored) => {
+    // Authored channels alternate silently through the refresh merge —
+    // a send would report through the watch; a merge never does. Fresh
+    // arrays tick the bridge; the bag memos hold on unchanged contents.
+    const merge: Record<string, unknown> = {};
+    if (authored("value")) merge["value"] = parsePaths(parsed["value"]).map((path) => [...path]);
+    if (authored("highlightedValue")) merge["highlightedValue"] = [...parsePath(parsed["highlightedValue"])];
+    return merge;
+  },
+  reconcile: ({ parsed, authored, send, state }) => {
+    if (authored("open")) {
+      const outer = parsed["open"] === true;
+      const open = state === "open";
+      if (open !== outer) {
+        send(outer ? { type: "CONTROLLED_OPEN" } : { type: "CONTROLLED_CLOSE" });
+        return true;
+      }
+    }
+    return false;
   },
   scalars: ["closeOnSelect", "allowParentSelection", "multiple", "loopFocus", "highlightTrigger"],
   parts: {
     root: {
-      sig: (scope) => [scope.props["dir"], disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], scope.state].join(" "),
+      sig: (scope) => [dirOf(scope.props), disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], scope.state].join(" "),
       attrs: (scope) => ({
         // The bare namespace: the root part carries no suffix, so
         // owner-scoped lookups never collide with a part name.
         id: scope.id(""),
-        dir: scope.props["dir"],
-        "data-placement": scope.props["placement"],
+        dir: dirOf(scope.props),
+        "data-placement": placementOf(scope.props),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
         ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
@@ -801,16 +870,16 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     label: {
-      sig: (scope) => [scope.props["dir"], disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
+      sig: (scope) => [dirOf(scope.props), disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
-        dir: scope.props["dir"],
+        dir: dirOf(scope.props),
         htmlFor: scope.id("hiddenInput"),
         // Zag's label click focuses the trigger: the label's own target is
         // a hidden input, which cannot take focus.
         onClick: (event: MouseEvent): void => {
           if (event.defaultPrevented || !isInteractive(scope)) return;
-          focusPart(scope, "trigger");
+          scope.send({ type: "TRIGGER_FOCUS" });
         },
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
@@ -822,7 +891,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
-        dir: scope.props["dir"],
+        dir: dirOf(scope.props),
         "data-focus": scope.state === "focused" ? "" : undefined,
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
@@ -831,25 +900,24 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     trigger: {
-      sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], scope.props["placement"], asCtx(scope.context).value.length].join(" "),
+      sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], placementOf(scope.props), scope.context.value.length].join(" "),
       attrs: (scope) => ({
         id: scope.id("trigger"),
         type: "button",
         role: "combobox",
-        dir: scope.props["dir"],
+        dir: dirOf(scope.props),
         "aria-controls": scope.id("content"),
         "aria-expanded": scope.state === "open",
         "aria-haspopup": "listbox",
         "aria-labelledby": scope.id("label"),
-        "data-placement": scope.props["placement"],
-        "data-side": (scope.props["placement"] as string).split("-")[0] ?? "bottom",
-        "data-placeholder-shown": asCtx(scope.context).value.length === 0 ? "" : undefined,
+        "data-placement": placementOf(scope.props),
+        "data-side": placementSide(scope.props),
+        "data-placeholder-shown": scope.context.value.length === 0 ? "" : undefined,
         "data-focus": scope.state === "focused" ? "" : undefined,
         disabled: disabledOf(scope),
         onClick: (event: MouseEvent): void => {
           if (event.defaultPrevented || !isInteractive(scope)) return;
           scope.send({ type: "TRIGGER_CLICK" });
-          if (scope.state === "open") focusPart(scope, "content");
         },
         onFocus: (): void => scope.send({ type: "TRIGGER_FOCUS" }),
         onBlur: (): void => scope.send({ type: "TRIGGER_BLUR" }),
@@ -864,7 +932,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("indicator"),
-        dir: scope.props["dir"],
+        dir: dirOf(scope.props),
         "aria-hidden": true,
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
@@ -877,7 +945,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       sig: (scope) => [scope.state, disabledOf(scope), scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
-        dir: scope.props["dir"],
+        dir: dirOf(scope.props),
         "data-focus": scope.state === "focused" ? "" : undefined,
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
@@ -887,18 +955,17 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     clearTrigger: {
       id: "clear-trigger",
-      sig: (scope) => [asCtx(scope.context).value.length, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
+      sig: (scope) => [scope.context.value.length, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("clearTrigger"),
         type: "button",
-        dir: scope.props["dir"],
+        dir: dirOf(scope.props),
         "aria-label": "Clear value",
-        hidden: asCtx(scope.context).value.length === 0,
+        hidden: scope.context.value.length === 0,
         disabled: disabledOf(scope),
         onClick: (event: MouseEvent): void => {
           if (event.defaultPrevented) return;
           scope.send({ type: "CLEAR_TRIGGER_CLICK" });
-          focusPart(scope, "trigger");
         },
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
@@ -911,18 +978,16 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     // re-apply the var as the trigger moves or resizes.
     positioner: {
       sig: () => `${Date.now()}`,
-      attrs: (scope) => {
-        const rect = typeof document === "undefined"
-          ? undefined
-          : document.getElementById(scope.id("trigger"))?.getBoundingClientRect();
+      attrs: (scope: ScopeLike) => {
+        const rect = scope.measure("trigger");
         return {
           id: scope.id("positioner"),
-          dir: scope.props["dir"],
-          "data-placement": scope.props["placement"],
-          "data-side": (scope.props["placement"] as string).split("-")[0] ?? "bottom",
+          dir: dirOf(scope.props),
+          "data-placement": placementOf(scope.props),
+          "data-side": placementSide(scope.props),
           style: {
-            "--cascade-anchor-w": rect === undefined ? "100%" : `${rect.width}px`,
-            "--cascade-anchor-y": (scope.props["placement"] as string).startsWith("top")
+            "--cascade-anchor-w": rect === null ? "100%" : `${rect.width}px`,
+            "--cascade-anchor-y": placementTop(scope.props)
               ? "calc(-100% - 8px)"
               : "calc(100% + 8px)",
           },
@@ -935,7 +1000,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     content: {
       sig: (scope) => {
-        const highlighted = asCtx(scope.context).highlightedValue;
+        const highlighted = scope.context.highlightedValue;
         return [
           scope.state,
           highlighted.length,
@@ -948,11 +1013,11 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
         ].join(" ");
       },
       attrs: (scope) => {
-        const highlighted = asCtx(scope.context).highlightedValue;
+        const highlighted = scope.context.highlightedValue;
         return {
           id: scope.id("content"),
           role: "listbox",
-          dir: scope.props["dir"],
+          dir: dirOf(scope.props),
           "aria-labelledby": scope.id("label"),
           "aria-activedescendant": highlighted.length === 0
             ? undefined
@@ -960,9 +1025,9 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
           "data-activedescendant": highlighted.length === 0
             ? undefined
             : scope.id("item", pathKey(highlighted)),
-          "aria-multiselectable": scope.props["multiple"],
-          "aria-required": scope.props["required"],
-          "aria-readonly": scope.props["readOnly"],
+          "aria-multiselectable": scope.context.multiple,
+          "aria-required": scope.props["required"] === true,
+          "aria-readonly": scope.props["readOnly"] === true,
           hidden: scope.state !== "open",
           tabIndex: 0,
           onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
@@ -987,36 +1052,36 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => [hashValue(asCtx(scope.context).value), scope.props["name"], scope.props["form"]].join(" "),
-      attrs: (scope) => ({
+      sig: (scope: ScopeLike) => [hashValue(scope.context.value), propText(scope.props["name"]), propText(scope.props["form"])].join(" "),
+      attrs: (scope: ScopeLike) => ({
         id: scope.id("hiddenInput"),
-        ...((scope.props["name"] as string).length > 0 ? { name: scope.props["name"] } : {}),
-        ...((scope.props["form"] as string).length > 0 ? { form: scope.props["form"] } : {}),
+        ...(propText(scope.props["name"]).length > 0 ? { name: propText(scope.props["name"]) } : {}),
+        ...(propText(scope.props["form"]).length > 0 ? { form: propText(scope.props["form"]) } : {}),
         disabled: disabledOf(scope),
         required: scope.props["required"],
         readOnly: scope.props["readOnly"],
         hidden: true,
         "aria-hidden": true,
         "aria-labelledby": scope.id("label"),
-        value: hashValue(asCtx(scope.context).value),
+        value: hashValue(scope.context.value),
       }),
     },
   },
   slots: {
     list: {
       indexes: (_context, props) =>
-        levelsOf(collectionOf(props), (props["highlightedValue"] ?? []) as readonly string[]),
-      sig: (scope) => {
-        const level = scope.slot as unknown as CascadeLevel;
-        return `${level.depth} ${scope.props["dir"]}`;
+        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? [])),
+      sig: (scope: SlotLike<CascadeLevel>) => {
+        const level = scope.slot;
+        return `${level.depth} ${dirOf(scope.props)}`;
       },
-      attrs: (scope) => {
-        const level = scope.slot as unknown as CascadeLevel;
+      attrs: (scope: SlotLike<CascadeLevel>) => {
+        const level = scope.slot;
         return {
           // The list id is the parent's value path, comma-joined — the same
           // spelling the item's id uses, so a branch's aria-controls resolves.
           id: scope.id("list", level.path.join(",")),
-          dir: scope.props["dir"],
+          dir: dirOf(scope.props),
           role: "group",
           "data-depth": level.depth,
           "aria-level": level.depth,
@@ -1025,19 +1090,19 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     item: {
       indexes: (_context, props) =>
-        levelsOf(collectionOf(props), (props["highlightedValue"] ?? []) as readonly string[])
+        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
           .flatMap((level) => level.items),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as CascadeItem);
+      sig: (scope: SlotLike<CascadeItem>) => {
+        const state = itemStateOf(scope, scope.slot);
         return `${state.highlighted} ${state.selected} ${state.hasChildren}`;
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as CascadeItem;
+      attrs: (scope: SlotLike<CascadeItem>) => {
+        const item = scope.slot;
         const state = itemStateOf(scope, item);
         return {
           id: scope.id("item", pathKey(item.path)),
           role: "treeitem",
-          dir: scope.props["dir"],
+          dir: dirOf(scope.props),
           "aria-haspopup": item.hasChildren ? "menu" : undefined,
           "aria-expanded": item.hasChildren ? state.highlighted : false,
           "aria-controls": item.hasChildren ? scope.id("list", pathKey(item.path)) : undefined,
@@ -1057,17 +1122,17 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     itemText: {
       indexes: (_context, props) =>
-        levelsOf(collectionOf(props), (props["highlightedValue"] ?? []) as readonly string[])
+        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
           .flatMap((level) => level.items),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as CascadeItem);
+      sig: (scope: SlotLike<CascadeItem>) => {
+        const state = itemStateOf(scope, scope.slot);
         return `${state.highlighted} ${state.selected} ${state.disabled}`;
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as CascadeItem;
+      attrs: (scope: SlotLike<CascadeItem>) => {
+        const item = scope.slot;
         const state = itemStateOf(scope, item);
         return {
-          dir: scope.props["dir"],
+          dir: dirOf(scope.props),
           "data-value": item.value,
           "data-highlighted": state.highlighted ? "" : undefined,
           "data-state": state.selected ? "checked" : "unchecked",
@@ -1077,14 +1142,14 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     itemIndicator: {
       indexes: (_context, props) =>
-        levelsOf(collectionOf(props), (props["highlightedValue"] ?? []) as readonly string[])
+        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
           .flatMap((level) => level.items),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as CascadeItem);
+      sig: (scope: SlotLike<CascadeItem>) => {
+        const state = itemStateOf(scope, scope.slot);
         return `${state.selected} ${state.highlighted} ${state.hasChildren}`;
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as CascadeItem;
+      attrs: (scope: SlotLike<CascadeItem>) => {
+        const item = scope.slot;
         const state = itemStateOf(scope, item);
         return {
           "aria-hidden": true,
@@ -1100,65 +1165,64 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
   commands: {
     focus: { view: ({ focus }) => focus("trigger") },
     setOpen: {
-      event: (args, context) => {
-        void context;
-        return { type: (args[0] as boolean) ? "OPEN" : "CLOSE" };
-      },
+      event: (args) => ({ type: args[0] === true ? "OPEN" : "CLOSE" }),
     },
     setHighlightValue: {
-      event: (args) => ({ type: "HIGHLIGHTED_VALUE_SET", value: [...(args[0] as readonly string[])] }),
+      event: (args) => ({ type: "HIGHLIGHTED_VALUE_SET", value: [...parsePath(args[0])] }),
     },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE_CLEAR" }) },
     setValue: {
       event: (args) => ({
         type: "VALUE_SET",
-        value: (args[0] as readonly string[][]).map((path) => [...path]),
+        value: parsePaths(args[0]).map((path) => [...path]),
       }),
     },
     selectValue: {
-      event: (args, context) => ({
-        type: "ITEM_SELECT",
-        value: [...(args[0] as readonly string[])],
-        hasChildren: (context as unknown as Ctx).value.some((path) =>
-          samePath(path, args[0] as readonly string[])),
-      }),
+      event: (args, context: CascadeContext) => {
+        const value = [...parsePath(args[0])];
+        return {
+          type: "ITEM_SELECT",
+          value,
+          hasChildren: context.value.some((path) => samePath(path, value)),
+        };
+      },
     },
     clearValue: {
       event: (args) => args[0] === undefined
         ? ({ type: "VALUE_CLEAR" })
-        : ({ type: "ITEM_CLEAR", value: [...(args[0] as readonly string[])] }),
+        : ({ type: "ITEM_CLEAR", value: [...parsePath(args[0])] }),
     },
   },
   readers: {
     open: { read: (_context, state) => state === "open" },
     focused: { read: (_context, state) => state === "focused" },
-    multiple: { read: (_context, _state, props) => (props["multiple"] as boolean) === true },
+    multiple: { read: (_context, _state, props) => props["multiple"] === true },
     disabled: {
       read: (_context, _state, props, root) =>
-        (props["disabled"] as boolean) === true || (root !== undefined && fieldsetDisabled(root)),
+        props["disabled"] === true || (root !== undefined && fieldsetDisabled(root)),
     },
-    value: { read: (context) => asCtx(context).value.map((path) => [...path]) },
-    highlightedValue: { read: (context) => [...asCtx(context).highlightedValue] },
-    hasSelectedItems: { read: (context) => asCtx(context).value.length > 0 },
-    empty: { read: (context) => asCtx(context).value.length === 0 },
+    value: { read: (context) => context.value.map((path) => [...path]) },
+    highlightedValue: { read: (context) => [...context.highlightedValue] },
+    hasSelectedItems: { read: (context) => context.value.length > 0 },
+    empty: { read: (context) => context.value.length === 0 },
     levels: {
       read: (context, _state, props) =>
-        levelsOf(collectionOf(props), asCtx(context).highlightedValue),
+        levelsOf(collectionOf(props), context.highlightedValue),
     },
   },
   methods: {
     getLevels: {
       call: (context, _state, _args, props) =>
-        levelsOf(collectionOf(props), asCtx(context).highlightedValue),
+        levelsOf(collectionOf(props), context.highlightedValue),
     },
     getItems: {
-      call: (_context, _state, args) => (args[0] as CascadeLevel).items,
+      call: (_context, _state, args) => levelOf(args[0]).items,
     },
     getItemState: {
-      call: (context, _state, args, props) => {
-        const item = args[0] as CascadeItem;
-        const highlight = (context as unknown as Ctx).highlightedValue;
-        const selected = (context as unknown as Ctx).value.some((path) => samePath(path, item.path));
+      call: (context: CascadeContext, _state, args, props) => {
+        const item = itemOf(args[0]);
+        const highlight = context.highlightedValue;
+        const selected = context.value.some((path) => samePath(path, item.path));
         const highlighted = item.path.every((segment, index) => segment === highlight[index]);
         const children = nodeAtPath(collectionOf(props), item.path)?.children ?? [];
         const childSegment = highlighted ? highlight[item.depth + 1] : undefined;
@@ -1178,61 +1242,40 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       },
     },
     getValueText: {
-      call: (context, _state, _args, props) => {
-        const ctx = context as unknown as Ctx;
-        const chains = ctx.value.map((path) => itemsAlongPath(collectionOf(props), path));
-        const custom = props["formatValue"];
-        if (typeof custom === "function") return (custom as CascadeFormatValue)(chains);
-        if ((props["multiple"] as boolean) === true) {
-          return chains.map((chain) => chain[chain.length - 1]?.label ?? "").join(", ");
-        }
-        return chains.map((chain) => chain.map((node) => node.label).join(" / ")).join(", ");
-      },
+      call: (context: CascadeContext, _state, _args, props) => textFor(context, props),
     },
     getValueTextRows: {
-      call: (context, _state, _args, props) => {
-        const ctx = context as unknown as Ctx;
-        const chains = ctx.value.map((path) => itemsAlongPath(collectionOf(props), path));
-        const custom = props["formatValue"];
-        let text: string;
-        if (typeof custom === "function") text = (custom as CascadeFormatValue)(chains);
-        else if ((props["multiple"] as boolean) === true) {
-          text = chains.map((chain) => chain[chain.length - 1]?.label ?? "").join(", ");
-        } else {
-          text = chains.map((chain) => chain.map((node) => node.label).join(" / ")).join(", ");
-        }
-        return [{ value: text }];
-      },
+      call: (context: CascadeContext, _state, _args, props) => [{ value: textFor(context, props) }],
     },
   },
   events: {
     "open-change": {
       prop: "onOpenChange",
       watch: (_context, state) => [state === "open"],
-      detail: (watched, _event, _props, context) => ({
-        open: watched[0] as boolean,
-        value: [...((context as Record<string, unknown> | undefined)?.["value"] as string[][] ?? [])],
+      detail: (watched, _event, _props, context: CascadeContext) => ({
+        open: watched[0] === true,
+        value: context.value.map((path) => [...path]),
       }),
     },
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => (asCtx(context).value as readonly string[][]).map((path) => pathKey(path)),
-      detail: (watched, _event, props) => {
-        const collection = collectionOf(props as Record<string, unknown>);
-        const value = (watched as string[]).map((key) => key.split(pathKey([])));
-        void value;
+      watch: (context: CascadeContext) => context.value.map((path) => pathKey(path)),
+      detail: (watched: readonly unknown[], _event, props) => {
+        const keys = watched.filter((key): key is string => typeof key === "string");
+        const collection = collectionOf(props ?? {});
         return {
-          value: (watched as string[]).map((key) => key.split(SEP)),
-          items: (watched as string[]).map((key) => itemsAlongPath(collection, key.split(SEP))),
+          value: keys.map((key) => key.split(SEP)),
+          items: keys.map((key) => itemsAlongPath(collection, key.split(SEP))),
         };
       },
     },
     "highlight-change": {
       prop: "onHighlightChange",
-      watch: (context) => [pathKey(asCtx(context).highlightedValue)],
-      detail: (watched, _event, props) => {
-        const path = (watched[0] as string).length === 0 ? [] : (watched[0] as string).split(SEP);
-        const collection = collectionOf(props as Record<string, unknown>);
+      watch: (context: CascadeContext) => [pathKey(context.highlightedValue)],
+      detail: (watched: readonly unknown[], _event, props) => {
+        const key = watched[0];
+        const path = typeof key === "string" && key.length > 0 ? key.split(SEP) : [];
+        const collection = collectionOf(props ?? {});
         return {
           highlightedValue: [...path],
           highlightedItems: itemsAlongPath(collection, path),

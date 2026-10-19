@@ -15,6 +15,8 @@
  * dismissal at the last step means (a completion rather than a bail).
  */
 
+import { coerceJsonArray } from "@spin/runtime";
+
 export interface TourStepRecord {
   readonly id: string;
   /** The selector the spotlight points at; the connect resolves it. */
@@ -41,6 +43,66 @@ export interface TourDismissChange {
   /** Why the tour stopped: the last step completed, or the host bailed. */
   readonly reason: "complete" | "dismiss" | "skip" | "not-found";
   readonly step: number;
+}
+
+export interface TourInitial {
+  readonly steps?: unknown;
+  readonly defaultSteps?: unknown;
+  readonly step?: unknown;
+}
+
+/** A step entry: id names it, the rest is optional text. Malformed
+ * entries drop; anything else is no steps. */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const parseJsonList = (raw: unknown): readonly unknown[] => {
+  if (typeof raw !== "string" || raw.length === 0) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+/** The step collection off any transport: well-shaped entries only. The
+ * scope grammar coerces `= []` to `["[]"]`, so JSON text parses too. */
+export function stepsOf(raw: unknown): TourStepRecord[] {
+  const list: readonly unknown[] = Array.isArray(raw) ? raw : parseJsonList(raw);
+  const steps: TourStepRecord[] = [];
+  for (const entry of list) {
+    if (!isRecord(entry)) continue;
+    const id: unknown = entry["id"];
+    if (typeof id !== "string") continue;
+    const target: unknown = entry["target"];
+    const title: unknown = entry["title"];
+    const description: unknown = entry["description"];
+    steps.push({
+      id,
+      target: typeof target === "string" ? target : "",
+      title: typeof title === "string" ? title : "",
+      description: typeof description === "string" ? description : "",
+    });
+  }
+  return steps;
+}
+
+/** Seed shaping: the steps win over their default; a legal index wins,
+ * else the tour starts unrunnning (-1). */
+export function initial(raw: TourInitial): Pick<TourContext, "steps" | "step" | "previousStep"> {
+  const steps = stepsOf(raw.steps).length > 0 ? stepsOf(raw.steps) : stepsOf(raw.defaultSteps);
+  const at: unknown = raw.step;
+  return {
+    steps,
+    step: typeof at === "number" && Number.isInteger(at) && at >= 0 && at < steps.length ? at : -1,
+    previousStep: -1,
+  };
+}
+
+/** A seeded step off the host: a legal index, or -1 for unrunnning. */
+export function stepOf(raw: unknown, count: number): number {
+  return typeof raw === "number" && Number.isInteger(raw) && raw >= 0 && raw < count ? raw : -1;
 }
 
 export type TourEvent =

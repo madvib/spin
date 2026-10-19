@@ -1,5 +1,5 @@
-import { floatingPanel } from "./floating-panel.def.ts";
-import type { FloatingPanelSize, FloatingPanelStage } from "./floating-panel.def.ts";
+import { floatingPanel } from "./floating-panel.bindings.ts";
+import type { FloatingPanelSize, FloatingPanelStage } from "./floating-panel.bindings.ts";
 
 /**
  * The floating-panel's seam: the synthesized bridge, the element's

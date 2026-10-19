@@ -66,6 +66,74 @@ export interface FloatingPanelPositionChange {
   readonly position: { readonly x: number; readonly y: number };
 }
 
+export interface FloatingPanelInitial {
+  readonly open?: unknown;
+  readonly defaultOpen?: unknown;
+  readonly size?: unknown;
+  readonly defaultSize?: unknown;
+  readonly minSize?: unknown;
+  readonly defaultMinSize?: unknown;
+  readonly maxSize?: unknown;
+  readonly defaultMaxSize?: unknown;
+  readonly stage?: unknown;
+  readonly defaultStage?: unknown;
+  readonly draggable?: unknown;
+  readonly resizable?: unknown;
+  readonly closeOnEscape?: unknown;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** A size off the transport: `{ w, h }` numbers, or JSON text. Well-shaped
+ * only; anything else is absent. Named once; transport owns the grammar. */
+export function sizeOf(raw: unknown): FloatingPanelSize | null {
+  const shape = (value: unknown): FloatingPanelSize | null => {
+    if (!isRecord(value)) return null;
+    const w: unknown = value["w"];
+    const h: unknown = value["h"];
+    return typeof w === "number" && typeof h === "number" ? { w, h } : null;
+  };
+  if (typeof raw === "string") {
+    if (raw.length === 0) return null;
+    try {
+      return shape(JSON.parse(raw));
+    } catch {
+      return null;
+    }
+  }
+  return shape(raw);
+}
+
+const DEFAULT_SIZE: FloatingPanelSize = { w: 360, h: 240 };
+const DEFAULT_MIN: FloatingPanelSize = { w: 120, h: 80 };
+const DEFAULT_MAX: FloatingPanelSize = { w: 1024, h: 768 };
+
+/** Seed shaping: sizes fall back to their defaults, then the built-ins. */
+export function initial(raw: FloatingPanelInitial): Pick<FloatingPanelContext, "size" | "minSize" | "maxSize" | "draggable" | "resizable" | "closeOnEscape"> {
+  const pick = (name: "size" | "minSize" | "maxSize", fallback: FloatingPanelSize): FloatingPanelSize =>
+    sizeOf(raw[name]) ?? sizeOf(name === "size" ? raw.defaultSize : name === "minSize" ? raw.defaultMinSize : raw.defaultMaxSize) ?? fallback;
+  return {
+    size: pick("size", DEFAULT_SIZE),
+    minSize: pick("minSize", DEFAULT_MIN),
+    maxSize: pick("maxSize", DEFAULT_MAX),
+    draggable: raw.draggable !== false,
+    resizable: raw.resizable !== false,
+    closeOnEscape: raw.closeOnEscape !== false,
+  };
+}
+
+/** The seeded open state: an authored open wins, else its default. */
+export function startOpen(raw: FloatingPanelInitial): boolean {
+  return raw.open === true || (raw.open === undefined && raw.defaultOpen === true);
+}
+
+/** The seeded stage: a staged default opens staged, else restored. */
+export function startStage(raw: FloatingPanelInitial): FloatingPanelStage {
+  const stage: unknown = raw.stage ?? raw.defaultStage;
+  return stage === "minimized" || stage === "maximized" ? stage : "restored";
+}
+
 export interface FloatingPanelStageChange {
   readonly stage: FloatingPanelStage;
 }

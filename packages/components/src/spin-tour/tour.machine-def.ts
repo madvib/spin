@@ -1,5 +1,5 @@
-import { tour } from "./tour.def.ts";
-import type { TourDismissChange, TourStepChange, TourStepRecord } from "./tour.def.ts";
+import { tour } from "./tour.bindings.ts";
+import type { TourDismissChange, TourStepChange, TourStepRecord } from "./tour.bindings.ts";
 
 /**
  * The tour's seam: the synthesized bridge, the element's imperative

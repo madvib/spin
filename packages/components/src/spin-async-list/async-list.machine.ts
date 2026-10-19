@@ -25,6 +25,42 @@ export interface SortDescriptor {
   readonly direction: "ascending" | "descending";
 }
 
+export interface AsyncListInitial {
+  readonly initialItems?: unknown;
+  readonly initialFilterText?: unknown;
+  readonly initialSortDescriptor?: unknown;
+  readonly sortFn?: unknown;
+}
+
+export const isSortDescriptor = (value: unknown): value is SortDescriptor => {
+  if (typeof value !== "object" || value === null) return false;
+  const column: unknown = Reflect.get(value, "column");
+  const direction: unknown = Reflect.get(value, "direction");
+  return typeof column === "string" &&
+    (direction === "ascending" || direction === "descending");
+};
+
+/** An array off the prop channel: property writes land verbatim, and the
+ * grammar's `string[]` coerces a `= []` default to `["[]"]` — the lone
+ * artifact entry drops, once, for every reader. */
+export function itemsOf(raw: unknown): readonly unknown[] {
+  if (!Array.isArray(raw)) return [];
+  if (raw.length === 1 && raw[0] === "[]") return [];
+  return [...raw];
+}
+
+/** Seed shaping: the static seed lands at service creation, not through
+ * a transition — a static list renders, sorts, and filters client-side. */
+export function initial(raw: AsyncListInitial): Pick<AsyncListContext, "items" | "filterText" | "sortDescriptor" | "hasSortFn"> {
+  const filter: unknown = raw.initialFilterText;
+  return {
+    items: itemsOf(raw.initialItems),
+    filterText: typeof filter === "string" ? filter : "",
+    sortDescriptor: isSortDescriptor(raw.initialSortDescriptor) ? raw.initialSortDescriptor : null,
+    hasSortFn: typeof raw.sortFn === "function",
+  };
+}
+
 export interface AsyncListContext {
   /** The loaded items. Host data: the machine never looks inside. */
   items: readonly unknown[];
@@ -36,6 +72,8 @@ export interface AsyncListContext {
   error: unknown;
   /** The host authored a `sort` function — the guard's only input. */
   hasSortFn: boolean;
+  /** The dependency hash the watcher captured; undefined until mounted. */
+  dependenciesHash: string | undefined;
 }
 
 export type AsyncListEvent =
@@ -57,6 +95,7 @@ export const config = {
     sortDescriptor: null as SortDescriptor | null,
     error: undefined as unknown,
     hasSortFn: false,
+    dependenciesHash: undefined as string | undefined,
   },
   // Zag's root tier. A reload is valid from anywhere: `sorting` shadows it to
   // cancel the in-flight sort on the way, which is what its extra work is.

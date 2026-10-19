@@ -1,5 +1,5 @@
-import { dateInput } from "./date-input.def.ts";
-import type { DateInputValueChange, DateValue } from "./date-input.def.ts";
+import { dateInput } from "./date-input.bindings.ts";
+import type { DateInputValueChange, DateValue } from "./date-input.bindings.ts";
 
 /**
  * The date-input's seam: the synthesized bridge, the element's

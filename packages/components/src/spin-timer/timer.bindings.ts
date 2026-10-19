@@ -11,6 +11,8 @@ import {
   implementations,
   initial,
   msToTime,
+  parseMs,
+  validateTimer,
   type Time,
   type TimePart,
   type TimerContext,
@@ -19,26 +21,36 @@ import {
 } from "./timer.machine.ts";
 
 /**
- * Timer bindings: the DOM contract as data. The machine owns the phase
- * (idle/running/paused) and the count; this file maps transport inputs to
- * seed, parts to attribute bags, commands to sends, and tick/complete
+ * Timer definition: the DOM contract as data. The machine owns the phase
+ * (idle/running/paused) and the count; this file maps props to channels,
+ * parts to attribute bags, commands to sends, and tick/complete
  * transitions to their events.
  *
- * No channels: the transport's prop grammar owns coercion. No parsing
- * helpers, no DOM access, no CSS vars — progress and digit values are
- * literal bag styles computed from context, not custom properties.
+ * The clock is NOT here. A `use:autoplay` action on the root owns the
+ * interval and reports `onTick`; the bag's handler measures the span since
+ * the last send (the def's `settled` captures the epoch per bridge) and
+ * the machine decides what the tick is worth. `startMs` restarts the run
+ * on change (Zag's `watch`); an authored `currentMs` alternates the count.
  */
 
+/** One row of the display: the unit, its caption, and whether a separator
+ * follows it. `getUnits` is the recipe's row source, the way a listbox's
+ * `getBlocks` is. */
 export interface TimerUnit {
   readonly type: TimePart;
   readonly label: string;
   readonly last: boolean;
 }
 
+/** An item part, as Zag types it: the unit the part renders. */
 export interface TimerItem {
   readonly type: TimePart;
 }
 
+/** A separator part, addressed by the unit it follows so a hidden unit
+ * leaves no dangling separator behind it. `last` hides the trailing
+ * separator — `show=` on a second row root misplaces (framework bug), so
+ * the bag owns it. */
 export interface TimerSeparator {
   readonly after: TimePart;
   readonly last?: boolean | undefined;
@@ -79,10 +91,12 @@ export interface TimerApi {
 }
 
 interface ScopeLike extends PartScope<unknown, TimerContext> {}
+
 interface SlotLike<R> extends SlotScope<R, TimerContext> {}
 
-type Ctx = TimerContext;
-
+/** Transport guarantees the raw prop bag is a TimerInitial-shaped object. */
+const isTimerInitial = (raw: unknown): raw is TimerInitial =>
+  raw !== null && typeof raw === "object";
 const timeOf = (context: TimerContext): Time => msToTime(context.currentMs);
 
 /** The run's progress as a fraction: a countdown runs from full to empty,
@@ -109,6 +123,33 @@ const UNIT_LABELS: Readonly<Record<TimePart, string>> = {
   minutes: "min",
   seconds: "sec",
   milliseconds: "ms",
+};
+
+/** A separator's unit: the row carries `after`, defaulting to seconds. */
+const separatorAfter = (slot: unknown): TimePart => {
+  if (!isRecord(slot)) return "seconds";
+  const after: unknown = slot["after"];
+  return after === "days" || after === "hours" || after === "minutes" || after === "seconds" || after === "milliseconds" ? after : "seconds";
+};
+
+const isLast = (slot: unknown): boolean =>
+  isRecord(slot) && slot["last"] === true;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** An action trigger's action: the five valid verbs, defaulting to start. */
+const isAction = (value: unknown): value is TimerActionTrigger["action"] =>
+  typeof value === "string" && (VALID_ACTIONS as Record<string, unknown>)[value] === true;
+
+/** An action trigger's action: the five valid verbs. Anything else is a
+ * host bug, refused loudly at the call — never a silent default. */
+const actionOf = (slot: unknown): TimerActionTrigger["action"] => {
+  const action: unknown = isRecord(slot) ? slot["action"] : undefined;
+  if (isAction(action)) return action;
+  throw new Error(
+    `[timer] Invalid action: ${typeof action === "string" ? action : ""}. Must be one of: ${Object.keys(VALID_ACTIONS).join(", ")}`,
+  );
 };
 
 /** Canonical rows: the `for` iterates these identities, and a countdown
@@ -151,8 +192,15 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
   name: "timer",
   config,
   implementations,
-  start: (props) => (props["autoStart"] === true ? "running" : "idle"),
-  seed: (raw) => ({ ...initial(raw) }),
+  start: (raw, _authored) => {
+    const props: TimerInitial = isTimerInitial(raw) ? raw : {};
+    return props.autoStart === true ? "running" : "idle";
+  },
+  seed: (raw, _authored) => {
+    const props: TimerInitial = isTimerInitial(raw) ? raw : {};
+    return { ...initial(props) };
+  },
+
   // The clock's epoch is the service's birth: an `autoStart` run's first
   // tick is measured from here, since no START send precedes it.
   // `settled` re-captures it after every transmit.
@@ -162,10 +210,44 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
   settled: ({ root }) => {
     epochByRoot.set(root(), Date.now());
   },
+  scalarsOf: (parsed) => {
+    const interval = parsed["interval"];
+    return {
+      targetMs: (() => {
+        const target: unknown = parsed["targetMs"];
+        return typeof target === "number" ? target : null;
+      })(),
+      countdown: parsed["countdown"] === true,
+      // A mid-life write of zero or less is not worth a throw inside an
+      // effect: the clock simply runs at its fastest.
+      interval: typeof interval === "number" && interval > 0 ? Math.trunc(interval) : 1000,
+    };
+  },
+  reconcile: ({ context, parsed, authored, send }) => {
+    const ctx = context;
+    // A new startMs is a new run: Zag restarts on the change. `startMs`
+    // stays out of the scalar merge so the change is still visible here —
+    // the merge would assign it first and mask the restart.
+    const parsedStart = parseMs(parsed["startMs"]);
+    const startMs = parsedStart ?? 0;
+    if (ctx.startMs !== startMs) {
+      ctx.startMs = startMs;
+      send({ type: "RESTART" });
+      return true;
+    }
+    if (authored("currentMs")) {
+      const outer = parseMs(parsed["currentMs"]);
+      if (outer !== undefined && ctx.currentMs !== outer) {
+        send({ type: "CURRENT_MS.SET", currentMs: outer });
+        return true;
+      }
+    }
+    return false;
+  },
   parts: {
     root: {
       sig: (scope) => [scope.state, scope.context.interval].join(" "),
-      attrs: (scope: ScopeLike) => ({
+      attrs: (scope) => ({
         id: scope.id("root"),
         "data-scope": "timer",
         "data-part": "root",
@@ -185,7 +267,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     },
     area: {
       sig: (scope) => [scope.state, scope.context.currentMs].join(" "),
-      attrs: (scope: ScopeLike) => {
+      attrs: (scope) => {
         const t = timeOf(scope.context);
         const f = formatTime(t);
         return {
@@ -197,15 +279,14 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
           "aria-atomic": true,
           "data-state": scope.state,
-          // Continuous progress as a literal style: the bag's own render
-          // output from context math, not a cross-boundary message.
-          style: { width: `${(progressOf(scope.context) * 100).toFixed(3)}%` },
+          // Continuous, so it is data for the recipe's bar, not a style.
+          style: { "--timer-progress": `${(progressOf(scope.context) * 100).toFixed(3)}%` },
         };
       },
     },
     control: {
       sig: (scope) => [scope.state].join(" "),
-      attrs: (scope: ScopeLike) => ({
+      attrs: (scope) => ({
         id: scope.id("control"),
         "data-scope": "timer",
         "data-part": "control",
@@ -217,11 +298,11 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     item: {
       indexes: (context) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerItem>) => {
-        const unit = scope.slot.type;
-        return [scope.state, timeOf(scope.context)[unit]].join(" ");
+      sig: (scope: SlotLike<TimerUnit>) => {
+        const unit = scope.slot;
+        return [scope.state, timeOf(scope.context)[unit.type]].join(" ");
       },
-      attrs: (scope: SlotLike<TimerItem>) => {
+      attrs: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         const value = timeOf(scope.context)[unit];
         return {
@@ -241,11 +322,11 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       id: "item-value",
       indexes: (context) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerItem>) => {
+      sig: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         return [scope.state, formatTime(timeOf(scope.context))[unit]].join(" ");
       },
-      attrs: (scope: SlotLike<TimerItem>) => {
+      attrs: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         return {
           id: scope.id("itemValue", unit),
@@ -260,8 +341,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       id: "item-label",
       indexes: (context) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerItem>) => `${scope.slot.type}`,
-      attrs: (scope: SlotLike<TimerItem>) => {
+      sig: (scope: SlotLike<TimerUnit>) => `${scope.slot.type}`,
+      attrs: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         return {
           id: scope.id("itemLabel", unit),
@@ -273,21 +354,23 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       },
     },
     separator: {
-      indexes: (context) =>
+      indexes: (context: TimerContext) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
       sig: (scope: SlotLike<TimerSeparator>) => {
-        const after = scope.slot.after;
+        const after = separatorAfter(scope.slot);
         return `${after === "days" && timeOf(scope.context).days === 0}`;
       },
       attrs: (scope: SlotLike<TimerSeparator>) => {
         const slot = scope.slot;
-        const followsHiddenDays = slot.after === "days" && timeOf(scope.context).days === 0;
+        const after = separatorAfter(scope.slot);
+        const unit = separatorAfter(slot);
+        const followsHiddenDays = unit === "days" && timeOf(scope.context).days === 0;
         return {
           "aria-hidden": true,
           "data-scope": "timer",
           "data-part": "separator",
-          "data-after": slot.after,
-          hidden: followsHiddenDays || slot.last === true,
+          "data-after": unit,
+          hidden: followsHiddenDays || isLast(slot),
         };
       },
     },
@@ -295,11 +378,11 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       id: "action-trigger",
       indexes: () => ACTIONS,
       sig: (scope: SlotLike<TimerActionTrigger>) => {
-        const action = scope.slot.action;
+        const action = actionOf(scope.slot);
         return [scope.state, action].join(" ");
       },
       attrs: (scope: SlotLike<TimerActionTrigger>) => {
-        const action = scope.slot.action;
+        const action = actionOf(scope.slot);
         if (VALID_ACTIONS[action] !== true) {
           throw new Error(
             `[timer] Invalid action: ${action}. Must be one of: ${Object.keys(VALID_ACTIONS).join(", ")}`,
@@ -370,15 +453,17 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     tick: {
       prop: "onTick",
       watch: () => [],
-      detail: (watched: readonly unknown[]) => ({ value: watched[0] }),
+      detail: (watched: readonly unknown[]) => {
+        const value = watched[0];
+        return { value: typeof value === "number" ? value : 0 };
+      },
       // A tick only counts while running — a stray one on a paused or
       // finished clock is not Zag's `invokeOnTick`, which sits on the
       // running TICK transition.
-      select: (event, _before, after, states) => {
+      select: (event, _before, after: TimerContext, states) => {
         if (event.type !== "TICK" || states?.was !== "running") return null;
-        const currentMs = after.currentMs;
-        const time = msToTime(currentMs);
-        return { value: currentMs, time, formattedTime: formatTime(time) };
+        const time = msToTime(after.currentMs);
+        return { value: after.currentMs, time, formattedTime: formatTime(time) };
       },
     },
     complete: {

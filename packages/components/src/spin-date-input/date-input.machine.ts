@@ -141,6 +141,7 @@ export interface DateInputValueChange {
 export type DateInputEvent =
   | { type: "VALUE.SET"; value: DateValue | null }
   | { type: "VALUE.CLEAR" }
+  | { type: "HOUR_CYCLE.SET"; hourCycle: 12 | 24 }
   | { type: "SEGMENT.FOCUS"; index: number }
   | { type: "SEGMENT.BLUR" }
   | { type: "SEGMENT.INPUT"; index: number; input: string }
@@ -171,6 +172,7 @@ export const config = {
   on: {
     "VALUE.SET": { actions: [{ assign: "setValue" }] },
     "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
+    "HOUR_CYCLE.SET": { actions: [{ assign: "setHourCycle" }] },
   },
   states: {
     idle: {
@@ -202,6 +204,55 @@ export const config = {
     },
   },
 };
+
+export interface DateInputInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly granularity?: unknown;
+  readonly hourCycle?: unknown;
+  readonly min?: unknown;
+  readonly max?: unknown;
+}
+
+const isGranularity = (raw: unknown): raw is DateGranularity =>
+  raw === "day" || raw === "hour" || raw === "minute" || raw === "second";
+
+const isHourCycle = (raw: unknown): raw is 12 | 24 => raw === 12 || raw === 24;
+
+const asIso = (raw: unknown): string | null =>
+  typeof raw === "string" && raw.length > 0 ? raw : null;
+
+/** Seed shaping: granularity/hour-cycle/bounds name themselves; the value
+ * arrives through establish (parsed there), the seed holds empty fields. */
+export function initial(raw: DateInputInitial): Pick<DateInputContext, "granularity" | "hourCycle" | "min" | "max" | "fields" | "value" | "activeSegment"> {
+  const granularity = isGranularity(raw.granularity) ? raw.granularity : "day";
+  const hourCycle = isHourCycle(raw.hourCycle) ? raw.hourCycle : 12;
+  return {
+    granularity,
+    hourCycle,
+    min: asIso(raw.min),
+    max: asIso(raw.max),
+    fields: dateToFields(null, hourCycle),
+    value: null,
+    activeSegment: -1,
+  };
+}
+
+/** An ISO date string parses to a value; anything else is not a value. */
+export function parseValue(raw: unknown): DateValue | null {
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  const time = Date.parse(raw);
+  if (Number.isNaN(time)) return null;
+  const at = new Date(time);
+  return {
+    year: at.getUTCFullYear(),
+    month: at.getUTCMonth() + 1,
+    day: at.getUTCDate(),
+    hour: 0,
+    minute: 0,
+    second: 0,
+  };
+}
 
 /** The segment list for a granularity, in locale order. */
 export function segmentFields(granularity: DateGranularity): readonly DateInputField[] {
@@ -305,6 +356,10 @@ export const implementations = {
       if (e.type !== "VALUE.SET") return {};
       const value = clampValue(e.value, ctx.min, ctx.max);
       return { value, fields: dateToFields(value, ctx.hourCycle), enteredKeys: "" };
+    },
+    setHourCycle: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
+      if (e.type !== "HOUR_CYCLE.SET") return {};
+      return { hourCycle: e.hourCycle, fields: dateToFields(ctx.value, e.hourCycle) };
     },
     clearValue: (): Partial<DateInputContext> => ({ value: null, fields: emptyFields(), enteredKeys: "" }),
     setActiveSegment: (_ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {

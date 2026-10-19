@@ -1,9 +1,15 @@
-import { defineComponent, textProp, type ComponentDef } from "@spin/runtime";
+import {
+  defineComponent,
+  type ComponentDef,
+  type PartScope,
+} from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   type AvatarContext,
   type AvatarEvent,
+  type AvatarInitial,
   type AvatarStatus,
   type AvatarStatusChange,
 } from "./avatar.machine.ts";
@@ -26,24 +32,45 @@ export interface AvatarApi {
   getFallbackProps(): Record<string, unknown>;
 }
 
+/** A text prop off the bag: parsed text arrives as a string, anything
+ * else is absent. The two labels read through here. */
+const textOf = (props: Record<string, unknown>, name: string): string => {
+  const value: unknown = props[name];
+  return typeof value === "string" ? value : "";
+};
+
+const fallbackOf = (props: Record<string, unknown>): string => {
+  const fallback = textOf(props, "fallback");
+  if (fallback.length > 0) return fallback;
+  return textOf(props, "label");
+};
+
+interface ScopeLike extends PartScope<unknown, AvatarContext> {}
+
+/** Transport guarantees the raw prop bag is an AvatarInitial-shaped object. */
+const isAvatarInitial = (raw: unknown): raw is AvatarInitial =>
+  raw !== null && typeof raw === "object";
+
 const def: ComponentDef<AvatarContext, AvatarEvent> = {
   name: "avatar",
   config,
   implementations,
   start: "loading",
-  seed: (props) => ({
-    src: textProp(typeof props["src"] === "string" ? props["src"] : props["defaultSrc"]),
-  }),
-  channels: {
-    src: {
-      controlled: true,
-      parse: textProp,
-      event: (value: string) => ({ type: "SRC.CHANGE", src: value }),
-    },
-    defaultSrc: { parse: textProp },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    label: { parse: textProp },
-    fallback: { parse: textProp },
+  seed: (raw, authored) => {
+    const props: AvatarInitial = isAvatarInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    // An authored channel starts at its value, not its default.
+    const src = authored("src")
+      ? (typeof props.src === "string" ? props.src : shaped.src)
+      : shaped.src;
+    return { src };
+  },
+  reconcile: ({ context, parsed, authored, send }) => {
+    if (!authored("src")) return false;
+    const src = typeof parsed["src"] === "string" ? parsed["src"] : null;
+    if (src === null || context.src === src) return false;
+    send({ type: "SRC.CHANGE", src });
+    return true;
   },
   parts: {
     root: {
@@ -57,9 +84,9 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
       }),
     },
     image: {
-      sig: (scope) => [scope.context["src"], scope.state].join("|"),
-      attrs: (scope) => {
-        const src = scope.context["src"] as string;
+      sig: (scope: ScopeLike) => [scope.context.src, scope.state].join("|"),
+      attrs: (scope: ScopeLike) => {
+        const src = scope.context.src;
         const loaded = scope.state === "loaded";
         const imageId = scope.id("image");
         return {
@@ -83,24 +110,21 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
           "use:observe": {
             attributes: ["src"],
             onAttributes: (): void => {
-              if (typeof document === "undefined") return;
-              const current = document.getElementById(imageId)?.getAttribute("src") ?? "";
-              scope.send({ type: "SRC.CHANGE", src: current });
+              scope.send({ type: "SRC.CHANGE", src });
             },
           },
         };
       },
     },
     fallback: {
-      sig: (scope) => [scope.props["fallback"], scope.state].join("|"),
-      attrs: (scope) => {
+      sig: (scope: ScopeLike) => [textOf(scope.props, "fallback"), scope.state].join("|"),
+      attrs: (scope: ScopeLike) => {
         const loaded = scope.state === "loaded";
-        const label = scope.props["fallback"] as string;
         return {
           id: scope.id("fallback"),
           dir: scope.props["dir"],
           role: "img",
-          "aria-label": label.length > 0 ? label : (scope.props["label"] as string),
+          "aria-label": fallbackOf(scope.props),
           "data-scope": "avatar",
           "data-part": "fallback",
           "data-state": loaded ? "hidden" : "visible",
@@ -110,19 +134,23 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
     },
   },
   commands: {
-    setSrc: { event: (args) => ({ type: "SET_SRC", src: args[0] as string }) },
+    setSrc: { event: (args) => ({ type: "SET_SRC", src: typeof args[0] === "string" ? args[0] : "" }) },
     setLoaded: { event: () => ({ type: "IMG.LOADED" }) },
     setError: { event: () => ({ type: "IMG.ERROR" }) },
   },
   readers: {
     loaded: { read: (_context, state) => state === "loaded" },
-    status: { read: (_context, state) => state },
+    status: { read: (_context, state): AvatarStatus => state === "loaded" || state === "error" ? state : "loading" },
   },
   events: {
     "status-change": {
       prop: "onStatusChange",
       watch: (_context, state) => [state],
-      detail: (watched) => ({ status: watched[0] as AvatarStatusChange["status"] }),
+      detail: (watched: readonly unknown[]) => {
+        const status = watched[0];
+        const known: AvatarStatus = status === "loading" || status === "error" || status === "loaded" ? status : "loading";
+        return { status: known };
+      },
     },
   },
 };

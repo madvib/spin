@@ -1,10 +1,10 @@
-import { imageCropper } from "./image-cropper.def.ts";
+import { imageCropper } from "./image-cropper.bindings.ts";
 import type {
   ImageCropperCropChange,
   ImageCropperFlipChange,
   ImageCropperRotationChange,
   ImageCropperZoomChange,
-} from "./image-cropper.def.ts";
+} from "./image-cropper.bindings.ts";
 
 /**
  * The image-cropper's seam: the synthesized bridge, the element's

@@ -3,13 +3,18 @@ import {
   defineComponent,
   machineTick,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
+  isSortDescriptor,
+  itemsOf,
   type AsyncListContext,
   type AsyncListEvent,
+  type AsyncListInitial,
   type SortDescriptor,
 } from "./async-list.machine.ts";
 
@@ -119,37 +124,33 @@ const isLoadFn = (value: unknown): value is LoadFn => typeof value === "function
 
 const isSortFn = (value: unknown): value is SortFn => typeof value === "function";
 
-const isSortDescriptor = (value: unknown): value is SortDescriptor => {
-  if (typeof value !== "object" || value === null) return false;
-  const column: unknown = Reflect.get(value, "column");
-  const direction: unknown = Reflect.get(value, "direction");
-  return typeof column === "string" &&
-    (direction === "ascending" || direction === "descending");
+const filterTextOf = (event: { readonly type: string } & Record<string, unknown>): string => {
+  const text: unknown = event["filterText"];
+  return typeof text === "string" ? text : "";
+};
+
+const descriptorOf = (event: { readonly type: string } & Record<string, unknown>): SortDescriptor | undefined => {
+  const descriptor: unknown = event["sortDescriptor"];
+  return isSortDescriptor(descriptor) ? descriptor : undefined;
 };
 
 /** A fetch the host was told to stop is not a failure. */
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
 
-/** An array off the prop channel, whatever actually arrived. The
- * grammar's `string[]` coerces a `= []` default to `["[]"]`; a property
- * write lands verbatim. The lone artifact entry is dropped here, once,
- * for every reader. */
-const asArray = (raw: unknown): readonly unknown[] => {
-  if (!Array.isArray(raw)) return [];
-  if (raw.length === 1 && raw[0] === "[]") return [];
-  const out: unknown[] = [];
-  for (const entry of raw) out.push(entry);
-  return out;
-};
-
 /** A load the host resolved with. A result missing its items is an empty
  * page rather than a crash inside the assign. */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const fieldOf = (raw: unknown, field: string): unknown =>
+  isRecord(raw) ? raw[field] : undefined;
+
 const asLoadResult = (raw: unknown): LoadResult => {
   if (typeof raw !== "object" || raw === null) return { items: [] };
-  const cursor: unknown = Reflect.get(raw, "cursor");
+  const cursor: unknown = fieldOf(raw, "cursor");
   return {
-    items: asArray(Reflect.get(raw, "items")),
+    items: itemsOf(fieldOf(raw, "items")),
     ...(cursor === undefined ? {} : { cursor }),
   };
 };
@@ -157,14 +158,13 @@ const asLoadResult = (raw: unknown): LoadResult => {
 /** No result keeps the items that were sorted. */
 const asSortResult = (raw: unknown): SortResult => {
   if (typeof raw !== "object" || raw === null) return undefined;
-  return { items: asArray(Reflect.get(raw, "items")) };
+  return { items: itemsOf(fieldOf(raw, "items")) };
 };
 
 /** The `value` a row is addressed by: a non-empty string `value` field,
  * else the row's index. */
 const textField = (item: unknown, field: string): string | undefined => {
-  if (typeof item !== "object" || item === null) return undefined;
-  const raw: unknown = Reflect.get(item, field);
+  const raw: unknown = fieldOf(item, field);
   return typeof raw === "string" && raw.length > 0 ? raw : undefined;
 };
 
@@ -176,7 +176,13 @@ const toRow = (item: unknown, index: number): AsyncListRow => {
 
 type Ctx = AsyncListContext;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface ScopeLike extends PartScope<unknown, AsyncListContext> {}
+
+interface SlotLike<R> extends SlotScope<R, AsyncListContext> {}
+
+/** Transport guarantees the raw prop bag is an AsyncListInitial-shaped object. */
+const isAsyncListInitial = (raw: unknown): raw is AsyncListInitial =>
+  raw !== null && typeof raw === "object";
 
 /** Per-bridge async state: the abort controller, the sequence, and the
  * dependency hash. Keyed by the root element the bridge owns. */
@@ -221,10 +227,10 @@ const startFetch = (
   const loadMore = event.type === "LOAD_MORE";
   const details: LoadDetails = {
     signal: controller.signal,
-    filterText: event.type === "FILTER" ? (event["filterText"] as string) : context.filterText,
+    filterText: event.type === "FILTER" ? filterTextOf(event) : context.filterText,
     cursor: loadMore ? context.cursor : null,
     sortDescriptor: event.type === "SORT"
-      ? (event["sortDescriptor"] as SortDescriptor)
+      ? descriptorOf(event)
       : context.sortDescriptor ?? undefined,
   };
   void load(details).then(
@@ -257,7 +263,7 @@ const startSort = (
   const details: SortDetails = {
     items: context.items,
     descriptor: event.type === "SORT"
-      ? (event["sortDescriptor"] as SortDescriptor)
+      ? descriptorOf(event)
       : context.sortDescriptor ?? undefined,
     filterText: context.filterText,
   };
@@ -290,32 +296,29 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   name: "async-list",
   config,
   implementations,
-  seed: (props) => {
+  seed: (raw, _authored) => {
+    const props: AsyncListInitial = isAsyncListInitial(raw) ? raw : {};
+    const shaped = initial(props);
     // No throw: a static list (initialItems, no loader) renders, sorts,
     // and filters client-side. Loads without a loader are already no-ops
     // in settled, so the throw only ever killed static usage.
-    return {
-      items: asArray(props["initialItems"]),
-      cursor: null,
-      filterText: typeof props["initialFilterText"] === "string" ? props["initialFilterText"] : "",
-      sortDescriptor: isSortDescriptor(props["initialSortDescriptor"]) ? props["initialSortDescriptor"] : null,
-      error: undefined,
-      hasSortFn: isSortFn(props["sortFn"]),
-    };
+    return { ...shaped, cursor: null, error: undefined, dependenciesHash: undefined };
   },
   // An autoReload mount loads once; the reconcile watcher answers every
   // dependency change after it.
-  establish: (props) =>
-    (props["autoReload"] as boolean) === true ? [{ type: "RELOAD" }] : [],
+  establish: (raw) => {
+    const props: AsyncListInitial = isAsyncListInitial(raw) ? raw : {};
+    return props["autoReload" as keyof AsyncListInitial] === true ? [{ type: "RELOAD" }] : [];
+  },
   // The reflex table runs after every transmit: which event needs which
   // piece of async work, with the state the send landed in.
   settled: ({ event, before, after, props, root, send }) => {
     const view = viewOf(root());
-    const load = props["load"];
+    const load: unknown = props["load"];
     if (!isLoadFn(load)) return;
-    const beforeState = (before as unknown as { state: string }).state;
-    const afterCtx = (after as unknown as { context: Ctx }).context;
-    const afterState = (after as unknown as { state: string }).state;
+    const beforeState = before.state;
+    const afterCtx = after.context;
+    const afterState = after.state;
     // Sorting drives the sort fn; loading drives the fetch. The sort fn
     // rides the props, read live at drive time.
     if (event.type === "ABORT") {
@@ -333,17 +336,6 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       startFetch(view, send, load, event, afterCtx);
     }
   },
-  channels: {
-    initialItems: { parse: asArray },
-    initialFilterText: { parse: (raw) => (typeof raw === "string" ? raw : "") },
-    initialSortDescriptor: {
-      parse: (raw) => (isSortDescriptor(raw) ? raw : null),
-    },
-    autoReload: { parse: (raw) => raw === true },
-    dependencies: { parse: asArray },
-    load: { parse: (raw) => (isLoadFn(raw) ? raw : undefined) },
-    sortFn: { parse: (raw) => (isSortFn(raw) ? raw : undefined) },
-  },
   scalars: ["hasSortFn"],
   scalarsOf: (parsed) => ({
     hasSortFn: isSortFn(parsed["sortFn"]),
@@ -352,16 +344,14 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     // The dependencies watcher: the mount hash is captured, never
     // dispatched — the watcher fires on a change only, and the mount load
     // is autoReload's job.
-    const dependencies = (parsed["dependencies"] as readonly unknown[])
-      .filter((dependency) => Boolean(dependency))
-      .join(",");
-    const known = (context as unknown as { dependencies?: string }).dependencies;
-    if (known === undefined) {
-      (context as unknown as { dependencies?: string }).dependencies = dependencies;
+    const raw: unknown = parsed["dependencies"];
+    const dependencies = itemsOf(raw).filter((dependency) => Boolean(dependency)).join(",");
+    if (context.dependenciesHash === undefined) {
+      context.dependenciesHash = dependencies;
       return false;
     }
-    if (dependencies !== known) {
-      (context as unknown as { dependencies?: string }).dependencies = dependencies;
+    if (dependencies !== context.dependenciesHash) {
+      context.dependenciesHash = dependencies;
       send({ type: "RELOAD" });
       return true;
     }
@@ -388,11 +378,11 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     },
     list: {
       sig: (scope) => {
-        const items = asCtx(scope.context).items;
+        const items = scope.context.items;
         return `${scope.state} ${items.length}`;
       },
       attrs: (scope) => {
-        const count = asCtx(scope.context).items.length;
+        const count = scope.context.items.length;
         const loading = scope.state === "loading" || scope.state === "sorting";
         return {
           id: scope.id("list"),
@@ -405,9 +395,9 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       },
     },
     empty: {
-      sig: (scope) => `${asCtx(scope.context).items.length}`,
+      sig: (scope) => `${scope.context.items.length}`,
       attrs: (scope) => {
-        const count = asCtx(scope.context).items.length;
+        const count = scope.context.items.length;
         return {
           id: scope.id("empty"),
           "data-empty": dataAttr(count === 0),
@@ -415,9 +405,9 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       },
     },
     error: {
-      sig: (scope) => `${asCtx(scope.context).error !== undefined}`,
+      sig: (scope) => `${scope.context.error !== undefined}`,
       attrs: (scope) => {
-        const failed = asCtx(scope.context).error !== undefined;
+        const failed = scope.context.error !== undefined;
         return {
           id: scope.id("error"),
           role: "alert",
@@ -428,11 +418,11 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     filterInput: {
       id: "filter",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return `${ctx.filterText} ${scope.state === "loading" || scope.state === "sorting"}`;
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("filterInput"),
           type: "text",
@@ -450,9 +440,9 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     },
     clearFilter: {
       id: "clear-filter",
-      sig: (scope) => `${asCtx(scope.context).filterText.length === 0}`,
+      sig: (scope) => `${scope.context.filterText.length === 0}`,
       attrs: (scope) => {
-        const empty = asCtx(scope.context).filterText.length === 0;
+        const empty = scope.context.filterText.length === 0;
         return {
           id: scope.id("clearFilter"),
           type: "button",
@@ -475,11 +465,11 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     loadMore: {
       id: "load-more",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return `${ctx.cursor != null} ${scope.state}`;
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const more = ctx.cursor != null;
         const loading = scope.state === "loading" || scope.state === "sorting";
         return {
@@ -495,11 +485,11 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     },
     sentinel: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return `${ctx.cursor != null} ${scope.state}`;
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const more = ctx.cursor != null;
         return {
           id: scope.id("sentinel"),
@@ -519,10 +509,10 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   },
   slots: {
     item: {
-      indexes: (context) => rowsFor(asCtx(context).items),
-      sig: (scope) => `${(scope.slot as unknown as AsyncListRow).value}`,
-      attrs: (scope) => {
-        const row = scope.slot as unknown as AsyncListRow;
+      indexes: (context: AsyncListContext) => rowsFor(context.items),
+      sig: (scope: SlotLike<AsyncListRow>) => `${scope.slot.value}`,
+      attrs: (scope: SlotLike<AsyncListRow>) => {
+        const row = scope.slot;
         return {
           id: scope.id("item", row.value),
           role: "listitem",
@@ -534,16 +524,16 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     sortTrigger: {
       id: "sort-trigger",
       indexes: () => [],
-      sig: (scope) => {
-        const trigger = scope.slot as unknown as SortTrigger;
-        const ctx = asCtx(scope.context);
+      sig: (scope: SlotLike<SortTrigger>) => {
+        const trigger = scope.slot;
+        const ctx = scope.context;
         const active = ctx.sortDescriptor?.column === trigger.column &&
           ctx.sortDescriptor?.direction === trigger.direction;
         return `${scope.state} ${active}`;
       },
-      attrs: (scope) => {
-        const trigger = scope.slot as unknown as SortTrigger;
-        const ctx = asCtx(scope.context);
+      attrs: (scope: SlotLike<SortTrigger>) => {
+        const trigger = scope.slot;
+        const ctx = scope.context;
         const active = ctx.sortDescriptor?.column === trigger.column &&
           ctx.sortDescriptor?.direction === trigger.direction;
         return {
@@ -563,22 +553,33 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     abort: { event: () => ({ type: "ABORT" }) },
     reload: { event: () => ({ type: "RELOAD" }) },
     loadMore: { event: () => ({ type: "LOAD_MORE" }) },
-    sort: { event: (args) => ({ type: "SORT", sortDescriptor: args[0] as SortDescriptor }) },
-    setFilterText: { event: (args) => ({ type: "FILTER", filterText: args[0] as string }) },
+    sort: {
+      event: (args) => {
+        const descriptor = args[0];
+        if (isSortDescriptor(descriptor)) return { type: "SORT", sortDescriptor: descriptor };
+        return { type: "SORT", sortDescriptor: { column: "", direction: "ascending" } };
+      },
+    },
+    setFilterText: {
+      event: (args) => {
+        const text = args[0];
+        return { type: "FILTER", filterText: typeof text === "string" ? text : "" };
+      },
+    },
     clearFilter: { event: () => ({ type: "FILTER", filterText: "" }) },
   },
   readers: {
-    items: { read: (context) => [...asCtx(context).items] },
+    items: { read: (context) => [...context.items] },
     loading: {
       read: (_context, state) => state === "loading" || state === "sorting",
     },
     sorting: { read: (_context, state) => state === "sorting" },
-    empty: { read: (context) => asCtx(context).items.length === 0 },
-    hasMore: { read: (context) => asCtx(context).cursor != null },
-    error: { read: (context) => asCtx(context).error },
-    filterText: { read: (context) => asCtx(context).filterText },
-    cursor: { read: (context) => asCtx(context).cursor ?? undefined },
-    sortDescriptor: { read: (context) => asCtx(context).sortDescriptor ?? undefined },
+    empty: { read: (context) => context.items.length === 0 },
+    hasMore: { read: (context) => context.cursor != null },
+    error: { read: (context) => context.error },
+    filterText: { read: (context) => context.filterText },
+    cursor: { read: (context) => context.cursor ?? undefined },
+    sortDescriptor: { read: (context) => context.sortDescriptor ?? undefined },
   },
   methods: {
     getRows: {
@@ -587,7 +588,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
         // the rows live in machine context: the tick is the subscription
         // that re-reads them after a load.
         machineTick();
-        return rowsFor(asCtx(context).items);
+        return rowsFor(context.items);
       },
     },
   },
@@ -595,16 +596,16 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     "load-success": {
       prop: "onSuccess",
       watch: () => [],
-      detail: (watched) => ({ items: watched as readonly unknown[] }),
-      select: (event) =>
-        event.type === "SUCCESS"
-          ? { items: [...(event["items"] as readonly unknown[])] }
-          : null,
+      detail: () => ({ items: [] }),
+      select: (event) => {
+        if (event.type !== "SUCCESS") return null;
+        return { items: [...itemsOf(event["items"])] };
+      },
     },
     "load-error": {
       prop: "onError",
       watch: () => [],
-      detail: (watched) => ({ error: (watched as unknown[])[0] }),
+      detail: () => ({ error: undefined }),
       select: (event) =>
         event.type === "ERROR" ? { error: event["error"] } : null,
     },

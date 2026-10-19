@@ -2,17 +2,22 @@ import {
   dataAttr,
   defineComponent,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
+  nodesOf,
   type TreeCheckedChange,
   type TreeContext,
   type TreeEvent,
   type TreeExpandedChange,
   type TreeFocusChange,
+  type TreeInitial,
   type TreeLoadComplete,
+  type TreeNodeShape,
   type TreeSelectionChange,
 } from "./tree-view.machine.ts";
 
@@ -100,25 +105,8 @@ export type {
   TreeSelectionChange,
 } from "./tree-view.machine.ts";
 
-/**
- * The tree arrives as JSON text: the scope grammar types props as
- * `string|string[]|int|bool|{fields}[]`, which has no recursive shape for
- * a tree. Validated here rather than trusted at each read.
- */
-const parseNodes = (raw: unknown): readonly TreeNode[] => {
-  if (Array.isArray(raw)) return raw as TreeNode[];
-  if (typeof raw !== "string" || raw.length === 0) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as TreeNode[];
-  } catch {
-    return [];
-  }
-  return [];
-};
-
-const parseKeys = (raw: unknown): string[] => {
-  if (Array.isArray(raw)) return (raw as readonly unknown[]).filter((v): v is string => typeof v === "string");
+const keysOf = (raw: unknown): string[] => {
+  if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
   if (typeof raw !== "string" || raw.length === 0) return [];
   // A scope default cannot carry top-level commas (the grammar splits
   // props on them), so bracketed-unquoted (`[a, b]`) splits like a bare
@@ -128,7 +116,7 @@ const parseKeys = (raw: unknown): string[] => {
     try {
       const parsed: unknown = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return (parsed as readonly unknown[]).filter((v): v is string => typeof v === "string");
+        return parsed.filter((v): v is string => typeof v === "string");
       }
     } catch {
       // Fall through to the comma split below.
@@ -140,19 +128,56 @@ const parseKeys = (raw: unknown): string[] => {
 const sameSet = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((v) => b.includes(v));
 
-type Ctx = TreeContext;
+interface ScopeLike extends PartScope<unknown, TreeContext> {}
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface SlotLike<R> extends SlotScope<R, TreeContext> {}
 
-const nodesOf = (parsed: Record<string, unknown>): readonly TreeNode[] =>
-  parsed["nodes"] as readonly TreeNode[];
+/** Transport guarantees the raw prop bag is a TreeInitial-shaped object. */
+const isTreeInitial = (raw: unknown): raw is TreeInitial =>
+  raw !== null && typeof raw === "object";
 
 type IdFn = (part: string, slot?: unknown) => string;
 
 /** Host hook for lazy branches: set as a property on the element. */
 type LoadChildren = (
   value: string,
-) => Promise<readonly TreeNode[]> | readonly TreeNode[] | void;
+) => Promise<readonly TreeNodeShape[]> | readonly TreeNodeShape[] | void;
+
+const isLoadChildren = (value: unknown): value is LoadChildren =>
+  typeof value === "function";
+
+/** Write the grafted tree back onto the host element the way it arrived:
+ * JSON text on the `nodes` property. Anything else is not a host. */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** The rename label off the input target: its value, or empty. */
+const rowOf = (arg: unknown): VisibleRow => {
+  if (!isRecord(arg)) return { node: { value: "", label: "" }, depth: 0, indexPath: [] };
+  const node: unknown = arg["node"];
+  if (!isRecord(node) || typeof node["value"] !== "string" || typeof node["label"] !== "string") {
+    return { node: { value: "", label: "" }, depth: 0, indexPath: [] };
+  }
+  const depth: unknown = arg["depth"];
+  const indexPath: unknown = arg["indexPath"];
+  return {
+    node: { value: node["value"], label: node["label"] },
+    depth: typeof depth === "number" ? depth : 0,
+    indexPath: Array.isArray(indexPath) && indexPath.every((n): n is number => typeof n === "number") ? indexPath : [],
+  };
+};
+
+const inputValue = (target: EventTarget | null): string => {
+  if (!isRecord(target)) return "";
+  const value: unknown = target["value"];
+  return typeof value === "string" ? value : "";
+};
+
+const setRootNodes = (scope: ScopeLike, json: string): void => {
+  const root: unknown = scope.root();
+  if (!isRecord(root)) return;
+  root["nodes"] = json;
+};
 
 /** Flatten the tree to visible rows — the TreeCollection replacement. */
 const flatten = (
@@ -216,7 +241,7 @@ const itemStateOf = (
   scope: ScopeLike,
   row: VisibleRow,
 ): TreeItemState => {
-  const ctx = asCtx(scope.context);
+  const ctx = scope.context;
   return {
     expanded: ctx.expandedValue.includes(row.node.value),
     selected: ctx.selectedValue.includes(row.node.value),
@@ -247,28 +272,28 @@ const stateAttrs = (state: TreeItemState): Record<string, unknown> => {
  * so a rejected load clears the spinner rather than sticking.
  */
 const ensureChildren = (scope: ScopeLike, value: string): void => {
-  const ctx = asCtx(scope.context);
-  const nodes = nodesOf(scope.props);
+  const ctx = scope.context;
+  const nodes = nodesOf(scope.props["nodes"]);
   const node = rowsOf(nodes, ctx.expandedValue).find((row) => row.node.value === value)?.node;
   if (node === undefined || (node.children !== undefined && node.children.length > 0)) return;
-  const load = scope.props["loadChildren"];
-  if (typeof load !== "function") return;
+  const load: unknown = scope.props["loadChildren"];
+  if (!isLoadChildren(load)) return;
   scope.send({ type: "NODE.LOAD_START", value });
   void (async () => {
     try {
-      const loaded = await (load as LoadChildren)(value);
+      const loaded = await load(value);
       if (Array.isArray(loaded)) {
-        const graft = (list: readonly TreeNode[]): TreeNode[] =>
+        const graft = (list: readonly TreeNodeShape[]): TreeNodeShape[] =>
           list.map((item) =>
             item.value === value
-              ? { ...item, children: [...(item.children ?? []), ...loaded] }
+              ? { ...item, children: [...(item.children ?? []), ...nodesOf(loaded)] }
               : item.children !== undefined
               ? { ...item, children: graft(item.children) }
               : item
           );
         // The tree crosses the prop channel as JSON text; lazy grafting
         // writes the host's data back the same way it arrived.
-        (scope.root() as unknown as { nodes?: unknown }).nodes = JSON.stringify(graft(nodes));
+        setRootNodes(scope, JSON.stringify(graft(nodes)));
       }
     } catch {
       // A failed load leaves the branch empty; the spinner clears either way.
@@ -290,15 +315,10 @@ const typeaheadOf = (scope: ScopeLike): { keys: string; at: number } => {
   return buffer;
 };
 
-const focusDom = (scope: ScopeLike, value: string | null): void => {
-  if (value === null || typeof document === "undefined") return;
-  document.getElementById(scope.id("item", value))?.focus();
-};
-
 const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): void => {
   if (event.defaultPrevented) return;
-  const ctx = asCtx(scope.context);
-  const nodes = nodesOf(scope.props);
+  const ctx = scope.context;
+  const nodes = nodesOf(scope.props["nodes"]);
   const rows = rowsOf(nodes, ctx.expandedValue);
   const at = rows.findIndex((r) => r.node.value === row.node.value);
   const loadable = typeof scope.props["loadChildren"] === "function";
@@ -312,7 +332,6 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
     const value = valueAt(index);
     if (value !== null) {
       scope.send({ type: "NODE.FOCUS", value });
-      focusDom(scope, value);
     }
     if (extend) {
       scope.send({ type: "NODE.ARROW_DOWN" });
@@ -341,8 +360,7 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
         const parentValue = parent !== undefined ? parent.node.value : null;
         if (parentValue !== null) {
           scope.send({ type: "NODE.FOCUS", value: parentValue });
-          focusDom(scope, parentValue);
-        }
+            }
       }
       break;
     case "Home":
@@ -371,11 +389,6 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
     case "F2":
       if (ctx.rename) {
         scope.send({ type: "NODE.RENAME", value: row.node.value });
-        // The rename input takes focus when it appears; without this the
-        // first keystrokes go to the row and Escape cannot cancel.
-        if (typeof document !== "undefined") {
-          document.getElementById(scope.id("rename", row.node.value))?.focus();
-        }
       }
       break;
     default:
@@ -392,8 +405,7 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
         );
         if (match !== undefined) {
           scope.send({ type: "NODE.FOCUS", value: match.node.value });
-          focusDom(scope, match.node.value);
-        }
+            }
         return;
       }
       return;
@@ -402,7 +414,7 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
 };
 
 const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void => {
-  const ctx = asCtx(scope.context);
+  const ctx = scope.context;
   // Capture BEFORE the send: this send is synchronous, so by the time a
   // post-send check would run, expandedValue already reflects the click
   // and a lazy branch would never load.
@@ -430,62 +442,44 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
   name: "tree",
   config,
   implementations,
-  seed: (props) => ({
-    expandedValue: Array.isArray(props["defaultExpandedValue"])
-      ? [...(props["defaultExpandedValue"] as string[])]
-      : [],
-    selectedValue: Array.isArray(props["defaultSelectedValue"])
-      ? [...(props["defaultSelectedValue"] as string[])]
-      : [],
-    checkedValue: Array.isArray(props["defaultCheckedValue"])
-      ? [...(props["defaultCheckedValue"] as string[])]
-      : [],
-    focusedValue: null,
-    renamingValue: null,
-    loadingStatus: {},
-    selectionMode: props["selectionMode"] === "multiple" ? "multiple" : "single",
-    expandOnClick: props["expandOnClick"] !== false,
-    rename: props["rename"] !== false,
-  }),
-  channels: {
-    nodes: { parse: parseNodes },
-    expandedValue: {
-      controlled: true,
-      parse: parseKeys,
-      event: (value: readonly string[]) => ({ type: "EXPANDED.SET", value: [...value] }),
-      // Controlled writes alternate on their own, not on the next machine
-      // event: the sets land straight into context.
-      assign: true,
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        sameSet(current as string[], outer as string[]),
-    },
-    defaultExpandedValue: { parse: parseKeys },
-    selectedValue: {
-      controlled: true,
-      parse: parseKeys,
-      event: (value: readonly string[]) => ({ type: "SELECTED.SET", value: [...value] }),
-      assign: true,
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        sameSet(current as string[], outer as string[]),
-    },
-    defaultSelectedValue: { parse: parseKeys },
-    checkedValue: {
-      controlled: true,
-      parse: parseKeys,
-      event: (value: readonly string[]) => ({ type: "CHECKED.SET", value: [...value] }),
-      assign: true,
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) &&
-        sameSet(current as string[], outer as string[]),
-    },
-    defaultCheckedValue: { parse: parseKeys },
-    selectionMode: { parse: (raw) => (raw === "multiple" ? "multiple" : "single") },
-    expandOnClick: { parse: (raw) => raw !== false },
-    typeahead: { parse: (raw) => raw !== false },
-    rename: { parse: (raw) => raw !== false },
-    loadChildren: { parse: (raw) => (typeof raw === "function" ? raw : undefined) },
+  // Focus follows the machine: every focus move lands the DOM focus on
+  // the newly focused row's control.
+  settled: ({ before, after, focus }) => {
+    if (after.context.focusedValue !== before.context.focusedValue && after.context.focusedValue !== null) {
+      focus("item", after.context.focusedValue);
+    }
+    // The rename input takes focus when it appears; without this the
+    // first keystrokes go to the row and Escape cannot cancel.
+    if (after.context.renamingValue !== before.context.renamingValue && after.context.renamingValue !== null) {
+      focus("rename", after.context.renamingValue);
+    }
+  },
+  seed: (raw, _authored) => {
+    const props: TreeInitial = isTreeInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    return {
+      ...shaped,
+      focusedValue: null,
+      renamingValue: null,
+      loadingStatus: {},
+      typeahead: "",
+    };
+  },
+  reconcile: ({ context, parsed, authored, send }) => {
+    const sets = [
+      ["expandedValue", "EXPANDED.SET"],
+      ["selectedValue", "SELECTED.SET"],
+      ["checkedValue", "CHECKED.SET"],
+    ] as const;
+    for (const [name, type] of sets) {
+      if (!authored(name)) continue;
+      const outer = keysOf(parsed[name]);
+      if (!sameSet(context[name], outer)) {
+        send({ type, value: [...outer] });
+        return true;
+      }
+    }
+    return false;
   },
   scalars: ["selectionMode", "expandOnClick", "rename"],
   parts: {
@@ -509,9 +503,9 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
   },
   slots: {
     item: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as VisibleRow);
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [
           state.expanded,
           state.selected,
@@ -519,13 +513,13 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           state.checked,
           state.loading,
           state.renaming,
-          (scope.slot as unknown as VisibleRow).depth,
+          (scope.slot).depth,
         ].join(" ");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           role: "treeitem",
           "aria-level": row.depth + 1,
@@ -552,13 +546,13 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     branchControl: {
       id: "item",
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as VisibleRow);
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [state.focused, state.expanded, state.selected].join(" ");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.node.value),
@@ -568,7 +562,7 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           ...stateAttrs(state),
           onClick: (event: MouseEvent): void => rowClick(scope, row, event),
           onDblclick: (): void => {
-            if (asCtx(scope.context).rename) scope.send({ type: "NODE.RENAME", value: row.node.value });
+            if (scope.context.rename) scope.send({ type: "NODE.RENAME", value: row.node.value });
           },
           onKeydown: (event: KeyboardEvent): void => rowKeydown(scope, row, event),
           onFocus: (): void => scope.send({ type: "NODE.FOCUS", value: row.node.value }),
@@ -576,13 +570,13 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       },
     },
     branchIndicator: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as VisibleRow);
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [`${state.branch}`, state.expanded, state.selected].join(" ");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
           "aria-hidden": true,
@@ -595,15 +589,15 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       },
     },
     itemIcon: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
       sig: () => "icon",
       attrs: () => ({ "aria-hidden": true }),
     },
     rail: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => `${(scope.slot as unknown as VisibleRow).depth}`,
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => `${scope.slot.depth}`,
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         return {
           // One column left of this row's own indent — the parent's
           // chevron column. Depth 0 has no parent to draw a rail for.
@@ -613,36 +607,36 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       },
     },
     branchText: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
       sig: () => "text",
       attrs: () => ({}),
     },
     branchContent: {
       id: "content",
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
-        return `${asCtx(scope.context).expandedValue.includes(row.node.value)}`;
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
+        return `${scope.context.expandedValue.includes(row.node.value)}`;
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         return {
           id: scope.id("content", row.node.value),
           role: "group",
-          hidden: !asCtx(scope.context).expandedValue.includes(row.node.value),
+          hidden: !scope.context.expandedValue.includes(row.node.value),
         };
       },
     },
     checkbox: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as VisibleRow);
-        return [state.checked, asCtx(scope.context).selectionMode].join(" ");
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return [state.checked, scope.context.selectionMode].join(" ");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           role: "checkbox",
           tabindex: -1,
@@ -659,34 +653,33 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
             scope.send({ type: "CHECKED.TOGGLE", value: row.node.value });
-            focusDom(scope, row.node.value);
-          },
+                },
         };
       },
     },
     loading: {
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
-        return `${asCtx(scope.context).loadingStatus[row.node.value] === "loading"}`;
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
+        return `${scope.context.loadingStatus[row.node.value] === "loading"}`;
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         return {
-          hidden: asCtx(scope.context).loadingStatus[row.node.value] !== "loading",
+          hidden: scope.context.loadingStatus[row.node.value] !== "loading",
           "aria-hidden": true,
         };
       },
     },
     renameInput: {
       id: "rename",
-      indexes: (context, props) => rowsOf(nodesOf(props), asCtx(context).expandedValue),
-      sig: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
-        return `${asCtx(scope.context).renamingValue === row.node.value}`;
+      indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
+      sig: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
+        return `${scope.context.renamingValue === row.node.value}`;
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as VisibleRow;
+      attrs: (scope: SlotLike<VisibleRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
           type: "text",
@@ -702,7 +695,7 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
               scope.send({
                 type: "RENAME.SUBMIT",
                 value: row.node.value,
-                label: (event.target as HTMLInputElement).value,
+                label: inputValue(event.target),
               });
               event.preventDefault();
             }
@@ -712,7 +705,7 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
             scope.send({
               type: "RENAME.SUBMIT",
               value: row.node.value,
-              label: (event.target as HTMLInputElement).value,
+              label: inputValue(event.target),
             });
           },
         };
@@ -720,30 +713,35 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
   },
   commands: {
-    startRenaming: { event: (args) => ({ type: "NODE.RENAME", value: args[0] as string }) },
+    startRenaming: {
+      event: (args) => {
+        const value = args[0];
+        return { type: "NODE.RENAME", value: typeof value === "string" ? value : "" };
+      },
+    },
   },
   readers: {
-    focusedValue: { read: (context) => asCtx(context).focusedValue },
-    expandedValue: { read: (context) => [...asCtx(context).expandedValue] },
-    selectedValue: { read: (context) => [...asCtx(context).selectedValue] },
-    checkedValue: { read: (context) => [...asCtx(context).checkedValue] },
-    renamingValue: { read: (context) => asCtx(context).renamingValue },
-    loadingStatus: { read: (context) => ({ ...asCtx(context).loadingStatus }) },
-    nodes: { read: (_context, _state, props) => nodesOf(props) },
+    focusedValue: { read: (context) => context.focusedValue },
+    expandedValue: { read: (context) => [...context.expandedValue] },
+    selectedValue: { read: (context) => [...context.selectedValue] },
+    checkedValue: { read: (context) => [...context.checkedValue] },
+    renamingValue: { read: (context) => context.renamingValue },
+    loadingStatus: { read: (context) => ({ ...context.loadingStatus }) },
+    nodes: { read: (_context, _state, props) => nodesOf(props["nodes"]) },
   },
   methods: {
     getVisibleRows: {
-      call: (context, _state, _args, props) =>
-        rowsOf(nodesOf(props), asCtx(context).expandedValue),
+      call: (context: TreeContext, _state, _args, props) =>
+        rowsOf(nodesOf(props["nodes"]), context.expandedValue),
     },
     isBranch: {
       call: (_context, _state, args, props) =>
-        isBranchRow(args[0] as VisibleRow, typeof props["loadChildren"] === "function"),
+        isBranchRow(rowOf(args[0]), typeof props["loadChildren"] === "function"),
     },
     getItemState: {
-      call: (context, _state, args, props) => {
-        const row = args[0] as VisibleRow;
-        const ctx = context as unknown as Ctx;
+      call: (context: TreeContext, _state, args, props) => {
+        const row = rowOf(args[0]);
+        const ctx = context;
         return {
           expanded: ctx.expandedValue.includes(row.node.value),
           selected: ctx.selectedValue.includes(row.node.value),
@@ -759,30 +757,33 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
   events: {
     "expanded-change": {
       prop: "onExpandedChange",
-      watch: (context) => [...asCtx(context).expandedValue],
-      detail: (watched) => ({ expandedValue: [...(watched as string[])] }),
+      watch: (context) => [...context.expandedValue],
+      detail: (watched: readonly unknown[]) => ({ expandedValue: watched.filter((v): v is string => typeof v === "string") }),
     },
     "selection-change": {
       prop: "onSelectionChange",
-      watch: (context) => [...asCtx(context).selectedValue],
-      detail: (watched) => ({ selectedValue: [...(watched as string[])] }),
+      watch: (context) => [...context.selectedValue],
+      detail: (watched: readonly unknown[]) => ({ selectedValue: watched.filter((v): v is string => typeof v === "string") }),
     },
     "focus-change": {
       prop: "onFocusChange",
-      watch: (context) => [asCtx(context).focusedValue],
-      detail: (watched) => ({ focusedValue: watched[0] as string | null }),
+      watch: (context) => [context.focusedValue],
+      detail: (watched: readonly unknown[]) => {
+        const focused = watched[0];
+        return { focusedValue: typeof focused === "string" ? focused : null };
+      },
     },
     "checked-change": {
       prop: "onCheckedChange",
-      watch: (context) => [...asCtx(context).checkedValue],
-      detail: (watched) => ({ checkedValue: [...(watched as string[])] }),
+      watch: (context) => [...context.checkedValue],
+      detail: (watched: readonly unknown[]) => ({ checkedValue: watched.filter((v): v is string => typeof v === "string") }),
     },
     "load-complete": {
       prop: "onLoadComplete",
       // The bridge never fired this either: the machine owns the loading
       // marker, and no send produces a load-complete of its own.
       watch: () => [],
-      detail: (watched) => ({ value: watched[0] as string }),
+      detail: () => ({ value: "" }),
     },
   },
 };

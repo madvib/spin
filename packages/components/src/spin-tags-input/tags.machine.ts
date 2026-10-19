@@ -122,6 +122,73 @@ const sanitizeDefault: SanitizeValue = (value: string): string => value.trim();
 
 const validateDefault: ValidateTag = (): boolean => true;
 
+export interface TagsInitial {
+  readonly value?: unknown;
+  readonly inputValue?: unknown;
+  readonly defaultValue?: unknown;
+  readonly defaultInputValue?: unknown;
+  readonly max?: unknown;
+  readonly allowOverflow?: unknown;
+  readonly allowDuplicates?: unknown;
+  readonly editable?: unknown;
+  readonly addOnPaste?: unknown;
+  readonly blurBehavior?: unknown;
+  readonly delimiter?: unknown;
+  readonly sanitizeValue?: unknown;
+  readonly validate?: unknown;
+  readonly autoFocus?: unknown;
+}
+
+/** Strings off the transport: JSON text or arrays, well-shaped only.
+ * The scope grammar coerces `= []` to `["[]"]` — the lone artifact entry
+ * drops here, once, for every reader. */
+export function stringsOf(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    const clean = raw.filter((item): item is string => typeof item === "string");
+    return clean.some((item) => item === "[]") && clean.length === 1 ? [] : clean;
+  }
+  if (typeof raw !== "string") return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
+      ? [...parsed]
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Two tag lists are one selection when every tag matches in order. */
+export function sameTags(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+/** Seed shaping: the seeded value and input plus every scalar the
+ * assigns read — the seed merges over the config, so absent fields would
+ * keep the config defaults instead of the authored props. */
+export function initial(raw: TagsInitial): Pick<TagsContext, "value" | "inputValue" | "max" | "allowOverflow" | "allowDuplicates" | "editable" | "addOnPaste" | "addOnBlur" | "clearOnBlur" | "delimiter" | "sanitizeValue" | "validate"> {
+  const input: unknown = raw.defaultInputValue;
+  const count = (value: unknown): number => typeof value === "number" && Number.isFinite(value) ? value : Infinity;
+  const flag = (value: unknown): boolean => value === true;
+  const text = (value: unknown, fallback: string): string => typeof value === "string" ? value : fallback;
+  const fn = <T>(value: unknown, fallback: T): T => (typeof value === "function" ? value as T : fallback);
+  const behavior: unknown = raw.blurBehavior;
+  return {
+    value: stringsOf(raw.defaultValue),
+    inputValue: typeof input === "string" ? input : "",
+    max: count(raw.max),
+    allowOverflow: flag(raw.allowOverflow),
+    allowDuplicates: flag(raw.allowDuplicates),
+    editable: raw.editable !== false,
+    addOnPaste: flag(raw.addOnPaste),
+    addOnBlur: behavior === "add",
+    clearOnBlur: behavior === "clear",
+    delimiter: text(raw.delimiter, ","),
+    sanitizeValue: fn(raw.sanitizeValue, sanitizeDefault),
+    validate: fn(raw.validate, validateDefault),
+  };
+}
+
 /** Zag's `isAtMax`, an exact count rather than a ceiling: a list already
  * past the cap (the overflow that makes the root invalid) is not "at" it,
  * so the insert still goes through. The cap blocks only the count that

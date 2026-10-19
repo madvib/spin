@@ -32,6 +32,62 @@ import {
   resolveCropAspectRatio,
 } from "../../../../node_modules/@zag-js/image-cropper/dist/utils/crop.mjs";
 
+export interface ImageCropperInitial {
+  readonly cropShape?: unknown;
+  readonly aspectRatio?: unknown;
+  readonly minWidth?: unknown;
+  readonly minHeight?: unknown;
+  readonly maxWidth?: unknown;
+  readonly maxHeight?: unknown;
+  readonly fixedCropArea?: unknown;
+  readonly zoom?: unknown;
+  readonly defaultZoom?: unknown;
+  readonly rotation?: unknown;
+  readonly defaultRotation?: unknown;
+  readonly flip?: unknown;
+  readonly defaultFlip?: unknown;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const asCount = (raw: unknown): number | null => {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const n = Number(raw.trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+/** A flip off the transport: `{ horizontal, vertical }` booleans by name. */
+export function flipOf(raw: unknown): { horizontal: boolean; vertical: boolean } | null {
+  if (!isRecord(raw)) return null;
+  const horizontal: unknown = raw["horizontal"];
+  const vertical: unknown = raw["vertical"];
+  if (typeof horizontal !== "boolean" && typeof vertical !== "boolean") return null;
+  return { horizontal: horizontal === true, vertical: vertical === true };
+}
+
+/** Seed shaping: shape/limits/flags name themselves; zoom, rotation and
+ * flip fall back to their defaults, then the built-ins. */
+export function initial(raw: ImageCropperInitial): Pick<ImageCropperContext, "cropShape" | "aspectRatio" | "minWidth" | "minHeight" | "maxWidth" | "maxHeight" | "fixedCropArea" | "zoom" | "rotation" | "flipHorizontal" | "flipVertical"> {
+  const flip = flipOf(raw.flip) ?? flipOf(raw.defaultFlip) ?? { horizontal: false, vertical: false };
+  return {
+    cropShape: raw.cropShape === "circle" ? "circle" : "rect",
+    aspectRatio: asCount(raw.aspectRatio),
+    minWidth: asCount(raw.minWidth),
+    minHeight: asCount(raw.minHeight),
+    maxWidth: asCount(raw.maxWidth),
+    maxHeight: asCount(raw.maxHeight),
+    fixedCropArea: raw.fixedCropArea === true,
+    zoom: asCount(raw.zoom) ?? asCount(raw.defaultZoom) ?? 1,
+    rotation: asCount(raw.rotation) ?? asCount(raw.defaultRotation) ?? 0,
+    flipHorizontal: flip.horizontal,
+    flipVertical: flip.vertical,
+  };
+}
+
 /** A positioned rectangle: Zag's CropRect, declared here because the
  * geometry module exports values only. */
 export interface CropRect {

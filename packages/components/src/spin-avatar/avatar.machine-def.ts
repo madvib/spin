@@ -1,4 +1,4 @@
-import { avatar } from "./avatar.def.ts";
+import { avatar } from "./avatar.bindings.ts";
 import type { AvatarStatusChange } from "./avatar.machine.ts";
 
 /**

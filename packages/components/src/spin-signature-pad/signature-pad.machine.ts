@@ -63,6 +63,70 @@ export type SignaturePadDrawDetails = {
   readonly currentPath: string | null;
 };
 
+export interface SignaturePadInitial {
+  readonly paths?: unknown;
+  readonly defaultPaths?: unknown;
+  readonly disabled?: unknown;
+  readonly readOnly?: unknown;
+  readonly drawing?: unknown;
+}
+
+/** Seed shaping: authored paths win, else their default, else empty.
+ * The tuning rides the opaque `drawing` prop — shaped here where the
+ * numbers are named, not in the bags. */
+/** Paths off any transport: well-shaped string lists only (the grammar
+ * coerces `= []` to `["[]"]`), anything else is empty. The machine and the
+ * reconcile share it. */
+export function pathsOf(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.every((item): item is string => typeof item === "string") ? [...value] : [];
+  }
+  if (typeof value !== "string" || value.length === 0) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
+      ? [...parsed]
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Two path lists are one selection when every path matches in order. */
+export function samePaths(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((path, index) => path === b[index]);
+}
+
+export function initial(raw: SignaturePadInitial): Omit<SignaturePadContext, "currentPoints" | "currentPath"> {
+  return {
+    paths: pathsOf(raw.paths).length > 0 ? pathsOf(raw.paths) : pathsOf(raw.defaultPaths),
+    disabled: raw.disabled === true,
+    readOnly: raw.readOnly === true,
+    tuning: { ...defaultTuning, ...tuningOf(raw.drawing) },
+  };
+}
+
+/** The tuning off the opaque `drawing` prop: numbers by name, nothing
+ * else. The seed and the reconcile share it — both name the fields once. */
+export function tuningOf(value: unknown): Partial<DrawingTuning> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
+  const bag: Record<string, unknown> = { ...value };
+  const count = (field: unknown): number | null =>
+    typeof field === "number" && Number.isFinite(field) ? field : null;
+  const size = count(bag["size"]);
+  const thinning = count(bag["thinning"]);
+  const smoothing = count(bag["smoothing"]);
+  const streamline = count(bag["streamline"]);
+  const simulate = bag["simulatePressure"];
+  return {
+    ...(size === null ? {} : { size }),
+    ...(thinning === null ? {} : { thinning }),
+    ...(smoothing === null ? {} : { smoothing }),
+    ...(streamline === null ? {} : { streamline }),
+    ...(typeof simulate === "boolean" ? { simulatePressure: simulate } : {}),
+  };
+}
+
 /** Zag's get-svg-path, vendored: outline points to a closed SVG path. */
 export function svgPathFromStroke(points: readonly (readonly number[])[], closed = true): string {
   const len = points.length;

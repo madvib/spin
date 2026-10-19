@@ -1,5 +1,5 @@
-import { splitter } from "./splitter.def.ts";
-import type { SplitterResizeDetails } from "./splitter.def.ts";
+import { splitter } from "./splitter.bindings.ts";
+import type { SplitterResizeDetails } from "./splitter.bindings.ts";
 
 /**
  * The splitter's seam: the synthesized bridge, the element's imperative

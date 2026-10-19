@@ -1,14 +1,19 @@
 import {
   defineComponent,
-  textProp,
   type ComponentDef,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
+  sameTags,
+  stringsOf,
   type SanitizeValue,
   type TagsContext,
   type TagsEvent,
+  type TagsInitial,
   type TagsLog,
   type TagsValueChange,
   type TagsValueInvalid,
@@ -80,7 +85,6 @@ export interface TagsApi extends TagsCommands {
   getItemState(row: TagsRow): TagsItemState;
   indexOfRow(row: TagsRow): number;
   indexOfId(id: string): number;
-  focusInput(): void;
   announceLog(): void;
   getRootProps(): Record<string, unknown>;
   getLabelProps(): Record<string, unknown>;
@@ -113,13 +117,89 @@ const defaultTranslations: TagsTranslations = {
 const defaultSanitize: SanitizeValue = (value: string): string => value.trim();
 const defaultValidate: ValidateTag = (): boolean => true;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+type HostFn = (...args: readonly unknown[]) => unknown;
+
+const isHostFn = (value: unknown): value is HostFn =>
+  typeof value === "function";
+
+/** Whether the window holds focus: a window blur leaves the field alone
+ * (Zag reports nothing), a label-click blur ends the edit. */
+const windowFocused = (): boolean => {
+  if (typeof document === "undefined") return true;
+  if (typeof document.hasFocus !== "function") return true;
+  return document.hasFocus();
+};
+
+const textOf = (raw: unknown, fallback = ""): string =>
+  typeof raw === "string" ? raw : fallback;
+
+/** A host callback prop: called with the event when the host provided a
+ * function, ignored otherwise. */
+const callHostFn = (fn: unknown, event: PointerEvent | FocusEvent): void => {
+  if (!isHostFn(fn)) return;
+  fn(event);
+};
+
+/** Whether the caret sits at the start of the entry field: arrows and
+ * delete then move between tags instead of text. Reads the event's own
+ * target, falling back to the entry input in the owned root (a synthetic
+ * event carries no target, and the real one always does). */
+const caretAtStart = (scope: ScopeLike, target: EventTarget | null): boolean => {
+  const at = (node: unknown): boolean => {
+    if (!isRecord(node)) return false;
+    return node["selectionStart"] === 0 && node["selectionEnd"] === 0;
+  };
+  if (at(target)) return true;
+  const host = scope.root();
+  if (typeof host.querySelector !== "function") return false;
+  return at(host.querySelector(`[id="${scope.id("input")}"]`));
+};
+
+/** Host behavioral props live on the element itself, not the scope:
+ * the scope grammar has no function type, so sanitizers, validators,
+ * translations and outside-handlers ride as element properties. Read
+ * through the owned root, never the global document. */
+const hostProp = (scope: HostScope, name: string): unknown => {
+  const root: unknown = scope.root();
+  if (!isRecord(root)) return undefined;
+  return root[name];
+};
+
+interface HostScope {
+  readonly props: Record<string, unknown>;
+  readonly root: () => Element;
+}
+
+const translationsOf = (scope: HostScope): TagsTranslations => {
+  const fromRoot: unknown = hostProp(scope, "translations");
+  if (fromRoot !== undefined) return parseTranslations(fromRoot);
+  const raw: unknown = scope.props["translations"];
+  return typeof raw === "function" || isRecord(raw) ? parseTranslations(raw) : defaultTranslations;
+};
+
+const hostFnOf = (scope: HostScope, name: string): HostFn | undefined => {
+  const value: unknown = hostProp(scope, name);
+  return isHostFn(value) ? value : undefined;
+};
+
 function parseTranslations(raw: unknown): TagsTranslations {
-  if (typeof raw !== "object" || raw === null) return defaultTranslations;
-  const record = raw as Record<string, unknown>;
-  const text = (name: string, fallback: string): string =>
-    typeof record[name] === "string" ? (record[name] as string) : fallback;
-  const fn1 = <T>(name: string, fallback: (value: string) => T): ((value: string) => T) =>
-    typeof record[name] === "function" ? (record[name] as (value: string) => T) : fallback;
+  if (!isRecord(raw)) return defaultTranslations;
+  const text = (name: string, fallback: string): string => {
+    const value: unknown = raw[name];
+    return typeof value === "string" ? value : fallback;
+  };
+  const fn1 = (name: string, fallback: (value: string) => string): ((value: string) => string) => {
+    const value: unknown = raw[name];
+    if (!isHostFn(value)) return fallback;
+    return (arg: string): string => {
+      const out: unknown = value(arg);
+      return typeof out === "string" ? out : fallback(arg);
+    };
+  };
+  const pasted: unknown = raw["tagsPasted"];
   return {
     clearTriggerLabel: text("clearTriggerLabel", defaultTranslations.clearTriggerLabel),
     deleteTagTriggerLabel: fn1("deleteTagTriggerLabel", defaultTranslations.deleteTagTriggerLabel),
@@ -128,47 +208,23 @@ function parseTranslations(raw: unknown): TagsTranslations {
     tagUpdated: fn1("tagUpdated", defaultTranslations.tagUpdated),
     tagDeleted: fn1("tagDeleted", defaultTranslations.tagDeleted),
     tagSelected: fn1("tagSelected", defaultTranslations.tagSelected),
-    tagsPasted: typeof record["tagsPasted"] === "function"
-      ? (record["tagsPasted"] as (values: readonly string[]) => string)
+    tagsPasted: isHostFn(pasted)
+      ? (values: readonly string[]): string => {
+        const out: unknown = pasted(values);
+        return typeof out === "string" ? out : defaultTranslations.tagsPasted(values);
+      }
       : defaultTranslations.tagsPasted,
     noTagsSelected: text("noTagsSelected", defaultTranslations.noTagsSelected),
   };
 }
 
-/** Strings travel the prop channel as JSON text (see the slider bridge:
- * the grammar coerces `= []` to `["[]"]`). Null when nothing arrived. */
-const parseStrings = (raw: unknown): string[] | null => {
-  if (Array.isArray(raw)) {
-    const clean = (raw as unknown[]).filter((item): item is string => typeof item === "string");
-    return clean.some((item) => item === "[]") && clean.length === 1 ? [] : clean;
-  }
-  if (typeof raw !== "string") return null;
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.every((item) => typeof item === "string")
-      ? [...(parsed as string[])]
-      : null;
-  } catch {
-    return null;
-  }
-};
+interface ScopeLike extends PartScope<unknown, TagsContext> {}
 
-const sameTags = (a: readonly string[], b: readonly string[]): boolean =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
+interface SlotLike<R> extends SlotScope<R, TagsContext> {}
 
-type Ctx = TagsContext;
-
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
-
-type ScopeLike = {
-  readonly props: Record<string, unknown>;
-  readonly context: Record<string, unknown>;
-  readonly state: string;
-  readonly root: () => Element;
-  readonly id: (part: string, slot?: unknown) => string;
-  readonly send: (event: { type: string } & Record<string, unknown>) => void;
-  readonly attr: (value: boolean) => string | undefined;
-};
+/** Transport guarantees the raw prop bag is a TagsInitial-shaped object. */
+const isTagsInitial = (raw: unknown): raw is TagsInitial =>
+  raw !== null && typeof raw === "object";
 
 /**
  * One row object per logical tag, reused across value changes. A `for`
@@ -195,7 +251,18 @@ const rowsOf = (value: readonly string[]): readonly TagsRow[] => {
 const tagIdOf = (id: (part: string, slot?: unknown) => string, row: TagsRow): string =>
   `${id("tag")}:${row.value}:${row.occurrence}`;
 
-const indexOfRow = (context: Ctx, row: TagsRow): number => {
+/** A row off the host: occurrence-keyed, well-shaped only. */
+const rowOf = (arg: unknown): TagsRow => {
+  if (!isRecord(arg)) return { value: "", occurrence: 0 };
+  const value: unknown = arg["value"];
+  const occurrence: unknown = arg["occurrence"];
+  return {
+    value: typeof value === "string" ? value : "",
+    occurrence: typeof occurrence === "number" ? occurrence : 0,
+  };
+};
+
+const indexOfRow = (context: TagsContext, row: TagsRow): number => {
   const value = context.value;
   let seen = 0;
   for (let i = 0; i < value.length; i++) {
@@ -207,7 +274,7 @@ const indexOfRow = (context: Ctx, row: TagsRow): number => {
 };
 
 const itemStateOf = (
-  context: Ctx,
+  context: TagsContext,
   state: string,
   disabled: boolean,
   id: (part: string, slot?: unknown) => string,
@@ -224,11 +291,11 @@ const itemStateOf = (
   };
 };
 const stateOf = (scope: ScopeLike, row: TagsRow): TagsItemState =>
-  itemStateOf(asCtx(scope.context), scope.state, scope.props["disabled"] === true, scope.id, row);
+  itemStateOf(scope.context, scope.state, scope.props["disabled"] === true, scope.id, row);
 
 /** Whether a node belongs to a tag part: the exclusion that keeps a press
  * on a tag from reading as a press outside the input. */
-const withinTag = (scope: ScopeLike, node: EventTarget | null): boolean => {
+const withinTag = (scope: ScopeLike, node: unknown): boolean => {
   if (!(node instanceof Element)) return false;
   const host = scope.root();
   const prefix = `${scope.id("tag")}:`;
@@ -244,13 +311,8 @@ const withinTag = (scope: ScopeLike, node: EventTarget | null): boolean => {
 /** Zag's `invalid = prop("invalid") || computed("isOverflowing")`: one
  * derived boolean flowing to root, control, label and input alike. */
 const invalidOf = (scope: ScopeLike): boolean => {
-  const context = asCtx(scope.context);
-  return scope.props["invalid"] === true || (context.value as string[]).length > context.max;
-};
-
-const focusInput = (id: (part: string, slot?: unknown) => string): void => {
-  if (typeof document === "undefined") return;
-  (document.getElementById(id("input")) as HTMLInputElement | null)?.focus();
+  const context = scope.context;
+  return scope.props["invalid"] === true || context.value.length > context.max;
 };
 
 /** Row handlers, built once per row per bridge: the scope reads live
@@ -277,43 +339,35 @@ const tagHandlers = (scope: ScopeLike, row: TagsRow): TagHandlerSet => {
   if (hit !== undefined) return hit;
   const made: TagHandlerSet = {
     onPointerDown: (event: PointerEvent): void => {
-      const context = asCtx(scope.context);
+      const context = scope.context;
       if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
       if (event.button !== 0) return;
       event.preventDefault();
       const index = indexOfRow(context, row);
       if (index === -1) return;
       scope.send({ type: "POINTER_DOWN_TAG", index });
-      focusInput(scope.id);
     },
     onDblclick: (): void => {
-      const context = asCtx(scope.context);
+      const context = scope.context;
       if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
       const index = indexOfRow(context, row);
       if (index === -1) return;
       scope.send({ type: "DOUBLE_CLICK_TAG", index });
-      if (typeof document === "undefined") return;
-      const node = document.getElementById(`${tagIdOf(scope.id, row)}:input`);
-      if (node instanceof HTMLInputElement) {
-        node.focus();
-        node.select();
-      }
     },
     onDeleteClick: (event: MouseEvent): void => {
       if (event.defaultPrevented) return;
-      const context = asCtx(scope.context);
+      const context = scope.context;
       if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
       const index = indexOfRow(context, row);
       if (index === -1) return;
       scope.send({ type: "CLICK_DELETE_TAG", index });
-      focusInput(scope.id);
     },
     // The delete trigger is inside the preview: pressing it must not
     // also highlight the tag. Its only job when inert is to swallow the
     // press so the click that follows never fires.
     onDeletePointerDown: (event: PointerEvent): void => {
       if (event.button !== 0) return;
-      const context = asCtx(scope.context);
+      const context = scope.context;
       if (!scope.props["readOnly"] === true && scope.props["disabled"] !== true) return;
       event.preventDefault();
     },
@@ -352,12 +406,72 @@ const message = (log: TagsLog, prev: TagsLog | null, t: TagsTranslations): strin
  * even when the message repeats, which rewriting the same node's text
  * two writes deep in one task would not be.
  */
-const announce = (scope: { readonly id: (part: string, slot?: number) => string; readonly props: Record<string, unknown> }, log: TagsLog, prev: TagsLog | null): void => {
-  if (typeof document === "undefined") return;
-  const region = document.getElementById(scope.id("liveRegion"));
+type IdFn = (part: string, slot?: unknown) => string;
+
+/** Announced by swapping the region node for a fresh clone carrying
+ * the text: a new node in the live tree is a mutation a screen reader
+ * reads even when the message repeats, which rewriting the same node's
+ * text two writes deep in one task would not be. Scoped to the owned
+ * root — never the global document. */
+const rootByBridge = new WeakMap<IdFn, Element>();
+const rememberRoot = (id: IdFn, root: Element): void => {
+  rootByBridge.set(id, root);
+};
+
+/** The raw host functions already wrapped into context, per bridge: a
+ * wrapper is fresh per sync, so the check is against the raw fn. */
+/** Sync the element's host functions into context, silently and pre-send:
+ * commands run before their event transmits, so assigns read fresh host
+ * behavior on the very send that needs it. Bag sends sync in settled
+ * instead (post-send, silent) — one send behind, which beats never. */
+const syncHostFns = (context: TagsContext, id: (part: string, slot?: unknown) => string): void => {
+  const root = rootByBridge.get(id);
+  if (root === undefined) return;
+  const seen = seenOf(id);
+  const scope = { props: {} as Record<string, unknown>, root: () => root };
+  const sanitize = hostFnOf(scope, "sanitizeValue");
+  if (sanitize !== undefined && seen.sanitize !== sanitize) {
+    seen.sanitize = sanitize;
+    const fn = sanitize;
+    context.sanitizeValue = (value) => {
+      const out: unknown = fn(value);
+      return typeof out === "string" ? out : value;
+    };
+  }
+  const check = hostFnOf(scope, "validate");
+  if (check !== undefined && seen.validate !== check) {
+    seen.validate = check;
+    const fn = check;
+    context.validate = (details) => {
+      const out: unknown = fn(details);
+      return typeof out === "boolean" ? out : true;
+    };
+  }
+};
+
+const seenByBridge = new WeakMap<IdFn, { sanitize?: HostFn; validate?: HostFn }>();
+const seenOf = (id: IdFn): { sanitize?: HostFn; validate?: HostFn } => {
+  let seen = seenByBridge.get(id);
+  if (seen === undefined) {
+    seen = {};
+    seenByBridge.set(id, seen);
+  }
+  return seen;
+};
+
+const announce = (
+  root: Element,
+  regionId: string,
+  translations: TagsTranslations,
+  log: TagsLog,
+  prev: TagsLog | null,
+): void => {
+  // The id carries colons, invalid in an id selector, so the attribute
+  // form matches it exactly.
+  const region = root.querySelector(`[id="${regionId}"]`);
   if (region === null || region.parentNode === null) return;
   const fresh = region.cloneNode(false);
-  fresh.textContent = message(log, prev, scope.props["translations"] as TagsTranslations);
+  fresh.textContent = message(log, prev, translations);
   region.replaceWith(fresh);
 };
 
@@ -365,119 +479,84 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   name: "tags-input",
   config,
   implementations,
-  start: (props) => (props["autoFocus"] === true ? "focused:input" : "idle"),
-  seed: () => ({}),
-  establish: (props) => {
-    const seed = parseStrings(props["defaultValue"]) ?? [];
-    const seedInput = typeof props["defaultInputValue"] === "string" ? (props["defaultInputValue"] as string) : "";
-    return [
-      { type: "SET_VALUE", value: seed },
-      ...(seedInput.length > 0 ? [{ type: "SET_INPUT_VALUE", value: seedInput }] : []),
-    ];
+  start: (raw, _authored) => {
+    const props: TagsInitial = isTagsInitial(raw) ? raw : {};
+    return props.autoFocus === true ? "focused:input" : "idle";
   },
-  channels: {
-    value: {
-      controlled: true,
-      parse: parseStrings,
-      event: (value: readonly string[]) => ({ type: "SET_VALUE", value: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) && sameTags(current as string[], outer as string[]),
-      assign: true,
-    },
-    defaultValue: { parse: parseStrings },
-    inputValue: {
-      controlled: true,
-      parse: textProp,
-      event: (value: string) => ({ type: "SET_INPUT_VALUE", value }),
-      assign: true,
-    },
-    defaultInputValue: { parse: textProp },
-    max: { parse: (raw) => (typeof raw === "number" && Number.isFinite(raw) ? raw : Infinity) },
-    allowOverflow: { parse: (raw) => raw === true },
-    allowDuplicates: { parse: (raw) => raw === true },
-    editable: { parse: (raw) => raw !== false },
-    addOnPaste: { parse: (raw) => raw === true },
-    addOnBlur: { parse: (raw) => raw === true },
-    clearOnBlur: { parse: (raw) => raw === true },
-    delimiter: { parse: (raw) => (typeof raw === "string" ? raw : ",") },
-    sanitizeValue: {
-      parse: (raw, host) => {
-        if (typeof raw === "function") return raw;
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "sanitizeValue") : undefined;
-        return typeof fromRoot === "function" ? fromRoot : defaultSanitize;
-      },
-    },
-    validate: {
-      parse: (raw, host) => {
-        if (typeof raw === "function") return raw;
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "validate") : undefined;
-        return typeof fromRoot === "function" ? fromRoot : defaultValidate;
-      },
-    },
-    blurBehavior: { parse: textProp },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    placeholder: { parse: textProp },
-    maxLength: { parse: (raw) => (typeof raw === "number" && Number.isFinite(raw) ? raw : undefined) },
-    name: { parse: textProp },
-    form: { parse: textProp },
-    label: { parse: textProp },
-    translations: {
-      parse: (raw, host) => {
-        if (typeof raw === "object" && raw !== null) return parseTranslations(raw);
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "translations") : undefined;
-        return parseTranslations(fromRoot);
-      },
-    },
-    autoFocus: { parse: (raw) => raw === true },
-    onPointerDownOutside: {
-      parse: (raw, host) => {
-        if (typeof raw === "function") return raw;
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "onPointerDownOutside") : undefined;
-        return typeof fromRoot === "function" ? fromRoot : undefined;
-      },
-    },
-    onInteractOutside: {
-      parse: (raw, host) => {
-        if (typeof raw === "function") return raw;
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "onInteractOutside") : undefined;
-        return typeof fromRoot === "function" ? fromRoot : undefined;
-      },
-    },
-    onFocusOutside: {
-      parse: (raw, host) => {
-        if (typeof raw === "function") return raw;
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "onFocusOutside") : undefined;
-        return typeof fromRoot === "function" ? fromRoot : undefined;
-      },
-    },
+  seed: (raw, authored) => {
+    const props: TagsInitial = isTagsInitial(raw) ? raw : {};
+    const shaped = initial(props);
+
+    // An authored channel starts at its value, not its default.
+    const value = authored("value") ? stringsOf(props.value) : shaped.value;
+    const inputValue = authored("inputValue") && typeof props.inputValue === "string" ? props.inputValue : shaped.inputValue;
+    return {
+      ...shaped,
+      value,
+      inputValue,
+      highlightedIndex: null,
+      editedValue: "",
+      editedIndex: null,
+      log: null,
+      logPrev: null,
+      refusal: null,
+    };
   },
-  scalarsOf: (parsed) => ({
-    max: parsed["max"],
-    allowOverflow: parsed["allowOverflow"],
-    allowDuplicates: parsed["allowDuplicates"],
-    editable: parsed["editable"],
-    addOnPaste: parsed["addOnPaste"],
-    addOnBlur: parsed["blurBehavior"] === "add",
-    clearOnBlur: parsed["blurBehavior"] === "clear",
-    delimiter: parsed["delimiter"],
-    sanitizeValue: parsed["sanitizeValue"],
-    validate: parsed["validate"],
+  establish: (raw) => {
+    const props: TagsInitial = isTagsInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    const sends: ({ type: string } & Record<string, unknown>)[] = [{ type: "SET_VALUE", value: shaped.value }];
+    if (shaped.inputValue.length > 0) sends.push({ type: "SET_INPUT_VALUE", value: shaped.inputValue });
+    return sends;
+  },
+  scalarsOf: (parsed, authored) => ({
+    // Authored channels alternate silently: the host owns the value, so a
+    // host write lands through the refresh merge — which reports nothing —
+    // instead of a send, which would report through the watch. Fresh
+    // arrays tick the bridge; the bag memos hold on unchanged contents.
+    ...(authored("value") ? { value: stringsOf(parsed["value"]) } : {}),
+    ...(authored("inputValue") && typeof parsed["inputValue"] === "string"
+      ? { inputValue: parsed["inputValue"] }
+      : {}),
   }),
-  settled: ({ before, after, props, id }) => {
-    const beforeLog = (before as { readonly context: Ctx }).context.log;
-    const afterLog = (after as { readonly context: Ctx }).context.log;
-    if (beforeLog !== afterLog && afterLog !== null) {
-      announce({ id, props }, afterLog, (after as { readonly context: Ctx }).context.logPrev);
+
+  settled: ({ event, before, after, props, root, id, focus }) => {
+    rememberRoot(id, root());
+    // Host functions ride the element, not the scope: bag sends sync
+    // them here, where the root is in hand (one send behind, silent),
+    // and command sends sync pre-send in their shapers (exact).
+    syncHostFns(after.context, id);
+    if (before.context.log !== after.context.log && after.context.log !== null) {
+      announce(root(), id("liveRegion"), translationsOf({ props, root }), after.context.log, after.context.logPrev);
     }
+    // A rename opening takes the edit input: its id appends `:input` to
+    // its tag id, which the slot path expresses as one more segment.
+    if (
+      after.state === "editing:tag" &&
+      before.state !== "editing:tag" &&
+      after.context.editedIndex !== null
+    ) {
+      const row = rowsOf(after.context.value)[after.context.editedIndex];
+      if (row !== undefined) focus("tag", `${row.value}:${row.occurrence}:input`);
+      return;
+    }
+    // Tag gestures return focus to the entry input.
+    if (
+      event.type === "POINTER_DOWN_TAG" ||
+      event.type === "CLICK_DELETE_TAG" ||
+      event.type === "TAG_INPUT_ENTER" ||
+      event.type === "TAG_INPUT_ESCAPE" ||
+      event.type === "CLEAR_VALUE" ||
+      event.type === "ENTER" ||
+      event.type === "BACKSPACE" ||
+      event.type === "DELETE" ||
+      event.type === "DOUBLE_CLICK_TAG"
+    ) focus("input");
   },
   parts: {
     root: {
       id: "",
-      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], asCtx(scope.context).value.length === 0, scope.state !== "idle"].join(""),
+      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.context.value.length === 0, scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id("root"),
         "data-scope": "tags-input",
@@ -487,9 +566,9 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         "data-readonly": scope.attr(scope.props["readOnly"] === true),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
         "data-focus": scope.attr(scope.state !== "idle"),
-        "data-empty": scope.attr(asCtx(scope.context).value.length === 0),
+        "data-empty": scope.attr(scope.context.value.length === 0),
         onPointerDown: () => {
-          const context = asCtx(scope.context);
+          const context = scope.context;
           if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
           scope.send({ type: "POINTER_DOWN" });
         },
@@ -525,11 +604,11 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     input: {
       sig: (scope) => {
-        const context = asCtx(scope.context);
+        const context = scope.context;
         return [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], context.value.length === 0, context.inputValue, scope.props["placeholder"], scope.props["maxLength"]].join("");
       },
       attrs: (scope) => {
-        const context = asCtx(scope.context);
+        const context = scope.context;
         const empty = context.value.length === 0;
         return {
           id: scope.id("input"),
@@ -547,10 +626,10 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           "data-invalid": scope.attr(invalidOf(scope)),
           "data-readonly": scope.attr(scope.props["readOnly"] === true),
           "data-empty": scope.attr(empty),
-          placeholder: empty ? (scope.props["placeholder"] as string) : undefined,
+          placeholder: empty ? textOf(scope.props["placeholder"]) : undefined,
           value: context.inputValue,
           onInput: (event: InputEvent) => {
-            const ctx = asCtx(scope.context);
+            const ctx = scope.context;
             if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
             const target = event.currentTarget;
             if (!(target instanceof HTMLInputElement)) return;
@@ -559,7 +638,7 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
               scope.send({ type: "PASTE", value });
               return;
             }
-            const delimiter = scope.props["delimiter"] as string;
+            const delimiter = textOf(scope.props["delimiter"], ",");
             if (delimiter.length > 0 && value.endsWith(delimiter)) {
               scope.send({ type: "DELIMITER_KEY" });
               return;
@@ -568,28 +647,28 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           },
           onFocus: () => scope.send({ type: "FOCUS" }),
           onFocusOut: (event: FocusEvent) => {
-            if (typeof document === "undefined") return;
-            const input = document.getElementById(scope.id("input"));
-            const related = event.relatedTarget;
-            if (related === null || related === undefined) {
-              if (typeof document.hasFocus === "function" && !document.hasFocus()) return;
-            } else {
-              if (!(related instanceof Node)) return;
-              if (input !== null && (related === input || input.contains(related))) return;
-              if (withinTag(scope, related)) return;
-              const host = scope.root();
-              if (host.contains(related)) return;
+            const host = scope.root();
+            const input = host.querySelector(`[id="${scope.id("input")}"]`);
+            const related: unknown = event.relatedTarget;
+            // A null target is a label-click blur when the window holds
+            // focus, and a window blur when it does not — the platform
+            // owns that distinction, read here, once.
+            if ((related === null || related === undefined) && !windowFocused()) return;
+            if (related !== null && related !== undefined && !(related instanceof Node)) return;
+            const node: Node | null = related === null || related === undefined ? null : related;
+            if (input !== null && node !== null && (related === input || (input instanceof Node && input.contains(node)))) return;
+            if (node !== null) {
+              if (withinTag(scope, node)) return;
+              if (host.contains(node)) return;
             }
-            (scope.props["onFocusOutside"] as ((event: FocusEvent) => void) | undefined)?.(event);
+            callHostFn(hostFnOf(scope, "onFocusOutside"), event);
             scope.send({ type: "BLUR" });
           },
           onKeydown: (event: KeyboardEvent) => {
             if (event.defaultPrevented) return;
             if (event.isComposing) return;
-            if (typeof document === "undefined") return;
-            const el = document.getElementById(scope.id("input")) as HTMLInputElement | null;
-            const caret = el !== null && el.selectionStart === 0 && el.selectionEnd === 0;
-            const ctx = asCtx(scope.context);
+            const caret = caretAtStart(scope, event.currentTarget);
+            const ctx = scope.context;
             switch (event.key) {
               case "ArrowDown":
                 scope.send({ type: "ARROW_DOWN" });
@@ -621,11 +700,11 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           },
           "use:dismissable": {
             onOutside: (event: PointerEvent) => {
-              (scope.props["onPointerDownOutside"] as ((event: PointerEvent) => void) | undefined)?.(event);
-              (scope.props["onInteractOutside"] as ((event: PointerEvent) => void) | undefined)?.(event);
+              callHostFn(hostFnOf(scope, "onPointerDownOutside"), event);
+              callHostFn(hostFnOf(scope, "onInteractOutside"), event);
               if (event.defaultPrevented) return;
               if (withinTag(scope, event.target)) return;
-              const ctx = asCtx(scope.context);
+              const ctx = scope.context;
               if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
               scope.send({ type: "BLUR" });
             },
@@ -636,11 +715,11 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     hiddenInput: {
       id: "hidden-input",
       sig: (scope) => {
-        const context = asCtx(scope.context);
+        const context = scope.context;
         return [scope.props["name"], scope.props["form"], scope.props["disabled"], scope.props["readOnly"], scope.props["required"], context.value.join(", ")].join("");
       },
       attrs: (scope) => {
-        const context = asCtx(scope.context);
+        const context = scope.context;
         return {
           type: "text",
           hidden: true,
@@ -658,7 +737,7 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           // no consumer in this machine — the api's `disabled` is the prop.
           "use:form-control": {
             onFormReset: () => {
-              const seed = parseStrings(scope.props["defaultValue"]) ?? [];
+              const seed = stringsOf(scope.props["defaultValue"]);
               scope.send({ type: "SET_VALUE", value: [...seed] });
             },
           },
@@ -667,9 +746,9 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     clearTrigger: {
       id: "clear-btn",
-      sig: (scope) => [scope.props["disabled"], scope.props["readOnly"], asCtx(scope.context).value.length === 0, (scope.props["translations"] as TagsTranslations).clearTriggerLabel].join(""),
+      sig: (scope: ScopeLike) => [scope.props["disabled"], scope.props["readOnly"], scope.context.value.length === 0, translationsOf(scope).clearTriggerLabel].join(""),
       attrs: (scope) => {
-        const empty = asCtx(scope.context).value.length === 0;
+        const empty = scope.context.value.length === 0;
         return {
           id: scope.id("clearTrigger"),
         "data-scope": "tags-input",
@@ -678,20 +757,19 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           dir: scope.props["dir"],
           "data-readonly": scope.attr(scope.props["readOnly"] === true),
           disabled: scope.props["disabled"],
-          "aria-label": (scope.props["translations"] as TagsTranslations).clearTriggerLabel,
+          "aria-label": translationsOf(scope).clearTriggerLabel,
           hidden: empty,
           onClick: () => {
-            const context = asCtx(scope.context);
+            const context = scope.context;
             if (scope.props["readOnly"] === true || scope.props["disabled"] === true) return;
             scope.send({ type: "CLEAR_VALUE" });
-            focusInput(scope.id);
           },
         };
       },
     },
     liveRegion: {
       id: "live-region",
-      sig: () => "",
+      sig: () => "live",
       attrs: (scope) => ({
         id: scope.id("liveRegion"),
         "data-scope": "tags-input",
@@ -704,13 +782,13 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   },
   slots: {
     item: {
-      indexes: (context, props) => rowsOf(asCtx(context).value).filter(() => true),
+      indexes: (context, props) => rowsOf(context.value).filter(() => true),
       sig: (scope) => {
-        const context = asCtx(scope.context);
+        const context = scope.context;
         return [context.editedIndex, context.highlightedIndex, scope.props["disabled"]].join("");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as TagsRow;
+      attrs: (scope: SlotLike<TagsRow>) => {
+        const row = scope.slot;
         return {
           dir: scope.props["dir"],
           "data-scope": "tags-input",
@@ -722,13 +800,13 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     itemPreview: {
       id: "preview",
-      indexes: (context) => rowsOf(asCtx(context).value),
-      sig: (scope) => {
-        const state = stateOf(scope, scope.slot as unknown as TagsRow);
+      indexes: (context) => rowsOf(context.value),
+      sig: (scope: SlotLike<TagsRow>) => {
+        const state = stateOf(scope, scope.slot);
         return [state.editing, state.highlighted, state.disabled].join("");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as TagsRow;
+      attrs: (scope: SlotLike<TagsRow>) => {
+        const row = scope.slot;
         const state = stateOf(scope, row);
         return {
           id: tagIdOf(scope.id, row),
@@ -746,13 +824,13 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     itemText: {
       id: "text",
-      indexes: (context) => rowsOf(asCtx(context).value),
-      sig: (scope) => {
-        const state = stateOf(scope, scope.slot as unknown as TagsRow);
+      indexes: (context) => rowsOf(context.value),
+      sig: (scope: SlotLike<TagsRow>) => {
+        const state = stateOf(scope, scope.slot);
         return [state.highlighted, state.disabled].join("");
       },
-      attrs: (scope) => {
-        const state = stateOf(scope, scope.slot as unknown as TagsRow);
+      attrs: (scope: SlotLike<TagsRow>) => {
+        const state = stateOf(scope, scope.slot);
         return {
           dir: scope.props["dir"],
           "data-scope": "tags-input",
@@ -764,13 +842,13 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     itemInput: {
       id: "tag-input",
-      indexes: (context) => rowsOf(asCtx(context).value),
-      sig: (scope) => {
-        const state = stateOf(scope, scope.slot as unknown as TagsRow);
-        return [state.editing, state.disabled, state.index, state.editing ? asCtx(scope.context).editedValue : ""].join("");
+      indexes: (context) => rowsOf(context.value),
+      sig: (scope: SlotLike<TagsRow>) => {
+        const state = stateOf(scope, scope.slot);
+        return [state.editing, state.disabled, state.index, state.editing ? scope.context.editedValue : ""].join("");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as TagsRow;
+      attrs: (scope: SlotLike<TagsRow>) => {
+        const row = scope.slot;
         const state = stateOf(scope, row);
         return {
           id: `${tagIdOf(scope.id, row)}:input`,
@@ -779,12 +857,12 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           "data-part": "item-input",
           type: "text",
           disabled: state.disabled,
-          "aria-label": (scope.props["translations"] as TagsTranslations).tagEdited(row.value),
+          "aria-label": translationsOf(scope).tagEdited(row.value),
           hidden: !state.editing,
           maxLength: scope.props["maxLength"],
           tabIndex: -1,
           autoComplete: "off",
-          value: state.editing ? asCtx(scope.context).editedValue : "",
+          value: state.editing ? scope.context.editedValue : "",
           onInput: (event: InputEvent) => {
             const target = event.currentTarget;
             if (!(target instanceof HTMLInputElement)) return;
@@ -796,20 +874,18 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
             switch (event.key) {
               case "Enter":
                 scope.send({ type: "TAG_INPUT_ENTER" });
-                focusInput(scope.id);
                 break;
               case "Escape":
                 scope.send({ type: "TAG_INPUT_ESCAPE" });
-                focusInput(scope.id);
                 break;
               default:
                 break;
             }
           },
           onBlur: (event: FocusEvent) => {
-            if (typeof document === "undefined") return;
-            const input = document.getElementById(scope.id("input"));
-            const related = event.relatedTarget;
+            const host = scope.root();
+            const input = host.querySelector(`[id="${scope.id("input")}"]`);
+            const related: unknown = event.relatedTarget;
             const relatedToInput = related !== null && input !== null && related === input;
             queueMicrotask(() => {
               scope.send({ type: "TAG_INPUT_BLUR", relatedToInput });
@@ -821,14 +897,14 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     itemDeleteTrigger: {
       id: "delete-btn",
-      indexes: (context) => rowsOf(asCtx(context).value),
-      sig: (scope) => {
-        const state = stateOf(scope, scope.slot as unknown as TagsRow);
-        const row = scope.slot as unknown as TagsRow;
+      indexes: (context) => rowsOf(context.value),
+      sig: (scope: SlotLike<TagsRow>) => {
+        const state = stateOf(scope, scope.slot);
+        const row = scope.slot;
         return [state.highlighted, state.disabled, row.value].join("");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as TagsRow;
+      attrs: (scope: SlotLike<TagsRow>) => {
+        const row = scope.slot;
         const state = stateOf(scope, row);
         const handlers = tagHandlers(scope, row);
         return {
@@ -840,7 +916,7 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
           "data-disabled": scope.attr(state.disabled),
           "aria-disabled": state.disabled,
           "data-highlighted": scope.attr(state.highlighted),
-          "aria-label": (scope.props["translations"] as TagsTranslations).deleteTagTriggerLabel(row.value),
+          "aria-label": translationsOf(scope).deleteTagTriggerLabel(row.value),
           tabIndex: -1,
           disabled: state.disabled,
           onPointerDown: handlers.onDeletePointerDown,
@@ -850,17 +926,33 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "SET_VALUE", value: [...(args[0] as readonly string[])] }) },
-    addValue: { event: (args) => ({ type: "ADD_TAG", value: args[0] as string }) },
+    setValue: {
+      event: (args) => ({ type: "SET_VALUE", value: [...stringsOf(args[0])] }),
+    },
+    addValue: {
+      event: (args, context: TagsContext, id) => {
+        syncHostFns(context, id);
+        const value = args[0];
+        return { type: "ADD_TAG", value: typeof value === "string" ? value : "" };
+      },
+    },
     setValueAtIndex: {
-      event: (args) => ({ type: "SET_VALUE_AT_INDEX", index: args[0] as number, value: args[1] as string }),
+      event: (args) => {
+        const index = args[0];
+        const value = args[1];
+        return {
+          type: "SET_VALUE_AT_INDEX",
+          index: typeof index === "number" ? index : -1,
+          value: typeof value === "string" ? value : "",
+        };
+      },
     },
     clearValue: {
-      event: (args, context, id) => {
-        const at = args[0] as string | number | undefined;
+      event: (args, context: TagsContext, id) => {
+        const at: unknown = args[0];
         if (at === undefined) return { type: "CLEAR_VALUE" };
         if (typeof at === "number") return { type: "CLEAR_TAG", index: at };
-        const ctx = asCtx(context);
+        const ctx = context;
         for (const row of rowsOf(ctx.value)) {
           const tag = tagIdOf(id, row);
           if (tag === at || `${tag}:delete-btn` === at || `${tag}:input` === at) {
@@ -872,85 +964,96 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         return { type: "CLEAR_TAG", index: -1 };
       },
     },
-    setInputValue: { event: (args) => ({ type: "SET_INPUT_VALUE", value: args[0] as string }) },
+    setInputValue: {
+      event: (args) => {
+        const value = args[0];
+        return { type: "SET_INPUT_VALUE", value: typeof value === "string" ? value : "" };
+      },
+    },
     clearInputValue: { event: () => ({ type: "SET_INPUT_VALUE", value: "" }) },
     focus: { view: ({ focus }) => focus("input") },
   },
   readers: {
-    value: { read: (context) => asCtx(context).value },
-    inputValue: { read: (context) => asCtx(context).inputValue },
-    valueAsString: { read: (context) => (asCtx(context).value as string[]).join(", ") },
-    count: { read: (context) => (asCtx(context).value as string[]).length },
-    empty: { read: (context) => (asCtx(context).value as string[]).length === 0 },
-    atMax: { read: (context) => { const ctx = asCtx(context); return (ctx.value as string[]).length >= ctx.max; } },
-    highlightedIndex: { read: (context) => asCtx(context).highlightedIndex },
+    value: { read: (context) => context.value },
+    inputValue: { read: (context) => context.inputValue },
+    valueAsString: { read: (context) => context.value.join(", ") },
+    count: { read: (context) => context.value.length },
+    empty: { read: (context) => context.value.length === 0 },
+    atMax: { read: (context: TagsContext) => context.value.length >= context.max },
+    highlightedIndex: { read: (context) => context.highlightedIndex },
     editing: { read: (_context, state) => state === "editing:tag" },
-    editedIndex: { read: (context) => asCtx(context).editedIndex },
+    editedIndex: { read: (context) => context.editedIndex },
   },
   methods: {
     getTags: {
-      call: (context) => rowsOf(asCtx(context).value),
+      call: (context: TagsContext) => rowsOf(context.value),
     },
     getItemState: {
-      call: (context, state, args, props, id) =>
+      call: (context: TagsContext, state, args, props, id) =>
         itemStateOf(
-          asCtx(context),
+          context,
           state,
-          (props["disabled"] as boolean) === true,
+          props["disabled"] === true,
           id,
-          args[0] as TagsRow,
+          rowOf(args[0]),
         ),
     },
     indexOfRow: {
-      call: (context, _state, args) => indexOfRow(asCtx(context), args[0] as TagsRow),
+      call: (context: TagsContext, _state, args) => indexOfRow(context, rowOf(args[0])),
     },
     indexOfId: {
-      call: (context, _state, args, props, id) => {
+      call: (context: TagsContext, _state, args, props, id) => {
         void props;
-        const target = args[0] as string;
-        for (const row of rowsOf(asCtx(context).value)) {
+        const target: unknown = args[0];
+        if (typeof target !== "string") return -1;
+        for (const row of rowsOf(context.value)) {
           const tag = tagIdOf(id, row);
           if (tag === target || `${tag}:delete-btn` === target || `${tag}:input` === target) {
-            return indexOfRow(asCtx(context), row);
+            return indexOfRow(context, row);
           }
         }
         return -1;
       },
     },
-    focusInput: {
-      call: (_context, _state, _args, _props, id) => focusInput(id),
-    },
     announceLog: {
-      call: (context, _state, _args, props, id) => {
-        const ctx = asCtx(context);
+      call: (context: TagsContext, _state, _args, props, id: IdFn) => {
+        const ctx = context;
         if (ctx.log === null) return;
-        announce({ id, props }, ctx.log, ctx.logPrev);
+        const root = rootByBridge.get(id);
+        if (root === undefined) return;
+        announce(root, id("liveRegion"), translationsOf({ props, root: () => root }), ctx.log, ctx.logPrev);
       },
     },
   },
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched) => ({ value: [...watched] as string[] }),
+      watch: (context) => [...context.value],
+      detail: (watched: readonly unknown[]) => ({ value: watched.filter((v): v is string => typeof v === "string") }),
     },
     "input-value-change": {
       prop: "onInputValueChange",
-      watch: (context) => [asCtx(context).inputValue],
-      detail: (watched) => ({ inputValue: watched[0] as string }),
+      watch: (context) => [context.inputValue],
+      detail: (watched: readonly unknown[]) => {
+        const text = watched[0];
+        return { inputValue: typeof text === "string" ? text : "" };
+      },
     },
     "highlight-change": {
       prop: "onHighlightChange",
-      watch: (context) => [asCtx(context).highlightedIndex],
-      detail: (watched) => ({ highlightedValue: watched[0] as number | null }),
+      watch: (context) => [context.highlightedIndex],
+      detail: (watched: readonly unknown[]) => {
+        const index = watched[0];
+        return { highlightedValue: typeof index === "number" ? index : null };
+      },
     },
     "value-invalid": {
       prop: "onValueInvalid",
       watch: () => [],
-      detail: (watched) => ({ reason: watched[0] as "invalidTag" | "rangeOverflow" }),
-      select: (_event, before, after) => {
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
+      detail: () => ({ reason: "invalidTag" as const }),
+      select: (_event, before: TagsContext, after: TagsContext) => {
+        const beforeCtx = before;
+        const afterCtx = after;
         // A refused add reports once, then clears: the fork's send is
         // synchronous, so the report-and-clear is one atomic step.
         if (afterCtx.refusal !== null) {

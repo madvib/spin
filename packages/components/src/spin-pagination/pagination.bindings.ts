@@ -1,11 +1,15 @@
 import {
+  dataAttr,
   defineComponent,
   textProp,
   type ComponentDef,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   nextPage,
   pageItems,
   pageRange,
@@ -13,6 +17,7 @@ import {
   totalPages,
   type PaginationContext,
   type PaginationEvent,
+  type PaginationInitial,
   type PaginationPageChange,
   type PaginationPageItem,
 } from "./pagination.machine.ts";
@@ -51,6 +56,13 @@ export interface PaginationApi {
   getLastTriggerProps(): Record<string, unknown>;
 }
 
+/** A string prop off the bag: parsed text arrives as a string, anything
+ * else is absent. Named once; the grammar owns the parse. */
+const textOf = (props: Record<string, unknown>, name: string): string | undefined => {
+  const value: unknown = props[name];
+  return typeof value === "string" ? value : undefined;
+};
+
 // Scope props arrive as strings; hooks write numbers. Accept both — a
 // string-authored `defaultValue="45"` seeds 45, not 0.
 const numProp = (raw: unknown): number | null => {
@@ -62,14 +74,33 @@ const numProp = (raw: unknown): number | null => {
   return null;
 };
 
-type Ctx = PaginationContext;
+/** Controlled writes re-enter through events: an authored page the machine
+ * refused (out of range) reads back through a re-send, not an assign — the
+ * guard stays the single decider. */
+const pageEvent = (raw: unknown): { type: "SET_PAGE"; page: number } | null => {
+  const page = numProp(raw);
+  return page === null ? null : { type: "SET_PAGE", page };
+};
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+const sizeEvent = (raw: unknown): { type: "SET_PAGE_SIZE"; size: number } | null => {
+  const size = numProp(raw);
+  return size === null ? null : { type: "SET_PAGE_SIZE", size };
+};
+
+interface ScopeLike extends PartScope<unknown, PaginationContext> {}
+
+interface SlotLike<R> extends SlotScope<R, PaginationContext> {}
+
+type ItemSlot = PaginationPageItem;
+
+/** Transport guarantees the raw prop bag is a PaginationInitial-shaped object. */
+const isPaginationInitial = (raw: unknown): raw is PaginationInitial =>
+  raw !== null && typeof raw === "object";
 
 /** Stable item-array identity per window signature: the recipe's `for`
  * re-stamps rows when the source identity moves. */
 const itemsCache = new Map<string, readonly PaginationPageItem[]>();
-const windowItems = (context: Ctx): readonly PaginationPageItem[] => {
+const windowItems = (context: PaginationContext): readonly PaginationPageItem[] => {
   const sig = [context.page, context.pageSize, context.count, context.siblingCount, context.boundaryCount].join("|");
   const hit = itemsCache.get(sig);
   if (hit !== undefined) return hit;
@@ -83,40 +114,36 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
   config,
   implementations,
   start: "idle",
-  seed: (props, authored) => ({
-    page: numProp(authored("page") ? props["page"] : props["defaultPage"]) ?? 1,
-    pageSize: numProp(authored("pageSize") ? props["pageSize"] : props["defaultPageSize"]) ?? 10,
-    count: numProp(props["count"]) ?? 0,
-    siblingCount: numProp(props["siblingCount"]) ?? 1,
-    boundaryCount: numProp(props["boundaryCount"]) ?? 1,
-  }),
-  channels: {
-    page: {
-      controlled: true,
-      parse: numProp,
-      event: (value: number) => ({ type: "SET_PAGE", page: value }),
-    },
-    defaultPage: { parse: numProp },
-    pageSize: {
-      controlled: true,
-      parse: numProp,
-      event: (value: number) => ({ type: "SET_PAGE_SIZE", size: value }),
-    },
-    defaultPageSize: { parse: numProp },
-    count: { parse: numProp },
-    siblingCount: { parse: numProp },
-    boundaryCount: { parse: numProp },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    label: { parse: textProp },
-    firstLabel: { parse: textProp },
-    prevLabel: { parse: textProp },
-    nextLabel: { parse: textProp },
-    lastLabel: { parse: textProp },
+  seed: (raw, authored) => {
+    const props: PaginationInitial = isPaginationInitial(raw) ? raw : {};
+    const shaped = initial(props);
+    // An authored channel starts at its value, not its default.
+    const page = authored("page") ? numProp(props.page) ?? shaped.page : shaped.page;
+    const pageSize = authored("pageSize") ? numProp(props.pageSize) ?? shaped.pageSize : shaped.pageSize;
+    return { ...shaped, page, pageSize };
   },
   scalars: ["count", "siblingCount", "boundaryCount"],
+  reconcile: ({ context, parsed, authored, send }) => {
+    const ctx = context;
+    if (authored("page")) {
+      const event = pageEvent(parsed["page"]);
+      if (event !== null && ctx.page !== event.page) {
+        send(event);
+        return true;
+      }
+    }
+    if (authored("pageSize")) {
+      const event = sizeEvent(parsed["pageSize"]);
+      if (event !== null && ctx.pageSize !== event.size) {
+        send(event);
+        return true;
+      }
+    }
+    return false;
+  },
   parts: {
     root: {
-      sig: (scope) => [scope.props["label"], scope.props["dir"], asCtx(scope.context).page].join("|"),
+      sig: (scope) => [scope.props["label"], scope.props["dir"], scope.context.page].join("|"),
       attrs: (scope) => ({
         id: scope.id("root"),
         dir: scope.props["dir"],
@@ -128,45 +155,45 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
     },
     firstTrigger: {
       id: "first",
-      sig: (scope) => [scope.props["firstLabel"], asCtx(scope.context).page !== 1].join("|"),
-      attrs: (scope) => triggerBag(scope, "firstTrigger", "first-trigger", scope.props["firstLabel"] as string, asCtx(scope.context).page !== 1, "FIRST_PAGE"),
+      sig: (scope) => [textOf(scope.props, "firstLabel"), scope.context.page !== 1].join("|"),
+      attrs: (scope) => triggerBag(scope, "firstTrigger", "first-trigger", textOf(scope.props, "firstLabel"), scope.context.page !== 1, "FIRST_PAGE"),
     },
     prevTrigger: {
       id: "prev",
-      sig: (scope) => [scope.props["prevLabel"], previousPage(asCtx(scope.context)) !== null].join("|"),
-      attrs: (scope) => triggerBag(scope, "prevTrigger", "prev-trigger", scope.props["prevLabel"] as string, previousPage(asCtx(scope.context)) !== null, "PREVIOUS_PAGE"),
+      sig: (scope) => [textOf(scope.props, "prevLabel"), previousPage(scope.context) !== null].join("|"),
+      attrs: (scope) => triggerBag(scope, "prevTrigger", "prev-trigger", textOf(scope.props, "prevLabel"), previousPage(scope.context) !== null, "PREVIOUS_PAGE"),
     },
     nextTrigger: {
       id: "next",
-      sig: (scope) => [scope.props["nextLabel"], nextPage(asCtx(scope.context)) !== null].join("|"),
-      attrs: (scope) => triggerBag(scope, "nextTrigger", "next-trigger", scope.props["nextLabel"] as string, nextPage(asCtx(scope.context)) !== null, "NEXT_PAGE"),
+      sig: (scope) => [textOf(scope.props, "nextLabel"), nextPage(scope.context) !== null].join("|"),
+      attrs: (scope) => triggerBag(scope, "nextTrigger", "next-trigger", textOf(scope.props, "nextLabel"), nextPage(scope.context) !== null, "NEXT_PAGE"),
     },
     lastTrigger: {
       id: "last",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
-        return [scope.props["lastLabel"], ctx.page < totalPages(ctx)].join("|");
+        const ctx = scope.context;
+        return [textOf(scope.props, "lastLabel"), ctx.page < totalPages(ctx)].join("|");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
-        return triggerBag(scope, "lastTrigger", "last-trigger", scope.props["lastLabel"] as string, ctx.page < totalPages(ctx), "LAST_PAGE");
+        const ctx = scope.context;
+        return triggerBag(scope, "lastTrigger", "last-trigger", textOf(scope.props, "lastLabel"), ctx.page < totalPages(ctx), "LAST_PAGE");
       },
     },
   },
   slots: {
     item: {
-      indexes: (context) => windowItems(asCtx(context)),
-      sig: (scope) => {
-        const item = scope.slot as unknown as PaginationPageItem;
+      indexes: (context: PaginationContext) => windowItems(context),
+      sig: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         if (item.type !== "page") return "hidden";
-        return [item.value === asCtx(scope.context).page, item.value].join("|");
+        return [item.value === scope.context.page, item.value].join("|");
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as PaginationPageItem;
+      attrs: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         // Templates have no conditional: the recipe renders button + span
         // twins and the wrong kind hides itself.
         if (item.type !== "page") return { "data-hidden": "", "aria-hidden": "true", tabindex: "-1" };
-        const current = item.value === asCtx(scope.context).page;
+        const current = item.value === scope.context.page;
         return {
           id: scope.id("item", item.value),
           type: "button",
@@ -185,14 +212,14 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
       },
     },
     ellipsis: {
-      indexes: (context) => windowItems(asCtx(context)),
-      sig: (scope) => {
-        const item = scope.slot as unknown as PaginationPageItem;
+      indexes: (context: PaginationContext) => windowItems(context),
+      sig: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         if (item.type !== "ellipsis") return "hidden";
         return `ellipsis:${item.index}`;
       },
-      attrs: (scope) => {
-        const item = scope.slot as unknown as PaginationPageItem;
+      attrs: (scope: SlotLike<ItemSlot>) => {
+        const item = scope.slot;
         if (item.type !== "ellipsis") return { "data-hidden": "", "aria-hidden": "true" };
         return {
           id: scope.id("ellipsis", item.index),
@@ -205,32 +232,32 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
     },
   },
   commands: {
-    setPage: { event: (args) => ({ type: "SET_PAGE", page: args[0] as number }) },
-    setPageSize: { event: (args) => ({ type: "SET_PAGE_SIZE", size: args[0] as number }) },
+    setPage: { event: (args) => ({ type: "SET_PAGE", page: typeof args[0] === "number" ? args[0] : 1 }) },
+    setPageSize: { event: (args) => ({ type: "SET_PAGE_SIZE", size: typeof args[0] === "number" ? args[0] : 10 }) },
     goToFirstPage: { event: () => ({ type: "FIRST_PAGE" }) },
     goToLastPage: { event: () => ({ type: "LAST_PAGE" }) },
     goToNextPage: { event: () => ({ type: "NEXT_PAGE" }) },
     goToPrevPage: { event: () => ({ type: "PREVIOUS_PAGE" }) },
   },
   readers: {
-    page: { read: (context) => asCtx(context).page },
-    pageSize: { read: (context) => asCtx(context).pageSize },
-    count: { read: (context) => asCtx(context).count },
-    totalPages: { read: (context) => totalPages(asCtx(context)) },
-    pageRange: { read: (context) => ({ ...pageRange(asCtx(context)) }) },
-    previousPage: { read: (context) => previousPage(asCtx(context)) },
-    nextPage: { read: (context) => nextPage(asCtx(context)) },
-    firstPage: { read: (context) => asCtx(context).page === 1 },
-    lastPage: { read: (context) => asCtx(context).page >= totalPages(asCtx(context)) },
+    page: { read: (context) => context.page },
+    pageSize: { read: (context) => context.pageSize },
+    count: { read: (context) => context.count },
+    totalPages: { read: (context) => totalPages(context) },
+    pageRange: { read: (context) => ({ ...pageRange(context) }) },
+    previousPage: { read: (context) => previousPage(context) },
+    nextPage: { read: (context) => nextPage(context) },
+    firstPage: { read: (context) => context.page === 1 },
+    lastPage: { read: (context) => context.page >= totalPages(context) },
   },
   methods: {
     getItems: {
-      call: (context) => windowItems(asCtx(context)),
+      call: (context) => windowItems(context),
     },
     getItemLabel: {
       call: (context, _state, args) => {
-        const value = args[0] as number;
-        const total = totalPages(asCtx(context));
+        const value = typeof args[0] === "number" ? args[0] : 1;
+        const total = totalPages(context);
         const last = total > 1 && value === total ? "last page, " : "";
         return `${last}page ${value}`;
       },
@@ -239,20 +266,20 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
   events: {
     "page-change": {
       prop: "onPageChange",
-      watch: (context) => [asCtx(context).page, asCtx(context).pageSize],
-      detail: (_watched, _event, _props, context) => {
-        const ctx = asCtx(context as Record<string, unknown>);
-        return { page: ctx.page, pageSize: ctx.pageSize };
-      },
+      watch: (context) => [context.page, context.pageSize],
+      detail: (_watched, _event, _props, context: PaginationContext) => ({ page: context.page, pageSize: context.pageSize }),
     },
     "page-size-change": {
       prop: "onPageSizeChange",
-      watch: (context) => [asCtx(context).pageSize],
-      detail: (watched) => ({ pageSize: watched[0] as number }),
+      watch: (context) => [context.pageSize],
+      detail: (watched: readonly unknown[]) => {
+        const size = watched[0];
+        return { pageSize: typeof size === "number" ? size : 0 };
+      },
       select: (event, before, after) => {
         if (event.type !== "SET_PAGE_SIZE") return null;
-        const beforeSize = (before as unknown as Ctx).pageSize;
-        const afterSize = (after as unknown as Ctx).pageSize;
+        const beforeSize = before.pageSize;
+        const afterSize = after.pageSize;
         if (beforeSize === afterSize) return null;
         return { pageSize: afterSize };
       },
@@ -260,20 +287,11 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
   },
 };
 
-type ScopeLike = {
-  readonly props: Record<string, unknown>;
-  readonly context: Record<string, unknown>;
-  readonly state: string;
-  readonly id: (part: string, slot?: unknown) => string;
-  readonly send: (event: { type: string } & Record<string, unknown>) => void;
-  readonly attr: (value: boolean) => string | undefined;
-};
-
 const triggerBag = (
   scope: ScopeLike,
   key: string,
   part: string,
-  label: string,
+  label: string | undefined,
   enabled: boolean,
   type: string,
 ): Record<string, unknown> => ({

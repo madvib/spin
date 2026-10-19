@@ -12,6 +12,7 @@
  * them: a drag release lands in focus when the handle holds focus, idle
  * otherwise; keyboard moves refuse without a focused handle.
  */
+import { coerceJsonArray } from "@spin/runtime";
 
 export interface SplitterPanel {
   readonly id: string;
@@ -287,6 +288,98 @@ export function panelCollapsed(panels: SplitterPanel[], size: readonly number[],
   if (panel?.collapsible !== true) return false;
   const index = panels.findIndex((candidate) => candidate.id === id);
   return fuzzyEqual(size[index], panel.collapsedSize ?? 0);
+}
+
+export interface SplitterInitial {
+  readonly panels?: unknown;
+  readonly defaultPanels?: unknown;
+  readonly size?: unknown;
+  readonly defaultSize?: unknown;
+  readonly orientation?: unknown;
+  readonly disabled?: unknown;
+}
+
+/** Validate one panel entry: id required, numeric/boolean fields optional. */
+interface PanelEntryShape { readonly id: string; readonly [field: string]: unknown }
+function isPanelEntry(raw: unknown): raw is PanelEntryShape {
+  if (typeof raw !== "object" || raw === null || !("id" in raw)) return false;
+  const id: unknown = raw.id;
+  return typeof id === "string" && id.length > 0;
+}
+
+export function parsePanels(raw: unknown): SplitterPanel[] {
+  const list: readonly unknown[] = Array.isArray(raw) ? raw : (typeof raw === "string" ? coerceJsonArray(raw, []) : []);
+  const out: SplitterPanel[] = [];
+  for (const item of list) {
+    if (!isPanelEntry(item)) continue;
+    const num = (name: "minSize" | "maxSize" | "collapsedSize"): number | undefined => {
+      const v: unknown = item[name];
+      return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+    };
+    const bool = (name: "collapsible"): boolean | undefined => {
+      const v: unknown = item[name];
+      return typeof v === "boolean" ? v : undefined;
+    };
+    const minSize = num("minSize");
+    const maxSize = num("maxSize");
+    const collapsible = bool("collapsible");
+    const collapsedSize = num("collapsedSize");
+    out.push({
+      id: item.id,
+      ...(minSize === undefined ? {} : { minSize }),
+      ...(maxSize === undefined ? {} : { maxSize }),
+      ...(collapsible === undefined ? {} : { collapsible }),
+      ...(collapsedSize === undefined ? {} : { collapsedSize }),
+    });
+  }
+  return out;
+}
+
+function parseSizes(raw: unknown): number[] | null {
+  const list: readonly unknown[] = Array.isArray(raw) ? raw : [];
+  if (list.length === 0) return null;
+  if (!list.every((v): v is number => typeof v === "number" && Number.isFinite(v))) return null;
+  return [...list];
+}
+
+/** Seed shaping: validated panels + validated sizes from transport input.
+ * JSON text (no grammar recursive type) parses here via the framework
+ * coercion — the one string the machine reads, named, with a fallback. */
+export function initial(raw: SplitterInitial): Pick<SplitterContext, "panels" | "size" | "orientation" | "disabled" | "beforeCollapse" | "focusedHandle" | "drag"> {
+  const asPanels = (value: unknown): readonly unknown[] => {
+    if (Array.isArray(value) && value.length > 0) return value;
+    if (typeof value === "string" && value.length > 0) {
+      const parsed = coerceJsonArray(value, []);
+      return parsed.length > 0 ? parsed : [];
+    }
+    return [];
+  };
+  const asSizes = (value: unknown): number[] | null => {
+    const list: readonly unknown[] = Array.isArray(value) && value.length > 0
+      ? value
+      : (typeof value === "string" && value.length > 0 ? coerceJsonArray(value, []) : []);
+    if (list.length === 0 || !list.every((v): v is number => typeof v === "number" && Number.isFinite(v))) return null;
+    return [...list];
+  };
+  const list = asPanels(raw.panels).length > 0 ? raw.panels : raw.defaultPanels;
+  const panels = parsePanels(list);
+  const sized = asSizes(raw.size);
+  const spec = sized !== null && sized.length > 0 ? sized : asSizes(raw.defaultSize) ?? [];
+  let size: number[];
+  try {
+    size = validateSizes(panels, defaultSizes(panels.length, spec));
+  } catch {
+    size = defaultSizes(panels.length, spec);
+  }
+  return {
+    panels: [...panels],
+    size,
+    orientation: raw.orientation === "vertical" ? "vertical" : "horizontal",
+    disabled: raw.disabled === true,
+    beforeCollapse: {},
+    focusedHandle: null,
+    drag: null,
+  };
 }
 
 export const config = {
