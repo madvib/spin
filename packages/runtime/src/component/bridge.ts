@@ -282,8 +282,10 @@ export function defineBridge<
       const svc = ensureService();
       // The cursors stay on the pre-write values while the events send.
       // The cursors stay on the pre-write values while the events send.
+      // Same trust point as synthesize's ctxOf: the core is untyped,
+      // the def declared C. The snapshot is a past C.
       const beforeContext = {
-        context: { ...svc.state.context },
+        context: { ...(svc.state.context as unknown as C) },
         state: svc.state.value,
       };
       const readParsed = (): Record<string, unknown> =>

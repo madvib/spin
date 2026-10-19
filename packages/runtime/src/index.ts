@@ -12,7 +12,8 @@ export {
 
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
-export { focuser, ids, type IdFn } from "./component/ids.ts";
+export { focuser, ids, measurer, type IdFn } from "./component/ids.ts";
+export { positionStyle, type PositionStyle } from "./component/position.ts";
 export {
   coerceBool,
   coerceInt,
@@ -26,14 +27,12 @@ export {
 } from "./props.ts";
 export { defineComponent } from "./component/synthesize.ts";
 export {
-  type ChannelDef,
   type CommandDef,
   type ComponentDef,
-  type ControlledDef,
   type EventDef,
   type PartDef,
   type PartScope,
-  type PropDef,
+  type SlotScope,
   type PropParser,
 } from "./component/define.ts";
 export {

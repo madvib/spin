@@ -60,73 +60,71 @@ export type ChannelDef = PropDef | ControlledDef;
 
 /** What a part bag reads. All live — the framework calls this per tick
  * and memoizes on the returned signature. */
-export interface PartScope {
+export interface PartScope<R = unknown, C extends object = Record<string, unknown>> {
   readonly props: Record<string, unknown>;
-  readonly context: Record<string, unknown>;
+  readonly context: C;
   readonly state: string;
   readonly root: () => Element;
   readonly id: (part: string, slot?: unknown) => string;
+  readonly measure: (part: string, slot?: unknown) => DOMRect | null;
   readonly send: (event: { type: string } & Record<string, unknown>) => void;
   readonly attr: (value: boolean) => string | undefined;
+  readonly slot: R;
 }
 
-export interface PartDef {
+export interface PartDef<R = unknown, C extends object = Record<string, unknown>> {
   /** The id segment when it differs from the part key (`value-text` for
    * the `valueText` method family). Default: the key. */
   readonly id?: string;
   /** The bag: attributes, aria, node reflexes (`onLoad`, `use:observe`).
    * Keys are bag entries; values may read the scope. Receives the recipe's
    * argument when the part takes one (`getTriggerProps({ focusable })`). */
-  readonly attrs: (scope: PartScope, arg?: unknown) => Record<string, unknown>;
+  attrs(scope: PartScope<R, C>, arg?: unknown): Record<string, unknown>;
   /** The memo signature: every scope field `attrs` reads, joined — the
    * recipe argument included. A stale signature is a stale bag; the
    * framework cannot infer this. */
-  readonly sig: (scope: PartScope, arg?: unknown) => string;
+  sig(scope: PartScope<R, C>, arg?: unknown): string;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
  * stable identities (a thumb index, a row key) — the memo dies with the
  * slot it came from, so a slot object must be identity-stable per index. */
-export interface SlotScope extends PartScope {
-  /** The slot identity: a thumb index, a row, a block. Stable per
-   * collection identity — the memo dies with the slot it came from. */
-  readonly slot: unknown;
-}
+export interface SlotScope<R = unknown, C extends object = Record<string, unknown>> extends PartScope<R, C> {}
 
-export interface SlotDef {
+export interface SlotDef<R = unknown, C extends object = Record<string, unknown>> {
   /** The id segment when it differs from the slot key. Default: the key. */
   readonly id?: string;
   /** The slot identities, for the recipe's iteration: rows, blocks, thumb
    * indexes. Must return stable identities — a fresh identity per read
    * re-stamps rows. Receives parsed props: the collection lives there. */
   readonly indexes: (
-    context: Record<string, unknown>,
+    context: C,
     props: Record<string, unknown>,
   ) => readonly unknown[];
-  readonly attrs: (scope: SlotScope, arg?: unknown) => Record<string, unknown>;
-  readonly sig: (scope: SlotScope, arg?: unknown) => string;
+  attrs(scope: SlotScope<R, C>, arg?: unknown): Record<string, unknown>;
+  sig(scope: SlotScope<R, C>, arg?: unknown): string;
 }
 
-export interface ReaderDef {
+export interface ReaderDef<C extends object = Record<string, unknown>> {
   /** A state projection: live context + state + parsed props (the
    * collection lives in props, rows never enter the machine) + the root
    * (a fieldset's disabled state disables the control, and only the root
    * knows its ancestors). */
-  readonly read: (
-    context: Record<string, unknown>,
+  read(
+    context: C,
     state: string,
     props: Record<string, unknown>,
     root?: () => Element,
-  ) => unknown;
+  ): unknown;
 }
 
-export interface MethodDef {
+export interface MethodDef<C extends object = Record<string, unknown>> {
   /** An indexed read (`getThumbValue(index)`): live context + state + args
    * + parsed props + part ids. For per-slot numbers the recipe could compute
    * from context, but hosts and tests call these directly — they stay on
    * the api. */
   readonly call: (
-    context: Record<string, unknown>,
+    context: C,
     state: string,
     args: readonly unknown[],
     props: Record<string, unknown>,
@@ -134,17 +132,17 @@ export interface MethodDef {
   ) => unknown;
 }
 
-export type CommandDef =
+export type CommandDef<A extends readonly unknown[] = readonly unknown[], C extends object = Record<string, unknown>> =
   | {
     /** A sending command: name + event from args, live context, and part
      * ids. The context read keeps `setThumbValue`-style splices in the def
      * without a hand-written api method; the ids resolve id-keyed commands
      * (`clearValue(tagId)`) without one. */
-    readonly event: (
-      args: readonly unknown[],
-      context: Record<string, unknown>,
+    event(
+      args: A,
+      context: C,
       id: (part: string, slot?: unknown) => string,
-    ) => { type: string } & Record<string, unknown>;
+    ): { type: string } & Record<string, unknown>;
     readonly view?: undefined;
   }
   | {
@@ -155,25 +153,26 @@ export type CommandDef =
       readonly args: readonly unknown[];
       readonly id: (part: string, slot?: unknown) => string;
       readonly focus: (part: string, slot?: unknown) => void;
+      readonly measure: (part: string, slot?: unknown) => DOMRect | null;
     }) => void;
   };
 
-export interface EventDef {
+export interface EventDef<W extends readonly unknown[] = readonly unknown[], C extends object = Record<string, unknown>> {
   /** The callback prop name on the props surface (the def maps it to a CustomEvent). */
   readonly prop: string;
   /** Values the framework snapshots per notify; a change fires the event. */
-  readonly watch: (context: Record<string, unknown>, state: string) => readonly unknown[];
+  watch(context: C, state: string): readonly unknown[];
   /** Maps the changed values to the event detail. Receives the triggering
    * event (undefined from the sync effect), the parsed props (the collection
    * lives in props, so row-resolving details read it here), and the live
    * context — the watch carries ONLY the fire condition; current values for
    * the payload come from here, so an unrelated move never reports. */
-  readonly detail: (
-    watched: readonly unknown[],
+  detail(
+    watched: W,
     event?: { readonly type: string },
     props?: Record<string, unknown>,
-    context?: Record<string, unknown>,
-  ) => Record<string, unknown>;
+    context?: C,
+  ): Record<string, unknown>;
   /** Which sends fire this event: every move, or commits (release +
    * keyboard commit) only. Default `"move"`. */
   readonly on?: "move" | "commit";
@@ -182,8 +181,8 @@ export interface EventDef {
    * machine refused). When present, `watch` still advances the cursor. */
   readonly select?: (
     event: { readonly type: string } & Record<string, unknown>,
-    before: Record<string, unknown>,
-    after: Record<string, unknown>,
+    before: C,
+    after: C,
     states?: { readonly was: string; readonly is: string },
     source?: string,
   ) => Record<string, unknown> | readonly Record<string, unknown>[] | null;
@@ -216,7 +215,7 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * derived caches directly and send re-homing events. Returns true when
    * the machine must notify. */
   readonly reconcile?: (args: {
-    readonly context: Record<string, unknown>;
+    readonly context: C;
     readonly state: string;
     readonly parsed: Record<string, unknown>;
     readonly authored: (name: string) => boolean;
@@ -236,22 +235,24 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
     readonly root: () => Element;
     readonly id: (part: string, slot?: unknown) => string;
     readonly focus: (part: string, slot?: unknown) => void;
+    readonly measure: (part: string, slot?: unknown) => DOMRect | null;
   }) => void;
   /** Post-send view reflexes (the panel's opening owes the field its
    * focus). View-side only: focus management, never state. */
   readonly settled?: (args: {
     readonly event: { readonly type: string } & Record<string, unknown>;
-    readonly before: Record<string, unknown>;
-    readonly after: Record<string, unknown>;
+    readonly before: { readonly context: C; readonly state: string };
+    readonly after: { readonly context: C; readonly state: string };
     readonly props: Record<string, unknown>;
     readonly root: () => Element;
-    readonly id: (part: string, slot?: number) => string;
-    readonly focus: (part: string, slot?: number) => void;
+    readonly id: (part: string, slot?: unknown) => string;
+    readonly focus: (part: string, slot?: unknown) => void;
+    readonly measure: (part: string, slot?: unknown) => DOMRect | null;
     /** The view's send: a settled reflex that kicks a DOM poll (a target
      * lookup, a scroll settle) reports its findings back through this. */
     readonly send: (event: { readonly type: string } & Record<string, unknown>) => void;
   }) => void;
-  readonly channels: Record<string, ChannelDef>;
+  readonly channels?: Record<string, ChannelDef>;
   /** Channel names merged into machine context before every send, so an
    * assign or a cond never reads a stale scalar. Default: none. */
   readonly scalars?: readonly string[];
@@ -265,10 +266,10 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
   /** Event types that end the gesture: notify runs as a commit for these,
    * a move otherwise. Default: every send notifies as a move. */
   readonly commitEvents?: readonly string[];
-  readonly parts: Record<string, PartDef>;
-  readonly slots?: Record<string, SlotDef>;
-  readonly commands: Record<string, CommandDef>;
-  readonly methods?: Record<string, MethodDef>;
-  readonly readers?: Record<string, ReaderDef>;
-  readonly events: Record<string, EventDef>;
+  readonly parts: Record<string, PartDef<unknown, C>>;
+  readonly slots?: Record<string, SlotDef<unknown, C>>;
+  readonly commands: Record<string, CommandDef<readonly unknown[], C>>;
+  readonly methods?: Record<string, MethodDef<C>>;
+  readonly readers?: Record<string, ReaderDef<C>>;
+  readonly events: Record<string, EventDef<readonly unknown[], C>>;
 }

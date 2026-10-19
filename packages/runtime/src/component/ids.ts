@@ -14,6 +14,23 @@ export function focuser(id: IdFn): (part: string, slot?: unknown) => void {
   };
 }
 
+/** Measure a part by id: a missing node reports null, never a throw (the
+ * element may not be in the document yet). Framework-core owned, so defs and
+ * bags read geometry through this instead of touching `document` directly;
+ * the node resolves through the same identity path `focuser` uses. */
+export function measurer(id: IdFn): (part: string, slot?: unknown) => DOMRect | null {
+  return (part, slot) => {
+    if (typeof document === "undefined") return null;
+    const node = document.getElementById(id(part, slot));
+    if (!(node instanceof Element)) return null;
+    try {
+      return node.getBoundingClientRect();
+    } catch {
+      return null;
+    }
+  };
+}
+
 export function ids(name: string, id: string): IdFn {
   // An already-namespaced id is used verbatim: sub-scopes hand down their
   // own prefix, and a second namespace would orphan every part lookup.
