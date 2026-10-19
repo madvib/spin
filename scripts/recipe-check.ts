@@ -89,7 +89,6 @@ type Manifest = {
   readonly slots: readonly string[];
   readonly readers: readonly string[];
   readonly methods: readonly string[];
-  readonly channels: readonly string[];
 };
 
 const cap = (name: string): string =>
@@ -97,7 +96,7 @@ const cap = (name: string): string =>
 
 /** Every callable/readable member an example may touch on the machine. */
 function membersOf(manifest: Manifest): Set<string> {
-  const out = new Set<string>([...manifest.readers, ...manifest.methods, ...manifest.channels]);
+  const out = new Set<string>([...manifest.readers, ...manifest.methods]);
   for (const part of [...manifest.parts, ...manifest.slots]) out.add(`get${cap(part)}Props`);
   for (const slot of manifest.slots) out.add(`get${cap(slot)}Indexes`);
   return out;
@@ -202,6 +201,41 @@ for await (const entry of walk(ROOT, { exts: [".html"] })) {
   const source = await Deno.readTextFile(entry.path);
   elementsOf(entry.path, source);
   readersOf(entry.path, source);
+}
+
+// Def-shape ratchet: migrated defs carry no channels apparatus, no global
+// DOM lookups, no JSON.parse, no var(-- emitted from the def. Text scan only;
+// if a rule ever needs parsing defs as more than text, stop and record the
+// limitation rather than grow this into a parser.
+for await (const entry of walk(ROOT, { exts: [".ts"] })) {
+  if (!entry.isFile) continue;
+  if (!/\/spin-[^/]+\/.*\.def\.ts$/.test(entry.path)) continue;
+  const source = await Deno.readTextFile(entry.path);
+  const lines = source.split("\n");
+  // channels apparatus
+  for (let i = 0; i < lines.length; i++) {
+    if (/\bchannels\s*:\s*\{/.test(lines[i]!)) {
+      problems.push(`${entry.path}:${i + 1}: channels apparatus in def`);
+    }
+  }
+  // JSON.parse
+  for (let i = 0; i < lines.length; i++) {
+    if (/JSON\.parse/.test(lines[i]!)) {
+      problems.push(`${entry.path}:${i + 1}: JSON.parse in def`);
+    }
+  }
+  // document.
+  for (let i = 0; i < lines.length; i++) {
+    if (/\bdocument\./.test(lines[i]!)) {
+      problems.push(`${entry.path}:${i + 1}: document. in def`);
+    }
+  }
+  // var(-- emitted
+  for (let i = 0; i < lines.length; i++) {
+    if (/var\(--/.test(lines[i]!)) {
+      problems.push(`${entry.path}:${i + 1}: var(-- emitted from def`);
+    }
+  }
 }
 
 if (problems.length > 0) {
