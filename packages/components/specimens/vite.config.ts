@@ -26,6 +26,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@spin/components": at("../src/index.ts"),
+      "@spin/runtime/props": at("../../runtime/src/props.ts"),
       "@spin/runtime/fsm": at("../../runtime/src/machine/fsm/machine.ts"),
       "@spin/runtime/load": at("../../runtime/src/directives/load.ts"),
       "@spin/runtime/actions": at("../../runtime/src/actions/index.ts"),
