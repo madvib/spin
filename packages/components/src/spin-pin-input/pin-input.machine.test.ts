@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { pinInput } from "./pin-input.def.ts";
+import { pinInput } from "./pin-input.bindings.ts";
 const createPinInputBridge = pinInput.createBridge;
-import type { PinInputApi } from "./pin-input.def.ts";
+import type { PinInputApi } from "./pin-input.bindings.ts";
 import type {
   PinInputValueChange,
   PinInputValueComplete,

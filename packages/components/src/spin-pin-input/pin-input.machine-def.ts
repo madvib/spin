@@ -1,4 +1,4 @@
-import { pinInput } from "./pin-input.def.ts";
+import { pinInput } from "./pin-input.bindings.ts";
 import type {
   PinInputValueChange,
   PinInputValueComplete,

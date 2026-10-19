@@ -24,6 +24,39 @@ export interface PinInputContext {
   /** The cell count — a machine scalar synced from scope by the bridge. */
   count: number;
 }
+/** Default cell count when the prop arrives unwritten. */
+const DEFAULT_COUNT = 4;
+
+export interface PinInputInitial {
+  readonly count?: unknown;
+  readonly autoFocus?: unknown;
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+}
+
+const parseChars = (raw: unknown): string[] => {
+  const parts = Array.isArray(raw)
+    ? raw.filter((part): part is string => typeof part === "string")
+    : typeof raw === "string"
+      ? raw.split(",").map((part) => part.trim())
+      : [];
+  return parts.filter((part) => part.length === 1);
+};
+
+export function initial(raw: PinInputInitial): PinInputContext {
+  const count =
+    typeof raw.count === "number" && Number.isFinite(raw.count)
+      ? Math.max(0, Math.trunc(raw.count))
+      : DEFAULT_COUNT;
+  const autoFocus = raw.autoFocus === true;
+  const rawValue = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const chars = parseChars(rawValue);
+  return {
+    value: fill(chars, count),
+    focusedIndex: autoFocus ? 0 : -1,
+    count,
+  };
+}
 
 export interface PinInputValueChange {
   readonly value: string[];

