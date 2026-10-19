@@ -79,6 +79,69 @@ export const selectLabel = (ctx: SelectContext): string => {
   if (!ctx.multiple) return ctx.labels[ctx.value[0]!] ?? "";
   return ctx.value.map((value) => ctx.labels[value] ?? value).join(", ");
 };
+export interface SelectRow {
+  readonly value: string;
+  readonly label: string;
+  readonly disabled?: boolean;
+}
+
+export interface SelectInitial {
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly highlightedValue?: unknown;
+  readonly defaultHighlightedValue?: unknown;
+  readonly items?: unknown;
+  readonly multiple?: unknown;
+  readonly closeOnSelect?: unknown;
+  readonly loopFocus?: unknown;
+}
+
+const parseKeys = (raw: unknown): string[] => {
+  if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
+  if (typeof raw !== "string") return [];
+  const trimmed = raw.trim();
+  if (trimmed === "") return [];
+  return trimmed.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+};
+
+const nullableProp = (raw: unknown): string | null =>
+  typeof raw === "string" && raw.length > 0 ? raw : null;
+
+export function initial(raw: SelectInitial): SelectContext {
+  const rows: SelectRow[] = [];
+  const arr = Array.isArray(raw.items) ? raw.items : [];
+  for (const entry of arr) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const record = entry as Record<string, unknown>;
+    const value = record["value"];
+    if (typeof value !== "string" || value.length === 0) continue;
+    rows.push({
+      value,
+      label: typeof record["label"] === "string" ? record["label"] : value,
+      disabled: record["disabled"] === true,
+    });
+  }
+  const multiple = raw.multiple === true;
+  const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
+  const loopFocus = raw.loopFocus === true;
+  const valueRaw = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const value = parseKeys(valueRaw);
+  const highlightedValue =
+    raw.highlightedValue !== undefined
+      ? nullableProp(raw.highlightedValue)
+      : nullableProp(raw.defaultHighlightedValue);
+  const order = rows.map((row) => row.value);
+  const labels: Record<string, string> = Object.fromEntries(rows.map((row) => [row.value, row.label]));
+  return {
+    value,
+    highlightedValue,
+    order,
+    labels,
+    multiple,
+    closeOnSelect,
+    loopFocus,
+  };
+}
 
 /** True when the value is still in the synced collection. */
 const inCollection = (

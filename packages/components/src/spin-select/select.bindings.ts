@@ -2,15 +2,19 @@ import {
   defineComponent,
   textProp,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import { dataAttr } from "./select.shared.ts";
 import {
   config,
   implementations,
+  initial,
   selectLabel,
   type SelectContext,
   type SelectEvent,
+  type SelectInitial,
+  type SelectRow,
 } from "./select.machine.ts";
 
 /**
@@ -25,11 +29,7 @@ import {
  * the `for` bindings never re-stamp.
  */
 
-export interface SelectRow {
-  readonly value: string;
-  readonly label: string;
-  readonly disabled?: boolean;
-}
+// SelectRow is defined in select.machine.ts and re-exported below.
 
 export interface SelectItemState {
   readonly selected: boolean;
@@ -100,48 +100,9 @@ export interface SelectApi {
   getHiddenSelectProps(): Record<string, unknown>;
 }
 
-/** Keys travel the prop channel comma-joined: the grammar types a set
- * either as `string[]` (whose default coercion produces `["[]"]` for
- * `= []`) or as JSON, neither of which survives a framework's string
- * attribute. */
-const parseKeys = (raw: unknown): string[] => {
-  if (Array.isArray(raw)) {
-    // The lone `"[]"` is the grammar's `= []` coercion artifact, not a key.
-    if (raw.length === 1 && raw[0] === "[]") return [];
-    return raw.filter((value): value is string => typeof value === "string");
-  }
-  if (typeof raw !== "string") return [];
-  // Bracketed-unquoted scope defaults (`[a, b]`) split like a bare list.
-  const list = raw.startsWith("[") && raw.endsWith("]") ? raw.slice(1, -1) : raw;
-  return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
-};
-
-/** The scope grammar's object-array type carries the fields the host
- * typed; anything else arriving on the prop channel is treated as no
- * items. */
-const parseItems = (raw: unknown): readonly SelectRow[] => {
-  if (!Array.isArray(raw)) return [];
-  const rows: SelectRow[] = [];
-  for (const item of raw) {
-    if (typeof item !== "object" || item === null) continue;
-    const value: unknown = (item as Record<string, unknown>)["value"];
-    if (typeof value !== "string" || value.length === 0) continue;
-    const label: unknown = (item as Record<string, unknown>)["label"];
-    rows.push({
-      value,
-      label: typeof label === "string" && label.length > 0 ? label : value,
-      disabled: (item as Record<string, unknown>)["disabled"] === true,
-    });
-  }
-  return rows;
-};
-
+// parseKeys/nullableProp removed: transport owns coercion.
 const sameKeys = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((value, index) => value === b[index]);
-
-/** A non-empty text prop, or null — the shape `highlightedValue` travels in. */
-const nullableProp = (raw: unknown): string | null =>
-  typeof raw === "string" && raw.length > 0 ? raw : null;
 
 /** Why the panel opened or closed. The prop channel carries no `src`, so
  * the event that produced the move names the reason. */
@@ -158,11 +119,34 @@ const OPEN_REASON: Record<string, string> = {
 };
 
 type Ctx = SelectContext;
+type ScopeLike = PartScope<unknown, SelectContext>;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface SlotLike<R> extends SlotScope<R, SelectContext> {}
 
-const rowsOf = (parsed: Record<string, unknown>): readonly SelectRow[] =>
-  parsed["items"] as readonly SelectRow[];
+const rowsOf = (parsed: Record<string, unknown>): readonly SelectRow[] => {
+  const raw = parsed["items"];
+  const arr = Array.isArray(raw) ? raw : [];
+  const rows: SelectRow[] = [];
+  for (const entry of arr) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const record: Record<string, unknown> = entry;
+    const value = record["value"];
+    if (typeof value !== "string" || value.length === 0) continue;
+    rows.push({
+      value,
+      label: typeof record["label"] === "string" ? record["label"] : value,
+      disabled: record["disabled"] === true,
+    });
+  }
+  return rows;
+};
+
+/** Transport guarantees the raw prop bag is a SelectInitial-shaped object;
+ * the guard asserts that trust point instead of a silent `as`. */
+const isSelectInitial = (raw: unknown): raw is SelectInitial =>
+  raw !== null && typeof raw === "object";
+
+// shaped rowsOf defined above.
 
 const orderOf = (parsed: Record<string, unknown>): string[] =>
   rowsOf(parsed).map((row) => row.value);
@@ -217,16 +201,17 @@ const rowHandlers = (scope: ScopeLike, row: SelectRow): RowHandlerSet => {
   return made;
 };
 
-const itemStateOf = (scope: ScopeLike, row: SelectRow): SelectItemState => ({
-  selected: asCtx(scope.context).value.includes(row.value),
-  highlighted: asCtx(scope.context).highlightedValue === row.value,
+const itemStateOf = (scope: SlotLike<SelectRow>, row: SelectRow): SelectItemState => ({
+  selected: scope.context.value.includes(row.value),
+  highlighted: scope.context.highlightedValue === row.value,
   disabled: row.disabled === true,
 });
 
 const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (isComposing(event) || event.defaultPrevented) return;
   if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
-  const key = resolveKey(event, scope.props["dir"] as string);
+  const dir = scope.props["dir"];
+  const key = resolveKey(event, typeof dir === "string" ? dir : "ltr");
   const open = scope.state === "open";
   switch (key) {
     case "ArrowDown":
@@ -271,7 +256,8 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (isComposing(event) || event.defaultPrevented) return;
   if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
-  const key = resolveKey(event, scope.props["dir"] as string);
+  const dir = scope.props["dir"];
+  const key = resolveKey(event, typeof dir === "string" ? dir : "ltr");
   switch (key) {
     case "ArrowDown":
       event.preventDefault();
@@ -294,7 +280,7 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       // The content's Enter picks the highlight, exactly as the click
       // does: the event carries the row so the click path and the key
       // path agree.
-      const picked = asCtx(scope.context).highlightedValue;
+      const picked = scope.context.highlightedValue;
       if (picked !== null) {
         scope.send({ type: "ITEM.CLICK", value: picked });
       }
@@ -312,108 +298,20 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
   config,
   implementations,
   start: (props, authored) => {
-    if (authored("open")) return (props["open"] as boolean) === true ? "open" : "idle";
-    return (props["defaultOpen"] as boolean) === true ? "open" : "idle";
+    if (authored("open")) return props["open"] === true ? "open" : "idle";
+    return props["defaultOpen"] === true ? "open" : "idle";
   },
-  seed: (props, authored) => {
-    const multiple = props["multiple"] === true;
-    const selection = props["selectionBehavior"];
-    return {
-      multiple,
-      closeOnSelect: authored("closeOnSelect")
-        ? props["closeOnSelect"] === true
-        : !multiple,
-      loopFocus: props["loopFocus"] === true,
-      value: parseKeys(authored("value") ? props["value"] : props["defaultValue"]),
-      highlightedValue: authored("highlightedValue")
-        ? nullableProp(props["highlightedValue"])
-        : nullableProp(props["defaultHighlightedValue"]),
-      order: orderOf(props),
-      labels: labelsOf(props),
-    };
-  },
-  channels: {
-    items: { parse: parseItems },
-    value: {
-      controlled: true,
-      parse: parseKeys,
-      event: (value: readonly string[]) => ({ type: "VALUE.SET", value: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) && sameKeys(current as string[], outer as string[]),
-    },
-    defaultValue: { parse: parseKeys },
-    highlightedValue: {
-      controlled: true,
-      parse: nullableProp,
-      nullable: true,
-      event: (value: string | null) =>
-        value === null ? { type: "HIGHLIGHTED_VALUE.CLEAR" } : { type: "HIGHLIGHTED_VALUE.SET", value },
-    },
-    defaultHighlightedValue: { parse: nullableProp },
-    open: {
-      controlled: true,
-      parse: (raw) => raw === true,
-      event: (value: boolean) => ({ type: value ? "CONTROLLED.OPEN" : "CONTROLLED.CLOSE" }),
-      current: (_context, state) => state === "open",
-    },
-    defaultOpen: { parse: (raw) => raw === true },
-    multiple: { parse: (raw) => raw === true },
-    closeOnSelect: { parse: (raw) => raw },
-    loopFocus: { parse: (raw) => raw === true },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    name: { parse: textProp },
-    form: { parse: textProp },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    placement: {
-      parse: (raw) => {
-        const placement = textProp(raw);
-        return placement.length > 0 ? placement : "bottom-start";
-      },
-    },
-    label: {
-      parse: (raw) => {
-        const label = textProp(raw);
-        return label.length > 0 ? label : "Select";
-      },
-    },
-    placeholder: {
-      parse: (raw) => {
-        const placeholder = textProp(raw);
-        return placeholder.length > 0 ? placeholder : "Select an option";
-      },
-    },
-    clearTriggerLabel: {
-      parse: (raw) => {
-        const label = textProp(raw);
-        return label.length > 0 ? label : "Clear value";
-      },
-    },
-  },
-  scalarsOf: (parsed, authored) => {
-    const multiple = parsed["multiple"] === true;
-    return {
-      multiple,
-      // Zag's `closeOnSelect: !props.multiple` — a coerced default is not
-      // a write, so an explicit `closeOnSelect` is the only thing that
-      // overrides the mode's own answer.
-      closeOnSelect: authored("closeOnSelect") ? parsed["closeOnSelect"] === true : !multiple,
-      loopFocus: parsed["loopFocus"] === true,
-    };
-  },
+  seed: (raw, _authored) => ({ ...initial(isSelectInitial(raw) ? raw : {}) }),
   reconcile: ({ context, parsed, send }) => {
-    const ctx = asCtx(context);
+    const ctx = context;
     const order = orderOf(parsed);
     if (sameKeys(ctx.order, order)) return false;
     ctx.order = order;
     ctx.labels = labelsOf(parsed);
-    // Zag's `watch` on the collection: a stranded selection or highlight
-    // is dropped by the machine's own sync event.
     send({ type: "SELECTED_ITEMS.SYNC" });
     return true;
   },
+
   parts: {
     root: {
       sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
@@ -430,7 +328,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
           "data-invalid": dataAttr(scope.props["invalid"] === true),
           "data-multiple": dataAttr(scope.props["multiple"] === true),
-          "data-placeholder": dataAttr(asCtx(scope.context).value.length === 0),
+          "data-placeholder": dataAttr(scope.context.value.length === 0),
         };
       },
     },
@@ -459,11 +357,11 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     },
     trigger: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [scope.state, ctx.value.length, scope.props["disabled"], scope.props["readOnly"]].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const open = scope.state === "open";
         return {
           id: scope.id("trigger"),
@@ -501,11 +399,11 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     },
     clearTrigger: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [`${ctx.value.length > 0}`, scope.props["clearTriggerLabel"], scope.props["disabled"]].join(" ");
       },
       attrs: (scope) => {
-        const has = asCtx(scope.context).value.length > 0;
+        const has = scope.context.value.length > 0;
         return {
           id: scope.id("clearTrigger"),
           "data-scope": "select",
@@ -524,12 +422,12 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     },
     valueText: {
       id: "value-text",
-      sig: (scope) => [selectLabel(asCtx(scope.context))].join(" "),
+      sig: (scope) => [selectLabel(scope.context)].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
           "data-scope": "select",
           "data-part": "value-text",
-        "data-placeholder": dataAttr(asCtx(scope.context).value.length === 0),
+        "data-placeholder": dataAttr(scope.context.value.length === 0),
       }),
     },
     positioner: {
@@ -549,17 +447,17 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     },
     content: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [scope.state, scope.props["disabled"], ctx.highlightedValue, rowsOf(scope.props).length].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const open = scope.state === "open";
         // The activedescendant is the highlighted row's id, or nothing
         // when the highlight is empty: an id of `null` is not an id.
         const activedescendant = ctx.highlightedValue === null
           ? undefined
-          : scope.id("item", ctx.highlightedValue as unknown as number);
+          : scope.id("item", ctx.highlightedValue);
         return {
           id: scope.id("content"),
           "data-scope": "select",
@@ -604,7 +502,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           "use:select-focus": { open },
           "use:scroll-into-view": {
             activeId: (): string => {
-              const highlighted = asCtx(scope.context).highlightedValue;
+              const highlighted = scope.context.highlightedValue;
               return highlighted === null ? "" : scope.id("item", highlighted);
             },
           },
@@ -625,11 +523,11 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     hiddenSelect: {
       id: "hidden",
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [ctx.value.join(","), rowsOf(scope.props).map((row) => row.value).join(","), scope.props["multiple"]].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return {
           id: scope.id("hiddenSelect"),
           "data-scope": "select",
@@ -640,7 +538,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           form: scope.props["form"] || undefined,
           disabled: scope.props["disabled"],
           required: scope.props["required"],
-          multiple: scope.props["multiple"],
+          multiple: scope.props["multiple"] === true,
           "data-state": "hidden",
           // The options cannot be templated inside a `<select>` (the
           // parser drops it), so the action builds them from the
@@ -651,7 +549,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           "use:select-options": () => ({
             rows: rowsOf(scope.props),
             value: [...ctx.value],
-            multiple: scope.props["multiple"],
+            multiple: scope.props["multiple"] === true,
           }),
           "use:form-control": {
             onDisabledChange: (): void => {
@@ -668,12 +566,12 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     item: {
       id: "item",
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as SelectRow);
+      sig: (scope: SlotLike<SelectRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [state.selected, state.highlighted, state.disabled].join(" ");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as SelectRow;
+      attrs: (scope: SlotLike<SelectRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.value),
@@ -692,13 +590,13 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     },
     itemText: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as SelectRow);
+      sig: (scope: SlotLike<SelectRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [state.selected, state.highlighted].join(" ");
       },
-      attrs: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as SelectRow);
-        const row = scope.slot as unknown as SelectRow;
+      attrs: (scope: SlotLike<SelectRow>) => {
+        const state = itemStateOf(scope, scope.slot);
+        const row = scope.slot;
         return {
           id: scope.id("itemText", row.value),
           "data-scope": "select",
@@ -710,9 +608,9 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     },
     itemIndicator: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => `${itemStateOf(scope, scope.slot as unknown as SelectRow).selected}`,
-      attrs: (scope) => {
-        const selected = itemStateOf(scope, scope.slot as unknown as SelectRow).selected;
+      sig: (scope: SlotLike<SelectRow>) => `${itemStateOf(scope, scope.slot).selected}`,
+      attrs: (scope: SlotLike<SelectRow>) => {
+        const selected = itemStateOf(scope, scope.slot).selected;
         return {
           "aria-hidden": true,
           "data-state": selected ? "checked" : "unchecked",
@@ -722,12 +620,12 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
   },
   commands: {
     syncSelectedItems: { event: () => ({ type: "SELECTED_ITEMS.SYNC" }) },
-    selectValue: { event: (args) => ({ type: "ITEM.SELECT", value: args[0] as string }) },
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: [...(args[0] as readonly string[])] }) },
+    selectValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "ITEM.SELECT", value: typeof v === "string" ? v : "" }; } },
+    setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: Array.isArray(v) && v.every((x): x is string => typeof x === "string") ? [...v] : [] }; } },
     clearValue: { event: () => ({ type: "VALUE.CLEAR" }) },
-    setHighlightValue: { event: (args) => ({ type: "HIGHLIGHTED_VALUE.SET", value: args[0] as string }) },
+    setHighlightValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "HIGHLIGHTED_VALUE.SET", value: typeof v === "string" ? v : null }; } },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE.CLEAR" }) },
-    setOpen: { event: (args) => ({ type: (args[0] as boolean) ? "OPEN" : "CLOSE" }) },
+    setOpen: { event: (args: readonly unknown[]) => ({ type: args[0] === true ? "OPEN" : "CLOSE" }) },
     close: { event: () => ({ type: "CLOSE" }) },
     toggle: { event: () => ({ type: "TOGGLE" }) },
     focus: { event: () => ({ type: "TRIGGER.FOCUS" }) },
@@ -735,13 +633,13 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
   readers: {
     open: { read: (_context, state) => state === "open" },
     focused: { read: (_context, state) => state !== "idle" },
-    value: { read: (context) => [...asCtx(context).value] },
-    valueAsString: { read: (context) => selectLabel(asCtx(context)) },
-    hasSelectedItems: { read: (context) => asCtx(context).value.length > 0 },
-    highlightedValue: { read: (context) => asCtx(context).highlightedValue },
+    value: { read: (context) => [...context.value] },
+    valueAsString: { read: (context) => selectLabel(context) },
+    hasSelectedItems: { read: (context) => context.value.length > 0 },
+    highlightedValue: { read: (context) => context.highlightedValue },
     highlightedItem: {
       read: (context, _state, props) => {
-        const highlighted = asCtx(context).highlightedValue;
+        const highlighted = context.highlightedValue;
         if (highlighted === null) return null;
         return rowsOf(props).find((row) => row.value === highlighted) ?? null;
       },
@@ -749,13 +647,13 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     selectedItems: {
       read: (context, _state, props) => {
         const rows = rowsOf(props);
-        return asCtx(context).value
+        return context.value
           .map((value) => rows.find((row) => row.value === value))
           .filter((row): row is SelectRow => row !== undefined);
       },
     },
-    multiple: { read: (_context, _state, props) => (props["multiple"] as boolean) === true },
-    disabled: { read: (_context, _state, props) => (props["disabled"] as boolean) === true },
+    multiple: { read: (_context, _state, props) => props["multiple"] === true },
+    disabled: { read: (_context, _state, props) => props["disabled"] === true },
     empty: { read: (_context, _state, props) => rowsOf(props).length === 0 },
   },
   methods: {
@@ -765,19 +663,19 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     getSelectedRows: {
       call: (context, _state, _args, props) => {
         const rows = rowsOf(props);
-        return asCtx(context).value
+        return context.value
           .map((value) => rows.find((row) => row.value === value))
           .filter((row): row is SelectRow => row !== undefined);
       },
     },
     getItemState: {
-      call: (context, _state, args, props) => {
-        const row = args[0] as SelectRow;
-        void props;
+      call: (context: SelectContext, _state, args) => {
+        const row = args[0];
+        if (typeof row !== "object" || row === null || !("value" in row) || typeof row.value !== "string") return { selected: false, highlighted: false, disabled: true };
         return {
-          selected: (context as unknown as Ctx).value.includes(row.value),
-          highlighted: (context as unknown as Ctx).highlightedValue === row.value,
-          disabled: row.disabled === true,
+          selected: context.value.includes(row.value),
+          highlighted: context.highlightedValue === row.value,
+          disabled: "disabled" in row && typeof row.disabled === "boolean" ? row.disabled : false,
         };
       },
     },
@@ -785,52 +683,53 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched, _event, props) => {
-        const rows = rowsOf(props as Record<string, unknown>);
-        const value = watched as string[];
+      watch: (context) => [...context.value],
+      detail: (watched: readonly string[], _event, props) => {
+        const rows = props === undefined ? [] : rowsOf(props);
         return {
-          value: [...value],
-          items: value.map((item) => rows.find((row) => row.value === item)).filter((row) => row !== undefined),
+          value: [...watched],
+          items: watched.map((item) => rows.find((row) => row.value === item)).filter((row) => row !== undefined),
         };
       },
     },
     "highlight-change": {
       prop: "onHighlightChange",
-      watch: (context) => [asCtx(context).highlightedValue],
-      detail: (watched, _event, props) => {
-        const highlighted = watched[0] as string | null;
+      watch: (context) => [context.highlightedValue],
+      detail: (watched: readonly [string | null], _event, props) => {
+        const highlighted = watched[0];
         return {
           highlightedValue: highlighted,
           highlightedItem: highlighted === null
             ? null
-            : rowsOf(props as Record<string, unknown>).find((row) => row.value === highlighted) ?? null,
+            : rowsOf(props ?? {}).find((row) => row.value === highlighted) ?? null,
         };
       },
     },
     "open-change": {
       prop: "onOpenChange",
       watch: (_context, state) => [state === "open"],
-      detail: (watched, event) => ({
-        open: watched[0] as boolean,
+      detail: (watched: readonly [boolean], event) => ({
+        open: watched[0],
         reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ?? "script",
       }),
     },
     select: {
       prop: "onSelect",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched) => ({ value: [...watched] as string[], itemValue: "" }),
+      watch: (context) => [...context.value],
+      detail: (watched: readonly string[]) => ({ value: [...watched], itemValue: "" }),
       // The value the pick landed on. A toggle-off reports as much as a
       // pick — the host asked about the move, not the direction — but a
       // guard the machine refused reports nothing.
-      select: (event, before, after) => {
+      select: (event, before: SelectContext, after: SelectContext) => {
         if (event.type !== "ITEM.SELECT" && event.type !== "ITEM.CLICK") return null;
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
+        const beforeCtx = before;
+        const afterCtx = after;
         let outcome: readonly string[] | null = null;
         let itemValue: string;
         if (event.type === "ITEM.SELECT") {
-          itemValue = (event as Record<string, string>)["value"] as string;
+          const v = event["value"];
+          if (typeof v !== "string") return null;
+          itemValue = v;
           outcome = beforeCtx.multiple
             ? beforeCtx.value.includes(itemValue)
               ? beforeCtx.value.filter((value) => value !== itemValue)
@@ -854,3 +753,6 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
 };
 
 export const select = defineComponent<SelectContext, SelectEvent, SelectApi>(def);
+export type { SelectRow } from "./select.machine.ts";
+
+// types already exported above.

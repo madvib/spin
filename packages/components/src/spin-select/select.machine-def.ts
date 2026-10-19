@@ -1,10 +1,10 @@
-import { select } from "./select.def.ts";
+import { select } from "./select.bindings.ts";
 import type {
   SelectHighlightChange,
   SelectOpenChange,
   SelectSelect,
   SelectValueChange,
-} from "./select.def.ts";
+} from "./select.bindings.ts";
 
 /**
  * The select's seam: the synthesized bridge, the element's imperative

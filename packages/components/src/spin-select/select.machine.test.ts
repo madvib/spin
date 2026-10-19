@@ -1,15 +1,15 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { select } from "./select.def.ts";
+import { select } from "./select.bindings.ts";
 const createSelectBridge = select.createBridge;
 import type {
   SelectHighlightChange,
   SelectOpenChange,
   SelectSelect,
   SelectValueChange,
-} from "./select.def.ts";
-import type { SelectApi, SelectRow } from "./select.def.ts";
+} from "./select.bindings.ts";
+import type { SelectApi, SelectRow } from "./select.bindings.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -560,66 +560,8 @@ Deno.test("Given a multiple select / When a row is clicked / Then it accumulates
   assertEquals(h.mode(), "open", "and the panel stays up for the next pick");
 });
 
-// ---- the controlled channels ---------------------------------------------------
-//
-// A prop is authored when the HOST wrote it; a coerced default never is. The
-// bridge's effect reads the live prop signals, so a write moves the machine
-// without an event.
-
-Deno.test("Given an authored value / When the host writes it / Then the machine follows", () => {
-  const h = mount(FRUIT_ITEMS, { value: "apple" });
-  assertEquals(
-    SELECTED(h),
-    ["apple"],
-    "the authored value seeds the selection",
-  );
-  h.write("value", "banana");
-  assertEquals(SELECTED(h), ["banana"], "the write moves the machine");
-  assertEquals(
-    h.events.valueChange.at(-1),
-    {
-      value: ["banana"],
-      items: [{ value: "banana", label: "Banana", disabled: false }],
-    },
-    "and reports the write",
-  );
-  h.write("placeholder", "Pick one");
-  assertEquals(
-    SELECTED(h),
-    ["banana"],
-    "an unrelated write does not re-impose the value",
-  );
-  h.write("value", "date");
-  assertEquals(SELECTED(h), ["date"], "and the next host write still wins");
-});
-
-Deno.test("Given a default value / When the host rewrites the default / Then the machine keeps its own moves", () => {
-  const h = mount(FRUIT_ITEMS, { defaultValue: "apple" });
-  assertEquals(SELECTED(h), ["apple"], "the default seeds the selection");
-  h.api.selectValue("date");
-  assertEquals(SELECTED(h), ["date"], "the machine moved");
-  h.write("defaultValue", "banana");
-  assertEquals(
-    SELECTED(h),
-    ["date"],
-    "a coerced default is not a controlled value",
-  );
-});
-
-Deno.test("Given an authored open / When the host writes it / Then the panel follows", () => {
-  const h = mount(FRUIT_ITEMS, { open: false });
-  assertEquals(h.mode(), "idle", "the authored false starts closed");
-  h.write("open", true);
-  assertEquals(h.api.open, true, "the write opens the panel");
-  assertEquals(
-    h.events.openChange.at(-1),
-    { open: true, reason: "script" },
-    "and reports the host's word as the reason",
-  );
-  h.write("open", false);
-  assertEquals(h.api.open, false, "the write closes it again");
-});
-
+// Controlled channels (value/highlightedValue/open) are hooks-layer jobs now;
+// post-mount outer writes are events-only, so those assertions are removed.
 // ---- the collection change -----------------------------------------------------
 //
 // The bridge's collection effect keeps the machine's order in step and lets
