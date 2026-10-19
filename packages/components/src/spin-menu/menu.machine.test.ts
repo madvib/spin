@@ -1,17 +1,17 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { menu } from "./menu.def.ts";
+import { menu } from "./menu.bindings.ts";
 const createMenuBridge = menu.createBridge;
+import type { MenuApi } from "./menu.bindings.ts";
 import type {
-  MenuApi,
   MenuBlock,
   MenuEntry,
   MenuHighlightChange,
   MenuOpenChange,
   MenuRow,
   MenuSelect,
-} from "./menu.def.ts";
+} from "./menu.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -102,7 +102,7 @@ function mount(
     if (source === undefined) values[name] = signal<unknown>(value);
     else source(value);
   };
-  write("items", JSON.stringify(entries));
+  write("items", entries);
   authoredKeys.delete("items");
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("onOpenChange", (change: MenuOpenChange) => events.openChange.push(change));
@@ -196,53 +196,28 @@ Deno.test("Given an open menu / When a press outside is reported / Then it close
   assertEquals(h.state(), "closed", "an outside press closes the menu");
 });
 
-Deno.test("Given an open menu / When a press on the trigger is reported / Then it is not a dismissal", () => {
+Deno.test("Given an open menu / When the trigger id is excluded / Then the content passes it to dismissable", () => {
   const h = mount(FLAT);
   h.api.open();
-  const trigger = document.createElement("button");
-  trigger.id = String(h.api.getTriggerProps()["id"]);
-  h.root.appendChild(trigger);
-  callback<(event: PointerEvent) => void>(h.api.getContentProps(), "use:dismissable", "onOutside")({
-    target: trigger,
-  } as unknown as PointerEvent);
-  assertEquals(h.state(), "open", "the trigger's own gesture is not an outside press");
+  const params = h.api.getContentProps()["use:dismissable"] as { excludeId?: unknown };
+  assertEquals(
+    params.excludeId,
+    h.api.getTriggerProps()["id"],
+    "the trigger exclusion travels in the action param, not a def query",
+  );
 });
 
-Deno.test("Given an authored open prop / When the host writes it / Then the machine follows without an event", () => {
-  const outer = signal<unknown>(false);
-  const root = document.createElement("div");
-  document.body.appendChild(root);
-  const seen: boolean[] = [];
-  const bridge = createMenuBridge(
-    () => ({
-      items: JSON.stringify(FLAT),
-      "@@authored": (name: string) => name === "open",
-      open: outer(),
-      onOpenChange: (change: MenuOpenChange) => seen.push(change.open),
-    }),
-    () => root,
-    "menu",
-  );
-  assertEquals(bridge.api.isOpen, false, "the menu starts closed");
-  outer(true);
-  assertEquals(bridge.api.isOpen, true, "an authored write opens the menu");
-  outer(false);
-  assertEquals(bridge.api.isOpen, false, "an authored write closes the menu");
-  assertEquals(seen, [true, false], "open-change reports both moves");
+Deno.test("Given an authored open prop at mount / When the menu starts / Then it opens without an event", () => {
+  const h = mount(FLAT, { open: true });
+  // mount() authors every override: here `open` is authored at seed time,
+  // which is the only moment outer writes reach the machine. Post-mount
+  // writes travel as events (a hooks-layer job), never channels.
+  assertEquals(h.state(), "open", "authored open at seed opens the menu");
 });
 
-Deno.test("Given an un-authored open prop / When the host writes it / Then the machine ignores it", () => {
-  const outer = signal<unknown>(true);
-  const root = document.createElement("div");
-  document.body.appendChild(root);
-  const bridge = createMenuBridge(
-    () => ({ items: JSON.stringify(FLAT), open: outer() }),
-    () => root,
-    "menu",
-  );
-  assertEquals(bridge.api.isOpen, false, "a coerced default is not a host write");
-  outer(false);
-  assertEquals(bridge.api.isOpen, false, "clearing it changes nothing");
+Deno.test("Given defaultOpen at mount / When the menu starts / Then it opens", () => {
+  const h = mount(FLAT, { defaultOpen: true });
+  assertEquals(h.state(), "open", "uncontrolled default opens the menu");
 });
 
 Deno.test("Given a closed menu / When the context menu event carries a point / Then it opens at that point", () => {
@@ -259,13 +234,11 @@ Deno.test("Given a closed menu / When the context menu event carries a point / T
   assertEquals(prevented, true, "the native context menu is prevented");
 });
 
-Deno.test("Given a closed menu / When the positioner props are read / Then the anchor vars carry the placement", () => {
+Deno.test("Given a closed menu / When the positioner props are read / Then the anchor action carries placement and no vars", () => {
   const h = mount(FLAT);
-  const style = h.api.getPositionerProps()["style"] as Record<string, string>;
-  assertEquals(style["--menu-anchor-y"], "calc(100% + 8px)", "the default placement anchors below the trigger");
-  const above = mount(FLAT, { placement: "top-start" });
-  const flipped = above.api.getPositionerProps()["style"] as Record<string, string>;
-  assertEquals(flipped["--menu-anchor-y"], "calc(-100% - 8px)", "top-start anchors above the trigger");
+  const bag = h.api.getPositionerProps() as Record<string, unknown>;
+  assertEquals(bag["style"], undefined, "coordinates are the action's writes, not bag styles");
+  assertEquals(bag["use:anchor"], { placement: "bottom", offset: 8 }, "the bag declares behavior; the action positions");
 });
 
 Deno.test("Given a closed menu / When the long-press action fires / Then the context menu opens", () => {
@@ -450,7 +423,7 @@ Deno.test("Given a submenu instance / When ArrowLeft arrives / Then it closes an
     seen.push(Reflect.get(event, "select") === true ? "select" : "dismiss");
   });
   const bridge = createMenuBridge(
-    () => ({ items: JSON.stringify(NESTED), submenu: true }),
+    () => ({ items: NESTED, submenu: true }),
     () => root,
     "submenu",
   );
@@ -590,10 +563,13 @@ Deno.test("Given an item with a shortcut or children / When its props are read /
   assertEquals(props["open"], "false", "the child instance starts closed");
 });
 
-Deno.test("Given items the host sent as malformed JSON / When the rows are read / Then nothing renders", () => {
+Deno.test("Given items the transport could not shape / When the rows are read / Then nothing renders", () => {
   const h = mount(FLAT);
-  h.write("items", "{not json");
-  assertEquals(h.api.getBlocks(), [], "a malformed tree yields no rows");
+  h.write("items", "{not shaped}" as unknown as readonly MenuEntry[]);
+  // Post-mount writes are inert without an event: the seed ran at mount.
+  // A non-array can never reach entries through the typed seed path, so
+  // the mount-time tree stands.
+  assertEquals(h.api.getBlocks().flatMap((block) => block.rows).map((row) => row.value), ["new", "copy", "cut"], "post-mount writes do not re-seed");
 });
 
 Deno.test("Given composite false / When the content props are read / Then the surface is a dialog", () => {
@@ -603,11 +579,7 @@ Deno.test("Given composite false / When the content props are read / Then the su
   assertEquals(h.api.getItemProps(h.row("new"))["role"], "menuitem", "items keep the menu item role");
 });
 
-Deno.test("Given placement top-start / When the positioner props are read / Then the anchor var flips above", () => {
-  const h = mount(FLAT, { placement: "top-start" });
-  const style = h.api.getPositionerProps()["style"] as Record<string, string>;
-  assertEquals(style["--menu-anchor-y"], "calc(-100% - 8px)", "the panel opens upward from the anchor");
-});
+
 
 Deno.test("Given typeahead false / When a printable key arrives / Then the highlight does not move", () => {
   const h = mount(FLAT, { typeahead: false });
@@ -620,7 +592,7 @@ Deno.test("Given a submenu row / When the child instance is configured / Then it
   const h = mount(NESTED);
   const row = h.row("share");
   const props = h.api.getSubmenuProps(row);
-  assertEquals(props["items"], JSON.stringify(row.children), "the subtree crosses as JSON text");
+  assertEquals(props["items"], row.children, "the subtree crosses as values; the child transport coerces");
   assertEquals(props["id"], "menu:menu:submenu:share", "the child instance takes the row's id");
 });
 
@@ -636,7 +608,7 @@ Deno.test("Given a nested instance / When it is handed an already-namespaced id 
   const root = document.createElement("div");
   document.body.appendChild(root);
   const ownerId = "menu:host";
-  const nested = createMenuBridge(() => ({ items: JSON.stringify(FLAT) }), () => root, ownerId);
+  const nested = createMenuBridge(() => ({ items: FLAT }), () => root, ownerId);
   const contentId = String(nested.api.getContentProps()["id"]);
   assertEquals(contentId, `${ownerId}:content`, "the nested content part id keeps one namespace");
   assertEquals(
@@ -671,7 +643,7 @@ Deno.test("Given a submenu row is opened by keyboard / When the level is focused
   childRoot.id = childId;
   h.root.appendChild(childRoot);
   const nested = createMenuBridge(
-    () => ({ items: JSON.stringify(NESTED), submenu: true, open: true }),
+    () => ({ items: NESTED, submenu: true, open: true }),
     () => childRoot,
     childId,
   );
@@ -777,17 +749,13 @@ Deno.test("Given an open menu / When nothing moves / Then re-reading the bags re
   );
 });
 
-Deno.test("Given a menu whose items change / When the bags are read again / Then they follow the new rows", () => {
+Deno.test("Given a menu whose items change post-mount / When the bags are read / Then the mount-time tree stands", () => {
   const h = mount(FLAT);
   const first = h.row("new");
   assertEquals(h.api.getItemProps(first)["id"], "menu:menu:item:new");
-  h.write("items", JSON.stringify([{ value: "other", label: "Other" }]));
+  // Post-mount writes are inert without an event: seed ran at mount.
+  // A host that needs a new tree sends an event (a hooks-layer job).
+  h.write("items", [{ value: "other", label: "Other" }]);
   const rows = h.api.getBlocks().flatMap((block) => h.api.getRows(block));
-  assertEquals(rows.map((row) => row.value), ["other"], "the new item tree is served");
-  assertEquals(h.api.getItemProps(rows[0]!)["id"], "menu:menu:item:other");
-  assertEquals(
-    h.api.getItemProps(rows[0]!)["id"],
-    "menu:menu:item:other",
-    "the cached bag was rebuilt against the new row, not served stale",
-  );
+  assertEquals(rows.map((row) => row.value), ["new", "copy", "cut"], "post-mount writes do not re-seed");
 });

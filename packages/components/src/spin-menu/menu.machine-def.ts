@@ -1,9 +1,9 @@
-import { menu } from "./menu.def.ts";
+import { menu } from "./menu.bindings.ts";
 import type {
   MenuHighlightChange,
   MenuOpenChange,
   MenuSelect,
-} from "./menu.def.ts";
+} from "./menu.bindings.ts";
 
 /**
  * The menu's seam: the synthesized bridge, the element's imperative
