@@ -26,6 +26,9 @@ export interface ListboxContext {
   order: string[];
   /** The collection's labels by value. Synced from scope by the bridge. */
   labels: Record<string, string>;
+  /** Disabled values, synced alongside order/labels. Commands that skip
+   * disabled rows read this instead of reaching back into props. */
+  disabledValues: readonly string[];
   multiple: boolean;
   selectOnHighlight: boolean;
   loopFocus: boolean;
@@ -56,6 +59,7 @@ export const config = {
     focused: false,
     order: [] as string[],
     labels: {} as Record<string, string>,
+    disabledValues: [] as readonly string[],
     multiple: false,
     selectOnHighlight: false,
     loopFocus: true,
@@ -213,3 +217,70 @@ export const hasValue = (ctx: ListboxContext): boolean => ctx.value.length > 0;
 
 /** The selected values as a comma-joined string for the hidden input. */
 export const stringifyValues = (ctx: ListboxContext): string => ctx.value.join(",");
+
+export interface ListboxInitial {
+  readonly items?: unknown;
+  readonly value?: unknown;
+  readonly defaultValue?: unknown;
+  readonly highlightedValue?: unknown;
+  readonly defaultHighlightedValue?: unknown;
+  readonly multiple?: unknown;
+  readonly selectOnHighlight?: unknown;
+  readonly loopFocus?: unknown;
+  readonly selectionBehavior?: unknown;
+}
+
+export function initial(raw: ListboxInitial): ListboxContext {
+  const items = Array.isArray(raw.items) ? raw.items : [];
+  const rows: { value: string; label: string; disabled: boolean; group: string }[] = [];
+  for (const entry of items) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const record: Record<string, unknown> = entry;
+    const value = record["value"];
+    if (typeof value !== "string" || value.length === 0) continue;
+    const label = typeof record["label"] === "string" && record["label"].length > 0
+      ? record["label"]
+      : value;
+    rows.push({
+      value,
+      label,
+      disabled: record["disabled"] === true,
+      group: typeof record["group"] === "string" ? record["group"] : "",
+    });
+  }
+  const order = rows.map((row) => row.value);
+  const labels = Object.fromEntries(rows.map((row) => [row.value, row.label]));
+  const multiple = raw.multiple === true;
+  const selection = raw.selectionBehavior;
+  const selectionBehavior =
+    selection === "preserve" || selection === "clear"
+      ? selection
+      : multiple
+        ? "clear"
+        : "replace";
+  const parseKeys = (value: unknown): string[] => {
+    if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+    if (typeof value !== "string") return [];
+    const list = value.startsWith("[") && value.endsWith("]") ? value.slice(1, -1) : value;
+    return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
+  };
+  const valueSource = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const highlightedValue =
+    typeof raw.highlightedValue === "string" && raw.highlightedValue.length > 0
+      ? raw.highlightedValue
+      : typeof raw.defaultHighlightedValue === "string" && raw.defaultHighlightedValue.length > 0
+        ? raw.defaultHighlightedValue
+        : null;
+  return {
+    value: parseKeys(valueSource),
+    disabledValues: rows.filter((row) => row.disabled).map((row) => row.value),
+    highlightedValue,
+    focused: false,
+    order,
+    labels,
+    multiple,
+    selectOnHighlight: raw.selectOnHighlight === true,
+    loopFocus: raw.loopFocus !== false,
+    selectionBehavior,
+  };
+}

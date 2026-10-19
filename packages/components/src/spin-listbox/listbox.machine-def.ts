@@ -1,9 +1,9 @@
-import { listbox } from "./listbox.def.ts";
+import { listbox } from "./listbox.bindings.ts";
 import type {
   ListboxHighlightChange,
   ListboxSelect,
   ListboxValueChange,
-} from "./listbox.def.ts";
+} from "./listbox.bindings.ts";
 
 /**
  * The listbox's seam: the synthesized bridge, the element's imperative

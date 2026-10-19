@@ -3,15 +3,17 @@ import {
   isComposing,
   textProp,
   type ComponentDef,
-  type PartScope as ScopeLike,
+  type PartScope,
+  type SlotScope,
 } from "@spin/runtime";
 import {
   config,
   implementations,
+  initial,
   type ListboxContext,
   type ListboxEvent,
+  type ListboxInitial,
 } from "./listbox.machine.ts";
-
 /**
  * Listbox definition: the DOM contract as data. The machine owns the
  * highlight, the selection and the focus in one idle phase; this file maps
@@ -152,10 +154,13 @@ const nullableProp = (raw: unknown): string | null =>
 
 type Ctx = ListboxContext;
 
-const asCtx = (context: Record<string, unknown>): Ctx => context as unknown as Ctx;
+interface ScopeLike extends PartScope<unknown, ListboxContext> {}
+
+interface SlotLike<R> extends SlotScope<R, ListboxContext> {}
 
 const rowsOf = (parsed: Record<string, unknown>): readonly ListboxRow[] =>
-  parsed["items"] as readonly ListboxRow[];
+  parseItems(parsed["items"]);
+
 
 const orderOf = (parsed: Record<string, unknown>): string[] =>
   rowsOf(parsed).map((row) => row.value);
@@ -215,7 +220,7 @@ const rowHandlers = (scope: ScopeLike, row: ListboxRow): RowHandlerSet => {
     onPointerMove: (event: PointerEvent): void => {
       if (scope.props["disabled"] === true) return;
       if (row.disabled || event.pointerType !== "mouse") return;
-      if (asCtx(scope.context).highlightedValue === row.value) return;
+      if (scope.context.highlightedValue === row.value) return;
       scope.send({ type: "ITEM.POINTER_MOVE", value: row.value });
     },
     onPointerLeave: (): void => {
@@ -235,7 +240,7 @@ const rowHandlers = (scope: ScopeLike, row: ListboxRow): RowHandlerSet => {
         type: "ITEM.CLICK",
         value: row.value,
         shiftKey: event.shiftKey,
-        anchorValue: asCtx(scope.context).highlightedValue ?? undefined,
+        anchorValue: scope.context.highlightedValue ?? undefined,
       });
     },
   };
@@ -246,8 +251,8 @@ const rowHandlers = (scope: ScopeLike, row: ListboxRow): RowHandlerSet => {
 const itemStateOf = (scope: ScopeLike, row: ListboxRow): ListboxItemState => ({
   value: row.value,
   disabled: scope.props["disabled"] === true || row.disabled,
-  highlighted: asCtx(scope.context).highlightedValue === row.value,
-  selected: asCtx(scope.context).value.includes(row.value),
+  highlighted: scope.context.highlightedValue === row.value,
+  selected: scope.context.value.includes(row.value),
 });
 
 /**
@@ -261,7 +266,7 @@ const itemStateOf = (scope: ScopeLike, row: ListboxRow): ListboxItemState => ({
 const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
   const list = rowsOf(scope.props);
   if (list.length === 0) return null;
-  const current = asCtx(scope.context).highlightedValue;
+  const current = scope.context.highlightedValue;
   if (current === null) {
     const row = delta > 0 ? list[0] : list[list.length - 1];
     return row === undefined ? null : row.value;
@@ -330,7 +335,7 @@ const navigate = (scope: ScopeLike, value: string | null, event: KeyboardEvent):
     type: "NAVIGATE",
     value,
     shiftKey: event.shiftKey,
-    anchorValue: asCtx(scope.context).highlightedValue ?? undefined,
+    anchorValue: scope.context.highlightedValue ?? undefined,
     metaKey: event.ctrlKey || event.metaKey,
   });
 };
@@ -342,7 +347,7 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   // Ctrl/Meta+A selects all in a multiple listbox; any other modifier is
   // the host's, not the machine's.
   if ((event.ctrlKey || event.metaKey) && event.key !== "a" && event.key !== "A") return;
-  const ctx = asCtx(scope.context);
+  const ctx = scope.context;
   switch (event.key) {
     case "ArrowDown":
       navigate(scope, nextWalked(scope, 1), event);
@@ -399,83 +404,19 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     }
   }
 };
-
+/** Transport guarantees the raw prop bag is a ListboxInitial-shaped object;
+ * the guard asserts that trust point instead of a silent `as`. */
+const isListboxInitial = (raw: unknown): raw is ListboxInitial =>
+  raw !== null && typeof raw === "object";
 const def: ComponentDef<ListboxContext, ListboxEvent> = {
   name: "listbox",
   config,
   implementations,
-  seed: (props, authored) => {
-    const multiple = props["multiple"] === true;
-    const selection = props["selectionBehavior"];
-    return {
-      multiple,
-      selectOnHighlight: props["selectOnHighlight"] === true,
-      loopFocus: props["loopFocus"] !== false,
-      selectionBehavior: selection === "preserve" || selection === "clear"
-        ? selection
-        : multiple
-          ? "clear"
-          : "replace",
-      value: parseKeys(authored("value") ? props["value"] : props["defaultValue"]),
-      highlightedValue: authored("highlightedValue")
-        ? nullableProp(props["highlightedValue"])
-        : nullableProp(props["defaultHighlightedValue"]),
-      order: orderOf(props),
-      labels: labelsOf(props),
-    };
-  },
-  channels: {
-    items: { parse: parseItems },
-    value: {
-      controlled: true,
-      parse: parseKeys,
-      event: (value: readonly string[]) => ({ type: "VALUE.SET", value: [...value] }),
-      equal: (current, outer) =>
-        Array.isArray(current) && Array.isArray(outer) && sameKeys(current as string[], outer as string[]),
-    },
-    defaultValue: { parse: parseKeys },
-    highlightedValue: {
-      controlled: true,
-      parse: nullableProp,
-      nullable: true,
-      event: (value: string | null) =>
-        value === null ? { type: "HIGHLIGHTED_VALUE.CLEAR" } : { type: "HIGHLIGHTED_VALUE.SET", value },
-    },
-    defaultHighlightedValue: { parse: nullableProp },
-    multiple: { parse: (raw) => raw === true },
-    selectOnHighlight: { parse: (raw) => raw === true },
-    loopFocus: { parse: (raw) => raw !== false },
-    selectionBehavior: { parse: textProp },
-    disabled: { parse: (raw) => raw === true },
-    readOnly: { parse: (raw) => raw === true },
-    invalid: { parse: (raw) => raw === true },
-    required: { parse: (raw) => raw === true },
-    composite: { parse: (raw) => raw !== false },
-    dir: { parse: (raw) => (raw === "rtl" ? "rtl" : "ltr") },
-    orientation: { parse: (raw) => (raw === "horizontal" ? "horizontal" : "vertical") },
-    name: { parse: textProp },
-    form: { parse: textProp },
-  },
-  scalarsOf: (parsed) => {
-    const multiple = parsed["multiple"] === true;
-    const selection = parsed["selectionBehavior"];
-    return {
-      multiple,
-      selectOnHighlight: parsed["selectOnHighlight"] === true,
-      loopFocus: parsed["loopFocus"] !== false,
-      selectionBehavior: selection === "preserve" || selection === "clear"
-        ? selection
-        : multiple
-          ? "clear"
-          : "replace",
-    };
-  },
+  seed: (raw, _authored) => ({ ...initial(isListboxInitial(raw) ? raw : {}) }),
   reconcile: ({ context, parsed, send }) => {
-    const ctx = asCtx(context);
+    const ctx = context;
     const order = orderOf(parsed);
-    (ctx as unknown as { disabledValues: readonly string[] }).disabledValues =
-      rowsOf(parsed).filter((row) => row.disabled).map((row) => row.value);
-    if (sameKeys(ctx.order, order)) return false;
+    ctx.disabledValues = rowsOf(parsed).filter((row) => row.disabled).map((row) => row.value);
     ctx.order = order;
     ctx.labels = labelsOf(parsed);
     send({ type: "SELECTED_ITEMS.SYNC" });
@@ -506,19 +447,19 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     valueText: {
       id: "value-text",
       sig: (scope) => {
-        const value = asCtx(scope.context).value;
+        const value = scope.context.value;
         return [value.length, value.join(",")].join(" ");
       },
       attrs: (scope) => ({
         id: scope.id("valueText"),
           "data-scope": "listbox",
           "data-part": "value-text",
-        "data-empty": scope.attr(asCtx(scope.context).value.length === 0),
+        "data-empty": scope.attr(scope.context.value.length === 0),
       }),
     },
     content: {
       sig: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         return [
           scope.state,
           ctx.focused,
@@ -531,7 +472,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
         ].join(" ");
       },
       attrs: (scope) => {
-        const ctx = asCtx(scope.context);
+        const ctx = scope.context;
         const highlighted = ctx.highlightedValue;
         const active = highlighted === null ? undefined : scope.id("item", highlighted);
         return {
@@ -556,7 +497,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
           // revealed — the browser's own scroll, never an offset of ours.
           "use:scroll-into-view": {
             activeId: (): string => {
-              const current = asCtx(scope.context).highlightedValue;
+              const current = scope.context.highlightedValue;
               if (current === null) return "";
               return scope.id("item", current);
             },
@@ -569,12 +510,12 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     item: {
       id: "item",
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as ListboxRow);
+      sig: (scope: SlotLike<ListboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [state.highlighted, state.selected, state.disabled, scope.props["dir"], scope.props["orientation"]].join(" ");
       },
-      attrs: (scope) => {
-        const row = scope.slot as unknown as ListboxRow;
+      attrs: (scope: SlotLike<ListboxRow>) => {
+        const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
           id: scope.id("item", row.value),
@@ -598,12 +539,12 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     itemText: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as ListboxRow);
+      sig: (scope: SlotLike<ListboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return [state.selected, state.disabled, state.highlighted].join(" ");
       },
-      attrs: (scope) => {
-        const state = itemStateOf(scope, scope.slot as unknown as ListboxRow);
+      attrs: (scope: SlotLike<ListboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
         return {
           "data-state": state.selected ? "checked" : "unchecked",
           "data-disabled": scope.attr(state.disabled),
@@ -613,9 +554,9 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     itemIndicator: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope) => `${itemStateOf(scope, scope.slot as unknown as ListboxRow).selected}`,
-      attrs: (scope) => {
-        const selected = itemStateOf(scope, scope.slot as unknown as ListboxRow).selected;
+      sig: (scope: SlotLike<ListboxRow>) => `${itemStateOf(scope, scope.slot).selected}`,
+      attrs: (scope: SlotLike<ListboxRow>) => {
+        const selected = itemStateOf(scope, scope.slot).selected;
         return {
           "aria-hidden": "true",
           "data-state": selected ? "checked" : "unchecked",
@@ -626,9 +567,9 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     itemGroup: {
       id: "item-group",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
-      sig: (scope) => `${(scope.slot as unknown as ListboxBlock).id}`,
-      attrs: (scope) => {
-        const block = scope.slot as unknown as ListboxBlock;
+      sig: (scope: SlotLike<ListboxBlock>) => `${scope.slot.id}`,
+      attrs: (scope: SlotLike<ListboxBlock>) => {
+        const block = scope.slot;
         return {
           id: scope.id("itemGroup", block.id),
           "data-scope": "listbox",
@@ -645,9 +586,9 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     itemGroupLabel: {
       id: "item-group-label",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
-      sig: (scope) => `${(scope.slot as unknown as ListboxBlock).id}`,
-      attrs: (scope) => {
-        const block = scope.slot as unknown as ListboxBlock;
+      sig: (scope: SlotLike<ListboxBlock>) => `${scope.slot.id}`,
+      attrs: (scope: SlotLike<ListboxBlock>) => {
+        const block = scope.slot;
         return {
           id: scope.id("itemGroupLabel", block.id),
           "data-scope": "listbox",
@@ -660,15 +601,15 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   },
   commands: {
     syncSelectedItems: { event: () => ({ type: "SELECTED_ITEMS.SYNC" }) },
-    setHighlightValue: { event: (args) => ({ type: "HIGHLIGHTED_VALUE.SET", value: args[0] as string }) },
+    setHighlightValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "HIGHLIGHTED_VALUE.SET", value: typeof v === "string" ? v : null }; } },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE.CLEAR" }) },
-    selectValue: { event: (args) => ({ type: "ITEM.SELECT", value: args[0] as string }) },
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: [...(args[0] as readonly string[])] }) },
+    selectValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "ITEM.SELECT", value: typeof v === "string" ? v : "" }; } },
+    setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: Array.isArray(v) && v.every((x): x is string => typeof x === "string") ? [...v] : [] }; } },
     selectAll: {
       event: (_args, context, _id) => {
-        const ctx = context as unknown as Ctx;
+        const ctx = context;
         if (!ctx.multiple) return { type: "VALUE.SET", value: [...ctx.value] };
-        const disabled = (ctx as unknown as { disabledValues?: readonly string[] }).disabledValues ?? [];
+        const disabled = ctx.disabledValues;
         return {
           type: "VALUE.SET",
           value: ctx.order.filter((value) => !disabled.includes(value)),
@@ -678,24 +619,24 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     clearValue: {
       event: (args) => args[0] === undefined
         ? ({ type: "VALUE.CLEAR" })
-        : ({ type: "ITEM.CLEAR", value: args[0] as string }),
+        : (() => { const v = args[0]; return { type: "ITEM.CLEAR", value: typeof v === "string" ? v : "" }; })(),
     },
     highlightFirst: {
       event: (_args, context) => {
-        const order = (context as unknown as Ctx).order;
+        const order = (context).order;
         return { type: "HIGHLIGHTED_VALUE.SET", value: order[0] ?? null };
       },
     },
     highlightLast: {
       event: (_args, context) => {
-        const order = (context as unknown as Ctx).order;
+        const order = (context).order;
         return { type: "HIGHLIGHTED_VALUE.SET", value: order[order.length - 1] ?? null };
       },
     },
     highlightNext: {
       event: (_args, context) => {
-        const ctx = context as unknown as Ctx;
-        const disabled = (ctx as unknown as { disabledValues?: readonly string[] }).disabledValues ?? [];
+        const ctx = context;
+        const disabled = ctx.disabledValues;
         return {
           type: "HIGHLIGHTED_VALUE.SET",
           value: highlightStep(ctx.order, disabled, ctx.highlightedValue, 1, ctx.loopFocus),
@@ -704,8 +645,8 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     highlightPrevious: {
       event: (_args, context) => {
-        const ctx = context as unknown as Ctx;
-        const disabled = (ctx as unknown as { disabledValues?: readonly string[] }).disabledValues ?? [];
+        const ctx = context;
+        const disabled = ctx.disabledValues;
         return {
           type: "HIGHLIGHTED_VALUE.SET",
           value: highlightStep(ctx.order, disabled, ctx.highlightedValue, -1, ctx.loopFocus),
@@ -714,36 +655,36 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
   },
   readers: {
-    focused: { read: (context) => asCtx(context).focused },
-    highlightedValue: { read: (context) => asCtx(context).highlightedValue },
+    focused: { read: (context) => context.focused },
+    highlightedValue: { read: (context) => context.highlightedValue },
     highlightedItem: {
       read: (context, _state, props) => {
-        const highlighted = asCtx(context).highlightedValue;
+        const highlighted = context.highlightedValue;
         if (highlighted === null) return null;
         return rowsOf(props).find((row) => row.value === highlighted) ?? null;
       },
     },
-    value: { read: (context) => [...asCtx(context).value] },
+    value: { read: (context) => [...context.value] },
     valueAsString: {
       read: (context, _state, props) => {
         const rows = rowsOf(props);
-        return asCtx(context).value
+        return context.value
           .map((value) => rows.find((row) => row.value === value)?.label)
           .filter((label): label is string => label !== undefined)
           .join(", ");
       },
     },
-    hasSelectedItems: { read: (context) => asCtx(context).value.length > 0 },
+    hasSelectedItems: { read: (context) => context.value.length > 0 },
     selectedItems: {
       read: (context, _state, props) => {
         const rows = rowsOf(props);
-        return asCtx(context).value
+        return context.value
           .map((value) => rows.find((row) => row.value === value))
           .filter((row): row is ListboxRow => row !== undefined);
       },
     },
-    multiple: { read: (context) => asCtx(context).multiple },
-    disabled: { read: (_context, _state, props) => (props["disabled"] as boolean) === true },
+    multiple: { read: (context) => context.multiple },
+    disabled: { read: (_context, _state, props) => props["disabled"] === true },
     empty: { read: (_context, _state, props) => rowsOf(props).length === 0 },
   },
   methods: {
@@ -751,16 +692,21 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
       call: (_context, _state, _args, props) => blocksOf(rowsOf(props)),
     },
     getRows: {
-      call: (_context, _state, args) => (args[0] as ListboxBlock).rows,
+      call: (_context, _state, args) => {
+        const block = args[0];
+        if (typeof block !== "object" || block === null || !("rows" in block) || !Array.isArray(block.rows)) return [];
+        return block.rows.filter((row): row is ListboxRow => typeof row === "object" && row !== null);
+      },
     },
     getItemState: {
-      call: (context, _state, args, props) => {
-        const row = args[0] as ListboxRow;
+      call: (context: ListboxContext, _state, args, props) => {
+        const row = args[0];
+        if (typeof row !== "object" || row === null || !("value" in row) || typeof row.value !== "string") return { value: "", disabled: true, highlighted: false, selected: false };
         return {
           value: row.value,
-          disabled: (props["disabled"] as boolean) === true || row.disabled,
-          highlighted: (context as unknown as Ctx).highlightedValue === row.value,
-          selected: (context as unknown as Ctx).value.includes(row.value),
+          disabled: props["disabled"] === true || ("disabled" in row && row.disabled === true),
+          highlighted: context.highlightedValue === row.value,
+          selected: context.value.includes(row.value),
         };
       },
     },
@@ -768,10 +714,10 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   events: {
     "value-change": {
       prop: "onValueChange",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched, _event, props) => {
-        const rows = rowsOf(props as Record<string, unknown>);
-        const value = watched as string[];
+      watch: (context) => [...context.value],
+      detail: (watched: readonly string[], _event, props) => {
+        const rows = props === undefined ? [] : rowsOf(props);
+        const value: readonly string[] = watched;
         return {
           value: [...value],
           items: value.map((item) => rows.find((row) => row.value === item)).filter((row) => row !== undefined),
@@ -780,30 +726,29 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     "highlight-change": {
       prop: "onHighlightChange",
-      watch: (context) => [asCtx(context).highlightedValue],
-      detail: (watched, _event, props) => {
-        const highlighted = watched[0] as string | null;
+      watch: (context) => [context.highlightedValue],
+      detail: (watched: readonly [string | null], _event, props) => {
+        const highlighted = watched[0];
         return {
           highlightedValue: highlighted,
           highlightedItem: highlighted === null
             ? null
-            : rowsOf(props as Record<string, unknown>).find((row) => row.value === highlighted) ?? null,
+            : (props === undefined ? [] : rowsOf(props)).find((row) => row.value === highlighted) ?? null,
         };
       },
     },
     select: {
       prop: "onSelect",
-      watch: (context) => [...asCtx(context).value],
-      detail: (watched) => ({ value: [...watched] as string[], itemValue: "" }),
+      watch: (context) => [...context.value],
+      detail: (watched: readonly string[]) => ({ value: [...watched], itemValue: "" }),
       // Zag's `invokeOnSelect`: the value the pick landed on. It fires for
       // a toggle-off as much as a pick — the host asked about the move,
       // not the direction — but a guard the machine refused reports nothing.
-      select: (event, before, after) => {
+      select: (event, before: ListboxContext, after: ListboxContext) => {
         if (event.type !== "ITEM.CLICK" && event.type !== "ITEM.SELECT") return null;
-        const beforeCtx = before as unknown as Ctx;
-        const afterCtx = after as unknown as Ctx;
-        if (sameKeys(beforeCtx.value, afterCtx.value)) return null;
-        return { value: [...afterCtx.value], itemValue: (event as Record<string, string>)["value"] as string };
+        if (sameKeys(before.value, after.value)) return null;
+        const v = event["value"];
+        return { value: [...after.value], itemValue: typeof v === "string" ? v : "" };
       },
     },
   },
