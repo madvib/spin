@@ -279,7 +279,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const collectionCache = new WeakMap<object, readonly CascadeNode[]>();
-let jsonCollection: { readonly raw: string; readonly nodes: readonly CascadeNode[] } | undefined;
+/** The JSON-transported collection, keyed by its text: two instances with
+ * different trees must not evict each other's parse — a single slot made
+ * every read of the other instance re-parse, and the levels cache (keyed
+ * on the array) then missed, churning row identities. */
+const jsonCollections = new Map<string, readonly CascadeNode[]>();
 
 /** The collection, memoized on the transport's identity: the parse shapes
  * on every read, and the levels cache keys on the array — an unmemoized
@@ -294,9 +298,10 @@ const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] =
     return shaped;
   }
   if (typeof raw !== "string") return [];
-  if (jsonCollection !== undefined && jsonCollection.raw === raw) return jsonCollection.nodes;
+  const hit = jsonCollections.get(raw);
+  if (hit !== undefined) return hit;
   const shaped = parseNodes(coerceJsonArray(raw, []));
-  jsonCollection = { raw, nodes: shaped };
+  jsonCollections.set(raw, shaped);
   return shaped;
 };
 
