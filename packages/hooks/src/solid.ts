@@ -1,4 +1,4 @@
-import { createMemo, type Accessor } from "solid-js";
+import { type Accessor } from "solid-js";
 import { spinComponentCtl, type SpinComponentCtl } from "./controller.ts";
 
 export { spinComponentCtl };
@@ -39,10 +39,14 @@ export type SpinComponentCtlAccessor<TCommands extends object = object> =
 export function createSpinComponent<TCommands extends object = object>(
   el: () => Element | null | undefined,
 ): SpinComponentCtlAccessor<TCommands> {
-  return createMemo(() => {
+  // A memo caches its first evaluation: read once while the element was
+  // still undefined, and every later read returns that stale undefined.
+  // The accessor reads the element on every call instead, so the host
+  // sees the element the moment the ref fires.
+  return (): SpinComponentCtl<TCommands> | undefined => {
     const node = el();
     return node === null || node === undefined
       ? undefined
       : spinComponentCtl<TCommands>(node);
-  });
+  };
 }

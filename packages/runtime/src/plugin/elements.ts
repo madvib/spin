@@ -203,7 +203,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           consumeImports.push(`import { ${name} } from ${JSON.stringify(found)};`);
           const bridge = `${name}Bridge`;
           consumeCalls.push(
-            `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.prop, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
+            `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
             `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
             `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
             `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +

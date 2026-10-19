@@ -33,8 +33,8 @@ export default defineConfig({
       "@spin/runtime": at("../../runtime/src/index.ts"),
       // Subpath aliases only — no base `@spin/hooks` entry: a base entry
       // prefix-collides with the subpaths (`<file>/solid`) and wins.
-      "@spin/hooks/solid": "/home/madvib/dev/spin-runtime/packages/hooks/src/solid.ts",
-      "@spin/hooks/react": "/home/madvib/dev/spin-runtime/packages/hooks/react.ts",
+      "@spin/hooks/solid": at("../../hooks/src/solid.ts"),
+      "@spin/hooks/react": at("../../hooks/src/react.ts"),
       "@spin/preset": at("../../preset/src/index.ts"),
       "@spin/theme/themes": at("../../theme/src/themes/index.ts"),
       "@spin/theme": at("../../theme/src/index.ts"),
