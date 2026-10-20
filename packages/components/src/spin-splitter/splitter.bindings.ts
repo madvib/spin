@@ -208,9 +208,12 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
     onPointerleave: (): void => {
       if (scope.state === "hover") scope.send({ type: "POINTER_LEAVE" });
     },
-    onPointerup: (): void => {
+    onPointerup: (event: PointerEvent): void => {
       if (scope.state !== "dragging") return;
-      scope.send({ type: "POINTER_UP", handleFocused: false });
+      // The press focused the handle, so the drag ends focused: the
+      // keyboard keeps working on the handle the pointer just moved.
+      const focused = event.currentTarget === document.activeElement;
+      scope.send({ type: "POINTER_UP", handleFocused: focused });
     },
     onBlur: (): void => {
       scope.send({ type: "BLUR" });
@@ -274,7 +277,7 @@ const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
     "data-scope": "splitter",
     "data-part": "panel",
     "data-type": "panel",
-    "data-orientation": scope.props["orientation"],
+    "data-orientation": context.orientation,
     "data-dragging": scope.attr(scope.state === "dragging"),
     "data-id": id,
     "data-collapsed": scope.attr(collapsed),
@@ -315,7 +318,7 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
     "aria-valuenow": String(Math.round(context.size[context.panels.findIndex((p) => p.id === beforeId)] ?? 0)),
     "aria-valuemin": "0",
     "aria-valuemax": "100",
-    "data-orientation": scope.props["orientation"],
+    "data-orientation": context.orientation,
     "aria-orientation": scope.props["orientation"],
     "aria-controls": `${scope.id("panel", beforeId)} ${scope.id("panel", afterId)}`,
     "data-focus": scope.attr(focused),
@@ -350,7 +353,7 @@ const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Reco
     "data-scope": "splitter",
     "data-part": "handle-indicator",
     "data-type": "handle",
-    "data-orientation": scope.props["orientation"],
+    "data-orientation": context.orientation,
     "data-focus": scope.attr(focused),
     "data-dragging": scope.attr(dragging),
   };
@@ -400,7 +403,10 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
       drag: null,
     };
   },
-  scalars: ["orientation", "disabled"],
+  // `orientation` is not a scalar: the scope's default is the empty
+  // string, so the parsed value would overwrite the machine's resolved
+  // orientation. The reconcile moves it when the host authored it.
+  scalars: ["disabled"],
   reconcile: ({ context, parsed, authored, send }) => {
     // A changed panel tree reseeds the sizes it still fits — the machine
     // never sees a tree it cannot lay out. Host JSON arrives as text;
@@ -414,6 +420,13 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
         context.size = defaultSizes(context.panels.length, []);
       }
       return true;
+    }
+    if (authored("orientation")) {
+      const next = parsed["orientation"] === "vertical" ? "vertical" : "horizontal";
+      if (next !== context.orientation) {
+        context.orientation = next;
+        return true;
+      }
     }
     if (authored("size")) {
       const outer = sizesProp(parsed["size"]);
@@ -441,11 +454,11 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         "data-scope": "splitter",
         "data-part": "root",
-        "data-orientation": scope.props["orientation"],
+        "data-orientation": scope.context.orientation,
         "data-dragging": scope.attr(scope.state === "dragging"),
         style: {
           display: "flex",
-          flexDirection: scope.props["orientation"] === "horizontal" ? "row" : "column",
+          flexDirection: scope.context.orientation === "horizontal" ? "row" : "column",
           height: "100%",
           width: "100%",
           overflow: "hidden",
@@ -528,7 +541,7 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
     },
   },
   commands: {
-    setSizes: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "SET_SIZE", value: Array.isArray(v) && v.every((x): x is number => typeof x === "number") ? [...v] : [] }; } },
+    setSizes: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "SET_SIZE", size: Array.isArray(v) && v.every((x): x is number => typeof x === "number") ? [...v] : [] }; } },
     resetSizes: { event: () => ({ type: "RESET_SIZE" }) },
     collapsePanel: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "COLLAPSE_PANEL", id: typeof v === "string" ? v : "" }; } },
     expandPanel: {
