@@ -37,8 +37,11 @@ const exampleMachineOf = (path: string): string =>
   stripSpin(path.split("/").at(-3) ?? "");
 
 // Recipes sit beside the machine dir: `.../spin-tree-view/spin-*.html`.
+/** The machine a recipe belongs to. The recipe's element lives in the
+ * playground now, so the name comes from the FILE (`spin-tree-view.html`
+ * -> `tree-view`), not from the directory it sits in. */
 const recipeMachineOf = (path: string): string =>
-  stripSpin(path.split("/").at(-2) ?? "");
+  stripSpin((path.split("/").at(-1) ?? "").replace(/\.html$/, ""));
 
 const grouped = new Map<string, { examples: { name: string; html: string; source: string; onLoad?: string }[] }>();
 for (const [path, html] of Object.entries(exampleSources)) {

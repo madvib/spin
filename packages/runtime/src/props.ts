@@ -71,8 +71,10 @@ export function resolveTwins(
       // when the host WROTE the twin. The element's DECLARED default is
       // the element's business, and must not reach the machine: the
       // machine's own default stands.
-      if (!authored(key)) continue;
+      // The twin seeds the live prop — whether the host WROTE the twin
+      // or the element merely DECLARED it as the channel's default.
       if (authored(twin)) continue;
+      if (authored !== undefined && authored(twin)) continue;
       out[twin] = props[key];
       continue;
     }
