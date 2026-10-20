@@ -25,6 +25,7 @@ import { scrollIntoView } from "./scroll-into-view.ts";
 import { interactOutside } from "../../../components/src/spin-editable/actions/interact-outside.action.ts";
 import { selectOptions } from "../../../components/src/spin-select/actions/select-options.action.ts";
 import { selectFocus } from "../../../components/src/spin-select/actions/select-focus.action.ts";
+import { datePickerFocus } from "../../../components/src/spin-date-picker/actions/date-picker-focus.action.ts";
 import { infiniteScroll } from "./infinite-scroll.ts";
 import { toastRegion, toastRow, toastTimer } from "../../../components/src/spin-toast/actions/toast-actions.ts";
 
@@ -434,6 +435,7 @@ export const ACTIONS = {
   "interact-outside": interactOutside,
   "select-options": selectOptions,
   "select-focus": selectFocus,
+  "date-picker-focus": datePickerFocus,
   "infinite-scroll": infiniteScroll,
   "toast-timer": toastTimer,
   "toast-row": toastRow,

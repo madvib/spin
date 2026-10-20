@@ -511,12 +511,24 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
       },
     },
     content: {
-      sig: (scope) => [`${scope.state === "open"}`].join(" "),
+      sig: (scope) => {
+        const open = scope.state === "open";
+        const focused = iso(scope.context.focusedValue);
+        return [open, focused].join(" ");
+      },
       attrs: (scope) => {
         const open = scope.state === "open";
+        const focused = iso(scope.context.focusedValue);
         return {
           id: scope.id("content"),
           role: "dialog",
+          // Opening hands the focused day the focus: the trigger's keys
+          // stop applying once the panel is up, so the keyboard walk
+          // starts inside.
+          "use:date-picker-focus": {
+            open,
+            cellId: `${scope.id("grid")}:cell:${focused}`,
+          },
           "aria-label": scope.props["label"],
           "data-state": open ? "open" : "closed",
           "use:dismissable": {
