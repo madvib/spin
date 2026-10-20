@@ -22,7 +22,8 @@ const STOPWATCH_ROOT = byId("timer:stopwatch");
 const STOPWATCH_AREA = byId("timer:stopwatch:area");
 const AUTO_ROOT = byId("timer:auto");
 const AUTO_AREA = byId("timer:auto:area");
-const SHORT_ROOT = byId("timer:short");
+const SHORT_ID = "timer:short";
+const SHORT_ROOT = byId(SHORT_ID);
 const SHORT_AREA = byId("timer:short:area");
 const unitValue = (id: string, part: string): string => byId(`timer:${id}:item-value:${part}`);
 const trigger = (id: string, action: string): string => byId(`timer:${id}:action-trigger:${action}`);
@@ -168,8 +169,8 @@ Deno.test("spin-timer e2e", () =>
       assert.ok(midway > 0, "mid-run the bar is not empty");
       assert.ok(midway < trackWidth, "mid-run the bar is not full");
       await page.waitForFunction(
-        () => document.querySelector('[id="timer:short\\:root"]')?.getAttribute("data-state") === "idle",
-        undefined,
+        (id) => document.querySelector(`[id="${id}"]`)?.getAttribute("data-state") === "idle",
+        SHORT_ID,
         { timeout: 6000 },
       );
       assert.equal(await state(SHORT_ROOT), "idle", "the run ends on its own");
