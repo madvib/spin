@@ -155,6 +155,9 @@ export const config = {
     hover: {
       on: {
         POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
+        // A focus is a focus, whatever the pointer is doing: the keyboard
+        // lives in the focus state.
+        FOCUS: { target: "focus" },
         GROUP_POINTER_LEAVE: [
           { cond: "radioFocused", target: "focus", actions: [{ assign: "clearHoveredValue" }] },
           { target: "idle", actions: [{ assign: "clearHoveredValue" }] },
