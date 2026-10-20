@@ -8,6 +8,7 @@ export {
   trigger,
   untrack,
   type OwnerScope,
+  type Signal,
 } from "./core/signal.ts";
 
 export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";

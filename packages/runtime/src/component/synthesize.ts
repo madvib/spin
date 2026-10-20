@@ -12,7 +12,7 @@
 
 import { dataAttr, keyed, memo, type BagMemo, type BagReads, type ReadRecorder } from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
-import { authoredProps, defineBridge, pickCallback, type BridgeHooks } from "./bridge.ts";
+import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
 import type { Config, Implementations } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
@@ -41,6 +41,7 @@ export function defineComponent<
   const hooks = (
     id: string,
     root: () => Element,
+    machineLive: BridgeLive,
   ): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
     // The last event sent, which is what a controlled close reads to tell
     // a commit from a cancel — Zag's `previousEvent`. Per bridge, advanced
@@ -301,10 +302,16 @@ export function defineComponent<
           // handler cached across transmits must see post-send state.
           const live = (): Record<string, unknown> =>
             ctxOf(service) as unknown as Record<string, unknown>;
+          // The context's fields are signals: reading one here, inside a
+          // computed, subscribes to that field and to nothing else. The
+          // read also REPAIRS the signal, so the signals cannot drift
+          // from the context: the value is always the context's.
           const context = new Proxy({} as Record<string, unknown>, {
             get: (_target, key: string) => {
               record("context", key);
-              return live()[key];
+              const value = live()[key];
+              machineLive.sync(key, value);
+              return value;
             },
             has: (_target, key: string) => key in live(),
           });
@@ -329,8 +336,8 @@ export function defineComponent<
           api[method] = (...callArgs: readonly unknown[]) => {
             const scope = liveScope({ slot: callArgs[0] });
             // The author's own signature, AND the key derived from the
-            // reads: a part that forgot to name a field can no longer go
-            // stale.
+            // reads: a part that forgot to name a field can no longer
+            // go stale.
             const bag = bagFor(part);
             return bag(
               (reads) => `${partDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,

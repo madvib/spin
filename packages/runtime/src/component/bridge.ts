@@ -17,7 +17,7 @@
  * - The fork's send is synchronous: notify cursors advance only after
  *   the callbacks fire. */
 
-import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
+import { computed, effect, machineTick, scope, signal, untrack, type Signal } from "@spin/runtime";
 import { resolveTwins } from "../props.ts";
 import {
   createMachine,
@@ -50,6 +50,16 @@ export interface BridgeShared<C extends object, E extends { type: string }> {
   readonly implementations?: Implementations<C, E>;
   /** The start state. Undefined starts at the machine's own initial. */
   readonly startState?: string;
+}
+
+/** The machine's live state, field by field, as signals. */
+export interface BridgeLive {
+  /** The value of a context field, read through its signal. */
+  field(name: string): unknown;
+  /** The machine's state name. */
+  state(): string;
+  /** Keeps a field's signal in step with the context. */
+  sync(name: string, value: unknown): void;
 }
 
 export interface BridgeHooks<
@@ -146,6 +156,7 @@ export interface BridgeSpec<
   hooks(
     id: string,
     root: () => Element,
+    live: BridgeLive,
   ): BridgeHooks<C, E, Api, ConnectProps, Callbacks>;
 }
 
@@ -233,7 +244,30 @@ export function defineBridge<
   // the event on every pass, and the machine would answer its own move.
   const lastContract = new Map<string, unknown>();
   const authored = authoredProps(props);
-  const hooks = spec.hooks(id, root);
+  // The machine's context, mirrored into signals: one per field, plus
+  // the state name. The bindings read the fields through the scope's
+  // proxy, so a read inside a computed subscribes to that field and
+  // nothing else. The machine's context is a plain object (the fork
+  // replaces it on every move), so the mirror is what makes the reads
+  // trackable.
+  const contextSignals = new Map<string, Signal<unknown>>();
+  const stateSignal = signal("");
+  /** The live context, field by field, as signals. */
+  const live = {
+    field: (name: string): unknown => contextSignals.get(name)?.(),
+    state: (): string => stateSignal(),
+    /** The signal for a field, kept in step with the context. A read
+     * repairs it, so the signals cannot drift from the machine. */
+    sync: (name: string, value: unknown): void => {
+      const existing = contextSignals.get(name);
+      if (existing === undefined) {
+        contextSignals.set(name, signal<unknown>(value));
+        return;
+      }
+      if (existing() !== value) existing(value);
+    },
+  };
+  const hooks = spec.hooks(id, root, live);
   // The machine: the component's factory, or the legacy config plus
   // implementations. One object either way.
   //

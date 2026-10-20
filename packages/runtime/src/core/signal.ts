@@ -19,6 +19,12 @@ import {
 
 export { computed, effect, signal, trigger };
 
+/** A readable-and-writable value. */
+export type Signal<T> = {
+  (): T;
+  (value: T): void;
+};
+
 /** Bumped after every processed machine event. Bindings that read machine
  * state through paths that do not themselves track (plain-mutated context,
  * snapshot getters) subscribe to this instead. */
