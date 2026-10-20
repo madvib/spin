@@ -107,7 +107,7 @@ const parseKeys = (raw: unknown): string[] => {
 const nullableProp = (raw: unknown): string | null =>
   typeof raw === "string" && raw.length > 0 ? raw : null;
 
-export function initial(raw: SelectInitial): SelectContext {
+export function initial(raw: SelectInitial, authored: (name: string) => boolean): SelectContext {
   const rows: SelectRow[] = [];
   const arr = Array.isArray(raw.items) ? raw.items : [];
   for (const entry of arr) {
@@ -124,7 +124,7 @@ export function initial(raw: SelectInitial): SelectContext {
   const multiple = raw.multiple === true;
   const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
   const loopFocus = raw.loopFocus === true;
-  const valueRaw = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const valueRaw = authored("value") ? raw.value : raw.defaultValue;
   const value = parseKeys(valueRaw);
   const highlightedValue =
     raw.highlightedValue !== undefined

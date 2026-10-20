@@ -133,7 +133,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   config,
   implementations,
   start: "idle",
-  seed: (raw, _authored) => ({ ...initial(isSliderInitial(raw) ? raw : {}) }),
+  seed: (raw, authored) => ({ ...initial(isSliderInitial(raw) ? raw : {}, authored) }),
   scalars: [
     "min",
     "max",
@@ -197,7 +197,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     },
     valueText: {
       id: "value-text",
-      sig: (scope: ScopeLike) => [scope.context.value.join(","), scope.props["disabled"], scope.props["orientation"], scope.props["invalid"], scope.state].join("|"),
+      sig: (scope: ScopeLike) => [scope.context.value.join(",", authored), scope.props["disabled"], scope.props["orientation"], scope.props["invalid"], scope.state].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("valueText"),
         dir: scope.props["dir"],

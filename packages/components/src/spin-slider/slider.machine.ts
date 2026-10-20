@@ -240,12 +240,12 @@ export const valuesProp = (raw: unknown): number[] | null => {
   }
 };
 
-export function initial(raw: SliderInitial): SliderContext {
+export function initial(raw: SliderInitial, authored: (name: string) => boolean): SliderContext {
   const min = numProp(raw.min) ?? 0;
   const max = numProp(raw.max) ?? 100;
   const step = numProp(raw.step) ?? 1;
   const seeded = (valuesProp(
-    raw.value !== undefined ? raw.value : raw.defaultValue,
+    authored("value") ? raw.value : raw.defaultValue,
   ) ?? [min]) as number[];
   return {
     min,

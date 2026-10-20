@@ -71,12 +71,12 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   config,
   implementations,
   start: "idle",
-  seed: (raw, _authored) => ({ ...initial(isRatingGroupInitial(raw) ? raw : {}) }),
+  seed: (raw, authored) => ({ ...initial(isRatingGroupInitial(raw) ? raw : {}, authored) }),
   scalars: ["count", "allowHalf", "disabled", "readOnly"],
   reconcile: ({ context, parsed, authored, send }) => {
     const ctx = context;
     if (!authored("value")) return false;
-    const seeded = initial(isRatingGroupInitial(parsed) ? parsed : {});
+    const seeded = initial(isRatingGroupInitial(parsed) ? parsed : {}, authored);
     if (ctx.value === seeded.value) return false;
     send({ type: "SET_VALUE", value: seeded.value });
     return true;

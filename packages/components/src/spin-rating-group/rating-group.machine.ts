@@ -93,10 +93,10 @@ const numProp = (raw: unknown): number | null => {
 };
 
 /** Shape transport-coerced props into the machine's initial context. */
-export function initial(raw: RatingGroupInitial): RatingGroupContext {
+export function initial(raw: RatingGroupInitial, authored: (name: string) => boolean): RatingGroupContext {
   const countRaw = numProp(raw.count);
   const count = countRaw === null ? 5 : Math.max(1, Math.floor(countRaw));
-  const valueRaw = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const valueRaw = authored("value") ? raw.value : raw.defaultValue;
   const value = numProp(valueRaw) ?? -1;
   return {
     value,

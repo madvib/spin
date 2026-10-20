@@ -78,10 +78,10 @@ const asCount = (raw: unknown): number | null => {
 
 /** Seed shaping: the value falls back to its default, then zero; the step
  * grid and flags follow. Transport guarantees the bag is object-shaped. */
-export function initial(raw: AngleSliderInitial): Omit<AngleSliderContext, "dragOffset"> {
+export function initial(raw: AngleSliderInitial, authored: (name: string) => boolean): Omit<AngleSliderContext, "dragOffset"> {
   const step = asCount(raw.step) ?? 1;
   return {
-    value: asCount(raw.value) ?? asCount(raw.defaultValue) ?? 0,
+    value: asCount(authored("value") ? raw.value : null) ?? asCount(raw.defaultValue) ?? 0,
     step,
     largeStep: asCount(raw.largeStep) ?? 10 * step,
     dir: raw.dir === "rtl" ? "rtl" : "ltr",

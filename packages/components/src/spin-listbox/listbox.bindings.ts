@@ -412,7 +412,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   name: "listbox",
   config,
   implementations,
-  seed: (raw, _authored) => ({ ...initial(isListboxInitial(raw) ? raw : {}) }),
+  seed: (raw, authored) => ({ ...initial(isListboxInitial(raw) ? raw : {}, authored) }),
   reconcile: ({ context, parsed, send }) => {
     const ctx = context;
     const order = orderOf(parsed);

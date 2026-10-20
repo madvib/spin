@@ -116,7 +116,7 @@ const parseKeys = (raw: unknown): string[] => {
 const textProp = (raw: unknown): string => (typeof raw === "string" ? raw : "");
 const nullableProp = (raw: unknown): string | null => (typeof raw === "string" && raw.length > 0 ? raw : null);
 
-export function initial(raw: ComboboxInitial): ComboboxContext {
+export function initial(raw: ComboboxInitial, authored: (name: string) => boolean): ComboboxContext {
   const multiple = raw.multiple === true;
   const selectionRaw = raw.selectionBehavior;
   const selectionBehavior = selectionRaw === "preserve" || selectionRaw === "clear" ? selectionRaw : multiple ? "clear" : "replace";
@@ -125,7 +125,7 @@ export function initial(raw: ComboboxInitial): ComboboxContext {
   const rows = Array.isArray(raw.items) ? raw.items.filter((x): x is ComboboxRow => typeof x === "object" && x !== null) : [];
   const order = rows.map((r) => (typeof r.value === "string" ? r.value : "")).filter(Boolean);
   const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)]));
-  const value = parseKeys(raw.value !== undefined ? raw.value : raw.defaultValue);
+  const value = parseKeys(authored("value") ? raw.value : raw.defaultValue);
   const highlighted = raw.highlightedValue !== undefined ? nullableProp(raw.highlightedValue) : nullableProp(raw.defaultHighlightedValue);
   const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
   const allowCustomValue = raw.allowCustomValue === true;

@@ -328,7 +328,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   // the pin through the assigns.
   /** Transport guarantees the raw prop bag is a PinInputInitial-shaped object;
    * the guard asserts that trust point instead of a silent `as`. */
-  seed: (raw, _authored) => ({ ...initial(isPinInputInitial(raw) ? raw : {}) }),
+  seed: (raw, authored) => ({ ...initial(isPinInputInitial(raw) ? raw : {}, authored) }),
   reconcile: ({ context, parsed, authored, send }) => {
     const ctx = context;
     if (!authored("value")) return false;

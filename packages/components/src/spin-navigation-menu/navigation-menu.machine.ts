@@ -53,8 +53,8 @@ const asText = (raw: unknown): string | null =>
   typeof raw === "string" ? raw : null;
 
 /** Seed shaping: an authored value wins, else its default, else closed. */
-export function initial(raw: NavigationMenuInitial): NavigationMenuContext {
-  const seeded = asText(raw.value) ?? asText(raw.defaultValue) ?? "";
+export function initial(raw: NavigationMenuInitial, authored: (name: string) => boolean): NavigationMenuContext {
+  const seeded = asText(authored("value") ? raw.value : null) ?? asText(raw.defaultValue) ?? "";
   const count = (value: unknown, fallback: number): number =>
     typeof value === "number" && Number.isFinite(value) ? value : fallback;
   return {
@@ -69,7 +69,7 @@ export function initial(raw: NavigationMenuInitial): NavigationMenuContext {
 
 /** The seeded state: an authored value opens the menu, else idle. */
 export function startState(raw: NavigationMenuInitial): string {
-  const seeded = asText(raw.value) ?? asText(raw.defaultValue) ?? "";
+  const seeded = asText(authored("value") ? raw.value : null) ?? asText(raw.defaultValue) ?? "";
   return seeded.length > 0 ? "open" : "idle";
 }
 

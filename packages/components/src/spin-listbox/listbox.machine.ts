@@ -230,7 +230,7 @@ export interface ListboxInitial {
   readonly selectionBehavior?: unknown;
 }
 
-export function initial(raw: ListboxInitial): ListboxContext {
+export function initial(raw: ListboxInitial, authored: (name: string) => boolean): ListboxContext {
   const items = Array.isArray(raw.items) ? raw.items : [];
   const rows: { value: string; label: string; disabled: boolean; group: string }[] = [];
   for (const entry of items) {
@@ -264,7 +264,7 @@ export function initial(raw: ListboxInitial): ListboxContext {
     const list = value.startsWith("[") && value.endsWith("]") ? value.slice(1, -1) : value;
     return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
   };
-  const valueSource = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const valueSource = authored("value") ? raw.value : raw.defaultValue;
   const highlightedValue =
     typeof raw.highlightedValue === "string" && raw.highlightedValue.length > 0
       ? raw.highlightedValue

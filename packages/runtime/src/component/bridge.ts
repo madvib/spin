@@ -313,6 +313,10 @@ export function defineBridge<
       }) ?? false;
       const moved = scalarMoved || syncResult.moved || derivedMoved;
       if (moved) tick(tick() + 1);
+      // A silent merge (the refresh path) changes the context WITHOUT
+      // sending, so nothing bumped the machine tick — the invalidation
+      // bus every binding watches. The bags kept showing the old value.
+      if (scalarMoved) machineTick(machineTick() + 1);
       // Each send reports with its own kind and event; a moved-but
       // eventless effect (reconcile assigns) reports once as a commit.
       // Reconcile sends carry their source: a host-driven queue edit is

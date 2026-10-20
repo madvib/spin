@@ -88,7 +88,7 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
   start: (raw, _authored) => startState(isNavigationMenuInitial(raw) ? raw : {}),
   seed: (raw, authored) => {
     const props: NavigationMenuInitial = isNavigationMenuInitial(raw) ? raw : {};
-    const shaped = initial(props);
+    const shaped = initial(props, authored);
     // An authored channel starts at its value, not its default.
     const seeded = authored("value")
       ? (typeof props.value === "string" ? props.value : shaped.value)

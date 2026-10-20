@@ -43,13 +43,13 @@ const parseChars = (raw: unknown): string[] => {
   return parts.filter((part) => part.length === 1);
 };
 
-export function initial(raw: PinInputInitial): PinInputContext {
+export function initial(raw: PinInputInitial, authored: (name: string) => boolean): PinInputContext {
   const count =
     typeof raw.count === "number" && Number.isFinite(raw.count)
       ? Math.max(0, Math.trunc(raw.count))
       : DEFAULT_COUNT;
   const autoFocus = raw.autoFocus === true;
-  const rawValue = raw.value !== undefined ? raw.value : raw.defaultValue;
+  const rawValue = authored("value") ? raw.value : raw.defaultValue;
   const chars = parseChars(rawValue);
   return {
     value: fill(chars, count),

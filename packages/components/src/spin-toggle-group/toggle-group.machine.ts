@@ -95,7 +95,7 @@ const parseValues = (raw: unknown): string[] | null => {
   return list.every((item) => typeof item === "string") ? [...(list as string[])] : null;
 };
 
-export function initial(raw: ToggleGroupInitial): ToggleGroupContext {
+export function initial(raw: ToggleGroupInitial, authored: (name: string) => boolean): ToggleGroupContext {
   const list: unknown = typeof raw.items === "string"
     ? ((): unknown => {
       try {
@@ -124,7 +124,7 @@ export function initial(raw: ToggleGroupInitial): ToggleGroupContext {
     }
   }
   return {
-    value: parseValues(raw.value) ?? parseValues(raw.defaultValue) ?? [],
+    value: parseValues(authored("value") ? raw.value : null) ?? parseValues(raw.defaultValue) ?? [],
     items,
     focusedId: null,
     multiple: raw.multiple === true,

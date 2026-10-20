@@ -301,7 +301,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";
   },
-  seed: (raw, _authored) => ({ ...initial(isSelectInitial(raw) ? raw : {}) }),
+  seed: (raw, authored) => ({ ...initial(isSelectInitial(raw) ? raw : {}, authored) }),
   reconcile: ({ context, parsed, send }) => {
     const ctx = context;
     const order = orderOf(parsed);
@@ -524,7 +524,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       id: "hidden",
       sig: (scope) => {
         const ctx = scope.context;
-        return [ctx.value.join(","), rowsOf(scope.props).map((row) => row.value).join(","), scope.props["multiple"]].join(" ");
+        return [ctx.value.join(",", authored), rowsOf(scope.props).map((row) => row.value).join(","), scope.props["multiple"]].join(" ");
       },
       attrs: (scope) => {
         const ctx = scope.context;

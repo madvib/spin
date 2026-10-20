@@ -190,7 +190,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   implementations,
   seed: (raw, authored) => {
     const props: AngleSliderInitial = isAngleSliderInitial(raw) ? raw : {};
-    const shaped = initial(props);
+    const shaped = initial(props, authored);
     // An authored channel starts at its value, not its default.
     const value = authored("value") ? numProp(props.value) ?? shaped.value : shaped.value;
     return { ...shaped, value, dragOffset: null };

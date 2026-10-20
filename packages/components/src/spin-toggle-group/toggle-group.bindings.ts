@@ -75,7 +75,7 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   config,
   implementations,
   start: "idle",
-  seed: (raw, _authored) => ({ ...initial(isToggleGroupInitial(raw) ? raw : {}) }),
+  seed: (raw, authored) => ({ ...initial(isToggleGroupInitial(raw) ? raw : {}, authored) }),
   scalarsOf: (parsed, _authored) => ({
     multiple: parsed["multiple"] === true,
     deselectable: parsed["deselectable"] !== false,
@@ -87,7 +87,7 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   reconcile: ({ context, parsed, authored, send }) => {
     const ctx = context;
     if (!authored("value")) return false;
-    const seeded = initial(isToggleGroupInitial(parsed) ? parsed : {});
+    const seeded = initial(isToggleGroupInitial(parsed) ? parsed : {}, authored);
     if (sameValues(ctx.value, seeded.value)) return false;
     send({ type: "VALUE.SET", value: [...seeded.value] });
     return true;
