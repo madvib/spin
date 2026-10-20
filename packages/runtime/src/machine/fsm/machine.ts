@@ -113,6 +113,9 @@ export interface Machine<TContext extends object, TEvent extends EventObject> {
    * actions when reseeding, and a component can read the machine's own
    * tables. */
   readonly implementations: Implementations<TContext, TEvent>;
+  /** The machine's contract with its hosts: the fields a host may write,
+   * and the event each write carries. */
+  readonly fields: Readonly<Record<string, { readonly event?: TEvent["type"] }>>;
   readonly initialState: State<TContext>;
   transition(state: string | State<TContext>, event: TEvent["type"] | TEvent): State<TContext>;
 }
@@ -250,6 +253,18 @@ export interface MachineSpec<TContext extends object, TEvent extends EventObject
   readonly conds?: Readonly<Record<string, (context: TContext, event: TEvent) => boolean>>;
   /** The side-effect actions, referenced by name. */
   readonly actions?: Readonly<Record<string, (context: TContext, event: TEvent) => void>>;
+  /**
+   * The machine's contract with its hosts: the context fields a host may
+   * write, and the event each write carries.
+   *
+   * A field with an event is REPORTED: the host's write is an event, the
+   * machine decides, and the change reaches the host. A field without one
+   * is SILENT: the host's write lands in the field, and nothing reports.
+   *
+   * The machine owns this map. The element does not restate it, and a
+   * host cannot write a field the contract does not name.
+   */
+  readonly fields?: Readonly<Record<string, { readonly event?: TEvent["type"] }>>;
 }
 
 export function createMachine<TContext extends object, TEvent extends EventObject>(
@@ -285,6 +300,7 @@ export function createMachine<TContext extends object, TEvent extends EventObjec
   return {
     config,
     implementations,
+    fields: spec.fields ?? {},
     initialState: {
       value: config.initial,
       actions: initial.actions,

@@ -98,10 +98,6 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   // which of its props reach the machine.
   machine: (props) => ratingGroupMachine(props as RatingGroupArgs),
   start: "idle",
-  // The view's wiring: a host's `value` write is the machine's
-  // `SET_VALUE`. The prop's name is the payload's key.
-  propEvents: { value: "SET_VALUE", count: "SET_COUNT" },
-
   parts: {
     root: {
       sig: (scope) => [scope.props["dir"]].join("|"),

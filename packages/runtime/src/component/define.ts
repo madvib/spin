@@ -292,15 +292,6 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * nothing about props, markup, or the DOM.
    */
   readonly machine?: MachineFactory<C, E>;
-  /**
-   * The view's wiring: which of the component's own props send which of
-   * the machine's events. The prop's name is the payload's key.
-   *
-   * This is the VIEW's business, not the machine's: the markup decides
-   * that a host's `value` write is the machine's `SET_VALUE`. The
-   * framework carries it; it does not decide it.
-   */
-  readonly propEvents?: Readonly<Record<string, E["type"]>>;
   readonly parts: Record<string, PartDef<unknown, C>>;
   readonly slots?: Record<string, SlotDef<unknown, C>>;
   readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;

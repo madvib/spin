@@ -69,16 +69,9 @@ export interface BridgeHooks<
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
   ): readonly E[];
-  /** Alternate authored channels against the machine. Returns whether
-   * anything moved and the events sent: each reports through notify with
-   * its own kind. Silent (assign-mode) channels apply without reporting;
-   * scalar-only moves tick without events. */
-  sync(
-    svc: Service<C, E>,
-    props: () => Record<string, unknown>,
-    authored: (name: string) => boolean,
-    send: (event: E) => void,
-  ): { readonly moved: boolean; readonly events: readonly E[] };
+  /** The machine's contract decides what a host write means: a field
+   * with an event is REPORTED, a field without one is SILENT. The
+   * bridge applies the contract; there is no per-component sync. */
   /** Report what moved. `defineBridge` threads the kind, the triggering
    * event (undefined from the sync effect) and the send's source
    * (`"reconcile"` for effect-driven sends, undefined for gestures).
@@ -158,6 +151,45 @@ export function authoredProps(props: () => Record<string, unknown>): (name: stri
     const predicate = props()["@@authored"];
     return typeof predicate === "function" ? (predicate as (n: string) => boolean)(name) : false;
   };
+}
+
+/**
+ * The machine's contract, applied: for every field the host wrote, send
+ * the field's event, or write the field silently.
+ */
+function applyContract<C extends object, E extends { type: string }>(
+  svc: Service<C, E>,
+  fields: Readonly<Record<string, { readonly event?: E["type"] }>>,
+  props: () => Record<string, unknown>,
+  authored: (name: string) => boolean,
+  send: (event: E) => void,
+): { readonly moved: boolean; readonly events: readonly E[] } {
+  if (Object.keys(fields).length === 0) return { moved: false, events: [] };
+  const parsed = props();
+  const context = svc.state.context as unknown as Record<string, unknown>;
+  const events: E[] = [];
+  let moved = false;
+  for (const [field, contract] of Object.entries(fields)) {
+    const raw = parsed[field];
+    if (raw === undefined || raw === null) continue;
+    if (!authored(field)) continue;
+    if (contract.event === undefined) {
+      // A silent field: the host's write lands in it. The machine's own
+      // move owns the field's logic.
+      if (context[field] !== raw) {
+        context[field] = raw;
+        moved = true;
+      }
+      continue;
+    }
+    // A reported field: the host's write is an event, and the prop's
+    // name is the payload's key.
+    const event = { type: contract.event, [field]: raw } as unknown as E;
+    events.push(event);
+    moved = true;
+    send(event);
+  }
+  return { moved, events };
 }
 
 export function pickCallback<T>(
@@ -330,7 +362,11 @@ export function defineBridge<
       const readParsed = (): Record<string, unknown> =>
         hooks.readConnectProps(props) as Record<string, unknown>;
       const scalarMoved = hooks.refresh?.(svc, props, authored) ?? false;
-      const syncResult = hooks.sync(svc, props, authored, (event) => transmit(event));
+      // The machine's contract decides what a host write means: a field
+      // with an event is REPORTED (the host's write is an event, the
+      // machine decides), a field without one is SILENT (the write lands
+      // in the field and nothing reports).
+      const syncResult = applyContract(svc, machine.fields, props, authored, (event) => transmit(event));
       const parsed = readParsed();
       const reconciled: E[] = [];
       const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {

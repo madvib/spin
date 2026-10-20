@@ -119,6 +119,22 @@ export function ratingGroup(
   return createMachine<RatingGroupContext, RatingGroupEvent>({
     id: "rating-group",
     initial: "idle",
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "SET_VALUE" },
+      count: { event: "SET_COUNT" },
+      allowHalf: {},
+      disabled: {},
+      readOnly: {},
+    },
     context: {
       value: ratingValue(args.value),
       hoveredValue: -1,

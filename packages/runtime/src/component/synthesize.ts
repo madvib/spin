@@ -115,28 +115,6 @@ export function defineComponent<
         if (def.establish === undefined) return [];
         return def.establish(props(), authored) as readonly E[];
       },
-      sync: (_svc, props, authored, send) => {
-        // The machine's contract decides this: which of its fields a
-        // host may write, and the event that carries each write. The
-        // consumer does not restate it, and a host cannot write a field
-        // the contract does not name.
-        if (def.propEvents === undefined) return { moved: false, events: [] };
-        const parsed = props();
-        const events: E[] = [];
-        for (const [prop, type] of Object.entries(def.propEvents ?? {})) {
-          const raw = parsed[prop];
-          if (raw === undefined || raw === null) continue;
-          if (!authored(prop)) continue;
-          if (Object.is(lastProp.get(prop), raw)) continue;
-          lastProp.set(prop, raw);
-          // The prop's name is the payload's key: the prop `value` sends
-          // `{ type: "SET_VALUE", value }`.
-          const event = { type, [prop]: raw } as unknown as E;
-          events.push(event);
-          send(event);
-        }
-        return { moved: events.length > 0, events };
-      },
       kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
       refresh: (svc, props, authored) => {
         if (def.scalars === undefined && def.scalarsOf === undefined) return false;
