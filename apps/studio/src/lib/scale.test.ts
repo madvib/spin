@@ -137,6 +137,41 @@ Deno.test("sliderRange never hands back a dead track", () => {
   });
 });
 
+Deno.test("sliderRange gives a value below zero room on both sides", () => {
+  // A tracking token is authored in hundredths of an em. Without a floor
+  // below zero the thumb pinned at the track's left edge and the drag could
+  // only climb away from the authored value.
+  assertEquals(sliderRange("-0.01em", ["-0.01em"]), {
+    min: -0.02,
+    max: 0.02,
+    step: 0.0002,
+  });
+  // A family with a positive step keeps that ceiling; the negative row's
+  // floor stays its own.
+  assertEquals(sliderRange("-0.01em", ["-0.01em", "0.05em"]), {
+    min: -0.02,
+    max: 0.1,
+    step: 0.0002,
+  });
+});
+
+Deno.test("sliderRange steps an em on its own magnitude, not a layout floor", () => {
+  // A tracking value is smaller than a sixteenth of an em; the old floor
+  // landed coarser than the value itself, and the thumb could only sit near
+  // its own number. The magnitude is the grid.
+  assertEquals(sliderRange("0.05em", ["0.05em"]), {
+    min: 0,
+    max: 0.1,
+    step: 0.001,
+  });
+  // A zero has no magnitude to step on and keeps the floor.
+  assertEquals(sliderRange("0em", ["0em"]), {
+    min: 0,
+    max: 1,
+    step: 0.015625,
+  });
+});
+
 const RAMP = [
   { path: "spacing.1", value: "0.25rem" },
   { path: "spacing.2", value: "0.5rem" },

@@ -77,12 +77,22 @@ function decimals(text: string): number {
  * precision is the grid, because their `0.5px` is a decision about halves.
  */
 function quantumOf(raw: string, m: Measure): number {
-  if (m.unit === "rem" || m.unit === "em") {
+  if (m.unit === "rem") {
     // Context-dependent: a small value steps finely, a large value coarsely.
     // A fixed grid (1/32) makes a 0.25rem value jump 12.5% per step; scaling
     // the quantum with the value's own magnitude keeps the drag responsive
-    // at every scale without inventing steps the scale never had.
+    // at every scale without inventing steps the scale never had. The
+    // sixteenth floor is the layout grid a rem value is authored on.
     return Math.max(1 / 64, Math.abs(m.n) * 0.02);
+  }
+  if (m.unit === "em") {
+    // An em is a type-relative unit, and its values are fine measures —
+    // tracking lives between a hundredth and a fifth of one. The floor that
+    // keeps a rem drag responsive lands coarser than the values themselves,
+    // so the thumb would sit near its number instead of on it; the magnitude
+    // alone is the grid. Zero has no magnitude and keeps the floor.
+    const step = Math.abs(m.n) * 0.02;
+    return step > 0 ? step : 1 / 64;
   }
   if (m.unit === "ms") return 1;
   if (m.unit === "s") return 0.001;
@@ -227,9 +237,10 @@ export function sliderRange(value: string, group: readonly string[]): Range {
     const parsed = measure(entry);
     if (parsed !== undefined) values.push(parsed);
   }
+  const ownCanonical = canonical(own);
   const scaled = Math.max(
     2 * robustMax(values.map(canonical)),
-    2 * canonical(own),
+    2 * Math.abs(ownCanonical),
   );
   // The ramp's ceiling arrives in canonical space and goes back into the
   // row's unit; a floor is written in the row's own unit already — `1rem`,
@@ -238,5 +249,12 @@ export function sliderRange(value: string, group: readonly string[]): Range {
   const ceiling = scaled > 0
     ? fromCanonical(scaled, own.unit)
     : (FLOOR[own.unit] ?? 16);
-  return { min: 0, max: clean(ceiling), step: quantumOf(value, own) };
+  // A value the theme wrote below zero — a tight tracking is the one the
+  // starters spell — needs track below it, or the thumb pins at the floor
+  // and every drag climbs away from the authored value. Its own magnitude
+  // doubled is the room it gets: the mirror of the positive headroom.
+  const floor = ownCanonical < 0
+    ? clean(fromCanonical(2 * ownCanonical, own.unit))
+    : 0;
+  return { min: floor, max: clean(ceiling), step: quantumOf(value, own) };
 }

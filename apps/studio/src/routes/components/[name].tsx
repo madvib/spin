@@ -46,6 +46,7 @@ import {
   tokenPathsByVar,
   tokenRowAt,
 } from "../../lib/tokens.ts";
+import { measure } from "../../lib/scale.ts";
 import {
   type CodeKind,
   formatExampleHtml,
@@ -70,11 +71,11 @@ const INK: Record<CodeKind, string> = {
 const SEGMENT_GROUP = "flex shrink-0 gap-1 rounded-md border border-border p-1";
 
 const SEGMENT =
-  "flex-1 min-h-0 justify-center rounded-md border border-transparent bg-transparent px-2 py-1 font-normal normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex-1 min-h-0 justify-center rounded-md border border-transparent bg-transparent px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
 
 /** The quiet copy: a link-shaped button in the corner of the code panel. */
 const COPY_BUTTON =
-  "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-normal normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /**
  * The code block. It WRAPS: the primitive layer pins `overflow-x` on a bare
@@ -304,11 +305,20 @@ export default function ComponentPage() {
 
   // A character token's slider ceiling is its FAMILY's — icon.sm beside
   // icon.md and icon.lg — so siblings share one track the way a scale's
-  // steps do. Alone, the control takes headroom of its own.
+  // steps do. Alone, the control takes headroom of its own. A family is
+  // same-root and same-KIND: `button.weight` is a number and
+  // `button.tracking` a length, and letting one rule the other's ceiling
+  // turned a hundredth of an em into a seventy-five-em track.
   const siblingsFor = (path: string): readonly string[] | undefined => {
     const root = path.split(".")[0];
+    const own = character().find((c) => c.entry.path === path)?.row;
+    const kind = own === undefined ? undefined : measure(own.value)?.kind;
+    if (kind === undefined) return undefined;
     const values = character()
-      .filter((c) => c.entry.path.split(".")[0] === root && c.row !== undefined)
+      .filter((c) =>
+        c.entry.path.split(".")[0] === root && c.row !== undefined &&
+        measure(c.row.value)?.kind === kind
+      )
       .map((c) => c.row!.value);
     return values.length > 1 ? values : undefined;
   };
@@ -356,7 +366,7 @@ export default function ComponentPage() {
                 <Show when={character().length > 0}>
                   <button
                     type="button"
-                    class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text shadow-none hover:border-primary"
+                    class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text shadow-none hover:border-primary"
                     onClick={() => setShowTokens((v) => !v)}
                   >
                     {showTokens() ? "hide" : "character tokens"}{" "}
@@ -386,7 +396,12 @@ export default function ComponentPage() {
                     <h2 class="text-sm font-semibold">Character tokens</h2>
                     <button
                       type="button"
-                      class="text-xs text-text-muted hover:text-text"
+                      // `bare` takes the theme's button character back: the
+                      // panel's close is a way out of the panel, not the
+                      // loudest action in it. Without it the theme's own
+                      // primary fill and hard shadow reach a control that
+                      // meant to read as a link.
+                      class="bare text-xs text-text-muted hover:text-text"
                       onClick={() => setShowTokens(false)}
                     >
                       close
@@ -421,7 +436,7 @@ export default function ComponentPage() {
                                 </span>
                                 <button
                                   type="button"
-                                  class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-normal normal-case tracking-normal text-text shadow-none hover:border-primary"
+                                  class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-regular normal-case tracking-normal text-text shadow-none hover:border-primary"
                                   onClick={() =>
                                     createToken(
                                       entry.entry.path.split("."),

@@ -836,7 +836,19 @@ test("a classless control behaves the theme's way on every route", async () => {
     );
     const triggerHover = await page.eval<Snap | null>(read(trigger));
 
+    // The component's list is a page of its own: the rail reaches
+    // `/components`, and the side list reaches the component. A single hop
+    // from the overview finds no link and stays put — silently comparing the
+    // trigger with itself.
+    await page.followRail("/components");
     await page.followRail("/components/button");
+    const heading = await page.eval<string | null>(
+      `document.querySelector("#app h1")?.textContent ?? null`,
+    );
+    assert(
+      heading === "button",
+      `the button page opened a route apart: ${heading}`,
+    );
     // The pointer kept the coordinates it had on the overview, where it may
     // already be over the specimen this page renders first.
     await page.parkPointer();
@@ -882,6 +894,177 @@ test("a classless control behaves the theme's way on every route", async () => {
         await new Promise((r) => setTimeout(r, 400));
         return "restored";
       })()`,
+    );
+  });
+});
+
+/** Open the character-token panel on the button page; the walk in between. */
+async function openCharacterPanel(page: StudioPage): Promise<string> {
+  const here = await page.eval<string>(
+    `document.querySelector("#app h1")?.textContent ?? ""`,
+  );
+  if (here !== "button") {
+    await page.eval(
+      `(() => { const rail = document.querySelector('nav[aria-label="Studio"] a[href="/components"]'); if (rail) rail.click(); return "followed"; })()`,
+    );
+    await page.settle(400);
+    await page.eval(
+      `(async () => {
+        for (let i = 0; i < 40; i++) {
+          const a = document.querySelector('nav[aria-label="Components"] a[href="/components/button"]');
+          if (a) { a.click(); return "clicked"; }
+          await new Promise((r) => setTimeout(r, 100));
+        }
+        return "absent";
+      })()`,
+    );
+    await page.settle(400);
+  }
+  const opened = await page.eval<string>(
+    `(async () => {
+      for (let i = 0; i < 60; i++) {
+        const b = [...document.querySelectorAll("button")].find((x) => (x.textContent ?? "").trim().startsWith("character tokens"));
+        if (b) { b.click(); return "opened"; }
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      return "absent";
+    })()`,
+  );
+  await page.settle(500);
+  return opened;
+}
+
+/**
+ * The character panel's own controls are chrome, whatever the theme says.
+ *
+ * The header chip and the panel live inside the preview scope, so the
+ * seated theme's button rules reach them too: on neobrut the chip wore the
+ * theme's 700 weight and the panel's close rendered as the primary fill
+ * under a hard shadow — the loudest control on the page was the way out of
+ * a token list. The chip takes the character back to what the page's own
+ * segments read at, and the close reads as the link it means to be.
+ */
+test("the character-token controls read as chrome, not as calls to action", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/`);
+    const seat = await page.eval<string>(
+      `(async () => {
+        const picker = document.getElementById("theme-picker-compact");
+        if (!picker) return "no-picker";
+        picker.value = "neobrut";
+        picker.dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1200));
+        return "seated";
+      })()`,
+    );
+    assert(seat === "seated", `seating neobrut stopped at ${seat}`);
+
+    const opened = await openCharacterPanel(page);
+    assert(opened === "opened", `the character panel is ${opened}`);
+
+    const snap = await page.eval<
+      {
+        readonly regular: string;
+        readonly toggle: {
+          readonly weight: string;
+          readonly transform: string;
+          readonly tracking: string;
+        };
+        readonly segment: {
+          readonly weight: string;
+          readonly transform: string;
+          readonly tracking: string;
+        };
+        readonly close: {
+          readonly background: string;
+          readonly shadow: string;
+          readonly transform: string;
+          readonly padding: string;
+        };
+      } | null
+    >(
+      `(() => {
+        const pane = document.querySelector('[data-theme="neobrut"]');
+        const buttons = [...document.querySelectorAll("button")];
+        const toggle = buttons.find((b) => (b.textContent ?? "").trim().startsWith("hide"));
+        // The unselected segment is the page's own chrome reading at its
+        // resting character: the selected one steps up to the medium weight.
+        const segment = buttons.find((b) => (b.textContent ?? "").trim() === "code" && !b.hasAttribute("aria-current"));
+        const close = buttons.find((b) => (b.textContent ?? "").trim() === "close");
+        if (!pane || !toggle || !segment || !close) return null;
+        const character = (b) => {
+          const s = getComputedStyle(b);
+          return { weight: s.fontWeight, transform: s.textTransform, tracking: s.letterSpacing };
+        };
+        const s = getComputedStyle(close);
+        return {
+          regular: getComputedStyle(pane).getPropertyValue("--font-weight-regular").trim(),
+          toggle: character(toggle),
+          segment: character(segment),
+          close: {
+            background: s.backgroundColor,
+            shadow: s.boxShadow,
+            transform: s.transform,
+            padding: s.padding,
+          },
+        };
+      })()`,
+    );
+    if (snap === null) throw new Error("a panel control was not on the page");
+
+    assertEquals(
+      snap.toggle,
+      snap.segment,
+      "the header chip reads at what the page's own segments read at",
+    );
+    assertEquals(
+      snap.toggle.weight,
+      snap.regular,
+      "the chip sits at the theme's regular weight, not the button's own",
+    );
+    assertEquals(
+      snap.close,
+      {
+        background: "rgba(0, 0, 0, 0)",
+        shadow: "none",
+        transform: "none",
+        padding: "0px",
+      },
+      "the panel's close is a way out, not the loudest action in it",
+    );
+  });
+});
+
+/**
+ * A value below zero sits where its row says it does.
+ *
+ * Silk tracks its buttons tight — `-0.01em` — and the slider used to pin
+ * such a value at the track's floor: the readout said one thing, the thumb
+ * another, and one drag jumped the token across the map because the
+ * unitless weight shared the family's ceiling with the length. The row now
+ * stations its own value with room below zero.
+ */
+test("a negative tracking rests where the row says it does", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/components/button`);
+    const opened = await openCharacterPanel(page);
+    assert(opened === "opened", `the character panel is ${opened}`);
+
+    const track = await page.eval<
+      { min: string; max: string; value: string; code: string } | null
+    >(
+      `(() => {
+        const input = document.querySelector('[id="token-button.tracking"]');
+        if (!input) return null;
+        const code = input.closest("card")?.querySelector("code")?.textContent ?? "";
+        return { min: input.min, max: input.max, value: input.value, code };
+      })()`,
+    );
+    assert(
+      track !== null && Number.parseFloat(track.code) < 0 &&
+        Number(track.value) === Number.parseFloat(track.code) &&
+        Number(track.value) > Number(track.min),
+      `tracking: value=${track?.value} code=${track?.code} min=${track?.min} max=${track?.max}`,
     );
   });
 });
