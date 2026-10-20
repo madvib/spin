@@ -9,15 +9,17 @@ import { toStyleString } from "../core/style.ts";
 const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
 
 /**
- * Whether the element declares the name as a property. A declared prop
- * crosses through its accessor — an array or an object cannot travel as
- * an attribute, and the element's grammar owns the coercion.
+ * Whether the element declares the name as a writable property. A
+ * declared prop crosses through its accessor — an array or an object
+ * cannot travel as an attribute, and the element's grammar owns the
+ * coercion. A getter-only property (the DOM's `form`, say) stays on the
+ * attribute path: writing it would throw.
  */
 const hasAccessor = (el: Element, name: string): boolean => {
   let target: object | null = el;
   while (target !== null) {
     const desc = Object.getOwnPropertyDescriptor(target, name);
-    if (desc !== undefined) return typeof desc.get === "function" || typeof desc.set === "function";
+    if (desc !== undefined) return typeof desc.set === "function";
     target = Object.getPrototypeOf(target);
   }
   return false;

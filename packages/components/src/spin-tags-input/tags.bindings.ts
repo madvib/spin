@@ -475,6 +475,12 @@ const announce = (
   region.replaceWith(fresh);
 };
 
+/** The blur behavior's two flags: `add` commits, `clear` empties. */
+const blurBehaviorOf = (value: unknown, authored: boolean): Record<string, boolean> => {
+  if (!authored) return {};
+  return { addOnBlur: value === "add", clearOnBlur: value === "clear" };
+};
+
 const def: ComponentDef<TagsContext, TagsEvent> = {
   name: "tags-input",
   config,
@@ -518,6 +524,18 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     ...(authored("inputValue") && typeof parsed["inputValue"] === "string"
       ? { inputValue: parsed["inputValue"] }
       : {}),
+    // The seed reads the props, but the host writes them after the
+    // instance connected: the cap and the flags the guard reads live in
+    // the context, so they have to follow the prop.
+    ...(authored("max") && typeof parsed["max"] === "number" ? { max: parsed["max"] } : {}),
+    ...(authored("allowOverflow") ? { allowOverflow: parsed["allowOverflow"] === true } : {}),
+    ...(authored("allowDuplicates") ? { allowDuplicates: parsed["allowDuplicates"] === true } : {}),
+    ...(authored("editable") ? { editable: parsed["editable"] !== false } : {}),
+    ...(authored("addOnPaste") ? { addOnPaste: parsed["addOnPaste"] === true } : {}),
+    ...(authored("delimiter") && typeof parsed["delimiter"] === "string"
+      ? { delimiter: parsed["delimiter"] }
+      : {}),
+    ...blurBehaviorOf(parsed["blurBehavior"], authored("blurBehavior")),
   }),
 
   settled: ({ event, before, after, props, root, id, focus }) => {
@@ -556,7 +574,10 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   parts: {
     root: {
       id: "",
-      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.context.value.length === 0, scope.state !== "idle"].join(""),
+      // The overflow is part of the signature: a list that grows past the
+      // cap does not change its emptiness, and the root has to learn it
+      // went invalid.
+      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.context.value.length === 0, invalidOf(scope), scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-scope": "tags-input",
