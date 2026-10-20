@@ -504,8 +504,8 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
         return { type: "SET_VALUE", value: next, index: Math.trunc(i) };
       },
     },
-    increment: { event: (args: readonly unknown[]) => { const i = args[0]; return { type: "INCREMENT", index: typeof i === "number" ? Math.trunc(i) : undefined }; } },
-    decrement: { event: (args: readonly unknown[]) => { const i = args[0]; return { type: "DECREMENT", index: typeof i === "number" ? Math.trunc(i) : undefined }; } },
+    increment: { event: (args: readonly unknown[]) => { const i = args[0]; return typeof i === "number" ? { type: "INCREMENT", index: Math.trunc(i) } : { type: "INCREMENT" }; } },
+    decrement: { event: (args: readonly unknown[]) => { const i = args[0]; return typeof i === "number" ? { type: "DECREMENT", index: Math.trunc(i) } : { type: "DECREMENT" }; } },
     focus: { event: () => ({ type: "FOCUS", index: 0 }) },
   },
   readers: {

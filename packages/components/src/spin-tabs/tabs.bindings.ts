@@ -110,7 +110,7 @@ const def: ComponentDef<TabsContext, TabsEvent> = {
     },
   },
   commands: {
-    select: { event: (args: readonly unknown[]) => ({ type: "TAB.SELECT", value: args[0] }) },
+    select: { event: (args: readonly unknown[]) => ({ type: "TAB.SELECT", value: typeof args[0] === "string" ? args[0] : "" }) },
   },
   readers: {
     value: { read: (context: TabsContext) => context.value },

@@ -132,17 +132,24 @@ export interface MethodDef<C extends object = Record<string, unknown>> {
   ) => unknown;
 }
 
-export type CommandDef<A extends readonly unknown[] = readonly unknown[], C extends object = Record<string, unknown>> =
+export type CommandDef<
+  A extends readonly unknown[] = readonly unknown[],
+  C extends object = Record<string, unknown>,
+  E extends { type: string } = { type: string },
+> =
   | {
     /** A sending command: name + event from args, live context, and part
      * ids. The context read keeps `setThumbValue`-style splices in the def
      * without a hand-written api method; the ids resolve id-keyed commands
-     * (`clearValue(tagId)`) without one. */
+     * (`clearValue(tagId)`) without one.
+     *
+     * The event is the machine's own event: a command that sends a
+     * payload the machine does not read is a typo the types catch. */
     event(
       args: A,
       context: C,
       id: (part: string, slot?: unknown) => string,
-    ): { type: string } & Record<string, unknown>;
+    ): E;
     readonly view?: undefined;
   }
   | {
@@ -268,7 +275,7 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
   readonly commitEvents?: readonly string[];
   readonly parts: Record<string, PartDef<unknown, C>>;
   readonly slots?: Record<string, SlotDef<unknown, C>>;
-  readonly commands: Record<string, CommandDef<readonly unknown[], C>>;
+  readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;
   readonly methods?: Record<string, MethodDef<C>>;
   readonly readers?: Record<string, ReaderDef<C>>;
   readonly events: Record<string, EventDef<readonly unknown[], C>>;

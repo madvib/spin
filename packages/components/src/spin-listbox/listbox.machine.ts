@@ -42,6 +42,7 @@ export type ListboxEvent =
   | { type: "ITEM.SELECT"; value: string }
   | { type: "ITEM.CLEAR"; value: string }
   | { type: "VALUE.SET"; value: readonly string[] }
+  | { type: "VALUE.CLEAR" }
   | { type: "ITEM.CLICK"; value: string; shiftKey?: boolean; anchorValue?: string; metaKey?: boolean }
   | { type: "CONTENT.FOCUS" }
   | { type: "CONTENT.BLUR" }

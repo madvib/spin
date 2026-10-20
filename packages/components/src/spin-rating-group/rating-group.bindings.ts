@@ -247,7 +247,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "SET_VALUE", value: args[0] }) },
+    setValue: { event: (args) => ({ type: "SET_VALUE", value: typeof args[0] === "number" ? args[0] : 0 }) },
     clearValue: { event: () => ({ type: "CLEAR_VALUE" }) },
   },
   readers: {
