@@ -1,8 +1,6 @@
 import { angleSlider } from "./angle-slider.bindings.ts";
-import type {
-  AngleSliderValueChange,
-  AngleSliderValueChangeEnd,
-} from "./angle-slider.bindings.ts";
+import type { AngleSliderValueChangeEnd } from "./angle-slider.bindings.ts";
+import type { AngleSliderValueChange } from "./angle-slider.machine.ts";
 
 /**
  * The angle-slider's seam: the synthesized bridge, the element's

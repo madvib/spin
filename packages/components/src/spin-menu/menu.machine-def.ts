@@ -3,7 +3,7 @@ import type {
   MenuHighlightChange,
   MenuOpenChange,
   MenuSelect,
-} from "./menu.bindings.ts";
+} from "./menu.machine.ts";
 
 /**
  * The menu's seam: the synthesized bridge, the element's imperative
