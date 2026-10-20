@@ -1,19 +1,18 @@
 import {
+  coerceJsonArray,
   dataAttr,
   defineComponent,
+  resolveTwins,
   type ComponentDef,
   type PartScope,
   type SlotScope,
 } from "@spin/runtime";
-import { coerceJsonArray } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  navigationMenu as navigationMenuMachine,
   startState,
+  type NavigationMenuArgs,
   type NavigationMenuContext,
   type NavigationMenuEvent,
-  type NavigationMenuInitial,
   type NavigationMenuValueChange,
   type NavItemRecord,
 } from "./navigation-menu.machine.ts";
@@ -74,39 +73,17 @@ interface ScopeLike extends PartScope<unknown, NavigationMenuContext> {}
 
 interface SlotLike<R> extends SlotScope<R, NavigationMenuContext> {}
 
-/** Transport guarantees the raw prop bag is a NavigationMenuInitial-shaped object. */
-const isNavigationMenuInitial = (raw: unknown): raw is NavigationMenuInitial =>
-  raw !== null && typeof raw === "object";
-
 const itemsOf = (parsed: Record<string, unknown>): readonly NavItemRecord[] =>
   parseItems(parsed["items"]);
 
 const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
   name: "navigation-menu",
-  config,
-  implementations,
-  start: (raw, authored) => startState(isNavigationMenuInitial(raw) ? raw : {}, authored),
-  seed: (raw, authored) => {
-    const props: NavigationMenuInitial = isNavigationMenuInitial(raw) ? raw : {};
-    const shaped = initial(props, authored);
-    // An authored channel starts at its value, not its default.
-    const seeded = authored("value")
-      ? (typeof props.value === "string" ? props.value : shaped.value)
-      : shaped.value;
-    return { ...shaped, value: seeded };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    if (authored("value")) {
-      const value = typeof parsed["value"] === "string" ? parsed["value"] : null;
-      if (value !== null && ctx.value !== value) {
-        send({ type: "VALUE.SET", value });
-        return true;
-      }
-    }
-    return false;
-  },
-  scalars: ["openDelay", "closeDelay", "orientation", "disabled"],
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => navigationMenuMachine(props as NavigationMenuArgs),
+  start: (props, authored) =>
+    startState(resolveTwins(props, authored) as NavigationMenuArgs),
   parts: {
     root: {
       sig: (scope) => [scope.state, scope.props["orientation"], scope.props["disabled"]].join(" "),

@@ -162,6 +162,7 @@ function applyContract<C extends object, E extends { type: string }>(
   fields: Readonly<Record<string, { readonly event?: E["type"] }>>,
   props: () => Record<string, unknown>,
   authored: (name: string) => boolean,
+  cursor: Map<string, unknown>,
   send: (event: E) => void,
 ): { readonly moved: boolean; readonly events: readonly E[] } {
   if (Object.keys(fields).length === 0) return { moved: false, events: [] };
@@ -173,6 +174,8 @@ function applyContract<C extends object, E extends { type: string }>(
     const raw = parsed[field];
     if (raw === undefined || raw === null) continue;
     if (!authored(field)) continue;
+    if (Object.is(cursor.get(field), raw)) continue;
+    cursor.set(field, raw);
     if (contract.event === undefined) {
       // A silent field: the host's write lands in it. The machine's own
       // move owns the field's logic.
@@ -220,6 +223,10 @@ export function defineBridge<
 ): { readonly api: Api; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
+  // The last value each contracted field carried: the cursor that makes
+  // a host write an event ONCE. Without it, the sync effect would re-send
+  // the event on every pass, and the machine would answer its own move.
+  const lastContract = new Map<string, unknown>();
   const authored = authoredProps(props);
   const hooks = spec.hooks(id, root);
   // The machine: the component's factory, or the legacy config plus
@@ -366,7 +373,14 @@ export function defineBridge<
       // with an event is REPORTED (the host's write is an event, the
       // machine decides), a field without one is SILENT (the write lands
       // in the field and nothing reports).
-      const syncResult = applyContract(svc, machine.fields, props, authored, (event) => transmit(event));
+      const syncResult = applyContract(
+        svc,
+        machine.fields,
+        props,
+        authored,
+        lastContract,
+        (event) => transmit(event),
+      );
       const parsed = readParsed();
       const reconciled: E[] = [];
       const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {

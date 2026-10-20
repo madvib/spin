@@ -13,6 +13,7 @@
  */
 
 import { getStroke } from "perfect-freehand";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 /** A stroke sample: canvas-relative position plus pointer pressure. */
 export interface SignaturePoint {
@@ -63,17 +64,25 @@ export type SignaturePadDrawDetails = {
   readonly currentPath: string | null;
 };
 
-export interface SignaturePadInitial {
-  readonly paths?: unknown;
-  readonly defaultPaths?: unknown;
-  readonly disabled?: unknown;
-  readonly readOnly?: unknown;
-  readonly drawing?: unknown;
+/**
+ * The signature-pad's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultPaths`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface SignaturePadArgs {
+  /** The committed paths, as the host wrote them. */
+  paths?: string | readonly string[];
+  /** Whether the pad is disabled. */
+  disabled?: boolean;
+  /** Whether the pad is read-only. */
+  readOnly?: boolean;
+  /** The stroke tuning, off the opaque `drawing` prop. */
+  drawing?: unknown;
 }
 
-/** Seed shaping: authored paths win, else their default, else empty.
- * The tuning rides the opaque `drawing` prop — shaped here where the
- * numbers are named, not in the bags. */
 /** Paths off any transport: well-shaped string lists only (the grammar
  * coerces `= []` to `["[]"]`), anything else is empty. The machine and the
  * reconcile share it. */
@@ -92,17 +101,16 @@ export function pathsOf(value: unknown): string[] {
   }
 }
 
-/** Two path lists are one selection when every path matches in order. */
-export function samePaths(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((path, index) => path === b[index]);
-}
-
-export function initial(raw: SignaturePadInitial): Omit<SignaturePadContext, "currentPoints" | "currentPath"> {
+/** The machine's context, from its arguments: the committed paths, the
+ * pad's own flags, and the stroke tuning the opaque `drawing` prop names. */
+export function initial(args: SignaturePadArgs): SignaturePadContext {
   return {
-    paths: pathsOf(raw.paths).length > 0 ? pathsOf(raw.paths) : pathsOf(raw.defaultPaths),
-    disabled: raw.disabled === true,
-    readOnly: raw.readOnly === true,
-    tuning: { ...defaultTuning, ...tuningOf(raw.drawing) },
+    paths: pathsOf(args.paths),
+    currentPoints: [],
+    currentPath: null,
+    disabled: args.disabled === true,
+    readOnly: args.readOnly === true,
+    tuning: { ...defaultTuning, ...tuningOf(args.drawing) },
   };
 }
 
@@ -172,90 +180,104 @@ export function isEmpty(ctx: SignaturePadContext): boolean {
   return ctx.paths.length === 0;
 }
 
-export const config = {
-  id: "signature-pad",
-  initial: "idle",
-  context: {
-    paths: [] as string[],
-    currentPoints: [] as SignaturePoint[],
-    currentPath: null as string | null,
-    disabled: false,
-    readOnly: false,
-    tuning: { ...defaultTuning },
-  },
-  on: {
-    CLEAR: {
-      target: "idle",
-      actions: [{ assign: "clearAll" }],
+/**
+ * The signature-pad machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function signaturePad(
+  args: SignaturePadArgs = {},
+): Machine<SignaturePadContext, SignaturePadEvent> {
+  return createMachine<SignaturePadContext, SignaturePadEvent>({
+    id: "signature-pad",
+    initial: "idle",
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      paths: { event: "SET_PATHS" },
+      disabled: {},
+      readOnly: {},
     },
-    SET_PATHS: { actions: [{ assign: "setPaths" }] },
-    SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-    SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
-    SET_TUNING: { actions: [{ assign: "setTuning" }] },
-  },
-  states: {
-    idle: {
-      on: {
-        POINTER_DOWN: [
-          {
-            cond: "isInteractive",
-            target: "drawing",
-            actions: [{ assign: "startStroke" }],
-          },
-        ],
+    context: initial(args),
+    on: {
+      CLEAR: {
+        target: "idle",
+        actions: [{ assign: "clearAll" }],
+      },
+      SET_PATHS: { actions: [{ assign: "setPaths" }] },
+      SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
+      SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
+      SET_TUNING: { actions: [{ assign: "setTuning" }] },
+    },
+    states: {
+      idle: {
+        on: {
+          POINTER_DOWN: [
+            {
+              cond: "isInteractive",
+              target: "drawing",
+              actions: [{ assign: "startStroke" }],
+            },
+          ],
+        },
+      },
+      drawing: {
+        on: {
+          POINTER_MOVE: { actions: [{ assign: "addPoint" }] },
+          POINTER_UP: { target: "idle", actions: [{ assign: "endStroke" }] },
+        },
       },
     },
-    drawing: {
-      on: {
-        POINTER_MOVE: { actions: [{ assign: "addPoint" }] },
-        POINTER_UP: { target: "idle", actions: [{ assign: "endStroke" }] },
+    conds: {
+      isInteractive: (ctx: SignaturePadContext): boolean => isInteractive(ctx),
+    },
+    assigns: {
+      startStroke: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
+        if (event.type !== "POINTER_DOWN") return {};
+        const currentPoints = [event.point];
+        return { currentPoints, currentPath: strokePath(currentPoints, ctx.tuning) };
+      },
+      addPoint: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
+        if (event.type !== "POINTER_MOVE") return {};
+        const currentPoints = [...ctx.currentPoints, event.point];
+        return { currentPoints, currentPath: strokePath(currentPoints, ctx.tuning) };
+      },
+      endStroke: (ctx: SignaturePadContext): Partial<SignaturePadContext> => {
+        if (ctx.currentPath === null) return { currentPoints: [], currentPath: null };
+        return {
+          paths: [...ctx.paths, ctx.currentPath],
+          currentPoints: [],
+          currentPath: null,
+        };
+      },
+      clearAll: (): Partial<SignaturePadContext> => ({ paths: [], currentPoints: [], currentPath: null }),
+      setPaths: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
+        if (event.type !== "SET_PATHS") return {};
+        void ctx;
+        // The paths arrive the way the host wrote them; the machine shapes
+        // them, wherever they came from.
+        return { paths: pathsOf(event.paths) };
+      },
+      setDisabled: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
+        if (event.type !== "SET_DISABLED") return {};
+        void ctx;
+        return { disabled: event.disabled };
+      },
+      setReadOnly: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
+        if (event.type !== "SET_READ_ONLY") return {};
+        void ctx;
+        return { readOnly: event.readOnly };
+      },
+      setTuning: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
+        if (event.type !== "SET_TUNING") return {};
+        return { tuning: { ...ctx.tuning, ...event.tuning } };
       },
     },
-  },
-};
-
-export const implementations = {
-  conds: {
-    isInteractive: (ctx: SignaturePadContext): boolean => isInteractive(ctx),
-  },
-  assigns: {
-    startStroke: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
-      if (event.type !== "POINTER_DOWN") return {};
-      const currentPoints = [event.point];
-      return { currentPoints, currentPath: strokePath(currentPoints, ctx.tuning) };
-    },
-    addPoint: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
-      if (event.type !== "POINTER_MOVE") return {};
-      const currentPoints = [...ctx.currentPoints, event.point];
-      return { currentPoints, currentPath: strokePath(currentPoints, ctx.tuning) };
-    },
-    endStroke: (ctx: SignaturePadContext): Partial<SignaturePadContext> => {
-      if (ctx.currentPath === null) return { currentPoints: [], currentPath: null };
-      return {
-        paths: [...ctx.paths, ctx.currentPath],
-        currentPoints: [],
-        currentPath: null,
-      };
-    },
-    clearAll: (): Partial<SignaturePadContext> => ({ paths: [], currentPoints: [], currentPath: null }),
-    setPaths: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
-      if (event.type !== "SET_PATHS") return {};
-      void ctx;
-      return { paths: [...event.paths] };
-    },
-    setDisabled: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
-      if (event.type !== "SET_DISABLED") return {};
-      void ctx;
-      return { disabled: event.disabled };
-    },
-    setReadOnly: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
-      if (event.type !== "SET_READ_ONLY") return {};
-      void ctx;
-      return { readOnly: event.readOnly };
-    },
-    setTuning: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
-      if (event.type !== "SET_TUNING") return {};
-      return { tuning: { ...ctx.tuning, ...event.tuning } };
-    },
-  },
-};
+  });
+}

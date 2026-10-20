@@ -15,6 +15,8 @@
  * so the machine never holds a timer.
  */
 
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export type NavValue = string;
 
 export interface NavItemRecord {
@@ -27,7 +29,7 @@ export interface NavigationMenuContext {
   value: NavValue;
   /** The item the last transition came from, for the viewport slide. */
   previousValue: NavValue;
-  /** The scalars the assigns read, synced from scope by the bridge. */
+  /** The scalars the assigns read, synced from scope by the contract. */
   openDelay: number;
   closeDelay: number;
   orientation: "horizontal" | "vertical";
@@ -39,38 +41,48 @@ export interface NavigationMenuValueChange {
   readonly previousValue: NavValue;
 }
 
-export interface NavigationMenuInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly openDelay?: unknown;
-  readonly closeDelay?: unknown;
-  readonly orientation?: unknown;
-  readonly disabled?: unknown;
+/**
+ * The navigation-menu's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface NavigationMenuArgs {
+  /** The open item, as the host wrote it. */
+  value?: string;
+  /** The dwell before an item opens, in milliseconds. */
+  openDelay?: number;
+  /** The grace before an item closes, in milliseconds. */
+  closeDelay?: number;
+  /** The axis the menu runs along. */
+  orientation?: string;
+  /** Whether the menu refuses interaction. */
+  disabled?: boolean;
 }
 
 /** A text prop: strings pass, everything else is absent. */
 const asText = (raw: unknown): string | null =>
   typeof raw === "string" ? raw : null;
 
-/** Seed shaping: an authored value wins, else its default, else closed. */
-export function initial(raw: NavigationMenuInitial, authored: (name: string) => boolean): NavigationMenuContext {
-  const seeded = asText(authored("value") ? raw.value : null) ?? asText(raw.defaultValue) ?? "";
+/** The machine's own defaults, and the host's arguments where it has them. */
+export function initial(args: NavigationMenuArgs = {}): NavigationMenuContext {
   const count = (value: unknown, fallback: number): number =>
     typeof value === "number" && Number.isFinite(value) ? value : fallback;
   return {
-    value: seeded,
+    value: asText(args.value) ?? "",
     previousValue: "",
-    openDelay: count(raw.openDelay, 200),
-    closeDelay: count(raw.closeDelay, 300),
-    orientation: raw.orientation === "vertical" ? "vertical" : "horizontal",
-    disabled: raw.disabled === true,
+    openDelay: count(args.openDelay, 200),
+    closeDelay: count(args.closeDelay, 300),
+    orientation: args.orientation === "vertical" ? "vertical" : "horizontal",
+    disabled: args.disabled === true,
   };
 }
 
-/** The seeded state: an authored value opens the menu, else idle. */
-export function startState(raw: NavigationMenuInitial, authored: (name: string) => boolean): string {
-  const seeded = asText(authored("value") ? raw.value : null) ?? asText(raw.defaultValue) ?? "";
-  return seeded.length > 0 ? "open" : "idle";
+/** The seeded state: a value opens the menu, else idle. */
+export function startState(args: NavigationMenuArgs = {}): string {
+  return (asText(args.value) ?? "").length > 0 ? "open" : "idle";
 }
 
 export type NavigationMenuEvent =
@@ -79,7 +91,7 @@ export type NavigationMenuEvent =
   | { type: "CLOSE" }
   | { type: "VALUE.SET"; value: NavValue };
 
-export const config = {
+const config = {
   id: "navigation-menu",
   initial: "idle",
   context: {
@@ -116,12 +128,15 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {},
   assigns: {
     setValue: (_ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
       if (e.type !== "VALUE.SET") return {};
-      return { previousValue: _ctx.value, value: e.value };
+      // The value arrives the way the host wrote it; the machine shapes it.
+      const value = asText(e.value);
+      if (value === null) return {};
+      return { previousValue: _ctx.value, value };
     },
     openFrom: (ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
       if (e.type !== "ITEM.ENTER") return {};
@@ -145,3 +160,34 @@ export const implementations = {
     }),
   },
 };
+
+/**
+ * The navigation-menu machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function navigationMenu(
+  args: NavigationMenuArgs = {},
+): Machine<NavigationMenuContext, NavigationMenuEvent> {
+  return createMachine<NavigationMenuContext, NavigationMenuEvent>({
+    ...config,
+    context: initial(args),
+    assigns: implementations.assigns,
+    conds: implementations.conds,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      openDelay: {},
+      closeDelay: {},
+      orientation: {},
+      disabled: {},
+    },
+  });
+}

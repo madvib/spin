@@ -5,13 +5,13 @@ import {
   type SlotScope,
 } from "@spin/runtime";
 import {
-  config,
   hasNextStep,
   hasPrevStep,
-  implementations,
   isCompleted,
   itemState,
   percent,
+  steps as stepsMachine,
+  type StepsArgs,
   type StepsContext,
   type StepsEvent,
   type StepsInvalid,
@@ -21,8 +21,8 @@ import {
 
 /**
  * Steps bindings: the DOM contract as data. The machine owns the step
- * index, the count, and the guarded transitions; this file maps transport
- * values to seed, parts to attribute bags, and navigation to sends.
+ * index, the count, and the guarded transitions; this file maps parts to
+ * attribute bags and navigation to sends.
  *
  * No channels: the transport owns prop coercion. No parsing, no DOM
  * access, no CSS custom properties. Progress is a literal bag style
@@ -63,15 +63,6 @@ export interface StepsApi {
 
 interface ScopeLike extends PartScope<unknown, StepsContext> {}
 interface SlotLike<R> extends SlotScope<R, StepsContext> {}
-
-/** A millisecond-free numeric prop: numbers pass, numeric strings parse,
- * everything else is absent. Named once; transport owns the grammar. */
-const asCount = (raw: unknown, fallback: number): number => {
-  const n = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() !== "" ? Number(raw.trim()) : NaN;
-  return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : fallback;
-};
-
-const countOf = (raw: unknown): number => Math.max(1, Math.floor(asCount(raw, 1)));
 
 /** Titles arrive as an array (transport-coerced); anything else is empty. */
 const parseTitles = (raw: unknown): readonly string[] => {
@@ -132,24 +123,11 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<StepsContext, StepsEvent> = {
   name: "steps",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => stepsMachine(props as StepsArgs),
   start: "idle",
-  seed: (raw) => {
-    const count = countOf(raw["count"]);
-    const seeded = typeof raw["step"] === "number" && Number.isFinite(raw["step"])
-      ? Math.trunc(raw["step"])
-      : typeof raw["defaultStep"] === "number" && Number.isFinite(raw["defaultStep"])
-        ? Math.trunc(raw["defaultStep"])
-        : 0;
-    return {
-      count,
-      step: Math.min(count, Math.max(0, seeded)),
-      invalidAttempts: 0,
-      lastInvalid: null,
-    };
-  },
-  scalars: ["count"],
   dispatch: (event, props) => {
     if (event.type !== "STEP.SET" && event.type !== "STEP.NEXT") return event;
     const result: { type: string } & Record<string, unknown> = { ...event };

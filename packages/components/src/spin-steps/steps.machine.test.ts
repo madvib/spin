@@ -61,6 +61,10 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("count", 3);
+  // The count is a host write: the element's prop store marks a written
+  // prop authored, and the machine's contract moves the count only for an
+  // authored prop.
+  authoredKeys.add("count");
   write("onStepChange", (details: StepsStepChange) => events.stepChange.push(details));
   write("onStepComplete", (details: StepsComplete) => events.stepComplete.push(details));
   write("onStepInvalid", (details: StepsInvalid) => events.stepInvalid.push(details));

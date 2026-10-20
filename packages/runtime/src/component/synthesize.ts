@@ -96,9 +96,6 @@ export function defineComponent<
       return found;
     };
     const lastWatched = new Map<string, readonly unknown[]>();
-    // The last value each mapped prop carried: the cursor that keeps a
-    // host write an event and a machine move a non-event.
-    const lastProp = new Map<string, unknown>();
     const sameWatch = (a: readonly unknown[], b: readonly unknown[]): boolean =>
       a.length === b.length && a.every((value, index) => value === b[index]);
 

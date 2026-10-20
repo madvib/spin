@@ -1,15 +1,13 @@
 import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  pinInput as pinInputMachine,
   pinView,
+  type PinInputArgs,
   type PinInputContext,
   type PinInputEvent,
   type PinInputValueChange,
   type PinInputValueComplete,
   type PinInputValueInvalid,
-  type PinInputInitial,
 } from "./pin-input.machine.ts";
 
 /**
@@ -51,8 +49,6 @@ export interface PinInputApi {
   getItems(): readonly number[];
 }
 
-/** The element's declared cell count, for a prop that arrives unwritten. */
-const DEFAULT_COUNT = 4;
 /** Zag's placeholder default. */
 const DEFAULT_PLACEHOLDER = "\u25CB";
 
@@ -93,28 +89,6 @@ function eventKey(event: KeyboardEvent, dir: string): string {
   if (event.key === "ArrowRight") return "ArrowLeft";
   return event.key;
 }
-
-/**
- * The value travels the prop channel as an array (a property write) or a
- * comma-joined string (an attribute write), and the grammar's own default
- * for an array prop arrives as the string `"[]"` parsed into one cell. A
- * cell holds exactly one character, so everything else is dropped here
- * rather than trusted at the read.
- */
-const parseChars = (raw: unknown): string[] => {
-  const parts = Array.isArray(raw)
-    ? raw.filter((part): part is string => typeof part === "string")
-    : typeof raw === "string"
-      ? raw.split(",").map((part) => part.trim())
-      : [];
-  return parts.filter((part) => part.length === 1);
-};
-
-const sameChars = (a: readonly string[], b: readonly string[]): boolean =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
-
-const readCount = (raw: unknown): number =>
-  typeof raw === "number" && Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : DEFAULT_COUNT;
 
 type Ctx = PinInputContext;
 
@@ -315,29 +289,12 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
   return made;
 };
 
-
-/** Transport guarantees the raw prop bag is a PinInputInitial-shaped object. */
-const isPinInputInitial = (raw: unknown): raw is PinInputInitial =>
-  raw !== null && typeof raw === "object";
-
 const def: ComponentDef<PinInputContext, PinInputEvent> = {
   name: "pin-input",
-  config,
-  implementations,
-  // The start state is the machine's own initial; the seed sends below fill
-  // the pin through the assigns.
-  /** Transport guarantees the raw prop bag is a PinInputInitial-shaped object;
-   * the guard asserts that trust point instead of a silent `as`. */
-  seed: (raw, authored) => ({ ...initial(isPinInputInitial(raw) ? raw : {}, authored) }),
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    if (!authored("value")) return false;
-    const chars = parseChars(parsed["value"]);
-    if (sameChars(ctx.value, chars)) return false;
-    send({ type: "VALUE.SET", value: chars });
-    return true;
-  },
-  scalars: ["count"],
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => pinInputMachine(props as PinInputArgs),
   mounted: ({ props, focus }) => {
     // Zag's entry `choose(autoFocus)`: the index starts on the first cell
     // and that cell takes focus. One microtask out: the bridge is built

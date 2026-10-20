@@ -1,11 +1,9 @@
 import { defineComponent, type ComponentDef, type PartScope } from "@spin/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import {
-  config,
-  implementations,
-  initial,
+  tabs as tabsMachine,
+  type TabsArgs,
   type TabsContext,
-  type TabsInitial,
   type TabsEvent,
   type TabsItem,
   type TabsValueChange,
@@ -39,16 +37,12 @@ const neighbor = (scope: PartScope<TabsItem, TabsContext>, value: string, direct
   return items[next]?.value ?? null;
 };
 
-/** Transport guarantees the raw prop bag is a TabsInitial-shaped object;
- * the guard asserts that trust point instead of a silent `as`. */
-const isTabsInitial = (raw: unknown): raw is TabsInitial =>
-  raw !== null && typeof raw === "object";
-
 const def: ComponentDef<TabsContext, TabsEvent> = {
   name: "tabs",
-  config,
-  implementations,
-  seed: (raw, _authored) => ({ ...initial(isTabsInitial(raw) ? raw : {}) }),
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => tabsMachine(props as TabsArgs),
   parts: {
     root: {
       sig: () => "",

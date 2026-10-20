@@ -16,6 +16,8 @@
  * data.
  */
 
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export interface ListboxContext {
   /** The selected values, in the order they were added. */
   value: string[];
@@ -37,7 +39,13 @@ export interface ListboxContext {
 
 export type ListboxEvent =
   | { type: "SELECTED_ITEMS.SYNC" }
-  | { type: "HIGHLIGHTED_VALUE.SET"; value: string | null }
+  | {
+    type: "HIGHLIGHTED_VALUE.SET";
+    /** The command's payload: the value the host named. */
+    value?: string | null;
+    /** The host write's payload: the prop's own name. */
+    highlightedValue?: string | null;
+  }
   | { type: "HIGHLIGHTED_VALUE.CLEAR" }
   | { type: "ITEM.SELECT"; value: string }
   | { type: "ITEM.CLEAR"; value: string }
@@ -51,7 +59,7 @@ export type ListboxEvent =
   | { type: "ITEM.POINTER_LEAVE" }
   | { type: "NAVIGATE"; value: string; shiftKey?: boolean; anchorValue?: string; metaKey?: boolean };
 
-export const config = {
+const config = {
   id: "listbox",
   initial: "idle",
   context: {
@@ -142,7 +150,7 @@ const search = (ctx: ListboxContext, key: string): string | null => {
   return null;
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     hasSelectedOrHighlighted: (ctx: ListboxContext): boolean =>
       ctx.value.length > 0 || ctx.highlightedValue !== null,
@@ -157,8 +165,14 @@ export const implementations = {
     }),
     setHighlightedValue: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
       if (event.type !== "HIGHLIGHTED_VALUE.SET") return {};
-      if (event.value === null || !ctx.order.includes(event.value)) return {};
-      return { highlightedValue: event.value };
+      // The highlight arrives the way the host wrote it: the command names
+      // the value, the host write names the field. The machine shapes it.
+      const raw = event.highlightedValue !== undefined
+        ? event.highlightedValue
+        : event.value;
+      const value = typeof raw === "string" ? raw : null;
+      if (value === null || !ctx.order.includes(value)) return {};
+      return { highlightedValue: value };
     },
     clearHighlightedValue: (): Partial<ListboxContext> => ({ highlightedValue: null }),
     selectItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
@@ -219,22 +233,54 @@ export const hasValue = (ctx: ListboxContext): boolean => ctx.value.length > 0;
 /** The selected values as a comma-joined string for the hidden input. */
 export const stringifyValues = (ctx: ListboxContext): string => ctx.value.join(",");
 
-export interface ListboxInitial {
-  readonly items?: unknown;
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly highlightedValue?: unknown;
-  readonly defaultHighlightedValue?: unknown;
-  readonly multiple?: unknown;
-  readonly selectOnHighlight?: unknown;
-  readonly loopFocus?: unknown;
-  readonly selectionBehavior?: unknown;
+/**
+ * One collection entry, as the host wrote it. A type alias, so it carries
+ * the implicit index signature the machine's own reader expects.
+ */
+export type ListboxArgsItem = {
+  readonly value: string;
+  readonly label?: string | undefined;
+  readonly disabled?: boolean | undefined;
+  readonly group?: string | undefined;
+};
+
+/**
+ * The listbox's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface ListboxArgs {
+  /** The collection: one entry per row. */
+  items?: readonly ListboxArgsItem[];
+  /** The selected values, as the host wrote them. */
+  value?: string | readonly string[];
+  /** The highlighted value, as the host wrote it. */
+  highlightedValue?: string;
+  /** Whether more than one row may be selected. */
+  multiple?: boolean;
+  /** Whether the highlight commits the selection. */
+  selectOnHighlight?: boolean;
+  /** Whether the arrow walk wraps around. */
+  loopFocus?: boolean;
+  /** How a plain click treats the selection. */
+  selectionBehavior?: string;
 }
 
-export function initial(raw: ListboxInitial, authored: (name: string) => boolean): ListboxContext {
-  const items = Array.isArray(raw.items) ? raw.items : [];
-  const rows: { value: string; label: string; disabled: boolean; group: string }[] = [];
-  for (const entry of items) {
+/** The collection's rows, as the machine reads them. */
+interface ListboxRowData {
+  value: string;
+  label: string;
+  disabled: boolean;
+  group: string;
+}
+
+/** The rows the collection holds: only well-shaped entries survive. */
+const rowsOf = (items: readonly ListboxArgsItem[] | undefined): ListboxRowData[] => {
+  const rows: ListboxRowData[] = [];
+  for (const entry of items ?? []) {
     if (typeof entry !== "object" || entry === null) continue;
     const record: Record<string, unknown> = entry;
     const value = record["value"];
@@ -249,39 +295,70 @@ export function initial(raw: ListboxInitial, authored: (name: string) => boolean
       group: typeof record["group"] === "string" ? record["group"] : "",
     });
   }
+  return rows;
+};
+
+/** The selected values: a list, a comma-joined string, or none. */
+const parseKeys = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+  if (typeof value !== "string") return [];
+  const list = value.startsWith("[") && value.endsWith("]") ? value.slice(1, -1) : value;
+  return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
+};
+
+/** The machine's own defaults, and the host's arguments where it has them. */
+export function initial(args: ListboxArgs = {}): ListboxContext {
+  const rows = rowsOf(args.items);
   const order = rows.map((row) => row.value);
   const labels = Object.fromEntries(rows.map((row) => [row.value, row.label]));
-  const multiple = raw.multiple === true;
-  const selection = raw.selectionBehavior;
-  const selectionBehavior =
+  const multiple = args.multiple === true;
+  const selection = args.selectionBehavior;
+  const selectionBehavior: ListboxContext["selectionBehavior"] =
     selection === "preserve" || selection === "clear"
       ? selection
       : multiple
         ? "clear"
         : "replace";
-  const parseKeys = (value: unknown): string[] => {
-    if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
-    if (typeof value !== "string") return [];
-    const list = value.startsWith("[") && value.endsWith("]") ? value.slice(1, -1) : value;
-    return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
-  };
-  const valueSource = authored("value") ? raw.value : raw.defaultValue;
-  const highlightedValue =
-    typeof raw.highlightedValue === "string" && raw.highlightedValue.length > 0
-      ? raw.highlightedValue
-      : typeof raw.defaultHighlightedValue === "string" && raw.defaultHighlightedValue.length > 0
-        ? raw.defaultHighlightedValue
-        : null;
   return {
-    value: parseKeys(valueSource),
+    value: parseKeys(args.value),
     disabledValues: rows.filter((row) => row.disabled).map((row) => row.value),
-    highlightedValue,
+    highlightedValue: typeof args.highlightedValue === "string" &&
+        args.highlightedValue.length > 0
+      ? args.highlightedValue
+      : null,
     focused: false,
     order,
     labels,
     multiple,
-    selectOnHighlight: raw.selectOnHighlight === true,
-    loopFocus: raw.loopFocus !== false,
+    selectOnHighlight: args.selectOnHighlight === true,
+    loopFocus: args.loopFocus !== false,
     selectionBehavior,
   };
+}
+
+/**
+ * The listbox machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function listbox(
+  args: ListboxArgs = {},
+): Machine<ListboxContext, ListboxEvent> {
+  return createMachine<ListboxContext, ListboxEvent>({
+    ...config,
+    context: initial(args),
+    assigns: implementations.assigns,
+    conds: implementations.conds,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      highlightedValue: { event: "HIGHLIGHTED_VALUE.SET" },
+    },
+  });
 }

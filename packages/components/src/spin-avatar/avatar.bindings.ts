@@ -4,12 +4,10 @@ import {
   type PartScope,
 } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  avatar as avatarMachine,
+  type AvatarArgs,
   type AvatarContext,
   type AvatarEvent,
-  type AvatarInitial,
   type AvatarStatus,
   type AvatarStatusChange,
 } from "./avatar.machine.ts";
@@ -47,31 +45,13 @@ const fallbackOf = (props: Record<string, unknown>): string => {
 
 interface ScopeLike extends PartScope<unknown, AvatarContext> {}
 
-/** Transport guarantees the raw prop bag is an AvatarInitial-shaped object. */
-const isAvatarInitial = (raw: unknown): raw is AvatarInitial =>
-  raw !== null && typeof raw === "object";
-
 const def: ComponentDef<AvatarContext, AvatarEvent> = {
   name: "avatar",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props) => avatarMachine(props as AvatarArgs),
   start: "loading",
-  seed: (raw, authored) => {
-    const props: AvatarInitial = isAvatarInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    // An authored channel starts at its value, not its default.
-    const src = authored("src")
-      ? (typeof props.src === "string" ? props.src : shaped.src)
-      : shaped.src;
-    return { src };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    if (!authored("src")) return false;
-    const src = typeof parsed["src"] === "string" ? parsed["src"] : null;
-    if (src === null || context.src === src) return false;
-    send({ type: "SRC.CHANGE", src });
-    return true;
-  },
   parts: {
     root: {
       sig: (scope) => [scope.props["dir"], scope.state].join("|"),

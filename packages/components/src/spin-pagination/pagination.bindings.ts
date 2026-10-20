@@ -7,17 +7,15 @@ import {
   type SlotScope,
 } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
   nextPage,
   pageItems,
   pageRange,
+  pagination as paginationMachine,
   previousPage,
   totalPages,
+  type PaginationArgs,
   type PaginationContext,
   type PaginationEvent,
-  type PaginationInitial,
   type PaginationPageChange,
   type PaginationPageItem,
 } from "./pagination.machine.ts";
@@ -63,39 +61,11 @@ const textOf = (props: Record<string, unknown>, name: string): string | undefine
   return typeof value === "string" ? value : undefined;
 };
 
-// Scope props arrive as strings; hooks write numbers. Accept both — a
-// string-authored `defaultValue="45"` seeds 45, not 0.
-const numProp = (raw: unknown): number | null => {
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-};
-
-/** Controlled writes re-enter through events: an authored page the machine
- * refused (out of range) reads back through a re-send, not an assign — the
- * guard stays the single decider. */
-const pageEvent = (raw: unknown): { type: "SET_PAGE"; page: number } | null => {
-  const page = numProp(raw);
-  return page === null ? null : { type: "SET_PAGE", page };
-};
-
-const sizeEvent = (raw: unknown): { type: "SET_PAGE_SIZE"; size: number } | null => {
-  const size = numProp(raw);
-  return size === null ? null : { type: "SET_PAGE_SIZE", size };
-};
-
 interface ScopeLike extends PartScope<unknown, PaginationContext> {}
 
 interface SlotLike<R> extends SlotScope<R, PaginationContext> {}
 
 type ItemSlot = PaginationPageItem;
-
-/** Transport guarantees the raw prop bag is a PaginationInitial-shaped object. */
-const isPaginationInitial = (raw: unknown): raw is PaginationInitial =>
-  raw !== null && typeof raw === "object";
 
 /** Stable item-array identity per window signature: the recipe's `for`
  * re-stamps rows when the source identity moves. */
@@ -111,36 +81,11 @@ const windowItems = (context: PaginationContext): readonly PaginationPageItem[] 
 
 const def: ComponentDef<PaginationContext, PaginationEvent> = {
   name: "pagination",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => paginationMachine(props as PaginationArgs),
   start: "idle",
-  seed: (raw, authored) => {
-    const props: PaginationInitial = isPaginationInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    // An authored channel starts at its value, not its default.
-    const page = authored("page") ? numProp(props.page) ?? shaped.page : shaped.page;
-    const pageSize = authored("pageSize") ? numProp(props.pageSize) ?? shaped.pageSize : shaped.pageSize;
-    return { ...shaped, page, pageSize };
-  },
-  scalars: ["count", "siblingCount", "boundaryCount"],
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    if (authored("page")) {
-      const event = pageEvent(parsed["page"]);
-      if (event !== null && ctx.page !== event.page) {
-        send(event);
-        return true;
-      }
-    }
-    if (authored("pageSize")) {
-      const event = sizeEvent(parsed["pageSize"]);
-      if (event !== null && ctx.pageSize !== event.size) {
-        send(event);
-        return true;
-      }
-    }
-    return false;
-  },
   parts: {
     root: {
       sig: (scope) => [scope.props["label"], scope.props["dir"], scope.context.page].join("|"),
@@ -233,7 +178,7 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
   },
   commands: {
     setPage: { event: (args) => ({ type: "SET_PAGE", page: typeof args[0] === "number" ? args[0] : 1 }) },
-    setPageSize: { event: (args) => ({ type: "SET_PAGE_SIZE", size: typeof args[0] === "number" ? args[0] : 10 }) },
+    setPageSize: { event: (args) => ({ type: "SET_PAGE_SIZE", pageSize: typeof args[0] === "number" ? args[0] : 10 }) },
     goToFirstPage: { event: () => ({ type: "FIRST_PAGE" }) },
     goToLastPage: { event: () => ({ type: "LAST_PAGE" }) },
     goToNextPage: { event: () => ({ type: "NEXT_PAGE" }) },

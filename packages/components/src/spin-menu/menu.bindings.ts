@@ -6,9 +6,9 @@ import {
 } from "@spin/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import {
-  config,
-  implementations,
-  initial,
+  entriesOf,
+  menu as menuMachine,
+  type MenuArgs,
   type MenuBlock,
   type MenuContext,
   type MenuEntry,
@@ -22,9 +22,9 @@ import {
 /**
  * Menu bindings: the DOM contract as data. The machine owns open/closed,
  * the highlight, the anchor point and the open submenu on this level; this
- * file maps transport inputs to seed, rows to attribute bags, and commands
- * to sends. Navigation computes its target against context rows and sends
- * it in — the machine never walks data.
+ * file maps transport inputs to the machine's arguments, rows to attribute
+ * bags, and commands to sends. Navigation computes its target against
+ * context rows and sends it in — the machine never walks data.
  *
  * No channels: the transport owns prop coercion. No parsing, no DOM
  * access, no CSS custom properties. Focus follows sends through the
@@ -390,19 +390,17 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
     if (authored("open")) return props["open"] === true ? "open" : "closed";
     return props["defaultOpen"] === true ? "open" : "closed";
   },
-  seed: (props) => ({
-    ...initial(props),
-    isSubmenu: props["submenu"] === true,
-  }),
-  scalars: ["isSubmenu"],
+  machine: (props) => menuMachine(props as MenuArgs),
   reconcile: ({ state, parsed, authored, send }) => {
     // The items arrive as a host write: a parent menu hands its subtree
     // over after the child has connected, so the seed's entries are only
     // the first word.
-    const entries = initial({ items: parsed["items"] }).entries;
+    const entries = entriesOf(parsed["items"]);
     send({ type: "ENTRIES.SET", entries });
     // The host owns the panel when it authored `open`: the machine
     // follows the prop, and the machine's own move is what reports it.
+    // The prop drives the machine's STATE, not a context field, so it
+    // cannot travel as a contract entry — the reconcile keeps it.
     if (!authored("open")) return false;
     const open = parsed["open"] === true;
     if (open === (state === "open")) return false;

@@ -1,18 +1,14 @@
 import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
   isEmpty,
   isInteractive,
-  pathsOf,
-  samePaths,
+  signaturePad as signaturePadMachine,
   tuningOf,
   type DrawingTuning,
+  type SignaturePadArgs,
   type SignaturePadContext,
   type SignaturePadDrawDetails,
   type SignaturePadEvent,
-  type SignaturePadInitial,
   type SignaturePoint,
 } from "./signature-pad.machine.ts";
 
@@ -54,10 +50,6 @@ export interface SignaturePadApi {
 interface ScopeLike extends PartScope<unknown, SignaturePadContext> {}
 
 interface SlotLike<R> extends SlotScope<R, SignaturePadContext> {}
-
-/** Transport guarantees the raw prop bag is a SignaturePadInitial-shaped object. */
-const isSignaturePadInitial = (raw: unknown): raw is SignaturePadInitial =>
-  raw !== null && typeof raw === "object";
 
 const controlPoint = (
   scope: ScopeLike,
@@ -119,16 +111,14 @@ const drawingFill = (props: Record<string, unknown>): string => {
 
 const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
   name: "signature-pad",
-  config,
-  implementations,
-  seed: (raw, _authored) => {
-    const props: SignaturePadInitial = isSignaturePadInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return { ...shaped, currentPoints: [], currentPath: null };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => signaturePadMachine(props as SignaturePadArgs),
+  reconcile: ({ context, parsed, send }) => {
     // Tuning merges through the machine's SET_TUNING: it shapes the
-    // stroke renderer, and the merge stays one assign.
+    // stroke renderer, and the merge stays one assign. The paths are the
+    // machine's own channel now — the contract carries the host's write.
     const patch = tuningOf(parsed["drawing"]);
     const keys = ["size", "thinning", "smoothing", "streamline", "simulatePressure"] as const;
     const stale = keys.some((key) => patch[key] !== undefined && context.tuning[key] !== patch[key]);
@@ -136,16 +126,8 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       send({ type: "SET_TUNING", tuning: patch });
       return true;
     }
-    if (authored("paths")) {
-      const outer = pathsOf(parsed["paths"]);
-      if (!samePaths(context.paths, outer)) {
-        send({ type: "SET_PATHS", paths: [...outer] });
-        return true;
-      }
-    }
     return false;
   },
-  scalars: ["disabled", "readOnly"],
   parts: {
     root: {
       sig: (scope) => [scope.props["dir"], `${scope.props["disabled"] === true}`].join(" "),

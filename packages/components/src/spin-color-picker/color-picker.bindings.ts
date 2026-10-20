@@ -1,17 +1,14 @@
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
 import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  formatOf,
-  implementations,
-  initial,
+  colorPicker as colorPickerMachine,
   isOpenPhase,
   startOpen,
   valueAsString,
   type ColorFormat,
+  type ColorPickerArgs,
   type ColorPickerContext,
   type ColorPickerEvent,
-  type ColorPickerInitial,
 } from "./color-picker.machine.ts";
 
 /**
@@ -104,18 +101,12 @@ export interface ColorPickerApi {
   getSwatchProps(props: SwatchSlotProps): Record<string, unknown>;
 }
 
-const sameValue = (a: string, b: string): boolean => a.toLowerCase() === b.toLowerCase();
-
 const isColorFormat = (raw: unknown): raw is ColorFormat =>
   raw === "hex" || raw === "hexa" || raw === "rgb" || raw === "rgba" || raw === "hsl" || raw === "hsla" || raw === "hsb" || raw === "hsba";
 
 interface ScopeLike extends PartScope<unknown, ColorPickerContext> {}
 
 interface SlotLike<R> extends SlotScope<R, ColorPickerContext> {}
-
-/** Transport guarantees the raw prop bag is a ColorPickerInitial-shaped object. */
-const isColorPickerInitial = (raw: unknown): raw is ColorPickerInitial =>
-  raw !== null && typeof raw === "object";
 
 const openOf = (scope: ScopeLike): boolean =>
   isOpenPhase(scope.state, scope.context.inline);
@@ -359,49 +350,16 @@ const channelValueOf = (
 
 const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
   name: "color-picker",
-  config,
-  implementations,
-  start: (raw, _authored) => {
-    const props: ColorPickerInitial = isColorPickerInitial(raw) ? raw : {};
-    return startOpen(props) ? "active" : "idle";
-  },
-  seed: (raw, _authored) => {
-    const props: ColorPickerInitial = isColorPickerInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return {
-      ...shaped,
-      value: "#000000",
-      format: "hex" as const,
-      activeChannel: null,
-    };
-  },
-  establish: (raw, authored) => {
-    // Normalize the seed through the machine's own parser, so the context
-    // always holds a serialized color rather than the host's raw text.
-    // Silent: establish sends run before the watch cursors prime.
-    const props: ColorPickerInitial = isColorPickerInitial(raw) ? raw : {};
-    const value: unknown = authored("value") ? props.value : props.defaultValue;
-    const format = formatOf(props);
-    return [
-      { type: "VALUE.SET", value: typeof value === "string" ? value : "#000000" },
-      { type: "FORMAT.SET", format },
-    ];
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => colorPickerMachine(props as ColorPickerArgs),
+  start: (raw) => (startOpen(raw) ? "active" : "idle"),
   reconcile: ({ context, parsed, authored, send, state }) => {
-    if (authored("value")) {
-      const outer: unknown = parsed["value"];
-      if (typeof outer === "string" && !sameValue(context.value, outer)) {
-        send({ type: "VALUE.SET", value: outer });
-        return true;
-      }
-    }
-    if (authored("format")) {
-      const outer: unknown = parsed["format"];
-      if (typeof outer === "string" && isColorFormat(outer) && context.format !== outer) {
-        send({ type: "FORMAT.SET", format: outer });
-        return true;
-      }
-    }
+    // The host owns the panel when it authored `open`: the machine follows
+    // the prop, and the machine's own move is what reports it. The panel's
+    // visibility is the machine's STATE, not a context field, so it stays
+    // here rather than in the machine's contract.
     if (authored("open")) {
       const outer = parsed["open"] === true;
       const open = isOpenPhase(state, context.inline);
@@ -412,7 +370,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     }
     return false;
   },
-  scalars: ["disabled", "readOnly", "closeOnSelect", "inline"],
   parts: {
     root: {
       sig: (scope) => [scope.state, scope.props["disabled"], scope.props["dir"]].join(" "),

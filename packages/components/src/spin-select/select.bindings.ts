@@ -7,13 +7,11 @@ import {
 } from "@spin/runtime";
 import { dataAttr } from "./select.shared.ts";
 import {
-  config,
-  implementations,
-  initial,
+  select as selectMachine,
   selectLabel,
+  type SelectArgs,
   type SelectContext,
   type SelectEvent,
-  type SelectInitial,
   type SelectRow,
 } from "./select.machine.ts";
 
@@ -140,13 +138,6 @@ const rowsOf = (parsed: Record<string, unknown>): readonly SelectRow[] => {
   }
   return rows;
 };
-
-/** Transport guarantees the raw prop bag is a SelectInitial-shaped object;
- * the guard asserts that trust point instead of a silent `as`. */
-const isSelectInitial = (raw: unknown): raw is SelectInitial =>
-  raw !== null && typeof raw === "object";
-
-// shaped rowsOf defined above.
 
 const orderOf = (parsed: Record<string, unknown>): string[] =>
   rowsOf(parsed).map((row) => row.value);
@@ -295,14 +286,15 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<SelectContext, SelectEvent> = {
   name: "select",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => selectMachine(props as SelectArgs),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";
   },
-  seed: (raw, authored) => ({ ...initial(isSelectInitial(raw) ? raw : {}, authored) }),
-  reconcile: ({ context, parsed, authored, send }) => {
+  reconcile: ({ context, parsed, send }) => {
     const ctx = context;
     const order = orderOf(parsed);
     const orderChanged = !sameKeys(ctx.order, order);
@@ -310,15 +302,6 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       ctx.order = order;
       ctx.labels = labelsOf(parsed);
       send({ type: "SELECTED_ITEMS.SYNC" });
-    }
-    // The highlighted value is the host's channel: it alternates only
-    // when the host authored it, and the machine owns the move.
-    if (authored("highlightedValue")) {
-      const outer = parsed["highlightedValue"];
-      const value = typeof outer === "string" ? outer : null;
-      if (value !== ctx.highlightedValue) {
-        send({ type: "HIGHLIGHTED_VALUE.SET", value: value ?? "" });
-      }
     }
     return orderChanged;
   },
@@ -634,7 +617,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     selectValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "ITEM.SELECT", value: typeof v === "string" ? v : "" }; } },
     setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: Array.isArray(v) && v.every((x): x is string => typeof x === "string") ? [...v] : [] }; } },
     clearValue: { event: () => ({ type: "VALUE.CLEAR" }) },
-    setHighlightValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "HIGHLIGHTED_VALUE.SET", value: typeof v === "string" ? v : null }; } },
+    setHighlightValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "HIGHLIGHTED_VALUE.SET", highlightedValue: typeof v === "string" ? v : null }; } },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE.CLEAR" }) },
     setOpen: { event: (args: readonly unknown[]) => ({ type: args[0] === true ? "OPEN" : "CLOSE" }) },
     close: { event: () => ({ type: "CLOSE" }) },

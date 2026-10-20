@@ -1,4 +1,8 @@
-import type { Service } from "@spin/runtime/fsm";
+import {
+  createMachine,
+  type Machine,
+  type Service,
+} from "@spin/runtime/fsm";
 import { coerceJsonArray } from "@spin/runtime";
 
 /**
@@ -61,8 +65,19 @@ export interface MenuBlock {
   readonly separator: boolean;
 }
 
-export interface MenuInitial {
-  readonly items?: unknown;
+/**
+ * The menu's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultOpen`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface MenuArgs {
+  /** The items: the JSON text the host wrote, or the entries themselves. */
+  items?: string | readonly MenuEntry[];
+  /** Whether this level is a submenu of the level above. */
+  submenu?: boolean;
 }
 
 export interface MenuContext {
@@ -149,23 +164,35 @@ function parseEntry(raw: unknown): MenuEntry | undefined {
   return row;
 }
 
-export function initial(raw: MenuInitial): Pick<MenuContext, "entries"> {
+/** The entries the host's items name: only well-shaped entries survive. */
+export function entriesOf(raw: unknown): readonly MenuEntry[] {
   // Arrays arrive shaped; JSON text (nested trees the grammar cannot
   // type) coerces through the framework grammar first.
-  const source: readonly unknown[] = Array.isArray(raw.items)
-    ? raw.items
-    : typeof raw.items === "string"
-      ? coerceJsonArray(raw.items, [])
+  const source: readonly unknown[] = Array.isArray(raw)
+    ? raw
+    : typeof raw === "string"
+      ? coerceJsonArray(raw, [])
       : [];
   const entries: MenuEntry[] = [];
   for (const item of source) {
     const entry = parseEntry(item);
     if (entry !== undefined) entries.push(entry);
   }
-  return { entries };
+  return entries;
 }
 
-export const config = {
+/** The machine's own defaults, and the host's arguments where it has them. */
+export function initial(args: MenuArgs = {}): MenuContext {
+  return {
+    highlightedValue: null,
+    openSubmenu: null,
+    anchorPoint: null,
+    isSubmenu: args.submenu === true,
+    entries: entriesOf(args.items),
+  };
+}
+
+const config = {
   id: "menu",
   initial: "closed",
   context: {
@@ -220,7 +247,7 @@ function sameEntries(a: readonly MenuEntry[], b: readonly MenuEntry[]): boolean 
   });
 }
 
-export const implementations = {
+const implementations = {
   assigns: {
     setEntries: (ctx: MenuContext, event: MenuEvent): Partial<MenuContext> => {
       if (event.type !== "ENTRIES.SET") return {};
@@ -243,3 +270,33 @@ export const implementations = {
 };
 
 export type MenuService = Service<MenuContext, MenuEvent>;
+
+/**
+ * The menu machine: state and nothing else. It is headless — it knows its
+ * own arguments, and nothing about props, markup, or the DOM.
+ */
+export function menu(
+  args: MenuArgs = {},
+): Machine<MenuContext, MenuEvent> {
+  return createMachine<MenuContext, MenuEvent>({
+    ...config,
+    context: initial(args),
+    assigns: implementations.assigns,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     *
+     * The panel's own `open` prop is NOT here: it drives the machine's
+     * STATE, not a context field, so the element's reconcile keeps it in
+     * step with the state.
+     */
+    fields: {
+      isSubmenu: {},
+    },
+  });
+}

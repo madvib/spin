@@ -1,14 +1,12 @@
 import { coerceJsonArray, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  cascade as cascadeMachine,
   parsePath,
   parsePaths,
   startOpen,
+  type CascadeArgs,
   type CascadeContext,
   type CascadeEvent,
-  type CascadeInitial,
 } from "./cascade.machine.ts";
 
 /**
@@ -257,9 +255,6 @@ interface ScopeLike extends PartScope<unknown, CascadeContext> {}
 
 interface SlotLike<R> extends SlotScope<R, CascadeContext> {}
 
-/** Transport guarantees the raw prop bag is a CascadeInitial-shaped object. */
-const isCascadeInitial = (raw: unknown): raw is CascadeInitial =>
-  raw !== null && typeof raw === "object";
 const isNode = (value: unknown): value is CascadeNode => {
   if (!isRecord(value)) return false;
   if (typeof value["value"] !== "string") return false;
@@ -795,8 +790,10 @@ const scrollParam = (
 
 const def: ComponentDef<CascadeContext, CascadeEvent> = {
   name: "cascade",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => cascadeMachine(props as CascadeArgs),
   // Focus follows the gesture: opening lands in the content, a restoring
   // close and a clear land back on the trigger.
   settled: ({ event, before, after, focus }) => {
@@ -804,42 +801,12 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     if (event.type === "CLOSE" && event.restoreFocus === true) focus("trigger");
     if (event.type === "CLEAR_TRIGGER_CLICK") focus("trigger");
   },
-  start: (raw, _authored) => {
-    const props: CascadeInitial = isCascadeInitial(raw) ? raw : {};
-    return startOpen(props) ? "open" : "idle";
-  },
-  seed: (raw, _authored) => {
-    const props: CascadeInitial = isCascadeInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return {
-      ...shaped,
-      value: [],
-      highlightedValue: [],
-      openSignal: false,
-    };
-  },
-  establish: (raw, authored) => {
-    const props: CascadeInitial = isCascadeInitial(raw) ? raw : {};
-    const valueRaw: unknown = authored("value") ? props.value : props.defaultValue;
-    const highlightRaw: unknown = authored("highlightedValue") ? props.highlightedValue : props.defaultHighlightedValue;
-    const value = parsePaths(typeof valueRaw === "string" || Array.isArray(valueRaw) ? valueRaw : null);
-    const highlighted = parsePath(typeof highlightRaw === "string" || Array.isArray(highlightRaw) ? highlightRaw : null);
-    const sends: ({ type: string } & Record<string, unknown>)[] = [];
-    if (value.length > 0) sends.push({ type: "VALUE_SET", value: value.map((path) => [...path]) });
-    if (highlighted.length > 0) sends.push({ type: "HIGHLIGHTED_VALUE_SET", value: [...highlighted] });
-    if (authored("open") && props.open === true) sends.push({ type: "CONTROLLED_OPEN" });
-    return sends;
-  },
-  scalarsOf: (parsed, authored) => {
-    // Authored channels alternate silently through the refresh merge —
-    // a send would report through the watch; a merge never does. Fresh
-    // arrays tick the bridge; the bag memos hold on unchanged contents.
-    const merge: Record<string, unknown> = {};
-    if (authored("value")) merge["value"] = parsePaths(parsed["value"]).map((path) => [...path]);
-    if (authored("highlightedValue")) merge["highlightedValue"] = [...parsePath(parsed["highlightedValue"])];
-    return merge;
-  },
+  start: (raw) => (startOpen(raw) ? "open" : "idle"),
   reconcile: ({ parsed, authored, send, state }) => {
+    // The host owns the panel when it authored `open`: the machine follows
+    // the prop, and the machine's own move is what reports it. The panel's
+    // visibility is the machine's STATE, not a context field, so it stays
+    // here rather than in the machine's contract.
     if (authored("open")) {
       const outer = parsed["open"] === true;
       const open = state === "open";
@@ -850,7 +817,6 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     }
     return false;
   },
-  scalars: ["closeOnSelect", "allowParentSelection", "multiple", "loopFocus", "highlightTrigger"],
   parts: {
     root: {
       sig: (scope) => [dirOf(scope.props), disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], scope.state].join(" "),

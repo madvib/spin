@@ -28,20 +28,32 @@
  *    rewrites the collection property, as tree-view's host rewrites `nodes`.
  */
 
-import type { Service } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type Service } from "@spin/runtime/fsm";
 
-export interface CascadeInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly highlightedValue?: unknown;
-  readonly defaultHighlightedValue?: unknown;
-  readonly open?: unknown;
-  readonly defaultOpen?: unknown;
-  readonly closeOnSelect?: unknown;
-  readonly allowParentSelection?: unknown;
-  readonly multiple?: unknown;
-  readonly loopFocus?: unknown;
-  readonly highlightTrigger?: unknown;
+/**
+ * The cascade-select's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twins
+ * (`defaultValue`, `defaultHighlightedValue`) are resolved by the framework
+ * before the factory is called, so the machine only ever sees the live
+ * value.
+ */
+export interface CascadeArgs {
+  /** The selected paths, as the host wrote them: JSON text. */
+  value?: string;
+  /** The highlighted path, as the host wrote it: a comma-joined path. */
+  highlightedValue?: string;
+  /** Whether a selection closes the panel. */
+  closeOnSelect?: boolean;
+  /** Whether a branch may be selected. */
+  allowParentSelection?: boolean;
+  /** Whether more than one path may be selected. */
+  multiple?: boolean;
+  /** Whether the keyboard focus loops. */
+  loopFocus?: boolean;
+  /** Whether the pointer drives the highlight. */
+  highlightTrigger?: string;
 }
 
 /** Parse JSON-text-or-array helpers shared with the bindings. */
@@ -78,22 +90,24 @@ export function parsePaths(raw: unknown): readonly string[][] {
   return out;
 }
 
-/** Seed shaping: flags name themselves; the value/highlight/open arrive
- * through establish (parsed there). */
-export function initial(raw: CascadeInitial): Pick<CascadeContext, "closeOnSelect" | "allowParentSelection" | "multiple" | "loopFocus" | "highlightTrigger"> {
+/** The machine's context: the flags name themselves, and the value and the
+ * highlight are parsed out of the host's own text. */
+export function initial(args: CascadeArgs): CascadeContext {
   return {
-    closeOnSelect: raw.closeOnSelect !== false,
-    allowParentSelection: raw.allowParentSelection === true,
-    multiple: raw.multiple === true,
-    loopFocus: raw.loopFocus === true,
-    highlightTrigger: raw.highlightTrigger === "hover" ? "hover" : "click",
+    value: parsePaths(args.value).map((path) => [...path]),
+    highlightedValue: [...parsePath(args.highlightedValue)],
+    closeOnSelect: args.closeOnSelect !== false,
+    allowParentSelection: args.allowParentSelection === true,
+    multiple: args.multiple === true,
+    loopFocus: args.loopFocus === true,
+    highlightTrigger: args.highlightTrigger === "hover" ? "hover" : "click",
   };
 }
 
 /** The seeded open state: an authored open wins, else its default. */
-export function startOpen(raw: CascadeInitial): boolean {
-  if (typeof raw.open === "boolean") return raw.open;
-  return raw.defaultOpen === true;
+export function startOpen(raw: Record<string, unknown>): boolean {
+  if (typeof raw["open"] === "boolean") return raw["open"];
+  return raw["defaultOpen"] === true;
 }
 
 /** Two paths are the same when every segment matches, in order. */
@@ -142,15 +156,21 @@ export type CascadeEvent =
   | { type: "TRIGGER_OPEN"; highlight: string[] }
   | { type: "ITEM_CLICK"; value: string[]; hasChildren: boolean }
   | { type: "ITEM_POINTER_ENTER"; value: string[]; hasChildren: boolean }
-  | { type: "VALUE_SET"; value: string[][] }
+  | { type: "VALUE_SET"; value: string[][] | string }
   | { type: "VALUE_CLEAR" }
-  | { type: "HIGHLIGHTED_VALUE_SET"; value: string[] }
+  | {
+      type: "HIGHLIGHTED_VALUE_SET";
+      /** The command's payload: the path the host named. */
+      value: string[];
+      /** The host write's payload: the prop's own name. */
+      highlightedValue?: string | string[];
+    }
   | { type: "HIGHLIGHTED_VALUE_CLEAR" }
   | { type: "ITEM_SELECT"; value: string[]; hasChildren: boolean }
   | { type: "ITEM_CLEAR"; value: string[] }
   | { type: "CLEAR_TRIGGER_CLICK" };
 
-export const config = {
+const config = {
   id: "cascade-select",
   initial: "idle",
   context: {
@@ -236,7 +256,7 @@ export const config = {
 
 const clonePaths = (paths: readonly string[][]): string[][] => paths.map((path) => [...path]);
 
-export const implementations = {
+const implementations = {
   conds: {
     restoresFocus: (_ctx: CascadeContext, event: CascadeEvent): boolean =>
       "restoreFocus" in event ? event.restoreFocus !== false : true,
@@ -251,13 +271,20 @@ export const implementations = {
         : false,
   },
   assigns: {
-    setValue: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
-      e.type === "VALUE_SET" && !samePaths(ctx.value, e.value) ? { value: clonePaths(e.value) } : {},
+    setValue: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> => {
+      if (e.type !== "VALUE_SET") return {};
+      // The value arrives the way the host wrote it — the command's paths,
+      // or the prop's own text — and the machine shapes it.
+      const paths = parsePaths(e.value);
+      return samePaths(ctx.value, paths) ? {} : { value: clonePaths(paths) };
+    },
     clearValue: (): Partial<CascadeContext> => ({ value: [] }),
-    setHighlightedValue: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
-      e.type === "HIGHLIGHTED_VALUE_SET" && !samePath(ctx.highlightedValue, e.value)
-        ? { highlightedValue: clonePath(e.value) }
-        : {},
+    setHighlightedValue: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> => {
+      if (e.type !== "HIGHLIGHTED_VALUE_SET") return {};
+      const raw = e.highlightedValue !== undefined ? e.highlightedValue : e.value;
+      const path = parsePath(raw);
+      return samePath(ctx.highlightedValue, path) ? {} : { highlightedValue: clonePath(path) };
+    },
     clearHighlightedValue: (ctx: CascadeContext): Partial<CascadeContext> =>
       ctx.highlightedValue.length === 0 ? {} : { highlightedValue: [] },
     clearItem: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
@@ -317,3 +344,35 @@ export const implementations = {
 };
 
 export type CascadeService = Service<CascadeContext, CascadeEvent>;
+
+/**
+ * The cascade-select machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function cascade(
+  args: CascadeArgs = {},
+): Machine<CascadeContext, CascadeEvent> {
+  return createMachine<CascadeContext, CascadeEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE_SET" },
+      highlightedValue: { event: "HIGHLIGHTED_VALUE_SET" },
+      closeOnSelect: {},
+      allowParentSelection: {},
+      multiple: {},
+      loopFocus: {},
+      highlightTrigger: {},
+    },
+  });
+}

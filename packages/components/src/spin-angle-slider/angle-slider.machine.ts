@@ -13,6 +13,8 @@
  * only drives a focused slider, a drag release lands in focus.
  */
 
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export const MIN_VALUE = 0;
 export const MAX_VALUE = 359;
 
@@ -54,15 +56,29 @@ export function isInteractive(ctx: AngleSliderContext): boolean {
   return !ctx.disabled && !ctx.readOnly;
 }
 
-export interface AngleSliderInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly step?: unknown;
-  readonly largeStep?: unknown;
-  readonly dir?: unknown;
-  readonly disabled?: unknown;
-  readonly readOnly?: unknown;
-  readonly invalid?: unknown;
+/**
+ * The angle-slider's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface AngleSliderArgs {
+  /** The value, as the host wrote it. */
+  value?: string;
+  /** The step grid the dial snaps to. */
+  step?: string;
+  /** The step grid the shift-key steps snap to. */
+  largeStep?: string;
+  /** The direction of the dial. */
+  dir?: string;
+  /** Whether the slider is disabled. */
+  disabled?: boolean;
+  /** Whether the slider is read-only. */
+  readOnly?: boolean;
+  /** Whether the slider is invalid. */
+  invalid?: boolean;
 }
 
 /** A numeric prop: numbers pass, numeric strings parse, everything else
@@ -76,18 +92,19 @@ const asCount = (raw: unknown): number | null => {
   return null;
 };
 
-/** Seed shaping: the value falls back to its default, then zero; the step
- * grid and flags follow. Transport guarantees the bag is object-shaped. */
-export function initial(raw: AngleSliderInitial, authored: (name: string) => boolean): Omit<AngleSliderContext, "dragOffset"> {
-  const step = asCount(raw.step) ?? 1;
+/** The machine's context: the value, the step grid, the flags, and the
+ * grab offset the drag holds. */
+export function initial(args: AngleSliderArgs): AngleSliderContext {
+  const step = asCount(args.step) ?? 1;
   return {
-    value: asCount(authored("value") ? raw.value : null) ?? asCount(raw.defaultValue) ?? 0,
+    value: asCount(args.value) ?? 0,
     step,
-    largeStep: asCount(raw.largeStep) ?? 10 * step,
-    dir: raw.dir === "rtl" ? "rtl" : "ltr",
-    disabled: raw.disabled === true,
-    readOnly: raw.readOnly === true,
-    invalid: raw.invalid === true,
+    largeStep: asCount(args.largeStep) ?? 10 * step,
+    dir: args.dir === "rtl" ? "rtl" : "ltr",
+    disabled: args.disabled === true,
+    readOnly: args.readOnly === true,
+    invalid: args.invalid === true,
+    dragOffset: null,
   };
 }
 
@@ -175,19 +192,9 @@ export function valueAsDegree(value: number): string {
   return `${value}deg`;
 }
 
-export const config = {
+const config = {
   id: "angle-slider",
   initial: "idle",
-  context: {
-    value: 0,
-    step: 1,
-    largeStep: 10,
-    dir: "ltr" as "ltr" | "rtl",
-    disabled: false,
-    readOnly: false,
-    invalid: false,
-    dragOffset: null as number | null,
-  },
   on: {
     "VALUE.SET": { actions: [{ assign: "setValue" }] },
     SET_STEP: { actions: [{ assign: "setStep" }] },
@@ -226,13 +233,17 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {},
   assigns: {
     setValue: (ctx: AngleSliderContext, event: AngleSliderEvent): Partial<AngleSliderContext> => {
       if (event.type !== "VALUE.SET") return {};
       void ctx;
-      return { value: clampAngle(event.value) };
+      // The value arrives the way the host wrote it; the machine shapes
+      // it, wherever it came from.
+      const value = asCount(event.value);
+      if (value === null) return {};
+      return { value: clampAngle(value) };
     },
     setDragOffset: (ctx: AngleSliderContext, event: AngleSliderEvent): Partial<AngleSliderContext> => {
       if (event.type !== "CONTROL.POINTER_DOWN") return {};
@@ -296,3 +307,35 @@ export const implementations = {
     },
   },
 };
+
+/**
+ * The angle-slider machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function angleSlider(
+  args: AngleSliderArgs = {},
+): Machine<AngleSliderContext, AngleSliderEvent> {
+  return createMachine<AngleSliderContext, AngleSliderEvent>({
+    ...config,
+    context: initial(args),
+    ...implementations,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      step: {},
+      largeStep: {},
+      dir: {},
+      disabled: {},
+      readOnly: {},
+      invalid: {},
+    },
+  });
+}

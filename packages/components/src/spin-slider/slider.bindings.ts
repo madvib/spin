@@ -1,30 +1,27 @@
 import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
-  valuesProp,
   isInteractive,
   percentOf,
+  slider as sliderMachine,
   thumbRange,
   valueOfPercent,
+  type SliderArgs,
   type SliderContext,
   type SliderEvent,
   type SliderFocusChange,
   type SliderValueChange,
   type SliderValueChangeEnd,
   type ThumbCollisionBehavior,
-  type SliderInitial,
 } from "./slider.machine.ts";
 
-export type { SliderInitial };
+export type { SliderArgs };
 
 /**
  * Slider definition: the DOM contract as data. The machine owns the three
  * phases, the values, the focused index, and the step/collision math; this
- * file maps props to bags, commands to sends,
- * and value/focus transitions to their events. Geometry that needs a node
+ * file maps parts to attribute bags, commands to sends, and value/focus
+ * transitions to their events. Geometry that needs a node
  * (pointer-to-value measurement, pointer capture, thumb-grab offset, the
  * checked-thumb focus after a keyboard move) lives in the part bags —
  * reported in as stepped values, because the machine never touches the DOM.
@@ -58,9 +55,6 @@ export interface SliderApi {
   getThumbProps(slot: { readonly index: number }): Record<string, unknown>;
   getHiddenInputProps(slot: { readonly index: number }): Record<string, unknown>;
 }
-
-const isSliderInitial = (raw: unknown): raw is SliderInitial =>
-  raw !== null && typeof raw === "object";
 
 type Ctx = SliderContext;
 
@@ -127,9 +121,6 @@ const thumbIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-const sameValues = (a: readonly number[], b: readonly number[]): boolean =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
-
 type Capturable = Element & { setPointerCapture?: (id: number) => void };
 const isCapturable = (value: unknown): value is Capturable => {
   if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
@@ -142,43 +133,11 @@ const capturePointer = (target: EventTarget | null, pointerId: number): void => 
 
 const def: ComponentDef<SliderContext, SliderEvent> = {
   name: "slider",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => sliderMachine(props as SliderArgs),
   start: "idle",
-  seed: (raw, authored) => ({ ...initial(isSliderInitial(raw) ? raw : {}, authored) }),
-  // The merged values are the machine's own shapes, not the raw props:
-  // a scope prop is a string on the way in, and `largeStep` absent means
-  // "ten times the step" — a merge of "" would say zero.
-  scalarsOf: (parsed) => {
-    // The machine's own shape, not the raw props: a scope prop is a
-    // string on the way in, and an absent `largeStep` means "ten times
-    // the step" — a merge of "" would say zero.
-    const shaped = initial(isSliderInitial(parsed) ? parsed : {}, () => true);
-    return {
-      min: shaped.min,
-      max: shaped.max,
-      step: shaped.step,
-      largeStep: shaped.largeStep,
-      minStepsBetweenThumbs: shaped.minStepsBetweenThumbs,
-      origin: shaped.origin,
-      orientation: shaped.orientation,
-      thumbCollisionBehavior: shaped.thumbCollisionBehavior,
-      disabled: shaped.disabled,
-      readOnly: shaped.readOnly,
-      invalid: shaped.invalid,
-    };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    if (authored("value")) {
-      const outer = valuesProp(parsed["value"]);
-      if (outer !== null && !sameValues(ctx.value, outer)) {
-        send({ type: "SET_VALUE", value: [...outer] });
-        return true;
-      }
-    }
-    return false;
-  },
   commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
   parts: {
     root: {

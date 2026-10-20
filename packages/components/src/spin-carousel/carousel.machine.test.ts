@@ -1,32 +1,28 @@
 import { assertEquals } from "@std/assert";
 import {
+  carousel as carouselMachine,
+  pageCountFor,
   type CarouselContext,
   type CarouselEvent,
-  config,
-  implementations,
-  pageCountFor,
 } from "./carousel.machine.ts";
-import { createMachine, interpret, type Service } from "@spin/runtime/fsm";
+import { interpret, type Service } from "@spin/runtime/fsm";
 
 /**
- * The carousel's config, its assigns and its derived page count, through the
- * fork's public API.
+ * The carousel's machine, its assigns and its derived page count, through
+ * the fork's public API.
  *
- * A service is seeded through the same two moves the bridge makes: one
- * `PAGES.SET` (which also detaches the context from the config's own
- * object, so one test's writes cannot reach the next), then the scalar the
- * assigns read. Everything asserted after that is what a host observes.
+ * A service is built the way the bridge builds it: the factory, with the
+ * arguments the host would set. The page count then arrives as the bridge
+ * sends it — one `PAGES.SET` — and everything asserted after that is what
+ * a host observes.
  */
 function carousel(
   slideCount: number,
   loop = false,
 ): Service<CarouselContext, CarouselEvent> {
-  const svc = interpret(
-    createMachine<CarouselContext, CarouselEvent>({ ...config, ...implementations }),
-  );
+  const svc = interpret(carouselMachine({ loop }));
   svc.start("idle");
   svc.send({ type: "PAGES.SET", count: slideCount });
-  svc.state.context.loop = loop;
   return svc;
 }
 

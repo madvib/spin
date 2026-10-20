@@ -12,20 +12,31 @@
  * the last signal wins, exactly as Zag's machine reads.
  */
 
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export interface AvatarContext {
   src: string;
 }
 
-export interface AvatarInitial {
-  readonly src?: unknown;
-  readonly defaultSrc?: unknown;
+/**
+ * The avatar's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultSrc`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface AvatarArgs {
+  /** The image source, as the host wrote it. */
+  src?: string;
 }
 
-/** Seed shaping: the src falls back to its default, then empty. Transport
- * guarantees the bag is object-shaped; the guard asserts that point. */
-export function initial(raw: AvatarInitial): AvatarContext {
-  const pick = (value: unknown): string | null => typeof value === "string" ? value : null;
-  return { src: pick(raw.src) ?? pick(raw.defaultSrc) ?? "" };
+/** The source the host wrote: a string, or none. */
+const srcOf = (raw: unknown): string => typeof raw === "string" ? raw : "";
+
+/** The machine's context: the source it holds, and nothing else. */
+export function initial(args: AvatarArgs): AvatarContext {
+  return { src: srcOf(args.src) };
 }
 
 export type AvatarEvent =
@@ -41,12 +52,9 @@ export type AvatarStatusChange = {
   readonly status: AvatarStatus;
 };
 
-export const config = {
+const config = {
   id: "avatar",
   initial: "loading",
-  context: {
-    src: "",
-  },
   on: {
     "SRC.CHANGE": { target: "loading", actions: [{ assign: "setSrc" }] },
     "IMG.UNMOUNT": { target: "error" },
@@ -72,13 +80,40 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {},
   assigns: {
     setSrc: (ctx: AvatarContext, event: AvatarEvent): Partial<AvatarContext> => {
       if (event.type !== "SRC.CHANGE" && event.type !== "SET_SRC") return {};
-      void ctx;
-      return { src: event.src };
+      // The source arrives the way the host wrote it; the machine shapes
+      // it, wherever it came from.
+      return { src: typeof event.src === "string" ? event.src : ctx.src };
     },
   },
 };
+
+/**
+ * The avatar machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function avatar(
+  args: AvatarArgs = {},
+): Machine<AvatarContext, AvatarEvent> {
+  return createMachine<AvatarContext, AvatarEvent>({
+    ...config,
+    context: initial(args),
+    ...implementations,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      src: { event: "SRC.CHANGE" },
+    },
+  });
+}

@@ -6,16 +6,15 @@ import {
   type PartScope,
   type SlotScope,
 } from "@spin/runtime";
-import { coerceJsonArray } from "@spin/runtime";
 import {
-  config,
   defaultSizes,
   handleId,
-  implementations,
   parsePanels,
   isInteractive,
   panelCollapsed,
+  splitter as splitterMachine,
   validateSizes,
+  type SplitterArgs,
   type SplitterContext,
   type SplitterEvent,
   type SplitterPanel,
@@ -25,8 +24,8 @@ import {
 /**
  * Splitter bindings: the DOM contract as data. The machine owns the four
  * phases, the percent sizes, the drag snapshot and the collapse memory;
- * this file maps transport inputs to seed, parts to attribute bags and
- * commands to sends. Pointer-to-percent measurement reports through
+ * this file maps parts to attribute bags and commands to sends.
+ * Pointer-to-percent measurement reports through
  * `scope.measure` (the framework resolves the node; defs never query).
  * Pointer capture uses a guarded helper, never a cast.
  */
@@ -79,18 +78,6 @@ type ItemSlot =
   | { readonly type: "panel"; readonly id: string }
   | { readonly type: "handle"; readonly beforeId: string; readonly afterId: string };
 
-/** Panel entries arrive as an array or JSON text (no grammar recursive
- * type); anything else is no panels. Shaping stays total: malformed
- * entries drop, they never throw. */
-/** Percent sizes travel as JSON text (the grammar coerces `= []` to
- * `["[]"]`); malformed or non-numeric is no sizes, not a throw. */
-const sizesProp = (raw: unknown): number[] | null => {
-  const list: readonly unknown[] = Array.isArray(raw) ? raw : coerceJsonArray(typeof raw === "string" ? raw : null, []);
-  if (list.length === 0) return null;
-  if (!list.every((item): item is number => typeof item === "number" && Number.isFinite(item))) return null;
-  return [...list];
-};
-
 const sameSizes = (a: readonly number[], b: readonly number[]): boolean =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
@@ -105,18 +92,6 @@ const COMMIT_TYPES: ReadonlySet<string> = new Set([
   "EXPAND_PANEL",
   "RESIZE_PANEL",
 ]);
-
-const samePanels = (a: readonly SplitterPanel[], b: readonly SplitterPanel[]): boolean =>
-  a.length === b.length &&
-  a.every((panel, index) => {
-    const other = b[index];
-    return other !== undefined &&
-      panel.id === other.id &&
-      panel.minSize === other.minSize &&
-      panel.maxSize === other.maxSize &&
-      panel.collapsible === other.collapsible &&
-      panel.collapsedSize === other.collapsedSize;
-  });
 
 const itemsOf = (panels: readonly SplitterPanel[]): readonly SplitterItem[] => {
   const built: SplitterItem[] = [];
@@ -369,73 +344,26 @@ const indicatorSig = (scope: ScopeLike, beforeId: string, afterId: string): stri
 
 const def: ComponentDef<SplitterContext, SplitterEvent> = {
   name: "splitter",
-  config,
-  implementations,
-  // Scope defaults arrive in props without being authored (authored tracks
-  // element attributes only), so a required plain-name prop like `panels`
-  // seeds from props directly — the authored gate would read the absent
-  // `defaultPanels` and reseed empty. Controlled attributes are in props
-  // at seed either way.
-  seed: (raw) => {
-    // Parsed absent channels are `[]`, not nullish, so `??` alone keeps
-    // an empty `size` over an authored `defaultSize`: prefer non-empty.
-    const listRaw: unknown = parsePanels(raw["panels"]).length > 0 ? raw["panels"] : raw["defaultPanels"];
-    const panels = parsePanels(listRaw);
-    const sizesOf = (value: unknown): number[] => {
-      const parsed = typeof value === "string" ? coerceJsonArray(value, []) : value;
-      return Array.isArray(parsed) && parsed.length > 0 && parsed.every((v): v is number => typeof v === "number" && Number.isFinite(v)) ? [...parsed] : [];
-    };
-    const sized = sizesOf(raw["size"]);
-    const spec = sized.length > 0 ? sized : sizesOf(raw["defaultSize"]);
-    let size: number[];
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => splitterMachine(props as SplitterArgs),
+  // The derived half of the old sync stays: the sizes follow the tree, so
+  // the machine never sees a tree it cannot lay out. The tree itself
+  // arrives as the machine's own event — the contract says so.
+  reconcile: ({ context }) => {
+    let next: number[];
     try {
-      size = validateSizes(panels, defaultSizes(panels.length, spec));
+      next = validateSizes(
+        context.panels,
+        defaultSizes(context.panels.length, context.size),
+      );
     } catch {
-      size = defaultSizes(panels.length, spec);
+      next = defaultSizes(context.panels.length, []);
     }
-    return {
-      panels: [...panels],
-      size,
-      orientation: raw["orientation"] === "vertical" ? "vertical" : "horizontal",
-      disabled: raw["disabled"] === true,
-      beforeCollapse: {},
-      focusedHandle: null,
-      drag: null,
-    };
-  },
-  // `orientation` is not a scalar: the scope's default is the empty
-  // string, so the parsed value would overwrite the machine's resolved
-  // orientation. The reconcile moves it when the host authored it.
-  scalars: ["disabled"],
-  reconcile: ({ context, parsed, authored, send }) => {
-    // A changed panel tree reseeds the sizes it still fits — the machine
-    // never sees a tree it cannot lay out. Host JSON arrives as text;
-    // coerce through the framework grammar first.
-    const next: SplitterPanel[] = parsePanels(parsed["panels"]);
-    if (!samePanels(context.panels, next)) {
-      context.panels = [...next];
-      try {
-        context.size = validateSizes(context.panels, defaultSizes(context.panels.length, context.size));
-      } catch {
-        context.size = defaultSizes(context.panels.length, []);
-      }
-      return true;
-    }
-    if (authored("orientation")) {
-      const next = parsed["orientation"] === "vertical" ? "vertical" : "horizontal";
-      if (next !== context.orientation) {
-        context.orientation = next;
-        return true;
-      }
-    }
-    if (authored("size")) {
-      const outer = sizesProp(parsed["size"]);
-      if (outer !== null && !sameSizes(context.size, outer)) {
-        send({ type: "SET_SIZE", size: [...outer] });
-        return true;
-      }
-    }
-    return false;
+    if (sameSizes(context.size, next)) return false;
+    context.size = next;
+    return true;
   },
   commitEvents: [
     "POINTER_UP",

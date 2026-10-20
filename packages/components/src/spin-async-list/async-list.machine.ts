@@ -20,16 +20,31 @@
  * fork's context has no optional fields.
  */
 
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export interface SortDescriptor {
   readonly column: string;
   readonly direction: "ascending" | "descending";
 }
 
-export interface AsyncListInitial {
-  readonly initialItems?: unknown;
-  readonly initialFilterText?: unknown;
-  readonly initialSortDescriptor?: unknown;
-  readonly sortFn?: unknown;
+/**
+ * The async-list's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The seeds
+ * (`initialItems`, `initialFilterText`, `initialSortDescriptor`) are the
+ * list's starting state; the sort function is the host's own, and the
+ * machine only asks whether it is there.
+ */
+export interface AsyncListArgs {
+  /** The items the list starts with. */
+  initialItems?: readonly unknown[];
+  /** The filter the list starts with. */
+  initialFilterText?: string;
+  /** The sort the list starts with. */
+  initialSortDescriptor?: SortDescriptor;
+  /** The host's sort function, when it wrote one. */
+  sortFn?: unknown;
 }
 
 export const isSortDescriptor = (value: unknown): value is SortDescriptor => {
@@ -49,15 +64,22 @@ export function itemsOf(raw: unknown): readonly unknown[] {
   return [...raw];
 }
 
-/** Seed shaping: the static seed lands at service creation, not through
- * a transition — a static list renders, sorts, and filters client-side. */
-export function initial(raw: AsyncListInitial): Pick<AsyncListContext, "items" | "filterText" | "sortDescriptor" | "hasSortFn"> {
-  const filter: unknown = raw.initialFilterText;
+/** The machine's context: the static seed lands at service creation, not
+ * through a transition — a static list renders, sorts, and filters
+ * client-side. */
+export function initial(args: AsyncListArgs): AsyncListContext {
   return {
-    items: itemsOf(raw.initialItems),
-    filterText: typeof filter === "string" ? filter : "",
-    sortDescriptor: isSortDescriptor(raw.initialSortDescriptor) ? raw.initialSortDescriptor : null,
-    hasSortFn: typeof raw.sortFn === "function",
+    items: itemsOf(args.initialItems),
+    cursor: null,
+    filterText: typeof args.initialFilterText === "string"
+      ? args.initialFilterText
+      : "",
+    sortDescriptor: isSortDescriptor(args.initialSortDescriptor)
+      ? args.initialSortDescriptor
+      : null,
+    error: undefined,
+    hasSortFn: typeof args.sortFn === "function",
+    dependenciesHash: undefined,
   };
 }
 
@@ -85,18 +107,9 @@ export type AsyncListEvent =
   | { type: "ERROR"; error: unknown }
   | { type: "ABORT" };
 
-export const config = {
+const config = {
   id: "async-list",
   initial: "idle",
-  context: {
-    items: [] as readonly unknown[],
-    cursor: null as unknown,
-    filterText: "",
-    sortDescriptor: null as SortDescriptor | null,
-    error: undefined as unknown,
-    hasSortFn: false,
-    dependenciesHash: undefined as string | undefined,
-  },
   // Zag's root tier. A reload is valid from anywhere: `sorting` shadows it to
   // cancel the in-flight sort on the way, which is what its extra work is.
   on: {
@@ -168,7 +181,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     hasCursor: (ctx: AsyncListContext): boolean => ctx.cursor != null,
     hasSortFn: (ctx: AsyncListContext): boolean => ctx.hasSortFn,
@@ -195,3 +208,29 @@ export const implementations = {
     clearCursor: (): Partial<AsyncListContext> => ({ cursor: null }),
   },
 };
+
+/**
+ * The async-list machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function asyncList(
+  args: AsyncListArgs = {},
+): Machine<AsyncListContext, AsyncListEvent> {
+  return createMachine<AsyncListContext, AsyncListEvent>({
+    ...config,
+    context: initial(args),
+    ...implementations,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      hasSortFn: {},
+    },
+  });
+}

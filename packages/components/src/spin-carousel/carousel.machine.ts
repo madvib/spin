@@ -17,6 +17,35 @@
  * than by a 200ms timer the machine would own.
  */
 
+import { isRecord } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
+/** One slide: the record the host wrote. */
+export interface CarouselSlide {
+  readonly value: string;
+  readonly label: string;
+  readonly content: string;
+}
+
+/** The slide collection: the well-shaped entries only. */
+export const slidesOf = (raw: unknown): readonly CarouselSlide[] => {
+  if (!Array.isArray(raw)) return [];
+  const slides: CarouselSlide[] = [];
+  for (const entry of raw) {
+    if (!isRecord(entry)) continue;
+    const value: unknown = entry["value"];
+    if (typeof value !== "string") continue;
+    const label: unknown = entry["label"];
+    const content: unknown = entry["content"];
+    slides.push({
+      value,
+      label: typeof label === "string" ? label : "",
+      content: typeof content === "string" ? content : "",
+    });
+  }
+  return slides;
+};
+
 /** The event detail of `index-change`: Zag's `onPageChange`, faithful. */
 export interface CarouselIndexChange {
   readonly index: number;
@@ -103,19 +132,9 @@ const rest = (ctx: CarouselContext): CarouselDragStatus =>
 const midGesture = (status: CarouselDragStatus): boolean =>
   status === "dragging" || status === "settling";
 
-export const config = {
+const config = {
   id: "carousel",
   initial: "idle",
-  context: {
-    index: 0,
-    pageCount: 0,
-    slidesInView: [] as number[],
-    focused: false,
-    dragStatus: "idle" as CarouselDragStatus,
-    loop: false,
-    perMove: 1,
-    slideParams: { perMove: 1, slidesPerPage: 1, autoSize: false, slideCount: 0 },
-  },
   // Root tier: the programmatic commands and the reflexes that answer in
   // every state. `AUTOPLAY.TICK` is the one event this does NOT carry —
   // an interval that fires while stopped is a bug, not a fallback.
@@ -155,7 +174,7 @@ export const config = {
  * that has to know WHICH event fired it is a transition that was not split
  * far enough.
  */
-export const implementations = {
+const implementations = {
   assigns: {
     next: (ctx: CarouselContext): Partial<CarouselContext> => ({
       index: ctx.loop
@@ -167,8 +186,13 @@ export const implementations = {
         ? (ctx.index - 1 + cycle(ctx.pageCount)) % cycle(ctx.pageCount)
         : Math.max(0, ctx.index - 1),
     }),
-    goTo: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> =>
-      e.type === "GO_TO" ? { index: clampIndex(e.index, ctx.pageCount) } : {},
+    goTo: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> => {
+      if (e.type !== "GO_TO") return {};
+      // The index arrives the way the host wrote it; the machine shapes
+      // it, wherever it came from.
+      if (typeof e.index !== "number" || !Number.isFinite(e.index)) return {};
+      return { index: clampIndex(e.index, ctx.pageCount) };
+    },
     setPageCount: (
       ctx: CarouselContext,
       e: CarouselEvent,
@@ -225,23 +249,62 @@ export const implementations = {
   },
 };
 
-export interface CarouselInitial {
-  readonly index?: unknown;
-  readonly defaultIndex?: unknown;
-  readonly loop?: unknown;
-}
-
 const asInt = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
 
-/** Seed shaping: the index falls back to its default, then zero, clamped
- * to the derived page count. */
-export function initial(raw: CarouselInitial, pageCount: number): Pick<CarouselContext, "index" | "loop"> {
+/** How many slides a page holds: at least one. */
+export const slidesPerPageOf = (raw: unknown): number => Math.max(1, asInt(raw, 1));
+
+/** How many slides a page advances: the host's number, or one page of
+ * slides. The prop is text ("auto", or a count), so it parses. */
+export const slidesPerMoveOf = (raw: unknown, perPage: number): number => {
+  const parsed = typeof raw === "string" ? Number.parseInt(raw, 10) : Number.NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : perPage;
+};
+
+/**
+ * The carousel's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultIndex`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface CarouselArgs {
+  /** The page on screen, as the host wrote it. */
+  index?: number;
+  /** Whether the carousel loops around. */
+  loop?: boolean;
+  /** The slides the track holds, as the host wrote them. */
+  items?: readonly unknown[];
+  /** How many slides a page holds. */
+  slidesPerPage?: number;
+  /** How many slides a page advances; "auto" means one page of slides. */
+  slidesPerMove?: string;
+  /** Whether the slides size themselves to the track. */
+  autoSize?: boolean;
+}
+
+/** The machine's context: the page it is on, the pages there are, and
+ * the mode it is in. The page count is the machine's own derivation: the
+ * slides it holds, the step, and the page size. */
+export function initial(args: CarouselArgs): CarouselContext {
+  const slidesPerPage = slidesPerPageOf(args.slidesPerPage);
+  const perMove = slidesPerMoveOf(args.slidesPerMove, slidesPerPage);
+  const autoSize = args.autoSize === true;
+  const slideCount = slidesOf(args.items).length;
+  const pageCount = pageCountFor(slideCount, perMove, slidesPerPage, autoSize);
   const last = Math.max(0, pageCount - 1);
-  const at = asInt(raw.index, asInt(raw.defaultIndex, 0));
+  const at = asInt(args.index, 0);
   return {
     index: Math.min(Math.max(0, at), last),
-    loop: raw.loop === true,
+    pageCount,
+    slidesInView: [],
+    focused: false,
+    dragStatus: "idle",
+    loop: args.loop === true,
+    perMove,
+    slideParams: { perMove, slidesPerPage, autoSize, slideCount },
   };
 }
 
@@ -262,4 +325,31 @@ export function pageCountFor(
     count += 1;
   }
   return count;
+}
+
+/**
+ * The carousel machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function carousel(
+  args: CarouselArgs = {},
+): Machine<CarouselContext, CarouselEvent> {
+  return createMachine<CarouselContext, CarouselEvent>({
+    ...config,
+    context: initial(args),
+    ...implementations,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      index: { event: "GO_TO" },
+      loop: {},
+    },
+  });
 }

@@ -1,17 +1,14 @@
 import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  flipOf,
-  implementations,
-  initial,
+  imageCropper as imageCropperMachine,
   isGesturing,
   roundedCrop,
   type CropHandle,
   type CropPoint,
   type CropRect,
+  type ImageCropperArgs,
   type ImageCropperContext,
   type ImageCropperEvent,
-  type ImageCropperInitial,
 } from "./image-cropper.machine.ts";
 
 /**
@@ -88,10 +85,6 @@ export interface ImageCropperApi {
 interface ScopeLike extends PartScope<unknown, ImageCropperContext> {}
 
 interface SlotLike<R> extends SlotScope<R, ImageCropperContext> {}
-
-/** Transport guarantees the raw prop bag is an ImageCropperInitial-shaped object. */
-const isImageCropperInitial = (raw: unknown): raw is ImageCropperInitial =>
-  raw !== null && typeof raw === "object";
 
 const sameRect = (a: CropRect, b: CropRect): boolean =>
   a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
@@ -223,48 +216,10 @@ const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
   name: "image-cropper",
-  config,
-  implementations,
-  seed: (raw, _authored) => {
-    const props: ImageCropperInitial = isImageCropperInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return {
-      ...shaped,
-      crop: { x: 0, y: 0, width: 0, height: 0 },
-      viewportRect: { x: 0, y: 0, width: 0, height: 0 },
-      naturalSize: { width: 0, height: 0 },
-      offset: { x: 0, y: 0 },
-      pointerStart: null,
-      cropStart: null,
-      offsetStart: null,
-      handlePosition: null,
-    };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    if (authored("zoom")) {
-      const zoom = countOf(parsed["zoom"]);
-      if (zoom !== null && context.zoom !== zoom) {
-        send({ type: "SET_ZOOM", zoom });
-        return true;
-      }
-    }
-    if (authored("rotation")) {
-      const rotation = countOf(parsed["rotation"]);
-      if (rotation !== null && context.rotation !== rotation) {
-        send({ type: "SET_ROTATION", rotation });
-        return true;
-      }
-    }
-    if (authored("flip")) {
-      const outer = flipOf(parsed["flip"]);
-      if (outer !== null && (context.flipHorizontal !== outer.horizontal || context.flipVertical !== outer.vertical)) {
-        send({ type: "SET_FLIP", horizontal: outer.horizontal, vertical: outer.vertical });
-        return true;
-      }
-    }
-    return false;
-  },
-  scalars: ["cropShape", "aspectRatio", "minWidth", "minHeight", "maxWidth", "maxHeight", "fixedCropArea"],
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => imageCropperMachine(props as ImageCropperArgs),
   parts: {
     root: {
       sig: (scope) => {

@@ -23,6 +23,7 @@
  */
 
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export type ColorFormat = "hex" | "hexa" | "rgb" | "rgba" | "hsl" | "hsla" | "hsb" | "hsba";
 
@@ -43,7 +44,7 @@ export interface ColorPickerContext {
 
 export type ColorPickerEvent =
   | { type: "VALUE.SET"; value: string }
-  | { type: "FORMAT.SET"; format: ColorFormat }
+  | { type: "FORMAT.SET"; format: ColorFormat | string }
   | { type: "OPEN" }
   | { type: "CLOSE" }
   | { type: "CONTROLLED.OPEN" }
@@ -69,7 +70,7 @@ export type ColorPickerEvent =
   | { type: "SWATCH_TRIGGER.CLICK"; value: string }
   | { type: "EYEDROPPER.CLICK" };
 
-export const config = {
+const config = {
   id: "color-picker",
   initial: "idle",
   context: {
@@ -187,7 +188,7 @@ const serialize = (color: ReturnType<typeof parseColor>, format: ColorFormat): s
 
 type AreaFormat = "hsla" | "hsba";
 
-export const implementations = {
+const implementations = {
   conds: {
     // Controlled inline is always open: the host owns the visibility.
     isOpenControlled: (ctx: ColorPickerContext): boolean => ctx.inline,
@@ -206,6 +207,9 @@ export const implementations = {
     },
     setFormat: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
       if (event.type !== "FORMAT.SET") return {};
+      // The format arrives the way the host wrote it: the machine shapes it,
+      // and a format it does not know is no write at all.
+      if (!isFormat(event.format)) return {};
       const { color } = parse(ctx.value, "#000000");
       return { format: event.format, value: serialize(color, event.format) };
     },
@@ -320,17 +324,27 @@ export const implementations = {
   },
 };
 
-export interface ColorPickerInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly format?: unknown;
-  readonly defaultFormat?: unknown;
-  readonly open?: unknown;
-  readonly defaultOpen?: unknown;
-  readonly inline?: unknown;
-  readonly disabled?: unknown;
-  readonly readOnly?: unknown;
-  readonly closeOnSelect?: unknown;
+/**
+ * The color-picker's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twins
+ * (`defaultValue`, `defaultFormat`) are resolved by the framework before
+ * the factory is called, so the machine only ever sees the live value.
+ */
+export interface ColorPickerArgs {
+  /** The color, as the host wrote it. */
+  value?: string;
+  /** The format the color is serialized in. */
+  format?: string;
+  /** Whether the panel is inline — and so always open. */
+  inline?: boolean;
+  /** Whether the control is disabled. */
+  disabled?: boolean;
+  /** Whether the control is read-only. */
+  readOnly?: boolean;
+  /** Whether a swatch selection closes the panel. */
+  closeOnSelect?: boolean;
 }
 
 const FORMATS: readonly string[] = ["hex", "hexa", "rgb", "rgba", "hsl", "hsla", "hsb", "hsba"];
@@ -341,31 +355,38 @@ const isFormat = (raw: unknown): raw is ColorFormat =>
 const textOf = (raw: unknown, fallback: string): string =>
   typeof raw === "string" && raw.length > 0 ? raw : fallback;
 
-/** Seed shaping: flags name themselves; the value, format and open
- * arrive through establish (parsed there). */
-export function initial(raw: ColorPickerInitial): Pick<ColorPickerContext, "disabled" | "readOnly" | "closeOnSelect" | "inline" | "areaX" | "areaY"> {
+/**
+ * The color the host wrote, normalized the way the machine's own assigns
+ * would: the value first in hex, then reserialized in the format. The two
+ * steps are the machine's, in that order — a color with an alpha loses it
+ * in hex and keeps it in the format.
+ */
+const valueOf = (raw: unknown, format: ColorFormat): string => {
+  const hex = serialize(parse(textOf(raw, "#000000"), "#000000").color, "hex");
+  return serialize(parse(hex, "#000000").color, format);
+};
+
+/** The machine's context: the flags name themselves, and the color is the
+ * host's own text put through the machine's parser. */
+export function initial(args: ColorPickerArgs): ColorPickerContext {
+  const format = isFormat(args.format) ? args.format : "hex";
   return {
-    disabled: raw.disabled === true,
-    readOnly: raw.readOnly === true,
-    closeOnSelect: raw.closeOnSelect === true,
-    inline: raw.inline === true,
+    value: valueOf(args.value, format),
+    format,
+    activeChannel: null,
     areaX: "saturation",
     areaY: "brightness",
+    disabled: args.disabled === true,
+    readOnly: args.readOnly === true,
+    closeOnSelect: args.closeOnSelect === true,
+    inline: args.inline === true,
   };
 }
 
-/** The seeded format: authored wins, else its default, else hex. */
-export function formatOf(raw: ColorPickerInitial): ColorFormat {
-  const authored: unknown = raw.format;
-  if (isFormat(authored)) return authored;
-  const fallback: unknown = raw.defaultFormat;
-  return isFormat(fallback) ? fallback : "hex";
-}
-
 /** The seeded open state: authored wins, else inline/default-open. */
-export function startOpen(raw: ColorPickerInitial): boolean {
-  if (typeof raw.open === "boolean") return raw.open;
-  return raw.inline === true || raw.defaultOpen === true;
+export function startOpen(raw: Record<string, unknown>): boolean {
+  if (typeof raw["open"] === "boolean") return raw["open"];
+  return raw["inline"] === true || raw["defaultOpen"] === true;
 }
 
 /** True when the panel shows. Inline is always open: the host owns it. */
@@ -374,3 +395,34 @@ export const isOpenPhase = (phase: string, inline: boolean): boolean =>
 
 /** The value string the hidden input carries. */
 export const valueAsString = (ctx: ColorPickerContext): string => ctx.value;
+
+/**
+ * The color-picker machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function colorPicker(
+  args: ColorPickerArgs = {},
+): Machine<ColorPickerContext, ColorPickerEvent> {
+  return createMachine<ColorPickerContext, ColorPickerEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      format: { event: "FORMAT.SET" },
+      disabled: {},
+      readOnly: {},
+      closeOnSelect: {},
+      inline: {},
+    },
+  });
+}

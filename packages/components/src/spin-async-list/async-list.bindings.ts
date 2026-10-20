@@ -1,13 +1,11 @@
 import { dataAttr, defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  asyncList as asyncListMachine,
   isSortDescriptor,
   itemsOf,
+  type AsyncListArgs,
   type AsyncListContext,
   type AsyncListEvent,
-  type AsyncListInitial,
   type SortDescriptor,
 } from "./async-list.machine.ts";
 
@@ -171,10 +169,6 @@ interface ScopeLike extends PartScope<unknown, AsyncListContext> {}
 
 interface SlotLike<R> extends SlotScope<R, AsyncListContext> {}
 
-/** Transport guarantees the raw prop bag is an AsyncListInitial-shaped object. */
-const isAsyncListInitial = (raw: unknown): raw is AsyncListInitial =>
-  raw !== null && typeof raw === "object";
-
 /** Per-bridge async state: the abort controller, the sequence, and the
  * dependency hash. Keyed by the root element the bridge owns. */
 interface AsyncView {
@@ -285,21 +279,14 @@ const startSort = (
 
 const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   name: "async-list",
-  config,
-  implementations,
-  seed: (raw, _authored) => {
-    const props: AsyncListInitial = isAsyncListInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    // No throw: a static list (initialItems, no loader) renders, sorts,
-    // and filters client-side. Loads without a loader are already no-ops
-    // in settled, so the throw only ever killed static usage.
-    return { ...shaped, cursor: null, error: undefined, dependenciesHash: undefined };
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props) => asyncListMachine(props as AsyncListArgs),
   // An autoReload mount loads once; the reconcile watcher answers every
   // dependency change after it.
   establish: (raw) => {
-    const props: AsyncListInitial = isAsyncListInitial(raw) ? raw : {};
-    return props["autoReload" as keyof AsyncListInitial] === true ? [{ type: "RELOAD" }] : [];
+    return raw["autoReload"] === true ? [{ type: "RELOAD" }] : [];
   },
   // The reflex table runs after every transmit: which event needs which
   // piece of async work, with the state the send landed in.
@@ -327,11 +314,17 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       startFetch(view, send, load, event, afterCtx);
     }
   },
-  scalars: ["hasSortFn"],
-  scalarsOf: (parsed) => ({
-    hasSortFn: isSortFn(parsed["sortFn"]),
-  }),
   reconcile: ({ context, parsed, send }) => {
+    let moved = false;
+    // The derived sync: the machine's flag follows the host's sort
+    // function, so a host that writes one after the mount still sorts
+    // client-side. The contract cannot carry it — the host writes the
+    // function, not the flag — so the element keeps the flag in sync.
+    const hasSortFn = isSortFn(parsed["sortFn"]);
+    if (context.hasSortFn !== hasSortFn) {
+      context.hasSortFn = hasSortFn;
+      moved = true;
+    }
     // The dependencies watcher: the mount hash is captured, never
     // dispatched — the watcher fires on a change only, and the mount load
     // is autoReload's job.
@@ -339,14 +332,14 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     const dependencies = itemsOf(raw).filter((dependency) => Boolean(dependency)).join(",");
     if (context.dependenciesHash === undefined) {
       context.dependenciesHash = dependencies;
-      return false;
+      return moved;
     }
     if (dependencies !== context.dependenciesHash) {
       context.dependenciesHash = dependencies;
       send({ type: "RELOAD" });
       return true;
     }
-    return false;
+    return moved;
   },
   parts: {
     root: {

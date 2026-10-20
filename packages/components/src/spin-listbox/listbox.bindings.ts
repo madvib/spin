@@ -7,12 +7,10 @@ import {
   type SlotScope,
 } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  listbox as listboxMachine,
+  type ListboxArgs,
   type ListboxContext,
   type ListboxEvent,
-  type ListboxInitial,
 } from "./listbox.machine.ts";
 /**
  * Listbox definition: the DOM contract as data. The machine owns the
@@ -404,31 +402,19 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     }
   }
 };
-/** Transport guarantees the raw prop bag is a ListboxInitial-shaped object;
- * the guard asserts that trust point instead of a silent `as`. */
-const isListboxInitial = (raw: unknown): raw is ListboxInitial =>
-  raw !== null && typeof raw === "object";
 const def: ComponentDef<ListboxContext, ListboxEvent> = {
   name: "listbox",
-  config,
-  implementations,
-  seed: (raw, authored) => ({ ...initial(isListboxInitial(raw) ? raw : {}, authored) }),
-  reconcile: ({ context, parsed, authored, send }) => {
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => listboxMachine(props as ListboxArgs),
+  reconcile: ({ context, parsed, send }) => {
     const ctx = context;
     const order = orderOf(parsed);
     ctx.disabledValues = rowsOf(parsed).filter((row) => row.disabled).map((row) => row.value);
     ctx.order = order;
     ctx.labels = labelsOf(parsed);
     send({ type: "SELECTED_ITEMS.SYNC" });
-    // The highlighted value is the host's channel: it alternates only
-    // when the host authored it, and the machine owns the move.
-    if (authored("highlightedValue")) {
-      const outer = parsed["highlightedValue"];
-      const value = typeof outer === "string" ? outer : null;
-      if (value !== ctx.highlightedValue) {
-        send({ type: "HIGHLIGHTED_VALUE.SET", value: value ?? "" });
-      }
-    }
     return true;
   },
   parts: {

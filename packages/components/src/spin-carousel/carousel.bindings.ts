@@ -1,16 +1,28 @@
-import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
+  authoredProps,
+  defineComponent,
+  isRecord,
+  machineTick,
+  resolveTwins,
+  type ComponentDef,
+  type PartScope,
+  type SlotScope,
+} from "@spin/runtime";
+import {
+  carousel as carouselMachine,
   initial,
   pageCountFor,
+  slidesOf,
+  slidesPerMoveOf,
+  slidesPerPageOf,
+  type CarouselArgs,
   type CarouselContext,
   type CarouselDragStatus,
   type CarouselEvent,
-  type CarouselInitial,
+  type CarouselSlide,
 } from "./carousel.machine.ts";
 
-export type { CarouselDragStatus };
+export type { CarouselDragStatus, CarouselSlide };
 
 /**
  * Carousel definition: the DOM contract as data. The machine holds a page
@@ -25,12 +37,6 @@ export type { CarouselDragStatus };
  * command and its event all say `index`, because a carousel pages slides
  * and `page` is one word for two ideas.
  */
-
-export interface CarouselSlide {
-  readonly value: string;
-  readonly label: string;
-  readonly content: string;
-}
 
 export interface CarouselItemProps {
   readonly index: number;
@@ -114,32 +120,6 @@ const intersectThreshold = (raw: unknown): number => {
   return Math.min(1, Math.max(0, percent / 100));
 };
 
-const asInt = (value: unknown, fallback: number): number =>
-  typeof value === "number" && Number.isFinite(value)
-    ? Math.trunc(value)
-    : fallback;
-
-
-/** The slide collection off the transport: well-shaped entries only. */
-const slidesOf = (parsed: Record<string, unknown>): readonly CarouselSlide[] => {
-  const raw: unknown = parsed["items"];
-  if (!Array.isArray(raw)) return [];
-  const slides: CarouselSlide[] = [];
-  for (const entry of raw) {
-    if (!isRecord(entry)) continue;
-    const value: unknown = entry["value"];
-    if (typeof value !== "string") continue;
-    const label: unknown = entry["label"];
-    const content: unknown = entry["content"];
-    slides.push({
-      value,
-      label: typeof label === "string" ? label : "",
-      content: typeof content === "string" ? content : "",
-    });
-  }
-  return slides;
-};
-
 /** Everything the machine derives from the slide props, in one place. */
 const derive = (parsed: Record<string, unknown>): {
   readonly slidesPerPage: number;
@@ -148,12 +128,10 @@ const derive = (parsed: Record<string, unknown>): {
   readonly slideCount: number;
   readonly pageCount: number;
 } => {
-  const slidesPerPage = Math.max(1, asInt(parsed["slidesPerPage"], 1));
-  const moveRaw: unknown = parsed["slidesPerMove"];
-  const moveParsed = typeof moveRaw === "string" ? Number.parseInt(moveRaw, 10) : Number.NaN;
-  const perMove = Number.isFinite(moveParsed) && moveParsed > 0 ? moveParsed : slidesPerPage;
+  const slidesPerPage = slidesPerPageOf(parsed["slidesPerPage"]);
+  const perMove = slidesPerMoveOf(parsed["slidesPerMove"], slidesPerPage);
   const autoSize = parsed["autoSize"] === true;
-  const slideCount = slidesOf(parsed).length;
+  const slideCount = slidesOf(parsed["items"]).length;
   return {
     slidesPerPage,
     perMove,
@@ -168,20 +146,6 @@ type Ctx = CarouselContext;
 interface ScopeLike extends PartScope<unknown, CarouselContext> {}
 
 interface SlotLike<R> extends SlotScope<R, CarouselContext> {}
-
-/** Transport guarantees the raw prop bag is a CarouselInitial-shaped object. */
-const isCarouselInitial = (raw: unknown): raw is CarouselInitial =>
-  raw !== null && typeof raw === "object";
-
-// Scope props arrive as strings; hooks write numbers. Accept both.
-const numProp = (raw: unknown): number | null => {
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-};
 
 const lastPageOf = (ctx: Ctx): number => Math.max(0, ctx.pageCount - 1);
 const movesOf = (ctx: Ctx): number => Math.max(1, Math.trunc(ctx.perMove));
@@ -268,7 +232,7 @@ const perPageAttrs = (slidesPerPage: number): Record<string, unknown> => {
 const slideInView = (scope: ScopeLike, index: number): boolean => {
   const ctx = scope.context;
   if (ctx.slidesInView.includes(index)) return true;
-  const slides = slidesOf(scope.props);
+  const slides = slidesOf(scope.props["items"]);
   const start = ctx.index * movesOf(ctx);
   const perPage: unknown = scope.props["slidesPerPage"];
   const perMove = Math.max(1, Math.min(typeof perPage === "number" && perPage > 0 ? perPage : 1, slides.length - start || 1));
@@ -385,41 +349,26 @@ const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<CarouselContext, CarouselEvent> = {
   name: "carousel",
-  config,
-  implementations,
-  start: (raw, _authored) => (isCarouselInitial(raw) && raw.autoplay === true ? "autoplay" : "idle"),
-  seed: (raw, _authored) => {
-    const props: CarouselInitial & Record<string, unknown> = isCarouselInitial(raw) ? raw : {};
-    const d = derive(props);
-    const shaped = initial(props, d.pageCount);
-    return {
-      ...shaped,
-      pageCount: d.pageCount,
-      perMove: d.perMove,
-      slidesInView: [],
-      focused: false,
-      dragStatus: "idle" as const,
-      slideParams: {
-        perMove: d.perMove,
-        slidesPerPage: d.slidesPerPage,
-        autoSize: d.autoSize,
-        slideCount: d.slideCount,
-      },
-    };
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props) => carouselMachine(props as CarouselArgs),
+  start: (raw, _authored) => (raw["autoplay"] === true ? "autoplay" : "idle"),
   // The first positioning must not glide: mounted positions without motion,
   // and every later page move glides through settled.
   mounted: ({ props, id, root }) => {
-    const parsed: CarouselInitial & Record<string, unknown> = isCarouselInitial(props) ? props : {};
-    const d = derive(props);
-    const shaped = initial(parsed, d.pageCount);
+    // The machine's own context: the twins resolved the way the factory
+    // saw them, so the view lands on the page the machine is on.
+    const shaped = initial(
+      resolveTwins(props, authoredProps(() => props)) as CarouselArgs,
+    );
     syncView(
       id,
       root,
       props["orientation"] !== "vertical",
       shaped.index,
-      d.pageCount,
-      d.perMove,
+      shaped.pageCount,
+      shaped.perMove,
     );
   },
   settled: ({ after, props, id, root }) => {
@@ -434,8 +383,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       d.perMove,
     );
   },
-  scalars: ["loop"],
-  reconcile: ({ context, parsed, authored, send }) => {
+  reconcile: ({ context, parsed, send }) => {
     const ctx = context;
     const d = derive(parsed);
     ctx.slideParams = {
@@ -453,18 +401,8 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       send({ type: "PAGES.SET", count: d.pageCount });
       moved = true;
     }
-    // Controlled `index` alternates from an authored prop, clamped to the
-    // derived page count.
-    if (authored("index")) {
-      const outer: unknown = parsed["index"];
-      if (typeof outer === "number" && Number.isFinite(outer)) {
-        const wanted = Math.min(Math.max(0, Math.trunc(outer)), Math.max(0, d.pageCount - 1));
-        if (ctx.index !== wanted) {
-          ctx.index = wanted;
-          moved = true;
-        }
-      }
-    }
+    // The controlled `index` is the machine's business: the contract
+    // carries it, and the machine clamps it into the page count.
     return moved;
   },
   parts: {
@@ -669,7 +607,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
   },
   slots: {
     item: {
-      indexes: (_context, props) => slidesOf(props),
+      indexes: (_context, props) => slidesOf(props["items"]),
       sig: (scope: SlotLike<{ readonly index: number }>) => {
         const item = scope.slot;
         return [`${slideInView(scope, item.index)}`, scope.props["orientation"], scope.props["slidesPerPage"], scope.props["autoSize"]].join(" ");
@@ -691,7 +629,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
             ? { "data-auto-size": "" }
             : { ...perPageAttrs(countOf(scope.props["slidesPerPage"]) ?? 1) }),
           "aria-roledescription": "slide",
-          "aria-label": `${item.index + 1} of ${slidesOf(scope.props).length}`,
+          "aria-label": `${item.index + 1} of ${slidesOf(scope.props["items"]).length}`,
           "aria-hidden": !inView,
           // One observer per slide: the slide says whether it is on
           // screen, and the machine decides what that means.
@@ -705,7 +643,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       },
     },
     indicator: {
-      indexes: (_context, props) => slidesOf(props).map((slide, index) => ({ ...slide, index })),
+      indexes: (_context, props) => slidesOf(props["items"]).map((slide, index) => ({ ...slide, index })),
       sig: (scope: SlotLike<{ readonly index: number }>) => {
         const item = scope.slot;
         return [`${item.index === scope.context.index}`, scope.props["orientation"]].join(" ");
@@ -723,7 +661,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
           "data-orientation": scope.props["orientation"],
           "data-current": current ? "" : undefined,
           "aria-current": current,
-          "aria-label": `${item.index + 1} of ${slidesOf(scope.props).length} — ${item.label}`,
+          "aria-label": `${item.index + 1} of ${slidesOf(scope.props["items"]).length} — ${item.label}`,
           "data-readonly": readOnly ? "" : undefined,
           onClick: (): void => {
             if (readOnly) return;
@@ -805,7 +743,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         const index = countOf(args[0]);
         if (index === null) return false;
         if (ctx.slidesInView.includes(index)) return true;
-        const slides = slidesOf(props);
+        const slides = slidesOf(props["items"]);
         const start = ctx.index * movesOf(ctx);
         const perMove = Math.max(1, Math.min(countOf(props["slidesPerPage"]) ?? 1, slides.length - start || 1));
         return index >= start && index < start + perMove;

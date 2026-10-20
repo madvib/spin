@@ -1,34 +1,53 @@
 import { assertEquals } from "jsr:@std/assert";
-import { config, implementations, initial } from "./tabs.machine.ts";
-import type { TabsContext, TabsEvent } from "./tabs.machine.ts";
+import { interpret, type Service } from "@spin/runtime/fsm";
+import {
+  tabs as tabsMachine,
+  type TabsArgs,
+  type TabsContext,
+  type TabsEvent,
+} from "./tabs.machine.ts";
 
-const ctx = (value = "tab1"): TabsContext => ({ value, defaultValue: "tab1", items: [] });
-const run = (
-  name: "setValue" | "selectTab",
-  c: TabsContext,
-  event: TabsEvent,
-): Partial<TabsContext> =>
-  (implementations.assigns as Record<string, (c: TabsContext, e: TabsEvent) => Partial<TabsContext>>)[name]!(
-    c,
-    event,
-  );
+/**
+ * The tabs machine, through the fork's public API.
+ *
+ * A service is built the way the bridge builds it: the factory, with the
+ * arguments the host would set. Everything asserted after that is what
+ * a host observes.
+ */
+function tabs(args: TabsArgs = {}): Service<TabsContext, TabsEvent> {
+  return interpret(tabsMachine(args)).start("idle");
+}
+
+const contextOf = (
+  svc: Service<TabsContext, TabsEvent>,
+): TabsContext => svc.state.context;
 
 Deno.test("tabs starts idle with seeded value", () => {
-  assertEquals(config.initial, "idle");
+  const svc = tabs({ value: "tab1" });
+  assertEquals(svc.state.value, "idle");
+  assertEquals(contextOf(svc).value, "tab1");
 });
 
 Deno.test("tabs select changes value, ignores same value", () => {
-  assertEquals(run("selectTab", ctx("tab1"), { type: "TAB.SELECT", value: "tab2" }), { value: "tab2" });
-  assertEquals(run("selectTab", ctx("tab1"), { type: "TAB.SELECT", value: "tab1" }), {});
-  assertEquals(run("selectTab", ctx("tab1"), { type: "TAB.SELECT", value: "" }), {});
+  const svc = tabs({ value: "tab1" });
+  svc.send({ type: "TAB.SELECT", value: "tab2" });
+  assertEquals(contextOf(svc).value, "tab2");
+  svc.send({ type: "TAB.SELECT", value: "tab2" });
+  assertEquals(contextOf(svc).value, "tab2", "the same value changes nothing");
+  svc.send({ type: "TAB.SELECT", value: "" });
+  assertEquals(contextOf(svc).value, "tab2", "an empty value changes nothing");
 });
 
 Deno.test("tabs outer set wins outright", () => {
-  assertEquals(run("setValue", ctx("tab1"), { type: "VALUE.SET", value: "tab3" }), { value: "tab3" });
+  const svc = tabs({ value: "tab1" });
+  svc.send({ type: "VALUE.SET", value: "tab3" });
+  assertEquals(contextOf(svc).value, "tab3");
 });
 
 Deno.test("tabs initial shapes rows: label falls back to the value, content to empty", () => {
-  const shaped = initial({ items: [{ value: "a" }, { value: "b", label: "Bee", content: "x" }] });
+  const shaped = contextOf(tabs({
+    items: [{ value: "a" }, { value: "b", label: "Bee", content: "x" }],
+  }));
   assertEquals(shaped.items, [
     { value: "a", label: "a", content: "" },
     { value: "b", label: "Bee", content: "x" },
@@ -36,20 +55,22 @@ Deno.test("tabs initial shapes rows: label falls back to the value, content to e
 });
 
 Deno.test("tabs initial skips rows without a usable value", () => {
-  const shaped = initial({ items: [{ label: "no value" }, { value: "" }, "nope", { value: "ok" }] });
+  const shaped = contextOf(tabs({
+    items: [{ label: "no value" }, { value: "" }, "nope", { value: "ok" }],
+  }));
   assertEquals(shaped.items, [{ value: "ok", label: "ok", content: "" }]);
 });
 
 Deno.test("tabs initial falls back value, then defaultValue, then the first row", () => {
   const items = [{ value: "a", label: "A", content: "" }, { value: "b", label: "B", content: "" }];
-  assertEquals(initial({ value: "b", defaultValue: "a", items }).value, "b");
-  assertEquals(initial({ defaultValue: "b", items }).value, "b");
-  assertEquals(initial({ items }).value, "a");
+  assertEquals(contextOf(tabs({ value: "b", defaultValue: "a", items })).value, "b");
+  assertEquals(contextOf(tabs({ defaultValue: "b", items })).value, "b");
+  assertEquals(contextOf(tabs({ items })).value, "a");
 });
 
 Deno.test("tabs initial with empty items stays empty and unselected", () => {
-  const shaped = initial({ items: [] });
+  const shaped = contextOf(tabs({ items: [] }));
   assertEquals(shaped.items, []);
   assertEquals(shaped.value, "");
-  assertEquals(initial({}).value, "");
+  assertEquals(contextOf(tabs({})).value, "");
 });

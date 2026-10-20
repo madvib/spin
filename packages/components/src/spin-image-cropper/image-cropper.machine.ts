@@ -22,6 +22,7 @@ import { isRecord } from "@spin/runtime";
  * statement about the crop, not about nodes.
  */
 
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 import {
   clampPoint,
   centerRect,
@@ -34,20 +35,35 @@ import {
   resolveCropAspectRatio,
 } from "./crop-geometry.ts";
 
-export interface ImageCropperInitial {
-  readonly cropShape?: unknown;
-  readonly aspectRatio?: unknown;
-  readonly minWidth?: unknown;
-  readonly minHeight?: unknown;
-  readonly maxWidth?: unknown;
-  readonly maxHeight?: unknown;
-  readonly fixedCropArea?: unknown;
-  readonly zoom?: unknown;
-  readonly defaultZoom?: unknown;
-  readonly rotation?: unknown;
-  readonly defaultRotation?: unknown;
-  readonly flip?: unknown;
-  readonly defaultFlip?: unknown;
+/**
+ * The image-cropper's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultZoom`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface ImageCropperArgs {
+  /** The crop's shape: "rect" or "circle". */
+  cropShape?: string;
+  /** The crop's aspect ratio. */
+  aspectRatio?: number;
+  /** The crop's smallest width. */
+  minWidth?: number;
+  /** The crop's smallest height. */
+  minHeight?: number;
+  /** The crop's largest width. */
+  maxWidth?: number;
+  /** The crop's largest height. */
+  maxHeight?: number;
+  /** Whether the crop area is fixed. */
+  fixedCropArea?: boolean;
+  /** The zoom, as the host wrote it. */
+  zoom?: string | number;
+  /** The rotation, as the host wrote it. */
+  rotation?: string | number;
+  /** The flip, as the host wrote it. */
+  flip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
 }
 
 
@@ -69,22 +85,29 @@ export function flipOf(raw: unknown): { horizontal: boolean; vertical: boolean }
   return { horizontal: horizontal === true, vertical: vertical === true };
 }
 
-/** Seed shaping: shape/limits/flags name themselves; zoom, rotation and
- * flip fall back to their defaults, then the built-ins. */
-export function initial(raw: ImageCropperInitial): Pick<ImageCropperContext, "cropShape" | "aspectRatio" | "minWidth" | "minHeight" | "maxWidth" | "maxHeight" | "fixedCropArea" | "zoom" | "rotation" | "flipHorizontal" | "flipVertical"> {
-  const flip = flipOf(raw.flip) ?? flipOf(raw.defaultFlip) ?? { horizontal: false, vertical: false };
+/** The machine's own defaults, and the host's arguments where it has them. */
+export function initial(args: ImageCropperArgs = {}): ImageCropperContext {
+  const flip = flipOf(args.flip) ?? { horizontal: false, vertical: false };
   return {
-    cropShape: raw.cropShape === "circle" ? "circle" : "rect",
-    aspectRatio: asCount(raw.aspectRatio),
-    minWidth: asCount(raw.minWidth),
-    minHeight: asCount(raw.minHeight),
-    maxWidth: asCount(raw.maxWidth),
-    maxHeight: asCount(raw.maxHeight),
-    fixedCropArea: raw.fixedCropArea === true,
-    zoom: asCount(raw.zoom) ?? asCount(raw.defaultZoom) ?? 1,
-    rotation: asCount(raw.rotation) ?? asCount(raw.defaultRotation) ?? 0,
+    crop: { x: 0, y: 0, width: 0, height: 0 },
+    viewportRect: { x: 0, y: 0, width: 0, height: 0 },
+    naturalSize: { width: 0, height: 0 },
+    offset: { x: 0, y: 0 },
+    zoom: asCount(args.zoom) ?? 1,
+    rotation: asCount(args.rotation) ?? 0,
     flipHorizontal: flip.horizontal,
     flipVertical: flip.vertical,
+    pointerStart: null,
+    cropStart: null,
+    offsetStart: null,
+    handlePosition: null,
+    cropShape: args.cropShape === "circle" ? "circle" : "rect",
+    aspectRatio: asCount(args.aspectRatio),
+    minWidth: asCount(args.minWidth),
+    minHeight: asCount(args.minHeight),
+    maxWidth: asCount(args.maxWidth),
+    maxHeight: asCount(args.maxHeight),
+    fixedCropArea: args.fixedCropArea === true,
   };
 }
 
@@ -143,7 +166,14 @@ export type ImageCropperEvent =
   | { type: "ZOOM"; delta: number; point?: CropPoint | undefined }
   | { type: "SET_ZOOM"; zoom: number }
   | { type: "SET_ROTATION"; rotation: number }
-  | { type: "SET_FLIP"; horizontal?: boolean; vertical?: boolean }
+  | {
+    type: "SET_FLIP";
+    /** The command's payload: the axes the host named. */
+    horizontal?: boolean;
+    vertical?: boolean;
+    /** The host write's payload: the prop's own name. */
+    flip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
+  }
   | { type: "NUDGE_RESIZE"; handlePosition: CropHandle; large?: boolean }
   | { type: "NUDGE_MOVE"; dx: number; dy: number }
   | { type: "NUDGE_PAN"; dx: number; dy: number }
@@ -152,7 +182,7 @@ export type ImageCropperEvent =
 
 const ZERO: CropRect = { x: 0, y: 0, width: 0, height: 0 };
 
-export const config = {
+const config = {
   id: "image-cropper",
   initial: "idle",
   context: {
@@ -278,7 +308,7 @@ const defaultCropPatch = (
   return { crop: { x: at.x, y: at.y, width: clamped.width, height: clamped.height } };
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     hasViewport: (ctx: ImageCropperContext): boolean => isVisibleRect(ctx.viewportRect),
     /** A fixed area refuses programmatic resizes: the view blocked them
@@ -369,19 +399,28 @@ export const implementations = {
     setZoom: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_ZOOM") return {};
       void ctx;
-      return { zoom: Math.min(8, Math.max(0.1, event.zoom)) };
+      // The zoom arrives the way the host wrote it; the machine shapes it.
+      const zoom = asCount(event.zoom);
+      if (zoom === null) return {};
+      return { zoom: Math.min(8, Math.max(0.1, zoom)) };
     },
     setRotation: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_ROTATION") return {};
       void ctx;
-      return { rotation: Math.min(360, Math.max(0, event.rotation)) };
+      // The rotation arrives the way the host wrote it; the machine shapes
+      // it.
+      const rotation = asCount(event.rotation);
+      if (rotation === null) return {};
+      return { rotation: Math.min(360, Math.max(0, rotation)) };
     },
     setFlip: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_FLIP") return {};
-      void ctx;
+      // The flip arrives the way the host wrote it: the command names the
+      // axes, the host write names the field. The machine shapes it.
+      const host = event.flip === undefined ? null : flipOf(event.flip);
       return {
-        flipHorizontal: event.horizontal ?? ctx.flipHorizontal,
-        flipVertical: event.vertical ?? ctx.flipVertical,
+        flipHorizontal: host !== null ? host.horizontal : event.horizontal ?? ctx.flipHorizontal,
+        flipVertical: host !== null ? host.vertical : event.vertical ?? ctx.flipVertical,
       };
     },
     nudgeResize: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
@@ -468,3 +507,39 @@ export const roundedCrop = (ctx: ImageCropperContext): CropRect => ({
   width: Math.round(ctx.crop.width),
   height: Math.round(ctx.crop.height),
 });
+
+/**
+ * The image-cropper machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function imageCropper(
+  args: ImageCropperArgs = {},
+): Machine<ImageCropperContext, ImageCropperEvent> {
+  return createMachine<ImageCropperContext, ImageCropperEvent>({
+    ...config,
+    context: initial(args),
+    assigns: implementations.assigns,
+    conds: implementations.conds,
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      cropShape: {},
+      aspectRatio: {},
+      minWidth: {},
+      minHeight: {},
+      maxWidth: {},
+      maxHeight: {},
+      fixedCropArea: {},
+      zoom: { event: "SET_ZOOM" },
+      rotation: { event: "SET_ROTATION" },
+      flip: { event: "SET_FLIP" },
+    },
+  });
+}

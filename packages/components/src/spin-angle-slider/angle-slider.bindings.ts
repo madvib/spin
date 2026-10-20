@@ -7,15 +7,13 @@ import {
   type SlotScope,
 } from "@spin/runtime";
 import {
-  config,
+  angleSlider as angleSliderMachine,
   displayAngle,
-  implementations,
-  initial,
   isInteractive,
   valueAsDegree,
+  type AngleSliderArgs,
   type AngleSliderContext,
   type AngleSliderEvent,
-  type AngleSliderInitial,
   type AngleSliderValueChange,
 } from "./angle-slider.machine.ts";
 
@@ -83,24 +81,9 @@ export interface AngleSliderApi {
   getMarkerProps(slot: AngleSliderMarkerSlotProps): Record<string, unknown>;
 }
 
-// Scope props arrive as strings; hooks write numbers. Accept both — a
-// string-authored `defaultValue="45"` seeds 45, not 0.
-const numProp = (raw: unknown): number | null => {
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-};
-
 interface ScopeLike extends PartScope<unknown, AngleSliderContext> {}
 
 interface SlotLike<R> extends SlotScope<R, AngleSliderContext> {}
-
-/** Transport guarantees the raw prop bag is an AngleSliderInitial-shaped object. */
-const isAngleSliderInitial = (raw: unknown): raw is AngleSliderInitial =>
-  raw !== null && typeof raw === "object";
 
 const MARKERS = [0, 45, 90, 135, 180, 225, 270, 315];
 
@@ -186,34 +169,10 @@ const focusThumb = (id: (part: string, slot?: unknown) => string): void => {
 
 const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   name: "angle-slider",
-  config,
-  implementations,
-  seed: (raw, authored) => {
-    const props: AngleSliderInitial = isAngleSliderInitial(raw) ? raw : {};
-    const shaped = initial(props, authored);
-    // An authored channel starts at its value, not its default.
-    const value = authored("value") ? numProp(props.value) ?? shaped.value : shaped.value;
-    return { ...shaped, value, dragOffset: null };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    if (!authored("value")) return false;
-    const value = numProp(parsed["value"]);
-    if (value === null || context.value === value) return false;
-    send({ type: "VALUE.SET", value });
-    return true;
-  },
-  scalars: ["step", "dir", "disabled", "readOnly", "invalid"],
-  scalarsOf: (parsed) => {
-    const step = numProp(parsed["step"]) ?? 1;
-    return {
-      step,
-      largeStep: numProp(parsed["largeStep"]) ?? 10 * step,
-      dir: parsed["dir"],
-      disabled: parsed["disabled"],
-      readOnly: parsed["readOnly"],
-      invalid: parsed["invalid"],
-    };
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props) => angleSliderMachine(props as AngleSliderArgs),
   commitEvents: [
     "DOC.POINTER_UP",
     "THUMB.ARROW_INC",
