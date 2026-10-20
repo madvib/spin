@@ -1,11 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  isComposing,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   flipOf,
@@ -146,8 +139,6 @@ const insideSelection = (scope: ScopeLike, target: EventTarget | null): boolean 
 /** The nudge step: shift multiplies by ten. */
 /** A handle slot arg: the recipe's `{ position: row }` names a handle;
  * anything else is the southeast handle. */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const HANDLE_NAMES: readonly string[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 

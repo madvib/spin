@@ -1,3 +1,5 @@
+
+import { isRecord } from "@spin/runtime";
 /**
  * Image-cropper machine: idle, dragging the selection, panning the image.
  *
@@ -48,8 +50,6 @@ export interface ImageCropperInitial {
   readonly defaultFlip?: unknown;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const asCount = (raw: unknown): number | null => {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;

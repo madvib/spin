@@ -20,6 +20,7 @@ export {
   coerceList,
   coerceObjectArrayItems,
   coerceString,
+  isRecord,
   type CoerceObjectField,
   type CoercePropDecl,
   type PropCoerceType,

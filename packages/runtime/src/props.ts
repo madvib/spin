@@ -31,6 +31,15 @@ export interface CoercePropDecl {
  * bool: presence (`""`, `"true"`, absent) is true, `"false"` is false,
  * anything else is the fallback.
  */
+/**
+ * Whether a value is a plain record: an object, not null, not an array.
+ * The components' props arrive as records; the framework's grammar
+ * speaks in records, so the test belongs here.
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function coerceBool(raw: string | null | undefined, fallback: boolean | undefined): boolean | undefined {
   if (raw === null || raw === undefined || raw === "" || raw === "true") return true;
   if (raw === "false") return false;

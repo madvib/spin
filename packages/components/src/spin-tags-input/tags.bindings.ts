@@ -1,9 +1,4 @@
-import {
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
@@ -117,8 +112,6 @@ const defaultTranslations: TagsTranslations = {
 const defaultSanitize: SanitizeValue = (value: string): string => value.trim();
 const defaultValidate: ValidateTag = (): boolean => true;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 type HostFn = (...args: readonly unknown[]) => unknown;
 

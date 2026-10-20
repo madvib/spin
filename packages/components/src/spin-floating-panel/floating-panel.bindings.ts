@@ -1,10 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta } from "@spin/runtime/actions";
 import {
   config,
@@ -91,8 +85,6 @@ const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -
 const sameSize = (a: FloatingPanelSize, b: FloatingPanelSize): boolean =>
   a.w === b.w && a.h === b.h;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** A stage-trigger arg: ark's three stages, defaulting to restore. */
 const stageOf = (arg: unknown): FloatingPanelStageTrigger["stage"] => {

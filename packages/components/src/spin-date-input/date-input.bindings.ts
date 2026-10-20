@@ -1,10 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   clampValue,
   config,
@@ -264,8 +258,6 @@ const isDateValue = (raw: unknown): raw is DateValue => {
   });
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isIdFn = (id: unknown): id is IdFn =>
   typeof id === "function";

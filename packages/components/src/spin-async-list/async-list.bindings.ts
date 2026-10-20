@@ -1,11 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  machineTick,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
@@ -140,8 +133,6 @@ const isAbortError = (error: unknown): boolean =>
 
 /** A load the host resolved with. A result missing its items is an empty
  * page rather than a crash inside the assign. */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const fieldOf = (raw: unknown, field: string): unknown =>
   isRecord(raw) ? raw[field] : undefined;

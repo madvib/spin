@@ -1,10 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   clampDay,
   dayAsString,
@@ -215,8 +209,6 @@ const cellView = (
 const textOf = (raw: unknown, fallback: string): string =>
   typeof raw === "string" && raw.length > 0 ? raw : fallback;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 type FormatFn = (value: DatePickerValue, at: string) => string;
 

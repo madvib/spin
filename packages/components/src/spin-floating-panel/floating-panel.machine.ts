@@ -1,3 +1,5 @@
+
+import { isRecord } from "@spin/runtime";
 /**
  * Floating-panel machine: the open/closed modes, the gesture modes inside
  * open (idle, dragging, resizing), and the stage that changes which
@@ -82,8 +84,6 @@ export interface FloatingPanelInitial {
   readonly closeOnEscape?: unknown;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** A size off the transport: `{ w, h }` numbers, or JSON text. Well-shaped
  * only; anything else is absent. Named once; transport owns the grammar. */

@@ -1,10 +1,4 @@
-import {
-  coerceJsonArray,
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { coerceJsonArray, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
@@ -275,8 +269,6 @@ const isNode = (value: unknown): value is CascadeNode => {
 
 /** The collection off the transport: the grammar coerces `= []` to
  * `["[]"]`, and a host array passes through. Well-shaped only. */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const collectionCache = new WeakMap<object, readonly CascadeNode[]>();
 /** The JSON-transported collection, keyed by its text: two instances with

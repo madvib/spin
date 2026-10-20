@@ -1,12 +1,5 @@
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
-import {
-  dataAttr,
-  defineComponent,
-  isComposing,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   formatOf,
@@ -150,8 +143,6 @@ const areaChannels = (props: unknown): { x: ColorChannel; y: ColorChannel } => {
   };
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** The text off the event's own input: its value, or empty. */
 const textOf = (target: EventTarget | null): string => {

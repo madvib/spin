@@ -1,10 +1,4 @@
-import {
-  defineComponent,
-  machineTick,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   formatTime,
@@ -135,8 +129,6 @@ const separatorAfter = (slot: unknown): TimePart => {
 const isLast = (slot: unknown): boolean =>
   isRecord(slot) && slot["last"] === true;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** An action trigger's action: the five valid verbs, defaulting to start. */
 const isAction = (value: unknown): value is TimerActionTrigger["action"] =>

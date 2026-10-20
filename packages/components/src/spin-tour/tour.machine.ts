@@ -15,7 +15,7 @@
  * dismissal at the last step means (a completion rather than a bail).
  */
 
-import { coerceJsonArray } from "@spin/runtime";
+import { coerceJsonArray, isRecord } from "@spin/runtime";
 
 export interface TourStepRecord {
   readonly id: string;
@@ -53,8 +53,6 @@ export interface TourInitial {
 
 /** A step entry: id names it, the rest is optional text. Malformed
  * entries drop; anything else is no steps. */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const parseJsonList = (raw: unknown): readonly unknown[] => {
   if (typeof raw !== "string" || raw.length === 0) return [];

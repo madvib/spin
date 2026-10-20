@@ -1,10 +1,4 @@
-import {
-  defineComponent,
-  machineTick,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
@@ -125,8 +119,6 @@ const asInt = (value: unknown, fallback: number): number =>
     ? Math.trunc(value)
     : fallback;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** The slide collection off the transport: well-shaped entries only. */
 const slidesOf = (parsed: Record<string, unknown>): readonly CarouselSlide[] => {

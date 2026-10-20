@@ -1,10 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   config,
   implementations,
@@ -148,8 +142,6 @@ const isLoadChildren = (value: unknown): value is LoadChildren =>
 
 /** Write the grafted tree back onto the host element the way it arrived:
  * JSON text on the `nodes` property. Anything else is not a host. */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** The rename label off the input target: its value, or empty. */
 const rowOf = (arg: unknown): VisibleRow => {

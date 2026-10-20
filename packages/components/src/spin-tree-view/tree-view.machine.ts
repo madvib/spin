@@ -21,7 +21,7 @@
  *    talks to the machine in events. No actors required for this.
  */
 
-import { coerceJsonArray } from "@spin/runtime";
+import { coerceJsonArray, isRecord } from "@spin/runtime";
 /**
  * Tree-view machine: the config and its vocabulary. States, events, guards,
  * and pure assigns. The bridge (`bridge.ts`) turns scope values into this
@@ -56,8 +56,6 @@ export interface TreeInitial {
   readonly rename?: unknown;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 export interface TreeNodeShape {
   readonly value: string;
