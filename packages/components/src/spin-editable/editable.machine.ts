@@ -14,8 +14,12 @@
  * exactly as the listbox reports `onValueChange`.
  *
  * `editControlled` and `maxLength` live in the context because the assigns
- * read them, and the bridge syncs them from scope.
+ * read them; the machine's contract writes the cap, and the element keeps
+ * the controlled channel's fact in step with the host's authorship.
  */
+
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface EditableContext {
   value: string;
@@ -39,26 +43,49 @@ export type EditableEvent =
    * right after a submit commits, anything else reverts. */
   | { type: "CONTROLLED.PREVIEW"; previousEvent: string };
 
-/** The transport-coerced input to `initial`: every field optional. */
-export interface EditableInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
+/**
+ * The editable's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface EditableArgs {
+  /** The value, as the host wrote it. */
+  value?: string;
+  /** The host's cap on the value; zero or none leaves it uncapped. */
+  maxLength?: number;
+  defaultMaxLength?: number;
 }
 
-/** Shape the transport-coerced props into the machine's initial context. */
-export function initial(raw: EditableInitial): EditableContext {
-  const text = (field: unknown): string => (typeof field === "string" ? field : "");
-  const seeded = text(raw.value) || text(raw.defaultValue);
+/** The machine's context, built from the arguments: the value, and the
+ * cap the assigns read. */
+export function initial(args: EditableArgs = {}, authored: (name: string) => boolean): EditableContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const value = written("value") && typeof args.value === "string" ? args.value : "";
+  const cap = args.maxLength;
   return {
-    value: seeded,
-    previousValue: seeded,
-    maxLength: null,
+    value,
+    previousValue: value,
+    maxLength: written("maxLength") && typeof cap === "number" &&
+        Number.isFinite(cap) && cap > 0
+      ? Math.trunc(cap)
+      : null,
+    // The controlled channel's fact is the host's authorship of `editing`,
+    // not a value: the element keeps it in step, and the machine's own
+    // default stands until it does.
     editControlled: false,
     lastEvent: "",
   };
 }
 
-export const config = {
+const config = {
   id: "editable",
   initial: "preview",
   context: {
@@ -105,7 +132,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     isEditControlled: (ctx: EditableContext): boolean => ctx.editControlled,
     isSubmitEvent: (_ctx: EditableContext, e: EditableEvent): boolean =>
@@ -114,8 +141,11 @@ export const implementations = {
   assigns: {
     setValue: (ctx: EditableContext, e: EditableEvent): Partial<EditableContext> => {
       if (e.type !== "VALUE.SET") return {};
+      // The value arrives the way the host wrote it; the machine shapes
+      // it, wherever it came from.
+      const raw = typeof e.value === "string" ? e.value : "";
       const max = ctx.maxLength;
-      const value = max === null ? e.value : e.value.slice(0, max);
+      const value = max === null || max <= 0 ? raw : raw.slice(0, max);
       return value === ctx.value ? {} : { value };
     },
     setPreviousValue: (ctx: EditableContext): Partial<EditableContext> => ({
@@ -130,3 +160,32 @@ export const implementations = {
       ctx.previousValue === "" ? {} : { value: ctx.previousValue },
   },
 };
+
+/**
+ * The editable machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function editable(
+  args: EditableArgs = {},
+  authored: (name: string) => boolean,
+): Machine<EditableContext, EditableEvent> {
+  return createMachine<EditableContext, EditableEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      editControlled: {},
+      maxLength: {},
+    },
+  });
+}

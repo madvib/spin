@@ -14,6 +14,9 @@
  * `File` handle, a stream) is out of scope — the row shows its metadata.
  */
 
+import { coerceJsonArray, defaultTwin, isRecord } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export interface FileRecord {
   readonly name: string;
   readonly size: number;
@@ -27,7 +30,7 @@ export interface FileUploadContext {
   acceptedFiles: FileRecord[];
   /** Files that failed, each with the rule that refused it. */
   rejectedFiles: FileRejection[];
-  /** The scalars the assigns read, synced from scope by the bridge. */
+  /** The rules the assigns read, written by the machine's contract. */
   multiple: boolean;
   directory: boolean;
   /** A comma-joined accept list (`.png,image/*`); empty accepts all. */
@@ -51,33 +54,79 @@ export interface FileUploadValueChange {
   readonly rejectedFiles: readonly FileRejection[];
 }
 
-export interface FileUploadInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly multiple?: unknown;
-  readonly directory?: unknown;
-  readonly accept?: unknown;
-  readonly maxFiles?: unknown;
-  readonly maxSize?: unknown;
-  readonly minSize?: unknown;
-  readonly disabled?: unknown;
+/**
+ * The file-upload's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface FileUploadArgs {
+  /** The selection, as the host wrote it: the files, or their JSON. */
+  value?: string;
+  /** Whether the selection holds more than one file. */
+  multiple?: boolean;
+  /** Whether the picker takes a folder. */
+  directory?: boolean;
+  /** The accept list: `.png,image/*`; empty accepts everything. */
+  accept?: string;
+  /** The most files a selection may hold; 0 is unbounded. */
+  maxFiles?: number;
+  /** The size ceiling in bytes; 0 is unbounded. */
+  maxSize?: number;
+  /** The size floor in bytes; 0 is unbounded. */
+  minSize?: number;
+  /** Whether the dropzone is disabled. */
+  disabled?: boolean;
+  defaultDisabled?: boolean;
 }
 
-/** Seed shaping: scalars only — the selection arrives through VALUE.SET
- * (the establish path), never through the seed, so two dropzones never
- * share one seeded context. */
-export function initial(raw: FileUploadInitial): Omit<FileUploadContext, "acceptedFiles" | "rejectedFiles"> {
+/** The files a write carries: the records themselves, or the JSON text a
+ * host wrote. Well-shaped entries survive; anything else is no file. */
+export function filesOf(raw: unknown): FileRecord[] {
+  const list: readonly unknown[] = Array.isArray(raw)
+    ? raw
+    : (typeof raw === "string" && raw.length > 0 ? coerceJsonArray(raw, []) : []);
+  const files: FileRecord[] = [];
+  for (const entry of list) {
+    if (!isRecord(entry)) continue;
+    const name: unknown = entry["name"];
+    const size: unknown = entry["size"];
+    if (typeof name !== "string" || typeof size !== "number" || !Number.isFinite(size)) continue;
+    const type: unknown = entry["type"];
+    const path: unknown = entry["path"];
+    files.push({
+      name,
+      size,
+      type: typeof type === "string" ? type : "",
+      path: typeof path === "string" ? path : "",
+    });
+  }
+  return files;
+}
+
+/** The machine's context, built from the arguments: the rules the
+ * validation reads, and the selection the host wrote. */
+export function initial(args: FileUploadArgs = {}, authored: (name: string) => boolean): FileUploadContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const count = (value: unknown): number =>
     typeof value === "number" && Number.isFinite(value) ? value : 0;
-  const text = (value: unknown): string => typeof value === "string" ? value : "";
   return {
-    multiple: raw.multiple === true,
-    directory: raw.directory === true,
-    accept: text(raw.accept),
-    maxFiles: count(raw.maxFiles),
-    maxSize: count(raw.maxSize),
-    minSize: count(raw.minSize),
-    disabled: raw.disabled === true,
+    acceptedFiles: written("value") ? filesOf(args.value) : [],
+    rejectedFiles: [],
+    multiple: written("multiple") ? args.multiple === true : false,
+    directory: written("directory") ? args.directory === true : false,
+    accept: written("accept") && typeof args.accept === "string" ? args.accept : "",
+    maxFiles: written("maxFiles") ? count(args.maxFiles) : 0,
+    maxSize: written("maxSize") ? count(args.maxSize) : 0,
+    minSize: written("minSize") ? count(args.minSize) : 0,
+    disabled: written("disabled") ? args.disabled === true : false,
   };
 }
 
@@ -89,10 +138,11 @@ export type FileUploadEvent =
   | { type: "DROPZONE.DRAG_OVER" }
   | { type: "DROPZONE.DRAG_LEAVE" }
   | { type: "FILE.REMOVE"; name: string }
-  | { type: "VALUE.SET"; files: readonly FileRecord[] }
+  /** The selection: the files themselves, or the JSON text a host wrote. */
+  | { type: "VALUE.SET"; value: readonly FileRecord[] | string }
   | { type: "VALUE.CLEAR" };
 
-export const config = {
+const config = {
   id: "file-upload",
   initial: "idle",
   context: {
@@ -198,7 +248,7 @@ export function splitFiles(
   return { accepted, rejected };
 }
 
-export const implementations = {
+const implementations = {
   conds: {},
   assigns: {
     setFiles: (ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
@@ -232,8 +282,44 @@ export const implementations = {
     },
     setValue: (_ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
       if (e.type !== "VALUE.SET") return {};
-      return { acceptedFiles: [...e.files], rejectedFiles: [] };
+      // The selection arrives the way the host wrote it; the machine shapes
+      // it, wherever it came from.
+      return { acceptedFiles: filesOf(e.value), rejectedFiles: [] };
     },
     clearValue: (): Partial<FileUploadContext> => ({ acceptedFiles: [], rejectedFiles: [] }),
   },
 };
+
+/**
+ * The file-upload machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function fileUpload(
+  args: FileUploadArgs = {},
+  authored: (name: string) => boolean,
+): Machine<FileUploadContext, FileUploadEvent> {
+  return createMachine<FileUploadContext, FileUploadEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      multiple: {},
+      directory: {},
+      accept: {},
+      maxFiles: {},
+      maxSize: {},
+      minSize: {},
+      disabled: {},
+    },
+  });
+}

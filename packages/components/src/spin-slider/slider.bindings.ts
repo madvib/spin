@@ -136,7 +136,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => sliderMachine(props as SliderArgs),
+  machine: (props, authored) => sliderMachine(props as SliderArgs, authored),
   start: "idle",
   commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
   parts: {

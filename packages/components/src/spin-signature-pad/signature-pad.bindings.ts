@@ -114,7 +114,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => signaturePadMachine(props as SignaturePadArgs),
+  machine: (props, authored) => signaturePadMachine(props as SignaturePadArgs, authored),
   reconcile: ({ context, parsed, send }) => {
     // Tuning merges through the machine's SET_TUNING: it shapes the
     // stroke renderer, and the merge stays one assign. The paths are the

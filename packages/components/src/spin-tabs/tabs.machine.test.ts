@@ -15,7 +15,7 @@ import {
  * a host observes.
  */
 function tabs(args: TabsArgs = {}): Service<TabsContext, TabsEvent> {
-  return interpret(tabsMachine(args)).start("idle");
+  return interpret(tabsMachine(args, () => true)).start("idle");
 }
 
 const contextOf = (

@@ -15,7 +15,8 @@
  * dismissal at the last step means (a completion rather than a bail).
  */
 
-import { coerceJsonArray, isRecord } from "@spin/runtime";
+import { defaultTwin, isRecord } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface TourStepRecord {
   readonly id: string;
@@ -45,10 +46,19 @@ export interface TourDismissChange {
   readonly step: number;
 }
 
-export interface TourInitial {
-  readonly steps?: unknown;
-  readonly defaultSteps?: unknown;
-  readonly step?: unknown;
+/**
+ * The tour's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultSteps`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface TourArgs {
+  /** The steps, as the host wrote them: JSON text, one entry per step. */
+  readonly steps?: string;
+  /** The step the host points at: an index into the steps. */
+  readonly step?: number;
 }
 
 /** A step entry: id names it, the rest is optional text. Malformed
@@ -86,14 +96,26 @@ export function stepsOf(raw: unknown): TourStepRecord[] {
   return steps;
 }
 
-/** Seed shaping: the steps win over their default; a legal index wins,
- * else the tour starts unrunnning (-1). */
-export function initial(raw: TourInitial): Pick<TourContext, "steps" | "step" | "previousStep"> {
-  const steps = stepsOf(raw.steps).length > 0 ? stepsOf(raw.steps) : stepsOf(raw.defaultSteps);
-  const at: unknown = raw.step;
+/** The machine's context, from its arguments: the steps the host wrote, the
+ * step it points at (a legal index, else the tour starts unrunnning), and no
+ * previous step yet. The twin (`defaultSteps`) was resolved by the framework
+ * before the factory was called, so the arguments carry the live value.
+ *
+ * The step is the host's channel: the host's own write stands — the live
+ * prop or its twin, which is the same write under the framework's
+ * convention — else the machine's own default, the tour unrunnning (-1).
+ * The steps are the element's data: the collection is taken as it is. */
+export function initial(
+  args: TourArgs,
+  authored: (name: string) => boolean = () => true,
+): Pick<TourContext, "steps" | "step" | "previousStep"> {
+  const steps = stepsOf(args.steps);
+  const step = authored("step") || authored(defaultTwin("step"))
+    ? stepOf(args.step, steps.length)
+    : -1;
   return {
     steps,
-    step: typeof at === "number" && Number.isInteger(at) && at >= 0 && at < steps.length ? at : -1,
+    step,
     previousStep: -1,
   };
 }
@@ -114,7 +136,7 @@ export type TourEvent =
   | { type: "DISMISS" }
   | { type: "SKIP" };
 
-export const config = {
+const config = {
   id: "tour",
   initial: "inactive",
   context: {
@@ -172,7 +194,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     hasSteps: (ctx: TourContext): boolean => ctx.steps.length > 0,
     isValidStep: (ctx: TourContext, e: TourEvent): boolean =>
@@ -185,7 +207,9 @@ export const implementations = {
     startAtZero: (): Partial<TourContext> => ({ previousStep: -1, step: 0 }),
     setStep: (ctx: TourContext, e: TourEvent): Partial<TourContext> => {
       if (e.type !== "STEP.SET") return {};
-      return { previousStep: ctx.step, step: e.step };
+      // The step arrives the way the host wrote it; the machine shapes it,
+      // wherever it came from.
+      return { previousStep: ctx.step, step: stepOf(e.step, ctx.steps.length) };
     },
     advance: (ctx: TourContext): Partial<TourContext> => {
       if (ctx.step + 1 >= ctx.steps.length) return {};
@@ -200,3 +224,30 @@ export const implementations = {
     complete: (ctx: TourContext): Partial<TourContext> => ({ previousStep: ctx.step, step: -1 }),
   },
 };
+
+/**
+ * The tour machine: state and nothing else. It is headless — it knows its
+ * own arguments, and nothing about props, markup, or the DOM.
+ */
+export function tour(
+  args: TourArgs = {},
+  authored: (name: string) => boolean = () => true,
+): Machine<TourContext, TourEvent> {
+  return createMachine<TourContext, TourEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event, the
+     * machine decides, and the change reaches the host. A field without
+     * one is SILENT: the host's write lands in the field, and nothing
+     * reports.
+     */
+    fields: {
+      step: { event: "STEP.SET" },
+    },
+  });
+}

@@ -107,6 +107,7 @@ export interface RatingGroupArgs {
   disabled?: boolean;
   /** Whether the group is read-only. */
   readOnly?: boolean;
+  defaultReadOnly?: boolean;
 }
 
 /**
@@ -115,6 +116,7 @@ export interface RatingGroupArgs {
  */
 export function ratingGroup(
   args: RatingGroupArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<RatingGroupContext, RatingGroupEvent> {
   return createMachine<RatingGroupContext, RatingGroupEvent>({
     id: "rating-group",

@@ -16,6 +16,7 @@
  * the scope prop.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface PinInputContext {
@@ -44,6 +45,7 @@ export interface PinInputArgs {
   value?: string | readonly string[];
   /** Whether the pin takes focus when it mounts. */
   autoFocus?: boolean;
+  defaultCount?: number;
 }
 
 const parseChars = (raw: unknown): string[] => {
@@ -57,13 +59,27 @@ const parseChars = (raw: unknown): string[] => {
 
 /** The machine's context, from its arguments: the cell count, the
  * characters the host wrote (filled to the count), and the index the
- * keyboard talks to. */
-export function initial(args: PinInputArgs): PinInputContext {
+ * keyboard talks to.
+ *
+ * The characters are a channel: the host's write, or the machine's own
+ * default. The element's declared default is not a write, so it never
+ * stands in for one. The seed twin (`defaultValue`) is the host's write
+ * of the characters — the framework resolved it into the args — so it
+ * counts as a write too. The cell count is the element's own data, as it
+ * is.
+ */
+export function initial(args: PinInputArgs, authored: (name: string) => boolean): PinInputContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const count =
     typeof args.count === "number" && Number.isFinite(args.count)
       ? Math.max(0, Math.trunc(args.count))
       : DEFAULT_COUNT;
-  const chars = parseChars(args.value);
+  const chars = written("value") ? parseChars(args.value) : [];
   return {
     value: fill(chars, count),
     focusedIndex: args.autoFocus === true ? 0 : -1,
@@ -109,6 +125,7 @@ export type PinInputEvent =
  */
 export function pinInput(
   args: PinInputArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<PinInputContext, PinInputEvent> {
   return createMachine<PinInputContext, PinInputEvent>({
     id: "pin-input",
@@ -126,7 +143,7 @@ export function pinInput(
       value: { event: "VALUE.SET" },
       count: {},
     },
-    context: initial(args),
+    context: initial(args, authored),
     // The root tier, exactly as Zag: the value events work from every state,
     // which is what lets the host's commands and the controlled channel write
     // the value without knowing whether a cell holds focus.

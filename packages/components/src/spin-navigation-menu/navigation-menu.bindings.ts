@@ -81,7 +81,7 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => navigationMenuMachine(props as NavigationMenuArgs),
+  machine: (props, authored) => navigationMenuMachine(props as NavigationMenuArgs, authored),
   start: (props, authored) =>
     startState(resolveTwins(props, authored) as NavigationMenuArgs),
   parts: {

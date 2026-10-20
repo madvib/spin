@@ -42,7 +42,7 @@ const def: ComponentDef<TabsContext, TabsEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => tabsMachine(props as TabsArgs),
+  machine: (props, authored) => tabsMachine(props as TabsArgs, authored),
   parts: {
     root: {
       sig: () => "",

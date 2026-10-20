@@ -1,14 +1,11 @@
 import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
-import { coerceJsonArray } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  fileUpload as fileUploadMachine,
   type FileRecord,
   type FileRejection,
+  type FileUploadArgs,
   type FileUploadContext,
   type FileUploadEvent,
-  type FileUploadInitial,
   type FileUploadValueChange,
 } from "./file-upload.machine.ts";
 
@@ -63,52 +60,6 @@ export interface FileUploadApi extends FileUploadCommands {
   getClearTriggerProps(): Record<string, unknown>;
 }
 
-/**
- * The JSON transport for a seeded selection: `[{"name":"a.png","size":4,
- * "type":"image/png"}]`. Live files cannot travel as attributes; the
- * seeded channel carries their records.
- */
-/** The seeded selection off the JSON transport: live files cannot travel
- * as attributes, so the seeded channel carries their records. Well-shaped
- * entries survive; anything else is no seed, not a throw. */
-const parseFiles = (raw: unknown): FileRecord[] | null => {
-  const list: readonly unknown[] = Array.isArray(raw)
-    ? raw
-    : (typeof raw === "string" && raw.length > 0 ? coerceJsonArray(raw, []) : []);
-  if (list.length === 0) return null;
-  const files: FileRecord[] = [];
-  for (const entry of list) {
-    if (!isRecord(entry)) continue;
-    const name: unknown = entry["name"];
-    const size: unknown = entry["size"];
-    if (typeof name !== "string" || typeof size !== "number" || !Number.isFinite(size)) continue;
-    const type: unknown = entry["type"];
-    const path: unknown = entry["path"];
-    files.push({ name, size, type: typeof type === "string" ? type : "", path: typeof path === "string" ? path : "" });
-  }
-  return files;
-};
-
-/** A raw array into records: well-shaped entries survive, the rest drop. */
-const shapeFiles = (list: readonly unknown[]): FileRecord[] => {
-  const files: FileRecord[] = [];
-  for (const entry of list) {
-    if (!isRecord(entry)) continue;
-    const name: unknown = entry["name"];
-    const size: unknown = entry["size"];
-    if (typeof name !== "string" || typeof size !== "number" || !Number.isFinite(size)) continue;
-    const type: unknown = entry["type"];
-    const path: unknown = entry["path"];
-    files.push({ name, size, type: typeof type === "string" ? type : "", path: typeof path === "string" ? path : "" });
-  }
-  return files;
-};
-
-const readInt = (parsed: Record<string, unknown>, name: string): number => {
-  const value = parsed[name];
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
-};
-
 interface ScopeLike extends PartScope<unknown, FileUploadContext> {}
 
 interface SlotLike<R> extends SlotScope<R, FileUploadContext> {}
@@ -129,10 +80,6 @@ const openPicker = (id: (part: string, slot?: unknown) => string): void => {
     };
   request(() => node.click());
 };
-
-/** Transport guarantees the raw prop bag is a FileUploadInitial-shaped object. */
-const isFileUploadInitial = (raw: unknown): raw is FileUploadInitial =>
-  raw !== null && typeof raw === "object";
 
 const isDirectoryFile = (file: File): file is File & { readonly webkitRelativePath: unknown } =>
   "webkitRelativePath" in file;
@@ -185,35 +132,10 @@ const deleteHandlerFor = (scope: ScopeLike, row: FileRow): { readonly onClick: (
 
 const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   name: "file-upload",
-  config,
-  implementations,
-  seed: (raw) => {
-    const props: FileUploadInitial = isFileUploadInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return { ...shaped, acceptedFiles: [], rejectedFiles: [] };
-  },
-  establish: (raw, authored) => {
-    // The CLEAR detaches the fork's shared initial context (two dropzones
-    // on a page would otherwise share one context until the first drop),
-    // and the SET validates the seed.
-    const props: FileUploadInitial = isFileUploadInitial(raw) ? raw : {};
-    const seeded: unknown = authored("value") ? props.value : props.defaultValue;
-    const files = Array.isArray(seeded) ? shapeFiles(seeded) : parseFiles(seeded) ?? [];
-    return files.length > 0
-      ? [{ type: "VALUE.CLEAR" }, { type: "VALUE.SET", files: [...files] }]
-      : [{ type: "VALUE.CLEAR" }];
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    if (!authored("value")) return false;
-    const raw: unknown = parsed["value"];
-    const outer = Array.isArray(raw) ? shapeFiles(raw) : parseFiles(raw) ?? [];
-    const names = (list: readonly FileRecord[]): string => list.map((file) => file.name).join(",");
-    if (names(context.acceptedFiles) === names(outer)) return false;
-    send({ type: "VALUE.CLEAR" });
-    if (outer.length > 0) send({ type: "VALUE.SET", files: [...outer] });
-    return true;
-  },
-  scalars: ["multiple", "accept", "directory", "maxFiles", "maxSize", "minSize", "disabled"],
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => fileUploadMachine(props as FileUploadArgs, authored),
   parts: {
     root: {
       sig: (scope) => [`${scope.props["disabled"] === true}`].join(" "),

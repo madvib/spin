@@ -7,13 +7,11 @@ import {
   type SlotScope,
 } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  toast as toastMachine,
+  type ToastArgs,
   type ToastContext,
   type ToastEntry,
   type ToastEvent,
-  type ToastInitial,
   type ToastStatus,
   type ToastType,
 } from "./toast.machine.ts";
@@ -262,26 +260,32 @@ const scaleOf = (entry: ToastEntry, index: number, overlapped: boolean): string 
   return String(Math.max(0.6, 1 - index * 0.05));
 };
 
-/** Transport guarantees the raw prop bag is a ToastInitial-shaped object;
- * the guard asserts that trust point instead of a silent `as`. */
-const isToastInitial = (raw: unknown): raw is ToastInitial =>
-  raw !== null && typeof raw === "object";
-
 const def: ComponentDef<ToastContext, ToastEvent> = {
   name: "toast",
-  config,
-  implementations,
-  seed: (raw, _authored) => ({ ...initial(isToastInitial(raw) ? raw : {}) }),
-  scalarsOf: (parsed, _authored) => ({
-    overlap: parsed["overlap"] === true,
-    max: Math.max(1, asCount(parsed["max"], 24)),
-    removeDelay: Math.max(0, asCount(parsed["removeDelay"], 200)),
-  }),
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props, authored) => toastMachine(props as ToastArgs, authored),
   establish: (props) =>
     props["overlap"] === true ? [{ type: "REGION.OVERLAP" }] : [],
   reconcile: ({ context, state, parsed, send }) => {
     const ctx = context;
     let moved = false;
+    // The two counts are the machine's own bounds, and the element keeps
+    // them in step with the props: a cap below one is no cap, and a
+    // negative delay is no delay.
+    const max = Math.max(1, asCount(parsed["max"], 24));
+    if (ctx.max !== max) {
+      ctx.max = max;
+      moved = true;
+    }
+    const removeDelay = Math.max(0, asCount(parsed["removeDelay"], 200));
+    if (ctx.removeDelay !== removeDelay) {
+      ctx.removeDelay = removeDelay;
+      moved = true;
+    }
+    // The region's mode follows the prop: a state that mirrors a prop is
+    // a derived sync, and it stays here.
     const overlap = parsed["overlap"] === true;
     if (overlap && state !== "overlap") {
       send({ type: "REGION.OVERLAP" });

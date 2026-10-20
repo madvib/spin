@@ -84,7 +84,7 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => paginationMachine(props as PaginationArgs),
+  machine: (props, authored) => paginationMachine(props as PaginationArgs, authored),
   start: "idle",
   parts: {
     root: {

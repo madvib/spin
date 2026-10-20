@@ -1,17 +1,13 @@
 import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  clampDay,
   dayAsString,
   daysInMonth,
-  implementations,
-  config,
-  initial,
+  datePicker as datePickerMachine,
   parseDay,
-  parseDays,
   valueAsAllStrings,
+  type DatePickerArgs,
   type DatePickerContext,
   type DatePickerEvent,
-  type DatePickerInitial,
   type DatePickerSelectionMode,
   type DatePickerValue,
   type DatePickerValueChange,
@@ -114,25 +110,9 @@ const today = (): DatePickerValue => {
 const monthName = (month: number, locale: string): string =>
   new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(Date.UTC(2024, month - 1, 1));
 
-const sameDays = (a: readonly DatePickerValue[], b: readonly DatePickerValue[]): boolean =>
-  a.length === b.length && a.every((day, index) => {
-    const other = b[index];
-    return other !== undefined && sameDay(day, other);
-  });
-
-/** The browser's today in UTC — the grid's landing day when nothing seeds. */
-const todayUtc = (): DatePickerValue => {
-  const at = new Date();
-  return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
-};
-
 interface ScopeLike extends PartScope<unknown, DatePickerContext> {}
 
 interface SlotLike<R> extends SlotScope<R, DatePickerContext> {}
-
-/** Transport guarantees the raw prop bag is a DatePickerInitial-shaped object. */
-const isDatePickerInitial = (raw: unknown): raw is DatePickerInitial =>
-  raw !== null && typeof raw === "object";
 
 // Scope props arrive as strings; hooks write numbers. Accept both.
 const numProp = (raw: unknown): number | null => {
@@ -327,37 +307,37 @@ const handlersFor = (scope: ScopeLike, cell: DatePickerCellView): CellHandlers =
           break;
         case "ArrowRight":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: shift(focused, rtl ? -1 : 1, at.min, at.max) });
+          scope.send({ type: "FOCUS.SET", focusedValue: shift(focused, rtl ? -1 : 1, at.min, at.max) });
           break;
         case "ArrowLeft":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: shift(focused, rtl ? 1 : -1, at.min, at.max) });
+          scope.send({ type: "FOCUS.SET", focusedValue: shift(focused, rtl ? 1 : -1, at.min, at.max) });
           break;
         case "ArrowUp":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: shift(focused, -7, at.min, at.max) });
+          scope.send({ type: "FOCUS.SET", focusedValue: shift(focused, -7, at.min, at.max) });
           break;
         case "ArrowDown":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: shift(focused, 7, at.min, at.max) });
+          scope.send({ type: "FOCUS.SET", focusedValue: shift(focused, 7, at.min, at.max) });
           break;
         case "PageUp":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: pageOf(scope, focused, -1) });
+          scope.send({ type: "FOCUS.SET", focusedValue: pageOf(scope, focused, -1) });
           break;
         case "PageDown":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: pageOf(scope, focused, 1) });
+          scope.send({ type: "FOCUS.SET", focusedValue: pageOf(scope, focused, 1) });
           break;
         case "Home":
           event.preventDefault();
-          scope.send({ type: "FOCUS.SET", value: { year: focused.year, month: focused.month, day: 1 } });
+          scope.send({ type: "FOCUS.SET", focusedValue: { year: focused.year, month: focused.month, day: 1 } });
           break;
         case "End":
           event.preventDefault();
           scope.send({
             type: "FOCUS.SET",
-            value: { year: focused.year, month: focused.month, day: daysInMonth(focused.year, focused.month) },
+            focusedValue: { year: focused.year, month: focused.month, day: daysInMonth(focused.year, focused.month) },
           });
           break;
         case "Escape":
@@ -396,40 +376,15 @@ const rowFor = (
 
 const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
   name: "date-picker",
-  config,
-  implementations,
-  seed: (raw, _authored) => {
-    const props: DatePickerInitial = isDatePickerInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return {
-      ...shaped,
-      value: [],
-      focusedValue: todayUtc(),
-      view: "day" as const,
-      startValue: null,
-      hoveredValue: null,
-    };
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => datePickerMachine(props as DatePickerArgs, authored),
   establish: (raw, authored) => {
-    // Seeded through events, not writes — and silent: establish sends run
-    // before the watch cursors prime, exactly as the bridge's raw seeding
-    // sends were. In bridge order: value, then focus (clamped, falling
-    // back to the seed), then view, then the authored open.
-    const props: DatePickerInitial = isDatePickerInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    const sends: ({ type: string } & Record<string, unknown>)[] = [{ type: "VALUE.CLEAR" }];
-    const seedRaw: unknown = authored("value") ? props.value : props.defaultValue;
-    const days = parseDays(typeof seedRaw === "string" ? seedRaw : null);
-    const seed = days.length > 0 ? days : null;
-    if (seed !== null) sends.push({ type: "VALUE.SET", value: seed });
-    const focusedRaw: unknown = authored("focusedValue") ? props.focusedValue : props.defaultFocusedValue;
-    const focused = (typeof focusedRaw === "string" ? parseDay(focusedRaw) : null)
-      ?? seed?.[0] ?? todayUtc();
-    sends.push({ type: "FOCUS.SET", value: clampDay(focused, shaped.min, shaped.max) });
-    const view: unknown = props.view;
-    if (view === "month" || view === "year") sends.push({ type: "VIEW.SET", view });
-    if (authored("open") && props.open === true) sends.push({ type: "OPEN" });
-    return sends;
+    // The open fact lives in the state, not the context, so it is the one
+    // thing the establish carries: an authored `open` opens the panel.
+    if (!authored("open") || raw["open"] !== true) return [];
+    return [{ type: "OPEN" }];
   },
   // A focus move hands DOM focus to the cell it named; opening holds the
   // focus still (the re-anchor often moves nothing, so the panel takes
@@ -443,39 +398,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
     if (typeof host.querySelector !== "function") return;
     const cell = host.querySelector(`[data-value="${at}"]`);
     if (cell instanceof HTMLElement) cell.focus({ preventScroll: true });
-  },
-  scalars: ["selectionMode", "numOfMonths", "min", "max", "closeOnSelect"],
-  reconcile: ({ context, parsed, authored, send }) => {
-    if (authored("value")) {
-      const outer = parseDays(typeof parsed["value"] === "string" ? parsed["value"] : null);
-      if (!sameDays(context.value, outer)) {
-        send({ type: "VALUE.SET", value: [...outer] });
-        return true;
-      }
-    }
-    if (authored("focusedValue")) {
-      const outer = typeof parsed["focusedValue"] === "string" ? parseDay(parsed["focusedValue"]) : null;
-      if (outer !== null && dayAsString(context.focusedValue) !== dayAsString(outer)) {
-        send({ type: "FOCUS.SET", value: outer });
-        return true;
-      }
-    }
-    if (authored("view")) {
-      const outer: unknown = parsed["view"];
-      const view = outer === "month" || outer === "year" ? outer : "day";
-      if (context.view !== view) {
-        send({ type: "VIEW.SET", view });
-        return true;
-      }
-    }
-    if (authored("open")) {
-      const outer = parsed["open"] === true;
-      // The open fact lives in the state, not the context.
-      void context;
-      void send;
-      void outer;
-    }
-    return false;
   },
   parts: {
     trigger: {
@@ -576,7 +498,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
         "aria-label": "Previous",
         onClick: (): void => {
           const ctx = scope.context;
-          scope.send({ type: "FOCUS.SET", value: pageOf(scope, ctx.focusedValue, -1) });
+          scope.send({ type: "FOCUS.SET", focusedValue: pageOf(scope, ctx.focusedValue, -1) });
         },
       }),
     },
@@ -591,7 +513,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
         "aria-label": "Next",
         onClick: (): void => {
           const ctx = scope.context;
-          scope.send({ type: "FOCUS.SET", value: pageOf(scope, ctx.focusedValue, 1) });
+          scope.send({ type: "FOCUS.SET", focusedValue: pageOf(scope, ctx.focusedValue, 1) });
         },
       }),
     },

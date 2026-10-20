@@ -30,6 +30,9 @@
  * `toast-region` action.
  */
 
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export type ToastType = "info" | "success" | "warning" | "error" | "loading";
 
 /** Where a toast is in its life. */
@@ -215,30 +218,48 @@ const QUEUE_EVENTS = {
   "HEIGHT.SET": { actions: [{ assign: "setHeight" }] },
 } as const;
 
-/** Transport-coerced input. */
-export interface ToastInitial {
-  readonly overlap?: unknown;
-  readonly max?: unknown;
-  readonly removeDelay?: unknown;
+/**
+ * The toast's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The host's list
+ * of toasts is not one of them: the queue is a diff of a list, and it
+ * stays the element's statement of what the list means.
+ */
+export interface ToastArgs {
+  /** Whether the region collapses its toasts onto the front one. */
+  readonly overlap?: boolean;
+  /** How many toasts the region shows at once. */
+  readonly max?: number;
+  /** The exit delay, in milliseconds. */
+  readonly removeDelay?: number;
 }
 
 const asCountMachine = (raw: unknown, fallback: number): number =>
   typeof raw === "number" && Number.isFinite(raw) ? Math.trunc(raw) : fallback;
 
-export function initial(raw: ToastInitial): ToastContext {
+export function initial(args: ToastArgs, authored: (name: string) => boolean): ToastContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention for the same write — a host that wrote
+  // the twin wrote the channel too — and the framework has already
+  // resolved the twin into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
     toasts: [],
     queued: [],
-    overlap: raw.overlap === true,
-    max: Math.max(1, asCountMachine(raw.max, 24)),
-    removeDelay: Math.max(0, asCountMachine(raw.removeDelay, 200)),
+    overlap: written("overlap") ? args.overlap === true : false,
+    max: written("max") ? Math.max(1, asCountMachine(args.max, 24)) : 24,
+    removeDelay: written("removeDelay")
+      ? Math.max(0, asCountMachine(args.removeDelay, 200))
+      : 200,
     pointerWithin: false,
     focusWithin: false,
     pageIdle: false,
   };
 }
 
-export const config = {
+const config = {
   id: "toast",
   initial: "stack",
   context: {
@@ -299,7 +320,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     /** Zag's `collapsedIfEmpty`: an emptied overlapping region collapses. */
     shouldCollapse: (ctx: ToastContext, e: ToastEvent): boolean =>
@@ -402,3 +423,36 @@ export const implementations = {
     activePage: (): Partial<ToastContext> => ({ pageIdle: false }),
   },
 };
+
+/**
+ * The toast machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function toast(
+  args: ToastArgs = {},
+  authored: (name: string) => boolean,
+): Machine<ToastContext, ToastEvent> {
+  return createMachine<ToastContext, ToastEvent>({
+    ...config,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     *
+     * The host's LIST of toasts is not here: the queue is a diff of a
+     * list, not one field, and the element keeps that statement.
+     */
+    fields: {
+      overlap: {},
+      max: {},
+      removeDelay: {},
+    },
+    assigns: implementations.assigns,
+    conds: implementations.conds,
+  });
+}

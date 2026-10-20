@@ -1,14 +1,12 @@
 import { defineComponent, focuser, isComposing, type ComponentDef, type PartScope as ScopeLike, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
   isInteractive,
   isPressed,
+  toggleGroup as toggleGroupMachine,
+  type ToggleGroupArgs,
   type ToggleGroupContext,
   type ToggleGroupEvent,
   type ToggleGroupItem,
-  type ToggleGroupInitial,
   type ToggleGroupValueChange,
 } from "./toggle-group.machine.ts";
 
@@ -35,9 +33,6 @@ export interface ToggleGroupApi {
   getRootProps(): Record<string, unknown>;
   getItemProps(slot: { readonly value: string }): Record<string, unknown>;
 }
-
-const sameValues = (a: readonly string[], b: readonly string[]): boolean =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
 
 type Ctx = ToggleGroupContext;
 interface SlotLike<R> extends SlotScope<R, ToggleGroupContext> {}
@@ -67,31 +62,13 @@ const neighbor = (scope: ScopeLike<unknown, ToggleGroupContext> | SlotLike<Toggl
   return enabled[next]?.value ?? null;
 };
 
-const isToggleGroupInitial = (raw: unknown): raw is ToggleGroupInitial =>
-  raw !== null && typeof raw === "object";
-
 const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   name: "toggle-group",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props, authored) => toggleGroupMachine(props as ToggleGroupArgs, authored),
   start: "idle",
-  seed: (raw, authored) => ({ ...initial(isToggleGroupInitial(raw) ? raw : {}, authored) }),
-  scalarsOf: (parsed, _authored) => ({
-    multiple: parsed["multiple"] === true,
-    deselectable: parsed["deselectable"] !== false,
-    rovingFocus: parsed["rovingFocus"] !== false,
-    loopFocus: parsed["loopFocus"] !== false,
-    orientation: parsed["orientation"] === "vertical" ? "vertical" : "horizontal",
-    disabled: parsed["disabled"] === true,
-  }),
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    if (!authored("value")) return false;
-    const seeded = initial(isToggleGroupInitial(parsed) ? parsed : {}, authored);
-    if (sameValues(ctx.value, seeded.value)) return false;
-    send({ type: "VALUE.SET", value: [...seeded.value] });
-    return true;
-  },
   parts: {
     root: {
       sig: (scope) => [scope.context.orientation, scope.props["dir"], scope.context.disabled, scope.context.focusedId].join("|"),

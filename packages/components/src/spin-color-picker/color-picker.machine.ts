@@ -23,6 +23,7 @@
  */
 
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export type ColorFormat = "hex" | "hexa" | "rgb" | "rgba" | "hsl" | "hsla" | "hsb" | "hsba";
@@ -345,6 +346,7 @@ export interface ColorPickerArgs {
   readOnly?: boolean;
   /** Whether a swatch selection closes the panel. */
   closeOnSelect?: boolean;
+  defaultInline?: boolean;
 }
 
 const FORMATS: readonly string[] = ["hex", "hexa", "rgb", "rgba", "hsl", "hsla", "hsb", "hsba"];
@@ -366,20 +368,32 @@ const valueOf = (raw: unknown, format: ColorFormat): string => {
   return serialize(parse(hex, "#000000").color, format);
 };
 
-/** The machine's context: the flags name themselves, and the color is the
- * host's own text put through the machine's parser. */
-export function initial(args: ColorPickerArgs): ColorPickerContext {
-  const format = isFormat(args.format) ? args.format : "hex";
+/**
+ * The machine's context: the flags name themselves, and the color is the
+ * host's own text put through the machine's parser.
+ */
+export function initial(args: ColorPickerArgs, authored: (name: string) => boolean): ColorPickerContext {
+  // A channel: the host's write, or the machine's own default. The twins
+  // are the framework's convention — a host that wrote `defaultValue` (or
+  // `defaultFormat`) wrote the channel too — and the framework has already
+  // resolved them into the arguments.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const format = written("format")
+    ? (isFormat(args.format) ? args.format : "hex")
+    : "hex";
   return {
-    value: valueOf(args.value, format),
+    value: written("value")
+      ? valueOf(args.value, format)
+      : valueOf("#000000", format),
     format,
     activeChannel: null,
     areaX: "saturation",
     areaY: "brightness",
-    disabled: args.disabled === true,
-    readOnly: args.readOnly === true,
-    closeOnSelect: args.closeOnSelect === true,
-    inline: args.inline === true,
+    disabled: written("disabled") ? args.disabled === true : false,
+    readOnly: written("readOnly") ? args.readOnly === true : false,
+    closeOnSelect: written("closeOnSelect") ? args.closeOnSelect === true : false,
+    inline: written("inline") ? args.inline === true : false,
   };
 }
 
@@ -402,11 +416,12 @@ export const valueAsString = (ctx: ColorPickerContext): string => ctx.value;
  */
 export function colorPicker(
   args: ColorPickerArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<ColorPickerContext, ColorPickerEvent> {
   return createMachine<ColorPickerContext, ColorPickerEvent>({
     ...config,
     ...implementations,
-    context: initial(args),
+    context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.

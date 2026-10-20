@@ -3,7 +3,7 @@ import {
   type Machine,
   type Service,
 } from "@spin/runtime/fsm";
-import { coerceJsonArray } from "@spin/runtime";
+import { coerceJsonArray, defaultTwin } from "@spin/runtime";
 
 /**
  * Menu machine: open/closed, plus where the highlight sits.
@@ -182,12 +182,21 @@ export function entriesOf(raw: unknown): readonly MenuEntry[] {
 }
 
 /** The machine's own defaults, and the host's arguments where it has them. */
-export function initial(args: MenuArgs = {}): MenuContext {
+export function initial(args: MenuArgs = {}, authored: (name: string) => boolean): MenuContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultSubmenu`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
     highlightedValue: null,
     openSubmenu: null,
     anchorPoint: null,
-    isSubmenu: args.submenu === true,
+    // The contract names the field `isSubmenu`; the element's prop is
+    // `submenu`, and the prop is the one the host writes.
+    isSubmenu: written("submenu") ? args.submenu === true : false,
+    // The entries are the element's data: the collection is taken as it is.
     entries: entriesOf(args.items),
   };
 }
@@ -277,10 +286,11 @@ export type MenuService = Service<MenuContext, MenuEvent>;
  */
 export function menu(
   args: MenuArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<MenuContext, MenuEvent> {
   return createMachine<MenuContext, MenuEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     assigns: implementations.assigns,
     /**
      * The machine's contract with its hosts: the context fields a host
@@ -296,6 +306,8 @@ export function menu(
      * step with the state.
      */
     fields: {
+      // The level's own flag: the element's prop is `submenu`, and the
+      // context field keeps the value the machine was built with.
       isSubmenu: {},
     },
   });

@@ -282,7 +282,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // nothing about the machine's state.
-  machine: (props) => asyncListMachine(props as AsyncListArgs),
+  machine: (props, authored) => asyncListMachine(props as AsyncListArgs, authored),
   // An autoReload mount loads once; the reconcile watcher answers every
   // dependency change after it.
   establish: (raw) => {
@@ -314,17 +314,18 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       startFetch(view, send, load, event, afterCtx);
     }
   },
+  // The derived flag: the machine's follows the host's sort function, so
+  // a host that writes one after the mount still sorts client-side. The
+  // contract cannot carry it — the host writes the function, not the flag.
+  //
+  // The merge runs BEFORE the send (the bridge calls it on the way in), so
+  // a sort issued right after the host's write takes the client-side
+  // branch. The reconcile would be too late: it runs in the effect.
+  scalarsOf: (parsed) => ({
+    hasSortFn: isSortFn(parsed["sortFn"]),
+  }),
   reconcile: ({ context, parsed, send }) => {
     let moved = false;
-    // The derived sync: the machine's flag follows the host's sort
-    // function, so a host that writes one after the mount still sorts
-    // client-side. The contract cannot carry it — the host writes the
-    // function, not the flag — so the element keeps the flag in sync.
-    const hasSortFn = isSortFn(parsed["sortFn"]);
-    if (context.hasSortFn !== hasSortFn) {
-      context.hasSortFn = hasSortFn;
-      moved = true;
-    }
     // The dependencies watcher: the mount hash is captured, never
     // dispatched — the watcher fires on a change only, and the mount load
     // is autoReload's job.

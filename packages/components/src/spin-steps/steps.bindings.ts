@@ -126,7 +126,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => stepsMachine(props as StepsArgs),
+  machine: (props, authored) => stepsMachine(props as StepsArgs, authored),
   start: "idle",
   dispatch: (event, props) => {
     if (event.type !== "STEP.SET" && event.type !== "STEP.NEXT") return event;

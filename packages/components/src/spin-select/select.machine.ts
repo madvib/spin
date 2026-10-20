@@ -24,6 +24,7 @@
  * still in the collection" question.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface SelectContext {
@@ -115,6 +116,7 @@ export interface SelectArgs {
   closeOnSelect?: boolean;
   /** Whether the arrow walk loops. */
   loopFocus?: boolean;
+  defaultCloseOnSelect?: boolean;
 }
 
 const parseKeys = (raw: unknown): string[] => {
@@ -149,18 +151,39 @@ const rowsOf = (raw: unknown): SelectRow[] => {
 
 /** The machine's context, from its arguments: the selection, the
  * highlight, the collection's order and labels, and the select's modes.
+ *
+ * The close-on-select flag and the highlight are channels: the host's
+ * write, or the machine's own default. The element's declared default is
+ * not a write, so it never stands in for one. The seed twins
+ * (`defaultHighlightedValue`) are the host's writes of the highlight — the
+ * framework resolved them into the args — so they count as writes too.
+ * The collection, the selection and the modes are the element's own data,
+ * as they are.
  */
-export function initial(args: SelectArgs): SelectContext {
+export function initial(args: SelectArgs, authored: (name: string) => boolean): SelectContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote
+  // `defaultHighlightedValue` wrote the channel too — and the framework
+  // has already resolved it into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const rows = rowsOf(args.items);
   const multiple = args.multiple === true;
   // Zag's default: a multiple select keeps its panel open over each pick.
   // The scope's `closeOnSelect` default is `true`, so the prop is never
-  // absent and its presence says nothing: only an explicit `false` is the
-  // host's choice here, and the contract carries the rest.
-  const closeOnSelect = args.closeOnSelect === false ? false : !multiple;
+  // absent and its presence says nothing: the authored predicate is what
+  // says whether the host chose it.
+  const closeOnSelect = written("closeOnSelect")
+    ? args.closeOnSelect === true
+    : !multiple;
   const loopFocus = args.loopFocus === true;
   const value = parseKeys(args.value);
-  const highlightedValue = nullableProp(args.highlightedValue);
+  // The scope's `highlightedValue` default is "", so an unauthored
+  // highlight looks present: the authored predicate is what says whether
+  // the host chose it.
+  const highlightedValue = written("highlightedValue")
+    ? nullableProp(args.highlightedValue)
+    : null;
   const order = rows.map((row) => row.value);
   const labels: Record<string, string> = Object.fromEntries(rows.map((row) => [row.value, row.label]));
   return {
@@ -186,6 +209,7 @@ const inCollection = (
  */
 export function select(
   args: SelectArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<SelectContext, SelectEvent> {
   return createMachine<SelectContext, SelectEvent>({
     id: "select",
@@ -203,7 +227,7 @@ export function select(
       highlightedValue: { event: "HIGHLIGHTED_VALUE.SET" },
       closeOnSelect: {},
     },
-    context: initial(args),
+    context: initial(args, authored),
     // The root tier: the value and highlight events Zag fires from every
     // state, so a controlled write or a programmatic select lands the same
     // whatever the panel is doing.

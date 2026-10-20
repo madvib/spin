@@ -1,15 +1,11 @@
 import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta } from "@spin/runtime/actions";
 import {
-  config,
-  implementations,
-  initial,
-  sizeOf,
+  floatingPanel as floatingPanelMachine,
   startOpen,
-  startStage,
+  type FloatingPanelArgs,
   type FloatingPanelContext,
   type FloatingPanelEvent,
-  type FloatingPanelInitial,
   type FloatingPanelSize,
   type FloatingPanelStage,
 } from "./floating-panel.machine.ts";
@@ -82,10 +78,6 @@ const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -
   sw: { x: -1, y: 1 },
 };
 
-const sameSize = (a: FloatingPanelSize, b: FloatingPanelSize): boolean =>
-  a.w === b.w && a.h === b.h;
-
-
 /** A stage-trigger arg: ark's three stages, defaulting to restore. */
 const stageOf = (arg: unknown): FloatingPanelStageTrigger["stage"] => {
   if (!isRecord(arg)) return "default";
@@ -102,10 +94,6 @@ const edgeOf = (arg: unknown): ResizeEdge => (isEdge(arg) ? arg : "se");
 interface ScopeLike extends PartScope<unknown, FloatingPanelContext> {}
 
 interface SlotLike<R> extends SlotScope<R, FloatingPanelContext> {}
-
-/** Transport guarantees the raw prop bag is a FloatingPanelInitial-shaped object. */
-const isFloatingPanelInitial = (raw: unknown): raw is FloatingPanelInitial =>
-  raw !== null && typeof raw === "object";
 
 type IdFn = (part: string, slot?: unknown) => string;
 
@@ -156,28 +144,16 @@ const geometryStyle = (scope: ScopeLike): Record<string, string> => {
 
 const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   name: "floating-panel",
-  config,
-  implementations,
-  start: (raw, authored) => {
-    const props: FloatingPanelInitial = isFloatingPanelInitial(raw) ? raw : {};
-    return startOpen(props, authored) ? "open" : "closed";
-  },
-  seed: (raw, authored) => {
-    const props: FloatingPanelInitial = isFloatingPanelInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    return {
-      ...shaped,
-      position: { x: 0, y: 0 },
-      restoreSize: null,
-      restorePosition: null,
-      stage: startStage(props, authored),
-      dragFrom: null,
-      resizeFrom: null,
-      axis: null,
-      boundary: { w: 1024, h: 768 },
-    };
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => floatingPanelMachine(props as FloatingPanelArgs, authored),
+  start: (raw, authored) => (startOpen(raw, authored) ? "open" : "closed"),
   reconcile: ({ context, state, parsed, authored, send }) => {
+    // The stage and the open fact are STATE channels: the stage's three
+    // moves and the panel's two are separate events, and the contract
+    // carries one event per field. So they stay here; the size, which is
+    // one event, is the machine's contract.
     if (authored("stage")) {
       const stage: unknown = parsed["stage"];
       const outer = stage === "minimized" || stage === "maximized" || stage === "restored" ? stage : null;
@@ -194,21 +170,8 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
         return true;
       }
     }
-    if (authored("size")) {
-      const outer = sizeOf(parsed["size"]);
-      if (outer !== null && !sameSize(context.size, outer)) {
-        send({ type: "SIZE.SET", size: { ...outer } });
-        return true;
-      }
-    }
     return false;
   },
-  establish: () => {
-    // Detach the fork's shared initial context: two panels on a page
-    // would otherwise share one position until the first gesture.
-    return [{ type: "DRAG.END" }];
-  },
-  scalars: ["draggable", "resizable", "closeOnEscape"],
   parts: {
     trigger: {
       sig: (scope) => [`${scope.state === "open"}`, `${scope.props["disabled"] === true}`].join(" "),

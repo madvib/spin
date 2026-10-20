@@ -1,14 +1,12 @@
-import { defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
   sameTags,
   stringsOf,
+  tags as tagsMachine,
   type SanitizeValue,
+  type TagsArgs,
   type TagsContext,
   type TagsEvent,
-  type TagsInitial,
   type TagsLog,
   type TagsValueChange,
   type TagsValueInvalid,
@@ -214,10 +212,6 @@ function parseTranslations(raw: unknown): TagsTranslations {
 interface ScopeLike extends PartScope<unknown, TagsContext> {}
 
 interface SlotLike<R> extends SlotScope<R, TagsContext> {}
-
-/** Transport guarantees the raw prop bag is a TagsInitial-shaped object. */
-const isTagsInitial = (raw: unknown): raw is TagsInitial =>
-  raw !== null && typeof raw === "object";
 
 /**
  * One row object per logical tag, reused across value changes. A `for`
@@ -469,67 +463,57 @@ const announce = (
 };
 
 /** The blur behavior's two flags: `add` commits, `clear` empties. */
-const blurBehaviorOf = (value: unknown, authored: boolean): Record<string, boolean> => {
+const blurBehaviorOf = (
+  value: unknown,
+  authored: boolean,
+): { addOnBlur?: boolean; clearOnBlur?: boolean } => {
   if (!authored) return {};
   return { addOnBlur: value === "add", clearOnBlur: value === "clear" };
 };
 
 const def: ComponentDef<TagsContext, TagsEvent> = {
   name: "tags-input",
-  config,
-  implementations,
-  start: (raw, _authored) => {
-    const props: TagsInitial = isTagsInitial(raw) ? raw : {};
-    return props.autoFocus === true ? "focused:input" : "idle";
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props, authored) => tagsMachine(props as TagsArgs, authored),
+  start: (raw) => (raw["autoFocus"] === true ? "focused:input" : "idle"),
+  /**
+   * The derived syncs: the tag list and the entry text are the host's own
+   * channels, so they alternate silently — a host write lands in the
+   * context and nothing reports. The element keeps the shaped values in
+   * step with the raw props, and the blur behavior's two flags follow the
+   * one prop they come from.
+   */
+  reconcile: ({ context, parsed, authored }) => {
+    let moved = false;
+    const input = parsed["inputValue"];
+    if (authored("inputValue") && typeof input === "string") {
+      if (context.inputValue !== input) {
+        context.inputValue = input;
+        moved = true;
+      }
+    }
+    const behavior = blurBehaviorOf(parsed["blurBehavior"], authored("blurBehavior"));
+    if (behavior.addOnBlur !== undefined && behavior.addOnBlur !== context.addOnBlur) {
+      context.addOnBlur = behavior.addOnBlur;
+      moved = true;
+    }
+    if (behavior.clearOnBlur !== undefined && behavior.clearOnBlur !== context.clearOnBlur) {
+      context.clearOnBlur = behavior.clearOnBlur;
+      moved = true;
+    }
+    // A silent write changes the context without a send, so the bags
+    // that read it through a snapshot need the invalidation bus.
+    if (moved) machineTick(machineTick() + 1);
+    return moved;
   },
-  seed: (raw, authored) => {
-    const props: TagsInitial = isTagsInitial(raw) ? raw : {};
-    const shaped = initial(props);
 
-    // An authored channel starts at its value, not its default.
-    const value = authored("value") ? stringsOf(props.value) : shaped.value;
-    const inputValue = authored("inputValue") && typeof props.inputValue === "string" ? props.inputValue : shaped.inputValue;
-    return {
-      ...shaped,
-      value,
-      inputValue,
-      highlightedIndex: null,
-      editedValue: "",
-      editedIndex: null,
-      log: null,
-      logPrev: null,
-      refusal: null,
-    };
+  mounted: ({ root, id }) => {
+    // The host's functions ride the element, so the root must be known
+    // before the first command: a command syncs them pre-send.
+    rememberRoot(id, root());
   },
-  establish: (raw) => {
-    const props: TagsInitial = isTagsInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    const sends: ({ type: string } & Record<string, unknown>)[] = [{ type: "SET_VALUE", value: shaped.value }];
-    if (shaped.inputValue.length > 0) sends.push({ type: "SET_INPUT_VALUE", value: shaped.inputValue });
-    return sends;
-  },
-  scalarsOf: (parsed, authored) => ({
-    // Authored channels alternate silently: the host owns the value, so a
-    // host write lands through the refresh merge — which reports nothing —
-    // instead of a send, which would report through the watch. Fresh
-    // arrays tick the bridge; the bag memos hold on unchanged contents.
-    ...(authored("value") ? { value: stringsOf(parsed["value"]) } : {}),
-    ...(authored("inputValue") && typeof parsed["inputValue"] === "string"
-      ? { inputValue: parsed["inputValue"] }
-      : {}),
-    // The seed reads the props, but the host writes them after the
-    // instance connected: the cap and the flags the guard reads live in
-    // the context, so they have to follow the prop.
-    ...(authored("max") && typeof parsed["max"] === "number" ? { max: parsed["max"] } : {}),
-    ...(authored("allowOverflow") ? { allowOverflow: parsed["allowOverflow"] === true } : {}),
-    ...(authored("allowDuplicates") ? { allowDuplicates: parsed["allowDuplicates"] === true } : {}),
-    ...(authored("editable") ? { editable: parsed["editable"] !== false } : {}),
-    ...(authored("addOnPaste") ? { addOnPaste: parsed["addOnPaste"] === true } : {}),
-    ...(authored("delimiter") && typeof parsed["delimiter"] === "string"
-      ? { delimiter: parsed["delimiter"] }
-      : {}),
-    ...blurBehaviorOf(parsed["blurBehavior"], authored("blurBehavior")),
-  }),
 
   settled: ({ event, before, after, props, root, id, focus }) => {
     rememberRoot(id, root());

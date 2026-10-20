@@ -25,6 +25,7 @@ import {
   getValueRanges,
   snapValueToStep,
 } from "../../../../node_modules/@zag-js/utils/dist/number.mjs";
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
@@ -57,7 +58,7 @@ export interface SliderContext {
 }
 
 export type SliderEvent =
-  | { type: "SET_VALUE"; value: readonly number[] | string; index?: number }
+  | { type: "SET_VALUE"; value: readonly number[]; index?: number }
   | { type: "INCREMENT"; index?: number; step?: number }
   | { type: "DECREMENT"; index?: number; step?: number }
   | { type: "POINTER_DOWN"; pointValue: number }
@@ -269,13 +270,27 @@ export interface SliderArgs {
   invalid?: boolean;
   /** The marker stops. */
   markers?: string;
+  defaultInvalid?: boolean;
 }
 
 /**
  * The machine's context, built from its arguments: what the args did not
  * carry takes the machine's own default.
+ *
+ * The value is a channel: the host's write, or the machine's own default.
+ * The element's declared default is not a write, so it never stands in for
+ * one. The seed twin (`defaultValue`) is the host's write of the value —
+ * the framework resolved it into the args — so it counts as a write too.
+ * The bounds, the behaviour flags and the markers are the element's own
+ * data, as they are.
  */
-export function initial(args: SliderArgs): SliderContext {
+export function initial(args: SliderArgs = {}, authored: (name: string) => boolean): SliderContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const min = numProp(args.min) ?? 0;
   const max = numProp(args.max) ?? 100;
   const step = numProp(args.step) ?? 1;
@@ -300,7 +315,7 @@ export function initial(args: SliderArgs): SliderContext {
     disabled: args.disabled === true,
     readOnly: args.readOnly === true,
     invalid: args.invalid === true,
-    value: valuesProp(args.value) ?? [min],
+    value: written("value") ? valuesProp(args.value) ?? [min] : [min],
     markers: valuesProp(args.markers) ?? [],
     focusedIndex: -1,
     dragOffset: null,
@@ -314,11 +329,12 @@ export function initial(args: SliderArgs): SliderContext {
  */
 export function slider(
   args: SliderArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<SliderContext, SliderEvent> {
   return createMachine<SliderContext, SliderEvent>({
     id: "slider",
     initial: "idle",
-    context: initial(args),
+    context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.

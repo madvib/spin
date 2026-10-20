@@ -13,6 +13,7 @@
  * context fields a host may write, and the event each write carries.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface TabsItem {
@@ -58,22 +59,34 @@ export interface TabsRow {
  * factory is called on its own.
  */
 export interface TabsArgs {
+  /** The tabs, as the host wrote them. */
+  items?: readonly unknown[];
   /** The selected tab, as the host wrote it. */
   value?: string;
   /** The tab the flow starts at, as the host wrote it. */
   defaultValue?: string;
-  /** The rows, as the transport decoded them. */
-  items?: readonly unknown[];
 }
 
 /**
  * Shape the arguments into the machine's initial context.
  * Pure shaping only: label-from-value, content-to-empty, and the
- * first-selected fallback (authored `value`, then `defaultValue`, then the
+ * first-selected fallback (the host's write, then `defaultValue`, then the
  * first row). Items enter the context as config-that-never-changes. No
  * parsing and no casts — the transport owns prop coercion.
+ *
+ * The selection is a channel: the host's write, or the machine's own
+ * default. The element's declared default is not a write, so it never
+ * stands in for one. The seed twin (`defaultValue`) is the host's write of
+ * the selection — the framework resolved it into the args — so it counts as
+ * a write too.
  */
-export function initial(args: TabsArgs): TabsContext {
+export function initial(args: TabsArgs = {}, authored: (name: string) => boolean): TabsContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const rows: readonly unknown[] = Array.isArray(args.items) ? args.items : [];
   const items: TabsItem[] = [];
   for (const entry of rows) {
@@ -87,12 +100,14 @@ export function initial(args: TabsArgs): TabsContext {
       content: typeof row.content === "string" ? row.content : "",
     });
   }
-  const written = typeof args.value === "string" ? args.value : "";
+  const hostValue = typeof args.value === "string" ? args.value : "";
   const defaultValue = typeof args.defaultValue === "string" ? args.defaultValue : "";
   return {
-    // An authored `value` wins outright; uncontrolled falls back to
-    // `defaultValue`, then the first tab so a value is always selected.
-    value: written || defaultValue || items[0]?.value || "",
+    // The host's write wins outright; uncontrolled falls back to the first
+    // tab, so a value is always selected.
+    value: written("value")
+      ? hostValue || defaultValue || items[0]?.value || ""
+      : items[0]?.value || "",
     defaultValue,
     items,
   };
@@ -104,11 +119,12 @@ export function initial(args: TabsArgs): TabsContext {
  */
 export function tabs(
   args: TabsArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<TabsContext, TabsEvent> {
   return createMachine<TabsContext, TabsEvent>({
     id: "tabs",
     initial: "idle",
-    context: initial(args),
+    context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.

@@ -50,7 +50,7 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // nothing about the machine's state.
-  machine: (props) => avatarMachine(props as AvatarArgs),
+  machine: (props, authored) => avatarMachine(props as AvatarArgs, authored),
   start: "loading",
   parts: {
     root: {

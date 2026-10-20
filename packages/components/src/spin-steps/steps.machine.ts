@@ -17,6 +17,7 @@
  * context fields a host may write, and the event each write carries.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface StepsContext {
@@ -34,7 +35,7 @@ export type StepsEvent =
   | { type: "STEP.NEXT" }
   | { type: "STEP.PREV" }
   | { type: "STEP.RESET" }
-  | { type: "SET_COUNT"; count: number | string };
+  | { type: "SET_COUNT"; count: number };
 
 export type StepsStepChange = {
   readonly step: number;
@@ -88,9 +89,6 @@ const asCount = (raw: unknown, fallback: number): number => {
   return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : fallback;
 };
 
-/** The host's count: a number, at least one. */
-const countOf = (raw: unknown): number => Math.max(1, Math.floor(asCount(raw, 1)));
-
 /**
  * The steps' arguments: the values the host may set.
  *
@@ -108,17 +106,31 @@ export interface StepsArgs {
   count?: number;
   /** The step the flow starts at. */
   step?: string | number;
+  defaultCount?: number;
 }
 
 /**
  * The machine's context, built from its arguments: the count and the step
  * the host wrote, and the machine's own defaults for everything else.
+ *
+ * The step is a channel: the host's write, or the machine's own default.
+ * The element's declared default is not a write, so it never stands in for
+ * one. The seed twin (`defaultStep`) is the host's write of the step — the
+ * framework resolved it into the args — so it counts as a write too. The
+ * count is the element's own data, as it is.
  */
-export function initial(args: StepsArgs): StepsContext {
-  const count = countOf(args.count);
-  const written = args.step;
-  const seeded = typeof written === "number" && Number.isFinite(written)
-    ? Math.trunc(written)
+export function initial(args: StepsArgs = {}, authored: (name: string) => boolean): StepsContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultStep` wrote
+  // the channel too — and the framework has already resolved it into the
+  // argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  // The host's count: a number, at least one.
+  const count = Math.max(1, Math.floor(asCount(args.count, 1)));
+  const seed = args.step;
+  const seeded = written("step")
+    ? (typeof seed === "number" && Number.isFinite(seed) ? Math.trunc(seed) : 0)
     : 0;
   return {
     count,
@@ -134,11 +146,12 @@ export function initial(args: StepsArgs): StepsContext {
  */
 export function steps(
   args: StepsArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<StepsContext, StepsEvent> {
   return createMachine<StepsContext, StepsEvent>({
     id: "steps",
     initial: "idle",
-    context: initial(args),
+    context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.
@@ -152,7 +165,7 @@ export function steps(
      * validate it), never by a host write.
      */
     fields: {
-      count: { event: "SET_COUNT" },
+      count: {},
     },
     on: {
       SET_COUNT: { actions: [{ assign: "setCount" }] },
@@ -214,9 +227,8 @@ export function steps(
       setCount: (ctx: StepsContext, event: StepsEvent): Partial<StepsContext> => {
         if (event.type !== "SET_COUNT") return {};
         void ctx;
-        // The count arrives the way the host wrote it; the machine shapes
-        // it, wherever it came from.
-        return { count: countOf(event.count) };
+        const count = Math.max(1, Math.floor(event.count));
+        return { count };
       },
       // Invalid attempts report through the invalid channel: the bridge
       // reads the pending report after the send and notifies once.

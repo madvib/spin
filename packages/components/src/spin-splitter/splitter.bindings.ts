@@ -347,7 +347,7 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => splitterMachine(props as SplitterArgs),
+  machine: (props, authored) => splitterMachine(props as SplitterArgs, authored),
   // The derived half of the old sync stays: the sizes follow the tree, so
   // the machine never sees a tree it cannot lay out. The tree itself
   // arrives as the machine's own event — the contract says so.

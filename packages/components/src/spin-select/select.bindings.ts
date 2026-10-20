@@ -289,7 +289,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => selectMachine(props as SelectArgs),
+  machine: (props, authored) => selectMachine(props as SelectArgs, authored),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";

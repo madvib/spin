@@ -15,6 +15,7 @@
  * so the machine never holds a timer.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export type NavValue = string;
@@ -60,6 +61,7 @@ export interface NavigationMenuArgs {
   orientation?: string;
   /** Whether the menu refuses interaction. */
   disabled?: boolean;
+  defaultDisabled?: boolean;
 }
 
 /** A text prop: strings pass, everything else is absent. */
@@ -67,16 +69,24 @@ const asText = (raw: unknown): string | null =>
   typeof raw === "string" ? raw : null;
 
 /** The machine's own defaults, and the host's arguments where it has them. */
-export function initial(args: NavigationMenuArgs = {}): NavigationMenuContext {
+export function initial(args: NavigationMenuArgs = {}, authored: (name: string) => boolean): NavigationMenuContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const count = (value: unknown, fallback: number): number =>
     typeof value === "number" && Number.isFinite(value) ? value : fallback;
   return {
-    value: asText(args.value) ?? "",
+    value: written("value") ? asText(args.value) ?? "" : "",
     previousValue: "",
-    openDelay: count(args.openDelay, 200),
-    closeDelay: count(args.closeDelay, 300),
-    orientation: args.orientation === "vertical" ? "vertical" : "horizontal",
-    disabled: args.disabled === true,
+    openDelay: written("openDelay") ? count(args.openDelay, 200) : 200,
+    closeDelay: written("closeDelay") ? count(args.closeDelay, 300) : 300,
+    orientation: written("orientation") && args.orientation === "vertical"
+      ? "vertical"
+      : "horizontal",
+    disabled: written("disabled") ? args.disabled === true : false,
   };
 }
 
@@ -134,8 +144,10 @@ const implementations = {
     setValue: (_ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
       if (e.type !== "VALUE.SET") return {};
       // The value arrives the way the host wrote it; the machine shapes it.
+      // A write that names the value the machine already holds is not a
+      // move: it leaves the previous value alone.
       const value = asText(e.value);
-      if (value === null) return {};
+      if (value === null || value === _ctx.value) return {};
       return { previousValue: _ctx.value, value };
     },
     openFrom: (ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
@@ -167,10 +179,11 @@ const implementations = {
  */
 export function navigationMenu(
   args: NavigationMenuArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<NavigationMenuContext, NavigationMenuEvent> {
   return createMachine<NavigationMenuContext, NavigationMenuEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     assigns: implementations.assigns,
     conds: implementations.conds,
     /**

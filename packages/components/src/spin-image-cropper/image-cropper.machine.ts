@@ -1,5 +1,5 @@
 
-import { isRecord } from "@spin/runtime";
+import { defaultTwin, isRecord } from "@spin/runtime";
 /**
  * Image-cropper machine: idle, dragging the selection, panning the image.
  *
@@ -64,6 +64,7 @@ export interface ImageCropperArgs {
   rotation?: string | number;
   /** The flip, as the host wrote it. */
   flip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
+  defaultFlip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
 }
 
 
@@ -85,29 +86,47 @@ export function flipOf(raw: unknown): { horizontal: boolean; vertical: boolean }
   return { horizontal: horizontal === true, vertical: vertical === true };
 }
 
+/** The zoom the machine holds: a number inside the machine's own range. */
+const zoomOf = (raw: unknown): number | null => {
+  const zoom = asCount(raw);
+  return zoom === null ? null : Math.min(8, Math.max(0.1, zoom));
+};
+
+/** The rotation the machine holds: degrees inside the machine's own range. */
+const rotationOf = (raw: unknown): number | null => {
+  const rotation = asCount(raw);
+  return rotation === null ? null : Math.min(360, Math.max(0, rotation));
+};
+
 /** The machine's own defaults, and the host's arguments where it has them. */
-export function initial(args: ImageCropperArgs = {}): ImageCropperContext {
+export function initial(args: ImageCropperArgs = {}, authored: (name: string) => boolean): ImageCropperContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultZoom` wrote
+  // the channel too — and the framework has already resolved it into the
+  // argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const flip = flipOf(args.flip) ?? { horizontal: false, vertical: false };
   return {
     crop: { x: 0, y: 0, width: 0, height: 0 },
     viewportRect: { x: 0, y: 0, width: 0, height: 0 },
     naturalSize: { width: 0, height: 0 },
     offset: { x: 0, y: 0 },
-    zoom: asCount(args.zoom) ?? 1,
-    rotation: asCount(args.rotation) ?? 0,
-    flipHorizontal: flip.horizontal,
-    flipVertical: flip.vertical,
+    zoom: written("zoom") ? zoomOf(args.zoom) ?? 1 : 1,
+    rotation: written("rotation") ? rotationOf(args.rotation) ?? 0 : 0,
+    flipHorizontal: written("flip") && flip.horizontal,
+    flipVertical: written("flip") && flip.vertical,
     pointerStart: null,
     cropStart: null,
     offsetStart: null,
     handlePosition: null,
-    cropShape: args.cropShape === "circle" ? "circle" : "rect",
-    aspectRatio: asCount(args.aspectRatio),
-    minWidth: asCount(args.minWidth),
-    minHeight: asCount(args.minHeight),
-    maxWidth: asCount(args.maxWidth),
-    maxHeight: asCount(args.maxHeight),
-    fixedCropArea: args.fixedCropArea === true,
+    cropShape: written("cropShape") && args.cropShape === "circle" ? "circle" : "rect",
+    aspectRatio: written("aspectRatio") ? asCount(args.aspectRatio) : null,
+    minWidth: written("minWidth") ? asCount(args.minWidth) : null,
+    minHeight: written("minHeight") ? asCount(args.minHeight) : null,
+    maxWidth: written("maxWidth") ? asCount(args.maxWidth) : null,
+    maxHeight: written("maxHeight") ? asCount(args.maxHeight) : null,
+    fixedCropArea: written("fixedCropArea") ? args.fixedCropArea === true : false,
   };
 }
 
@@ -400,18 +419,18 @@ const implementations = {
       if (event.type !== "SET_ZOOM") return {};
       void ctx;
       // The zoom arrives the way the host wrote it; the machine shapes it.
-      const zoom = asCount(event.zoom);
+      const zoom = zoomOf(event.zoom);
       if (zoom === null) return {};
-      return { zoom: Math.min(8, Math.max(0.1, zoom)) };
+      return { zoom };
     },
     setRotation: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_ROTATION") return {};
       void ctx;
       // The rotation arrives the way the host wrote it; the machine shapes
       // it.
-      const rotation = asCount(event.rotation);
+      const rotation = rotationOf(event.rotation);
       if (rotation === null) return {};
-      return { rotation: Math.min(360, Math.max(0, rotation)) };
+      return { rotation };
     },
     setFlip: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_FLIP") return {};
@@ -514,10 +533,11 @@ export const roundedCrop = (ctx: ImageCropperContext): CropRect => ({
  */
 export function imageCropper(
   args: ImageCropperArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<ImageCropperContext, ImageCropperEvent> {
   return createMachine<ImageCropperContext, ImageCropperEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     assigns: implementations.assigns,
     conds: implementations.conds,
     /**

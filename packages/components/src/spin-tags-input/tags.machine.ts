@@ -26,6 +26,9 @@
  * read them there, exactly as the guards read a click's modifier keys.
  */
 
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export interface TagsValidateArgs {
   readonly inputValue: string;
   readonly value: readonly string[];
@@ -122,21 +125,47 @@ const sanitizeDefault: SanitizeValue = (value: string): string => value.trim();
 
 const validateDefault: ValidateTag = (): boolean => true;
 
-export interface TagsInitial {
-  readonly value?: unknown;
-  readonly inputValue?: unknown;
-  readonly defaultValue?: unknown;
-  readonly defaultInputValue?: unknown;
-  readonly max?: unknown;
-  readonly allowOverflow?: unknown;
-  readonly allowDuplicates?: unknown;
-  readonly editable?: unknown;
-  readonly addOnPaste?: unknown;
-  readonly blurBehavior?: unknown;
-  readonly delimiter?: unknown;
-  readonly sanitizeValue?: unknown;
-  readonly validate?: unknown;
-  readonly autoFocus?: unknown;
+/**
+ * The tags-input's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twins
+ * (`defaultValue`, `defaultInputValue`) are resolved by the framework
+ * before the factory is called, so the live values carry a written
+ * twin; the twins stay in the bag, and they are the machine's fallback
+ * for the channels they seed.
+ *
+ * The two host functions ride the element, not the scope: a function
+ * cannot cross the scope channel, so the machine's defaults stand until
+ * the element installs the host's own.
+ */
+export interface TagsArgs {
+  /** The tags, as the host wrote them. */
+  readonly value?: string;
+  /** The tags the host seeded with: the twin of `value`. */
+  readonly defaultValue?: string;
+  /** The entry field's text, as the host wrote it. */
+  readonly inputValue?: string;
+  /** The entry field's seed: the twin of `inputValue`. */
+  readonly defaultInputValue?: string;
+  /** The cap on the tag count. */
+  readonly max?: number;
+  /** Whether the list may grow past the cap. */
+  readonly allowOverflow?: boolean;
+  /** Whether the same tag may be added twice. */
+  readonly allowDuplicates?: boolean;
+  /** Whether a tag can be renamed. */
+  readonly editable?: boolean;
+  /** Whether a paste adds tags. */
+  readonly addOnPaste?: boolean;
+  /** The blur behavior: `add` commits, `clear` empties, neither does. */
+  readonly blurBehavior?: string;
+  /** The paste separator. */
+  readonly delimiter?: string;
+  /** The host's sanitizer, when the element carries one. */
+  readonly sanitizeValue?: SanitizeValue;
+  /** The host's validator, when the element carries one. */
+  readonly validate?: ValidateTag;
 }
 
 /** Strings off the transport: JSON text or arrays, well-shaped only.
@@ -163,29 +192,47 @@ export function sameTags(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
-/** Seed shaping: the seeded value and input plus every scalar the
- * assigns read — the seed merges over the config, so absent fields would
- * keep the config defaults instead of the authored props. */
-export function initial(raw: TagsInitial): Pick<TagsContext, "value" | "inputValue" | "max" | "allowOverflow" | "allowDuplicates" | "editable" | "addOnPaste" | "addOnBlur" | "clearOnBlur" | "delimiter" | "sanitizeValue" | "validate"> {
-  const input: unknown = raw.defaultInputValue;
+/** The factory's shaping: the value and the input plus every scalar the
+ * assigns read.
+ *
+ * The tag list and the entry text are the host's channels: the host's own
+ * write stands, and the twin is the framework's convention for that same
+ * write — a host that wrote `defaultValue` wrote the channel too.
+ *
+ * The cap and the flags are the element's configuration: the machine has
+ * no opinion about them, so they are taken as they are. */
+export function initial(args: TagsArgs, authored: (name: string) => boolean): Pick<TagsContext, "value" | "inputValue" | "max" | "allowOverflow" | "allowDuplicates" | "editable" | "addOnPaste" | "addOnBlur" | "clearOnBlur" | "delimiter" | "sanitizeValue" | "validate"> {
   const count = (value: unknown): number => typeof value === "number" && Number.isFinite(value) ? value : Infinity;
   const flag = (value: unknown): boolean => value === true;
   const text = (value: unknown, fallback: string): string => typeof value === "string" ? value : fallback;
   const fn = <T>(value: unknown, fallback: T): T => (typeof value === "function" ? value as T : fallback);
-  const behavior: unknown = raw.blurBehavior;
+  const behavior: unknown = args.blurBehavior;
+  // A channel: the host's write, or the twin's — the framework's
+  // convention for the same write, since a host that wrote
+  // `defaultValue` wrote the channel too. The framework has already
+  // resolved the twin into the argument, so `args.value` carries it; the
+  // twin's own value is the machine's fallback, the way the
+  // pre-conversion seed read it. The element declares the twin empty, so
+  // the fallback is the machine's own default.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
-    value: stringsOf(raw.defaultValue),
-    inputValue: typeof input === "string" ? input : "",
-    max: count(raw.max),
-    allowOverflow: flag(raw.allowOverflow),
-    allowDuplicates: flag(raw.allowDuplicates),
-    editable: raw.editable !== false,
-    addOnPaste: flag(raw.addOnPaste),
+    value: written("value")
+      ? stringsOf(args.value)
+      : stringsOf(args.defaultValue),
+    inputValue: written("inputValue")
+      ? text(args.inputValue, "")
+      : text(args.defaultInputValue, ""),
+    max: count(args.max),
+    allowOverflow: flag(args.allowOverflow),
+    allowDuplicates: flag(args.allowDuplicates),
+    editable: args.editable !== false,
+    addOnPaste: flag(args.addOnPaste),
     addOnBlur: behavior === "add",
     clearOnBlur: behavior === "clear",
-    delimiter: text(raw.delimiter, ","),
-    sanitizeValue: fn(raw.sanitizeValue, sanitizeDefault),
-    validate: fn(raw.validate, validateDefault),
+    delimiter: text(args.delimiter, ","),
+    sanitizeValue: fn(args.sanitizeValue, sanitizeDefault),
+    validate: fn(args.validate, validateDefault),
   };
 }
 
@@ -240,7 +287,7 @@ const addFromInput = (ctx: TagsContext): Partial<TagsContext> => {
   };
 };
 
-export const config = {
+const config = {
   id: "tags-input",
   initial: "idle",
   context: {
@@ -408,7 +455,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     isTagEditable: (ctx: TagsContext): boolean => ctx.editable,
     hasTags: (ctx: TagsContext): boolean => ctx.value.length > 0,
@@ -567,3 +614,45 @@ export const implementations = {
     }),
   },
 };
+
+/**
+ * The tags-input machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function tags(
+  args: TagsArgs = {},
+  authored: (name: string) => boolean,
+): Machine<TagsContext, TagsEvent> {
+  return createMachine<TagsContext, TagsEvent>({
+    ...config,
+    context: { ...config.context, ...initial(args, authored) },
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     *
+     * The tag list and the entry text are the host's own channels: they
+     * alternate silently, so they carry no event — the element keeps the
+     * shaped list in sync with the raw prop.
+     */
+    fields: {
+      // The list is shaped: the host writes it as text or an array, and
+      // the machine's own `stringsOf` makes the list. The same shaping
+      // the start applies, so a host's write and the start agree.
+      value: { parse: stringsOf },
+      inputValue: {},
+      max: {},
+      allowOverflow: {},
+      allowDuplicates: {},
+      editable: {},
+      addOnPaste: {},
+      delimiter: {},
+    },
+    assigns: implementations.assigns,
+    conds: implementations.conds,
+  });
+}

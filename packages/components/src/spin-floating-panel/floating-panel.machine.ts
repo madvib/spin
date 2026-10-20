@@ -1,5 +1,6 @@
 
-import { isRecord } from "@spin/runtime";
+import { defaultTwin, isRecord } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 /**
  * Floating-panel machine: the open/closed modes, the gesture modes inside
  * open (idle, dragging, resizing), and the stage that changes which
@@ -17,8 +18,8 @@ import { isRecord } from "@spin/runtime";
  * connect-owned reflex: it orders siblings, it does not change modes.
  *
  * Nothing here touches the DOM. The boundary clamp and the initial focus
- * are the connect's job — the bridge seeds `position`/`size` from props
- * and alternates them from the authored channels.
+ * are the connect's job — the machine's factory builds `position`/`size`
+ * from the host's props, and its contract carries the host's writes.
  */
 
 export type FloatingPanelStage = "minimized" | "maximized" | "restored";
@@ -48,7 +49,7 @@ export interface FloatingPanelContext {
   resizeFrom: { readonly size: FloatingPanelSize; readonly position: { readonly x: number; readonly y: number } } | null;
   /** Which resize handle the gesture came from. */
   axis: { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 } | null;
-  /** The scalars the assigns read, synced from scope by the bridge. */
+  /** The flags the guards read, written by the machine's contract. */
   draggable: boolean;
   resizable: boolean;
   closeOnEscape: boolean;
@@ -67,23 +68,6 @@ export interface FloatingPanelSizeChange {
 export interface FloatingPanelPositionChange {
   readonly position: { readonly x: number; readonly y: number };
 }
-
-export interface FloatingPanelInitial {
-  readonly open?: unknown;
-  readonly defaultOpen?: unknown;
-  readonly size?: unknown;
-  readonly defaultSize?: unknown;
-  readonly minSize?: unknown;
-  readonly defaultMinSize?: unknown;
-  readonly maxSize?: unknown;
-  readonly defaultMaxSize?: unknown;
-  readonly stage?: unknown;
-  readonly defaultStage?: unknown;
-  readonly draggable?: unknown;
-  readonly resizable?: unknown;
-  readonly closeOnEscape?: unknown;
-}
-
 
 /** A size off the transport: `{ w, h }` numbers, or JSON text. Well-shaped
  * only; anything else is absent. Named once; transport owns the grammar. */
@@ -109,31 +93,68 @@ const DEFAULT_SIZE: FloatingPanelSize = { w: 360, h: 240 };
 const DEFAULT_MIN: FloatingPanelSize = { w: 120, h: 80 };
 const DEFAULT_MAX: FloatingPanelSize = { w: 1024, h: 768 };
 
-/** Seed shaping: sizes fall back to their defaults, then the built-ins. */
-export function initial(raw: FloatingPanelInitial): Pick<FloatingPanelContext, "size" | "minSize" | "maxSize" | "draggable" | "resizable" | "closeOnEscape"> {
-  const pick = (name: "size" | "minSize" | "maxSize", fallback: FloatingPanelSize): FloatingPanelSize =>
-    sizeOf(raw[name]) ?? sizeOf(name === "size" ? raw.defaultSize : name === "minSize" ? raw.defaultMinSize : raw.defaultMaxSize) ?? fallback;
+/**
+ * The floating-panel's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultSize`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface FloatingPanelArgs {
+  /** The panel's size, as the host wrote it. */
+  size?: string;
+  /** The floor a resize clamps to, as the host wrote it. */
+  minSize?: string;
+  /** The ceiling a resize clamps to, as the host wrote it. */
+  maxSize?: string;
+  /** The stage the panel opens in. */
+  stage?: string;
+  /** Whether the panel may be dragged. */
+  draggable?: boolean;
+  /** Whether the panel may be resized. */
+  resizable?: boolean;
+  /** Whether the escape key closes the panel. */
+  closeOnEscape?: boolean;
+  defaultCloseOnEscape?: boolean;
+}
+
+/** The machine's context, built from the arguments: the size, the stage,
+ * and the three behaviour flags the guards read. */
+export function initial(args: FloatingPanelArgs = {}, authored: (name: string) => boolean): FloatingPanelContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultSize` wrote
+  // the channel too — and the framework has already resolved it into the
+  // argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const stage: unknown = args.stage;
   return {
-    size: pick("size", DEFAULT_SIZE),
-    minSize: pick("minSize", DEFAULT_MIN),
-    maxSize: pick("maxSize", DEFAULT_MAX),
-    draggable: raw.draggable !== false,
-    resizable: raw.resizable !== false,
-    closeOnEscape: raw.closeOnEscape !== false,
+    position: { x: 0, y: 0 },
+    size: written("size") ? sizeOf(args.size) ?? DEFAULT_SIZE : DEFAULT_SIZE,
+    restoreSize: null,
+    restorePosition: null,
+    stage: stage === "minimized" || stage === "maximized" ? stage : "restored",
+    dragFrom: null,
+    minSize: sizeOf(args.minSize) ?? DEFAULT_MIN,
+    maxSize: sizeOf(args.maxSize) ?? DEFAULT_MAX,
+    resizeFrom: null,
+    axis: null,
+    draggable: written("draggable") ? args.draggable !== false : true,
+    resizable: written("resizable") ? args.resizable !== false : true,
+    closeOnEscape: written("closeOnEscape") ? args.closeOnEscape !== false : true,
+    boundary: { w: 1024, h: 768 },
   };
 }
 
 /** The seeded open state: an authored open wins, else its default. */
-export function startOpen(raw: FloatingPanelInitial, authored: (name: string) => boolean): boolean {
+export function startOpen(
+  raw: Record<string, unknown>,
+  authored: (name: string) => boolean,
+): boolean {
   // The scope's `open` defaults to false, so it is never absent. The
   // authored predicate is what says whether the host chose it.
-  return authored("open") ? raw.open === true : raw.defaultOpen === true;
-}
-
-/** The seeded stage: a staged default opens staged, else restored. */
-export function startStage(raw: FloatingPanelInitial, authored: (name: string) => boolean): FloatingPanelStage {
-  const stage: unknown = authored("stage") ? raw.stage : raw.defaultStage;
-  return stage === "minimized" || stage === "maximized" ? stage : "restored";
+  return authored("open") ? raw["open"] === true : raw["defaultOpen"] === true;
 }
 
 export interface FloatingPanelStageChange {
@@ -153,9 +174,10 @@ export type FloatingPanelEvent =
   | { type: "MINIMIZE" }
   | { type: "MAXIMIZE" }
   | { type: "RESTORE" }
-  | { type: "SIZE.SET"; size: FloatingPanelSize };
+  /** The size: the size itself, or the JSON text a host wrote. */
+  | { type: "SIZE.SET"; size: FloatingPanelSize | string };
 
-export const config = {
+const config = {
   id: "floating-panel",
   initial: "closed",
   context: {
@@ -238,7 +260,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     isDraggable: (ctx: FloatingPanelContext): boolean =>
       ctx.draggable && ctx.stage !== "maximized" && ctx.stage !== "minimized",
@@ -258,7 +280,11 @@ export const implementations = {
     },
     setSize: (_ctx: FloatingPanelContext, e: FloatingPanelEvent): Partial<FloatingPanelContext> => {
       if (e.type !== "SIZE.SET") return {};
-      return { size: { w: e.size.w, h: e.size.h } };
+      // The size arrives the way the host wrote it; the machine shapes it,
+      // wherever it came from.
+      const size = sizeOf(e.size);
+      if (size === null) return {};
+      return { size: { w: size.w, h: size.h } };
     },
     rememberDragFrom: (ctx: FloatingPanelContext): Partial<FloatingPanelContext> => ({
       dragFrom: { ...ctx.position },
@@ -360,4 +386,34 @@ function clampPosition(
     x: Math.min(Math.max(x, 0), maxX),
     y: Math.min(Math.max(y, 0), maxY),
   };
+}
+
+/**
+ * The floating-panel machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function floatingPanel(
+  args: FloatingPanelArgs = {},
+  authored: (name: string) => boolean,
+): Machine<FloatingPanelContext, FloatingPanelEvent> {
+  return createMachine<FloatingPanelContext, FloatingPanelEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      size: { event: "SIZE.SET" },
+      draggable: {},
+      resizable: {},
+      closeOnEscape: {},
+    },
+  });
 }

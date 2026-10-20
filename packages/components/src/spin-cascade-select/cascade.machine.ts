@@ -28,6 +28,7 @@
  *    rewrites the collection property, as tree-view's host rewrites `nodes`.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine, type Service } from "@spin/runtime/fsm";
 
 /**
@@ -54,6 +55,7 @@ export interface CascadeArgs {
   loopFocus?: boolean;
   /** Whether the pointer drives the highlight. */
   highlightTrigger?: string;
+  defaultHighlightTrigger?: string;
 }
 
 /** Parse JSON-text-or-array helpers shared with the bindings. */
@@ -90,17 +92,33 @@ export function parsePaths(raw: unknown): readonly string[][] {
   return out;
 }
 
-/** The machine's context: the flags name themselves, and the value and the
- * highlight are parsed out of the host's own text. */
-export function initial(args: CascadeArgs): CascadeContext {
+/**
+ * The machine's context: the flags name themselves, and the value and the
+ * highlight are parsed out of the host's own text.
+ */
+export function initial(args: CascadeArgs, authored: (name: string) => boolean): CascadeContext {
+  // A channel: the host's write, or the machine's own default. The twins
+  // are the framework's convention — a host that wrote `defaultValue` (or
+  // `defaultHighlightedValue`) wrote the channel too — and the framework
+  // has already resolved them into the arguments.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
-    value: parsePaths(args.value).map((path) => [...path]),
-    highlightedValue: [...parsePath(args.highlightedValue)],
-    closeOnSelect: args.closeOnSelect !== false,
-    allowParentSelection: args.allowParentSelection === true,
-    multiple: args.multiple === true,
-    loopFocus: args.loopFocus === true,
-    highlightTrigger: args.highlightTrigger === "hover" ? "hover" : "click",
+    value: written("value")
+      ? parsePaths(args.value).map((path) => [...path])
+      : [],
+    highlightedValue: written("highlightedValue")
+      ? [...parsePath(args.highlightedValue)]
+      : [],
+    closeOnSelect: written("closeOnSelect") ? args.closeOnSelect !== false : true,
+    allowParentSelection: written("allowParentSelection")
+      ? args.allowParentSelection === true
+      : false,
+    multiple: written("multiple") ? args.multiple === true : false,
+    loopFocus: written("loopFocus") ? args.loopFocus === true : false,
+    highlightTrigger: written("highlightTrigger")
+      ? (args.highlightTrigger === "hover" ? "hover" : "click")
+      : "click",
   };
 }
 
@@ -351,11 +369,12 @@ export type CascadeService = Service<CascadeContext, CascadeEvent>;
  */
 export function cascade(
   args: CascadeArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<CascadeContext, CascadeEvent> {
   return createMachine<CascadeContext, CascadeEvent>({
     ...config,
     ...implementations,
-    context: initial(args),
+    context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.

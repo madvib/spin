@@ -20,6 +20,7 @@
  * fork's context has no optional fields.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface SortDescriptor {
@@ -64,10 +65,18 @@ export function itemsOf(raw: unknown): readonly unknown[] {
   return [...raw];
 }
 
-/** The machine's context: the static seed lands at service creation, not
+/**
+ * The machine's context: the static seed lands at service creation, not
  * through a transition — a static list renders, sorts, and filters
- * client-side. */
-export function initial(args: AsyncListArgs): AsyncListContext {
+ * client-side.
+ */
+export function initial(args: AsyncListArgs, authored: (name: string) => boolean): AsyncListContext {
+  // The one channel the contract names is whether the host brought a sort
+  // function: the prop carries it, and the twin is the framework's
+  // convention — a host that wrote the seed twin wrote the channel too.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const sortFn = written("sortFn") ? args.sortFn : undefined;
   return {
     items: itemsOf(args.initialItems),
     cursor: null,
@@ -78,7 +87,7 @@ export function initial(args: AsyncListArgs): AsyncListContext {
       ? args.initialSortDescriptor
       : null,
     error: undefined,
-    hasSortFn: typeof args.sortFn === "function",
+    hasSortFn: typeof sortFn === "function",
     dependenciesHash: undefined,
   };
 }
@@ -215,10 +224,11 @@ const implementations = {
  */
 export function asyncList(
   args: AsyncListArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<AsyncListContext, AsyncListEvent> {
   return createMachine<AsyncListContext, AsyncListEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     ...implementations,
     /**
      * The machine's contract with its hosts: the context fields a host

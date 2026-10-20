@@ -30,6 +30,9 @@
  * positions, not about rows.
  */
 
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export interface ComboboxContext {
   /** The selected values, in the order they were added. */
   value: string[];
@@ -87,25 +90,41 @@ export type ComboboxEvent =
 
 /** A transport-coerced row. */
 export interface ComboboxRow {
-  readonly value?: unknown;
-  readonly label?: unknown;
+  readonly value?: string;
+  readonly label?: string;
 }
 
-/** Transport-coerced input. */
-export interface ComboboxInitial {
-  readonly items?: unknown;
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly inputValue?: unknown;
-  readonly defaultInputValue?: unknown;
-  readonly highlightedValue?: unknown;
-  readonly defaultHighlightedValue?: unknown;
-  readonly multiple?: unknown;
-  readonly closeOnSelect?: unknown;
-  readonly allowCustomValue?: unknown;
-  readonly inputBehavior?: unknown;
-  readonly selectionBehavior?: unknown;
-  readonly openOnChange?: unknown;
+/**
+ * The combobox's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twins
+ * (`defaultValue`, `defaultInputValue`, `defaultHighlightedValue`) are
+ * resolved by the framework before the factory is called, so the machine
+ * only ever sees the live value.
+ */
+export interface ComboboxArgs {
+  /** The collection's rows. */
+  items?: readonly ComboboxRow[];
+  /** The selected values, as the host wrote them. */
+  value?: string;
+  /** What the input shows, as the host wrote it. */
+  inputValue?: string;
+  /** The highlighted value, as the host wrote it. */
+  highlightedValue?: string;
+  /** Whether more than one value may be selected. */
+  multiple?: boolean;
+  /** Whether a selection closes the panel. */
+  closeOnSelect?: boolean;
+  /** Whether a value outside the collection may be typed. */
+  allowCustomValue?: boolean;
+  /** The inline completion behaviour: `none`, `autocomplete` or `autohighlight`. */
+  inputBehavior?: string;
+  /** What a selection does to the input's text. */
+  selectionBehavior?: string;
+  /** Whether typing opens the panel. */
+  openOnChange?: boolean;
+  defaultOpenOnChange?: boolean;
 }
 
 const parseKeys = (raw: unknown): string[] => {
@@ -116,25 +135,50 @@ const parseKeys = (raw: unknown): string[] => {
 const textProp = (raw: unknown): string => (typeof raw === "string" ? raw : "");
 const nullableProp = (raw: unknown): string | null => (typeof raw === "string" && raw.length > 0 ? raw : null);
 
-export function initial(raw: ComboboxInitial, authored: (name: string) => boolean): ComboboxContext {
-  const multiple = raw.multiple === true;
-  const selectionRaw = raw.selectionBehavior;
-  const selectionBehavior = selectionRaw === "preserve" || selectionRaw === "clear" ? selectionRaw : multiple ? "clear" : "replace";
-  const behaviorRaw = raw.inputBehavior;
-  const inputBehavior = behaviorRaw === "autocomplete" || behaviorRaw === "autohighlight" ? behaviorRaw : "none";
-  const rows = Array.isArray(raw.items) ? raw.items.filter((x): x is ComboboxRow => typeof x === "object" && x !== null) : [];
+/**
+ * The machine's context: the collection becomes the order and the labels,
+ * the selection and the highlight come from the host's own text, and the
+ * field's text follows the selection the way Zag's does.
+ *
+ * The collection, the selection and the highlight are the machine's own —
+ * no host may write them — so they are taken as they are.
+ */
+export function initial(args: ComboboxArgs, authored: (name: string) => boolean): ComboboxContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote the seed twin
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const multiple = written("multiple") ? args.multiple === true : false;
+  const selectionRaw = args.selectionBehavior;
+  const selectionBehavior = written("selectionBehavior")
+    ? (selectionRaw === "preserve" || selectionRaw === "clear"
+      ? selectionRaw
+      : multiple
+      ? "clear"
+      : "replace")
+    : (multiple ? "clear" : "replace");
+  const behaviorRaw = args.inputBehavior;
+  const inputBehavior = written("inputBehavior")
+    ? (behaviorRaw === "autocomplete" || behaviorRaw === "autohighlight"
+      ? behaviorRaw
+      : "none")
+    : "none";
+  const rows = Array.isArray(args.items) ? args.items.filter((x): x is ComboboxRow => typeof x === "object" && x !== null) : [];
   const order = rows.map((r) => (typeof r.value === "string" ? r.value : "")).filter(Boolean);
-  const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)]));
-  const value = parseKeys(authored("value") ? raw.value : raw.defaultValue);
+  const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)] as const));
+  const value = parseKeys(args.value);
   // The scope's `highlightedValue` default is "", so an unauthored
-  // highlight looks present. The authored predicate is what says whether
-  // the host chose it.
-  const highlighted = authored("highlightedValue")
-    ? nullableProp(raw.highlightedValue)
-    : nullableProp(raw.defaultHighlightedValue);
-  const closeOnSelect = authored("closeOnSelect") ? raw.closeOnSelect === true : !multiple;
-  const allowCustomValue = raw.allowCustomValue === true;
-  const openOnChange = raw.openOnChange !== false;
+  // highlight looks present. The framework's twin resolution is what says
+  // whether the host chose it.
+  const highlighted = nullableProp(args.highlightedValue);
+  // Zag's `closeOnSelect: !props.multiple` — a coerced default is not a
+  // write, so an explicit `closeOnSelect` is the only thing that overrides
+  // the mode's own answer. The contract carries that write.
+  const closeOnSelect = written("closeOnSelect") ? args.closeOnSelect === true : !multiple;
+  const allowCustomValue = written("allowCustomValue") ? args.allowCustomValue === true : false;
+  const openOnChange = written("openOnChange") ? args.openOnChange !== false : true;
   const seedCtx: ComboboxContext = {
     value,
     inputValue: "",
@@ -150,12 +194,12 @@ export function initial(raw: ComboboxInitial, authored: (name: string) => boolea
     openOnChange,
   };
   const valueAsString = value.map((v) => labels[v] ?? v).join(", ");
-  const seeded = authored("inputValue") ? textProp(raw.inputValue) : textProp(raw.defaultInputValue);
+  const seeded = textProp(args.inputValue);
   const inputValue = seeded.trim().length > 0 || multiple ? seeded : (selectionBehavior === "clear" ? "" : valueAsString);
   return { ...seedCtx, inputValue };
 }
 
-export const config = {
+const config = {
   id: "combobox",
   initial: "idle",
   context: {
@@ -471,7 +515,7 @@ const isMove = (
   event.type === "INPUT.HOME" ||
   event.type === "INPUT.END";
 
-export const implementations = {
+const implementations = {
   conds: {
     /** The inline completion AND a single-mode selection. */
     inlineAutocomplete: (ctx: ComboboxContext): boolean => inlineSingle(ctx),
@@ -602,3 +646,38 @@ export const implementations = {
     },
   },
 };
+
+/**
+ * The combobox machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function combobox(
+  args: ComboboxArgs = {},
+  authored: (name: string) => boolean,
+): Machine<ComboboxContext, ComboboxEvent> {
+  return createMachine<ComboboxContext, ComboboxEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     *
+     * The selection, the field's text and the highlight are the machine's
+     * own: no host may write them.
+     */
+    fields: {
+      multiple: {},
+      closeOnSelect: {},
+      allowCustomValue: {},
+      inputBehavior: {},
+      selectionBehavior: {},
+      openOnChange: {},
+    },
+  });
+}

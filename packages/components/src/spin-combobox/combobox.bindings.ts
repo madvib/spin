@@ -7,15 +7,13 @@ import {
   type SlotScope,
 } from "@spin/runtime";
 import {
-  config,
-  implementations,
+  combobox as comboboxMachine,
   isOpenPhase,
   pickOutcome,
   stringifyValues,
-  initial,
+  type ComboboxArgs,
   type ComboboxContext,
   type ComboboxEvent,
-  type ComboboxInitial,
 } from "./combobox.machine.ts";
 /**
  * Combobox definition: the DOM contract as data. The machine owns the four
@@ -474,29 +472,24 @@ const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => (
   selected: scope.context.value.includes(row.value),
 });
 
-/** Transport guarantees the raw prop bag is a ComboboxInitial-shaped object. */
-const isComboboxInitial = (raw: unknown): raw is ComboboxInitial =>
-  raw !== null && typeof raw === "object";
-
 const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   name: "combobox",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => comboboxMachine(props as ComboboxArgs, authored),
   start: (props) => (props["open"] === true || props["defaultOpen"] === true ? "suggesting" : "idle"),
-  seed: (raw, authored) => ({ ...initial(isComboboxInitial(raw) ? raw : {}, authored) }),
-  scalarsOf: (parsed, authored) => {
-    const multiple = parsed["multiple"] === true;
-    return {
-      multiple,
-      // Zag's `closeOnSelect: !props.multiple` — a coerced default is not a
-      // write, so an explicit `closeOnSelect` is the only thing that
-      // overrides the mode's own answer.
-      closeOnSelect: authored("closeOnSelect") ? parsed["closeOnSelect"] === true : !multiple,
-      allowCustomValue: parsed["allowCustomValue"] === true,
-      inputBehavior: parsed["inputBehavior"] === "autocomplete" || parsed["inputBehavior"] === "autohighlight" ? parsed["inputBehavior"] : "none",
-      selectionBehavior: parsed["selectionBehavior"] === "preserve" || parsed["selectionBehavior"] === "clear" ? parsed["selectionBehavior"] : (parsed["multiple"] === true ? "clear" : "replace"),
-      openOnChange: parsed["openOnChange"] === undefined ? true : parsed["openOnChange"] !== false,
-    };
+  // The idle phase's entry clears the highlight — that is what makes a
+  // reopen start from nothing — so the host's seeded highlight is
+  // established AFTER the start, where the machine's own entry cannot
+  // clear it again. Silent: establish sends run before the watch cursors
+  // prime.
+  establish: (raw, authored) => {
+    const highlight: unknown = authored("highlightedValue")
+      ? raw["highlightedValue"]
+      : raw["defaultHighlightedValue"];
+    if (typeof highlight !== "string" || highlight.length === 0) return [];
+    return [{ type: "HIGHLIGHTED_VALUE.SET", value: highlight }];
   },
   reconcile: ({ context, state, parsed, authored, send }) => {
     const ctx = context;
@@ -512,7 +505,9 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }
     }
     // The host owns the panel when it authored `open`: the machine follows
-    // the prop, and the machine's own move is what reports it.
+    // the prop, and the machine's own move is what reports it. The panel's
+    // visibility is the machine's STATE, not a context field, so it stays
+    // here rather than in the machine's contract.
     if (authored("open")) {
       const open = parsed["open"] === true;
       if (open !== isOpenPhase(state)) {

@@ -1,11 +1,9 @@
 import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
+  editable as editableMachine,
+  type EditableArgs,
   type EditableContext,
   type EditableEvent,
-  type EditableInitial,
 } from "./editable.machine.ts";
 import type { InteractOutsideEvent } from "./actions/interact-outside.action.ts";
 
@@ -69,10 +67,6 @@ const editingOf = (scope: ScopeLike): boolean => scope.state === "edit";
 // read by attribute. Many call sites, one lockstep shape.
 // byId removed in banked shape: focus uses the runtime focuser.
 
-/** Transport guarantees the raw prop bag is an EditableInitial-shaped object. */
-const isEditableInitial = (raw: unknown): raw is EditableInitial =>
-  raw !== null && typeof raw === "object";
-
 /** Host callbacks arrive untyped on props: narrow once, call if callable. */
 type OutsideHandler = (event: InteractOutsideEvent) => void;
 const isOutsideHandler = (value: unknown): value is OutsideHandler => typeof value === "function";
@@ -83,31 +77,30 @@ const callHandler = (scope: ScopeLike, name: string, event: InteractOutsideEvent
 
 const def: ComponentDef<EditableContext, EditableEvent> = {
   name: "editable",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => editableMachine(props as EditableArgs, authored),
   // The start state follows the authored/default edit flags.
   start: (props) => (props["editing"] === true || props["defaultEdit"] === true ? "edit" : "preview"),
-  seed: (raw, authored) => ({ ...initial(isEditableInitial(raw) ? raw : {}), editControlled: authored("editing") }),
-  scalarsOf: (parsed, authored) => ({
-    maxLength: (typeof parsed["maxLength"] === "number" && parsed["maxLength"] > 0 ? Math.trunc(parsed["maxLength"]) : null),
-    editControlled: authored("editing"),
-  }),
   reconcile: ({ context, state, parsed, authored, send }) => {
-    const ctx = context;
-    // `value` is the CONTROLLED channel: it alternates only when the host
-    // authored it. An unauthored `value` is the empty default, and
-    // alternating it would wipe the `defaultValue` seed.
-    if (authored("value")) {
-      const nextValue = parsed["value"];
-      if (typeof nextValue === "string" && nextValue !== ctx.value) {
-        send({ type: "VALUE.SET", value: nextValue });
-      }
+    // The controlled channel: the host owns the editing state, so the
+    // machine asks and waits for the host's own write. That write drives
+    // the STATE, not a context field, and its close carries the last
+    // gesture — so the contract cannot carry it, and it stays here.
+    //
+    // The channel's fact — the host authored `editing` — is a derived
+    // one, not a prop value: the element keeps it in step with the
+    // host's authorship, the way the carousel keeps its derived sync.
+    if (context.editControlled !== authored("editing")) {
+      context.editControlled = authored("editing");
     }
-    if (authored("editing") && parsed["editing"] === true && state !== "edit") {
+    if (!authored("editing")) return false;
+    if (parsed["editing"] === true && state !== "edit") {
       send({ type: "CONTROLLED.EDIT" });
     }
-    if (authored("editing") && parsed["editing"] !== true && state === "edit") {
-      send({ type: "CONTROLLED.PREVIEW", previousEvent: ctx.lastEvent });
+    if (parsed["editing"] !== true && state === "edit") {
+      send({ type: "CONTROLLED.PREVIEW", previousEvent: context.lastEvent });
     }
     return false;
   },

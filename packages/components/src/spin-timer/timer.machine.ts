@@ -15,9 +15,12 @@
  * `event.deltaMs`.
  *
  * `currentMs` is the state. `startMs`, `targetMs`, `countdown` and
- * `interval` are the scalars the assigns read, synced from scope by the
- * bridge so a host write moves the clock without a machine event.
+ * `interval` are the scalars the assigns read; a host write to one of
+ * them reaches the machine as the contract says it should.
  */
+
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export type TimePart = "days" | "hours" | "minutes" | "seconds" | "milliseconds";
 
@@ -39,14 +42,23 @@ export interface TimerContext {
   interval: number;
 }
 
-/** Seed inputs: transport-coerced values for a fresh run. The machine
- * knows nothing of props; it takes numbers and flags and validates. */
-export interface TimerInitial {
-  readonly startMs?: unknown;
-  readonly targetMs?: unknown;
-  readonly countdown?: unknown;
-  readonly interval?: unknown;
-  readonly autoStart?: unknown;
+/**
+ * The timer's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live values.
+ */
+export interface TimerArgs {
+  /** The run's start, as the host wrote it. */
+  readonly startMs?: string;
+  /** The run's target, as the host wrote it. */
+  readonly targetMs?: string;
+  /** Whether the run counts down. */
+  readonly countdown?: boolean;
+  /** The clock's step, in milliseconds. */
+  readonly interval?: number;
 }
 
 /** Coerce a seed value to milliseconds: a finite number, a numeric
@@ -98,11 +110,17 @@ export function validateTimer(
   }
 }
 
-export function initial(raw: TimerInitial): TimerContext {
-  const startMs = parseMs(raw.startMs);
-  const targetMs = parseMs(raw.targetMs);
-  const countdown = raw.countdown === true;
-  const rawInterval = raw.interval;
+export function initial(args: TimerArgs, authored: (name: string) => boolean): TimerContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention for the same write — a host that wrote
+  // the twin wrote the channel too — and the framework has already
+  // resolved the twin into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const startMs = written("startMs") ? parseMs(args.startMs) : undefined;
+  const targetMs = written("targetMs") ? parseMs(args.targetMs) : undefined;
+  const countdown = written("countdown") ? args.countdown === true : false;
+  const rawInterval = written("interval") ? args.interval : undefined;
   // A non-numeric write has no meaning; every other value is validated
   // verbatim, so a zero refuses to build rather than silently defaulting.
   const interval = typeof rawInterval === "number" ? Math.trunc(rawInterval) : 1000;
@@ -113,6 +131,8 @@ export function initial(raw: TimerInitial): TimerContext {
     targetMs: targetMs ?? null,
     countdown,
     interval,
+    // The count is the machine's own: it starts at the run's start, and a
+    // host's write of it arrives as the contract's event.
     currentMs: start,
   };
 }
@@ -122,11 +142,13 @@ export type TimerEvent =
   | { type: "PAUSE" }
   | { type: "RESUME" }
   | { type: "RESET" }
-  | { type: "RESTART" }
+  // A restart carries the start time when the HOST wrote one: the
+  // contract's payload is the raw prop, and the machine shapes it.
+  | { type: "RESTART"; startMs?: string | number }
   | { type: "TICK"; deltaMs: number }
-  | { type: "CURRENT_MS.SET"; currentMs: number };
+  | { type: "CURRENT_MS.SET"; currentMs: string | number };
 
-export const config = {
+const config = {
   id: "timer",
   initial: "idle",
   context: {
@@ -139,7 +161,7 @@ export const config = {
   // Programmatic commands are root-level so every phase answers them, which
   // is also where Zag puts RESTART.
   on: {
-    RESTART: { target: "running", actions: [{ assign: "resetTime" }] },
+    RESTART: { target: "running", cond: "isNewRun", actions: [{ assign: "resetTime" }] },
     "CURRENT_MS.SET": { actions: [{ assign: "setCurrentMs" }] },
   },
   states: {
@@ -204,8 +226,17 @@ export function formatTime(time: Time): Time<string> {
 const effectiveTarget = (ctx: TimerContext): number | null =>
   ctx.targetMs !== null ? ctx.targetMs : ctx.countdown ? 0 : null;
 
-export const implementations = {
+const implementations = {
   conds: {
+    /**
+     * A restart that carries the start time the run already has is not a
+     * new run: the seeded start is not a write. The host's write of a
+     * DIFFERENT start time is a new run, and it restarts the clock.
+     */
+    isNewRun: (ctx: TimerContext, e: TimerEvent): boolean => {
+      if (e.type !== "RESTART" || e.startMs === undefined) return true;
+      return (parseMs(e.startMs) ?? 0) !== ctx.startMs;
+    },
     hasReachedTarget: (ctx: TimerContext): boolean => {
       const target = effectiveTarget(ctx);
       if (target === null) return false;
@@ -223,8 +254,56 @@ export const implementations = {
       if (target === null) return { currentMs: next };
       return { currentMs: ctx.countdown ? Math.max(next, target) : Math.min(next, target) };
     },
-    resetTime: (ctx: TimerContext): Partial<TimerContext> => ({ currentMs: ctx.startMs }),
-    setCurrentMs: (_ctx: TimerContext, e: TimerEvent): Partial<TimerContext> =>
-      e.type === "CURRENT_MS.SET" ? { currentMs: e.currentMs } : {},
+    /**
+     * The count goes home. A restart that carries the host's start time
+     * takes it: the payload is the raw prop, and the machine shapes it.
+     */
+    resetTime: (ctx: TimerContext, e: TimerEvent): Partial<TimerContext> => {
+      if (e.type === "RESTART" && e.startMs !== undefined) {
+        const start = parseMs(e.startMs) ?? 0;
+        return { startMs: start, currentMs: start };
+      }
+      return { currentMs: ctx.startMs };
+    },
+    /**
+     * The host's count: the raw prop arrives, the machine shapes it.
+     */
+    setCurrentMs: (_ctx: TimerContext, e: TimerEvent): Partial<TimerContext> => {
+      if (e.type !== "CURRENT_MS.SET") return {};
+      const currentMs = parseMs(e.currentMs);
+      return currentMs === undefined ? {} : { currentMs };
+    },
   },
 };
+
+/**
+ * The timer machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function timer(
+  args: TimerArgs = {},
+  authored: (name: string) => boolean,
+): Machine<TimerContext, TimerEvent> {
+  return createMachine<TimerContext, TimerEvent>({
+    ...config,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      startMs: { event: "RESTART" },
+      currentMs: { event: "CURRENT_MS.SET" },
+      targetMs: {},
+      countdown: {},
+      interval: {},
+    },
+    assigns: implementations.assigns,
+    conds: implementations.conds,
+  });
+}

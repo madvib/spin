@@ -18,6 +18,9 @@
  * Zag's `setRawValue` does.
  */
 
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 /** The direction a spin control or a scrub drag is pushing the value. */
 export type NumberInputHint = "increment" | "decrement";
 
@@ -69,6 +72,127 @@ export type NumberInputEvent =
   | { type: "FIELDSET.DISABLED"; value: boolean };
 
 /**
+ * The number-input's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface NumberInputArgs {
+  /** The value the field holds, as the host wrote it. */
+  value?: string;
+  /** The lower bound. */
+  min?: string | number;
+  /** The upper bound. */
+  max?: string | number;
+  /** The step the arrow keys and the spin take. */
+  step?: string | number;
+  /** The step a shift-pressed arrow takes. */
+  largeStep?: string | number;
+  /** The step an alt-pressed arrow takes. */
+  smallStep?: string | number;
+  /** Whether the value may leave the range. */
+  allowOverflow?: boolean;
+  /** Whether a blur clamps an out-of-range value. */
+  clampValueOnBlur?: boolean;
+  /** Whether a press spins the value. */
+  spinOnPress?: boolean;
+}
+
+/** The bounds Zag defaults to: everything but the platform's own limits. */
+const MIN_SAFE = Number.MIN_SAFE_INTEGER;
+const MAX_SAFE = Number.MAX_SAFE_INTEGER;
+/** Zag's default step. */
+const DEFAULT_STEP = 1;
+
+/**
+ * A number from the prop store. The scope grammar has no float type, so the
+ * bounds and the step sizes arrive as decimal strings from an attribute and
+ * as numbers from a framework; both land here and neither is trusted.
+ */
+export function asNumber(raw: unknown, fallback: number): number {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : fallback;
+  if (typeof raw !== "string") return fallback;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return fallback;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+/**
+ * The machine's verbatim form of an authored value: the host's own text.
+ * Zag's controlled bindable writes the prop as the host authored it — no
+ * parse, no clamp, no format — so a controlled host owns every character
+ * the field shows. A write that is not a value at all is null: the machine
+ * is left alone.
+ */
+export function valueOf(raw: unknown): string | null {
+  if (typeof raw === "string") return raw;
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw.toString();
+  return null;
+}
+
+/** The scalars the assigns read: the bounds, the three step sizes, and the
+ * three behaviour flags. */
+export type NumberInputScalarKey =
+  | "min"
+  | "max"
+  | "step"
+  | "largeStep"
+  | "smallStep"
+  | "allowOverflow"
+  | "clampValueOnBlur"
+  | "spinOnPress";
+
+/**
+ * The scalars, shaped from the arguments: the bounds and the three step
+ * sizes are numbers, and the two step sizes the step itself derives when
+ * the host wrote none.
+ */
+export function numberInputScalars(
+  args: NumberInputArgs,
+): Pick<NumberInputContext, NumberInputScalarKey> {
+  const step = asNumber(args.step, DEFAULT_STEP);
+  return {
+    min: asNumber(args.min, MIN_SAFE),
+    max: asNumber(args.max, MAX_SAFE),
+    step,
+    largeStep: asNumber(args.largeStep, 10 * step),
+    smallStep: asNumber(args.smallStep, step / 10),
+    allowOverflow: args.allowOverflow === true,
+    clampValueOnBlur: args.clampValueOnBlur !== false,
+    spinOnPress: args.spinOnPress !== false,
+  };
+}
+
+/**
+ * The machine's context, from its arguments: the value the host wrote, the
+ * scalars the assigns read, and the machine's own gesture state.
+ *
+ * The value is the host's channel: the host's own write stands — the live
+ * prop or its twin, which is the same write under the framework's
+ * convention — else the machine's own default, the empty field. The bounds
+ * and the flags are the element's configuration: the machine has no opinion
+ * about them, so they are taken as they are.
+ */
+export function initial(
+  args: NumberInputArgs,
+  authored: (name: string) => boolean = () => true,
+): NumberInputContext {
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  return {
+    value: written("value") ? valueOf(args.value) ?? "" : "",
+    hint: null,
+    cursorPoint: null,
+    fieldsetDisabled: false,
+    ...numberInputScalars(args),
+    spin: null,
+  };
+}
+
+/**
  * A press always leaves `idle`: Zag's `before:spin` carries the focus tag, so
  * the machine is focused for the whole gesture whether or not the input took
  * DOM focus (`focusInputOnChange` decides that, and it is the view's call).
@@ -80,7 +204,7 @@ const pressDown = [
 
 const scrubDown = { target: "scrubbing", actions: [{ assign: "setCursorPoint" }] };
 
-export const config = {
+const config = {
   id: "number-input",
   initial: "idle",
   context: {
@@ -237,7 +361,7 @@ function moved(
   return { value: formatValue(bounded) };
 }
 
-export const implementations = {
+const implementations = {
   conds: {
     isIncrementHint: (ctx: NumberInputContext, event: NumberInputEvent): boolean =>
       ("hint" in event ? event.hint : ctx.hint) === "increment",
@@ -289,3 +413,38 @@ export const implementations = {
       event.type === "FIELDSET.DISABLED" ? { fieldsetDisabled: event.value } : {},
   },
 };
+
+/**
+ * The number-input machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function numberInput(
+  args: NumberInputArgs = {},
+  authored: (name: string) => boolean = () => true,
+): Machine<NumberInputContext, NumberInputEvent> {
+  return createMachine<NumberInputContext, NumberInputEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event, the
+     * machine decides, and the change reaches the host. A field without
+     * one is SILENT: the host's write lands in the field, and nothing
+     * reports.
+     */
+    fields: {
+      value: {},
+      min: { parse: (raw) => asNumber(raw, MIN_SAFE) },
+      max: { parse: (raw) => asNumber(raw, MAX_SAFE) },
+      step: { parse: (raw) => asNumber(raw, DEFAULT_STEP) },
+      largeStep: { parse: (raw) => asNumber(raw, 10 * DEFAULT_STEP) },
+      smallStep: { parse: (raw) => asNumber(raw, DEFAULT_STEP / 10) },
+      allowOverflow: {},
+      clampValueOnBlur: {},
+      spinOnPress: {},
+    },
+  });
+}

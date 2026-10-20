@@ -1,20 +1,16 @@
 import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   clampValue,
-  config,
-  dateToFields,
+  dateInput as dateInputMachine,
   daysInMonth,
   FIELD_LIMITS,
-  implementations,
-  initial,
-  parseValue,
   segmentFields,
   valueAsString,
   type DateGranularity,
+  type DateInputArgs,
   type DateInputContext,
   type DateInputEvent,
   type DateInputField,
-  type DateInputInitial,
   type DateInputValueChange,
   type DateValue,
 } from "./date-input.machine.ts";
@@ -100,10 +96,6 @@ const placeholderFor = (field: DateInputField): string => {
 interface ScopeLike extends PartScope<unknown, DateInputContext> {}
 
 interface SlotLike<R> extends SlotScope<R, DateInputContext> {}
-
-/** Transport guarantees the raw prop bag is a DateInputInitial-shaped object. */
-const isDateInputInitial = (raw: unknown): raw is DateInputInitial =>
-  raw !== null && typeof raw === "object";
 
 /** An Intl part names its field; the probe date keeps every value distinct. */
 const partToField = (type: string, hourCycle: 12 | 24): DateInputField | null => {
@@ -285,25 +277,10 @@ const holdersOf = (id: IdFn): Map<number, { text: string; placeholder: boolean }
 
 const def: ComponentDef<DateInputContext, DateInputEvent> = {
   name: "date-input",
-  config,
-  implementations,
-  seed: (raw, _authored) => {
-    const props: DateInputInitial = isDateInputInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    // The fork's initial context is the config's object until a
-    // transition folds a copy — the establish CLEAR below detaches it.
-    return { ...shaped, enteredKeys: "" };
-  },
-  establish: (raw, authored) => {
-    const props: DateInputInitial = isDateInputInitial(raw) ? raw : {};
-    const shaped = initial(props);
-    const seed = authored("value") ? parseValue(props.value) : parseValue(props.defaultValue);
-    if (seed === null) return [{ type: "VALUE.CLEAR" }];
-    return [
-      { type: "VALUE.CLEAR" },
-      { type: "VALUE.SET", value: clampValue(seed, shaped.min, shaped.max) },
-    ];
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => dateInputMachine(props as DateInputArgs, authored),
   // The active segment moved → the segment it names takes DOM focus.
   settled: ({ before, after, focus }) => {
     const was = before.context.activeSegment;
@@ -312,26 +289,6 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
   },
   mounted: ({ props, focus }) => {
     if (props["autoFocus"] === true) focus("segment", 0);
-  },
-  scalars: ["granularity", "hourCycle", "min", "max"],
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    // An hour-cycle change rebuilds the fields the segments read.
-    const hourCycle = parsed["hourCycle"] === 24 ? 24 : 12;
-    if (ctx.hourCycle !== hourCycle) {
-      send({ type: "HOUR_CYCLE.SET", hourCycle });
-      return true;
-    }
-    if (authored("value")) {
-      const outer = parseValue(parsed["value"]);
-      const same = (a: DateValue | null, b: DateValue | null): boolean =>
-        valueAsString(a) === valueAsString(b);
-      if (!same(ctx.value, outer)) {
-        send({ type: "VALUE.SET", value: clampValue(outer, ctx.min, ctx.max) });
-        return true;
-      }
-    }
-    return false;
   },
   parts: {
     segment: {

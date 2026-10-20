@@ -793,7 +793,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => cascadeMachine(props as CascadeArgs),
+  machine: (props, authored) => cascadeMachine(props as CascadeArgs, authored),
   // Focus follows the gesture: opening lands in the content, a restoring
   // close and a clear land back on the trigger.
   settled: ({ event, before, after, focus }) => {

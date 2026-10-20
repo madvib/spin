@@ -172,7 +172,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // nothing about the machine's state.
-  machine: (props) => angleSliderMachine(props as AngleSliderArgs),
+  machine: (props, authored) => angleSliderMachine(props as AngleSliderArgs, authored),
   commitEvents: [
     "DOC.POINTER_UP",
     "THUMB.ARROW_INC",

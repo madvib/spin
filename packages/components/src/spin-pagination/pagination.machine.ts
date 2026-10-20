@@ -14,6 +14,7 @@
  * one mode; the events are all legal, always, subject to the guards.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface PaginationContext {
@@ -143,6 +144,7 @@ export interface PaginationArgs {
   siblingCount?: number;
   /** How many boundary pages the window shows at each end. */
   boundaryCount?: number;
+  defaultBoundaryCount?: number;
 }
 
 /** A numeric prop: numbers pass, numeric strings parse, everything else
@@ -157,11 +159,26 @@ const asCount = (raw: unknown): number | null => {
 };
 
 /** The machine's context, from its arguments: the page falls back to one,
- * the size to ten, and the window's own counts to one each. */
-export function initial(args: PaginationArgs): PaginationContext {
+ * the size to ten, and the window's own counts to one each.
+ *
+ * The page and the page size are channels: the host's write, or the
+ * machine's own default. The element's declared default is not a write,
+ * so it never stands in for one. The seed twins (`defaultPage`,
+ * `defaultPageSize`) are the host's writes of the page and the size — the
+ * framework resolved them into the args — so they count as writes too.
+ * The collection and the window's counts are the element's own data, as
+ * they are.
+ */
+export function initial(args: PaginationArgs, authored: (name: string) => boolean): PaginationContext {
+  // A channel: the host's write, or the machine's own default. The twins
+  // are the framework's convention — a host that wrote `defaultPage` (or
+  // `defaultPageSize`) wrote the channel too — and the framework has
+  // already resolved them into the arguments.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
-    page: asCount(args.page) ?? 1,
-    pageSize: asCount(args.pageSize) ?? 10,
+    page: written("page") ? asCount(args.page) ?? 1 : 1,
+    pageSize: written("pageSize") ? asCount(args.pageSize) ?? 10 : 10,
     count: asCount(args.count) ?? 0,
     siblingCount: asCount(args.siblingCount) ?? 1,
     boundaryCount: asCount(args.boundaryCount) ?? 1,
@@ -188,6 +205,7 @@ const clampPage = (page: number, total: number): number => Math.min(Math.max(pag
  */
 export function pagination(
   args: PaginationArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<PaginationContext, PaginationEvent> {
   return createMachine<PaginationContext, PaginationEvent>({
     id: "pagination",
@@ -208,7 +226,7 @@ export function pagination(
       siblingCount: {},
       boundaryCount: {},
     },
-    context: initial(args),
+    context: initial(args, authored),
     on: {
       SET_COUNT: { actions: [{ assign: "setCount" }] },
     },

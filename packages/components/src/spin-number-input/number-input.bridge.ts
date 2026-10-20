@@ -1,5 +1,5 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { createMachine, interpret, type Service, type State } from "@spin/runtime/fsm";
+import { interpret, type Service } from "@spin/runtime/fsm";
 import {
   connectRobotNumberInput,
   type NumberInputApi,
@@ -7,12 +7,15 @@ import {
   type NumberInputService,
 } from "./number-input.connect.ts";
 import {
-  config,
-  implementations,
   isValueWithinRange,
+  numberInput,
+  numberInputScalars,
   parseValue,
+  valueOf,
+  type NumberInputArgs,
   type NumberInputContext,
   type NumberInputEvent,
+  type NumberInputScalarKey,
 } from "./number-input.machine.ts";
 
 export interface NumberInputValueChange {
@@ -46,30 +49,14 @@ export interface NumberInputCallbacks {
   readonly onFocusChange: ((details: NumberInputFocusChange) => void) | undefined;
 }
 
-/** The bounds Zag defaults to: everything but the platform's own limits. */
-const MIN_SAFE = Number.MIN_SAFE_INTEGER;
-const MAX_SAFE = Number.MAX_SAFE_INTEGER;
-
 /** Zag's defaults, before any prop is authored. */
-const DEFAULT_STEP = 1;
 const DEFAULT_INPUT_MODE = "decimal";
 const DEFAULT_PATTERN = "-?[0-9]*(.[0-9]+)?";
 const INCREMENT_LABEL = "increment value";
 const DECREMENT_LABEL = "decrease value";
 
 /** The scalars the assigns read, synced from scope by the bridge. */
-const SCALARS = [
-  "min",
-  "max",
-  "step",
-  "largeStep",
-  "smallStep",
-  "allowOverflow",
-  "clampValueOnBlur",
-  "spinOnPress",
-] as const;
-
-type ScalarKey = (typeof SCALARS)[number];
+type ScalarKey = NumberInputScalarKey;
 
 const sameScalars = (
   context: NumberInputContext,
@@ -84,20 +71,6 @@ const sameScalars = (
   context.clampValueOnBlur === next.clampValueOnBlur &&
   context.spinOnPress === next.spinOnPress;
 
-/**
- * A number from the prop store. The scope grammar has no float type, so the
- * bounds and the step sizes arrive as decimal strings from an attribute and
- * as numbers from a framework; both land here and neither is trusted.
- */
-function asNumber(raw: unknown, fallback: number): number {
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw : fallback;
-  if (typeof raw !== "string") return fallback;
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) return fallback;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
 function asString(raw: unknown, fallback: string): string {
   return typeof raw === "string" && raw.length > 0 ? raw : fallback;
 }
@@ -107,20 +80,10 @@ function asOptional(raw: unknown): string | undefined {
   return typeof raw === "string" && raw.length > 0 ? raw : undefined;
 }
 
-/** The machine's verbatim form of an authored `value`, or null when the host
- * wrote something that is not a value. Zag's controlled bindable writes the
- * prop as the host authored it — no parse, no clamp, no format — so a
- * controlled host owns every character the field shows. */
-function authoredValue(raw: unknown): string | null {
-  if (typeof raw === "string") return raw;
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw.toString() : null;
-  return null;
-}
-
 /** The first state's value: the authored `value` when the host wrote one, and
  * `defaultValue` otherwise. Both are the platform's own strings. */
 function seedValue(p: Record<string, unknown>, authored: (name: string) => boolean): string {
-  const controlled = authored("value") ? authoredValue(p["value"]) : null;
+  const controlled = authored("value") ? valueOf(p["value"]) : null;
   if (controlled !== null) return controlled;
   const fallback = p["defaultValue"];
   return typeof fallback === "string" ? fallback : "";
@@ -148,8 +111,6 @@ export function createNumberInputBridge(
 ): { readonly api: NumberInputApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
-  const machine = createMachine<NumberInputContext, NumberInputEvent>({ ...config, ...implementations });
-
   let service: Service<NumberInputContext, NumberInputEvent> | undefined;
   /** What a form reset restores: the seed, captured with the service. */
   let initialValue = "";
@@ -167,23 +128,36 @@ export function createNumberInputBridge(
     return authored(name) ? p[name] === true : true;
   }
 
+/**
+ * The arguments the machine is built from: the host's own props, shaped the
+ * way the machine reads them. The twin (`defaultValue`) is the framework's
+ * convention, so the seed picks the live value when the host wrote one and
+ * the twin otherwise.
+ */
+function readArgs(): NumberInputArgs {
+  const p = props();
+  const allowOverflow = p["allowOverflow"] === true;
+  return {
+    value: seedValue(p, authored),
+    min: p["min"] as string | number,
+    max: p["max"] as string | number,
+    step: p["step"] as string | number,
+    largeStep: p["largeStep"] as string | number,
+    smallStep: p["smallStep"] as string | number,
+    allowOverflow,
+    // Zag: `clampValueOnBlur` defaults to the opposite of `allowOverflow`,
+    // and a coerced default is not a write.
+    clampValueOnBlur: authored("clampValueOnBlur")
+      ? p["clampValueOnBlur"] === true
+      : !allowOverflow,
+    spinOnPress: flagOn(p, "spinOnPress"),
+  };
+}
+
   function readContextProps(): Pick<NumberInputContext, ScalarKey> {
-    const p = props();
-    const step = asNumber(p["step"], DEFAULT_STEP);
-    const allowOverflow = p["allowOverflow"] === true;
-    return {
-      min: asNumber(p["min"], MIN_SAFE),
-      max: asNumber(p["max"], MAX_SAFE),
-      step,
-      largeStep: asNumber(p["largeStep"], 10 * step),
-      smallStep: asNumber(p["smallStep"], step / 10),
-      allowOverflow,
-      // Zag: `clampValueOnBlur` defaults to the opposite of `allowOverflow`.
-      clampValueOnBlur: authored("clampValueOnBlur")
-        ? p["clampValueOnBlur"] === true
-        : !allowOverflow,
-      spinOnPress: flagOn(p, "spinOnPress"),
-    };
+    // The machine shapes the scalars; the bridge reads them off the same
+    // arguments the machine was built from.
+    return numberInputScalars(readArgs());
   }
 
   function readConnectProps(): NumberInputConnectProps {
@@ -225,23 +199,17 @@ export function createNumberInputBridge(
 
   function ensureService(): Service<NumberInputContext, NumberInputEvent> {
     if (service) return service;
-    const p = props();
-    // An authored `value` is the first state, exactly as Zag's bindable prefers
-    // it; `defaultValue` seeds the uncontrolled case. Either way the seed
-    // tells no one — a controlled host is not told the value it just wrote.
-    initialValue = seedValue(p, authored);
-    // A fresh context, never the machine's initial one: that object is the
-    // config's own, so every instance of the element would seed — and then
-    // read — the same context. `start` takes the seeded state precisely so a
-    // per-instance seed can be handed over.
-    const start = machine.initialState.value;
-    const seeded: State<NumberInputContext> = {
-      value: start,
-      context: { ...machine.initialState.context, ...readContextProps(), value: initialValue },
-      actions: machine.initialState.actions,
-      matches: (value: string) => value === start,
-    };
-    service = owner.run(() => interpret(machine).start(seeded));
+    // The machine is a factory over the arguments: it builds its own
+    // context from them, so every instance of the element seeds — and then
+    // reads — its own context.
+    //
+    // An authored `value` is the first state, exactly as Zag's bindable
+    // prefers it; `defaultValue` seeds the uncontrolled case. Either way
+    // the seed tells no one — a controlled host is not told the value it
+    // just wrote.
+    const machine = numberInput(readArgs(), authored);
+    initialValue = machine.initialState.context.value;
+    service = owner.run(() => interpret(machine).start());
     return service;
   }
 
@@ -318,7 +286,7 @@ export function createNumberInputBridge(
       const next = readContextProps();
       if (!sameScalars(svc.state.context, next)) Object.assign(svc.state.context, next);
       if (authored("value")) {
-        const wanted = authoredValue(props()["value"]);
+        const wanted = valueOf(props()["value"]);
         // A write the machine cannot read is the host's, and leaving it alone
         // is the only thing that does not invent a value.
         if (wanted !== null && svc.state.context.value !== wanted) {

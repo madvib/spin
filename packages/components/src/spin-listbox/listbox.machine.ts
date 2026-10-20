@@ -16,6 +16,7 @@
  * data.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface ListboxContext {
@@ -267,6 +268,7 @@ export interface ListboxArgs {
   loopFocus?: boolean;
   /** How a plain click treats the selection. */
   selectionBehavior?: string;
+  defaultHighlightedValue?: string;
 }
 
 /** The collection's rows, as the machine reads them. */
@@ -278,9 +280,9 @@ interface ListboxRowData {
 }
 
 /** The rows the collection holds: only well-shaped entries survive. */
-const rowsOf = (items: readonly ListboxArgsItem[] | undefined): ListboxRowData[] => {
+const rowsOf = (items: unknown): ListboxRowData[] => {
   const rows: ListboxRowData[] = [];
-  for (const entry of items ?? []) {
+  for (const entry of Array.isArray(items) ? items : []) {
     if (typeof entry !== "object" || entry === null) continue;
     const record: Record<string, unknown> = entry;
     const value = record["value"];
@@ -307,7 +309,13 @@ const parseKeys = (value: unknown): string[] => {
 };
 
 /** The machine's own defaults, and the host's arguments where it has them. */
-export function initial(args: ListboxArgs = {}): ListboxContext {
+export function initial(args: ListboxArgs = {}, authored: (name: string) => boolean): ListboxContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote
+  // `defaultHighlightedValue` wrote the channel too — and the framework
+  // has already resolved it into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const rows = rowsOf(args.items);
   const order = rows.map((row) => row.value);
   const labels = Object.fromEntries(rows.map((row) => [row.value, row.label]));
@@ -320,9 +328,12 @@ export function initial(args: ListboxArgs = {}): ListboxContext {
         ? "clear"
         : "replace";
   return {
+    // The selection is the element's data: the collection's twin seeds it
+    // through the framework's resolution, so it is taken as it is.
     value: parseKeys(args.value),
     disabledValues: rows.filter((row) => row.disabled).map((row) => row.value),
-    highlightedValue: typeof args.highlightedValue === "string" &&
+    highlightedValue: written("highlightedValue") &&
+        typeof args.highlightedValue === "string" &&
         args.highlightedValue.length > 0
       ? args.highlightedValue
       : null,
@@ -342,10 +353,11 @@ export function initial(args: ListboxArgs = {}): ListboxContext {
  */
 export function listbox(
   args: ListboxArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<ListboxContext, ListboxEvent> {
   return createMachine<ListboxContext, ListboxEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     assigns: implementations.assigns,
     conds: implementations.conds,
     /**

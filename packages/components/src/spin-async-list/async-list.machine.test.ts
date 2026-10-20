@@ -80,7 +80,9 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   const success: AsyncListSuccess[] = [];
   const failure: AsyncListFailure[] = [];
   const values: Record<string, WriteSignal> = {};
+  const written = new Set<string>();
   const write = (name: string, value: unknown): void => {
+    written.add(name);
     const source = values[name];
     if (source === undefined) values[name] = signal<unknown>(value);
     else source(value);
@@ -113,6 +115,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     () => {
       const record: Record<string, unknown> = {};
       for (const [name, source] of Object.entries(values)) record[name] = source();
+      record["@@authored"] = (name: string): boolean => written.has(name);
       return record;
     },
     () => root,

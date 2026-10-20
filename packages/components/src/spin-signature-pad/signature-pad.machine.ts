@@ -13,6 +13,7 @@
  */
 
 import { getStroke } from "perfect-freehand";
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 /** A stroke sample: canvas-relative position plus pointer pressure. */
@@ -81,6 +82,7 @@ export interface SignaturePadArgs {
   readOnly?: boolean;
   /** The stroke tuning, off the opaque `drawing` prop. */
   drawing?: unknown;
+  defaultReadOnly?: boolean;
 }
 
 /** Paths off any transport: well-shaped string lists only (the grammar
@@ -102,10 +104,24 @@ export function pathsOf(value: unknown): string[] {
 }
 
 /** The machine's context, from its arguments: the committed paths, the
- * pad's own flags, and the stroke tuning the opaque `drawing` prop names. */
-export function initial(args: SignaturePadArgs): SignaturePadContext {
+ * pad's own flags, and the stroke tuning the opaque `drawing` prop names.
+ *
+ * The paths are a channel: the host's write, or the machine's own
+ * default. The element's declared default is not a write, so it never
+ * stands in for one. The seed twin (`defaultPaths`) is the host's write of
+ * the paths — the framework resolved it into the args — so it counts as a
+ * write too. The flags and the tuning are the element's own data, as they
+ * are.
+ */
+export function initial(args: SignaturePadArgs, authored: (name: string) => boolean): SignaturePadContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultPaths`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
-    paths: pathsOf(args.paths),
+    paths: written("paths") ? pathsOf(args.paths) : [],
     currentPoints: [],
     currentPath: null,
     disabled: args.disabled === true,
@@ -186,6 +202,7 @@ export function isEmpty(ctx: SignaturePadContext): boolean {
  */
 export function signaturePad(
   args: SignaturePadArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<SignaturePadContext, SignaturePadEvent> {
   return createMachine<SignaturePadContext, SignaturePadEvent>({
     id: "signature-pad",
@@ -204,7 +221,7 @@ export function signaturePad(
       disabled: {},
       readOnly: {},
     },
-    context: initial(args),
+    context: initial(args, authored),
     on: {
       CLEAR: {
         target: "idle",

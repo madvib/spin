@@ -20,7 +20,7 @@ function carousel(
   slideCount: number,
   loop = false,
 ): Service<CarouselContext, CarouselEvent> {
-  const svc = interpret(carouselMachine({ loop }));
+  const svc = interpret(carouselMachine({ loop }, () => true));
   svc.start("idle");
   svc.send({ type: "PAGES.SET", count: slideCount });
   return svc;

@@ -1,17 +1,13 @@
 import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
   formatTime,
-  implementations,
-  initial,
   msToTime,
-  parseMs,
-  validateTimer,
+  timer as timerMachine,
   type Time,
   type TimePart,
+  type TimerArgs,
   type TimerContext,
   type TimerEvent,
-  type TimerInitial,
 } from "./timer.machine.ts";
 
 /**
@@ -88,9 +84,6 @@ interface ScopeLike extends PartScope<unknown, TimerContext> {}
 
 interface SlotLike<R> extends SlotScope<R, TimerContext> {}
 
-/** Transport guarantees the raw prop bag is a TimerInitial-shaped object. */
-const isTimerInitial = (raw: unknown): raw is TimerInitial =>
-  raw !== null && typeof raw === "object";
 const timeOf = (context: TimerContext): Time => msToTime(context.currentMs);
 
 /** The run's progress as a fraction: a countdown runs from full to empty,
@@ -182,16 +175,11 @@ const VALID_ACTIONS: Readonly<Record<string, true>> = {
 
 const def: ComponentDef<TimerContext, TimerEvent> = {
   name: "timer",
-  config,
-  implementations,
-  start: (raw, _authored) => {
-    const props: TimerInitial = isTimerInitial(raw) ? raw : {};
-    return props.autoStart === true ? "running" : "idle";
-  },
-  seed: (raw, _authored) => {
-    const props: TimerInitial = isTimerInitial(raw) ? raw : {};
-    return { ...initial(props) };
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props, authored) => timerMachine(props as TimerArgs, authored),
+  start: (raw) => (raw["autoStart"] === true ? "running" : "idle"),
 
   // The clock's epoch is the service's birth: an `autoStart` run's first
   // tick is measured from here, since no START send precedes it.
@@ -201,40 +189,6 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
   },
   settled: ({ root }) => {
     epochByRoot.set(root(), Date.now());
-  },
-  scalarsOf: (parsed) => {
-    const interval = parsed["interval"];
-    return {
-      targetMs: (() => {
-        const target: unknown = parsed["targetMs"];
-        return typeof target === "number" ? target : null;
-      })(),
-      countdown: parsed["countdown"] === true,
-      // A mid-life write of zero or less is not worth a throw inside an
-      // effect: the clock simply runs at its fastest.
-      interval: typeof interval === "number" && interval > 0 ? Math.trunc(interval) : 1000,
-    };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    // A new startMs is a new run: Zag restarts on the change. `startMs`
-    // stays out of the scalar merge so the change is still visible here —
-    // the merge would assign it first and mask the restart.
-    const parsedStart = parseMs(parsed["startMs"]);
-    const startMs = parsedStart ?? 0;
-    if (ctx.startMs !== startMs) {
-      ctx.startMs = startMs;
-      send({ type: "RESTART" });
-      return true;
-    }
-    if (authored("currentMs")) {
-      const outer = parseMs(parsed["currentMs"]);
-      if (outer !== undefined && ctx.currentMs !== outer) {
-        send({ type: "CURRENT_MS.SET", currentMs: outer });
-        return true;
-      }
-    }
-    return false;
   },
   parts: {
     root: {

@@ -17,7 +17,7 @@
  * than by a 200ms timer the machine would own.
  */
 
-import { isRecord } from "@spin/runtime";
+import { defaultTwin, isRecord } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 /** One slide: the record the host wrote. */
@@ -283,26 +283,35 @@ export interface CarouselArgs {
   slidesPerMove?: string;
   /** Whether the slides size themselves to the track. */
   autoSize?: boolean;
+  defaultLoop?: boolean;
 }
 
-/** The machine's context: the page it is on, the pages there are, and
+/**
+ * The machine's context: the page it is on, the pages there are, and
  * the mode it is in. The page count is the machine's own derivation: the
- * slides it holds, the step, and the page size. */
-export function initial(args: CarouselArgs): CarouselContext {
+ * slides it holds, the step, and the page size.
+ */
+export function initial(args: CarouselArgs, authored: (name: string) => boolean): CarouselContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultIndex`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   const slidesPerPage = slidesPerPageOf(args.slidesPerPage);
   const perMove = slidesPerMoveOf(args.slidesPerMove, slidesPerPage);
   const autoSize = args.autoSize === true;
   const slideCount = slidesOf(args.items).length;
   const pageCount = pageCountFor(slideCount, perMove, slidesPerPage, autoSize);
   const last = Math.max(0, pageCount - 1);
-  const at = asInt(args.index, 0);
+  const at = written("index") ? asInt(args.index, 0) : 0;
   return {
     index: Math.min(Math.max(0, at), last),
     pageCount,
     slidesInView: [],
     focused: false,
     dragStatus: "idle",
-    loop: args.loop === true,
+    loop: written("loop") ? args.loop === true : false,
     perMove,
     slideParams: { perMove, slidesPerPage, autoSize, slideCount },
   };
@@ -333,10 +342,11 @@ export function pageCountFor(
  */
 export function carousel(
   args: CarouselArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<CarouselContext, CarouselEvent> {
   return createMachine<CarouselContext, CarouselEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     ...implementations,
     /**
      * The machine's contract with its hosts: the context fields a host

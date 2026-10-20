@@ -384,17 +384,18 @@ const onSubmenuClose = (scope: ScopeLike, event: Event): void => {
 
 const def: ComponentDef<MenuContext, MenuEvent> = {
   name: "menu",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props, authored) => menuMachine(props as MenuArgs, authored),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "closed";
     return props["defaultOpen"] === true ? "open" : "closed";
   },
-  machine: (props) => menuMachine(props as MenuArgs),
   reconcile: ({ state, parsed, authored, send }) => {
     // The items arrive as a host write: a parent menu hands its subtree
-    // over after the child has connected, so the seed's entries are only
-    // the first word.
+    // over after the child has connected, so the machine's first entries
+    // are only the first word.
     const entries = entriesOf(parsed["items"]);
     send({ type: "ENTRIES.SET", entries });
     // The host owns the panel when it authored `open`: the machine

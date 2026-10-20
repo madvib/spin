@@ -353,7 +353,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => colorPickerMachine(props as ColorPickerArgs),
+  machine: (props, authored) => colorPickerMachine(props as ColorPickerArgs, authored),
   start: (raw) => (startOpen(raw) ? "active" : "idle"),
   reconcile: ({ context, parsed, authored, send, state }) => {
     // The host owns the panel when it authored `open`: the machine follows

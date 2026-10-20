@@ -16,7 +16,7 @@
  * context from the arguments it wants, and it declares its contract — the
  * context fields a host may write, and the event each write carries.
  */
-import { coerceJsonArray } from "@spin/runtime";
+import { coerceJsonArray, defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface SplitterPanel {
@@ -51,7 +51,7 @@ export interface SplitterContext {
 }
 
 export type SplitterEvent =
-  | { type: "SET_SIZE"; size: readonly number[] | string }
+  | { type: "SET_SIZE"; size: readonly number[] }
   | { type: "RESET_SIZE" }
   | { type: "COLLAPSE_PANEL"; id: string }
   | { type: "EXPAND_PANEL"; id: string; minSize?: number }
@@ -65,7 +65,7 @@ export type SplitterEvent =
   | { type: "POINTER_UP"; handleFocused: boolean }
   | { type: "KEYBOARD_MOVE"; id: string; delta: number }
   | { type: "ENTER"; id: string }
-  | { type: "SET_PANELS"; panels: SplitterPanel[] | string }
+  | { type: "SET_PANELS"; panels: SplitterPanel[] }
   | { type: "SET_DISABLED"; disabled: boolean };
 
 export type SplitterResizeDetails = {
@@ -316,6 +316,7 @@ export interface SplitterArgs {
   orientation?: string;
   /** Whether the group is disabled. */
   disabled?: boolean;
+  defaultDisabled?: boolean;
 }
 
 /** Validate one panel entry: id required, numeric/boolean fields optional. */
@@ -369,10 +370,24 @@ const sizesOf = (raw: unknown): number[] | null => {
  * The machine's context, built from its arguments: the panel tree and the
  * sizes the host wrote, shaped and laid out, and the machine's own
  * defaults for everything else.
+ *
+ * The panels and the sizes are channels: the host's write, or the
+ * machine's own default. The element's declared default is not a write, so
+ * it never stands in for one. The seed twins (`defaultPanels`,
+ * `defaultSize`) are the host's writes of the panels and the sizes — the
+ * framework resolved them into the args — so they count as writes too.
+ * The orientation and the disabled flag are the element's own data, as
+ * they are.
  */
-export function initial(args: SplitterArgs): SplitterContext {
-  const panels = parsePanels(args.panels);
-  const spec = sizesOf(args.size) ?? [];
+export function initial(args: SplitterArgs = {}, authored: (name: string) => boolean): SplitterContext {
+  // A channel: the host's write, or the machine's own default. The twins
+  // are the framework's convention — a host that wrote `defaultPanels` (or
+  // `defaultSize`) wrote the channel too — and the framework has already
+  // resolved them into the arguments.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const panels = written("panels") ? parsePanels(args.panels) : [];
+  const spec = written("size") ? sizesOf(args.size) ?? [] : [];
   let size: number[];
   try {
     size = validateSizes(panels, defaultSizes(panels.length, spec));
@@ -398,11 +413,12 @@ export function initial(args: SplitterArgs): SplitterContext {
  */
 export function splitter(
   args: SplitterArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<SplitterContext, SplitterEvent> {
   return createMachine<SplitterContext, SplitterEvent>({
     id: "splitter",
     initial: "idle",
-    context: initial(args),
+    context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.

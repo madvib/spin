@@ -13,6 +13,7 @@
  * only drives a focused slider, a drag release lands in focus.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export const MIN_VALUE = 0;
@@ -79,6 +80,7 @@ export interface AngleSliderArgs {
   readOnly?: boolean;
   /** Whether the slider is invalid. */
   invalid?: boolean;
+  defaultInvalid?: boolean;
 }
 
 /** A numeric prop: numbers pass, numeric strings parse, everything else
@@ -92,18 +94,26 @@ const asCount = (raw: unknown): number | null => {
   return null;
 };
 
-/** The machine's context: the value, the step grid, the flags, and the
- * grab offset the drag holds. */
-export function initial(args: AngleSliderArgs): AngleSliderContext {
-  const step = asCount(args.step) ?? 1;
+/**
+ * The machine's context: the value, the step grid, the flags, and the
+ * grab offset the drag holds.
+ */
+export function initial(args: AngleSliderArgs, authored: (name: string) => boolean): AngleSliderContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const step = written("step") ? (asCount(args.step) ?? 1) : 1;
   return {
-    value: asCount(args.value) ?? 0,
+    value: written("value") ? (asCount(args.value) ?? 0) : 0,
     step,
-    largeStep: asCount(args.largeStep) ?? 10 * step,
-    dir: args.dir === "rtl" ? "rtl" : "ltr",
-    disabled: args.disabled === true,
-    readOnly: args.readOnly === true,
-    invalid: args.invalid === true,
+    largeStep: written("largeStep") ? (asCount(args.largeStep) ?? 10 * step) : 10 * step,
+    dir: written("dir") ? (args.dir === "rtl" ? "rtl" : "ltr") : "ltr",
+    disabled: written("disabled") ? args.disabled === true : false,
+    readOnly: written("readOnly") ? args.readOnly === true : false,
+    invalid: written("invalid") ? args.invalid === true : false,
     dragOffset: null,
   };
 }
@@ -314,10 +324,11 @@ const implementations = {
  */
 export function angleSlider(
   args: AngleSliderArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<AngleSliderContext, AngleSliderEvent> {
   return createMachine<AngleSliderContext, AngleSliderEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     ...implementations,
     /**
      * The machine's contract with its hosts: the context fields a host

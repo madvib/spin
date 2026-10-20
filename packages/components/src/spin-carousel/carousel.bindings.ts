@@ -352,7 +352,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // nothing about the machine's state.
-  machine: (props) => carouselMachine(props as CarouselArgs),
+  machine: (props, authored) => carouselMachine(props as CarouselArgs, authored),
   start: (raw, _authored) => (raw["autoplay"] === true ? "autoplay" : "idle"),
   // The first positioning must not glide: mounted positions without motion,
   // and every later page move glides through settled.
@@ -361,6 +361,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     // saw them, so the view lands on the page the machine is on.
     const shaped = initial(
       resolveTwins(props, authoredProps(() => props)) as CarouselArgs,
+      authoredProps(() => props),
     );
     syncView(
       id,

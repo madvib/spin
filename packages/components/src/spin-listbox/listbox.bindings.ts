@@ -407,7 +407,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => listboxMachine(props as ListboxArgs),
+  machine: (props, authored) => listboxMachine(props as ListboxArgs, authored),
   reconcile: ({ context, parsed, send }) => {
     const ctx = context;
     const order = orderOf(parsed);

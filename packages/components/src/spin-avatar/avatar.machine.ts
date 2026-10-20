@@ -12,6 +12,7 @@
  * the last signal wins, exactly as Zag's machine reads.
  */
 
+import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface AvatarContext {
@@ -29,14 +30,25 @@ export interface AvatarContext {
 export interface AvatarArgs {
   /** The image source, as the host wrote it. */
   src?: string;
+  defaultSrc?: string;
 }
 
 /** The source the host wrote: a string, or none. */
 const srcOf = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
-/** The machine's context: the source it holds, and nothing else. */
-export function initial(args: AvatarArgs): AvatarContext {
-  return { src: srcOf(args.src) };
+/**
+ * The machine's context: the source it holds, and nothing else.
+ */
+export function initial(args: AvatarArgs, authored: (name: string) => boolean): AvatarContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultSrc`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  return {
+    src: written("src") ? srcOf(args.src) : "",
+  };
 }
 
 export type AvatarEvent =
@@ -98,10 +110,11 @@ const implementations = {
  */
 export function avatar(
   args: AvatarArgs = {},
+  authored: (name: string) => boolean,
 ): Machine<AvatarContext, AvatarEvent> {
   return createMachine<AvatarContext, AvatarEvent>({
     ...config,
-    context: initial(args),
+    context: initial(args, authored),
     ...implementations,
     /**
      * The machine's contract with its hosts: the context fields a host

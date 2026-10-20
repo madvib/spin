@@ -22,6 +22,9 @@
  * segment accumulate, and leaving the segment clears them.
  */
 
+import { defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export type DateInputField = "year" | "month" | "day" | "hour" | "minute" | "second" | "dayPeriod";
 
 /** One field's limits, for spinbutton aria and Home/End. */
@@ -139,7 +142,7 @@ export interface DateInputValueChange {
 }
 
 export type DateInputEvent =
-  | { type: "VALUE.SET"; value: DateValue | null }
+  | { type: "VALUE.SET"; value: DateValue | null | string }
   | { type: "VALUE.CLEAR" }
   | { type: "HOUR_CYCLE.SET"; hourCycle: 12 | 24 }
   | { type: "SEGMENT.FOCUS"; index: number }
@@ -153,7 +156,7 @@ export type DateInputEvent =
   | { type: "SEGMENT.END" }
   | { type: "SEGMENT.PASTE"; value: string };
 
-export const config = {
+const config = {
   id: "date-input",
   initial: "idle",
   context: {
@@ -205,13 +208,26 @@ export const config = {
   },
 };
 
-export interface DateInputInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly granularity?: unknown;
-  readonly hourCycle?: unknown;
-  readonly min?: unknown;
-  readonly max?: unknown;
+/**
+ * The date-input's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
+ */
+export interface DateInputArgs {
+  /** The date, as the host wrote it: an ISO string. */
+  value?: string;
+  /** The granularity the segments show. */
+  granularity?: string;
+  /** The clock: 12 or 24 hours. */
+  hourCycle?: number;
+  /** The smallest date the value may name. */
+  min?: string;
+  /** The largest date the value may name. */
+  max?: string;
+  defaultMax?: string;
 }
 
 const isGranularity = (raw: unknown): raw is DateGranularity =>
@@ -222,19 +238,37 @@ const isHourCycle = (raw: unknown): raw is 12 | 24 => raw === 12 || raw === 24;
 const asIso = (raw: unknown): string | null =>
   typeof raw === "string" && raw.length > 0 ? raw : null;
 
-/** Seed shaping: granularity/hour-cycle/bounds name themselves; the value
- * arrives through establish (parsed there), the seed holds empty fields. */
-export function initial(raw: DateInputInitial): Pick<DateInputContext, "granularity" | "hourCycle" | "min" | "max" | "fields" | "value" | "activeSegment"> {
-  const granularity = isGranularity(raw.granularity) ? raw.granularity : "day";
-  const hourCycle = isHourCycle(raw.hourCycle) ? raw.hourCycle : 12;
+/**
+ * The machine's context: the bounds and the granularity name themselves,
+ * and the value is the host's own ISO text, clamped to the bounds.
+ */
+export function initial(args: DateInputArgs, authored: (name: string) => boolean): DateInputContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const granularity = written("granularity")
+    ? (isGranularity(args.granularity) ? args.granularity : "day")
+    : "day";
+  const hourCycle = written("hourCycle")
+    ? (isHourCycle(args.hourCycle) ? args.hourCycle : 12)
+    : 12;
+  const min = written("min") ? asIso(args.min) : null;
+  const max = written("max") ? asIso(args.max) : null;
+  const value = written("value")
+    ? clampValue(parseValue(args.value), min, max)
+    : null;
   return {
+    value,
+    fields: dateToFields(value, hourCycle),
+    activeSegment: -1,
+    enteredKeys: "",
     granularity,
     hourCycle,
-    min: asIso(raw.min),
-    max: asIso(raw.max),
-    fields: dateToFields(null, hourCycle),
-    value: null,
-    activeSegment: -1,
+    min,
+    max,
   };
 }
 
@@ -340,7 +374,7 @@ function periodOf(input: string): number | null {
   return null;
 }
 
-export const implementations = {
+const implementations = {
   conds: {
     isActiveSegment: (ctx: DateInputContext, e: DateInputEvent): boolean =>
       e.type === "SEGMENT.FOCUS" && e.index === ctx.activeSegment,
@@ -354,7 +388,15 @@ export const implementations = {
   assigns: {
     setValue: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
       if (e.type !== "VALUE.SET") return {};
-      const value = clampValue(e.value, ctx.min, ctx.max);
+      // The value arrives the way the host wrote it — the command's record,
+      // or the prop's own ISO text — and the machine shapes it. A host's
+      // text that names the value the machine already holds is no write
+      // at all: the segments keep what the user is typing.
+      const named = typeof e.value === "string" ? parseValue(e.value) : e.value;
+      if (typeof e.value === "string" && valueAsString(ctx.value) === valueAsString(named)) {
+        return {};
+      }
+      const value = clampValue(named, ctx.min, ctx.max);
       return { value, fields: dateToFields(value, ctx.hourCycle), enteredKeys: "" };
     },
     setHourCycle: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
@@ -476,4 +518,35 @@ function advance(
 ): Partial<DateInputContext> {
   const committed = commit(next, ctx);
   return { ...committed, activeSegment: Math.min(index + 1, fields.length - 1) };
+}
+
+/**
+ * The date-input machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function dateInput(
+  args: DateInputArgs = {},
+  authored: (name: string) => boolean,
+): Machine<DateInputContext, DateInputEvent> {
+  return createMachine<DateInputContext, DateInputEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      granularity: {},
+      hourCycle: {},
+      min: {},
+      max: {},
+    },
+  });
 }

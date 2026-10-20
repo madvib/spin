@@ -96,7 +96,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => ratingGroupMachine(props as RatingGroupArgs),
+  machine: (props, authored) => ratingGroupMachine(props as RatingGroupArgs, authored),
   start: "idle",
   parts: {
     root: {

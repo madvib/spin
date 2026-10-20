@@ -7,15 +7,11 @@ import {
 } from "@spin/runtime";
 import type { AnchorGeometry } from "@spin/runtime/actions";
 import {
-  config,
-  implementations,
-  initial,
-  stepOf,
-  stepsOf,
+  tour as tourMachine,
+  type TourArgs,
   type TourContext,
   type TourDismissChange,
   type TourEvent,
-  type TourInitial,
   type TourStepChange,
   type TourStepRecord,
 } from "./tour.machine.ts";
@@ -87,10 +83,6 @@ export interface TourApi {
 interface ScopeLike extends PartScope<unknown, TourContext> {}
 
 interface SlotLike<R> extends SlotScope<R, TourContext> {}
-
-/** Transport guarantees the raw prop bag is a TourInitial-shaped object. */
-const isTourInitial = (raw: unknown): raw is TourInitial =>
-  raw !== null && typeof raw === "object";
 
 const textOf = (props: Record<string, unknown>): string => {
   const label: unknown = props["label"];
@@ -196,19 +188,10 @@ const measure = (root: Element, el: HTMLElement, padding: number): void => {
 
 const def: ComponentDef<TourContext, TourEvent> = {
   name: "tour",
-  config,
-  implementations,
-  seed: (raw, _authored) => {
-    const props: TourInitial = isTourInitial(raw) ? raw : {};
-    return { ...initial(props) };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    if (!authored("step")) return false;
-    const outer = stepOf(parsed["step"], context.steps.length);
-    if (context.step === outer) return false;
-    send({ type: "STEP.SET", step: outer });
-    return true;
-  },
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props, authored) => tourMachine(props as TourArgs, authored),
   // Every command that can enter the resolving phase drives the lookup
   // and scroll right after its send: the poll resolves the new target,
   // scrolls it in, and reports SCROLL.END to wake the spotlight.

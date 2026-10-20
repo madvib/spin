@@ -219,7 +219,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => imageCropperMachine(props as ImageCropperArgs),
+  machine: (props, authored) => imageCropperMachine(props as ImageCropperArgs, authored),
   parts: {
     root: {
       sig: (scope) => {

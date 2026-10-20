@@ -21,7 +21,8 @@
  *    talks to the machine in events. No actors required for this.
  */
 
-import { coerceJsonArray, isRecord } from "@spin/runtime";
+import { coerceJsonArray, defaultTwin, isRecord } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
 /**
  * Tree-view machine: the config and its vocabulary. States, events, guards,
  * and pure assigns. The bridge (`bridge.ts`) turns scope values into this
@@ -44,16 +45,27 @@ export interface TreeLoadComplete {
   readonly value: string;
 }
 
-export interface TreeInitial {
-  readonly nodes?: unknown;
-  readonly expandedValue?: unknown;
-  readonly selectedValue?: unknown;
-  readonly defaultExpandedValue?: unknown;
-  readonly defaultSelectedValue?: unknown;
-  readonly defaultCheckedValue?: unknown;
-  readonly selectionMode?: unknown;
-  readonly expandOnClick?: unknown;
-  readonly rename?: unknown;
+/**
+ * The tree-view's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultExpandedValue`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
+ */
+export interface TreeArgs {
+  /** The expanded node values, as the host wrote them. */
+  readonly expandedValue?: readonly string[];
+  /** The selected node values, as the host wrote them. */
+  readonly selectedValue?: readonly string[];
+  /** The checked node values, as the host wrote them. */
+  readonly checkedValue?: readonly string[];
+  /** How many nodes the host may select: one, or many. */
+  readonly selectionMode?: string;
+  /** Whether a click on a branch opens it. */
+  readonly expandOnClick?: boolean;
+  /** Whether a node can be renamed. */
+  readonly rename?: boolean;
 }
 
 
@@ -107,25 +119,43 @@ export function nodesOf(raw: unknown): TreeNodeShape[] {
   return out;
 }
 
-/** Seed shaping: the three value sets start at their defaults, empty. */
+/** The node values off any transport: the strings only. */
+const keysOf = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === "string");
+};
+
+/**
+ * The machine's context, from its arguments: the three value sets start at
+ * their defaults, empty, and the three flags at theirs.
+ *
+ * The twin (`defaultExpandedValue`) was resolved by the framework before the
+ * factory was called, so the arguments carry the live value.
+ *
+ * The value sets and the flags are the host's channels: the host's own write
+ * stands — the live prop or its twin, which is the same write under the
+ * framework's convention — else the machine's own default. The nodes are
+ * the element's data: the collection is taken as it is.
+ */
 export function initial(
-  raw: TreeInitial,
-  authored: (name: string) => boolean,
-): Pick<TreeContext, "expandedValue" | "selectedValue" | "checkedValue" | "selectionMode" | "expandOnClick" | "rename"> {
-  const keysOf = (value: unknown): string[] => {
-    if (!Array.isArray(value)) return [];
-    return value.filter((v): v is string => typeof v === "string");
-  };
-  // The scope's `expandedValue` and `selectedValue` default to [], so an
-  // unauthored value looks present. The authored predicate is what says
-  // whether the host chose it.
+  args: TreeArgs,
+  authored: (name: string) => boolean = () => true,
+): TreeContext {
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
   return {
-    expandedValue: authored("expandedValue") ? keysOf(raw.expandedValue) : keysOf(raw.defaultExpandedValue),
-    selectedValue: authored("selectedValue") ? keysOf(raw.selectedValue) : keysOf(raw.defaultSelectedValue),
-    checkedValue: keysOf(raw.defaultCheckedValue),
-    selectionMode: raw.selectionMode === "multiple" ? "multiple" : "single",
-    expandOnClick: raw.expandOnClick !== false,
-    rename: raw.rename !== false,
+    expandedValue: written("expandedValue") ? keysOf(args.expandedValue) : [],
+    selectedValue: written("selectedValue") ? keysOf(args.selectedValue) : [],
+    checkedValue: written("checkedValue") ? keysOf(args.checkedValue) : [],
+    focusedValue: null,
+    renamingValue: null,
+    loadingStatus: {},
+    typeahead: "",
+    selectionMode: written("selectionMode")
+      ? (args.selectionMode === "multiple" ? "multiple" : "single")
+      : "single",
+    expandOnClick: written("expandOnClick") ? args.expandOnClick !== false : true,
+    rename: written("rename") ? args.rename !== false : true,
   };
 }
 
@@ -162,17 +192,35 @@ export interface TreeCallbacks {
 }
 
 export type TreeEvent =
-  | { type: "EXPANDED.SET"; value: string[] }
+  | {
+    type: "EXPANDED.SET";
+    /** The command's payload: the values the view names. */
+    value?: string[];
+    /** The host write's payload: the prop's own name. */
+    expandedValue?: string[];
+  }
   | { type: "EXPANDED.CLEAR" }
   | { type: "BRANCH.EXPAND"; value: string[] }
   | { type: "BRANCH.COLLAPSE"; value: string[] }
   | { type: "BRANCH.TOGGLE"; value: string }
-  | { type: "SELECTED.SET"; value: string[] }
+  | {
+    type: "SELECTED.SET";
+    /** The command's payload: the values the view names. */
+    value?: string[];
+    /** The host write's payload: the prop's own name. */
+    selectedValue?: string[];
+  }
   | { type: "SELECTED.CLEAR" }
   | { type: "NODE.SELECT"; value: string }
   | { type: "NODE.DESELECT"; value: string }
   | { type: "CHECKED.TOGGLE"; value: string }
-  | { type: "CHECKED.SET"; value: string[] }
+  | {
+    type: "CHECKED.SET";
+    /** The command's payload: the values the view names. */
+    value?: string[];
+    /** The host write's payload: the prop's own name. */
+    checkedValue?: string[];
+  }
   | { type: "CHECKED.CLEAR" }
   | { type: "NODE.FOCUS"; value: string | null }
   | { type: "NODE.ARROW_DOWN" }
@@ -196,7 +244,7 @@ export type TreeEvent =
   | { type: "NODE.LOAD_START"; value: string }
   | { type: "NODE.LOAD_DONE"; value: string };
 
-export const config = {
+const config = {
   id: "tree-view",
   initial: "idle",
   context: {
@@ -286,7 +334,7 @@ export const config = {
  * plus connect handlers, and send events this machine answers. The
  * guards/assigns below are pure transforms of state only.
  */
-export const implementations = {
+const implementations = {
   conds: {
     isMultiToggle: (ctx: TreeContext, event: TreeEvent) =>
       event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
@@ -300,15 +348,23 @@ export const implementations = {
     expandOnClick: (ctx: TreeContext) => ctx.expandOnClick,
   },
   assigns: {
-    setExpanded: (_ctx: TreeContext, e: TreeEvent) =>
-      e.type === "EXPANDED.SET" && !sameSet(_ctx.expandedValue, e.value)
-        ? { expandedValue: [...e.value] }
-        : {},
+    setExpanded: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
+      if (e.type !== "EXPANDED.SET") return {};
+      // The values arrive the way the host wrote them: the command names
+      // the set, the host write names the field. The machine shapes it.
+      const raw = e.expandedValue !== undefined ? e.expandedValue : e.value;
+      if (raw === undefined) return {};
+      const next = keysOf(raw);
+      return sameSet(ctx.expandedValue, next) ? {} : { expandedValue: next };
+    },
     clearExpanded: (_ctx: TreeContext) => ({ expandedValue: [] }),
-    setSelected: (_ctx: TreeContext, e: TreeEvent) =>
-      e.type === "SELECTED.SET" && !sameSet(_ctx.selectedValue, e.value)
-        ? { selectedValue: [...e.value] }
-        : {},
+    setSelected: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
+      if (e.type !== "SELECTED.SET") return {};
+      const raw = e.selectedValue !== undefined ? e.selectedValue : e.value;
+      if (raw === undefined) return {};
+      const next = keysOf(raw);
+      return sameSet(ctx.selectedValue, next) ? {} : { selectedValue: next };
+    },
     clearSelected: () => ({ selectedValue: [] }),
     toggleChecked: (ctx: TreeContext, e: TreeEvent) =>
       e.type === "CHECKED.TOGGLE"
@@ -318,8 +374,12 @@ export const implementations = {
             : [...ctx.checkedValue, e.value],
         }
         : {},
-    setChecked: (_ctx: TreeContext, e: TreeEvent) =>
-      e.type === "CHECKED.SET" ? { checkedValue: [...e.value] } : {},
+    setChecked: (_ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
+      if (e.type !== "CHECKED.SET") return {};
+      const raw = e.checkedValue !== undefined ? e.checkedValue : e.value;
+      if (raw === undefined) return {};
+      return { checkedValue: keysOf(raw) };
+    },
     clearChecked: () => ({ checkedValue: [] }),
     setFocused: (ctx: TreeContext, e: TreeEvent) =>
       e.type === "NODE.FOCUS" && e.value !== ctx.focusedValue
@@ -398,3 +458,35 @@ export const implementations = {
   // snapshot, so "no-op event" means no event anywhere — not a stale one
   // replayed.
 };
+
+/**
+ * The tree-view machine: state and nothing else. It is headless — it knows
+ * its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function treeView(
+  args: TreeArgs = {},
+  authored: (name: string) => boolean = () => true,
+): Machine<TreeContext, TreeEvent> {
+  return createMachine<TreeContext, TreeEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event, the
+     * machine decides, and the change reaches the host. A field without
+     * one is SILENT: the host's write lands in the field, and nothing
+     * reports.
+     */
+    fields: {
+      expandedValue: { event: "EXPANDED.SET" },
+      selectedValue: { event: "SELECTED.SET" },
+      checkedValue: { event: "CHECKED.SET" },
+      selectionMode: {},
+      expandOnClick: {},
+      rename: {},
+    },
+  });
+}

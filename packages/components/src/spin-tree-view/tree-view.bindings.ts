@@ -1,15 +1,13 @@
 import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
-  config,
-  implementations,
-  initial,
   nodesOf,
+  treeView as treeViewMachine,
+  type TreeArgs,
   type TreeCheckedChange,
   type TreeContext,
   type TreeEvent,
   type TreeExpandedChange,
   type TreeFocusChange,
-  type TreeInitial,
   type TreeLoadComplete,
   type TreeNodeShape,
   type TreeSelectionChange,
@@ -99,36 +97,9 @@ export type {
   TreeSelectionChange,
 } from "./tree-view.machine.ts";
 
-const keysOf = (raw: unknown): string[] => {
-  if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
-  if (typeof raw !== "string" || raw.length === 0) return [];
-  // A scope default cannot carry top-level commas (the grammar splits
-  // props on them), so bracketed-unquoted (`[a, b]`) splits like a bare
-  // comma list when JSON fails — string-authored seeds work either way.
-  const list = raw.startsWith("[") && raw.endsWith("]") ? raw.slice(1, -1) : raw;
-  if (raw.startsWith("[")) {
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return parsed.filter((v): v is string => typeof v === "string");
-      }
-    } catch {
-      // Fall through to the comma split below.
-    }
-  }
-  return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
-};
-
-const sameSet = (a: readonly string[], b: readonly string[]): boolean =>
-  a.length === b.length && a.every((v) => b.includes(v));
-
 interface ScopeLike extends PartScope<unknown, TreeContext> {}
 
 interface SlotLike<R> extends SlotScope<R, TreeContext> {}
-
-/** Transport guarantees the raw prop bag is a TreeInitial-shaped object. */
-const isTreeInitial = (raw: unknown): raw is TreeInitial =>
-  raw !== null && typeof raw === "object";
 
 type IdFn = (part: string, slot?: unknown) => string;
 
@@ -439,8 +410,10 @@ const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void =>
 
 const def: ComponentDef<TreeContext, TreeEvent> = {
   name: "tree",
-  config,
-  implementations,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // nothing about the machine's state.
+  machine: (props, authored) => treeViewMachine(props as TreeArgs, authored),
   // Focus follows the machine: every focus move lands the DOM focus on
   // the newly focused row's control.
   settled: ({ before, after, focus }) => {
@@ -453,34 +426,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       focus("rename", after.context.renamingValue);
     }
   },
-  seed: (raw, authored) => {
-    const props: TreeInitial = isTreeInitial(raw) ? raw : {};
-    const shaped = initial(props, authored);
-    return {
-      ...shaped,
-      focusedValue: null,
-      renamingValue: null,
-      loadingStatus: {},
-      typeahead: "",
-    };
-  },
-  reconcile: ({ context, parsed, authored, send }) => {
-    const sets = [
-      ["expandedValue", "EXPANDED.SET"],
-      ["selectedValue", "SELECTED.SET"],
-      ["checkedValue", "CHECKED.SET"],
-    ] as const;
-    for (const [name, type] of sets) {
-      if (!authored(name)) continue;
-      const outer = keysOf(parsed[name]);
-      if (!sameSet(context[name], outer)) {
-        send({ type, value: [...outer] });
-        return true;
-      }
-    }
-    return false;
-  },
-  scalars: ["selectionMode", "expandOnClick", "rename"],
   parts: {
     root: {
       sig: () => "root",

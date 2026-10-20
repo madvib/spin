@@ -294,7 +294,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   // The machine: a factory over the element's props. The machine builds
   // its own context from the arguments it wants; the element decides
   // which of its props reach the machine.
-  machine: (props) => pinInputMachine(props as PinInputArgs),
+  machine: (props, authored) => pinInputMachine(props as PinInputArgs, authored),
   mounted: ({ props, focus }) => {
     // Zag's entry `choose(autoFocus)`: the index starts on the first cell
     // and that cell takes focus. One microtask out: the bridge is built

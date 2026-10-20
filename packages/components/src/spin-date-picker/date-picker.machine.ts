@@ -15,6 +15,9 @@
  * express (era, time zone, non-Gregorian calendars) is out of scope.
  */
 
+import { defaultTwin, isRecord } from "@spin/runtime";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
 export type DatePickerView = "day" | "month" | "year";
 export type DatePickerSelectionMode = "single" | "multiple" | "range";
 
@@ -66,9 +69,11 @@ export type DatePickerEvent =
   | { type: "OPEN" }
   | { type: "CLOSE" }
   | { type: "CLOSE.OUTSIDE" }
-  | { type: "VALUE.SET"; value: readonly DatePickerValue[] }
+  /** The selection: the days themselves, or the ISO text a host wrote. */
+  | { type: "VALUE.SET"; value: readonly DatePickerValue[] | string }
   | { type: "VALUE.CLEAR" }
-  | { type: "FOCUS.SET"; value: DatePickerValue }
+  /** The focused day: the day itself, or the ISO text a host wrote. */
+  | { type: "FOCUS.SET"; focusedValue: DatePickerValue | string }
   | { type: "VIEW.SET"; view: DatePickerView }
   | { type: "CELL.CLICK"; value: DatePickerValue }
   | { type: "CELL.POINTER_MOVE"; value: DatePickerValue }
@@ -99,21 +104,6 @@ function sortKey(value: DatePickerValue): number {
   return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
 }
 
-export interface DatePickerInitial {
-  readonly value?: unknown;
-  readonly defaultValue?: unknown;
-  readonly focusedValue?: unknown;
-  readonly defaultFocusedValue?: unknown;
-  readonly view?: unknown;
-  readonly defaultView?: unknown;
-  readonly open?: unknown;
-  readonly selectionMode?: unknown;
-  readonly numOfMonths?: unknown;
-  readonly min?: unknown;
-  readonly max?: unknown;
-  readonly closeOnSelect?: unknown;
-}
-
 /** An ISO string parses to a day; anything else is not a day. */
 export function parseDay(raw: unknown): DatePickerValue | null {
   if (typeof raw !== "string" || raw.length === 0) return null;
@@ -121,6 +111,22 @@ export function parseDay(raw: unknown): DatePickerValue | null {
   if (Number.isNaN(time)) return null;
   const at = new Date(time);
   return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
+}
+
+/** A day off the transport: the ISO text a host wrote, or the day record
+ * the machine (or the connect) already carries. */
+export function dayRecord(raw: unknown): DatePickerValue | null {
+  if (typeof raw === "string") return parseDay(raw);
+  if (!isRecord(raw)) return null;
+  const year = raw["year"];
+  const month = raw["month"];
+  const day = raw["day"];
+  if (
+    typeof year !== "number" || !Number.isFinite(year) ||
+    typeof month !== "number" || !Number.isFinite(month) ||
+    typeof day !== "number" || !Number.isFinite(day)
+  ) return null;
+  return { year, month, day };
 }
 
 /** Days off the transport: `["2024-01-15"]` JSON, or a bare ISO string
@@ -145,19 +151,96 @@ export function parseDays(raw: unknown): DatePickerValue[] {
   return day === null ? [] : [day];
 }
 
-/** Seed shaping: mode/count/bounds/flags name themselves. The value,
- * focus and view arrive through establish (parsed there). */
-export function initial(raw: DatePickerInitial): Pick<DatePickerContext, "selectionMode" | "numOfMonths" | "min" | "max" | "closeOnSelect"> {
-  const mode: unknown = raw.selectionMode;
-  const count: unknown = raw.numOfMonths;
+/** The days a write carries: the day records, or the ISO text a host
+ * wrote. The machine shapes its own input, wherever it arrives. */
+export function daysOf(raw: unknown): DatePickerValue[] {
+  if (!Array.isArray(raw)) return parseDays(raw);
+  const days: DatePickerValue[] = [];
+  for (const entry of raw) {
+    const day = dayRecord(entry);
+    if (day !== null) days.push(day);
+  }
+  return days;
+}
+
+/** The view a write carries: the day, month, or year mode. */
+export function viewOf(raw: unknown): DatePickerView {
+  return raw === "month" || raw === "year" ? raw : "day";
+}
+
+/**
+ * The date-picker's arguments: the values the host may set.
+ *
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twins
+ * (`defaultValue`, `defaultFocusedValue`) are resolved by the framework
+ * before the factory is called, so the machine only ever sees the live
+ * values.
+ */
+export interface DatePickerArgs {
+  /** The selection, as the host wrote it: ISO days, or their JSON. */
+  value?: string;
+  /** The focused day, as the host wrote it. */
+  focusedValue?: string;
+  /** The view the panel opens in. */
+  view?: string;
+  /** The selection mode: single, multiple, or range. */
+  selectionMode?: string;
+  /** How many months the day view shows. */
+  numOfMonths?: number;
+  /** The ISO day the selection may not cross. */
+  min?: string;
+  /** The ISO day the selection may not pass. */
+  max?: string;
+  /** Whether a selection closes the panel. */
+  closeOnSelect?: boolean;
+  defaultCloseOnSelect?: boolean;
+}
+
+/** The machine's context, built from the arguments: the mode, the count,
+ * the bounds, the flags, and the selection the host wrote. */
+export function initial(args: DatePickerArgs = {}, authored: (name: string) => boolean): DatePickerContext {
+  // A channel: the host's write, or the machine's own default. The twin
+  // is the framework's convention — a host that wrote `defaultValue`
+  // wrote the channel too — and the framework has already resolved it
+  // into the argument, so the twin's name is the framework's to name.
+  const written = (field: string): boolean =>
+    authored(field) || authored(defaultTwin(field));
+  const mode: unknown = args.selectionMode;
+  const count: unknown = args.numOfMonths;
   const text = (value: unknown): string | null =>
     typeof value === "string" && value.length > 0 ? value : null;
+  const min = written("min") ? text(args.min) : null;
+  const max = written("max") ? text(args.max) : null;
+  // The parsed days seed the focus; the normalized ones are the selection.
+  const parsed = written("value") ? daysOf(args.value) : [];
+  const value = normalizeDays(parsed, min, max);
+  // The browser's today in UTC is the grid's landing day when nothing seeds.
+  const now = new Date();
+  const today: DatePickerValue = {
+    year: now.getUTCFullYear(),
+    month: now.getUTCMonth() + 1,
+    day: now.getUTCDate(),
+  };
+  const focused = (written("focusedValue") ? dayRecord(args.focusedValue) : null) ??
+    parsed[0] ?? today;
   return {
-    selectionMode: mode === "multiple" || mode === "range" ? mode : "single",
-    numOfMonths: typeof count === "number" && Number.isFinite(count) ? count : 1,
-    min: text(raw.min),
-    max: text(raw.max),
-    closeOnSelect: raw.closeOnSelect !== false,
+    value,
+    focusedValue: clampDay(focused, min, max),
+    hoveredValue: null,
+    activeIndex: 0,
+    view: written("view") ? viewOf(args.view) : "day",
+    selectionMode: written("selectionMode") && (mode === "multiple" || mode === "range")
+      ? mode
+      : "single",
+    numOfMonths: written("numOfMonths") && typeof count === "number" &&
+        Number.isFinite(count)
+      ? count
+      : 1,
+    startValue: value.length > 0 ? value[0] ?? null : null,
+    min,
+    max,
+    closeOnSelect: written("closeOnSelect") ? args.closeOnSelect !== false : true,
   };
 }
 
@@ -206,7 +289,7 @@ const inBounds = (value: DatePickerValue, min: string | null, max: string | null
   return (floor === null || time >= floor) && (ceiling === null || time <= ceiling);
 };
 
-export const config = {
+const config = {
   id: "date-picker",
   initial: "idle",
   context: {
@@ -273,7 +356,7 @@ export const config = {
   },
 };
 
-export const implementations = {
+const implementations = {
   conds: {
     isDayView: (ctx: DatePickerContext): boolean => ctx.view === "day",
     isAboveDayView: (ctx: DatePickerContext): boolean => ctx.view !== "day",
@@ -284,7 +367,9 @@ export const implementations = {
   assigns: {
     setValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "VALUE.SET") return {};
-      const value = normalizeDays(e.value, ctx);
+      // The selection arrives the way the host wrote it; the machine shapes
+      // it, wherever it came from.
+      const value = normalizeDays(daysOf(e.value), ctx.min, ctx.max);
       return {
         value,
         startValue: value.length > 0 ? value[0] ?? null : null,
@@ -295,7 +380,9 @@ export const implementations = {
     clearValue: (): Partial<DatePickerContext> => ({ value: [], startValue: null, activeIndex: 0 }),
     setFocusedValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "FOCUS.SET") return {};
-      const value = clampDay(e.value, ctx.min, ctx.max);
+      const day = dayRecord(e.focusedValue);
+      if (day === null) return {};
+      const value = clampDay(day, ctx.min, ctx.max);
       // Entering a month whose length would truncate the day re-clamps the
       // focus; the value it belongs to stays untouched.
       return { focusedValue: value };
@@ -303,7 +390,9 @@ export const implementations = {
     /** Outside the day view, focus moves jump pages, not days. */
     moveFocusedValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "FOCUS.SET") return {};
-      const value = clampDay(e.value, ctx.min, ctx.max);
+      const day = dayRecord(e.focusedValue);
+      if (day === null) return {};
+      const value = clampDay(day, ctx.min, ctx.max);
       const view: DatePickerView = value.year !== ctx.focusedValue.year
         ? "year"
         : value.month !== ctx.focusedValue.month ? "month" : "day";
@@ -311,7 +400,7 @@ export const implementations = {
     },
     setView: (_ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "VIEW.SET") return {};
-      return { view: e.view };
+      return { view: viewOf(e.view) };
     },
     resetView: (ctx: DatePickerContext): Partial<DatePickerContext> => {
       const anchored = ctx.value.length > 0 ? clampDay(ctx.value[0] ?? ctx.focusedValue, ctx.min, ctx.max) : null;
@@ -349,7 +438,7 @@ export const implementations = {
         ? [...ctx.value, value]
         : ctx.value.filter((_day, at) => at !== hit);
       return {
-        value: normalizeDays(value_, ctx),
+        value: normalizeDays(value_, ctx.min, ctx.max),
         startValue: null,
         activeIndex: 0,
         focusedValue: value,
@@ -387,16 +476,54 @@ export const implementations = {
 };
 
 /** Days sorted, deduped, and inside the bounds. */
-function normalizeDays(days: readonly DatePickerValue[], ctx: DatePickerContext): DatePickerValue[] {
+function normalizeDays(
+  days: readonly DatePickerValue[],
+  min: string | null,
+  max: string | null,
+): DatePickerValue[] {
   const seen = new Set<string>();
   const out: DatePickerValue[] = [];
   for (const day of days) {
-    const at = clampDay(day, ctx.min, ctx.max);
-    if (!inBounds(at, ctx.min, ctx.max)) continue;
+    const at = clampDay(day, min, max);
+    if (!inBounds(at, min, max)) continue;
     if (seen.has(iso(at))) continue;
     seen.add(iso(at));
     out.push(at);
   }
   return out.sort((a, b) => sortKey(a) - sortKey(b));
+}
+
+/**
+ * The date-picker machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function datePicker(
+  args: DatePickerArgs = {},
+  authored: (name: string) => boolean,
+): Machine<DatePickerContext, DatePickerEvent> {
+  return createMachine<DatePickerContext, DatePickerEvent>({
+    ...config,
+    ...implementations,
+    context: initial(args, authored),
+    /**
+     * The machine's contract with its hosts: the context fields a host
+     * may write, and the event each write carries.
+     *
+     * A field with an event is REPORTED: the host's write is an event,
+     * the machine decides, and the change reaches the host. A field
+     * without one is SILENT: the host's write lands in the field, and
+     * nothing reports.
+     */
+    fields: {
+      value: { event: "VALUE.SET" },
+      focusedValue: { event: "FOCUS.SET" },
+      view: { event: "VIEW.SET" },
+      selectionMode: {},
+      numOfMonths: {},
+      min: {},
+      max: {},
+      closeOnSelect: {},
+    },
+  });
 }
 
