@@ -128,7 +128,11 @@ export function bindSpread(
       // param (`use:form-control="[object Object]"`) into the DOM.
       if (name.startsWith("use:")) continue;
       if (Object.is(value, last[name])) continue;
-      if (ASSIGNABLE.has(name) || hasAccessor(el, name)) {
+      if (name === "style") {
+        // The style attribute carries the custom properties the geometry
+        // rides; the IDL property takes a string, not a bag.
+        el.setAttribute("style", toStyleString(value as Record<string, unknown>));
+      } else if (ASSIGNABLE.has(name) || hasAccessor(el, name)) {
         (el as unknown as Record<string, unknown>)[name] = value;
       } else if (name.startsWith("aria-") && typeof value === "boolean") {
         // ARIA states are not HTML booleans: `aria-selected=""` parses as
@@ -139,8 +143,6 @@ export function bindSpread(
         el.removeAttribute(name);
       } else if (value === true) {
         el.setAttribute(name, "");
-      } else if (name === "style" && typeof value === "object") {
-        el.setAttribute("style", toStyleString(value as Record<string, unknown>));
       } else {
         el.setAttribute(name, String(value));
       }
