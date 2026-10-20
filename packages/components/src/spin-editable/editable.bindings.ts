@@ -94,9 +94,14 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
   }),
   reconcile: ({ context, state, parsed, authored, send }) => {
     const ctx = context;
-    const nextValue = parsed["value"];
-    if (typeof nextValue === "string" && nextValue !== ctx.value) {
-      send({ type: "VALUE.SET", value: nextValue });
+    // `value` is the CONTROLLED channel: it alternates only when the host
+    // authored it. An unauthored `value` is the empty default, and
+    // alternating it would wipe the `defaultValue` seed.
+    if (authored("value")) {
+      const nextValue = parsed["value"];
+      if (typeof nextValue === "string" && nextValue !== ctx.value) {
+        send({ type: "VALUE.SET", value: nextValue });
+      }
     }
     if (authored("editing") && parsed["editing"] === true && state !== "edit") {
       send({ type: "CONTROLLED.EDIT" });

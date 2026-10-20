@@ -39,11 +39,10 @@ export default function EditableFsm() {
   createEffect(() => {
     const ctl = uncontrolled();
     if (ctl === undefined) return undefined;
-    return ctl.bind({
-      label: "Name",
-      defaultValue: "Ada Lovelace",
-      placeholder: "Type a name",
-    }, {
+    // The seeds are on the element (prop:), where they land before the
+    // machine seeds: a bind after connect is a controlled write, and a
+    // seed written twice reads as a host edit.
+    return ctl.bind({}, {
       "value-change": (event: CustomEvent<EditableValueChange>) =>
         setValue(event.detail.value),
       "value-commit": () => setCommits((n) => n + 1),

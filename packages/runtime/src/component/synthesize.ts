@@ -66,10 +66,17 @@ export function defineComponent<
       svc:
         | { readonly state: { readonly context: unknown } }
         | { readonly context: unknown },
-    ): C =>
-      ("state" in svc && typeof svc.state === "object" && svc.state !== null
-        ? (svc.state as { readonly context: unknown }).context
-        : (svc as { readonly context: unknown }).context) as C;
+    ): C => {
+      // A bridge service carries BOTH `context` and `state` — and its
+      // `state` is the state NAME, a string. Testing "state" in svc
+      // picked the wrong branch and every reader got an undefined
+      // context. The shape of `state` decides, not its presence.
+      const rec = svc as { readonly state?: unknown; readonly context?: unknown };
+      const context = typeof rec.state === "object" && rec.state !== null
+        ? (rec.state as { readonly context: unknown }).context
+        : rec.context;
+      return context as C;
+    };
     const focusPart = focuser(names);
     const measurePart = measurer(names);
     const bagMemos = new Map<string, ReturnType<typeof memo>>();

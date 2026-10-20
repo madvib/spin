@@ -190,10 +190,23 @@ export function defineBridge<
   const ensureService = (): Service<C, E> => {
     if (service) return service;
     service = owner.run(() => {
-      const svc = interpret(machine).start(spec.startState);
-      Object.assign(svc.state.context, hooks.seed(props, authored));
+      // The seed is the service's STARTING context, not a mutation of it:
+      // a transition replaces the context object, so subscribers see it.
+      // `Object.assign` mutated in place, and the bags — which rendered
+      // before the seed — never re-read the value.
+      const seeded = hooks.seed(props, authored);
+      const startValue = spec.startState ?? machine.initialState.value;
+      const svc = interpret(machine).start({
+        value: startValue,
+        context: { ...machine.initialState.context, ...seeded },
+        actions: [],
+        matches: (v: string): boolean => v === startValue,
+      });
       // Scalars first: seed sends run assigns that read them.
       hooks.refresh?.(svc, props, authored);
+      // The seed replaced the context, so the bags must re-read it: the
+      // machine tick is the invalidation bus every binding watches.
+      machineTick(machineTick() + 1);
       return svc;
     });
     // Establish events travel the transmit pipeline (view reflexes run,
