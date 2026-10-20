@@ -37,7 +37,6 @@ export const hoverCardManifest = {
   slots: [],
   readers: ["open"],
   methods: ["show", "hide", "getRootProps", "getTriggerProps", "getContentProps"],
-  channels: [],
 } as const;
 
 export interface HoverCardApi {

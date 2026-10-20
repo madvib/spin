@@ -22,7 +22,6 @@ export const popoverManifest = {
   slots: [],
   readers: ["open"],
   methods: ["show", "hide", "toggle", "getTriggerProps", "getContentProps"],
-  channels: [],
 } as const;
 
 export interface PopoverApi {

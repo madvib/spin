@@ -21,42 +21,6 @@ export interface ParseHost {
 
 export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
 
-export interface PropDef {
-  /** Parse the raw scope value into the connect prop. */
-  readonly parse: PropParser;
-  /** A controlled channel: the host owns this value, the machine follows. */
-  readonly controlled?: false;
-}
-
-export interface ControlledDef {
-  readonly controlled: true;
-  readonly parse: PropParser;
-  /** The event a host write sends. Receives the parsed outer value, the
-   * live context, and the last sent event's type — a controlled close
-   * right after a submit commits, anything else reverts. */
-  readonly event: (
-    value: never,
-    context?: Record<string, unknown>,
-    lastEvent?: string,
-  ) => { type: string } & Record<string, unknown>;
-  /** Write the parsed value straight into context instead of sending:
-   * host writes alternate on their own, not on the next machine event. */
-  readonly assign?: true;
-  /** Equality against the machine's current value. Default `===` — array
-   * channels declare their own (a fresh parse never `===`s). */
-  readonly equal?: (current: unknown, outer: unknown) => boolean;
-  /** A parsed null alternates (clears) rather than skipping: nullable text
-   * channels where null is a value, not a failed parse. */
-  readonly nullable?: true;
-  /** Host writes apply without reporting (assign-mode implies it): the
-   * machine's own sends own the events. Event channels report by default. */
-  readonly silent?: true;
-  /** Reads the channel's current value: context field by default, derived
-   * state otherwise (open-ness lives in the phase, not the context). */
-  readonly current?: (context: Record<string, unknown>, state: string) => unknown;
-}
-
-export type ChannelDef = PropDef | ControlledDef;
 
 /** What a part bag reads. All live — the framework calls this per tick
  * and memoizes on the returned signature. */
@@ -259,7 +223,6 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
      * lookup, a scroll settle) reports its findings back through this. */
     readonly send: (event: { readonly type: string } & Record<string, unknown>) => void;
   }) => void;
-  readonly channels?: Record<string, ChannelDef>;
   /** Channel names merged into machine context before every send, so an
    * assign or a cond never reads a stale scalar. Default: none. */
   readonly scalars?: readonly string[];

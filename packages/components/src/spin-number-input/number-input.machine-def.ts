@@ -37,7 +37,6 @@ export const numberInputManifest = {
   methods: ["setValue", "clearValue", "increment", "decrement", "setToMax", "setToMin", "focus",
     "getRootProps", "getLabelProps", "getControlProps", "getValueTextProps", "getInputProps",
     "getDecrementTriggerProps", "getIncrementTriggerProps", "getScrubberProps", "getCursorProps"],
-  channels: [],
 } as const;
 
 export const numberInput: MachineDef = {

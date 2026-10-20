@@ -28,7 +28,6 @@ export const tooltipManifest = {
   slots: [],
   readers: ["open"],
   methods: ["show", "hide", "getTriggerProps", "getContentProps"],
-  channels: [],
 } as const;
 
 export interface TooltipApi {
