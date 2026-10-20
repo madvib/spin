@@ -558,7 +558,7 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       id: "",
       sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.context.value.length === 0, scope.state !== "idle"].join(""),
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         "data-scope": "tags-input",
         "data-part": "root",
         dir: scope.props["dir"],

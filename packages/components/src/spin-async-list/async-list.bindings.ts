@@ -361,7 +361,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     root: {
       sig: (scope) => `${scope.state}`,
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         "data-state": scope.state,
         "data-loading": dataAttr(scope.state === "loading" || scope.state === "sorting"),
       }),

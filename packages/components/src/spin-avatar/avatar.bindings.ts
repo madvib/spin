@@ -76,7 +76,7 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
     root: {
       sig: (scope) => [scope.props["dir"], scope.state].join("|"),
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         dir: scope.props["dir"],
         "data-scope": "avatar",
         "data-part": "root",

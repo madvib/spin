@@ -98,7 +98,7 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
       attrs: (scope) => {
         const context = scope.context;
         return {
-          id: scope.id("root"),
+          id: scope.id(""),
           dir: scope.props["dir"],
           role: scope.context.multiple === true ? "group" : "radiogroup",
           "aria-label": (typeof scope.props["label"] === "string" && scope.props["label"].length > 0) ? scope.props["label"] : undefined,

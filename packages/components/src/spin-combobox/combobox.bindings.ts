@@ -524,7 +524,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       attrs: (scope: ScopeLike) => {
         const open = isOpenPhase(scope.state);
         return {
-          id: scope.id("root"),
+          id: scope.id(""),
           dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           "data-scope": "combobox",
           "data-part": "root",

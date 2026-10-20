@@ -426,7 +426,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     root: {
       sig: (scope) => [scope.state, scope.props["disabled"], scope.props["dir"], scope.props["orientation"]].join(" "),
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
           "data-scope": "listbox",
           "data-part": "root",
         dir: scope.props["dir"],

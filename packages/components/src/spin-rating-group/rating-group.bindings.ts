@@ -85,7 +85,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     root: {
       sig: (scope) => [scope.props["dir"]].join("|"),
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         dir: scope.props["dir"],
         "data-scope": "rating-group",
         "data-part": "root",

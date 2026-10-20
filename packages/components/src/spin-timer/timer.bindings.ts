@@ -248,7 +248,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
     root: {
       sig: (scope) => [scope.state, scope.context.interval].join(" "),
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         "data-scope": "timer",
         "data-part": "root",
         "data-state": scope.state,

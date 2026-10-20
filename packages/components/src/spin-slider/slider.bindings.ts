@@ -163,7 +163,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     root: {
       sig: (scope: ScopeLike) => [scope.props["dir"], scope.props["orientation"], scope.props["disabled"], scope.props["invalid"], scope.state].join("|"),
       attrs: (scope: ScopeLike) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "root",

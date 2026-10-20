@@ -163,7 +163,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     root: {
       sig: (scope: ScopeLike) => [scope.props["orientation"], scope.props["dir"], percent(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         "data-scope": "steps",
         "data-part": "root",

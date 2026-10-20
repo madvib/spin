@@ -131,7 +131,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     root: {
       id: "",
       sig: (scope) => [scope.props["dir"]].join(""),
-      attrs: (scope) => ({ id: scope.id("root"), dir: scope.props["dir"] }),
+      attrs: (scope) => ({ id: scope.id(""), dir: scope.props["dir"] }),
     },
     area: {
       sig: (scope) => {

@@ -391,7 +391,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
       attrs: (scope) => {
         const ctx = scope.context;
         return {
-          id: scope.id("root"),
+          id: scope.id(""),
             "data-scope": "pin-input",
             "data-part": "root",
           dir: scope.props["dir"],

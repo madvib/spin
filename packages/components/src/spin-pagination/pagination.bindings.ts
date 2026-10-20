@@ -145,7 +145,7 @@ const def: ComponentDef<PaginationContext, PaginationEvent> = {
     root: {
       sig: (scope) => [scope.props["label"], scope.props["dir"], scope.context.page].join("|"),
       attrs: (scope) => ({
-        id: scope.id("root"),
+        id: scope.id(""),
         dir: scope.props["dir"],
         role: "navigation",
         "aria-label": scope.props["label"],
