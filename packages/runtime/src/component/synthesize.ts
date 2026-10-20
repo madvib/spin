@@ -3,7 +3,12 @@
  * The output is the existing `MachineDef` seam — recipes, machine-defs,
  * and the plugin consume it unchanged. No hand-written `getXProps()`
  * exists for any component: parts declare attribute maps, commands
- * declare sends, events declare watches. */
+ * declare sends, events declare watches.
+ *
+ * The seam is being replaced: the machine becomes a headless factory, the
+ * scope becomes a restricted `<script>`, and the transport moves into the
+ * framework. Specified in `.agents/specs/`.
+ */
 
 import { dataAttr, keyed, memo, type BagMemo } from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
