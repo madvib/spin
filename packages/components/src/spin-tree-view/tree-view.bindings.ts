@@ -253,6 +253,13 @@ const itemStateOf = (
   };
 };
 
+/** Which glyph a row wears: a branch open, a branch closed, or a leaf. */
+const iconKind = (scope: ScopeLike, row: VisibleRow): "branch-open" | "branch-closed" | "leaf" => {
+  const state = itemStateOf(scope, row);
+  if (!state.branch) return "leaf";
+  return state.expanded ? "branch-open" : "branch-closed";
+};
+
 const stateAttrs = (state: TreeItemState): Record<string, unknown> => {
   const attrs: Record<string, unknown> = {
     "data-state": state.expanded ? "open" : "closed",
@@ -590,8 +597,13 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     itemIcon: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: () => "icon",
-      attrs: () => ({ "aria-hidden": true }),
+      // The glyph is chosen by the row's kind, so the signature carries it:
+      // one icon bag per kind, not one for the whole tree.
+      sig: (scope: SlotLike<VisibleRow>) => iconKind(scope, scope.slot),
+      attrs: (scope: SlotLike<VisibleRow>) => ({
+        "aria-hidden": true,
+        "data-kind": iconKind(scope, scope.slot),
+      }),
     },
     rail: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),

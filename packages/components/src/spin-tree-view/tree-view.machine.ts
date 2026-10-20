@@ -20,6 +20,8 @@
  *    owns its abort map, as the machine's `refs.pendingAborts` did), and
  *    talks to the machine in events. No actors required for this.
  */
+
+import { coerceJsonArray } from "@spin/runtime";
 /**
  * Tree-view machine: the config and its vocabulary. States, events, guards,
  * and pure assigns. The bridge (`bridge.ts`) turns scope values into this
@@ -91,7 +93,14 @@ const shapeNode = (entry: unknown): TreeNodeShape | null => {
 /** The tree off any transport: the scope grammar has no recursive shape,
  * so the collection parses here. Well-shaped entries only. */
 export function nodesOf(raw: unknown): TreeNodeShape[] {
-  const list: readonly unknown[] = Array.isArray(raw) ? raw : [];
+  // The scope declares `nodes` as a string, so the host's write is JSON.
+  // An array is accepted too: a host that holds the nodes already parsed
+  // should not have to serialize them back.
+  const list: readonly unknown[] = typeof raw === "string"
+    ? coerceJsonArray(raw, [])
+    : Array.isArray(raw)
+      ? raw
+      : [];
   const out: TreeNodeShape[] = [];
   for (const entry of list) {
     const shaped = shapeNode(entry);
