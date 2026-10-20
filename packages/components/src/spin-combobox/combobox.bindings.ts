@@ -520,7 +520,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   },
   parts: {
     root: {
-      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr", authored), scope.props["composite"]].join("\u0000"),
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"]].join("\u0000"),
       attrs: (scope: ScopeLike) => {
         const open = isOpenPhase(scope.state);
         return {

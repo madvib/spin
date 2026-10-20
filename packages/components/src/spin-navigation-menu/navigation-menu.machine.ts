@@ -68,7 +68,7 @@ export function initial(raw: NavigationMenuInitial, authored: (name: string) => 
 }
 
 /** The seeded state: an authored value opens the menu, else idle. */
-export function startState(raw: NavigationMenuInitial): string {
+export function startState(raw: NavigationMenuInitial, authored: (name: string) => boolean): string {
   const seeded = asText(authored("value") ? raw.value : null) ?? asText(raw.defaultValue) ?? "";
   return seeded.length > 0 ? "open" : "idle";
 }

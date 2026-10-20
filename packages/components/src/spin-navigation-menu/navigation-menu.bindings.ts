@@ -85,7 +85,7 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
   name: "navigation-menu",
   config,
   implementations,
-  start: (raw, _authored) => startState(isNavigationMenuInitial(raw) ? raw : {}),
+  start: (raw, authored) => startState(isNavigationMenuInitial(raw) ? raw : {}, authored),
   seed: (raw, authored) => {
     const props: NavigationMenuInitial = isNavigationMenuInitial(raw) ? raw : {};
     const shaped = initial(props, authored);
