@@ -10,7 +10,9 @@ import type { RatingGroupValueChange } from "./rating-group.machine.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -35,7 +37,12 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
  */
 function itemNode(leftWidth = 40): Element {
   return {
-    getBoundingClientRect: () => ({ left: 0, right: leftWidth, width: leftWidth, top: 0 }),
+    getBoundingClientRect: () => ({
+      left: 0,
+      right: leftWidth,
+      width: leftWidth,
+      top: 0,
+    }),
   } as unknown as Element;
 }
 
@@ -94,12 +101,20 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onValueChange", (details: RatingGroupValueChange) => events.valueChange.push(details));
-  write("onHoverChange", (details: RatingGroupHoverChange) => events.hoverChange.push(details));
+  write(
+    "onValueChange",
+    (details: RatingGroupValueChange) => events.valueChange.push(details),
+  );
+  write(
+    "onHoverChange",
+    (details: RatingGroupHoverChange) => events.hoverChange.push(details),
+  );
   const bridge = createRatingGroupBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -111,7 +126,17 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     const el = document.createElement("div");
     el.id = `rating-group:stars:item:${i}`;
     el.getBoundingClientRect = (): DOMRect =>
-      ({ left: 0, right: 40, width: 40, top: 0, bottom: 0, x: 0, y: 0, height: 0, toJSON: () => ({}) }) as DOMRect;
+      ({
+        left: 0,
+        right: 40,
+        width: 40,
+        top: 0,
+        bottom: 0,
+        x: 0,
+        y: 0,
+        height: 0,
+        toJSON: () => ({}),
+      }) as DOMRect;
     document.body.appendChild(el);
   }
   return { api: bridge.api, root, events, write };
@@ -120,6 +145,21 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 function item(api: RatingGroupApi, index: number): Record<string, unknown> {
   return api.getItemProps({ index }) as Record<string, unknown>;
 }
+
+Deno.test("the host's default value seeds the rating", () => {
+  const { api } = mount({ defaultValue: "3.5" });
+  assertEquals(api.value, 3.5);
+});
+
+Deno.test("the host's value owns the rating", () => {
+  const { api } = mount({ value: "4" });
+  assertEquals(api.value, 4);
+});
+
+Deno.test("the live value wins over the default value", () => {
+  const { api } = mount({ value: "4", defaultValue: "3.5" });
+  assertEquals(api.value, 4);
+});
 
 Deno.test("a click commits the clicked value", () => {
   const { api, events } = mount();
@@ -132,8 +172,12 @@ Deno.test("a click commits the clicked value", () => {
 
 Deno.test("hover previews without committing", () => {
   const { api, events } = mount();
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(groupOver());
-  handler<(e: PointerEvent) => void>(item(api, 4), "onPointermove")(over(4, 30));
+  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(
+    groupOver(),
+  );
+  handler<(e: PointerEvent) => void>(item(api, 4), "onPointermove")(
+    over(4, 30),
+  );
   assert(api.hovering);
   assertEquals(api.hoveredValue, 4);
   assertEquals(api.value, -1);
@@ -143,8 +187,12 @@ Deno.test("hover previews without committing", () => {
 
 Deno.test("a hovered click commits the preview, not the item", () => {
   const { api } = mount();
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(groupOver());
-  handler<(e: PointerEvent) => void>(item(api, 4), "onPointermove")(over(4, 30));
+  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(
+    groupOver(),
+  );
+  handler<(e: PointerEvent) => void>(item(api, 4), "onPointermove")(
+    over(4, 30),
+  );
   handler<() => void>(item(api, 2), "onClick")();
   assertEquals(api.value, 4);
 });
@@ -161,9 +209,13 @@ Deno.test("arrows walk the value and Home/End jump", () => {
   const left = handler<(e: KeyboardEvent) => void>(item(api, 4), "onKeydown");
   left(keydown("ArrowLeft"));
   assertEquals(api.value, 3);
-  handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown")(keydown("Home"));
+  handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown")(
+    keydown("Home"),
+  );
   assertEquals(api.value, 1);
-  handler<(e: KeyboardEvent) => void>(item(api, 1), "onKeydown")(keydown("End"));
+  handler<(e: KeyboardEvent) => void>(item(api, 1), "onKeydown")(
+    keydown("End"),
+  );
   assertEquals(api.value, 5);
 });
 
@@ -179,8 +231,12 @@ Deno.test("Space fills an empty rating and refuses a set one", () => {
 
 Deno.test("half steps round to the halfway flag", () => {
   const { api } = mount({ allowHalf: true });
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(groupOver());
-  handler<(e: PointerEvent) => void>(item(api, 3), "onPointermove")(over(3, 10));
+  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(
+    groupOver(),
+  );
+  handler<(e: PointerEvent) => void>(item(api, 3), "onPointermove")(
+    over(3, 10),
+  );
   assertEquals(api.hoveredValue, 2.5);
   handler<() => void>(item(api, 3), "onClick")();
   assertEquals(api.value, 2.5);
@@ -190,7 +246,9 @@ Deno.test("a disabled group refuses clicks and keys", () => {
   const { api, events } = mount({ disabled: true });
   handler<() => void>(item(api, 3), "onClick")();
   assertEquals(api.value, -1);
-  handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, -1);
   assertEquals(events.valueChange.length, 0);
 });

@@ -11,7 +11,7 @@
  * The framework synthesizes the bridge and the connect from this; no
  * hand-written `getXProps()` exists for any component. */
 
-import type { Config, Implementations, MachineSpec } from "@spin/runtime/fsm";
+import type { Config, Implementations, Machine } from "@spin/runtime/fsm";
 
 export interface ParseHost {
   /** The element root: behavioral host props (sanitize, validate,
@@ -97,6 +97,18 @@ export interface ReaderDef<C extends object = Record<string, unknown>> {
 export type InitSpec<C extends object, E extends { type: string }> =
   | Partial<C>
   | ((props: Readonly<Record<string, unknown>>, authored: (name: string) => boolean) => Partial<C>);
+
+/**
+ * The machine a component consumes: a factory over the element's props.
+ *
+ * The factory receives the whole prop bag — the machine picks the
+ * arguments it wants, by name, and shapes them. So the runtime never
+ * needs a descriptor of the machine's arguments, and the arguments
+ * cannot drift from the context they fill.
+ */
+export type MachineFactory<C extends object, E extends { type: string }> = (
+  props: Record<string, unknown>,
+) => Machine<C, E>;
 
 export interface MethodDef<C extends object = Record<string, unknown>> {
   /** An indexed read (`getThumbValue(index)`): live context + state + args
@@ -273,15 +285,13 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * separate artifact: it knows nothing about the consumer, and one
    * machine can drive any number of consumers.
    */
-  readonly machine?: MachineSpec<C, E>;
   /**
-   * The machine's context fields a host write reaches. The framework's
-   * rule is by NAME: a host write to the prop `value` sends the
-   * machine's event `value`, and the same prop seeds the field when the
-   * machine starts. The machine never names a prop; the component says
-   * which of the machine's fields its own props carry.
+   * The machine: a factory. It takes the element's prop bag and returns
+   * the machine, with its context already built from the arguments it
+   * wants. The machine is headless: it knows its own arguments, and
+   * nothing about props, markup, or the DOM.
    */
-  readonly machineFields?: readonly (keyof C & string)[];
+  readonly machine?: MachineFactory<C, E>;
   /**
    * The view's wiring: which of the component's own props send which of
    * the machine's events. The prop's name is the payload's key.

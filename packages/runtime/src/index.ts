@@ -187,4 +187,4 @@ export {
   type State,
   type Transition,
 } from "./machine/fsm/machine.ts";
-export { defaultTwin } from "./component/synthesize.ts";
+export { defaultTwin, resolveTwins } from "./props.ts";

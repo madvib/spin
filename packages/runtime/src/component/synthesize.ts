@@ -17,15 +17,6 @@ import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
 import type { Config, Implementations } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
-/**
- * The initial-value twin of a field: `value` -> `defaultValue`. A host
- * that writes the live prop owns the field; a host that writes only the
- * twin seeds it. The convention is the framework's, so a consumer never
- * re-implements it.
- */
-export function defaultTwin(field: string): string {
-  return `default${field.charAt(0).toUpperCase()}${field.slice(1)}`;
-}
 
 export function defineComponent<
   C extends object,
@@ -114,25 +105,10 @@ export function defineComponent<
     return {
       noteSent,
       seed: (props, authored) => {
-        // The scope's declared parameters ARE the initialization: a prop
-        // the host wrote seeds its field, and the scope's declared
-        // default seeds it when the host wrote nothing. The machine's
-        // contract says which fields a host may write and the event
-        // that carries each; the machine never sees a prop.
-        const seeded: Record<string, unknown> = {};
-        for (const field of def.machineFields ?? []) {
-          const twin = defaultTwin(field);
-          const source = authored(field) ? field : twin;
-          const raw = props()[source];
-          if (raw === undefined || raw === null) continue;
-          seeded[field] = raw;
-        }
-        // The consumer's own init wins: it knows what the start means.
-        if (def.init !== undefined) {
-          const over = typeof def.init === "function" ? def.init(props(), authored) : def.init;
-          return { ...seeded, ...over } as Partial<C>;
-        }
-        return { ...(def.seed?.(props(), authored) ?? {}), ...seeded } as Partial<C>;
+        // The legacy seed: a component that has not moved to a machine
+        // factory still seeds its context from the props. A machine
+        // factory builds its own context, so it needs none of this.
+        return (def.seed?.(props(), authored) ?? {}) as Partial<C>;
       },
 
       establish: (_svc, props, authored) => {

@@ -18,13 +18,14 @@
  *   the callbacks fire. */
 
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
+import { resolveTwins } from "../props.ts";
 import {
   createMachine,
   interpret,
   type Config,
   type Implementations,
   type Service,
-  type MachineSpec,
+  type Machine,
 } from "@spin/runtime/fsm";
 
 export interface BridgeService<C, E extends { type: string }> {
@@ -35,10 +36,12 @@ export interface BridgeService<C, E extends { type: string }> {
 
 export interface BridgeShared<C extends object, E extends { type: string }> {
   /**
-   * The machine: one object. The context, the states, the transitions,
-   * and the assigns and the guards that answer them.
+   * The machine: a factory over the element's props. The factory builds
+   * the machine with its context already seeded from the arguments it
+   * wants, so the seed is the machine's business and the transport is
+   * the framework's.
    */
-  readonly machine?: MachineSpec<C, E>;
+  readonly machine?: (props: Record<string, unknown>) => Machine<C, E>;
   /** The legacy shape: the config and the implementations apart. */
   readonly config?: Config<C, E>;
   readonly implementations?: Implementations<C, E>;
@@ -187,10 +190,15 @@ export function defineBridge<
   const tick = signal(0);
   const authored = authoredProps(props);
   const hooks = spec.hooks(id, root);
-  // The machine: the component's own spec, or the legacy config plus
+  // The machine: the component's factory, or the legacy config plus
   // implementations. One object either way.
-  const machine = createMachine<C, E>(
-    spec.machine ?? {
+  //
+  // The factory receives the props with the twins resolved: the live
+  // prop `value` wins, and `defaultValue` is its fallback. So the
+  // machine's arguments are the live values, and it never sees the twin.
+  const machine = spec.machine !== undefined
+    ? spec.machine(resolveTwins(props(), authored))
+    : createMachine<C, E>({
       ...(spec.config ?? {}),
       context: { ...(spec.config?.context ?? {}) } as C,
       initial: spec.config?.initial ?? "idle",
@@ -204,24 +212,22 @@ export function defineBridge<
       ...(spec.implementations?.actions === undefined
         ? {}
         : { actions: spec.implementations.actions }),
-    },
-  );
+    });
 
   let service: Service<C, E> | undefined;
 
   const ensureService = (): Service<C, E> => {
     if (service) return service;
     service = owner.run(() => {
-      // The seed is the service's STARTING context, not a mutation of it:
-      // a transition replaces the context object, so subscribers see it.
-      // `Object.assign` mutated in place, and the bags — which rendered
-      // before the seed — never re-read the value.
-      const seeded = hooks.seed(props, authored);
       const svc = interpret(machine).start(spec.startState);
-      // The seed lands AFTER the entry actions: Zag seeds the value and
-      // the entry clears the highlight, so the seed wins. Replacing the
-      // context (not mutating it) is what makes the bags see it.
-      svc.setContext(seeded as Partial<C>);
+      if (spec.machine === undefined) {
+        // The legacy path: the seed is the service's STARTING context,
+        // not a mutation of it — a transition replaces the context
+        // object, so subscribers see it. The seed lands AFTER the entry
+        // actions: Zag seeds the value and the entry clears the
+        // highlight, so the seed wins.
+        svc.setContext(hooks.seed?.(props, authored) as Partial<C>);
+      }
       // Scalars first: seed sends run assigns that read them.
       hooks.refresh?.(svc, props, authored);
       // The seed replaced the context, so the bags must re-read it: the

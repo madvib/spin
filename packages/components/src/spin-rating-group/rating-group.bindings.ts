@@ -1,14 +1,15 @@
 import {
+  type ComponentDef,
   defaultTwin,
   defineComponent,
   isComposing,
-  type ComponentDef,
 } from "@spin/runtime";
 import {
-  ratingGroupMachine,
   isHovering,
   isInteractive,
   itemState,
+  ratingGroup as ratingGroupMachine,
+  type RatingGroupArgs,
   type RatingGroupContext,
   type RatingGroupEvent,
   type RatingGroupValueChange,
@@ -45,9 +46,14 @@ export interface RatingGroupApi {
 
 export type { RatingGroupValueChange };
 
-const slotIndex = (slot: unknown): number => (typeof slot === "object" && slot !== null && "index" in slot && typeof Reflect.get(slot, "index") === "number") ? (Number(Reflect.get(slot, "index"))) : 0;
+const slotIndex = (slot: unknown): number =>
+  (typeof slot === "object" && slot !== null && "index" in slot &&
+      typeof Reflect.get(slot, "index") === "number")
+    ? (Number(Reflect.get(slot, "index")))
+    : 0;
 const isIndexArg = (value: unknown): value is { readonly index: number } =>
-  typeof value === "object" && value !== null && "index" in value && typeof Reflect.get(value, "index") === "number";
+  typeof value === "object" && value !== null && "index" in value &&
+  typeof Reflect.get(value, "index") === "number";
 
 /** Thumb slots are a pure function of the count: cache per length so the
  * recipe's iteration never re-stamps. */
@@ -87,24 +93,15 @@ const valueOf = (raw: unknown): number => {
 
 const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
-  machine: ratingGroupMachine,
+  // The machine: a factory over the element's props. The machine builds
+  // its own context from the arguments it wants; the element decides
+  // which of its props reach the machine.
+  machine: (props) => ratingGroupMachine(props as RatingGroupArgs),
   start: "idle",
-  // The machine's fields this component's own props carry. The
-  // framework's rule is by NAME: the prop `value` seeds the field
-  // `value`, and a host write to it sends the machine's event `value`.
-  machineFields: ["value", "count"],
   // The view's wiring: a host's `value` write is the machine's
   // `SET_VALUE`. The prop's name is the payload's key.
   propEvents: { value: "SET_VALUE", count: "SET_COUNT" },
-  // How this component starts the machine, for the fields the scope's
-  // declared parameters cannot express on their own.
-  init: (props) => ({
-    ...(props["count"] === undefined ? {} : { count: countOf(props["count"]) }),
-    ...(props["defaultValue"] === undefined ? {} : { value: valueOf(props["defaultValue"]) }),
-    ...(props["allowHalf"] === undefined ? {} : { allowHalf: props["allowHalf"] === true }),
-    ...(props["disabled"] === undefined ? {} : { disabled: props["disabled"] === true }),
-    ...(props["readOnly"] === undefined ? {} : { readOnly: props["readOnly"] === true }),
-  }),
+
   parts: {
     root: {
       sig: (scope) => [scope.props["dir"]].join("|"),
@@ -133,7 +130,10 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
       }),
     },
     control: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["readOnly"]].join("|"),
+      sig: (scope) =>
+        [scope.state, scope.props["disabled"], scope.props["readOnly"]].join(
+          "|",
+        ),
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "radiogroup",
@@ -158,7 +158,9 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     },
     hiddenInput: {
       id: "input",
-      sig: (scope) => [scope.props["name"], scope.context.value, scope.props["disabled"]].join("|"),
+      sig: (scope) =>
+        [scope.props["name"], scope.context.value, scope.props["disabled"]]
+          .join("|"),
       attrs: (scope) => {
         const rawName = scope.props["name"];
         const name = typeof rawName === "string" ? rawName : "";
@@ -181,7 +183,15 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
       indexes: (context) => itemIndexes(context.count),
       sig: (scope) => {
         const state = itemState(scope.context, slotIndex(scope.slot));
-        return [scope.state, state.highlighted, state.half, state.checked, scope.props["disabled"], scope.props["readOnly"], scope.props["dir"]].join("|");
+        return [
+          scope.state,
+          state.highlighted,
+          state.half,
+          state.checked,
+          scope.props["disabled"],
+          scope.props["readOnly"],
+          scope.props["dir"],
+        ].join("|");
       },
       attrs: (scope) => {
         const index = slotIndex(scope.slot);
@@ -191,12 +201,15 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
         return {
           id: scope.id("item", index),
           role: "radio",
-          tabindex: scope.props["readOnly"] === true || scope.props["disabled"] === true
-            ? (state.checked ? "0" : undefined)
-            : (state.checked ? "0" : "-1"),
+          tabindex:
+            scope.props["readOnly"] === true || scope.props["disabled"] === true
+              ? (state.checked ? "0" : undefined)
+              : (state.checked ? "0" : "-1"),
           "aria-roledescription": "rating",
           "aria-label": `${index} stars`,
-          "aria-disabled": scope.props["disabled"] === true ? "true" : undefined,
+          "aria-disabled": scope.props["disabled"] === true
+            ? "true"
+            : undefined,
           "data-scope": "rating-group",
           "data-part": "item",
           "data-disabled": scope.attr(scope.props["disabled"] === true),
@@ -216,8 +229,12 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
             if (!isInteractive(scope.context)) return;
             const rect = scope.measure("item", index);
             if (rect === null) return;
-            const dir = typeof scope.props["dir"] === "string" ? scope.props["dir"] : "ltr";
-            const x = dir === "rtl" ? rect.right - event.clientX : event.clientX - rect.left;
+            const dir = typeof scope.props["dir"] === "string"
+              ? scope.props["dir"]
+              : "ltr";
+            const x = dir === "rtl"
+              ? rect.right - event.clientX
+              : event.clientX - rect.left;
             const isMidway = rect.width > 0 && x / rect.width < 0.5;
             scope.send({ type: "POINTER_OVER", index, isMidway });
           },
@@ -225,7 +242,9 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
             if (event.defaultPrevented) return;
             if (!isInteractive(scope.context)) return;
             if (isComposing(event)) return;
-            const dir = typeof scope.props["dir"] === "string" ? scope.props["dir"] : "ltr";
+            const dir = typeof scope.props["dir"] === "string"
+              ? scope.props["dir"]
+              : "ltr";
             const move = (type: string): boolean => {
               event.preventDefault();
               scope.send({ type });
@@ -271,7 +290,12 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "SET_VALUE", value: typeof args[0] === "number" ? args[0] : 0 }) },
+    setValue: {
+      event: (args) => ({
+        type: "SET_VALUE",
+        value: typeof args[0] === "number" ? args[0] : 0,
+      }),
+    },
     clearValue: { event: () => ({ type: "CLEAR_VALUE" }) },
   },
   readers: {
@@ -296,12 +320,16 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     "value-change": {
       prop: "onValueChange",
       watch: (context) => [context.value],
-      detail: (watched) => ({ value: typeof watched[0] === "number" ? watched[0] : 0 }),
+      detail: (watched) => ({
+        value: typeof watched[0] === "number" ? watched[0] : 0,
+      }),
     },
     "hover-change": {
       prop: "onHoverChange",
       watch: (context) => [context.hoveredValue],
-      detail: (watched) => ({ hoveredValue: typeof watched[0] === "number" ? watched[0] : 0 }),
+      detail: (watched) => ({
+        hoveredValue: typeof watched[0] === "number" ? watched[0] : 0,
+      }),
     },
   },
   settled: ({ event, after, focus }) => {
@@ -313,12 +341,21 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
       SPACE: true,
     };
     if (types[event.type] !== true) return;
-    const afterRecord: Record<string, unknown> = Object.assign({}, (after && typeof after === "object") ? after : {});
+    const afterRecord: Record<string, unknown> = Object.assign(
+      {},
+      (after && typeof after === "object") ? after : {},
+    );
     const ctx = afterRecord["context"];
     if (!ctx || typeof ctx !== "object" || !("value" in ctx)) return;
-    const value = (ctx).value;
-    if (typeof value === "number" && value > 0) focus("item", Math.max(1, Math.ceil(value)));
+    const value = ctx.value;
+    if (typeof value === "number" && value > 0) {
+      focus("item", Math.max(1, Math.ceil(value)));
+    }
   },
 };
 
-export const ratingGroup = defineComponent<RatingGroupContext, RatingGroupEvent, RatingGroupApi>(def);
+export const ratingGroup = defineComponent<
+  RatingGroupContext,
+  RatingGroupEvent,
+  RatingGroupApi
+>(def);

@@ -16,7 +16,13 @@
  * idle otherwise.
  */
 
-import type { MachineSpec } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+
+/** The rating the host wrote: a number, or none. */
+const ratingValue = (raw: unknown): number => {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(n) ? n : -1;
+};
 
 export interface RatingGroupContext {
   /** The committed rating, -1 for none. Half steps when allowHalf. */
@@ -67,7 +73,10 @@ export interface RatingItemState {
 }
 
 /** Zag's getItemState, pure: the hovered value previews while hovering. */
-export function itemState(ctx: RatingGroupContext, index: number): RatingItemState {
+export function itemState(
+  ctx: RatingGroupContext,
+  index: number,
+): RatingItemState {
   const current = isHovering(ctx) ? ctx.hoveredValue : ctx.value;
   const equal = Math.ceil(current) === index;
   return {
@@ -79,119 +88,181 @@ export function itemState(ctx: RatingGroupContext, index: number): RatingItemSta
 
 const step = (ctx: RatingGroupContext): number => (ctx.allowHalf ? 0.5 : 1);
 
-/** The rating-group machine: state and nothing else. It never sees a
- * prop — the consumer sends it events, and it answers with state. */
 /**
- * The machine: one object. Its context, its states, its transitions, and
- * the assigns and the guards that answer them.
+ * The rating-group's arguments: the values the host may set.
  *
- * The runtime makes the machine from this; the component hands it over
- * and reads its state.
+ * The names are the element's prop names — the machine is instantiated
+ * with the element's prop bag and picks what it wants. The twin
+ * (`defaultValue`) is resolved by the framework before the factory is
+ * called, so the machine only ever sees the live value.
  */
-export const ratingGroupMachine: MachineSpec<RatingGroupContext, RatingGroupEvent> = {
-  id: "rating-group",
-  initial: "idle",
-  context: {
-    value: -1,
-    hoveredValue: -1,
-    count: 5,
-    allowHalf: false,
-    disabled: false,
-    readOnly: false,
-  },
-  on: {
-    SET_VALUE: { actions: [{ assign: "setValueTo" }] },
-    CLEAR_VALUE: { actions: [{ assign: "clearValue" }] },
-    SET_COUNT: { actions: [{ assign: "setCount" }] },
-    SET_ALLOW_HALF: { actions: [{ assign: "setAllowHalf" }] },
-    SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-    SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
-  },
-  states: {
-    idle: {
-      entry: [{ assign: "clearHoveredValue" }],
-      on: {
-        GROUP_POINTER_OVER: { target: "hover" },
-        FOCUS: { target: "focus" },
-        CLICK: { actions: [{ assign: "setValue" }] },
+export interface RatingGroupArgs {
+  /** The committed rating, as the host wrote it. */
+  value?: string;
+  /** How many stars. */
+  count?: number;
+  /** Whether half steps are allowed. */
+  allowHalf?: boolean;
+  /** Whether the group is disabled. */
+  disabled?: boolean;
+  /** Whether the group is read-only. */
+  readOnly?: boolean;
+}
+
+/**
+ * The rating-group machine: state and nothing else. It is headless — it
+ * knows its own arguments, and nothing about props, markup, or the DOM.
+ */
+export function ratingGroup(
+  args: RatingGroupArgs = {},
+): Machine<RatingGroupContext, RatingGroupEvent> {
+  return createMachine<RatingGroupContext, RatingGroupEvent>({
+    id: "rating-group",
+    initial: "idle",
+    context: {
+      value: ratingValue(args.value),
+      hoveredValue: -1,
+      count: args.count ?? 5,
+      allowHalf: args.allowHalf === true,
+      disabled: args.disabled === true,
+      readOnly: args.readOnly === true,
+    },
+    on: {
+      SET_VALUE: { actions: [{ assign: "setValueTo" }] },
+      CLEAR_VALUE: { actions: [{ assign: "clearValue" }] },
+      SET_COUNT: { actions: [{ assign: "setCount" }] },
+      SET_ALLOW_HALF: { actions: [{ assign: "setAllowHalf" }] },
+      SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
+      SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
+    },
+    states: {
+      idle: {
+        entry: [{ assign: "clearHoveredValue" }],
+        on: {
+          GROUP_POINTER_OVER: { target: "hover" },
+          FOCUS: { target: "focus" },
+          CLICK: { actions: [{ assign: "setValue" }] },
+        },
+      },
+      focus: {
+        on: {
+          POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
+          GROUP_POINTER_LEAVE: { actions: [{ assign: "clearHoveredValue" }] },
+          BLUR: { target: "idle" },
+          SPACE: [{ cond: "isValueEmpty", actions: [{ assign: "setValue" }] }],
+          CLICK: { actions: [{ assign: "setValue" }] },
+          ARROW_LEFT: { actions: [{ assign: "setPrevValue" }] },
+          ARROW_RIGHT: { actions: [{ assign: "setNextValue" }] },
+          HOME: { actions: [{ assign: "setValueToMin" }] },
+          END: { actions: [{ assign: "setValueToMax" }] },
+        },
+      },
+      hover: {
+        on: {
+          POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
+          // A focus is a focus, whatever the pointer is doing: the keyboard
+          // lives in the focus state.
+          FOCUS: { target: "focus" },
+          GROUP_POINTER_LEAVE: [
+            {
+              cond: "radioFocused",
+              target: "focus",
+              actions: [{ assign: "clearHoveredValue" }],
+            },
+            { target: "idle", actions: [{ assign: "clearHoveredValue" }] },
+          ],
+          CLICK: { actions: [{ assign: "setValue" }] },
+        },
       },
     },
-    focus: {
-      on: {
-        POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
-        GROUP_POINTER_LEAVE: { actions: [{ assign: "clearHoveredValue" }] },
-        BLUR: { target: "idle" },
-        SPACE: [{ cond: "isValueEmpty", actions: [{ assign: "setValue" }] }],
-        CLICK: { actions: [{ assign: "setValue" }] },
-        ARROW_LEFT: { actions: [{ assign: "setPrevValue" }] },
-        ARROW_RIGHT: { actions: [{ assign: "setNextValue" }] },
-        HOME: { actions: [{ assign: "setValueToMin" }] },
-        END: { actions: [{ assign: "setValueToMax" }] },
+    assigns: {
+      setValueTo: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "SET_VALUE") return {};
+        // The value arrives the way the host wrote it; the machine shapes
+        // it, wherever it came from.
+        return { value: ratingValue(event.value) };
+      },
+      clearValue: (): Partial<RatingGroupContext> => ({ value: -1 }),
+      setCount: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "SET_COUNT") return {};
+        return { count: Math.max(1, Math.floor(event.count)) };
+      },
+      setAllowHalf: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "SET_ALLOW_HALF") return {};
+        return { allowHalf: event.allowHalf };
+      },
+      setDisabled: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "SET_DISABLED") return {};
+        return { disabled: event.disabled };
+      },
+      setReadOnly: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "SET_READ_ONLY") return {};
+        return { readOnly: event.readOnly };
+      },
+      clearHoveredValue: (): Partial<RatingGroupContext> => ({
+        hoveredValue: -1,
+      }),
+      // CLICK and SPACE carry the item's own value; a live hover preview wins,
+      // exactly as Zag's setValue prefers the hovered value.
+      // CLICK and SPACE carry the item's own value; a live hover preview
+      // wins, exactly as Zag's setValue prefers the hovered value.
+      setValue: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "CLICK" && event.type !== "SPACE") return {};
+        return {
+          value: ctx.hoveredValue === -1 ? event.value : ctx.hoveredValue,
+        };
+      },
+      setHoveredValue: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): Partial<RatingGroupContext> => {
+        if (event.type !== "POINTER_OVER") return {};
+        return {
+          hoveredValue: event.index -
+            (ctx.allowHalf && event.isMidway ? 0.5 : 0),
+        };
+      },
+      setPrevValue: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({
+        value: Math.max(0, ctx.value - step(ctx)),
+      }),
+      setNextValue: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({
+        value: Math.min(
+          ctx.count,
+          (ctx.value === -1 ? 0 : ctx.value) + step(ctx),
+        ),
+      }),
+      setValueToMin: (): Partial<RatingGroupContext> => ({ value: 1 }),
+      setValueToMax: (
+        ctx: RatingGroupContext,
+      ): Partial<RatingGroupContext> => ({ value: ctx.count }),
+    },
+    conds: {
+      isValueEmpty: (ctx: RatingGroupContext): boolean => ctx.value <= 0,
+      radioFocused: (
+        ctx: RatingGroupContext,
+        event: RatingGroupEvent,
+      ): boolean => {
+        if (event.type !== "GROUP_POINTER_LEAVE") return false;
+        return event.radioFocused;
       },
     },
-    hover: {
-      on: {
-        POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
-        // A focus is a focus, whatever the pointer is doing: the keyboard
-        // lives in the focus state.
-        FOCUS: { target: "focus" },
-        GROUP_POINTER_LEAVE: [
-          { cond: "radioFocused", target: "focus", actions: [{ assign: "clearHoveredValue" }] },
-          { target: "idle", actions: [{ assign: "clearHoveredValue" }] },
-        ],
-        CLICK: { actions: [{ assign: "setValue" }] },
-      },
-    },
-  },
-  assigns: {
-    setValueTo: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "SET_VALUE") return {};
-      return { value: event.value };
-    },
-    clearValue: (): Partial<RatingGroupContext> => ({ value: -1 }),
-    setCount: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "SET_COUNT") return {};
-      return { count: Math.max(1, Math.floor(event.count)) };
-    },
-    setAllowHalf: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "SET_ALLOW_HALF") return {};
-      return { allowHalf: event.allowHalf };
-    },
-    setDisabled: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "SET_DISABLED") return {};
-      return { disabled: event.disabled };
-    },
-    setReadOnly: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "SET_READ_ONLY") return {};
-      return { readOnly: event.readOnly };
-    },
-    clearHoveredValue: (): Partial<RatingGroupContext> => ({ hoveredValue: -1 }),
-    // CLICK and SPACE carry the item's own value; a live hover preview wins,
-    // exactly as Zag's setValue prefers the hovered value.
-    // CLICK and SPACE carry the item's own value; a live hover preview
-    // wins, exactly as Zag's setValue prefers the hovered value.
-    setValue: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "CLICK" && event.type !== "SPACE") return {};
-      return { value: ctx.hoveredValue === -1 ? event.value : ctx.hoveredValue };
-    },
-    setHoveredValue: (ctx: RatingGroupContext, event: RatingGroupEvent): Partial<RatingGroupContext> => {
-      if (event.type !== "POINTER_OVER") return {};
-      return { hoveredValue: event.index - (ctx.allowHalf && event.isMidway ? 0.5 : 0) };
-    },
-    setPrevValue: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({
-      value: Math.max(0, ctx.value - step(ctx)),
-    }),
-    setNextValue: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({
-      value: Math.min(ctx.count, (ctx.value === -1 ? 0 : ctx.value) + step(ctx)),
-    }),
-    setValueToMin: (): Partial<RatingGroupContext> => ({ value: 1 }),
-    setValueToMax: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({ value: ctx.count }),
-  },
-  conds: {
-    isValueEmpty: (ctx: RatingGroupContext): boolean => ctx.value <= 0,
-    radioFocused: (ctx: RatingGroupContext, event: RatingGroupEvent): boolean => {
-      if (event.type !== "GROUP_POINTER_LEAVE") return false;
-      return event.radioFocused;
-    },
-  },
-};
+  });
+}
