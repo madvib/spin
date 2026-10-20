@@ -98,6 +98,8 @@ export interface ToastApi {
 const isToastType = (raw: unknown): raw is ToastType =>
   raw === "info" || raw === "success" || raw === "warning" || raw === "error" || raw === "loading";
 
+/** The toast's own record test: it accepts an array, which the
+ * framework's record test rejects. */
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 

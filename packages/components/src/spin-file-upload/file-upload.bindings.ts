@@ -1,10 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { coerceJsonArray } from "@spin/runtime";
 import {
   config,
@@ -74,9 +68,6 @@ export interface FileUploadApi extends FileUploadCommands {
  * "type":"image/png"}]`. Live files cannot travel as attributes; the
  * seeded channel carries their records.
  */
-const isRecord = (entry: unknown): entry is Record<string, unknown> =>
-  typeof entry === "object" && entry !== null && !Array.isArray(entry);
-
 /** The seeded selection off the JSON transport: live files cannot travel
  * as attributes, so the seeded channel carries their records. Well-shaped
  * entries survive; anything else is no seed, not a throw. */
