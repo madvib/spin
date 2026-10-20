@@ -395,6 +395,20 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
     isSubmenu: props["submenu"] === true,
   }),
   scalars: ["isSubmenu"],
+  reconcile: ({ state, parsed, authored, send }) => {
+    // The items arrive as a host write: a parent menu hands its subtree
+    // over after the child has connected, so the seed's entries are only
+    // the first word.
+    const entries = initial({ items: parsed["items"] }).entries;
+    send({ type: "ENTRIES.SET", entries });
+    // The host owns the panel when it authored `open`: the machine
+    // follows the prop, and the machine's own move is what reports it.
+    if (!authored("open")) return false;
+    const open = parsed["open"] === true;
+    if (open === (state === "open")) return false;
+    send({ type: open ? "CONTROLLED_OPEN" : "CONTROLLED_CLOSE" });
+    return true;
+  },
   parts: {
     trigger: {
       sig: (scope) => [scope.state, scope.props["composite"], scope.props["submenu"]].join(" "),

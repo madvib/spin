@@ -9,6 +9,21 @@ import { toStyleString } from "../core/style.ts";
 const ASSIGNABLE = new Set(["value", "checked", "selected", "tabIndex"]);
 
 /**
+ * Whether the element declares the name as a property. A declared prop
+ * crosses through its accessor — an array or an object cannot travel as
+ * an attribute, and the element's grammar owns the coercion.
+ */
+const hasAccessor = (el: Element, name: string): boolean => {
+  let target: object | null = el;
+  while (target !== null) {
+    const desc = Object.getOwnPropertyDescriptor(target, name);
+    if (desc !== undefined) return typeof desc.get === "function" || typeof desc.set === "function";
+    target = Object.getPrototypeOf(target);
+  }
+  return false;
+};
+
+/**
  * Reactive prop application from a live reader.
  *
  * Loader-owned effect: called from emitted code in build scope. The reader
@@ -111,7 +126,7 @@ export function bindSpread(
       // param (`use:form-control="[object Object]"`) into the DOM.
       if (name.startsWith("use:")) continue;
       if (Object.is(value, last[name])) continue;
-      if (ASSIGNABLE.has(name)) {
+      if (ASSIGNABLE.has(name) || hasAccessor(el, name)) {
         (el as unknown as Record<string, unknown>)[name] = value;
       } else if (name.startsWith("aria-") && typeof value === "boolean") {
         // ARIA states are not HTML booleans: `aria-selected=""` parses as

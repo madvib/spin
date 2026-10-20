@@ -100,6 +100,7 @@ export type MenuEvent =
   | { type: "TRIGGER_CLICK" }
   | { type: "CONTEXT_MENU"; point: { x: number; y: number } }
   | { type: "HIGHLIGHT"; value: string | null }
+  | { type: "ENTRIES.SET"; entries: readonly MenuEntry[] }
   | { type: "SUBMENU_OPEN"; value: string }
   | { type: "SUBMENU_CLOSE" }
   | { type: "ITEM_CLICK"; value: string };
@@ -188,6 +189,7 @@ export const config = {
         CLOSE: { target: "closed", actions: [{ assign: "clearAll" }] },
         CONTROLLED_CLOSE: { target: "closed", actions: [{ assign: "clearAll" }] },
         HIGHLIGHT: { actions: [{ assign: "highlight" }] },
+        "ENTRIES.SET": { actions: [{ assign: "setEntries" }] },
         SUBMENU_OPEN: { actions: [{ assign: "openSubmenu" }] },
         SUBMENU_CLOSE: { actions: [{ assign: "closeSubmenu" }] },
         ITEM_CLICK: { actions: [{ assign: "select" }, { assign: "clearAll" }] },
@@ -196,8 +198,34 @@ export const config = {
   },
 };
 
+/** Two entry lists, same rows: the submenu's children change the tree. */
+function sameEntries(a: readonly MenuEntry[], b: readonly MenuEntry[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((entry, index) => {
+    const other = b[index];
+    if (other === undefined) return false;
+    const sep = (candidate: MenuEntry): boolean => "separator" in candidate && candidate.separator === true;
+    if (sep(entry) || sep(other)) return sep(entry) === sep(other);
+    if ("group" in entry || "group" in other) {
+      if (!("group" in entry) || !("group" in other)) return false;
+      if (entry.group !== other.group) return false;
+      return sameEntries(entry.items, other.items);
+    }
+    if (!("value" in entry) || !("value" in other)) return false;
+    if (entry.value !== other.value || entry.label !== other.label) return false;
+    if (entry.shortcut !== other.shortcut) return false;
+    if (entry.disabled !== other.disabled) return false;
+    if (entry.checked !== other.checked) return false;
+    return sameEntries(entry.children ?? [], other.children ?? []);
+  });
+}
+
 export const implementations = {
   assigns: {
+    setEntries: (ctx: MenuContext, event: MenuEvent): Partial<MenuContext> => {
+      if (event.type !== "ENTRIES.SET") return {};
+      return sameEntries(ctx.entries, event.entries) ? {} : { entries: event.entries };
+    },
     clearAnchor: (): Partial<MenuContext> => ({ anchorPoint: null }),
     setAnchor: (_ctx: MenuContext, e: MenuEvent): Partial<MenuContext> =>
       e.type === "CONTEXT_MENU" ? { anchorPoint: e.point, highlightedValue: null } : {},
