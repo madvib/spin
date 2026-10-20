@@ -19,7 +19,8 @@ import { type Page } from "npm:playwright-core";
 
 
 /** Part ids are the recipe's scheme: `async-list:<element id>:<part>`. */
-const at = (id: string, part: string): string => `[id="async-list:${id}:${part}"]`;
+const at = (id: string, part?: string): string =>
+  part === undefined ? `[id="async-list:${id}"]` : `[id="async-list:${id}:${part}"]`;
 const CREW_LIST = at("crew", "list");
 const CREW_ITEM = (value: string): string => at("crew", `item:${value}`);
 
@@ -76,7 +77,7 @@ Deno.test("spin-async-list e2e", () =>
       // The sentinel drains on its own clock: only sort a settled list, or
       // the click lands mid-load and the machine rightly ignores it.
       for (let i = 0; i < 100; i += 1) {
-        if ((await page.locator(at("crew", "root")).getAttribute("data-state")) === "idle") break;
+        if ((await page.locator(at("crew")).getAttribute("data-state")) === "idle") break;
         await delay(100);
       }
       const labels = await page.locator(`${CREW_LIST} [role="listitem"]`).allTextContents();
