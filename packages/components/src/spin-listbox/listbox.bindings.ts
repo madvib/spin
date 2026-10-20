@@ -413,13 +413,22 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   config,
   implementations,
   seed: (raw, authored) => ({ ...initial(isListboxInitial(raw) ? raw : {}, authored) }),
-  reconcile: ({ context, parsed, send }) => {
+  reconcile: ({ context, parsed, authored, send }) => {
     const ctx = context;
     const order = orderOf(parsed);
     ctx.disabledValues = rowsOf(parsed).filter((row) => row.disabled).map((row) => row.value);
     ctx.order = order;
     ctx.labels = labelsOf(parsed);
     send({ type: "SELECTED_ITEMS.SYNC" });
+    // The highlighted value is the host's channel: it alternates only
+    // when the host authored it, and the machine owns the move.
+    if (authored("highlightedValue")) {
+      const outer = parsed["highlightedValue"];
+      const value = typeof outer === "string" ? outer : null;
+      if (value !== ctx.highlightedValue) {
+        send({ type: "HIGHLIGHTED_VALUE.SET", value: value ?? "" });
+      }
+    }
     return true;
   },
   parts: {

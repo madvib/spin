@@ -302,14 +302,25 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
     return props["defaultOpen"] === true ? "open" : "idle";
   },
   seed: (raw, authored) => ({ ...initial(isSelectInitial(raw) ? raw : {}, authored) }),
-  reconcile: ({ context, parsed, send }) => {
+  reconcile: ({ context, parsed, authored, send }) => {
     const ctx = context;
     const order = orderOf(parsed);
-    if (sameKeys(ctx.order, order)) return false;
-    ctx.order = order;
-    ctx.labels = labelsOf(parsed);
-    send({ type: "SELECTED_ITEMS.SYNC" });
-    return true;
+    const orderChanged = !sameKeys(ctx.order, order);
+    if (orderChanged) {
+      ctx.order = order;
+      ctx.labels = labelsOf(parsed);
+      send({ type: "SELECTED_ITEMS.SYNC" });
+    }
+    // The highlighted value is the host's channel: it alternates only
+    // when the host authored it, and the machine owns the move.
+    if (authored("highlightedValue")) {
+      const outer = parsed["highlightedValue"];
+      const value = typeof outer === "string" ? outer : null;
+      if (value !== ctx.highlightedValue) {
+        send({ type: "HIGHLIGHTED_VALUE.SET", value: value ?? "" });
+      }
+    }
+    return orderChanged;
   },
 
   parts: {
