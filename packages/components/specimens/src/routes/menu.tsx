@@ -6,6 +6,7 @@ import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
 import type {
+import "./spin-menu.html";
   MenuEntry,
   MenuRow,
 } from "../../../src/spin-menu/menu.bindings.ts";

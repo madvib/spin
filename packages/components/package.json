@@ -4,7 +4,6 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./elements": "./src/elements.ts",
     "./async-list": "./src/spin-async-list/spin-async-list.html",
     "./carousel": "./src/spin-carousel/spin-carousel.html",
     "./cascade-select": "./src/spin-cascade-select/spin-cascade-select.html",

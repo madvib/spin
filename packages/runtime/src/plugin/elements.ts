@@ -103,8 +103,8 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       } catch {
         // No actions directory: markup wires no actions.
       }
-      // Consume codegen: for each consume name, import the machine-def by
-      // convention (./<name>.machine-def.ts), create the machine via the
+      // Consume codegen: for each consume name, import the bindings by
+      // convention (./<name>.bindings.ts), create the machine via the
       // scope table's watch, and expose the bridge under the consume NAME
       // (values.tabs), never a bare `api`. Two machines mean two names; a
       // bare shorthand would alias whichever ran last and strand the other.
@@ -117,12 +117,12 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // property write reaches the machine. Coercion stays at build time
       // (`values` starts as `coerceProps(...)`); a live read is signal reads
       // plus a shallow copy, never a per-read JSON.parse.
-      // Events: a machine-def may declare `events` mapping a CustomEvent name
+      // Events: the bindings may declare `events` mapping a CustomEvent name
       // to the bridge's callback prop that fires it plus a detail mapper.
       // Each entry becomes a machine prop — `(details) => el.dispatchEvent(...)`
       // — so the bridge's own callback invocation is what emits. No
       // effect-watching, no diffing; the mapper is authored in the
-      // machine-def beside the machine whose callback it translates.
+      // bindings beside the machine whose callback it translates.
       const consumeImports: string[] = [];
       const consumeCalls: string[] = [];
       const consumeDeletes = scopeDecls.consume
@@ -136,7 +136,14 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         // silently mounts without its machine. A `.controller-def.ts` is the
         // platform tier: same slot, no machine.
         const defStem = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-        const stems = [`${defStem}.machine-def.ts`, `${defStem}.controller-def.ts`];
+        const stems = [
+          `${defStem}.bindings.ts`,
+          // A hand-written bridge keeps its own def: the number-input's
+          // bridge is not the framework's, so it declares its own events
+          // and commands.
+          `${defStem}.machine-def.ts`,
+          `${defStem}.controller-def.ts`,
+        ];
         // Examples live in `<machine>/examples/`, one level below the def:
         // look beside the file first, then walk up like actions do.
         let defMod: string | undefined;

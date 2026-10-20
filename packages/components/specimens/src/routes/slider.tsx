@@ -6,6 +6,7 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
+import "./spin-slider.html";
 
 interface SliderCommands {
   setValue: (value: number[]) => void;

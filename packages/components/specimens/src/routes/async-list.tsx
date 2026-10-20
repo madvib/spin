@@ -12,6 +12,7 @@ import type {
 import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.bindings.ts";
 import type { SortDetails } from "../../../src/spin-async-list/async-list.bindings.ts";
 import type { SortDescriptor } from "../../../src/spin-async-list/async-list.machine.ts";
+import "./spin-async-list.html";
 
 /** The element as a host writes it. */
 interface AsyncListElement extends HTMLElement {

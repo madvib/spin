@@ -19,7 +19,7 @@ import.meta.glob(
 );
 
 const recipeModules = import.meta.glob(
-  "../../../packages/components/src/spin-*/spin-*.html",
+  "../../../packages/components/specimens/src/routes/spin-*.html",
   { query: "?raw", import: "default", eager: true },
 ) as Record<string, string>;
 

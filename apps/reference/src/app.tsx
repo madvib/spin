@@ -14,7 +14,6 @@ import { parseTokens } from "@spin/theme";
 import { starterThemes, themeModes } from "@spin/theme/themes";
 import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
 import { COMPONENT_GROUPS, COMPONENT_ICONS, COMPONENTS, componentRequirement } from "./components.ts";
-import "@spin/components/elements";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";

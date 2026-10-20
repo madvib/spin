@@ -1,11 +1,9 @@
-import "../../src/elements.ts";
-
 /**
  * Solid's view of the spin elements: JSX tags, prop types, event payloads.
  *
- * Registration itself is the library's (`src/elements.ts` — one import
- * defines every element). This module only teaches Solid's JSX the tag
- * names and the shapes passed across the boundary.
+ * Registration is the markup's own: each route imports the element it
+ * renders. This module only teaches Solid's JSX the tag names and the
+ * shapes passed across the boundary.
  *
  * Solid's property namespace: a plain string prop on a custom element is
  * silently dropped by Solid, so complex values bind through `prop:`. The

@@ -104,13 +104,6 @@ export default defineConfig({
         ),
       },
       {
-        find: "@spin/components/elements",
-        replacement: resolve(
-          here,
-          "../../packages/components/src/elements.ts",
-        ),
-      },
-      {
         find: "@spin/components/procedures",
         replacement: resolve(
           here,

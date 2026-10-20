@@ -11,6 +11,7 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
+import "./spin-number-input.html";
 
 /** The element as a host writes it: seeds are plain property writes. */
 interface NumberInputElement extends HTMLElement {

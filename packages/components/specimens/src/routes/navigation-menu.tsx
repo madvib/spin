@@ -3,6 +3,7 @@ import { createSpinComponent } from "@spin/hooks/solid";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
+import "./spin-navigation-menu.html";
 
 interface NavCommands {
   show(value: string): void;
