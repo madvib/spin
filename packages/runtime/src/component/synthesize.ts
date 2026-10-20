@@ -9,6 +9,7 @@ import { dataAttr, keyed, memo, type BagMemo } from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
+import type { Config, Implementations } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
 export function defineComponent<
@@ -89,18 +90,54 @@ export function defineComponent<
       return found;
     };
     const lastWatched = new Map<string, readonly unknown[]>();
+    // The last value each mapped prop carried: the cursor that keeps a
+    // host write an event and a machine move a non-event.
+    const lastProp = new Map<string, unknown>();
     const sameWatch = (a: readonly unknown[], b: readonly unknown[]): boolean =>
       a.length === b.length && a.every((value, index) => value === b[index]);
 
     return {
       noteSent,
-      seed: (props, authored) => def.seed(props(), authored) as Partial<C>,
+      seed: (props, authored) => {
+        if (def.props === undefined) {
+          return (def.seed?.(props(), authored) ?? {}) as Partial<C>;
+        }
+        // The seed is the machine's own defaults plus the props the
+        // consumer maps onto it. The machine never reads a prop: the
+        // consumer names the field and the event, and the machine
+        // decides what the value means.
+        const parsed = props();
+        const seeded: Record<string, unknown> = {};
+        for (const [name, mapping] of Object.entries(def.props)) {
+          const source = authored(name) ? name : mapping.seed ?? name;
+          const value = parsed[source];
+          if (value === undefined || value === null) continue;
+          seeded[mapping.field] = mapping.parse === undefined ? value : mapping.parse(value);
+        }
+        return seeded as Partial<C>;
+      },
       establish: (_svc, props, authored) => {
         if (def.establish === undefined) return [];
         return def.establish(props(), authored) as readonly E[];
       },
-      sync: (_svc, _props, _authored, _send) => {
-        return { moved: false, events: [] };
+      sync: (_svc, props, _authored, send) => {
+        if (def.props === undefined) return { moved: false, events: [] };
+        // A prop write is an event, not a context write: the consumer
+        // sends and the machine decides. The cursor is on the prop, so
+        // the machine's own move never talks back.
+        const parsed = props();
+        const events: E[] = [];
+        for (const [name, mapping] of Object.entries(def.props)) {
+          const raw = parsed[name];
+          if (raw === undefined || raw === null) continue;
+          const value = mapping.parse === undefined ? raw : mapping.parse(raw);
+          if (Object.is(lastProp.get(name), value)) continue;
+          lastProp.set(name, value);
+          const event = { type: mapping.event, [mapping.field]: value } as unknown as E;
+          events.push(event);
+          send(event);
+        }
+        return { moved: events.length > 0, events };
       },
       kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
       refresh: (svc, props, authored) => {
@@ -335,8 +372,8 @@ export function defineComponent<
       : def.start;
     const bridged = defineBridge(
       {
-        config: def.config,
-        implementations: def.implementations,
+        config: (def.machine?.config ?? def.config ?? { initial: "idle", context: {} as C }) as Config<C, E>,
+        implementations: (def.machine?.implementations ?? def.implementations ?? {}) as Implementations<C, E>,
         ...(startState === undefined ? {} : { startState }),
         hooks,
       },

@@ -4,16 +4,13 @@ import {
   type ComponentDef,
 } from "@spin/runtime";
 import {
-  config,
-  implementations,
+  ratingGroupMachine,
   isHovering,
   isInteractive,
   itemState,
-  initial,
   type RatingGroupContext,
   type RatingGroupEvent,
   type RatingGroupValueChange,
-  type RatingGroupInitial,
   type RatingItemState,
 } from "./rating-group.machine.ts";
 
@@ -62,24 +59,30 @@ const itemIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-/** Transport guarantees the raw prop bag is a RatingGroupInitial-shaped object. */
-const isRatingGroupInitial = (raw: unknown): raw is RatingGroupInitial =>
-  raw !== null && typeof raw === "object";
+/** The host's count: a number, at least one. */
+const countOf = (raw: unknown): number => {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 5;
+};
+
+/** The host's rating: a number, or none. */
+const valueOf = (raw: unknown): number => {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(n) ? n : -1;
+};
 
 const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
-  config,
-  implementations,
+  machine: ratingGroupMachine,
   start: "idle",
-  seed: (raw, authored) => ({ ...initial(isRatingGroupInitial(raw) ? raw : {}, authored) }),
-  scalars: ["count", "allowHalf", "disabled", "readOnly"],
-  reconcile: ({ context, parsed, authored, send }) => {
-    const ctx = context;
-    if (!authored("value")) return false;
-    const seeded = initial(isRatingGroupInitial(parsed) ? parsed : {}, authored);
-    if (ctx.value === seeded.value) return false;
-    send({ type: "SET_VALUE", value: seeded.value });
-    return true;
+  // The props this consumer feeds the machine. A prop write is an
+  // event: the consumer sends, the machine decides.
+  props: {
+    count: { event: "SET_COUNT", field: "count", parse: countOf },
+    value: { event: "SET_VALUE", field: "value", seed: "defaultValue", parse: valueOf },
+    allowHalf: { event: "SET_ALLOW_HALF", field: "allowHalf" },
+    disabled: { event: "SET_DISABLED", field: "disabled" },
+    readOnly: { event: "SET_READ_ONLY", field: "readOnly" },
   },
   parts: {
     root: {

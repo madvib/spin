@@ -12,6 +12,7 @@
  * hand-written `getXProps()` exists for any component. */
 
 import type { Config, Implementations } from "@spin/runtime/fsm";
+import type { Machine } from "../machine/define.ts";
 
 export interface ParseHost {
   /** The element root: behavioral host props (sanitize, validate,
@@ -80,6 +81,26 @@ export interface ReaderDef<C extends object = Record<string, unknown>> {
     props: Record<string, unknown>,
     root?: () => Element,
   ): unknown;
+}
+
+/**
+ * How one prop reaches the machine: the event the consumer sends, the
+ * context field the event fills, and the prop whose value seeds that
+ * field (the live prop seeds it when the host authored it).
+ */
+export interface PropEvent<C extends object, E extends { type: string }> {
+  /** The event the consumer sends when the prop changes. */
+  readonly event: E["type"];
+  /** The context field the event's payload fills. */
+  readonly field: keyof C & string;
+  /** The prop whose value seeds the field. Default: the prop itself. */
+  readonly seed?: string;
+  /**
+   * How the raw prop becomes the field's value: the consumer owns the
+   * shape, the machine owns the state. Absent, the prop's value is the
+   * field's value.
+   */
+  readonly parse?: (raw: unknown) => unknown;
 }
 
 export interface MethodDef<C extends object = Record<string, unknown>> {
@@ -160,8 +181,8 @@ export interface EventDef<W extends readonly unknown[] = readonly unknown[], C e
 }
 export interface ComponentDef<C extends object, E extends { type: string }> {
   readonly name: string;
-  readonly config: Config<C, E>;
-  readonly implementations: Implementations<C, E>;
+  readonly config?: Config<C, E>;
+  readonly implementations?: Implementations<C, E>;
   /** The start state, or its computation from parsed props (an authored
    * `open` starts the panel up). Absent, the machine's own initial. */
   readonly start?: string | ((
@@ -177,7 +198,9 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
   /** Seed the machine context from parsed props before start. A coerced
    * default is never a write: `closeOnSelect` defaults from the mode unless
    * the host authored it. */
-  readonly seed: (
+  /** The machine's starting context, from the props. With a prop map the
+   * runtime seeds it: the map names the field each prop fills. */
+  readonly seed?: (
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
@@ -236,6 +259,19 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
   /** Event types that end the gesture: notify runs as a commit for these,
    * a move otherwise. Default: every send notifies as a move. */
   readonly commitEvents?: readonly string[];
+  /**
+   * The props this consumer feeds the machine, and the events that carry
+   * them. The consumer sends; the machine decides. A prop write is an
+   * event, never a context write: the machine owns its state, and one
+   * machine can drive any number of consumers.
+   */
+  readonly props?: Readonly<Record<string, PropEvent<C, E>>>;
+  /**
+   * The machine that owns this consumer's state. The machine is a
+   * separate artifact: it knows nothing about the consumer, and one
+   * machine can drive any number of consumers.
+   */
+  readonly machine?: Machine<C, E>;
   readonly parts: Record<string, PartDef<unknown, C>>;
   readonly slots?: Record<string, SlotDef<unknown, C>>;
   readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;
