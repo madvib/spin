@@ -130,10 +130,12 @@ export function initial(raw: SelectInitial, authored: (name: string) => boolean)
   const loopFocus = raw.loopFocus === true;
   const valueRaw = authored("value") ? raw.value : raw.defaultValue;
   const value = parseKeys(valueRaw);
-  const highlightedValue =
-    raw.highlightedValue !== undefined
-      ? nullableProp(raw.highlightedValue)
-      : nullableProp(raw.defaultHighlightedValue);
+  // The scope's `highlightedValue` default is "", so an unauthored
+  // highlight looks present. The authored predicate is what says whether
+  // the host chose it.
+  const highlightedValue = authored("highlightedValue")
+    ? nullableProp(raw.highlightedValue)
+    : nullableProp(raw.defaultHighlightedValue);
   const order = rows.map((row) => row.value);
   const labels: Record<string, string> = Object.fromEntries(rows.map((row) => [row.value, row.label]));
   return {

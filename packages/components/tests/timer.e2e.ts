@@ -18,11 +18,11 @@ import { delay, runComponentSuite, step } from "./harness.ts";
 
 /** Parts are addressed by the machine's id scheme: `timer:<id>:<part>`. */
 const byId = (id: string): string => `[id="${id}"]`;
-const STOPWATCH_ROOT = byId("timer:stopwatch:root");
+const STOPWATCH_ROOT = byId("timer:stopwatch");
 const STOPWATCH_AREA = byId("timer:stopwatch:area");
-const AUTO_ROOT = byId("timer:auto:root");
+const AUTO_ROOT = byId("timer:auto");
 const AUTO_AREA = byId("timer:auto:area");
-const SHORT_ROOT = byId("timer:short:root");
+const SHORT_ROOT = byId("timer:short");
 const SHORT_AREA = byId("timer:short:area");
 const unitValue = (id: string, part: string): string => byId(`timer:${id}:item-value:${part}`);
 const trigger = (id: string, action: string): string => byId(`timer:${id}:action-trigger:${action}`);

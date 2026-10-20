@@ -383,7 +383,7 @@ Deno.test("Given a running countdown / When the parts are read / Then the contra
   const h = mount({ countdown: true, startMs: 90_061_500, interval: 1_000 });
   h.api.start();
   const root = h.api.getRootProps();
-  assertEquals(root["id"], "timer:timer:root", "the root carries the namespaced id");
+  assertEquals(root["id"], "timer:timer", "the root carries the owner id");
   assertEquals(root["data-state"], "running", "the root states the phase");
 
   const area = h.api.getAreaProps();

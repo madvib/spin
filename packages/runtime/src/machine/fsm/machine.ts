@@ -113,6 +113,13 @@ export interface Machine<TContext extends object, TEvent extends EventObject> {
 
 export interface Service<TContext extends object, TEvent extends EventObject> {
   send(event: TEvent["type"] | TEvent): void;
+  /**
+   * Replace part of the context, the way a transition's assigns do: the
+   * context object is replaced, so subscribers see it. The seed uses
+   * this — it lands AFTER the entry actions, so a seed wins over an
+   * entry (Zag seeds the value, the entry clears the highlight).
+   */
+  setContext(patch: Partial<TContext>): void;
   /** Start (or restart) at an optional state, running that state's entry
    * actions. This is how `defaultOpen`-style seeds work: the service's
    * first state is not always the config's `initial`. */
@@ -293,6 +300,10 @@ export function interpret<TContext extends object, TEvent extends EventObject>(
   };
 
   const service: Service<TContext, TEvent> = {
+    setContext(patch) {
+      current = { ...current, context: { ...current.context, ...patch } };
+      machineTick(machineTick() + 1);
+    },
     send(event) {
       if (stopped) return;
       const normalized = toEvent(event);

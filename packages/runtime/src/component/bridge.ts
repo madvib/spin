@@ -195,13 +195,11 @@ export function defineBridge<
       // `Object.assign` mutated in place, and the bags — which rendered
       // before the seed — never re-read the value.
       const seeded = hooks.seed(props, authored);
-      const startValue = spec.startState ?? machine.initialState.value;
-      const svc = interpret(machine).start({
-        value: startValue,
-        context: { ...machine.initialState.context, ...seeded },
-        actions: [],
-        matches: (v: string): boolean => v === startValue,
-      });
+      const svc = interpret(machine).start(spec.startState);
+      // The seed lands AFTER the entry actions: Zag seeds the value and
+      // the entry clears the highlight, so the seed wins. Replacing the
+      // context (not mutating it) is what makes the bags see it.
+      svc.setContext(seeded as Partial<C>);
       // Scalars first: seed sends run assigns that read them.
       hooks.refresh?.(svc, props, authored);
       // The seed replaced the context, so the bags must re-read it: the

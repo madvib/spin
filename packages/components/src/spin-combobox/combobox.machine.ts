@@ -126,7 +126,12 @@ export function initial(raw: ComboboxInitial, authored: (name: string) => boolea
   const order = rows.map((r) => (typeof r.value === "string" ? r.value : "")).filter(Boolean);
   const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)]));
   const value = parseKeys(authored("value") ? raw.value : raw.defaultValue);
-  const highlighted = raw.highlightedValue !== undefined ? nullableProp(raw.highlightedValue) : nullableProp(raw.defaultHighlightedValue);
+  // The scope's `highlightedValue` default is "", so an unauthored
+  // highlight looks present. The authored predicate is what says whether
+  // the host chose it.
+  const highlighted = authored("highlightedValue")
+    ? nullableProp(raw.highlightedValue)
+    : nullableProp(raw.defaultHighlightedValue);
   const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
   const allowCustomValue = raw.allowCustomValue === true;
   const openOnChange = raw.openOnChange !== false;
