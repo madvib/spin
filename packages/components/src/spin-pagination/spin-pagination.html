@@ -1,4 +1,4 @@
-<scope>props={ label: string = "pagination", count: string = "", pageSize: string = "", defaultPageSize: string = "", page: string = "", defaultPage: string = "", siblingCount: string = "", boundaryCount: string = "" } consume={ pagination }</scope>
+<scope>props={ label: string = "pagination", count: int = 0, pageSize: string = "", defaultPageSize: string = "", page: string = "", defaultPage: string = "", siblingCount: int = 1, boundaryCount: int = 1 } consume={ pagination }</scope>
 
 <nav class="flex w-full flex-nowrap items-center gap-1 overflow-x-auto" {...pagination.getRootProps()}>
   <button

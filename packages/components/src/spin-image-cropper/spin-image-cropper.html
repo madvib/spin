@@ -1,4 +1,4 @@
-<scope>props={ src: string = "", alt: string = "", aspectRatio: string = "", cropShape: string = "", minWidth: string = "", minHeight: string = "", maxWidth: string = "", maxHeight: string = "", fixedCropArea: bool = false, zoom: string = "", defaultZoom: string = "", rotation: string = "", defaultRotation: string = "", zoomStep: string = "", disabled: bool = false } consume={ imageCropper }</scope>
+<scope>props={ src: string = "", alt: string = "", aspectRatio: int = 0, cropShape: string = "", minWidth: int = 0, minHeight: int = 0, maxWidth: int = 0, maxHeight: int = 0, fixedCropArea: bool = false, zoom: string = "", defaultZoom: string = "", rotation: string = "", defaultRotation: string = "", zoomStep: string = "", disabled: bool = false } consume={ imageCropper }</scope>
 
 <div class="w-full" {...imageCropper.getRootProps()}>
   <div

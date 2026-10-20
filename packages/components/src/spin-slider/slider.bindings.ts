@@ -45,7 +45,7 @@ export interface SliderApi {
   getThumbPercent(index: number): number;
   getThumbMin(index: number): number;
   getThumbMax(index: number): number;
-  getThumbIndexes(): readonly { readonly index: number }[];
+  getThumbIndexes(): readonly number[];
   getMarkers(): readonly number[];
   getRootProps(): Record<string, unknown>;
   getLabelProps(): Record<string, unknown>;
@@ -71,7 +71,16 @@ const dirOf = (props: Record<string, unknown>): string =>
 
 interface ScopeLike extends PartScope<unknown, SliderContext> {}
 interface SlotLike<R> extends SlotScope<R, SliderContext> {}
-const slotIndex = (slot: unknown): number => typeof slot === "object" && slot !== null && "index" in slot && typeof slot.index === "number" ? slot.index : -1;
+/** The slot's index: the recipe passes the index itself, but a wrapped
+ * `{ index }` is the other spelling a recipe may use. */
+const slotIndex = (slot: unknown): number => {
+  if (typeof slot === "number" && Number.isInteger(slot)) return slot;
+  if (typeof slot === "object" && slot !== null && "index" in slot) {
+    const index: unknown = slot.index;
+    if (typeof index === "number" && Number.isInteger(index)) return index;
+  }
+  return -1;
+};
 
 /** Marker slots wrap raw values so bags read `{value}` like recipes pass.
  * Memoized on the markers identity: fresh wrappers would re-stamp rows. */
@@ -106,11 +115,14 @@ const trackValue = (
 };
 
 /** Thumb slots are a pure function of the thumb count. */
-const thumbIndexCache = new Map<number, readonly { readonly index: number }[]>();
-const thumbIndexes = (length: number): readonly { readonly index: number }[] => {
+const thumbIndexCache = new Map<number, readonly number[]>();
+/** The thumb slots, as plain indices: the recipe wraps each one
+ * (`{ index: row }`) and the wrapper is the slot's identity — a WeakMap
+ * key, so it must be an object. */
+const thumbIndexes = (length: number): readonly number[] => {
   const hit = thumbIndexCache.get(length);
   if (hit !== undefined) return hit;
-  const made = Array.from({ length }, (_, index) => ({ index }));
+  const made = Array.from({ length }, (_, index) => index);
   thumbIndexCache.set(length, made);
   return made;
 };
@@ -134,19 +146,28 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   implementations,
   start: "idle",
   seed: (raw, authored) => ({ ...initial(isSliderInitial(raw) ? raw : {}, authored) }),
-  scalars: [
-    "min",
-    "max",
-    "step",
-    "largeStep",
-    "minStepsBetweenThumbs",
-    "origin",
-    "orientation",
-    "thumbCollisionBehavior",
-    "disabled",
-    "readOnly",
-    "invalid",
-  ],
+  // The merged values are the machine's own shapes, not the raw props:
+  // a scope prop is a string on the way in, and `largeStep` absent means
+  // "ten times the step" — a merge of "" would say zero.
+  scalarsOf: (parsed) => {
+    // The machine's own shape, not the raw props: a scope prop is a
+    // string on the way in, and an absent `largeStep` means "ten times
+    // the step" — a merge of "" would say zero.
+    const shaped = initial(isSliderInitial(parsed) ? parsed : {}, () => true);
+    return {
+      min: shaped.min,
+      max: shaped.max,
+      step: shaped.step,
+      largeStep: shaped.largeStep,
+      minStepsBetweenThumbs: shaped.minStepsBetweenThumbs,
+      origin: shaped.origin,
+      orientation: shaped.orientation,
+      thumbCollisionBehavior: shaped.thumbCollisionBehavior,
+      disabled: shaped.disabled,
+      readOnly: shaped.readOnly,
+      invalid: shaped.invalid,
+    };
+  },
   reconcile: ({ context, parsed, authored, send }) => {
     const ctx = context;
     if (authored("value")) {
@@ -230,6 +251,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
             if (event.pointerType === "mouse" && event.button !== 0) return;
             if (event.metaKey || event.ctrlKey || event.altKey) return;
             const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), context, event.clientX, event.clientY);
+            console.log("DBG slider press, value =", value, "state =", scope.state, "min =", context.min, "max =", context.max, "step =", context.step, "ctxkeys =", Object.keys(context).join(","));
             if (value === null) return;
             event.preventDefault();
             event.stopPropagation();

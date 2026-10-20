@@ -1,4 +1,4 @@
-<scope>props={ label: string = "Slider", name: string = "", form: string = "", min: string = "", max: string = "", step: string = "", largeStep: string = "", defaultValue: string = "[0]", value: string = "[]", orientation: string = "", origin: string = "", thumbCollisionBehavior: string = "", minStepsBetweenThumbs: string = "", disabled: bool = false, readOnly: bool = false, invalid: bool = false, required: bool = false } consume={ slider }</scope>
+<scope>props={ label: string = "Slider", name: string = "", form: string = "", min: int = 0, max: int = 100, step: int = 1, largeStep: string = "", defaultValue: string = "[0]", value: string = "[]", orientation: string = "", origin: string = "", thumbCollisionBehavior: string = "", minStepsBetweenThumbs: string = "", disabled: bool = false, readOnly: bool = false, invalid: bool = false, required: bool = false } consume={ slider }</scope>
 
 <div class="w-full" {...slider.getRootProps()}>
   <div class="mb-1 flex items-baseline justify-between gap-2">
