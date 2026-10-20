@@ -41,7 +41,10 @@ export interface BridgeShared<C extends object, E extends { type: string }> {
    * wants, so the seed is the machine's business and the transport is
    * the framework's.
    */
-  readonly machine?: (props: Record<string, unknown>) => Machine<C, E>;
+  readonly machine?: (
+    props: Record<string, unknown>,
+    authored: (name: string) => boolean,
+  ) => Machine<C, E>;
   /** The legacy shape: the config and the implementations apart. */
   readonly config?: Config<C, E>;
   readonly implementations?: Implementations<C, E>;
@@ -159,7 +162,7 @@ export function authoredProps(props: () => Record<string, unknown>): (name: stri
  */
 function applyContract<C extends object, E extends { type: string }>(
   svc: Service<C, E>,
-  fields: Readonly<Record<string, { readonly event?: E["type"] }>>,
+  fields: Readonly<Record<string, { readonly event?: E["type"]; readonly parse?: (raw: unknown) => unknown }>>,
   props: () => Record<string, unknown>,
   authored: (name: string) => boolean,
   cursor: Map<string, unknown>,
@@ -178,9 +181,11 @@ function applyContract<C extends object, E extends { type: string }>(
     cursor.set(field, raw);
     if (contract.event === undefined) {
       // A silent field: the host's write lands in it. The machine's own
-      // move owns the field's logic.
-      if (context[field] !== raw) {
-        context[field] = raw;
+      // move owns the field's logic, and the machine's own shaping
+      // (`parse`) turns the raw prop into the field's value.
+      const value = contract.parse === undefined ? raw : contract.parse(raw);
+      if (context[field] !== value) {
+        context[field] = value;
         moved = true;
       }
       continue;
@@ -235,9 +240,20 @@ export function defineBridge<
   // The factory receives the props with the twins resolved: the live
   // prop `value` wins, and `defaultValue` is its fallback. So the
   // machine's arguments are the live values, and it never sees the twin.
-  const machine = spec.machine !== undefined
-    ? spec.machine(resolveTwins(props(), authored))
-    : createMachine<C, E>({
+  //
+  // It is built LAZILY, with the service: a host that writes a prop
+  // before the machine's first use (a function the machine calls, say)
+  // is heard by the machine that starts.
+  let machine: Machine<C, E> | undefined;
+  const machineOf = (): Machine<C, E> => {
+    if (machine !== undefined) return machine;
+    machine = spec.machine !== undefined
+      ? spec.machine(resolveTwins(props(), authored), authored)
+      : legacyMachine(spec);
+    return machine;
+  };
+  const legacyMachine = (spec: BridgeShared<C, E>): Machine<C, E> =>
+    createMachine<C, E>({
       ...(spec.config ?? {}),
       context: { ...(spec.config?.context ?? {}) } as C,
       initial: spec.config?.initial ?? "idle",
@@ -258,7 +274,7 @@ export function defineBridge<
   const ensureService = (): Service<C, E> => {
     if (service) return service;
     service = owner.run(() => {
-      const svc = interpret(machine).start(spec.startState);
+      const svc = interpret(machineOf()).start(spec.startState);
       if (spec.machine === undefined) {
         // The legacy path: the seed is the service's STARTING context,
         // not a mutation of it — a transition replaces the context
@@ -375,7 +391,7 @@ export function defineBridge<
       // in the field and nothing reports).
       const syncResult = applyContract(
         svc,
-        machine.fields,
+        machineOf().fields,
         props,
         authored,
         lastContract,

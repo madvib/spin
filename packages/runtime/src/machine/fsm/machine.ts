@@ -115,7 +115,7 @@ export interface Machine<TContext extends object, TEvent extends EventObject> {
   readonly implementations: Implementations<TContext, TEvent>;
   /** The machine's contract with its hosts: the fields a host may write,
    * and the event each write carries. */
-  readonly fields: Readonly<Record<string, { readonly event?: TEvent["type"] }>>;
+  readonly fields: Readonly<Record<string, FieldContract<TEvent>>>;
   readonly initialState: State<TContext>;
   transition(state: string | State<TContext>, event: TEvent["type"] | TEvent): State<TContext>;
 }
@@ -264,7 +264,24 @@ export interface MachineSpec<TContext extends object, TEvent extends EventObject
    * The machine owns this map. The element does not restate it, and a
    * host cannot write a field the contract does not name.
    */
-  readonly fields?: Readonly<Record<string, { readonly event?: TEvent["type"] }>>;
+  readonly fields?: Readonly<Record<string, FieldContract<TEvent>>>;
+}
+
+/**
+ * One field of the machine's contract: how a host's write reaches it.
+ *
+ * - `event` — the write is REPORTED: the host's write is an event, the
+ *   machine decides, and the change reaches the host. The machine's
+ *   assign shapes the payload.
+ * - no `event` — the write is SILENT: it lands in the field, and nothing
+ *   reports. The framework shapes it with `parse`.
+ * - `parse` — the machine's own shaping of the field, for the silent
+ *   path. The same shaping the machine's `initial` applies to the
+ *   argument, so a host's write and the start agree.
+ */
+export interface FieldContract<TEvent extends EventObject> {
+  readonly event?: TEvent["type"];
+  readonly parse?: (raw: unknown) => unknown;
 }
 
 export function createMachine<TContext extends object, TEvent extends EventObject>(

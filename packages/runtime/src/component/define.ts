@@ -108,6 +108,7 @@ export type InitSpec<C extends object, E extends { type: string }> =
  */
 export type MachineFactory<C extends object, E extends { type: string }> = (
   props: Record<string, unknown>,
+  authored: (name: string) => boolean,
 ) => Machine<C, E>;
 
 export interface MethodDef<C extends object = Record<string, unknown>> {
