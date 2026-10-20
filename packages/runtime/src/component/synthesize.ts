@@ -367,12 +367,15 @@ export function defineComponent<
     root: () => Element,
     id: string,
   ): { readonly api: Api; dispose(): void } => {
+    if (def.machine === undefined && def.config === undefined) {
+      throw new Error(`[spin] ${def.name} has no machine`);
+    }
     const startState = typeof def.start === "function"
       ? def.start(props(), authoredProps(props))
       : def.start;
     const bridged = defineBridge(
       {
-        config: (def.machine?.config ?? def.config ?? { initial: "idle", context: {} as C }) as Config<C, E>,
+        config: (def.machine?.config ?? def.config) as Config<C, E>,
         implementations: (def.machine?.implementations ?? def.implementations ?? {}) as Implementations<C, E>,
         ...(startState === undefined ? {} : { startState }),
         hooks,
