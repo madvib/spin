@@ -10,14 +10,7 @@ import {
   type PinInputValueInvalid,
 } from "./pin-input.machine.ts";
 
-/**
- * Pin-input definition: the DOM contract as data. The machine owns the
- * value, the focused index, and the count; this file maps props to bindings,
- * parts to attribute bags, commands to sends, and value/complete/invalid
- * transitions to their events. Focus moves and the completion edge (blur,
- * submit) are post-send view reflexes — they run for controlled writes too,
- * because sync routes through the same pipeline.
- */
+/** Pin-input definition: the DOM contract as data. */
 
 interface ScopeLike extends PartScope<unknown, PinInputContext> {}
 interface SlotLike<R = { readonly index: number }> extends SlotScope<R, PinInputContext> {}
@@ -49,7 +42,6 @@ export interface PinInputApi {
   getItems(): readonly number[];
 }
 
-/** Zag's placeholder default. */
 const DEFAULT_PLACEHOLDER = "\u25CB";
 
 const defaultTranslations: PinInputTranslations = {
@@ -66,7 +58,6 @@ function parseTranslations(raw: unknown): PinInputTranslations {
   };
 }
 
-/** Zag's `REGEX` table, keyed by `type`; `pattern` overrides it wholesale. */
 const TYPE_PATTERNS: Readonly<Record<PinInputType, RegExp>> = {
   numeric: /^[0-9]+$/,
   alphabetic: /^[A-Za-z]+$/,
@@ -112,8 +103,7 @@ const resolveSanitize = (scope: ScopeLike): PinInputSanitize => {
 
 const slotIndex = (scope: SlotLike<{ readonly index: number }>): number => scope.slot.index;
 
-/** The type union has three members; anything else is numeric. Narrowed
- * once here instead of a cast at every keystroke/paste/aria site. */
+/** The type union has three members; anything else is numeric. */
 const pinTypeOf = (props: Record<string, unknown>): PinInputType => {
   const raw: unknown = props["type"];
   return raw === "alphabetic" || raw === "alphanumeric" ? raw : "numeric";
@@ -188,8 +178,8 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
           scope.send({ type: "INPUT.ARROW_RIGHT" });
           break;
         case "Enter": {
-          // Zag's requestFormSubmit: the hidden input's form, when the
-          // host named the pin and the value is complete.
+          // The hidden input's form submits, when the host named the pin
+          // and the value is complete.
           const ctx = scope.context;
           const view = pinView(ctx.value, ctx.count);
           const name = props["name"];
@@ -291,15 +281,10 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
 
 const def: ComponentDef<PinInputContext, PinInputEvent> = {
   name: "pin-input",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => pinInputMachine(props as PinInputArgs, authored),
   mounted: ({ props, focus }) => {
-    // Zag's entry `choose(autoFocus)`: the index starts on the first cell
-    // and that cell takes focus. One microtask out: the bridge is built
-    // while the markup renders, so the cells exist but are not in the
-    // document yet.
+    // One microtask out: the bridge is built while the markup renders, so
+    // the cells exist but are not in the document yet.
     if (props["autoFocus"] !== true) return;
     queueMicrotask(() => {
       focus("input", 0);
@@ -311,12 +296,11 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
     const index = afterCtx.focusedIndex;
     if (index !== beforeCtx.focusedIndex && index >= 0) {
       focus("input", index);
-      // GAP: selectOnFocus requires input.select(); runtime focuser only
-      // focuses. Recorded; not reimplemented via node access.
+      // selectOnFocus is a gap: the runtime focuser only focuses.
       void props;
     }
-    // Zag's watch on `isValueComplete`: the completion is an edge, so the
-    // blur and the submit happen once, on the way in.
+    // The completion is an edge, so the blur and the submit happen once,
+    // on the way in.
     const wasComplete = pinView(beforeCtx.value, beforeCtx.count).complete;
     const isComplete = pinView(afterCtx.value, afterCtx.count).complete;
     if (!wasComplete && isComplete) {
@@ -337,8 +321,6 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
         }
       }
     }
-    // selectOnFocus handled above is a gap; keep the prop read to avoid
-    // unused-prop lint? props already used.
     void id;
   },
   parts: {
@@ -419,8 +401,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
           name: scope.props["name"],
           form: scope.props["form"],
           maxLength: joined.length,
-          // The value rides the assignable path, so a machine move writes it
-          // without a hand-rolled sync.
+          // The value rides the assignable path: a machine move writes it.
           value: joined.asString,
         };
       },
@@ -467,7 +448,7 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
           inputMode: props["otp"] === true || type === "numeric" ? "numeric" : "text",
           enterKeyHint: index === filled.length - 1 ? "done" : "next",
           type: props["mask"] === true ? "password" : type === "numeric" ? "tel" : "text",
-          // The assignable path: a machine move writes the character here.
+          // The assignable path: a machine move writes the character.
           value: char,
           readOnly: props["readOnly"],
           autoCapitalize: "none",

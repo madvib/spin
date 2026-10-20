@@ -18,31 +18,23 @@ import {
 } from "./angle-slider.machine.ts";
 
 /**
- * Angle-slider definition: the DOM contract as data. The machine owns the
- * three phases, the degree value, the step grid and the grab offset; this
- * file maps props to channels, parts to attribute bags, commands to sends,
- * and value/change-end transitions to their events.
+ * Angle-slider definition: the DOM contract as data.
  *
  * Everything that needs a node lives here — the pointer-to-angle
- * measurement (reported in as a raw dial angle, because the machine never
- * touches the DOM), pointer capture (an off-dial release still ends the
- * drag), the thumb-over test for relative drags, and the thumb focus after
- * a press. Positioning tracks the value, so the thumb and marker bags own
- * it — the slider thumb precedent.
+ * measurement, pointer capture (an off-dial release still ends the drag),
+ * the thumb-over test for relative drags, and the thumb focus after a press.
  */
 
 export interface AngleSliderMarkerSlotProps {
   readonly value: number;
   /**
    * Rim radius in dial-percent (50 = the control edge). The def cannot know
-   * the dial's drawn geometry — a bordered circle, a track ring, a needle
-   * dial each ride a different radius — so the usage says, defaulting to
-   * the track centerline the examples draw.
+   * the dial's drawn geometry, so the usage says.
    */
   readonly radius?: number;
   /**
-   * Diameter mode: the marker is a full-diameter line markup centers and
-   * rotates itself (tark parity). Position is skipped, rotation kept.
+   * Diameter mode: the marker is a full-diameter line the markup centers and
+   * rotates itself, so the bag keeps rotation and skips position.
    */
   readonly diameter?: boolean;
 }
@@ -50,9 +42,9 @@ export interface AngleSliderMarkerSlotProps {
 export interface AngleSliderThumbSlotProps {
   readonly radius?: number;
   /**
-   * Needle mode: the thumb is a full-diameter indicator line rotated to
-   * the value (tark parity), not a dot on the rim. The bag emits rotation
-   * without a rim point; markup centers the line itself.
+   * Needle mode: the thumb is a full-diameter indicator line rotated to the
+   * value, not a dot on the rim, so the bag emits rotation without a rim
+   * point.
    */
   readonly needle?: boolean;
 }
@@ -68,7 +60,6 @@ export interface AngleSliderApi {
   readonly dragging: boolean;
   setValue(value: number): void;
   focus(): void;
-  /** The marker values, for the recipe's iteration. */
   getMarkers(): readonly number[];
   getMarkerState(value: number): "under-value" | "over-value" | "at-value";
   getRootProps(): Record<string, unknown>;
@@ -106,11 +97,9 @@ const capturePointer = (target: EventTarget | null, pointerId: number): void => 
   if (isCapturable(target)) target.setPointerCapture(pointerId);
 };
 
-/** A text prop: strings pass, everything else is empty. */
 const textProp = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
-/** A marker row: the indexes carry bare numbers, so the row is the value.
- * `getMarkerProps({ value, radius, diameter })` shapes the same way. */
+/** A marker's slot may be the bare index, whose number is the value. */
 const markerSlot = (slot: unknown): AngleSliderMarkerSlotProps & { readonly value: number } => {
   if (typeof slot === "number" && Number.isFinite(slot)) return { value: slot };
   if (typeof slot !== "object" || slot === null || Array.isArray(slot)) return { value: NaN };
@@ -125,8 +114,7 @@ const markerSlot = (slot: unknown): AngleSliderMarkerSlotProps & { readonly valu
   };
 };
 
-/** The thumb's optional slot arg: the recipe's per-usage geometry rides
- * here (`getThumbProps({ radius })`). Anything else is no geometry. */
+/** The thumb's optional slot arg carries the recipe's per-usage geometry. */
 const thumbSlot = (arg: unknown): AngleSliderThumbSlotProps => {
   if (typeof arg !== "object" || arg === null || Array.isArray(arg)) return {};
   const bag: Record<string, unknown> = { ...arg };
@@ -146,22 +134,22 @@ const pointAngle = (centerX: number, centerY: number, clientX: number, clientY: 
   return 360 - deg;
 };
 
-/** The raw pointer angle around the control center, in degrees. */
 const rawAngle = (scope: ScopeLike, clientX: number, clientY: number): number | null => {
   const rect = scope.measure("control");
   if (rect === null) return null;
   return pointAngle(rect.left + rect.width / 2, rect.top + rect.height / 2, clientX, clientY);
 };
 
-/** Whether the press landed on the thumb: relative drags grab, elsewhere
- * jumps. The press target carries its own id — no node lookup. */
+/** Whether the press landed on the thumb — the press target carries its own
+ * id, so no node lookup. */
 const overThumb = (scope: ScopeLike, target: EventTarget | null): boolean => {
   if (target === null || !(target instanceof Element)) return false;
   const thumbId = scope.id("thumb");
   return target.id === thumbId || target.closest(`[id="${thumbId}"]`) !== null;
 };
 
-/** The view reflex: after a press or keyboard move the thumb takes focus. */
+/** Focus lives in the view: a press or a keyboard move hands focus to the
+ * thumb. */
 const focusThumb = (id: (part: string, slot?: unknown) => string): void => {
   if (typeof document === "undefined") return;
   document.getElementById(id("thumb"))?.focus({ preventScroll: true });
@@ -169,9 +157,6 @@ const focusThumb = (id: (part: string, slot?: unknown) => string): void => {
 
 const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   name: "angle-slider",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => angleSliderMachine(props as AngleSliderArgs, authored),
   commitEvents: [
     "DOC.POINTER_UP",
@@ -256,8 +241,8 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           if (event.pointerType === "mouse" && event.button !== 0) return;
           const angle = rawAngle(scope, event.clientX, event.clientY);
           if (angle === null) return;
-          // A press on the thumb drags relative (grab offset); elsewhere
-          // the dial jumps to the pointer.
+          // A press on the thumb drags relative (grab offset); elsewhere the
+          // dial jumps to the pointer.
           const angularOffset = overThumb(scope, event.target) ? angle - ctx.value : null;
           event.stopPropagation();
           capturePointer(event.currentTarget, event.pointerId);
@@ -302,9 +287,8 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "data-invalid": dataAttr(scope.props["invalid"] === true),
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
-          // Dot mode positions a rim point for markup to center on;
-          // needle mode rotates the markup's own centered line instead.
-          // Rotation rides with position: same grandfathered geometry.
+          // Dot mode positions a rim point for markup to center on; needle
+          // mode rotates the markup's own centered line instead.
           style: slot.needle === true ? {
             "--thumb-angle": `${shown}deg`,
             rotate: `${shown}deg`,
@@ -403,7 +387,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           style: {
             "--marker-angle": `${shown}deg`,
             // Diameter markup centers itself; the bag keeps rotation only.
-            // Rim ticks keep point + orientation together (see above).
             ...(slot.diameter === true ? {
               rotate: `${shown}deg`,
             } : {
@@ -418,7 +401,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   commands: {
     setValue: { event: (args) => ({ type: "VALUE.SET", value: typeof args[0] === "number" ? args[0] : 0 }) },
     // The thumb carries no tabindex while disabled or read-only, so a DOM
-    // focus then is a harmless no-op — the guard the bridge held.
+    // focus then is a harmless no-op.
     focus: {
       view: ({ focus }) => focus("thumb"),
     },

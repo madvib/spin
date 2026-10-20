@@ -129,10 +129,6 @@ const insideSelection = (scope: ScopeLike, target: EventTarget | null): boolean 
   return target.closest(`[id="${scope.id("selection")}"]`) !== null;
 };
 
-/** The nudge step: shift multiplies by ten. */
-/** A handle slot arg: the recipe's `{ position: row }` names a handle;
- * anything else is the southeast handle. */
-
 const HANDLE_NAMES: readonly string[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 
 const isHandle = (raw: unknown): raw is CropHandle =>
@@ -164,13 +160,11 @@ const handleOf = (arg: unknown): HandleSlotProps => {
   return { position: "se" };
 };
 
-/** A grid slot arg: horizontal or vertical. */
 const gridOf = (arg: unknown): GridSlotProps => {
   const axis: unknown = isRecord(arg) ? arg["axis"] : undefined;
   return { axis: axis === "vertical" ? "vertical" : "horizontal" };
 };
 
-/** The nudge step: shift multiplies by ten. */
 const nudgeStep = (event: KeyboardEvent): number => (event.shiftKey ? 10 : 1);
 
 const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
@@ -216,9 +210,6 @@ const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
   name: "image-cropper",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => imageCropperMachine(props as ImageCropperArgs, authored),
   parts: {
     root: {
@@ -295,12 +286,9 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
           onPointerdown: (event: PointerEvent): void => {
             if (disabled) return;
             if (event.pointerType === "mouse" && event.button !== 0) return;
-            // A press on the selection (or a handle inside it) belongs to
-            // the drag, not the pan: the selection's own press stops there.
             if (insideSelection(scope, event.target)) return;
             const point = viewportPoint(scope, event.clientX, event.clientY);
             if (point === null) return;
-            // Measure the viewport node: the machine never touches DOM.
             const rect = scope.measure("viewport");
             if (rect !== null && rect.width !== 0 && rect.height !== 0) {
               const current = scope.context.viewportRect;

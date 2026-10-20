@@ -6,8 +6,8 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-angle-slider.html";
 
+import "./spin-angle-slider.html";
 interface AngleSliderCommands {
   setValue: (value: number) => void;
   focus: () => void;

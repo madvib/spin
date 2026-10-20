@@ -12,17 +12,7 @@ import {
   type SignaturePoint,
 } from "./signature-pad.machine.ts";
 
-/**
- * Signature-pad definition: the DOM contract as data. The machine owns
- * the two phases, the committed paths and the in-progress stroke; this
- * file maps props to channels, parts to attribute bags, commands to sends,
- * and draw/draw-end transitions to their events.
- *
- * Everything that needs a node lives here — the control-relative point
- * measurement (reported in as events, because the machine never touches
- * the DOM), pointer capture (an off-node release must still end the
- * stroke), and the guide affordance.
- */
+/** Signature-pad definition: the DOM contract as data. */
 
 export type { SignaturePadDrawDetails };
 
@@ -93,14 +83,11 @@ const segmentPathOf = (arg: unknown): string => {
   return typeof path === "string" ? path : "";
 };
 
-/** The view reflex: the control takes focus. */
 const focusControl = (id: (part: string, slot?: unknown) => string): void => {
   if (typeof document === "undefined") return;
   document.getElementById(id("control"))?.focus({ preventScroll: true });
 };
 
-/** The stroke fill off the opaque `drawing` prop: a non-empty fill, else
- * the canvas default. The recipe paints the stroke; this names the paint. */
 const textOf = (arg: unknown): string => typeof arg === "string" ? arg : "";
 
 const drawingFill = (props: Record<string, unknown>): string => {
@@ -111,14 +98,10 @@ const drawingFill = (props: Record<string, unknown>): string => {
 
 const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
   name: "signature-pad",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => signaturePadMachine(props as SignaturePadArgs, authored),
   reconcile: ({ context, parsed, send }) => {
-    // Tuning merges through the machine's SET_TUNING: it shapes the
-    // stroke renderer, and the merge stays one assign. The paths are the
-    // machine's own channel now — the contract carries the host's write.
+    // Tuning merges through the machine's SET_TUNING: the merge stays one
+    // assign.
     const patch = tuningOf(parsed["drawing"]);
     const keys = ["size", "thinning", "smoothing", "streamline", "simulatePressure"] as const;
     const stale = keys.some((key) => patch[key] !== undefined && context.tuning[key] !== patch[key]);
@@ -176,8 +159,8 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
           style: { position: "relative", touchAction: "none", userSelect: "none" },
           onPointerdown: (event: PointerEvent): void => {
             // The clear trigger sits inside the control: its click must
-            // not start a stroke. The target may be a stub (tests) — any
-            // node advertising the trigger part refuses the stroke.
+            // not start a stroke. Any node advertising the trigger part
+            // refuses the stroke.
             if (insideClearTrigger(event.target)) return;
             if (event.pointerType === "mouse" && event.button !== 0) return;
             if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -297,8 +280,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
     getDataUrl: {
       call: () => {
         // Serializing the canvas needs the control node; the host owns
-        // that ref, so this resolves the live SVG the recipe renders
-        // instead.
+        // that ref, so this resolves the live SVG the recipe renders.
         return Promise.resolve("");
       },
     },
@@ -325,7 +307,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       prop: "onDrawEnd",
       watch: () => [],
       detail: () => ({ paths: [], currentPath: null }),
-      // Commit (release) and clear only.
       select: (event, _before, after: SignaturePadContext) =>
         event.type === "POINTER_UP" || event.type === "CLEAR"
           ? {

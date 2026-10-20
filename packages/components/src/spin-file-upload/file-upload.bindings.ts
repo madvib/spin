@@ -22,8 +22,7 @@ import {
  *
  * Files cross this boundary as records, never as live `File` handles: the
  * input's `files` are read into `{ name, size, type }` at the event, and
- * the rows show that metadata. The picker opens on a rAF, not inline, so
- * the press that opened it is never re-read by the input's click.
+ * the rows show that metadata.
  */
 
 export type { FileRecord, FileRejection, FileUploadValueChange };
@@ -34,7 +33,6 @@ export interface FileUploadCommands {
   clear(): void;
 }
 
-/** One row: the file's record behind the stable key its name is. */
 export interface FileRow {
   readonly value: string;
   readonly file: FileRecord;
@@ -49,7 +47,6 @@ export interface FileUploadApi extends FileUploadCommands {
   getLabelProps(): Record<string, unknown>;
   getDropzoneProps(): Record<string, unknown>;
   getHiddenInputProps(): Record<string, unknown>;
-  /** The accepted files as rows, for the recipe's iteration. */
   getAcceptedRows(): readonly FileRow[];
   getItemGroupProps(): Record<string, unknown>;
   getItemProps(row: FileRow): Record<string, unknown>;
@@ -64,10 +61,10 @@ interface ScopeLike extends PartScope<unknown, FileUploadContext> {}
 
 interface SlotLike<R> extends SlotScope<R, FileUploadContext> {}
 
-/** The hidden input picker: opening it is a view reflex, not a machine
- * move — the press that opened it must not be re-read by the input's own
- * click handling, so the click waits a frame. Reads the node through the
- * framework id path, never a held reference. */
+/** Opening the hidden input is a view reflex, not a machine move — the
+ * press that opened it must not be re-read by the input's own click
+ * handling, so the click waits a frame. The node is read through the
+ * framework id path, never held. */
 const openPicker = (id: (part: string, slot?: unknown) => string): void => {
   if (typeof document === "undefined") return;
   const node = document.getElementById(id("hiddenInput"));
@@ -84,14 +81,14 @@ const openPicker = (id: (part: string, slot?: unknown) => string): void => {
 const isDirectoryFile = (file: File): file is File & { readonly webkitRelativePath: unknown } =>
   "webkitRelativePath" in file;
 
-/** The folder-relative path a directory pick carries; empty for flat picks. */
+/** A directory pick carries a folder-relative path; flat picks do not. */
 const relativePath = (file: File): string => {
   if (!isDirectoryFile(file)) return "";
   const path: unknown = file.webkitRelativePath;
   return typeof path === "string" ? path : "";
 };
 
-/** The records a `FileList` holds, read once at the event. */
+/** The `FileList` is read once at the event; it is live afterwards. */
 const toRecords = (list: FileList | null): readonly FileRecord[] => {
   if (list === null) return [];
   const files: FileRecord[] = [];
@@ -103,7 +100,6 @@ const toRecords = (list: FileList | null): readonly FileRecord[] => {
   return files;
 };
 
-/** A byte count as the short human form (420 B, 1.4 KB, 2.1 MB). */
 export const formatBytes = (bytes: number): string => {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
@@ -132,9 +128,6 @@ const deleteHandlerFor = (scope: ScopeLike, row: FileRow): { readonly onClick: (
 
 const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   name: "file-upload",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => fileUploadMachine(props as FileUploadArgs, authored),
   parts: {
     root: {

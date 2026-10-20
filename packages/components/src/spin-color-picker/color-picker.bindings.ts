@@ -12,22 +12,19 @@ import {
 } from "./color-picker.machine.ts";
 
 /**
- * Color-picker definition: the DOM contract as data. The machine owns the
- * four phases, the serialized color, the format and the active channel;
- * this file maps props to channels, parts to attribute bags, commands to
- * sends, and value/end/open/format transitions to their events.
+ * Color-picker definition: the DOM contract as data.
  *
  * Everything that needs a node lives here — the area and channel drags
  * (which compute their percent against the node the pointer is over and
- * send events carrying it), the keyboard maps, the channel inputs, the
- * dismissal reflex, and the focus the panel opening owes the content.
+ * send events carrying it), the keyboard maps, the channel inputs, and the
+ * dismissal reflex.
  *
  * Thumb positions and gradient stops are CONTINUOUS values — a drag lands
  * between utilities — so the bags carry them as CSS custom properties only
- * (`--picker-x`, `--picker-alpha`...). Concrete properties stay banned:
- * the recipe's utility classes decide what each var feeds. The color object
- * itself is reconstructed per read via parseColor, because context holds
- * the serialized string.
+ * (`--picker-x`, `--picker-alpha`...); concrete properties stay banned.
+ *
+ * The color object is reconstructed per read: the context holds the
+ * serialized string.
  */
 
 export interface AreaSlotProps {
@@ -111,7 +108,6 @@ interface SlotLike<R> extends SlotScope<R, ColorPickerContext> {}
 const openOf = (scope: ScopeLike): boolean =>
   isOpenPhase(scope.state, scope.context.inline);
 
-/** The live color object, parsed from the serialized context. */
 const colorOf = (scope: ScopeLike): ReturnType<typeof parseColor> => {
   try {
     return parseColor(scope.context.value);
@@ -134,26 +130,20 @@ const areaChannels = (props: unknown): { x: ColorChannel; y: ColorChannel } => {
   };
 };
 
-
-/** The text off the event's own input: its value, or empty. */
 const textOf = (target: EventTarget | null): string => {
   if (!isRecord(target)) return "";
   const value: unknown = target["value"];
   return typeof value === "string" ? value : "";
 };
 
-/** A text prop off the bag: parsed text arrives as a string. */
 const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
-/** Select the event input's text, when the target supports it. */
-/** Whether the platform ships the eyedropper: read off the global
- * with a feature check, never assumed. */
+/** Whether the platform ships the eyedropper: a feature check, never assumed. */
 const eyeDropperSupported = (): boolean => {
   const api: unknown = Reflect.get(globalThis, "EyeDropper");
   return api !== undefined && api !== null;
 };
 
-/** Select the event input's text, when the target supports it. */
 const selectText = (target: EventTarget | null): void => {
   if (!isRecord(target)) return;
   const select: unknown = target["select"];
@@ -194,9 +184,9 @@ const areaPropsOf = (arg: unknown): AreaSlotProps => {
   };
 };
 
-/** Percent of a pointer within a measured rect, 0..1 on each axis.
- * The rect comes from the framework measure or the event's own node —
- * defs never query the document. */
+/** Percent of a pointer within a measured rect, 0..1 on each axis. The rect
+ * comes from the framework measure or the event's own node — defs never
+ * query the document. */
 const pointPercent = (rect: Pick<DOMRect, "left" | "top" | "width" | "height"> | null, clientX: number, clientY: number): { x: number; y: number } => {
   if (rect === null || rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
   const clamp = (n: number): number => Math.min(1, Math.max(0, n));
@@ -206,7 +196,6 @@ const pointPercent = (rect: Pick<DOMRect, "left" | "top" | "width" | "height"> |
   };
 };
 
-/** Percent along a channel track, honoring orientation and direction. */
 const trackPercent = (
   rect: Pick<DOMRect, "left" | "top" | "width" | "height"> | null,
   orientation: "horizontal" | "vertical",
@@ -234,8 +223,7 @@ const capturePointer = (target: EventTarget | null, pointerId: number): void => 
 const dirOf = (props: Record<string, unknown>): "ltr" | "rtl" =>
   props["dir"] === "rtl" ? "rtl" : "ltr";
 
-/** The event target's own rect: the node the gesture is over, never a
- * document lookup. */
+/** The event target's own rect — never a document lookup. */
 const rectOf = (target: EventTarget | null): Pick<DOMRect, "left" | "top" | "width" | "height"> | null => {
   if (!(target instanceof Element)) return null;
   if (typeof target.getBoundingClientRect !== "function") return null;
@@ -311,7 +299,6 @@ const onChannelKeydown = (scope: ScopeLike, event: KeyboardEvent, channel: Color
   }
 };
 
-/** Zag's `getItemState` for a swatch: what one preset color is worth. */
 const swatchState = (scope: ScopeLike, props: SwatchSlotProps): ColorPickerItemState => ({
   value: props.value,
   disabled: scope.props["disabled"] === true || props.disabled === true,
@@ -337,8 +324,8 @@ const channelValueOf = (
       return ctx.value;
     }
   }
-  // Hue/saturation/brightness are not rgb channels: read them off the
-  // area value, the way the machine steps them. Alpha reads natively.
+  // Hue/saturation/brightness are not rgb channels: read them off the area
+  // value, the way the machine steps them. Alpha reads natively.
   try {
     const area: "hsla" | "hsba" = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
     const source = channel === "alpha" ? color : color.toFormat(area);
@@ -350,16 +337,12 @@ const channelValueOf = (
 
 const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
   name: "color-picker",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => colorPickerMachine(props as ColorPickerArgs, authored),
   start: (raw) => (startOpen(raw) ? "active" : "idle"),
   reconcile: ({ context, parsed, authored, send, state }) => {
-    // The host owns the panel when it authored `open`: the machine follows
-    // the prop, and the machine's own move is what reports it. The panel's
-    // visibility is the machine's STATE, not a context field, so it stays
-    // here rather than in the machine's contract.
+    // The panel's visibility is the machine's STATE, not a context field, so
+    // the host's `open` prop is reconciled here rather than in the machine's
+    // contract.
     if (authored("open")) {
       const outer = parsed["open"] === true;
       const open = isOpenPhase(state, context.inline);
@@ -427,8 +410,8 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       },
     },
     positioner: {
-      // data-state drives the recipe's closed utilities: the `hidden`
-      // attribute alone loses to the content's own `display` utility.
+      // data-state drives the recipe's closed utilities: `hidden` alone
+      // loses to the content's own `display` utility.
       sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("positioner"),
@@ -446,8 +429,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           dir: scope.props["dir"],
           "data-state": open ? "open" : "closed",
           hidden: open ? undefined : "",
-          // The layer: a press outside the panel dismisses, and Escape
-          // while it is up does too.
+          // The layer dismisses on an outside press and on Escape.
           "use:dismissable": {
             onEscape: (): void => {
               if (!openOf(scope)) return;
@@ -536,15 +518,15 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
         const { x, y } = areaChannels(arg);
         const ctx = scope.context;
         const color = colorOf(scope);
-        // The area's channels live in the area format: read them off the
-        // converted value, because an rgb color has no saturation channel
-        // and the raw read throws (which is why the thumb sat at 0,0).
+        // The area's channels live in the area format: an rgb color has no
+        // saturation channel, so the raw read throws — read off the
+        // converted value instead.
         const area: "hsla" | "hsba" = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
         let source = color;
         try {
           source = color.toFormat(area);
         } catch {
-          // Unparseable stays home.
+          // Unparseable: keep what we have.
         }
         let xp = 0;
         let yp = 0;
@@ -552,7 +534,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           xp = source.getChannelValuePercent(x);
           yp = 1 - source.getChannelValuePercent(y);
         } catch {
-          // Unparseable stays home.
+          // Unparseable: keep what we have.
         }
         if (scope.props["dir"] === "rtl") xp = 1 - xp;
         const xv = (() => {
@@ -644,9 +626,8 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       sig: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        // The channel is part of the signature: the bag carries the
-        // channel's id, and one bag per tree would give both sliders the
-        // first one's id.
+        // The channel is part of the signature: the bag carries the channel's
+        // id, and one bag per tree would give both sliders the first one's id.
         return [slots.channel, scope.context.value, orientation, scope.props["dir"]].join(" ");
       },
       attrs: (scope: ScopeLike, arg?: unknown) => {
@@ -677,14 +658,14 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
         const orientation = slots.orientation ?? "horizontal";
         const ctx = scope.context;
         const color = colorOf(scope);
-        // Hue/saturation/brightness are not rgb channels: read them off
-        // the area value, the way the machine steps them. Alpha natively.
+        // Hue/saturation/brightness are not rgb channels: read them off the
+        // area value, the way the machine steps them. Alpha natively.
         const area: "hsla" | "hsba" = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
         let source = color;
         try {
           source = slots.channel === "alpha" ? color : color.toFormat(area);
         } catch {
-          // Unparseable stays home.
+          // Unparseable: keep what we have.
         }
         let offset = 0;
         let now = 0;
@@ -697,7 +678,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           max = range.maxValue;
           offset = max === min ? 0 : (now - min) / (max - min);
         } catch {
-          // Unparseable stays home.
+          // Unparseable: keep what we have.
         }
         if (orientation === "horizontal" && scope.props["dir"] === "rtl") offset = 1 - offset;
         return {
@@ -967,8 +948,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
         value: context.value,
         format: context.format,
       }),
-      // Drag release and committed inputs only — every move already
-      // reported above.
+      // Drag release and committed inputs only — every move already reported.
       select: (event, _before, after: ColorPickerContext) =>
         event.type === "AREA.POINTER_UP" ||
           event.type === "CHANNEL_SLIDER.POINTER_UP" ||

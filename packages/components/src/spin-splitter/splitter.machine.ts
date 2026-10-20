@@ -1,21 +1,4 @@
-/**
- * Splitter machine: idle/hover/focus/dragging over Zag's states minus the
- * hover-delay (a timer reflex — the view debounces hover, the machine sees
- * HOVER only).
- *
- * The panel math is Zag's own `utils/` (react-resizable-panels lineage),
- * vendored below because it is pure percent arithmetic over panel data —
- * no DOM in it. The machine owns no layout math of its own.
- *
- * Context stays serializable for the scope channel: panel data, percent
- * sizes, the drag snapshot, the focused handle. Guards sit where Zag put
- * them: a drag release lands in focus when the handle holds focus, idle
- * otherwise; keyboard moves refuse without a focused handle.
- *
- * The machine is a FACTORY over the element's props: it builds its own
- * context from the arguments it wants, and it declares its contract — the
- * context fields a host may write, and the event each write carries.
- */
+/** Splitter machine: idle/hover/focus/dragging over Zag's states. */
 import { coerceJsonArray, defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
@@ -45,8 +28,7 @@ export interface SplitterContext {
   keyboardResizeBy: number;
   orientation: "horizontal" | "vertical";
   disabled: boolean;
-  /** The pre-collapse size per panel: expand restores it. Refs in Zag,
-   * plain context here because the fork has no ref tier and it is data. */
+  /** The pre-collapse size per panel: expand restores it. */
   beforeCollapse: Record<string, number>;
 }
 
@@ -73,8 +55,6 @@ export type SplitterResizeDetails = {
   readonly handleId: string | null;
 };
 
-/* -- Zag's utils/fuzzy, vendored: float-tolerant percent comparison. -- */
-
 const PRECISION = 10;
 
 function fuzzyCompare(actual: number, expected: number): number {
@@ -91,8 +71,6 @@ function fuzzySizeEqual(a: readonly number[], b: readonly number[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((size, index) => fuzzyEqual(size, b[index]));
 }
-
-/* -- Zag's utils/resize-panel, vendored: clamp one panel to its window. -- */
 
 function clampPanel(panels: SplitterPanel[], index: number, size: number): number {
   const panel = panels[index];
@@ -111,8 +89,6 @@ function clampPanel(panels: SplitterPanel[], index: number, size: number): numbe
   size = Math.min(maxSize, size);
   return parseFloat(size.toFixed(PRECISION));
 }
-
-/* -- Zag's utils/validate-sizes, vendored: sizes sum to 100 in-window. -- */
 
 export function validateSizes(panels: SplitterPanel[], size: readonly number[]): number[] {
   if (size.length !== panels.length) {
@@ -146,8 +122,6 @@ export function validateSizes(panels: SplitterPanel[], size: readonly number[]):
   }
   return next;
 }
-
-/* -- Zag's utils/resize-by-delta, vendored: pivot-pair redistribution. -- */
 
 type Trigger = "imperative-api" | "keyboard" | "mouse-or-touch";
 
@@ -245,8 +219,6 @@ function resizeByDelta(
   return next;
 }
 
-/* -- Panel helpers: pivots, collapse deltas, default distribution. -- */
-
 function pivotOf(panels: SplitterPanel[], index: number): [number, number] {
   return index === panels.length - 1 ? [index - 1, index] : [index, index + 1];
 }
@@ -274,7 +246,6 @@ export function defaultSizes(count: number, spec: readonly number[]): number[] {
   return next;
 }
 
-/** The handle between two panels: `before:after`. */
 export function handleId(beforeId: string, afterId: string): string {
   return `${beforeId}:${afterId}`;
 }
@@ -298,28 +269,21 @@ export function panelCollapsed(panels: SplitterPanel[], size: readonly number[],
 /**
  * The splitter's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twins
- * (`defaultPanels`, `defaultSize`) are resolved by the framework before
- * the factory is called, so the machine only ever sees the live values.
+ * The twins (`defaultPanels`, `defaultSize`) are resolved by the framework
+ * before the factory is called, so the machine only ever sees the live
+ * values.
  *
  * The wire types are the scope's own: the panel tree and the sizes are
- * JSON text, the rest are the plain words the scope declares. The
- * machine shapes every one of them.
+ * JSON text, the rest are the plain words the scope declares.
  */
 export interface SplitterArgs {
-  /** The panel tree, as the host wrote it. */
   panels?: string;
-  /** The percent sizes, as the host wrote them. */
   size?: string;
-  /** The axis the group runs along. */
   orientation?: string;
-  /** Whether the group is disabled. */
   disabled?: boolean;
   defaultDisabled?: boolean;
 }
 
-/** Validate one panel entry: id required, numeric/boolean fields optional. */
 interface PanelEntryShape { readonly id: string; readonly [field: string]: unknown }
 function isPanelEntry(raw: unknown): raw is PanelEntryShape {
   if (typeof raw !== "object" || raw === null || !("id" in raw)) return false;
@@ -371,19 +335,13 @@ const sizesOf = (raw: unknown): number[] | null => {
  * sizes the host wrote, shaped and laid out, and the machine's own
  * defaults for everything else.
  *
- * The panels and the sizes are channels: the host's write, or the
- * machine's own default. The element's declared default is not a write, so
- * it never stands in for one. The seed twins (`defaultPanels`,
- * `defaultSize`) are the host's writes of the panels and the sizes — the
- * framework resolved them into the args — so they count as writes too.
- * The orientation and the disabled flag are the element's own data, as
- * they are.
+ * The seed twins (`defaultPanels`, `defaultSize`) are the host's writes of
+ * the panels and the sizes — the framework resolved them into the args —
+ * so they count as writes too.
  */
 export function initial(args: SplitterArgs = {}, authored: (name: string) => boolean): SplitterContext {
-  // A channel: the host's write, or the machine's own default. The twins
-  // are the framework's convention — a host that wrote `defaultPanels` (or
-  // `defaultSize`) wrote the channel too — and the framework has already
-  // resolved them into the arguments.
+  // A host that wrote `defaultPanels` (or `defaultSize`) wrote the
+  // channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const panels = written("panels") ? parsePanels(args.panels) : [];
@@ -407,10 +365,6 @@ export function initial(args: SplitterArgs = {}, authored: (name: string) => boo
   };
 }
 
-/**
- * The splitter machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function splitter(
   args: SplitterArgs = {},
   authored: (name: string) => boolean,
@@ -420,13 +374,10 @@ export function splitter(
     initial: "idle",
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       panels: { event: "SET_PANELS" },
@@ -485,7 +436,7 @@ export function splitter(
       setSize: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
         if (event.type !== "SET_SIZE") return {};
         // The sizes arrive the way the host wrote them; the machine
-        // shapes them, wherever they came from.
+        // shapes them.
         const written = sizesOf(event.size);
         if (written === null) return {};
         try {
@@ -502,8 +453,7 @@ export function splitter(
       setPanels: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
         if (event.type !== "SET_PANELS") return {};
         void ctx;
-        // The tree arrives the way the host wrote it; the machine shapes
-        // it, wherever it came from.
+        // The tree arrives the way the host wrote it; the machine shapes it.
         return { panels: parsePanels(event.panels) };
       },
       setDisabled: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
@@ -537,8 +487,8 @@ export function splitter(
       },
       endDrag: (): Partial<SplitterContext> => ({ drag: null }),
       // The pointer path: delta from the grab point, resolved against the
-      // drag-start snapshot so the pivots compare to where the panels were
-      // grabbed, not where they have drifted.
+      // drag-start snapshot, so the pivots compare to where the panels were
+      // grabbed.
       dragResize: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
         if (event.type !== "POINTER_MOVE" || ctx.drag === null) return {};
         const before = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.beforeId);

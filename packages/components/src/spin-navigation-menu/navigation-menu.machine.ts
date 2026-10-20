@@ -26,11 +26,8 @@ export interface NavItemRecord {
 }
 
 export interface NavigationMenuContext {
-  /** The open item; "" when no panel is open. */
   value: NavValue;
-  /** The item the last transition came from, for the viewport slide. */
   previousValue: NavValue;
-  /** The scalars the assigns read, synced from scope by the contract. */
   openDelay: number;
   closeDelay: number;
   orientation: "horizontal" | "vertical";
@@ -42,38 +39,19 @@ export interface NavigationMenuValueChange {
   readonly previousValue: NavValue;
 }
 
-/**
- * The navigation-menu's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
- */
 export interface NavigationMenuArgs {
-  /** The open item, as the host wrote it. */
   value?: string;
-  /** The dwell before an item opens, in milliseconds. */
   openDelay?: number;
-  /** The grace before an item closes, in milliseconds. */
   closeDelay?: number;
-  /** The axis the menu runs along. */
   orientation?: string;
-  /** Whether the menu refuses interaction. */
   disabled?: boolean;
   defaultDisabled?: boolean;
 }
 
-/** A text prop: strings pass, everything else is absent. */
 const asText = (raw: unknown): string | null =>
   typeof raw === "string" ? raw : null;
 
-/** The machine's own defaults, and the host's arguments where it has them. */
 export function initial(args: NavigationMenuArgs = {}, authored: (name: string) => boolean): NavigationMenuContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const count = (value: unknown, fallback: number): number =>
@@ -90,7 +68,6 @@ export function initial(args: NavigationMenuArgs = {}, authored: (name: string) 
   };
 }
 
-/** The seeded state: a value opens the menu, else idle. */
 export function startState(args: NavigationMenuArgs = {}): string {
   return (asText(args.value) ?? "").length > 0 ? "open" : "idle";
 }
@@ -119,17 +96,17 @@ const config = {
   states: {
     idle: {
       on: {
-        // Closed: an enter opens after the action's open delay, a toggle
-        // opens at once (a click has no dwell).
+        // An enter opens after the action's open delay; a toggle opens at
+        // once (a click has no dwell).
         "ITEM.ENTER": [{ target: "open", actions: [{ assign: "openFrom" }] }],
         "ITEM.TOGGLE": [{ target: "open", actions: [{ assign: "toggleOpen" }] }],
       },
     },
     open: {
       on: {
-        // Open: an enter on another item swaps (the dwell is skipped —
-        // a swap while open is immediate). The panel's own enter cancels
-        // the pending close at the action, so it needs no event here.
+        // An enter on another item swaps at once (the dwell is skipped
+        // while open). The panel's own enter cancels the pending close at
+        // the action, so it needs no event here.
         "ITEM.ENTER": [{ actions: [{ assign: "swapFrom" }] }],
         "ITEM.TOGGLE": [{ target: "idle", actions: [{ assign: "toggleOpen" }] }],
         "CLOSE": [{ target: "idle", actions: [{ assign: "closeAll" }] }],
@@ -143,7 +120,6 @@ const implementations = {
   assigns: {
     setValue: (_ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
       if (e.type !== "VALUE.SET") return {};
-      // The value arrives the way the host wrote it; the machine shapes it.
       // A write that names the value the machine already holds is not a
       // move: it leaves the previous value alone.
       const value = asText(e.value);
@@ -173,10 +149,6 @@ const implementations = {
   },
 };
 
-/**
- * The navigation-menu machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function navigationMenu(
   args: NavigationMenuArgs = {},
   authored: (name: string) => boolean,
@@ -187,9 +159,6 @@ export function navigationMenu(
     assigns: implementations.assigns,
     conds: implementations.conds,
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
      * A field with an event is REPORTED: the host's write is an event,
      * the machine decides, and the change reaches the host. A field
      * without one is SILENT: the host's write lands in the field, and

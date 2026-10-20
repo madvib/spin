@@ -46,7 +46,7 @@ export { pinInput } from "./spin-pin-input/pin-input.bindings.ts";
 export { popover } from "./spin-popover/popover.controller-def.ts";
 export { popoverManifest } from "./spin-popover/popover.controller-def.ts";
 export { select } from "./spin-select/select.bindings.ts";
-export { tagsInput as tags } from "./spin-tags-input/tags.bindings.ts";
+export { tags } from "./spin-tags-input/tags.bindings.ts";
 export { timer } from "./spin-timer/timer.bindings.ts";
 export { toast } from "./spin-toast/toast.bindings.ts";
 export { tabs } from "./spin-tabs/tabs.bindings.ts";

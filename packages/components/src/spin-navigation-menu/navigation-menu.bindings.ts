@@ -23,13 +23,13 @@ import {
  * channels, parts to attribute bags, commands to sends, and value
  * transitions to their event.
  *
- * Each item bag carries one `hover-delay` action whose open report enters
- * (after the dwell) and whose close report closes (after the grace). The
- * panel renders INSIDE the item's row, so the item's hover-delay covers
- * both: moving from the link into the panel never leaves the subtree.
- * The panel positions against its row through the `anchor` action, whose
- * geometry rides the custom-property channel; the shared viewport Zag
- * slides between panels is deferred (panels open in place).
+ * The item bag carries one `hover-delay` action: the open report enters
+ * (after the dwell), the close report closes (after the grace). The panel
+ * renders INSIDE the item's row, so the item's hover-delay covers both:
+ * moving from the link into the panel never leaves the subtree. The panel
+ * positions against its row through the `anchor` action, whose geometry
+ * rides the custom-property channel; the shared viewport Zag slides
+ * between panels is deferred (panels open in place).
  */
 
 export type { NavigationMenuValueChange, NavItemRecord };
@@ -42,7 +42,6 @@ export interface NavigationMenuApi {
   hide(): void;
   toggle(value: string): void;
   getRootProps(): Record<string, unknown>;
-  /** The item collection, for the recipe's row iteration. */
   getItems(): readonly NavItemRecord[];
   getListProps(): Record<string, unknown>;
   getItemProps(item: NavItemRecord): Record<string, unknown>;
@@ -50,9 +49,8 @@ export interface NavigationMenuApi {
   getItemContentProps(item: NavItemRecord): Record<string, unknown>;
 }
 
-/** The item collection off the JSON transport: the grammar coerces text
- * to an array, and only well-shaped entries survive — the array the host
- * typed never reaches here, so every field is named explicitly. */
+/** The host's typed array never reaches here: the grammar coerces the
+ * text to an array, and only well-shaped entries survive. */
 const parseItems = (raw: unknown): readonly NavItemRecord[] => {
   const list: readonly unknown[] = Array.isArray(raw)
     ? raw
@@ -78,9 +76,6 @@ const itemsOf = (parsed: Record<string, unknown>): readonly NavItemRecord[] =>
 
 const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
   name: "navigation-menu",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => navigationMenuMachine(props as NavigationMenuArgs, authored),
   start: (props, authored) =>
     startState(resolveTwins(props, authored) as NavigationMenuArgs),

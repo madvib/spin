@@ -17,11 +17,8 @@ import {
 } from "./rating-group.machine.ts";
 
 /**
- * Rating-group definition: the DOM contract as data. The machine owns the
- * three phases, the value, the hover preview, and the half-step math; this
- * file maps props to scalars, parts to attribute bags, commands to sends,
- * and value/hover transitions to their events. The halfway hover flag is
- * measured against the item node and sent in with the event.
+ * Rating-group definition: the DOM contract as data. The halfway hover flag
+ * is measured against the item node and sent in with the event.
  */
 
 export interface RatingGroupHoverChange {
@@ -55,8 +52,6 @@ const isIndexArg = (value: unknown): value is { readonly index: number } =>
   typeof value === "object" && value !== null && "index" in value &&
   typeof Reflect.get(value, "index") === "number";
 
-/** Thumb slots are a pure function of the count: cache per length so the
- * recipe's iteration never re-stamps. */
 const itemIndexCache = new Map<number, readonly number[]>();
 const itemIndexes = (length: number): readonly number[] => {
   const hit = itemIndexCache.get(length);
@@ -66,10 +61,6 @@ const itemIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-/**
- * The value a field starts with: the host's live prop when it wrote
- * one, otherwise the initial twin. The convention is the framework's.
- */
 const seedOf = (
   props: Readonly<Record<string, unknown>>,
   authored: (name: string) => boolean,
@@ -79,13 +70,11 @@ const seedOf = (
   return authored(field) ? props[field] : props[twin];
 };
 
-/** The host's count: a number, at least one. */
 const countOf = (raw: unknown): number => {
   const n = typeof raw === "number" ? raw : Number(raw);
   return Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 5;
 };
 
-/** The host's rating: a number, or none. */
 const valueOf = (raw: unknown): number => {
   const n = typeof raw === "number" ? raw : Number(raw);
   return Number.isFinite(n) ? n : -1;
@@ -93,9 +82,6 @@ const valueOf = (raw: unknown): number => {
 
 const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => ratingGroupMachine(props as RatingGroupArgs, authored),
   start: "idle",
   parts: {

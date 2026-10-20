@@ -16,24 +16,11 @@ import {
 
 
 /**
- * Tree-view definition: the DOM contract as data. The machine holds
- * focusedValue and the value sets; this file maps props to channels, parts
- * to attribute bags, commands to sends, and expanded/selected/focused/
- * checked transitions to their events.
+ * Tree-view definition: the DOM contract as data. This file maps props to
+ * channels, parts to attribute bags, commands to sends.
  *
- * Two jobs live here, both deliberately NOT in the machine:
- *
- * 1. **Flattening.** The visible-row list is a function over the raw tree
- *    plus `expandedValue` — the reactive core substitutes for a collection
- *    class, and the rows are exactly what the template iterates.
- * 2. **Navigation.** Arrows, Home/End, typeahead and shift-range selection
- *    compute their targets against the visible rows and send events. The
- *    machine never walks the tree; it holds focusedValue and nothing else.
- *
- * Rename (F2 / double-click) and lazy loading (a branch expanded with no
- * children calls the host's `loadChildren` property and reports through
- * LOAD_START / LOAD_DONE) also live here: both are view-triggered flows
- * over host-owned data, which is the state/data division applied.
+ * Flattening and navigation live here, not in the machine: the visible rows
+ * are derived from the tree plus `expandedValue`.
  */
 
 export interface TreeNode {
@@ -54,7 +41,6 @@ export interface TreeItemState {
   readonly focused: boolean;
   readonly checked: boolean;
   readonly loading: boolean;
-  /** Branches show the disclosure indicator; leaves don't. */
   readonly branch: boolean;
   readonly renaming: boolean;
 }
@@ -68,7 +54,6 @@ export interface TreeApi {
   readonly loadingStatus: Record<string, "loading" | "loaded" | "error">;
   readonly nodes: readonly TreeNode[];
   getVisibleRows(): readonly VisibleRow[];
-  /** True when the row opens children — the chevron's visibility. */
   isBranch(row: VisibleRow): boolean;
   getItemState(row: VisibleRow): TreeItemState;
   getRootProps(): Record<string, unknown>;
@@ -77,9 +62,7 @@ export interface TreeApi {
   getItemProps(row: VisibleRow): Record<string, unknown>;
   getBranchControlProps(row: VisibleRow): Record<string, unknown>;
   getBranchIndicatorProps(row: VisibleRow): Record<string, unknown>;
-  /** The row's icon slot: which glyph a branch/leaf wears. */
   getItemIconProps(row: VisibleRow): Record<string, unknown>;
-  /** The indent rail: the vertical guide at this row's parent column. */
   getRailProps(row: VisibleRow): Record<string, unknown>;
   getBranchTextProps(row: VisibleRow): Record<string, unknown>;
   getBranchContentProps(row: VisibleRow): Record<string, unknown>;
@@ -111,10 +94,6 @@ type LoadChildren = (
 const isLoadChildren = (value: unknown): value is LoadChildren =>
   typeof value === "function";
 
-/** Write the grafted tree back onto the host element the way it arrived:
- * JSON text on the `nodes` property. Anything else is not a host. */
-
-/** The rename label off the input target: its value, or empty. */
 const rowOf = (arg: unknown): VisibleRow => {
   if (!isRecord(arg)) return { node: { value: "", label: "" }, depth: 0, indexPath: [] };
   const node: unknown = arg["node"];
@@ -142,7 +121,7 @@ const setRootNodes = (scope: ScopeLike, json: string): void => {
   root["nodes"] = json;
 };
 
-/** Flatten the tree to visible rows — the TreeCollection replacement. */
+/** The TreeCollection replacement: the visible-row list. */
 const flatten = (
   nodes: readonly TreeNode[],
   expanded: readonly string[],
@@ -189,8 +168,7 @@ const rowsOf = (
 };
 
 // Branch convention: `children: []` is a leaf; the key's ABSENCE is a
-// loadable branch. Lazy nodes declare no children at all, so a missing
-// key is what distinguishes "loads later" from "has none".
+// loadable branch — lazy nodes declare no children at all.
 const isBranchRow = (
   row: VisibleRow,
   loadable: boolean,
@@ -216,7 +194,6 @@ const itemStateOf = (
   };
 };
 
-/** Which glyph a row wears: a branch open, a branch closed, or a leaf. */
 const iconKind = (scope: ScopeLike, row: VisibleRow): "branch-open" | "branch-closed" | "leaf" => {
   const state = itemStateOf(scope, row);
   if (!state.branch) return "leaf";
@@ -238,8 +215,8 @@ const stateAttrs = (state: TreeItemState): Record<string, unknown> => {
 /**
  * Lazy branches: expanding a row with no children asks the host to load
  * them. The host owns the data (it rewrites the `nodes` property); the
- * machine owns the loading marker. Send LOAD_DONE whatever the host does,
- * so a rejected load clears the spinner rather than sticking.
+ * machine owns the loading marker. LOAD_DONE is sent even on a rejected
+ * load, so the spinner clears rather than sticking.
  */
 const ensureChildren = (scope: ScopeLike, value: string): void => {
   const ctx = scope.context;
@@ -266,15 +243,15 @@ const ensureChildren = (scope: ScopeLike, value: string): void => {
         setRootNodes(scope, JSON.stringify(graft(nodes)));
       }
     } catch {
-      // A failed load leaves the branch empty; the spinner clears either way.
+      // A failed load leaves the branch empty; the spinner clears anyway.
     } finally {
       scope.send({ type: "NODE.LOAD_DONE", value });
     }
   })();
 };
 
-/** Typeahead buffers, keyed per bridge: printable keys accumulate, first
- * visible label match wins. */
+/** Typeahead buffers, keyed per bridge: printable keys accumulate within
+ * 500ms, and the first visible label match wins. */
 const typeaheadByBridge = new WeakMap<IdFn, { keys: string; at: number }>();
 const typeaheadOf = (scope: ScopeLike): { keys: string; at: number } => {
   let buffer = typeaheadByBridge.get(scope.id);
@@ -385,9 +362,9 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
 
 const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void => {
   const ctx = scope.context;
-  // Capture BEFORE the send: this send is synchronous, so by the time a
-  // post-send check would run, expandedValue already reflects the click
-  // and a lazy branch would never load.
+  // Capture BEFORE the send: the send is synchronous, so a post-send check
+  // would already see the click's expandedValue and a lazy branch would
+  // never load.
   const wasExpanded = ctx.expandedValue.includes(row.node.value);
   const branch = isBranchRow(row, typeof scope.props["loadChildren"] === "function");
   scope.send(
@@ -410,9 +387,6 @@ const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void =>
 
 const def: ComponentDef<TreeContext, TreeEvent> = {
   name: "tree",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => treeViewMachine(props as TreeArgs, authored),
   // Focus follows the machine: every focus move lands the DOM focus on
   // the newly focused row's control.
@@ -470,15 +444,12 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           "aria-selected": state.selected,
           "aria-expanded": state.branch ? state.expanded : undefined,
           "data-path": row.indexPath.join("-"),
-          // The checkbox affordance is a mode, so the row carries the
-          // mode and the utility on the span selects on it.
+          // The row carries the mode; the utility on the span selects on it.
           "data-checkable": state.checked || ctx.selectionMode === "multiple" ? "" : undefined,
-          // Indentation as custom properties: continuous geometry travels
-          // the geometry channel, and the arithmetic happens here where
-          // the depth is known. The rail sits one column left of this
-          // row's indent: the parent's chevron column, where its
-          // children's rails belong. The row indents by margin, so its
-          // width must shrink by the same amount.
+          // The rail sits one column left of this row's indent: the parent's
+          // chevron column, where its children's rails belong. The row
+          // indents by margin, so its width must shrink by the same amount
+          // (0.875rem == 14px).
           style: {
             "--tree-indent": `${row.depth * 0.875}rem`,
             "--tree-rail": `${Math.max(0, row.depth - 1) * 0.875}rem`,
@@ -525,8 +496,7 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
         return {
           "aria-hidden": true,
           // `data-branch`, not `hidden`: the span carries `flex`, and an
-          // author `display` beats the UA's `[hidden]` rule — which is how
-          // arrows drew on leaves.
+          // author `display` beats the UA's `[hidden]` rule.
           "data-branch": state.branch ? "" : undefined,
           ...stateAttrs(state),
         };
@@ -534,8 +504,7 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     itemIcon: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      // The glyph is chosen by the row's kind, so the signature carries it:
-      // one icon bag per kind, not one for the whole tree.
+      // One icon bag per kind, not one for the whole tree.
       sig: (scope: SlotLike<VisibleRow>) => iconKind(scope, scope.slot),
       attrs: (scope: SlotLike<VisibleRow>) => ({
         "aria-hidden": true,
@@ -590,13 +559,11 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           role: "checkbox",
           tabindex: -1,
           "aria-checked": state.checked,
-          // The checked fact only. The row's own state (expanded,
-          // selected) must not reach this element: piped through it, every
-          // expanded parent rendered as a checked box.
+          // The checked fact only: the row's own state (expanded, selected)
+          // must not reach this element, or every expanded parent rendered
+          // as a checked box.
           "data-checked": state.checked ? "" : undefined,
           "data-state": state.checked ? "checked" : "unchecked",
-          // The row's own mode: the box is a mode affordance, so the
-          // recipe's utility selects on it.
           "data-mode": ctx.selectionMode,
           hidden: ctx.selectionMode !== "multiple",
           onClick: (event: MouseEvent): void => {
@@ -729,8 +696,8 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     "load-complete": {
       prop: "onLoadComplete",
-      // The bridge never fired this either: the machine owns the loading
-      // marker, and no send produces a load-complete of its own.
+      // Never fired: the machine owns the loading marker, and no send
+      // produces a load-complete of its own.
       watch: () => [],
       detail: () => ({ value: "" }),
     },

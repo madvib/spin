@@ -1,19 +1,6 @@
 /**
  * Pin-input machine: the per-cell characters, the index the keyboard talks
  * to, and whether the value is complete.
- *
- * Zag ships two states — `idle` and `focused` — with the value events on
- * the root tier, and that maps straight onto the fork: the root `on`
- * carries `VALUE.SET`/`VALUE.CLEAR` (the events that work everywhere,
- * including from the host's imperative commands), `idle` is the start, and
- * `focused` is per-cell editing.
- *
- * Zag's watch blocks — focus an input when the index moves, blur and submit
- * when the value completes, write the value into the inputs, report the
- * invalid keystroke — are all view reflexes in this port: the machine holds
- * characters and an index and reads nothing else. `count` is context
- * because every assign fills the value to it, and the bridge syncs it from
- * the scope prop.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -24,26 +11,19 @@ export interface PinInputContext {
   value: string[];
   /** The cell the keyboard talks to; -1 when nothing holds focus. */
   focusedIndex: number;
-  /** The cell count — a context field the host may write. */
   count: number;
 }
-/** Default cell count when the prop arrives unwritten. */
 const DEFAULT_COUNT = 4;
 
 /**
  * The pin-input's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The twin (`defaultValue`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
  */
 export interface PinInputArgs {
-  /** The cell count. */
   count?: number;
-  /** The characters, as the host wrote them. */
   value?: string | readonly string[];
-  /** Whether the pin takes focus when it mounts. */
   autoFocus?: boolean;
   defaultCount?: number;
 }
@@ -61,18 +41,11 @@ const parseChars = (raw: unknown): string[] => {
  * characters the host wrote (filled to the count), and the index the
  * keyboard talks to.
  *
- * The characters are a channel: the host's write, or the machine's own
- * default. The element's declared default is not a write, so it never
- * stands in for one. The seed twin (`defaultValue`) is the host's write
- * of the characters — the framework resolved it into the args — so it
- * counts as a write too. The cell count is the element's own data, as it
- * is.
+ * The seed twin (`defaultValue`) is the host's write of the characters —
+ * the framework resolved it into the args — so it counts as a write too.
  */
 export function initial(args: PinInputArgs, authored: (name: string) => boolean): PinInputContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const count =
@@ -119,10 +92,6 @@ export type PinInputEvent =
   | { type: "INPUT.END" }
   | { type: "VALUE.INVALID"; value: string };
 
-/**
- * The pin-input machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function pinInput(
   args: PinInputArgs = {},
   authored: (name: string) => boolean,
@@ -131,22 +100,19 @@ export function pinInput(
     id: "pin-input",
     initial: "idle",
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       value: { event: "VALUE.SET" },
       count: {},
     },
     context: initial(args, authored),
-    // The root tier, exactly as Zag: the value events work from every state,
-    // which is what lets the host's commands and the controlled channel write
-    // the value without knowing whether a cell holds focus.
+    // The value events work from every state, so the host's commands and
+    // the controlled channel write the value without knowing whether a cell
+    // holds focus.
     on: {
       "VALUE.SET": [
         { cond: "hasIndex", actions: [{ assign: "setValueAtIndex" }] },
@@ -177,7 +143,7 @@ export function pinInput(
           "INPUT.HOME": { actions: [{ assign: "setFocusIndexToFirst" }] },
           "INPUT.END": { actions: [{ assign: "setFocusIndexToLast" }] },
           // Backspace on a filled cell clears it and steps back; on an empty
-          // cell it only steps back. Both orders are Zag's.
+          // cell it only steps back.
           "INPUT.BACKSPACE": [
             { cond: "hasValue", actions: [{ assign: "clearFocusedValue" }, { assign: "setPrevFocusedIndex" }] },
             { actions: [{ assign: "setPrevFocusedIndex" }, { assign: "clearFocusedValue" }] },
@@ -194,8 +160,7 @@ export function pinInput(
     assigns: {
       setValue: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> =>
         event.type === "VALUE.SET" && event.index === undefined
-          // The value arrives the way the host wrote it; the machine shapes
-          // it, wherever it came from.
+          // The value arrives the way the host wrote it; the machine shapes it.
           ? { value: fill(parseChars(event.value), ctx.count) }
           : {},
       setValueAtIndex: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> => {
@@ -265,15 +230,13 @@ export function pinInput(
 
 /**
  * Zag's `fill`: the value padded (or truncated) to the cell count. A cell
- * the value does not reach reads as the empty string, which is what every
- * assign and every bag reads.
+ * the value does not reach reads as the empty string.
  */
 export function fill(value: readonly string[], count: number): string[] {
   const length = count || value.length;
   return Array.from({ length }).fill("").map((_char, index) => value[index] || "");
 }
 
-/** Zag's `computed._value` plus the facts the view reads off it. */
 export interface PinValueView {
   readonly chars: readonly string[];
   readonly length: number;

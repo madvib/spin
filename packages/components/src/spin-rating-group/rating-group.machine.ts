@@ -1,33 +1,19 @@
 /**
  * Rating-group machine: idle/focus/hover over Zag's three states.
  *
- * No value math lives in the view: arrows, Home and End resolve against
- * `count` and `allowHalf` here, because the half-step question is a
- * statement about the rating, not about nodes. What the machine never
- * touches is focus itself — `focusActiveRadio` is a view reflex (the
- * connect focuses the checked radio after the machine moves), and the
- * halfway hover flag arrives in the POINTER_OVER event (measured against
- * the item node by the connect).
- *
- * Context stays serializable for the scope channel: the value, the hovered
- * value, and the scalars the assigns read. Guards sit where Zag put them:
- * moves refuse without an interactive pad; SPACE only fills an empty
- * rating; leaving the group returns to focus when a radio holds focus,
- * idle otherwise.
+ * The machine never touches focus: the view focuses the checked radio after
+ * a move, and the halfway hover flag arrives measured in POINTER_OVER.
  */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
-/** The rating the host wrote: a number, or none. */
 const ratingValue = (raw: unknown): number => {
   const n = typeof raw === "number" ? raw : Number(raw);
   return Number.isFinite(n) ? n : -1;
 };
 
 export interface RatingGroupContext {
-  /** The committed rating, -1 for none. Half steps when allowHalf. */
   value: number;
-  /** The hovered rating, -1 for none. */
   hoveredValue: number;
   count: number;
   allowHalf: boolean;
@@ -72,7 +58,6 @@ export interface RatingItemState {
   readonly checked: boolean;
 }
 
-/** Zag's getItemState, pure: the hovered value previews while hovering. */
 export function itemState(
   ctx: RatingGroupContext,
   index: number,
@@ -90,30 +75,16 @@ const step = (ctx: RatingGroupContext): number => (ctx.allowHalf ? 0.5 : 1);
 
 /**
  * The rating-group's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
  */
 export interface RatingGroupArgs {
-  /** The committed rating, as the host wrote it. */
   value?: string;
-  /** How many stars. */
   count?: number;
-  /** Whether half steps are allowed. */
   allowHalf?: boolean;
-  /** Whether the group is disabled. */
   disabled?: boolean;
-  /** Whether the group is read-only. */
   readOnly?: boolean;
   defaultReadOnly?: boolean;
 }
 
-/**
- * The rating-group machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function ratingGroup(
   args: RatingGroupArgs = {},
   authored: (name: string) => boolean,
@@ -121,15 +92,6 @@ export function ratingGroup(
   return createMachine<RatingGroupContext, RatingGroupEvent>({
     id: "rating-group",
     initial: "idle",
-    /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     */
     fields: {
       value: { event: "SET_VALUE" },
       count: { event: "SET_COUNT" },
@@ -178,8 +140,7 @@ export function ratingGroup(
       hover: {
         on: {
           POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
-          // A focus is a focus, whatever the pointer is doing: the keyboard
-          // lives in the focus state.
+          // A focus is a focus: the keyboard lives in the focus state.
           FOCUS: { target: "focus" },
           GROUP_POINTER_LEAVE: [
             {
@@ -199,8 +160,6 @@ export function ratingGroup(
         event: RatingGroupEvent,
       ): Partial<RatingGroupContext> => {
         if (event.type !== "SET_VALUE") return {};
-        // The value arrives the way the host wrote it; the machine shapes
-        // it, wherever it came from.
         return { value: ratingValue(event.value) };
       },
       clearValue: (): Partial<RatingGroupContext> => ({ value: -1 }),
@@ -235,10 +194,7 @@ export function ratingGroup(
       clearHoveredValue: (): Partial<RatingGroupContext> => ({
         hoveredValue: -1,
       }),
-      // CLICK and SPACE carry the item's own value; a live hover preview wins,
-      // exactly as Zag's setValue prefers the hovered value.
-      // CLICK and SPACE carry the item's own value; a live hover preview
-      // wins, exactly as Zag's setValue prefers the hovered value.
+      // A live hover preview wins over the item's own value, as in Zag.
       setValue: (
         ctx: RatingGroupContext,
         event: RatingGroupEvent,

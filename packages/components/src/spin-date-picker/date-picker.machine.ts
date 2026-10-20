@@ -28,25 +28,16 @@ export interface DatePickerValue {
 }
 
 export interface DatePickerContext {
-  /** The committed selection, sorted, deduped; empty until something lands. */
   value: DatePickerValue[];
-  /** The day the grid is centered on and the keyboard moves. */
   focusedValue: DatePickerValue;
-  /** The day under the pointer during range selection. */
   hoveredValue: DatePickerValue | null;
-  /** Which end of a range the next click sets; 0 is the start. */
   activeIndex: number;
-  /** day, month, or year — the mode a cell click means in. */
   view: DatePickerView;
   selectionMode: DatePickerSelectionMode;
-  /** The month the day view pages by. */
   numOfMonths: number;
-  /** A range's first click; null until then. */
   startValue: DatePickerValue | null;
-  /** ISO strings the value may not cross; null when unbounded. */
   min: string | null;
   max: string | null;
-  /** Close after the selection completes. */
   closeOnSelect: boolean;
 }
 
@@ -104,7 +95,6 @@ function sortKey(value: DatePickerValue): number {
   return Number.isNaN(time) ? Number.NEGATIVE_INFINITY : time;
 }
 
-/** An ISO string parses to a day; anything else is not a day. */
 export function parseDay(raw: unknown): DatePickerValue | null {
   if (typeof raw !== "string" || raw.length === 0) return null;
   const time = Date.parse(`${raw}T00:00:00Z`);
@@ -113,8 +103,6 @@ export function parseDay(raw: unknown): DatePickerValue | null {
   return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
 }
 
-/** A day off the transport: the ISO text a host wrote, or the day record
- * the machine (or the connect) already carries. */
 export function dayRecord(raw: unknown): DatePickerValue | null {
   if (typeof raw === "string") return parseDay(raw);
   if (!isRecord(raw)) return null;
@@ -129,8 +117,6 @@ export function dayRecord(raw: unknown): DatePickerValue | null {
   return { year, month, day };
 }
 
-/** Days off the transport: `["2024-01-15"]` JSON, or a bare ISO string
- * as the single-day shorthand. Well-shaped only. */
 export function parseDays(raw: unknown): DatePickerValue[] {
   if (typeof raw !== "string" || raw.length === 0) return [];
   if (raw.startsWith("[")) {
@@ -151,8 +137,6 @@ export function parseDays(raw: unknown): DatePickerValue[] {
   return day === null ? [] : [day];
 }
 
-/** The days a write carries: the day records, or the ISO text a host
- * wrote. The machine shapes its own input, wherever it arrives. */
 export function daysOf(raw: unknown): DatePickerValue[] {
   if (!Array.isArray(raw)) return parseDays(raw);
   const days: DatePickerValue[] = [];
@@ -163,47 +147,29 @@ export function daysOf(raw: unknown): DatePickerValue[] {
   return days;
 }
 
-/** The view a write carries: the day, month, or year mode. */
 export function viewOf(raw: unknown): DatePickerView {
   return raw === "month" || raw === "year" ? raw : "day";
 }
 
 /**
- * The date-picker's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twins
+ * The date-picker's arguments: the values the host may set. The twins
  * (`defaultValue`, `defaultFocusedValue`) are resolved by the framework
  * before the factory is called, so the machine only ever sees the live
  * values.
  */
 export interface DatePickerArgs {
-  /** The selection, as the host wrote it: ISO days, or their JSON. */
   value?: string;
-  /** The focused day, as the host wrote it. */
   focusedValue?: string;
-  /** The view the panel opens in. */
   view?: string;
-  /** The selection mode: single, multiple, or range. */
   selectionMode?: string;
-  /** How many months the day view shows. */
   numOfMonths?: number;
-  /** The ISO day the selection may not cross. */
   min?: string;
-  /** The ISO day the selection may not pass. */
   max?: string;
-  /** Whether a selection closes the panel. */
   closeOnSelect?: boolean;
   defaultCloseOnSelect?: boolean;
 }
 
-/** The machine's context, built from the arguments: the mode, the count,
- * the bounds, the flags, and the selection the host wrote. */
 export function initial(args: DatePickerArgs = {}, authored: (name: string) => boolean): DatePickerContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument, so the twin's name is the framework's to name.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const mode: unknown = args.selectionMode;
@@ -215,7 +181,6 @@ export function initial(args: DatePickerArgs = {}, authored: (name: string) => b
   // The parsed days seed the focus; the normalized ones are the selection.
   const parsed = written("value") ? daysOf(args.value) : [];
   const value = normalizeDays(parsed, min, max);
-  // The browser's today in UTC is the grid's landing day when nothing seeds.
   const now = new Date();
   const today: DatePickerValue = {
     year: now.getUTCFullYear(),
@@ -244,7 +209,6 @@ export function initial(args: DatePickerArgs = {}, authored: (name: string) => b
   };
 }
 
-/** The ISO string a host reads for one day. */
 export function dayAsString(value: DatePickerValue): string {
   return iso(value);
 }
@@ -255,7 +219,6 @@ export function valueAsAllStrings(value: readonly DatePickerValue[]): string[] {
 
 const sameDay = (a: DatePickerValue, b: DatePickerValue): boolean => iso(a) === iso(b);
 
-/** The day clamped to the min/max bounds, and to its own month's length. */
 export function clampDay(
   value: DatePickerValue,
   min: string | null,
@@ -305,9 +268,8 @@ const config = {
     max: null as string | null,
     closeOnSelect: true,
   },
-  // Root tier: the value moves work from every state, which is what lets
-  // the host's commands and the controlled channel write the selection
-  // without knowing whether the panel is open.
+  // Root tier: the value moves work from every state, so the host's
+  // commands write the selection without knowing whether the panel is open.
   on: {
     "VALUE.SET": { actions: [{ assign: "setValue" }] },
     "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
@@ -367,8 +329,6 @@ const implementations = {
   assigns: {
     setValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "VALUE.SET") return {};
-      // The selection arrives the way the host wrote it; the machine shapes
-      // it, wherever it came from.
       const value = normalizeDays(daysOf(e.value), ctx.min, ctx.max);
       return {
         value,
@@ -411,7 +371,6 @@ const implementations = {
           : clampDay(ctx.focusedValue, ctx.min, ctx.max)),
       };
     },
-    /** A cell above the day view drills into it; the click names the target. */
     drillIntoView: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
       const value = clampDay(e.value, ctx.min, ctx.max);
@@ -429,7 +388,6 @@ const implementations = {
         hoveredValue: null,
       };
     },
-    /** Multiple mode toggles the same day in and out of the selection. */
     toggleMultiDay: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
       const value = clampDay(e.value, ctx.min, ctx.max);
@@ -448,7 +406,6 @@ const implementations = {
     /**
      * Range mode: the first click names the start, the second the end —
      * including backwards, where the earlier day wins (Zag's sortDates).
-     * A start re-arms; a hovered preview never commits.
      */
     selectRangeDay: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
       if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
@@ -475,7 +432,6 @@ const implementations = {
   },
 };
 
-/** Days sorted, deduped, and inside the bounds. */
 function normalizeDays(
   days: readonly DatePickerValue[],
   min: string | null,
@@ -493,10 +449,6 @@ function normalizeDays(
   return out.sort((a, b) => sortKey(a) - sortKey(b));
 }
 
-/**
- * The date-picker machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function datePicker(
   args: DatePickerArgs = {},
   authored: (name: string) => boolean,
@@ -507,12 +459,10 @@ export function datePicker(
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * may write, and the event each write carries. A field with an event
+     * is REPORTED (the host's write is an event, the machine decides,
+     * and the change reaches the host); a field without one is SILENT
+     * (the host's write lands in the field, and nothing reports).
      */
     fields: {
       value: { event: "VALUE.SET" },

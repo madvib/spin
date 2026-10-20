@@ -41,7 +41,6 @@ export type {
 };
 
 export interface DatePickerApi {
-  /** Whether the panel is open; the reactive channel is open-change. */
   readonly isOpen: boolean;
   readonly value: readonly DatePickerValue[];
   readonly valueAsString: readonly string[];
@@ -55,9 +54,7 @@ export interface DatePickerApi {
   getContentProps(): Record<string, unknown>;
   getGridProps(): Record<string, unknown>;
   getWeekdayLabels(): readonly string[];
-  /** The selected days as rows, for the trigger's text (select's pattern). */
   getValueTextRows(): readonly { readonly value: string; readonly text: string }[];
-  /** The view label as one row, for the view control (the same pattern). */
   getViewTextRows(): readonly { readonly value: string; readonly text: string }[];
   getCells(): readonly DatePickerCellView[];
   getCellProps(cell: DatePickerCellView): Record<string, unknown>;
@@ -73,7 +70,6 @@ export interface DatePickerApi {
  * clamp and the focus moves speak one currency.
  */
 export interface DatePickerCellView {
-  /** Stable key for the for-rows: the ISO day the cell names. */
   readonly key: string;
   readonly value: DatePickerValue;
   /** A day from the month before or after, shown greyed (day view only). */
@@ -83,7 +79,6 @@ export interface DatePickerCellView {
   /** Inside the selected range, including its hover preview. */
   readonly inRange: boolean;
   readonly rangeEdge: "start" | "end" | null;
-  /** Otherwise unreachable: outside the min/max bounds, or disabled. */
   readonly disabled: boolean;
 }
 
@@ -101,7 +96,6 @@ const boundTime = (bound: string | null): number | null => {
   return Number.isNaN(time) ? null : time;
 };
 
-/** The day the browser says today is, in UTC. */
 const today = (): DatePickerValue => {
   const at = new Date();
   return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
@@ -114,7 +108,7 @@ interface ScopeLike extends PartScope<unknown, DatePickerContext> {}
 
 interface SlotLike<R> extends SlotScope<R, DatePickerContext> {}
 
-// Scope props arrive as strings; hooks write numbers. Accept both.
+// Scope props arrive as strings; hooks write numbers.
 const numProp = (raw: unknown): number | null => {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
   if (typeof raw === "string" && raw.trim().length > 0) {
@@ -126,7 +120,6 @@ const numProp = (raw: unknown): number | null => {
 
 type IdFn = (part: string, slot?: unknown) => string;
 
-/** N days from a day, clamped to its own month and the bounds. */
 const shift = (
   from: DatePickerValue,
   days: number,
@@ -159,9 +152,8 @@ const cellView = (
   const time = dayTime(value);
   const floor = boundTime(ctx.min);
   const ceiling = boundTime(ctx.max);
-  // The range endpoints, hoisted: an armed-but-uncommitted start counts
-  // (the machine holds it as startValue), and the hover preview extends
-  // the span to the hovered day.
+  // An armed-but-uncommitted start counts as the range's start, and the
+  // hover preview extends the span to the hovered day.
   const startDay = ctx.value.length >= 1 ? ctx.value[0] : ctx.startValue;
   const first = startDay == null ? Number.NaN : dayTime(startDay);
   const last = ctx.value.length >= 2
@@ -205,7 +197,6 @@ const weekOf = (props: Record<string, unknown>): number => {
   return typeof raw === "number" && raw >= 0 && raw <= 6 ? Math.trunc(raw) : 0;
 };
 
-/** The day grid: the focused month padded to whole weeks both sides. */
 const dayCells = (
   context: DatePickerContext,
   props: Record<string, unknown>,
@@ -227,7 +218,6 @@ const dayCells = (
     cells.push(cellView(context, props, value, value.month !== start.month));
     walking = new Date(walking.getTime() + DAY_MS);
   }
-  // Pad the tail so the grid is whole weeks; the walk rolls the month.
   while (cells.length % 7 !== 0) {
     const value: DatePickerValue = {
       year: walking.getUTCFullYear(),
@@ -376,13 +366,10 @@ const rowFor = (
 
 const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
   name: "date-picker",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => datePickerMachine(props as DatePickerArgs, authored),
   establish: (raw, authored) => {
     // The open fact lives in the state, not the context, so it is the one
-    // thing the establish carries: an authored `open` opens the panel.
+    // thing the establish carries.
     if (!authored("open") || raw["open"] !== true) return [];
     return [{ type: "OPEN" }];
   },
@@ -628,8 +615,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
         const locale = textOf(props["locale"], "en-US");
         const startOfWeek = weekOf(props);
         const labels: string[] = [];
-        // A weekday header only means something in the day view; the
-        // month and year grids have no weekday rows.
+        // The month and year grids have no weekday rows.
         if (ctx.view !== "day") return labels;
         for (let at = 0; at < 7; at++) {
           const weekday = (startOfWeek + at) % 7;

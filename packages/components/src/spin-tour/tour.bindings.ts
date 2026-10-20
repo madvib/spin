@@ -19,25 +19,7 @@ import {
 /**
  * Tour definition: the DOM contract as data. The machine owns the modes
  * (inactive/resolving/scrolling/active) and the step index; this file maps
- * props to channels, parts to attribute bags, commands to sends, and
- * start/step/dismiss/complete transitions to their events.
- *
- * Everything that needs the DOM lives here:
- *
- *   - the target lookup — a poll (one timer per check, capped) that
- *     reports RESOLVED when the step's selector exists in the document and
- *     NOT_FOUND when it never does. Every command that can enter the
- *     resolving phase kicks it from `settled`, gated on the resulting
- *     state — the poll resolves the new target, scrolls it in, and reports
- *     SCROLL.END to wake the spotlight;
- *   - the scroll — `scrollIntoView` on the target, reporting SCROLL.END
- *     once it settles;
- *   - the spotlight — the target's rect through the geometry channel as
- *     custom properties, so the mask and the card are utilities;
- *   - the dismissable wiring — Escape and an outside press end the run.
- *
- * The overlay renders inside the root; the target itself is the host's
- * element elsewhere on the page.
+ * props to channels, parts to attribute bags, and commands to sends.
  */
 
 export type { TourDismissChange, TourStepChange, TourStepRecord };
@@ -55,7 +37,6 @@ export interface TourApi {
   dismiss(): void;
   skip(): void;
   setStep(step: number): void;
-  /** The target lookup's reports; the connect's poll and the host share them. */
   notifyTargetResolved(): void;
   notifyTargetNotFound(): void;
   notifyScrollEnd(): void;
@@ -67,10 +48,9 @@ export interface TourApi {
   getPositionerProps(): Record<string, unknown>;
   getProgressTextProps(): Record<string, unknown>;
   /**
-   * The step's texts as one row, for the recipe's bindings. A compiled
-   * `{row.title}` closes over the render-time row, so the row carries
-   * getters over stable holders the step rewrites — the same live-row
-   * pattern the date-input's segments use.
+   * The step's texts as one row. A compiled `{row.title}` closes over the
+   * render-time row, so the row carries getters over stable holders the
+   * step rewrites.
    */
   getTextRows(): readonly { readonly key: string; readonly title: string; readonly description: string; readonly progress: string }[];
   getPrevTriggerProps(): Record<string, unknown>;
@@ -94,7 +74,6 @@ const RESOLVE_BUDGET_MS = 2000;
 /** The settle wait after a scroll, before the spotlight activates. */
 const SCROLL_SETTLE_MS = 150;
 
-/** Per-bridge view memory, keyed by the root element the bridge owns. */
 interface TourViewState {
   spotlight: AnchorGeometry;
   title: string;
@@ -121,8 +100,7 @@ const runningState = (state: string): boolean =>
 
 /**
  * The target lookup: one timer per check, capped, then NOT_FOUND. The
- * scroll reports SCROLL.END once the target settles (or immediately when
- * it needs no scrolling).
+ * scroll reports SCROLL.END once the target settles.
  */
 const resolveAndScroll = (
   root: Element,
@@ -132,8 +110,7 @@ const resolveAndScroll = (
 ): void => {
   viewOf(root);
   const deadline = Date.now() + RESOLVE_BUDGET_MS;
-  // The first attempt is synchronous: the target is usually there. A
-  // rAF poll throttles in a hidden tab (a frames-based budget would
+  // A rAF poll throttles in a hidden tab (a frames-based budget would
   // never run out), so the retries are timers against a wall clock.
   if (target === "") {
     const w = typeof window === "undefined" ? 0 : window.innerWidth;
@@ -154,8 +131,7 @@ const resolveAndScroll = (
   const attempt = (): void => {
     const el = typeof document === "undefined" ? null : document.querySelector(target);
     if (el instanceof HTMLElement) {
-      // Resolve first (the machine scrolls), measuring the target so the
-      // bags carry its rect, then scroll and report the end.
+      // Measure before the send: the bags carry the target's rect.
       measure(root, el, spotlightPadding);
       send({ type: "TARGET.RESOLVED" });
       el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -174,7 +150,6 @@ const resolveAndScroll = (
   attempt();
 };
 
-/** The target's rect, reported through the spotlight view state. */
 const measure = (root: Element, el: HTMLElement, padding: number): void => {
   const rect = el.getBoundingClientRect();
   viewOf(root).spotlight = {
@@ -188,13 +163,9 @@ const measure = (root: Element, el: HTMLElement, padding: number): void => {
 
 const def: ComponentDef<TourContext, TourEvent> = {
   name: "tour",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => tourMachine(props as TourArgs, authored),
-  // Every command that can enter the resolving phase drives the lookup
-  // and scroll right after its send: the poll resolves the new target,
-  // scrolls it in, and reports SCROLL.END to wake the spotlight.
+  // Every command that enters the resolving phase drives the lookup and
+  // scroll right after its send.
   settled: ({ event, after, props, root, send }) => {
     if (
       event.type !== "START" &&
@@ -419,7 +390,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
         const ctx = context;
         const step = ctx.steps[ctx.step] ?? null;
         // Stable holders the row's getters read; the step rewrites them.
-        // Keyed per call site is unnecessary — one row, rewritten per read.
         const holders = {
           title: step === null ? textOf(props) : step.title,
           description: step === null ? "" : step.description,
@@ -456,8 +426,7 @@ const def: ComponentDef<TourContext, TourEvent> = {
       watch: () => [],
       detail: () => ({ step: -1 }),
       // A real step move only: the closing reset (step -1) reports through
-      // dismiss/complete, and reporting it here would overwrite that reason
-      // with an empty step id.
+      // dismiss/complete, and reporting it here would overwrite that reason.
       select: (event, before: TourContext, after: TourContext) => {
         void event;
         if (after.step === before.step || after.step < 0) return null;
@@ -473,7 +442,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       detail: () => ({ reason: "dismiss" }),
       select: (event, before: TourContext, after: TourContext, states) => {
         if (states === undefined || !runningState(states.was) || runningState(states.is)) return null;
-        // The run ended: the event that ended it names the reason.
         const reason = event.type === "SKIP"
           ? "skip"
           : event.type === "TARGET.NOT_FOUND"

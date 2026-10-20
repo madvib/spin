@@ -26,10 +26,6 @@ import {
  * bags, and commands to sends. Navigation computes its target against
  * context rows and sends it in — the machine never walks data.
  *
- * No channels: the transport owns prop coercion. No parsing, no DOM
- * access, no CSS custom properties. Focus follows sends through the
- * runtime settled effect; keyboard arrows ride the shared intent table.
- *
  * A submenu level is its own bridge instance; levels meet through the
  * element tree. A parent writes the child instance's `open` attribute,
  * and the child reports a close back up as a bubbling `submenuclose`
@@ -40,8 +36,7 @@ interface ScopeLike extends PartScope<unknown, MenuContext> {}
 interface SlotLike<R> extends SlotScope<R, MenuContext> {}
 
 /** The trigger exclusion travels in the dismissable action's params
- * (excludeId/excludeParent) — no def-side DOM query. Kept here is only
- * the submenu flag that selects which form the exclusion takes. */
+ * (excludeId/excludeParent) — no def-side DOM query. */
 
 export interface MenuApi {
   readonly isOpen: boolean;
@@ -64,7 +59,6 @@ export interface MenuApi {
   getItemShortcutProps(row: MenuRow): Record<string, unknown>;
   getItemSubmenuIndicatorProps(row: MenuRow): Record<string, unknown>;
   getSeparatorProps(block: MenuBlock): Record<string, unknown>;
-  /** The bag the parent level spreads onto this instance's element. */
   getSubmenuProps(row: MenuRow): Record<string, unknown>;
 }
 
@@ -146,13 +140,11 @@ const rowsOfEntries = (entries: readonly MenuEntry[]): readonly MenuRow[] => row
 const enabledValues = (scope: ScopeLike): readonly MenuRow[] =>
   rowsOfEntries(scope.context.entries).filter((row) => !row.disabled);
 
-/** Neighbor with loop wrap (menus always loop, Zag's model). Operates on
- * context rows — shaping-adjacent navigation, not parsing. */
+/** Neighbor with loop wrap (menus always loop, Zag's model). */
 const neighbor = (scope: ScopeLike, value: string, direction: 1 | -1): string | null => {
   const order = enabledValues(scope);
   if (order.length === 0) return null;
   const at = order.findIndex((entry) => entry.value === value);
-  // No highlight yet: an arrow lands on the first (down) or last (up) row.
   if (at < 0) return (direction > 0 ? order[0] : order[order.length - 1])?.value ?? null;
   const loop = scope.props["loopFocus"] === true;
   const next = at + direction;
@@ -184,8 +176,7 @@ const typeaheadOf = (
   return state;
 };
 
-/** Recipe-driven rows arrive through getBlocks/getRows iteration;
- * the guard names that trust point instead of casting. */
+/** Recipe-driven rows arrive through getBlocks/getRows iteration. */
 const isMenuBlock = (value: unknown): value is MenuBlock => {
   if (typeof value !== "object" || value === null) return false;
   const rows: unknown = Reflect.get(value, "rows");
@@ -251,8 +242,7 @@ const typeaheadMatch = (scope: ScopeLike, key: string): void => {
 const isPrintable = (event: KeyboardEvent): boolean =>
   event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
 
-/** Enter this level's submenu: the machine opens it on this level's
- * context. Focus follows through the settled effect. */
+/** Focus follows through the settled effect. */
 const openSubmenu = (scope: ScopeLike, value: string): void => {
   scope.send({ type: "SUBMENU_OPEN", value });
 };
@@ -384,9 +374,6 @@ const onSubmenuClose = (scope: ScopeLike, event: Event): void => {
 
 const def: ComponentDef<MenuContext, MenuEvent> = {
   name: "menu",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => menuMachine(props as MenuArgs, authored),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "closed";
@@ -468,7 +455,7 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
         "data-state": scope.state === "open" ? "open" : "closed",
         // Positioning is the anchor action's job: it measures the trigger,
         // flips on viewport veto, writes literals, and re-runs on
-        // resize/scroll. The bag carries no coordinates, no vars.
+        // resize/scroll.
         "use:anchor": { placement: "bottom", offset: 8 },
       }),
     },

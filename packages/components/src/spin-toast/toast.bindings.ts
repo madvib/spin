@@ -26,26 +26,16 @@ import type {
  * `getToastProps` and the title/description/action/close parts for a row,
  * and `getToasts` as the render source.
  *
- * Three things live here and nowhere else:
+ * The clocks live in the actions: `use:toast-timer` owns the dismissal
+ * clock (with its pause/remainder report), the remove delay, and the frame
+ * after the row attaches that starts the entry motion; `use:toast-row` owns
+ * the measured height; `use:toast-region` owns the document reflexes.
+ * Neither the machine nor this file keeps a timer.
  *
- *  1. **Placement.** Inset is concrete geometry, so it becomes a utility
- *     choice instead: the region carries `data-side`/`data-align` presence
- *     attributes and the recipe's static classes key on them.
- *  2. **The stack.** Each row's offset is the measured heights of the rows
- *     in front of it plus the gaps, expressed as CSS custom properties the
- *     recipe's arbitrary-property utilities consume. Overlap mode lifts by
- *     the gap alone and scales the rows behind the front one down.
- *  3. **The clocks.** `use:toast-timer` owns the dismissal clock (with its
- *     pause/remainder report), the remove delay, and the frame after the
- *     row attaches that starts the entry motion; `use:toast-row` owns the
- *     measured height; `use:toast-region` owns the document reflexes.
- *     Neither the machine nor this file keeps a timer.
- *
- * Where the queue lives: the host's `items` prop is the write channel.
- * The reconcile diffs it one way — added ids create, dropped ids remove,
- * changed fields update — and a toast the machine took out on its own is
- * remembered, so a later host write of the same list does not bring it
- * back. A host that means to re-show a toast gives it a new id.
+ * Where the queue lives: the host's `items` prop is the write channel. A
+ * toast the machine took out on its own is remembered, so a later host
+ * write of the same list does not bring it back. A host that means to
+ * re-show a toast gives it a new id.
  */
 
 /** One queue entry as the host authors it. */
@@ -58,13 +48,11 @@ export interface ToastItem {
   readonly duration: number;
   /** An unset priority (0 or less) is the type's own. */
   readonly priority: number;
-  /** The action trigger's label; empty is no action trigger. */
   readonly action: string;
 }
 
 export interface ToastStatusChange {
   readonly id: string;
-  /** The statuses: `visible`, `dismissing`, `unmounted`. */
   readonly status: ToastStatus | "unmounted";
   /** What caused it: `user`, `keyboard`, or "" for a host write or timer. */
   readonly src: string;
@@ -92,7 +80,6 @@ export interface ToastApi {
   getCloseTriggerProps(entry: ToastEntry): Record<string, unknown>;
 }
 
-/** The types the machine knows, in the order a host spells them. */
 const isToastType = (raw: unknown): raw is ToastType =>
   raw === "info" || raw === "success" || raw === "warning" || raw === "error" || raw === "loading";
 
@@ -108,12 +95,10 @@ const asText = (raw: unknown): string => (typeof raw === "string" ? raw : "");
 const asCount = (raw: unknown, fallback: number): number =>
   typeof raw === "number" && Number.isFinite(raw) ? Math.trunc(raw) : fallback;
 
-/** The object-array grammar hands back `unknown`; a record is what the fields
- * are read out of. */
+/** Unlike the record test above, an array is not a record. */
 const asRecord = (raw: unknown): raw is Record<string, unknown> =>
   typeof raw === "object" && raw !== null && !Array.isArray(raw);
 
-/** The queue entry the prop channel carries, or none when a field is wrong. */
 const toEntry = (raw: unknown): ToastItem | undefined => {
   if (!asRecord(raw)) return undefined;
   const id = asText(raw["id"]);
@@ -149,7 +134,7 @@ interface SlotLike<R> extends SlotScope<R, ToastContext> {}
 type Ctx = ToastContext;
 
 
-/** Tolls the machine removed on its own; a host write never revives them.
+/** Toasts the machine removed on its own; a host write never revives them.
  * Keyed by the context object, which is stable per service — assigns
  * replace fields, never the object. */
 const removedByBridge = new WeakMap<object, Set<string>>();
@@ -162,7 +147,6 @@ const removedOf = (context: object): Set<string> => {
   return ids;
 };
 
-/** `top`/`bottom` plus the alignment the placement's suffix carries. */
 const posture = (placement: string): { side: "top" | "bottom"; align: "start" | "center" | "end" } => {
   const [side, align] = placement.split("-");
   return {
@@ -173,8 +157,8 @@ const posture = (placement: string): { side: "top" | "bottom"; align: "start" | 
 
 /** Zag's `setLastFocusedEl` / `restoreFocusIfPointerOut`: the element focus
  * came from is remembered, and given back when the region is left by both
- * the pointer and the keyboard. Keyed by bridge send, like the typeahead
- * buffer — the def-built api may rebuild, the memory must not. */
+ * the pointer and the keyboard. Keyed by bridge send — the def-built api may
+ * rebuild, the memory must not. */
 const focusedByBridge = new WeakMap<
   (event: { type: string } & Record<string, unknown>) => void,
   { current: Element | undefined }
@@ -218,7 +202,6 @@ const onGroupPointerLeave = (scope: ScopeLike): void => {
   }
 };
 
-/** Zag's `heightBefore` plus the gaps: how far behind the front a row sits. */
 const placementOf = (props: Record<string, unknown>): string => {
   const raw: unknown = props["placement"];
   return typeof raw === "string" && raw.length > 0 ? raw : "bottom";
@@ -235,8 +218,8 @@ const stackOffset = (scope: ScopeLike, index: number): number => {
 /**
  * How far behind the front a row sits, as the transform the recipe reads.
  * A settled row is at its offset: the arrival and the exit are the fade
- * and the scale, so a row is never parked outside the viewport waiting
- * for its entry beat.
+ * and the scale, so a row never waits outside the viewport for its entry
+ * beat.
  */
 const offsetY = (scope: ScopeLike, index: number): string => {
   const placement = placementOf(scope.props);
@@ -262,18 +245,14 @@ const scaleOf = (entry: ToastEntry, index: number, overlapped: boolean): string 
 
 const def: ComponentDef<ToastContext, ToastEvent> = {
   name: "toast",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => toastMachine(props as ToastArgs, authored),
   establish: (props) =>
     props["overlap"] === true ? [{ type: "REGION.OVERLAP" }] : [],
   reconcile: ({ context, state, parsed, send }) => {
     const ctx = context;
     let moved = false;
-    // The two counts are the machine's own bounds, and the element keeps
-    // them in step with the props: a cap below one is no cap, and a
-    // negative delay is no delay.
+    // The machine's bounds, kept in step with the props: a cap below one
+    // is no cap, a negative delay is no delay.
     const max = Math.max(1, asCount(parsed["max"], 24));
     if (ctx.max !== max) {
       ctx.max = max;
@@ -284,8 +263,6 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
       ctx.removeDelay = removeDelay;
       moved = true;
     }
-    // The region's mode follows the prop: a state that mirrors a prop is
-    // a derived sync, and it stays here.
     const overlap = parsed["overlap"] === true;
     if (overlap && state !== "overlap") {
       send({ type: "REGION.OVERLAP" });
@@ -295,9 +272,6 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
       send({ type: "REGION.STACK" });
       moved = true;
     }
-    // The host's list is the queue's source, so the diff is one-way: ids
-    // the host added are created, ids the host dropped are removed, and a
-    // changed field is an update.
     const incoming = parseItems(parsed["items"]);
     const before = [...ctx.toasts, ...ctx.queued];
     const removed = removedOf(context);
@@ -378,8 +352,8 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
           "data-empty": dataAttr(count === 0),
           "data-overlap": dataAttr(overlapped),
           "data-stack": dataAttr(!overlapped),
-          // Geometry: the region's own inset and gaps are data; where they
-          // land is the recipe's decision.
+          // The region's own inset and gaps are data; where they land is
+          // the recipe's decision.
           style: {
             "--toast-gap": `${asCount(scope.props["gap"], 16)}px`,
             "--toast-offset": (() => { const v = scope.props["offsets"]; return typeof v === "string" && v.length > 0 ? v : "1rem"; })(),
@@ -430,8 +404,8 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
         const index = ctx.toasts.findIndex((candidate) => candidate.id === entry.id);
         const at = index === -1 ? ctx.toasts.length : index;
         const frontmost = at === 0;
-        // Assigns replace entries rather than mutating them, so the slot's
-        // captured entry goes stale on the first status move: resolve live.
+        // Assigns replace entries, so the slot's captured entry goes stale
+        // on the first status move: resolve live.
         const current = ctx.toasts.find((candidate) => candidate.id === entry.id) ?? entry;
         const visible = current.status !== "dismissing";
         const paused = current.status === "persist";
@@ -598,7 +572,6 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
         };
         const current = context.toasts.find((entry) => entry.id === id) ??
           context.queued.find((entry) => entry.id === id);
-        // A partial item merges over the entry the queue already holds.
         return {
           type: "TOAST.UPDATE",
           id,
@@ -659,10 +632,9 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
   methods: {
     getToasts: {
       call: (context) => {
-        // The `for` effect re-runs only on signals its source reads: the
-        // tick is the subscription that re-reads the queue after a move.
-        // Rows rebind on resync (the row update repoints the binding),
-        // so plain entries are enough — no live getters needed.
+        // The tick is the subscription that re-reads the queue after a
+        // move. Rows rebind on resync, so plain entries are enough — no
+        // live getters needed.
         machineTick();
         return [...context.toasts];
       },
@@ -676,8 +648,8 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
       // Zag's per-toast `onStatusChange`, reported by diffing each toast's
       // status across a send: `visible` on the way in, `dismissing` when
       // the exit starts, `unmounted` when the queue lets go. A removal the
-      // machine made on its own is remembered (a host source never
-      // revives it); a removal the host asked for is not.
+      // machine made on its own is remembered; a removal the host asked
+      // for is not.
       select: (event, before, after, _states, source) => {
         const beforeList = before.toasts;
         const afterCtx = after as Ctx;

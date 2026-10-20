@@ -13,10 +13,9 @@ import {
 } from "./avatar.machine.ts";
 
 /**
- * Avatar definition: the DOM contract as data. The machine owns the three
- * load states and the src; this file maps props to channels, parts to
- * attribute bags, commands to sends, and the status transition to its
- * event. No logic over state lives here — every function reads.
+ * Avatar definition: the DOM contract as data.
+ *
+ * No logic over state lives here: every function reads.
  */
 
 export interface AvatarApi {
@@ -30,8 +29,6 @@ export interface AvatarApi {
   getFallbackProps(): Record<string, unknown>;
 }
 
-/** A text prop off the bag: parsed text arrives as a string, anything
- * else is absent. The two labels read through here. */
 const textOf = (props: Record<string, unknown>, name: string): string => {
   const value: unknown = props[name];
   return typeof value === "string" ? value : "";
@@ -47,9 +44,6 @@ interface ScopeLike extends PartScope<unknown, AvatarContext> {}
 
 const def: ComponentDef<AvatarContext, AvatarEvent> = {
   name: "avatar",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => avatarMachine(props as AvatarArgs, authored),
   start: "loading",
   parts: {
@@ -84,9 +78,9 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
           onError: () => {
             scope.send({ type: "IMG.ERROR" });
           },
-          // A src swap outside the machine (host sets the attribute) still
-          // reloads: the stdlib observer reports it and the machine returns
-          // to loading. The observer lives on the node, so it attaches here.
+          // A src swap outside the machine still reloads: the observer
+          // reports it and the machine returns to loading. The observer
+          // lives on the node, so it attaches here.
           "use:observe": {
             attributes: ["src"],
             onAttributes: (): void => {

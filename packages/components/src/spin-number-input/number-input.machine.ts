@@ -1,27 +1,8 @@
-/**
- * Number-input machine: the value, its range, and the gesture the spin
- * controls and the scrubber share.
- *
- * Zag's chart is `idle` plus four states, of which two (`before:spin`,
- * `spinning`) exist only to time the press-and-hold repeat. In this
- * architecture a timer is a reflex, so the chart keeps the three states that
- * carry meaning — the input holds DOM focus or it does not, and the scrubber
- * gesture is live or it is not — while the dwell and the repeat rate live in
- * the bridge's clock. What survives in the context is the phase the gesture
- * is in (`spin`), which is the one fact the machine transitions on: the
- * repeat starts when the phase moves from `hold` to `repeat`, and it stops
- * when the phase clears.
- *
- * Everything here is a pure transform of the scalars the bridge syncs from
- * scope. The view never sends a DOM node: `INPUT.CHANGE` carries the raw
- * string the input holds, and clamping/formatting happens here, exactly as
- * Zag's `setRawValue` does.
- */
+/** Number-input machine: the value, its range, and the spin/scrub gesture. */
 
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
-/** The direction a spin control or a scrub drag is pushing the value. */
 export type NumberInputHint = "increment" | "decrement";
 
 /** A viewport point, in client coordinates. */
@@ -31,7 +12,6 @@ export interface NumberInputPoint {
 }
 
 export interface NumberInputContext {
-  /** The raw string the input holds; formatted only on a commit. */
   value: string;
   hint: NumberInputHint | null;
   /** The scrubber's virtual cursor, wrapped inside the viewport. */
@@ -74,42 +54,29 @@ export type NumberInputEvent =
 /**
  * The number-input's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The twin (`defaultValue`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
  */
 export interface NumberInputArgs {
-  /** The value the field holds, as the host wrote it. */
   value?: string;
-  /** The lower bound. */
   min?: string | number;
-  /** The upper bound. */
   max?: string | number;
-  /** The step the arrow keys and the spin take. */
   step?: string | number;
-  /** The step a shift-pressed arrow takes. */
   largeStep?: string | number;
-  /** The step an alt-pressed arrow takes. */
   smallStep?: string | number;
-  /** Whether the value may leave the range. */
   allowOverflow?: boolean;
-  /** Whether a blur clamps an out-of-range value. */
   clampValueOnBlur?: boolean;
-  /** Whether a press spins the value. */
   spinOnPress?: boolean;
 }
 
-/** The bounds Zag defaults to: everything but the platform's own limits. */
 const MIN_SAFE = Number.MIN_SAFE_INTEGER;
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
-/** Zag's default step. */
 const DEFAULT_STEP = 1;
 
 /**
  * A number from the prop store. The scope grammar has no float type, so the
  * bounds and the step sizes arrive as decimal strings from an attribute and
- * as numbers from a framework; both land here and neither is trusted.
+ * as numbers from a framework; neither is trusted.
  */
 export function asNumber(raw: unknown, fallback: number): number {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : fallback;
@@ -124,8 +91,7 @@ export function asNumber(raw: unknown, fallback: number): number {
  * The machine's verbatim form of an authored value: the host's own text.
  * Zag's controlled bindable writes the prop as the host authored it — no
  * parse, no clamp, no format — so a controlled host owns every character
- * the field shows. A write that is not a value at all is null: the machine
- * is left alone.
+ * the field shows. A write that is not a value at all is null.
  */
 export function valueOf(raw: unknown): string | null {
   if (typeof raw === "string") return raw;
@@ -133,8 +99,6 @@ export function valueOf(raw: unknown): string | null {
   return null;
 }
 
-/** The scalars the assigns read: the bounds, the three step sizes, and the
- * three behaviour flags. */
 export type NumberInputScalarKey =
   | "min"
   | "max"
@@ -147,8 +111,8 @@ export type NumberInputScalarKey =
 
 /**
  * The scalars, shaped from the arguments: the bounds and the three step
- * sizes are numbers, and the two step sizes the step itself derives when
- * the host wrote none.
+ * sizes are numbers, and the two step sizes derive from the step itself
+ * when the host wrote none.
  */
 export function numberInputScalars(
   args: NumberInputArgs,
@@ -169,12 +133,6 @@ export function numberInputScalars(
 /**
  * The machine's context, from its arguments: the value the host wrote, the
  * scalars the assigns read, and the machine's own gesture state.
- *
- * The value is the host's channel: the host's own write stands — the live
- * prop or its twin, which is the same write under the framework's
- * convention — else the machine's own default, the empty field. The bounds
- * and the flags are the element's configuration: the machine has no opinion
- * about them, so they are taken as they are.
  */
 export function initial(
   args: NumberInputArgs,
@@ -195,7 +153,7 @@ export function initial(
 /**
  * A press always leaves `idle`: Zag's `before:spin` carries the focus tag, so
  * the machine is focused for the whole gesture whether or not the input took
- * DOM focus (`focusInputOnChange` decides that, and it is the view's call).
+ * DOM focus.
  */
 const pressDown = [
   { target: "focused", cond: "isDecrementHint", actions: [{ assign: "beginSpin" }, { assign: "decrement" }] },
@@ -222,22 +180,20 @@ const config = {
     spinOnPress: true,
     spin: null as "hold" | "repeat" | null,
   },
-  // The root tier: the value events are valid in every state, which is how
-  // Zag expresses "setValue works whether or not the input holds focus".
+  // The value events are valid in every state: "setValue works whether or
+  // not the input holds focus".
   on: {
     "VALUE.SET": { actions: [{ assign: "setValue" }] },
     "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
     "VALUE.INCREMENT": { actions: [{ assign: "increment" }] },
     "VALUE.DECREMENT": { actions: [{ assign: "decrement" }] },
     "FIELDSET.DISABLED": { actions: [{ assign: "setFieldsetDisabled" }] },
-    // The auto-repeat clock's two ticks, one per phase. Both are valid from
-    // wherever the gesture is live, so they sit in the fallback tier rather
-    // than being duplicated across states.
+    // The auto-repeat clock's two ticks, one per phase, valid from wherever
+    // the gesture is live.
     "CHANGE_DELAY": [
       { cond: "canRepeat", actions: [{ assign: "startRepeat" }] },
       // A dwell that cannot earn a repeat ends the gesture: Zag leaves the
-      // machine waiting for the press-up, which is the same observable
-      // outcome with the repeat never armed.
+      // machine waiting for the press-up, with the repeat never armed.
       { actions: [{ assign: "endSpin" }] },
     ],
     "SPIN": [
@@ -258,8 +214,8 @@ const config = {
         "TRIGGER.PRESS_DOWN": pressDown,
         "SCRUBBER.PRESS_DOWN": scrubDown,
         "TRIGGER.PRESS_UP": { actions: [{ assign: "endSpin" }] },
-        // The arrow keys step by the step the view derived from the modifier
-        // keys; everything else steps by `step`.
+        // The arrow keys step by the step the view derived from the
+        // modifier keys; everything else steps by `step`.
         "INPUT.ARROW_UP": { actions: [{ assign: "increment" }] },
         "INPUT.ARROW_DOWN": { actions: [{ assign: "decrement" }] },
         "INPUT.HOME": { actions: [{ assign: "setToMin" }] },
@@ -298,18 +254,8 @@ const config = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// The arithmetic — Zag's number helpers, kept local so the port has no
-// dependency on the packages it replaces.
-// ---------------------------------------------------------------------------
-
-/**
- * `parseValue` with no format options: the platform's own parse. `Infinity`
- * is finite-checked away, so `parseValue("nope")` is NaN.
- */
 export const parseValue = (raw: string): number => Number.parseFloat(raw);
 
-/** `formatValue`: the absent value is the empty string. */
 export const formatValue = (value: number): string => (Number.isNaN(value) ? "" : value.toString());
 
 export const isValueWithinRange = (value: number, min: number, max: number): boolean => {
@@ -349,7 +295,6 @@ const clampValue = (value: number, min: number, max: number): number =>
 const outOfRange = (ctx: NumberInputContext): boolean =>
   !isValueWithinRange(parseValue(ctx.value), ctx.min, ctx.max);
 
-/** The whole value pipeline: parse, move, clamp, format. */
 function moved(
   ctx: NumberInputContext,
   event: NumberInputEvent,
@@ -414,10 +359,6 @@ const implementations = {
   },
 };
 
-/**
- * The number-input machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function numberInput(
   args: NumberInputArgs = {},
   authored: (name: string) => boolean = () => true,
@@ -427,13 +368,10 @@ export function numberInput(
     ...implementations,
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event, the
-     * machine decides, and the change reaches the host. A field without
-     * one is SILENT: the host's write lands in the field, and nothing
-     * reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       value: {},

@@ -16,17 +16,12 @@ import {
 } from "./date-input.machine.ts";
 
 /**
- * Date-input definition: the DOM contract as data. The machine holds the
- * fields and the active segment; this file maps props to channels, parts
- * to attribute bags, commands to sends, and value transitions to their
- * event.
+ * Date-input definition: the DOM contract as data.
  *
- * Segments render through `Intl.DateTimeFormat.formatToParts`, which is
- * what decides the order for the locale — month-first in en-US, day-first
- * in en-GB — so the view never hardcodes an order. The machine's segment
- * list (`segmentFields`) is the canonical month/day/year order; the view
- * maps each formatted part back to its field. Literals (slashes, commas,
- * spaces) render as aria-hidden spans between the spinbuttons.
+ * Segments render through `Intl.DateTimeFormat.formatToParts`, which
+ * decides the order for the locale — month-first in en-US, day-first in
+ * en-GB. The machine's segment list (`segmentFields`) is the canonical
+ * order; the view maps each formatted part back to its field.
  */
 
 export type { DateInputValueChange, DateValue };
@@ -34,8 +29,6 @@ export type { DateInputValueChange, DateValue };
 export interface DateInputApi {
   readonly value: DateValue | null;
   readonly valueAsString: string;
-  /** Whether a segment holds DOM focus — the focused state, read for the
-   * host (and for tests) the way the pin-input reports it. */
   readonly focused: boolean;
   focus(): void;
   setValue(value: DateValue | null): void;
@@ -50,9 +43,7 @@ export interface DateInputApi {
 
 /** One rendered segment: a field the user edits, or a literal between them. */
 export interface DateSegmentView {
-  /** Position in the rendered row; unique, so the `for` keys on it. */
   readonly index: number;
-  /** Position among editable fields; -1 for literals. Bags key on this. */
   readonly fieldIndex: number;
   readonly field: DateInputField | null;
   readonly text: string;
@@ -69,7 +60,6 @@ const FIELD_LABELS: Readonly<Record<DateInputField, string>> = {
   dayPeriod: "AM/PM",
 };
 
-/** The text a segment shows: the field's value, or its placeholder. */
 export const segmentText = (field: DateInputField, value: number | null, hourCycle: 12 | 24): string => {
   if (value === null) return placeholderFor(field);
   switch (field) {
@@ -80,7 +70,6 @@ export const segmentText = (field: DateInputField, value: number | null, hourCyc
   }
 };
 
-/** The placeholder a segment shows for an empty field. */
 const placeholderFor = (field: DateInputField): string => {
   switch (field) {
     case "year": return "yyyy";
@@ -97,7 +86,6 @@ interface ScopeLike extends PartScope<unknown, DateInputContext> {}
 
 interface SlotLike<R> extends SlotScope<R, DateInputContext> {}
 
-/** An Intl part names its field; the probe date keeps every value distinct. */
 const partToField = (type: string, hourCycle: 12 | 24): DateInputField | null => {
   switch (type) {
     case "year": return "year";
@@ -112,8 +100,8 @@ const partToField = (type: string, hourCycle: 12 | 24): DateInputField | null =>
 };
 
 /** The formatter is the locale's segment order: format a known date and
- * read the parts back. `formatToParts` on January 22 gives every part a
- * distinct shape, so each part maps to exactly one field. */
+ * read the parts back. January 22 gives every part a distinct shape, so
+ * each part maps to exactly one field. */
 const orderFields = (granularity: DateGranularity, hourCycle: 12 | 24): readonly DateInputField[] => {
   const fields = segmentFields(granularity);
   try {
@@ -177,8 +165,7 @@ const handlersFor = (scope: ScopeLike, index: number): SegmentHandlers => {
       const key = event.key;
       if (key.length === 1) {
         // Printable characters flow through `beforeinput`, which carries
-        // the composed text on mobile — but a keydown without one (a
-        // test, a password manager) still types.
+        // the composed text on mobile; a keydown without one still types.
         return;
       }
       switch (key) {
@@ -213,8 +200,7 @@ const handlersFor = (scope: ScopeLike, index: number): SegmentHandlers => {
       }
     },
     onBeforeInput: (event: InputEvent): void => {
-      // `data` is on the spec but missing from lib.dom's InputEvent —
-      // read it structurally, the way the webkit path reads.
+      // `data` is on the spec but missing from lib.dom's InputEvent.
       const data: unknown = "data" in event ? event.data : undefined;
       if (typeof data !== "string" || data.length === 0) return;
       event.preventDefault();
@@ -240,8 +226,6 @@ const hourCycleOf = (props: Record<string, unknown>, fallback: 12 | 24): 12 | 24
   return raw === 24 ? 24 : raw === 12 ? raw : fallback;
 };
 
-/** A date value off the host: the six fields name themselves, anything
- * else is not a value. */
 const isDateValue = (raw: unknown): raw is DateValue => {
   if (!isRecord(raw)) return false;
   return ["year", "month", "day", "hour", "minute", "second"].every((key) => {
@@ -256,15 +240,13 @@ const isIdFn = (id: unknown): id is IdFn =>
 
 const fallbackId: IdFn = () => "";
 
-/** A segment index off the recipe: numbers pass, everything else is -1. */
 const segmentIndexOf = (arg: unknown): number =>
   typeof arg === "number" && Number.isInteger(arg) && arg >= 0 ? arg : -1;
 
 /** Stable holders the for-rows close over: the text effect a row compiles
  * reads `row.text` off the render-time object, so a fresh object per read
- * would freeze every segment at its first text. Rewritten in place (like
- * the carousel readout); the array is fresh each read so the `for` still
- * syncs and bumps the rows. */
+ * would freeze every segment at its first text. Rewritten in place; the
+ * array is fresh each read so the `for` still syncs and bumps the rows. */
 const holdersByBridge = new WeakMap<IdFn, Map<number, { text: string; placeholder: boolean }>>();
 const holdersOf = (id: IdFn): Map<number, { text: string; placeholder: boolean }> => {
   let holders = holdersByBridge.get(id);
@@ -277,11 +259,7 @@ const holdersOf = (id: IdFn): Map<number, { text: string; placeholder: boolean }
 
 const def: ComponentDef<DateInputContext, DateInputEvent> = {
   name: "date-input",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => dateInputMachine(props as DateInputArgs, authored),
-  // The active segment moved → the segment it names takes DOM focus.
   settled: ({ before, after, focus }) => {
     const was = before.context.activeSegment;
     const at = after.context.activeSegment;

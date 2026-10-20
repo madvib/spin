@@ -6,8 +6,8 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-cascade-select.html";
 
+import "./spin-cascade-select.html";
 interface CascadeElement extends HTMLElement {
   /** The tree crosses as JSON text: the scope grammar has no recursive type. */
   collection?: string;

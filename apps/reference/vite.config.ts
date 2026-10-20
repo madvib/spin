@@ -17,7 +17,7 @@ const here = import.meta.dirname!;
 
 export default defineConfig({
   plugins: [
-    spinElements({}),
+    spinElements({ machines: resolve(here, "../../packages/components/src") }),
     solid(),
     spin.vite({
       // No `themes`: the project owns them. `spin/*.json` at this root —

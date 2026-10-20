@@ -15,19 +15,7 @@ import {
   type SelectRow,
 } from "./select.machine.ts";
 
-/**
- * Select definition: the DOM contract as data. The machine owns idle /
- * focused / open, the selection, the highlight, and the inline completion;
- * this file maps props to channels, parts to attribute bags, commands to
- * sends, and value/highlight/open/select transitions to their events.
- * Navigation (arrows, Home, End, typeahead) sends events the machine walks
- * against its synced order — the machine walks data here, unlike the
- * combobox, because the closed trigger holds no rows of its own.
- * The collection parses once per prop identity: row objects are stable, so
- * the `for` bindings never re-stamp.
- */
-
-// SelectRow is defined in select.machine.ts and re-exported below.
+/** Select definition: the DOM contract as data. */
 
 export interface SelectItemState {
   readonly selected: boolean;
@@ -77,9 +65,7 @@ export interface SelectApi {
   close(): void;
   toggle(): void;
   focus(): void;
-  /** The collection, for the recipe's row iteration. */
   getRows(): readonly SelectRow[];
-  /** The selected rows, for the trigger's value text. */
   getSelectedRows(): readonly SelectRow[];
   getItemState(row: SelectRow): SelectItemState;
   getRootProps(): Record<string, unknown>;
@@ -98,11 +84,10 @@ export interface SelectApi {
   getHiddenSelectProps(): Record<string, unknown>;
 }
 
-// parseKeys/nullableProp removed: transport owns coercion.
 const sameKeys = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
-/** Why the panel opened or closed. The prop channel carries no `src`, so
+/** Why the panel opened or closed: the prop channel carries no `src`, so
  * the event that produced the move names the reason. */
 const OPEN_REASON: Record<string, string> = {
   "TRIGGER.CLICK": "trigger-click",
@@ -145,7 +130,7 @@ const orderOf = (parsed: Record<string, unknown>): string[] =>
 const labelsOf = (parsed: Record<string, unknown>): Record<string, string> =>
   Object.fromEntries(rowsOf(parsed).map((row) => [row.value, row.label]));
 
-/** Zag's `getEventKey`: the only thing `dir` changes is the arrow mapping. */
+/** The only thing `dir` changes is the arrow mapping. */
 const resolveKey = (event: KeyboardEvent, dir: string): string => {
   if (dir !== "rtl") return event.key;
   if (event.key === "ArrowLeft") return "ArrowRight";
@@ -269,8 +254,7 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     case "Enter": {
       event.preventDefault();
       // The content's Enter picks the highlight, exactly as the click
-      // does: the event carries the row so the click path and the key
-      // path agree.
+      // does: the event carries the row.
       const picked = scope.context.highlightedValue;
       if (picked !== null) {
         scope.send({ type: "ITEM.CLICK", value: picked });
@@ -286,9 +270,6 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<SelectContext, SelectEvent> = {
   name: "select",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => selectMachine(props as SelectArgs, authored),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
@@ -447,8 +428,8 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
       attrs: (scope) => {
         const ctx = scope.context;
         const open = scope.state === "open";
-        // The activedescendant is the highlighted row's id, or nothing
-        // when the highlight is empty: an id of `null` is not an id.
+        // The activedescendant is the highlighted row's id, or nothing when
+        // the highlight is empty.
         const activedescendant = ctx.highlightedValue === null
           ? undefined
           : scope.id("item", ctx.highlightedValue);
@@ -469,9 +450,9 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           "data-state": open ? "open" : "closed",
           onKeyDown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
           // The reflexes, as actions: the outside press and Escape
-          // dismiss, the highlighted row stays scrolled into view. The
-          // trigger is this component's own gesture, so a press on it
-          // toggles, not dismisses.
+          // dismiss, the highlighted row stays scrolled into view. A press
+          // on the trigger is this component's own gesture, so it toggles,
+          // not dismisses.
           "use:dismissable": {
             onOutside: (event: PointerEvent): void => {
               const target = event.target;
@@ -534,12 +515,10 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           required: scope.props["required"],
           multiple: scope.props["multiple"] === true,
           "data-state": "hidden",
-          // The options cannot be templated inside a `<select>` (the
-          // parser drops it), so the action builds them from the
-          // collection, and the form's reset reads them back through
-          // form-control. The entry is a thunk because a plain object is
-          // evaluated once at attach and the action would never see a
-          // later selection.
+          // The options cannot be templated inside a `<select>` (the parser
+          // drops it), so the action builds them from the collection. The
+          // entry is a thunk because a plain object is evaluated once at
+          // attach and the action would never see a later selection.
           "use:select-options": () => ({
             rows: rowsOf(scope.props),
             value: [...ctx.value],
@@ -548,7 +527,7 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
           "use:form-control": {
             onDisabledChange: (): void => {
               // The fieldset's disabled state is reported to the host
-              // through the element; the machine's own `disabled` prop is
+              // through the element; the machine's `disabled` prop is
               // unaffected.
             },
           },
@@ -748,5 +727,3 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
 
 export const select = defineComponent<SelectContext, SelectEvent, SelectApi>(def);
 export type { SelectRow } from "./select.machine.ts";
-
-// types already exported above.

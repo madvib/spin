@@ -26,12 +26,9 @@ export interface TagsTranslations {
 }
 
 /**
- * Tags-input definition: the DOM contract as data. The machine owns the
- * four states, the value list, the input text, the highlight, and the edit
- * model; this file maps props to channels, parts to attribute bags, commands
- * to sends, and value/input/highlight/invalid transitions to their events.
- * Rows are occurrence-keyed (duplicate values render twice); the live region
- * announces the mutation log by swapping its node.
+ * Tags-input definition: the DOM contract as data.
+ *
+ * Rows are occurrence-keyed: duplicate values render twice.
  */
 
 export type {
@@ -127,17 +124,14 @@ const windowFocused = (): boolean => {
 const textOf = (raw: unknown, fallback = ""): string =>
   typeof raw === "string" ? raw : fallback;
 
-/** A host callback prop: called with the event when the host provided a
- * function, ignored otherwise. */
 const callHostFn = (fn: unknown, event: PointerEvent | FocusEvent): void => {
   if (!isHostFn(fn)) return;
   fn(event);
 };
 
 /** Whether the caret sits at the start of the entry field: arrows and
- * delete then move between tags instead of text. Reads the event's own
- * target, falling back to the entry input in the owned root (a synthetic
- * event carries no target, and the real one always does). */
+ * delete then move between tags instead of text. Falls back to the entry
+ * input in the owned root, since a synthetic event carries no target. */
 const caretAtStart = (scope: ScopeLike, target: EventTarget | null): boolean => {
   const at = (node: unknown): boolean => {
     if (!isRecord(node)) return false;
@@ -149,10 +143,9 @@ const caretAtStart = (scope: ScopeLike, target: EventTarget | null): boolean => 
   return at(host.querySelector(`[id="${scope.id("input")}"]`));
 };
 
-/** Host behavioral props live on the element itself, not the scope:
- * the scope grammar has no function type, so sanitizers, validators,
- * translations and outside-handlers ride as element properties. Read
- * through the owned root, never the global document. */
+/** Host behavioral props live on the element, not the scope: the scope
+ * grammar has no function type. Read through the owned root, never the
+ * global document. */
 const hostProp = (scope: HostScope, name: string): unknown => {
   const root: unknown = scope.root();
   if (!isRecord(root)) return undefined;
@@ -214,11 +207,9 @@ interface ScopeLike extends PartScope<unknown, TagsContext> {}
 interface SlotLike<R> extends SlotScope<R, TagsContext> {}
 
 /**
- * One row object per logical tag, reused across value changes. A `for`
- * cell holds the row it captured at render time, so a rebuilt object would
- * leave a surviving cell rendering the previous tag's state. Memoized on
- * the value array's identity — shared across bridges only for identical
- * collections, where sharing is correct.
+ * One row object per logical tag, reused across value changes: a `for` cell
+ * holds the row it captured, so a rebuilt object would leave it rendering
+ * the previous tag's state. Memoized on the value array's identity.
  */
 const rowsCache = new WeakMap<readonly string[], readonly TagsRow[]>();
 const rowsOf = (value: readonly string[]): readonly TagsRow[] => {
@@ -238,7 +229,6 @@ const rowsOf = (value: readonly string[]): readonly TagsRow[] => {
 const tagIdOf = (id: (part: string, slot?: unknown) => string, row: TagsRow): string =>
   `${id("tag")}:${row.value}:${row.occurrence}`;
 
-/** A row off the host: occurrence-keyed, well-shaped only. */
 const rowOf = (arg: unknown): TagsRow => {
   if (!isRecord(arg)) return { value: "", occurrence: 0 };
   const value: unknown = arg["value"];
@@ -280,8 +270,8 @@ const itemStateOf = (
 const stateOf = (scope: ScopeLike, row: TagsRow): TagsItemState =>
   itemStateOf(scope.context, scope.state, scope.props["disabled"] === true, scope.id, row);
 
-/** Whether a node belongs to a tag part: the exclusion that keeps a press
- * on a tag from reading as a press outside the input. */
+/** Whether a node belongs to a tag part, so a press on a tag is not read
+ * as a press outside the input. */
 const withinTag = (scope: ScopeLike, node: unknown): boolean => {
   if (!(node instanceof Element)) return false;
   const host = scope.root();
@@ -295,8 +285,6 @@ const withinTag = (scope: ScopeLike, node: unknown): boolean => {
   return false;
 };
 
-/** Zag's `invalid = prop("invalid") || computed("isOverflowing")`: one
- * derived boolean flowing to root, control, label and input alike. */
 const invalidOf = (scope: ScopeLike): boolean => {
   const context = scope.context;
   return scope.props["invalid"] === true || context.value.length > context.max;
@@ -304,8 +292,8 @@ const invalidOf = (scope: ScopeLike): boolean => {
 
 /** Row handlers, built once per row per bridge: the scope reads live
  * through proxies, so a cached closure never goes stale. Keyed by the
- * bridge's own send fn first, so two bridges sharing one collection
- * identity never share handlers. */
+ * bridge's own send fn, so two bridges sharing one collection never share
+ * handlers. */
 type TagHandlerSet = {
   readonly onPointerDown: (event: PointerEvent) => void;
   readonly onDblclick: () => void;
@@ -349,9 +337,9 @@ const tagHandlers = (scope: ScopeLike, row: TagsRow): TagHandlerSet => {
       if (index === -1) return;
       scope.send({ type: "CLICK_DELETE_TAG", index });
     },
-    // The delete trigger is inside the preview: pressing it must not
-    // also highlight the tag. Its only job when inert is to swallow the
-    // press so the click that follows never fires.
+    // The delete trigger is inside the preview: pressing it must not also
+    // highlight the tag. When inert it only swallows the press, so the
+    // click that follows never fires.
     onDeletePointerDown: (event: PointerEvent): void => {
       if (event.button !== 0) return;
       const context = scope.context;
@@ -387,30 +375,22 @@ const message = (log: TagsLog, prev: TagsLog | null, t: TagsTranslations): strin
   }
 };
 
-/**
- * Announced by swapping the region node for a fresh clone carrying the
- * text: a new node in the live tree is a mutation a screen reader reads
- * even when the message repeats, which rewriting the same node's text
- * two writes deep in one task would not be.
- */
 type IdFn = (part: string, slot?: unknown) => string;
 
-/** Announced by swapping the region node for a fresh clone carrying
- * the text: a new node in the live tree is a mutation a screen reader
- * reads even when the message repeats, which rewriting the same node's
- * text two writes deep in one task would not be. Scoped to the owned
- * root — never the global document. */
+/** Announced by swapping the region node for a fresh clone: a new node in
+ * the live tree is a mutation a screen reader reads even when the message
+ * repeats, which rewriting the same node's text would not be. Scoped to
+ * the owned root — never the global document. */
 const rootByBridge = new WeakMap<IdFn, Element>();
 const rememberRoot = (id: IdFn, root: Element): void => {
   rootByBridge.set(id, root);
 };
 
-/** The raw host functions already wrapped into context, per bridge: a
- * wrapper is fresh per sync, so the check is against the raw fn. */
 /** Sync the element's host functions into context, silently and pre-send:
  * commands run before their event transmits, so assigns read fresh host
  * behavior on the very send that needs it. Bag sends sync in settled
- * instead (post-send, silent) — one send behind, which beats never. */
+ * instead (post-send, silent) — one send behind, which beats never. The
+ * check is against the raw fn: a wrapper is fresh per sync. */
 const syncHostFns = (context: TagsContext, id: (part: string, slot?: unknown) => string): void => {
   const root = rootByBridge.get(id);
   if (root === undefined) return;
@@ -453,8 +433,8 @@ const announce = (
   log: TagsLog,
   prev: TagsLog | null,
 ): void => {
-  // The id carries colons, invalid in an id selector, so the attribute
-  // form matches it exactly.
+  // The id carries colons, invalid in an id selector, so the attribute form
+  // matches it exactly.
   const region = root.querySelector(`[id="${regionId}"]`);
   if (region === null || region.parentNode === null) return;
   const fresh = region.cloneNode(false);
@@ -462,7 +442,6 @@ const announce = (
   region.replaceWith(fresh);
 };
 
-/** The blur behavior's two flags: `add` commits, `clear` empties. */
 const blurBehaviorOf = (
   value: unknown,
   authored: boolean,
@@ -473,18 +452,8 @@ const blurBehaviorOf = (
 
 const def: ComponentDef<TagsContext, TagsEvent> = {
   name: "tags-input",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => tagsMachine(props as TagsArgs, authored),
   start: (raw) => (raw["autoFocus"] === true ? "focused:input" : "idle"),
-  /**
-   * The derived syncs: the tag list and the entry text are the host's own
-   * channels, so they alternate silently — a host write lands in the
-   * context and nothing reports. The element keeps the shaped values in
-   * step with the raw props, and the blur behavior's two flags follow the
-   * one prop they come from.
-   */
   reconcile: ({ context, parsed, authored }) => {
     let moved = false;
     const input = parsed["inputValue"];
@@ -503,8 +472,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       context.clearOnBlur = behavior.clearOnBlur;
       moved = true;
     }
-    // A silent write changes the context without a send, so the bags
-    // that read it through a snapshot need the invalidation bus.
+    // A silent write changes the context without a send, so the bags that
+    // read it through a snapshot need the invalidation bus.
     if (moved) machineTick(machineTick() + 1);
     return moved;
   },
@@ -517,15 +486,12 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
 
   settled: ({ event, before, after, props, root, id, focus }) => {
     rememberRoot(id, root());
-    // Host functions ride the element, not the scope: bag sends sync
-    // them here, where the root is in hand (one send behind, silent),
-    // and command sends sync pre-send in their shapers (exact).
     syncHostFns(after.context, id);
     if (before.context.log !== after.context.log && after.context.log !== null) {
       announce(root(), id("liveRegion"), translationsOf({ props, root }), after.context.log, after.context.logPrev);
     }
-    // A rename opening takes the edit input: its id appends `:input` to
-    // its tag id, which the slot path expresses as one more segment.
+    // A rename opening takes the edit input: its id appends `:input` to its
+    // tag id, which the slot path expresses as one more segment.
     if (
       after.state === "editing:tag" &&
       before.state !== "editing:tag" &&
@@ -535,7 +501,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       if (row !== undefined) focus("tag", `${row.value}:${row.occurrence}:input`);
       return;
     }
-    // Tag gestures return focus to the entry input.
     if (
       event.type === "POINTER_DOWN_TAG" ||
       event.type === "CLICK_DELETE_TAG" ||
@@ -551,9 +516,9 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   parts: {
     root: {
       id: "",
-      // The overflow is part of the signature: a list that grows past the
-      // cap does not change its emptiness, and the root has to learn it
-      // went invalid.
+      // The overflow is part of the signature: a list that grows past the cap
+      // does not change its emptiness, and the root has to learn it went
+      // invalid.
       sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.context.value.length === 0, invalidOf(scope), scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id(""),
@@ -648,9 +613,9 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
             const host = scope.root();
             const input = host.querySelector(`[id="${scope.id("input")}"]`);
             const related: unknown = event.relatedTarget;
-            // A null target is a label-click blur when the window holds
-            // focus, and a window blur when it does not — the platform
-            // owns that distinction, read here, once.
+            // A null target is a label-click blur when the window holds focus,
+            // and a window blur when it does not — the platform owns that
+            // distinction, read here, once.
             if ((related === null || related === undefined) && !windowFocused()) return;
             if (related !== null && related !== undefined && !(related instanceof Node)) return;
             const node: Node | null = related === null || related === undefined ? null : related;
@@ -730,9 +695,9 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
         "data-scope": "tags-input",
         "data-part": "hidden-input",
           value: context.value.join(", "),
-          // Zag's trackFormControl: a form reset returns the tags to the
-          // seeded value. The rest of that effect (fieldset disabled) has
-          // no consumer in this machine — the api's `disabled` is the prop.
+          // Zag's trackFormControl: a form reset returns the tags to the seeded
+          // value. The rest of that effect (fieldset disabled) has no
+          // consumer here — the api's `disabled` is the prop.
           "use:form-control": {
             onFormReset: () => {
               const seed = stringsOf(scope.props["defaultValue"]);
@@ -957,8 +922,8 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
             return { type: "CLEAR_TAG", index: indexOfRow(ctx, row) };
           }
         }
-        // An unknown id is a no-op: the machine's delete ignores a
-        // missing index, so this lands as a silent clear of nothing.
+        // An unknown id is a no-op: the delete lands on index -1, which the
+        // machine ignores.
         return { type: "CLEAR_TAG", index: -1 };
       },
     },
@@ -1070,4 +1035,4 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   },
 };
 
-export const tagsInput = defineComponent<TagsContext, TagsEvent, TagsApi>(def);
+export const tags = defineComponent<TagsContext, TagsEvent, TagsApi>(def);

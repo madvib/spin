@@ -11,16 +11,8 @@ import {
 } from "./floating-panel.machine.ts";
 
 /**
- * Floating-panel definition: the DOM contract as data. The machine owns
- * the modes (closed/open/dragging/resizing), the stage, and the clamped
- * position and size; this file maps props to channels, parts to attribute
- * bags, commands to sends, and open/size/position/stage transitions to
- * their events.
- *
- * Everything that needs the DOM lives here: the drag and resize handles
- * (the `drag` action reports deltas), the boundary the position clamps to
- * (measured once and on resize), and the position/size reported through
- * the geometry channel as custom properties.
+ * Floating-panel definition: the DOM contract as data. This file maps props
+ * to channels, parts to attribute bags, and commands to sends.
  *
  * A drag never reads the boundary per move: the machine clamps against a
  * size measured at open, so the gesture stays honest while the window
@@ -30,12 +22,10 @@ import {
 export type { FloatingPanelSize, FloatingPanelStage };
 
 export interface FloatingPanelApi {
-  /** Whether the panel is open; the reactive channel is open-change. */
   readonly isOpen: boolean;
   readonly stage: FloatingPanelStage;
   readonly position: { readonly x: number; readonly y: number };
   readonly size: FloatingPanelSize;
-  /** The machine's state: closed, open, dragging, or resizing. */
   readonly state: string;
   setOpen(): void;
   close(): void;
@@ -46,13 +36,6 @@ export interface FloatingPanelApi {
   getPositionerProps(): Record<string, unknown>;
   getContentProps(): Record<string, unknown>;
   getDragTriggerProps(): Record<string, unknown>;
-  /**
-   * One trigger per stage, ark's shape: `{ stage: "minimized" |
-   * "maximized" | "default" }`. "default" addresses the restored
-   * geometry. A trigger hides itself (the `hidden` attribute) when it
-   * is not the move: minimize/maximize hide while staged, restore
-   * hides while restored.
-   */
   getStageTriggerProps(options: FloatingPanelStageTrigger): Record<string, unknown>;
   getResizeTriggerProps(edge: ResizeEdge): Record<string, unknown>;
   getCloseTriggerProps(): Record<string, unknown>;
@@ -64,7 +47,6 @@ export interface FloatingPanelStageTrigger {
   readonly stage: "minimized" | "maximized" | "default";
 }
 
-/** The eight resize handles, by their axis signs. */
 export type ResizeEdge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
 const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 }>> = {
@@ -78,14 +60,12 @@ const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -
   sw: { x: -1, y: 1 },
 };
 
-/** A stage-trigger arg: ark's three stages, defaulting to restore. */
 const stageOf = (arg: unknown): FloatingPanelStageTrigger["stage"] => {
   if (!isRecord(arg)) return "default";
   const stage: unknown = arg["stage"];
   return stage === "minimized" || stage === "maximized" ? stage : "default";
 };
 
-/** A resize edge off the recipe: the eight handles, defaulting to se. */
 const isEdge = (arg: unknown): arg is ResizeEdge =>
   typeof arg === "string" && (Object.keys(EDGES) as readonly string[]).includes(arg);
 
@@ -131,7 +111,6 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
   return made;
 };
 
-/** The geometry bag: the panel reads position and size as data. */
 const geometryStyle = (scope: ScopeLike): Record<string, string> => {
   const at = scope.context;
   return {
@@ -144,16 +123,13 @@ const geometryStyle = (scope: ScopeLike): Record<string, string> => {
 
 const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   name: "floating-panel",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => floatingPanelMachine(props as FloatingPanelArgs, authored),
   start: (raw, authored) => (startOpen(raw, authored) ? "open" : "closed"),
   reconcile: ({ context, state, parsed, authored, send }) => {
-    // The stage and the open fact are STATE channels: the stage's three
-    // moves and the panel's two are separate events, and the contract
-    // carries one event per field. So they stay here; the size, which is
-    // one event, is the machine's contract.
+    // The stage and the open fact are STATE channels: their moves are
+    // separate events and the contract carries one event per field, so
+    // they are reconciled here; the size, which is one event, is the
+    // machine's contract.
     if (authored("stage")) {
       const stage: unknown = parsed["stage"];
       const outer = stage === "minimized" || stage === "maximized" || stage === "restored" ? stage : null;

@@ -1,16 +1,8 @@
 /**
  * Angle-slider machine: idle/focused/dragging over Zag's three states.
  *
- * A circular slider: the value is degrees 0..359, the pointer maps through
- * polar angle around the control center, and the thumb drags relative with
- * a grab offset. The angle math is Zag's own `angle-slider.utils`
- * (atan2 around the center, RTL mirror, step snap) vendored below —
- * @zag-js/rect-utils' getPointAngle is ten lines of atan2, vendored with
- * it. The machine owns no math of its own.
- *
- * Context stays serializable for the scope channel: the value, the step,
- * the grab offset, the direction. Guards sit where Zag put them: keyboard
- * only drives a focused slider, a drag release lands in focus.
+ * The angle math is Zag's own, vendored below (atan2 around the center, RTL
+ * mirror, step snap). Context stays serializable for the scope channel.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -28,8 +20,7 @@ export interface AngleSliderContext {
   readOnly: boolean;
   invalid: boolean;
   /** The grab offset in degrees: raw click angle minus value at press.
-   * Refs in Zag, plain context here because the fork has no ref tier and
-   * it is a value. */
+   * Zag keeps it in a ref; the fork has no ref tier, so it is a value. */
   dragOffset: number | null;
 }
 
@@ -59,32 +50,18 @@ export function isInteractive(ctx: AngleSliderContext): boolean {
 
 /**
  * The angle-slider's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
  */
 export interface AngleSliderArgs {
-  /** The value, as the host wrote it. */
   value?: string;
-  /** The step grid the dial snaps to. */
   step?: string;
-  /** The step grid the shift-key steps snap to. */
   largeStep?: string;
-  /** The direction of the dial. */
   dir?: string;
-  /** Whether the slider is disabled. */
   disabled?: boolean;
-  /** Whether the slider is read-only. */
   readOnly?: boolean;
-  /** Whether the slider is invalid. */
   invalid?: boolean;
   defaultInvalid?: boolean;
 }
 
-/** A numeric prop: numbers pass, numeric strings parse, everything else
- * absent. Named once; transport owns the grammar. */
 const asCount = (raw: unknown): number | null => {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
   if (typeof raw === "string" && raw.trim().length > 0) {
@@ -94,15 +71,8 @@ const asCount = (raw: unknown): number | null => {
   return null;
 };
 
-/**
- * The machine's context: the value, the step grid, the flags, and the
- * grab offset the drag holds.
- */
 export function initial(args: AngleSliderArgs, authored: (name: string) => boolean): AngleSliderContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const step = written("step") ? (asCount(args.step) ?? 1) : 1;
@@ -118,13 +88,12 @@ export function initial(args: AngleSliderArgs, authored: (name: string) => boole
   };
 }
 
-/** Zag's mirrorAngle: RTL mirrors the dial. */
 function mirrorAngle(angle: number): number {
   return (360 - angle) % 360;
 }
 
 /** @zag-js/rect-utils' getPointAngle, vendored: degrees around the center,
- * zero at the top, clockwise. Ten lines of atan2. */
+ * zero at the top, clockwise. */
 export function pointAngle(
   centerX: number,
   centerY: number,
@@ -137,8 +106,7 @@ export function pointAngle(
   return 360 - deg;
 }
 
-/** Zag's getAngle: the raw pointer angle, offset for relative thumb drags,
- * mirrored in RTL. */
+/** Zag's getAngle: the raw pointer angle, offset for relative thumb drags. */
 export function pointerAngle(
   centerX: number,
   centerY: number,
@@ -152,9 +120,8 @@ export function pointerAngle(
   return dir === "rtl" ? mirrorAngle(angle) : angle;
 }
 
-/** Zag's getPointerValue, pure half: the connect measures the raw pointer
- * angle off the control node; with a grab offset the dial turns relative
- * to the grab, without one it jumps to the pointer. */
+/** Zag's getPointerValue, pure half: with a grab offset the dial turns
+ * relative to the grab, without one it jumps to the pointer. */
 export function resolveValue(
   rawAngle: number,
   angularOffset: number | null,
@@ -168,7 +135,6 @@ export function resolveValue(
   return dir === "rtl" ? value + clickAngle - rawAngle : rawAngle - angularOffset;
 }
 
-/** Zag's display angle: the dial mirrors in RTL. */
 export function displayAngle(value: number, dir: "ltr" | "rtl"): number {
   return dir === "rtl" ? mirrorAngle(value) : value;
 }
@@ -187,7 +153,6 @@ export function constrainAngle(degree: number, step: number): number {
     : nearest * step;
 }
 
-/** Zag's snapAngleToStep: shift-aware keyboard steps snap to the grid. */
 export function snapAngle(value: number, step: number): number {
   const min = MIN_VALUE;
   const max = MAX_VALUE;
@@ -249,8 +214,6 @@ const implementations = {
     setValue: (ctx: AngleSliderContext, event: AngleSliderEvent): Partial<AngleSliderContext> => {
       if (event.type !== "VALUE.SET") return {};
       void ctx;
-      // The value arrives the way the host wrote it; the machine shapes
-      // it, wherever it came from.
       const value = asCount(event.value);
       if (value === null) return {};
       return { value: clampAngle(value) };
@@ -261,8 +224,8 @@ const implementations = {
       return { dragOffset: event.angularOffset };
     },
     clearDragOffset: (): Partial<AngleSliderContext> => ({ dragOffset: null }),
-    // The pointer path: the dial jumps to the pointer, or turns relative
-    // to the grab when the press started on the thumb.
+    // The dial jumps to the pointer, or turns relative to the grab when the
+    // press started on the thumb.
     setPointerValue: (
       ctx: AngleSliderContext,
       event: AngleSliderEvent,
@@ -318,10 +281,6 @@ const implementations = {
   },
 };
 
-/**
- * The angle-slider machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function angleSlider(
   args: AngleSliderArgs = {},
   authored: (name: string) => boolean,
@@ -330,15 +289,6 @@ export function angleSlider(
     ...config,
     context: initial(args, authored),
     ...implementations,
-    /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     */
     fields: {
       value: { event: "VALUE.SET" },
       step: {},

@@ -21,14 +21,7 @@ import {
   type SplitterResizeDetails,
 } from "./splitter.machine.ts";
 
-/**
- * Splitter bindings: the DOM contract as data. The machine owns the four
- * phases, the percent sizes, the drag snapshot and the collapse memory;
- * this file maps parts to attribute bags and commands to sends.
- * Pointer-to-percent measurement reports through
- * `scope.measure` (the framework resolves the node; defs never query).
- * Pointer capture uses a guarded helper, never a cast.
- */
+/** Splitter bindings: the DOM contract as data. */
 
 export type { SplitterResizeDetails };
 
@@ -110,9 +103,8 @@ const itemsOf = (panels: readonly SplitterPanel[]): readonly SplitterItem[] => {
   return built;
 };
 
-/** A client point as a group percent, measured off the root node through
- * the framework focuser: defs never query the DOM. Returns null when the
- * root is not laid out yet (measure is honest about that). */
+/** A client point as a group percent, measured off the root node.
+ * Returns null when the root is not laid out yet. */
 const groupPercent = (scope: ScopeLike, clientX: number, clientY: number): number | null => {
   const rect = scope.measure("");
   if (rect === null) return null;
@@ -134,8 +126,7 @@ const capturePointer = (target: EventTarget | null, pointerId: number): void => 
 };
 
 /** Handle handlers, cached per bridge by handle id: the scope reads live
- * through proxies, so a cached closure never goes stale — while the bag
- * rebuild still re-spreads fresh attributes around them. */
+ * through proxies, so a cached closure never goes stale. */
 interface HandleHandlers {
   readonly onPointerdown: (event: PointerEvent) => void;
   readonly onPointermove: (event: PointerEvent) => void;
@@ -344,13 +335,9 @@ const indicatorSig = (scope: ScopeLike, beforeId: string, afterId: string): stri
 
 const def: ComponentDef<SplitterContext, SplitterEvent> = {
   name: "splitter",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => splitterMachine(props as SplitterArgs, authored),
-  // The derived half of the old sync stays: the sizes follow the tree, so
-  // the machine never sees a tree it cannot lay out. The tree itself
-  // arrives as the machine's own event — the contract says so.
+  // The sizes follow the tree, so the machine never sees a tree it cannot
+  // lay out.
   reconcile: ({ context }) => {
     let next: number[];
     try {
@@ -554,7 +541,7 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
       detail: (watched: readonly number[]) => { const handleId: string | null = null; return { size: [...watched], handleId }; },
       // A commit with no size move still ends the gesture (the watch
       // alone would swallow it); an empty layout is not a resize anyone
-      // made. RESET_SIZE resizes without ending — it is not in the set.
+      // made.
       select: (event, _before, after: SplitterContext) => {
         if (!COMMIT_TYPES.has(event.type)) return null;
         const ctx = after;

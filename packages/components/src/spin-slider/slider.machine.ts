@@ -1,20 +1,4 @@
-/**
- * Slider machine: idle/focus/dragging over Zag's three states.
- *
- * The value math is Zag's pure `@zag-js/utils` number module (imported
- * directly — no DOM in that module, only scalars); the thumb-collision
- * resolution is Zag's own `slider.utils`, vendored below because it calls
- * back into those same scalars. The machine owns no math of its own.
- *
- * Context stays serializable for the scope channel: values, the focused
- * index, and the scalars the assigns read. Guards sit where Zag put them:
- * SET_VALUE with an index constrains the one thumb, keyboard only drives
- * a focused slider, a drag release lands in focus, a cancel lands in idle.
- *
- * The machine is a FACTORY over the element's props: it builds its own
- * context from the arguments it wants, and it declares its contract — the
- * context fields a host may write, and the event each write carries.
- */
+/** Slider machine: idle/focus/dragging over Zag's three states. */
 
 import {
   clampValue,
@@ -31,7 +15,6 @@ import { createMachine, type Machine } from "@spin/runtime/fsm";
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
 
 export interface SliderContext {
-  /** The thumb values, in order. */
   value: number[];
   focusedIndex: number;
   min: number;
@@ -45,15 +28,12 @@ export interface SliderContext {
   disabled: boolean;
   readOnly: boolean;
   invalid: boolean;
-  /** The pointer grab offset from the thumb center. Refs in Zag, plain
-   * context here because the fork has no ref tier and it is a value. */
+  /** The pointer grab offset from the thumb center. */
   dragOffset: number | null;
   /** The values when the drag started: swap compares against the grab. */
   dragStartValue: number[] | null;
-  /**
-   * Marker stops for the ticks/marks usages. View data, seeded from the
-   * `markers` prop; the machine never reads or writes it.
-   */
+  /** Marker stops for the ticks/marks usages: view data, seeded from the
+   * `markers` prop. */
   markers: number[];
 }
 
@@ -94,12 +74,10 @@ export function isInteractive(ctx: SliderContext): boolean {
   return !ctx.readOnly && !ctx.disabled;
 }
 
-/** Zag's valuePercent, pure: each thumb as a 0..1 fraction of the track. */
 export function valuePercent(ctx: SliderContext): number[] {
   return ctx.value.map((value) => getValuePercent(value, ctx.min, ctx.max) as number);
 }
 
-/** The per-thumb clamp window: neighbors plus the between-thumbs gap. */
 function rangeAt(ctx: SliderContext, index: number): { min: number; max: number } {
   const ranges = getValueRanges(
     ctx.value,
@@ -120,7 +98,6 @@ function normalizeAll(ctx: SliderContext, next: readonly number[]): number[] {
   return next.map((value, index) => constrain({ ...ctx, value: [...ctx.value] }, value, index));
 }
 
-/** Zag's single-thumb fast path: no collision possible. */
 function resolveNone(
   index: number,
   value: number,
@@ -162,7 +139,7 @@ function handlePush(
   return { values: next.map((v) => clampValue(v, min, max) as number), index, swapped: false };
 }
 
-/** Zag's getClosestIndex, pure: later thumbs win ties. */
+/** Later thumbs win ties. */
 export function closestIndex(values: readonly number[], pointValue: number): number {
   let closest = 0;
   let distance = Math.abs((values[0] ?? 0) - pointValue);
@@ -176,7 +153,7 @@ export function closestIndex(values: readonly number[], pointValue: number): num
   return closest;
 }
 
-/** Zag's selectMovableThumb: stacked thumbs at max move the first one. */
+/** Stacked thumbs at max move the first one. */
 export function movableIndex(values: readonly number[], index: number, max: number): number {
   if ((values[index] ?? 0) !== max) return index;
   let movable = index;
@@ -184,7 +161,6 @@ export function movableIndex(values: readonly number[], index: number, max: numb
   return movable;
 }
 
-/** The aria window the thumb reports: its clamp range. */
 export function thumbRange(
   ctx: SliderContext,
   index: number,
@@ -192,17 +168,13 @@ export function thumbRange(
   return rangeAt(ctx, index);
 }
 
-/** Percent of the track for one value: the geometry channel's input. */
 export function percentOf(ctx: SliderContext, value: number): number {
   return (getValuePercent(value, ctx.min, ctx.max) as number) * 100;
 }
 
-/** A track percent back to a stepped value: the pointer path's input. */
 export function valueOfPercent(ctx: SliderContext, percent: number): number {
   return getPercentValue(percent, ctx.min, ctx.max, ctx.step) as number;
 }
-
-/* -- The machine's own shapes: what a host wrote, made a value. -- */
 
 const numProp = (raw: unknown): number | null => {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
@@ -234,41 +206,27 @@ const valuesProp = (raw: unknown): number[] | null => {
 /**
  * The slider's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The twin (`defaultValue`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
  *
  * The wire types are the scope's own: the bounds are numbers, the rest
- * are the strings the scope declares. A scope prop is a string on the
- * way in, so the machine shapes every one of them.
+ * are the strings the scope declares.
  */
 export interface SliderArgs {
-  /** The thumb values, as the host wrote them. */
   value?: string;
-  /** The lower bound. */
   min?: number;
-  /** The upper bound. */
   max?: number;
-  /** The step grid. */
   step?: number;
   /** The coarse step (shift+arrow); absent means ten times the step. */
   largeStep?: string;
   /** The gap the thumbs keep, in steps. */
   minStepsBetweenThumbs?: string;
-  /** Where the range grows from. */
   origin?: string;
-  /** The axis the slider runs along. */
   orientation?: string;
-  /** What happens when the thumbs collide. */
   thumbCollisionBehavior?: string;
-  /** Whether the slider is disabled. */
   disabled?: boolean;
-  /** Whether the slider is read-only. */
   readOnly?: boolean;
-  /** Whether the slider's value is invalid. */
   invalid?: boolean;
-  /** The marker stops. */
   markers?: string;
   defaultInvalid?: boolean;
 }
@@ -277,18 +235,11 @@ export interface SliderArgs {
  * The machine's context, built from its arguments: what the args did not
  * carry takes the machine's own default.
  *
- * The value is a channel: the host's write, or the machine's own default.
- * The element's declared default is not a write, so it never stands in for
- * one. The seed twin (`defaultValue`) is the host's write of the value —
- * the framework resolved it into the args — so it counts as a write too.
- * The bounds, the behaviour flags and the markers are the element's own
- * data, as they are.
+ * The seed twin (`defaultValue`) is the host's write of the value — the
+ * framework resolved it into the args — so it counts as a write too.
  */
 export function initial(args: SliderArgs = {}, authored: (name: string) => boolean): SliderContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const min = numProp(args.min) ?? 0;
@@ -323,10 +274,6 @@ export function initial(args: SliderArgs = {}, authored: (name: string) => boole
   };
 }
 
-/**
- * The slider machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function slider(
   args: SliderArgs = {},
   authored: (name: string) => boolean,
@@ -336,13 +283,10 @@ export function slider(
     initial: "idle",
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       value: { event: "SET_VALUE" },
@@ -440,7 +384,7 @@ export function slider(
       setValue: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
         if (event.type !== "SET_VALUE") return {};
         // The values arrive the way the host wrote them; the machine
-        // shapes them, wherever they came from.
+        // shapes them.
         const values = valuesProp(event.value);
         if (values === null) return {};
         return { value: normalizeAll(ctx, values) };
@@ -516,8 +460,8 @@ export function slider(
       }),
       clearDragRefs: (): Partial<SliderContext> => ({ dragOffset: null, dragStartValue: null }),
       // The pointer path: closest thumb already chosen, collision resolved
-      // against the drag-start snapshot so a swap compares to where the
-      // thumbs were grabbed, not where they have drifted.
+      // against the drag-start snapshot, so a swap compares to where the
+      // thumbs were grabbed.
       setPointerValue: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
         if (event.type !== "POINTER_DOWN" && event.type !== "POINTER_MOVE") return {};
         if (ctx.thumbCollisionBehavior === "push") {

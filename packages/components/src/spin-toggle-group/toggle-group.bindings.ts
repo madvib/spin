@@ -11,12 +11,10 @@ import {
 } from "./toggle-group.machine.ts";
 
 /**
- * Toggle-group definition: the DOM contract as data. The machine owns the
- * two phases, the selection, the focused id, and the click/tab
- * disambiguation; this file maps props to scalars, parts to attribute bags,
- * commands to sends, and selection moves to their event. Neighbor resolution
- * runs against the item order in the view (the machine records the resolved
- * id, exactly as combobox arrows do); DOM focus moves are a reflex.
+ * Toggle-group definition: the DOM contract as data.
+ *
+ * Neighbor resolution lives here, against the enabled item order; the
+ * machine only records the resolved id.
  */
 
 export interface ToggleGroupApi {
@@ -39,7 +37,7 @@ interface SlotLike<R> extends SlotScope<R, ToggleGroupContext> {}
 
 export type { ToggleGroupItem, ToggleGroupValueChange };
 
-/** The view reflex: after a roving move the newly focused item takes DOM focus. */
+/** The view reflex: a roving move hands DOM focus to the focused item. */
 const focusItem = (scopeId: (part: string, slot?: unknown) => string, value: string): void => {
   focuser(scopeId)("item", value);
 };
@@ -49,7 +47,6 @@ const orderOf = (scope: ScopeLike<unknown, ToggleGroupContext> | SlotLike<Toggle
     (item: ToggleGroupItem) => !(item.disabled === true || scope.context.disabled),
   );
 
-/** Neighbor resolution against the enabled order, with loop wrap. */
 const neighbor = (scope: ScopeLike<unknown, ToggleGroupContext> | SlotLike<ToggleGroupItem>, value: string, direction: 1 | -1): string | null => {
   const enabled = orderOf(scope);
   const at = enabled.findIndex((item) => item.value === value);
@@ -64,9 +61,6 @@ const neighbor = (scope: ScopeLike<unknown, ToggleGroupContext> | SlotLike<Toggl
 
 const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   name: "toggle-group",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => toggleGroupMachine(props as ToggleGroupArgs, authored),
   start: "idle",
   parts: {

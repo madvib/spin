@@ -1,15 +1,5 @@
 /**
  * Toggle-group machine: idle/focused over Zag's two states.
- *
- * The selection is a value list with single-or-multiple semantics (single
- * deselects when deselectable); the focus is a roving id with loop, Tab
- * awareness, and click-vs-keyboard disambiguation. The machine holds the
- * selection and the focus model — the view moves DOM focus as a reflex.
- *
- * Context stays serializable for the scope channel: values, the focused
- * item id, and the scalars the assigns read. Guards sit where Zag put
- * them: root focus steals to the first item except on click-focus and
- * shift-tab; shift-tab on a non-first item drops back to idle.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -23,9 +13,7 @@ export interface ToggleGroupItem {
 
 export interface ToggleGroupContext {
   value: string[];
-  /** The shaped rows, supplied once at instantiation via `initial`. */
   items: readonly ToggleGroupItem[];
-  /** The focused item id, null when focus is outside the group. */
   focusedId: string | null;
   multiple: boolean;
   deselectable: boolean;
@@ -33,15 +21,14 @@ export interface ToggleGroupContext {
   loopFocus: boolean;
   orientation: "horizontal" | "vertical";
   disabled: boolean;
-  /** A mousedown preceded the focus: don't steal it. Refs in Zag, plain
-   * context here because the fork has no ref tier and it is a flag. */
+  /** A mousedown preceded the focus: don't steal it. Zag uses a ref; this
+   * fork has no ref tier, so it is a flag. */
   clickFocus: boolean;
-  /** Shift-tabbing out backward: don't steal the re-entry. */
   tabbingBackward: boolean;
 }
 
 export type ToggleGroupEvent =
-  // The value arrives the way the host wrote it: a JSON text or a list.
+  // The host may write the value as a JSON text or a list.
   | { type: "VALUE.SET"; value: string | readonly string[] }
   | { type: "TOGGLE.CLICK"; id: string; value: string }
   | { type: "ROOT.MOUSE_DOWN" }
@@ -75,28 +62,15 @@ export interface ToggleGroupRow {
 
 /**
  * The toggle-group's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
  */
 export interface ToggleGroupArgs {
-  /** The selection, as the host wrote it. */
   readonly value?: string;
-  /** The rows, as the host wrote them. */
   readonly items?: string;
-  /** Whether more than one row may be pressed. */
   readonly multiple?: boolean;
-  /** Whether a pressed row may be released. */
   readonly deselectable?: boolean;
-  /** Whether the focus roves between the rows. */
   readonly rovingFocus?: boolean;
-  /** Whether the roving focus wraps around. */
   readonly loopFocus?: boolean;
-  /** The group's direction, as the host wrote it. */
   readonly orientation?: string;
-  /** Whether the group is disabled. */
   readonly disabled?: boolean;
 }
 
@@ -142,10 +116,8 @@ export function initial(args: ToggleGroupArgs, authored: (name: string) => boole
       }
     }
   }
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention for the same write — a host that wrote
-  // `defaultValue` wrote the channel too — and the framework has already
-  // resolved the twin into the argument, so `args.value` carries it.
+  // The twin counts as the host's write — the framework has already
+  // resolved `defaultValue` into the argument.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   return {
@@ -240,12 +212,8 @@ const implementations = {
     setValue: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
       if (event.type !== "VALUE.SET") return {};
       void ctx;
-      // The value arrives the way the host wrote it; the machine shapes
-      // it, wherever it came from.
       return { value: parseValues(event.value) ?? [] };
     },
-    // Single: replace, or clear when deselecting the pressed value.
-    // Multiple: add or remove.
     toggleValue: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
       if (event.type !== "TOGGLE.CLICK") return {};
       if (ctx.multiple) {
@@ -269,9 +237,8 @@ const implementations = {
     },
     clearFocusedId: (): Partial<ToggleGroupContext> => ({ focusedId: null }),
     // Roving moves write the focused id; the view focuses the node as a
-    // reflex. The order lives on the events (first/prev/next/last ids) —
-    // functions cannot cross the scope channel, so the bridge attaches the
-    // resolved neighbor to each focus event. The machine only records.
+    // reflex. The order lives on the events: the bridge resolves the
+    // neighbor and attaches it, since functions cannot cross the scope channel.
     focusNext: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
       if (event.type !== "TOGGLE.FOCUS_NEXT") return {};
       void ctx;
@@ -300,10 +267,6 @@ const implementations = {
   },
 };
 
-/**
- * The toggle-group machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function toggleGroup(
   args: ToggleGroupArgs = {},
   authored: (name: string) => boolean,
@@ -312,13 +275,9 @@ export function toggleGroup(
     ...config,
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * A field with an event is REPORTED: the host's write is an event, the
+     * machine decides, and the change reaches the host. A field without one
+     * is SILENT: the write lands in the field, and nothing reports.
      */
     fields: {
       value: { event: "VALUE.SET" },

@@ -5,8 +5,8 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-file-upload.html";
 
+import "./spin-file-upload.html";
 interface FileUploadCommands {
   openFilePicker(): void;
   removeFile(name: string): void;

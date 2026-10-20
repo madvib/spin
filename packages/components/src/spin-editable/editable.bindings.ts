@@ -63,10 +63,6 @@ const interactive = (scope: ScopeLike): boolean =>
 
 const editingOf = (scope: ScopeLike): boolean => scope.state === "edit";
 
-// Ids carry `:`, which a CSS selector would need escaped, so elements are
-// read by attribute. Many call sites, one lockstep shape.
-// byId removed in banked shape: focus uses the runtime focuser.
-
 /** Host callbacks arrive untyped on props: narrow once, call if callable. */
 type OutsideHandler = (event: InteractOutsideEvent) => void;
 const isOutsideHandler = (value: unknown): value is OutsideHandler => typeof value === "function";
@@ -77,21 +73,13 @@ const callHandler = (scope: ScopeLike, name: string, event: InteractOutsideEvent
 
 const def: ComponentDef<EditableContext, EditableEvent> = {
   name: "editable",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => editableMachine(props as EditableArgs, authored),
-  // The start state follows the authored/default edit flags.
   start: (props) => (props["editing"] === true || props["defaultEdit"] === true ? "edit" : "preview"),
   reconcile: ({ context, state, parsed, authored, send }) => {
     // The controlled channel: the host owns the editing state, so the
     // machine asks and waits for the host's own write. That write drives
     // the STATE, not a context field, and its close carries the last
     // gesture — so the contract cannot carry it, and it stays here.
-    //
-    // The channel's fact — the host authored `editing` — is a derived
-    // one, not a prop value: the element keeps it in step with the
-    // host's authorship, the way the carousel keeps its derived sync.
     if (context.editControlled !== authored("editing")) {
       context.editControlled = authored("editing");
     }
@@ -439,9 +427,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
       watch: () => [],
       detail: (watched: readonly [boolean]) => ({ edit: watched[0] }),
       // Every edit request reports, whether or not the machine moved (a
-      // controlled field waits for the host); submits and cancels report
-      // the close. A controlled close reports nothing: the host wrote the
-      // prop, so it already knows.
+      // controlled field waits for the host). A controlled close reports
+      // nothing: the host wrote the prop, so it already knows.
       select: (event, _before, _after) => {
         if (event.type === "EDIT") return { edit: true };
         if (event.type === "SUBMIT" || event.type === "CANCEL") return { edit: false };

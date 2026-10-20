@@ -1,21 +1,4 @@
-/**
- * Steps machine: one idle state with guarded transitions, over Zag's
- * single-state machine.
- *
- * The gating is the whole component: forward motion validates the current
- * step (skippable steps bypass), backward motion is always legal, reset
- * returns to zero. The validators are host callbacks the guards read on
- * demand — the machine holds no validation logic of its own, only the
- * step index and the count it is clamped against.
- *
- * Context stays serializable for the scope channel: two numbers. There is
- * one state because there is one mode; the events are all legal, always,
- * subject to the guards.
- *
- * The machine is a FACTORY over the element's props: it builds its own
- * context from the arguments it wants, and it declares its contract — the
- * context fields a host may write, and the event each write carries.
- */
+/** Steps machine: one idle state with guarded transitions. */
 
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
@@ -71,7 +54,6 @@ export interface StepsItemState {
   readonly last: boolean;
 }
 
-/** Zag's getItemState, pure: position relative to the current step. */
 export function itemState(ctx: StepsContext, index: number): StepsItemState {
   return {
     current: index === ctx.step,
@@ -82,8 +64,8 @@ export function itemState(ctx: StepsContext, index: number): StepsItemState {
   };
 }
 
-/** A millisecond-free numeric prop: numbers pass, numeric strings parse,
- * everything else is absent. */
+/** A numeric prop: numbers pass, numeric strings parse, everything else is
+ * absent. */
 const asCount = (raw: unknown, fallback: number): number => {
   const n = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() !== "" ? Number(raw.trim()) : NaN;
   return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : fallback;
@@ -92,19 +74,11 @@ const asCount = (raw: unknown, fallback: number): number => {
 /**
  * The steps' arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultStep`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
- *
- * The wire types are the scope's own: the count is a number, the step is
- * the step the host wrote — the scope declares it a string (absent reads
- * as empty), and the machine reads what is there.
+ * The twin (`defaultStep`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
  */
 export interface StepsArgs {
-  /** How many steps the flow has. */
   count?: number;
-  /** The step the flow starts at. */
   step?: string | number;
   defaultCount?: number;
 }
@@ -113,17 +87,11 @@ export interface StepsArgs {
  * The machine's context, built from its arguments: the count and the step
  * the host wrote, and the machine's own defaults for everything else.
  *
- * The step is a channel: the host's write, or the machine's own default.
- * The element's declared default is not a write, so it never stands in for
- * one. The seed twin (`defaultStep`) is the host's write of the step — the
- * framework resolved it into the args — so it counts as a write too. The
- * count is the element's own data, as it is.
+ * The seed twin (`defaultStep`) is the host's write of the step — the
+ * framework resolved it into the args — so it counts as a write too.
  */
 export function initial(args: StepsArgs = {}, authored: (name: string) => boolean): StepsContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultStep` wrote
-  // the channel too — and the framework has already resolved it into the
-  // argument.
+  // A host that wrote `defaultStep` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   // The host's count: a number, at least one.
@@ -140,10 +108,6 @@ export function initial(args: StepsArgs = {}, authored: (name: string) => boolea
   };
 }
 
-/**
- * The steps machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function steps(
   args: StepsArgs = {},
   authored: (name: string) => boolean,
@@ -153,13 +117,10 @@ export function steps(
     initial: "idle",
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      *
      * The step is NOT here: the selection travels by event (the guards
      * validate it), never by a host write.

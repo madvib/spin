@@ -3,15 +3,12 @@
  * value a cancel returns to.
  *
  * Zag's editable is two states — `preview` and `edit` — with every event
- * on one of them and `VALUE.SET` on the root tier. The fork's root tier is
- * exactly that, so the config is a root `on` plus the two states.
+ * on one of them and `VALUE.SET` on the root tier, so the config is a root
+ * `on` plus the two states.
  *
  * Nothing here touches the DOM. Zag's `focusInput`, `restoreFocus` and
  * `blurInput` actions are the view's job in this port — the bridge reports
- * the transition and the connect performs the reflex. The four host
- * callbacks (`onValueChange`, `onEditChange`, `onValueCommit`,
- * `onValueRevert`) are reported by the bridge from the same transition,
- * exactly as the listbox reports `onValueChange`.
+ * the transition and the connect performs the reflex.
  *
  * `editControlled` and `maxLength` live in the context because the assigns
  * read them; the machine's contract writes the cap, and the element keeps
@@ -23,13 +20,9 @@ import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface EditableContext {
   value: string;
-  /** The value a cancel returns to — set when editing opens and on submit. */
   previousValue: string;
-  /** The host's cap on the value, or null when uncapped. */
   maxLength: number | null;
-  /** True when the host authors `editing`, which is the controlled channel. */
   editControlled: boolean;
-  /** The type of the last gesture sent, for controlled-close commit/revert. */
   lastEvent: string;
 }
 
@@ -44,28 +37,20 @@ export type EditableEvent =
   | { type: "CONTROLLED.PREVIEW"; previousEvent: string };
 
 /**
- * The editable's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The editable's arguments: the values the host may set. The names are
+ * the element's prop names. The twin (`defaultValue`) is resolved by the
+ * framework before the factory is called, so the machine only ever sees
+ * the live value.
  */
 export interface EditableArgs {
-  /** The value, as the host wrote it. */
   value?: string;
-  /** The host's cap on the value; zero or none leaves it uncapped. */
   maxLength?: number;
   defaultMaxLength?: number;
 }
 
-/** The machine's context, built from the arguments: the value, and the
- * cap the assigns read. */
 export function initial(args: EditableArgs = {}, authored: (name: string) => boolean): EditableContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // The twin counts as the host's write: a host that wrote `defaultValue`
+  // wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const value = written("value") && typeof args.value === "string" ? args.value : "";
@@ -95,8 +80,8 @@ const config = {
     editControlled: false,
     lastEvent: "",
   },
-  // Zag's root tier: the value is set wherever the machine is, which is how
-  // a host's imperative `setValue` reaches a previewing field.
+  // Root tier: the value is set wherever the machine is, so a host's
+  // imperative `setValue` reaches a previewing field.
   on: {
     "VALUE.SET": { actions: [{ assign: "setValue" }] },
   },
@@ -141,8 +126,6 @@ const implementations = {
   assigns: {
     setValue: (ctx: EditableContext, e: EditableEvent): Partial<EditableContext> => {
       if (e.type !== "VALUE.SET") return {};
-      // The value arrives the way the host wrote it; the machine shapes
-      // it, wherever it came from.
       const raw = typeof e.value === "string" ? e.value : "";
       const max = ctx.maxLength;
       const value = max === null || max <= 0 ? raw : raw.slice(0, max);
@@ -161,10 +144,6 @@ const implementations = {
   },
 };
 
-/**
- * The editable machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function editable(
   args: EditableArgs = {},
   authored: (name: string) => boolean,
@@ -175,12 +154,9 @@ export function editable(
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * may write, and the event each write carries. A field with an event
+     * is REPORTED — the machine decides, and the change reaches the host;
+     * a field without one is SILENT — the write lands and nothing reports.
      */
     fields: {
       value: { event: "VALUE.SET" },

@@ -2,24 +2,15 @@
 import { defaultTwin, isRecord } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 /**
- * Floating-panel machine: the open/closed modes, the gesture modes inside
- * open (idle, dragging, resizing), and the stage that changes which
- * gestures are legal.
+ * Floating-panel machine, in zag's shape: `closed` / `open{ idle, dragging,
+ * resizing }` with `stage` (minimized/maximized/restored) in context — the
+ * stage is not a state because it gates transitions (a maximized panel
+ * cannot drag) without changing which events exist.
  *
- * Zag's floating-panel is `closed` / `open{ idle, dragging, resizing }`
- * with `stage` (minimized/maximized/restored) in context — exactly the
- * fork's shape: the stage is not a state because it gates transitions
- * (a maximized panel cannot drag) without changing which events exist.
- *
- * The pointer gesture itself is the `drag` action on the handles' bags;
- * this machine receives START/MOVE/END and moves the geometry. Position
- * and size are continuous values reported through the geometry channel as
- * custom properties, and the panel-stack ordering (bring to front) is a
- * connect-owned reflex: it orders siblings, it does not change modes.
- *
- * Nothing here touches the DOM. The boundary clamp and the initial focus
+ * Position and size are continuous values reported through the geometry
+ * channel as custom properties. The boundary clamp and the initial focus
  * are the connect's job — the machine's factory builds `position`/`size`
- * from the host's props, and its contract carries the host's writes.
+ * from the host's props.
  */
 
 export type FloatingPanelStage = "minimized" | "maximized" | "restored";
@@ -30,30 +21,19 @@ export interface FloatingPanelSize {
 }
 
 export interface FloatingPanelContext {
-  /** The panel's position against its boundary, in pixels. */
   position: { readonly x: number; readonly y: number };
-  /** The panel's size, in pixels; the restored one survives maximize. */
   size: FloatingPanelSize;
-  /** The size before a stage, so RESTORE returns to it. */
   restoreSize: FloatingPanelSize | null;
-  /** The position before a stage, so RESTORE returns to it. */
   restorePosition: { readonly x: number; readonly y: number } | null;
   stage: FloatingPanelStage;
-  /** The position the drag started from, for an Escape cancel. */
   dragFrom: { readonly x: number; readonly y: number } | null;
-  /** The floor a resize clamps to. */
   minSize: FloatingPanelSize;
-  /** The ceiling a resize clamps to. */
   maxSize: FloatingPanelSize;
-  /** The size AND position a resize started from, for the cancel. */
   resizeFrom: { readonly size: FloatingPanelSize; readonly position: { readonly x: number; readonly y: number } } | null;
-  /** Which resize handle the gesture came from. */
   axis: { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 } | null;
-  /** The flags the guards read, written by the machine's contract. */
   draggable: boolean;
   resizable: boolean;
   closeOnEscape: boolean;
-  /** The boundary the position and size clamp to, in pixels. */
   boundary: { readonly w: number; readonly h: number };
 }
 
@@ -69,8 +49,8 @@ export interface FloatingPanelPositionChange {
   readonly position: { readonly x: number; readonly y: number };
 }
 
-/** A size off the transport: `{ w, h }` numbers, or JSON text. Well-shaped
- * only; anything else is absent. Named once; transport owns the grammar. */
+/** A size off the transport: `{ w, h }` numbers or JSON text; anything else
+ * is absent. */
 export function sizeOf(raw: unknown): FloatingPanelSize | null {
   const shape = (value: unknown): FloatingPanelSize | null => {
     if (!isRecord(value)) return null;
@@ -93,39 +73,21 @@ const DEFAULT_SIZE: FloatingPanelSize = { w: 360, h: 240 };
 const DEFAULT_MIN: FloatingPanelSize = { w: 120, h: 80 };
 const DEFAULT_MAX: FloatingPanelSize = { w: 1024, h: 768 };
 
-/**
- * The floating-panel's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultSize`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
- */
+/** The floating-panel's arguments: the values the host may set. */
 export interface FloatingPanelArgs {
-  /** The panel's size, as the host wrote it. */
   size?: string;
-  /** The floor a resize clamps to, as the host wrote it. */
   minSize?: string;
-  /** The ceiling a resize clamps to, as the host wrote it. */
   maxSize?: string;
-  /** The stage the panel opens in. */
   stage?: string;
-  /** Whether the panel may be dragged. */
   draggable?: boolean;
-  /** Whether the panel may be resized. */
   resizable?: boolean;
-  /** Whether the escape key closes the panel. */
   closeOnEscape?: boolean;
   defaultCloseOnEscape?: boolean;
 }
 
-/** The machine's context, built from the arguments: the size, the stage,
- * and the three behaviour flags the guards read. */
 export function initial(args: FloatingPanelArgs = {}, authored: (name: string) => boolean): FloatingPanelContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultSize` wrote
-  // the channel too — and the framework has already resolved it into the
-  // argument.
+  // The twin is the framework's convention — a host that wrote
+  // `defaultSize` wrote `size` too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const stage: unknown = args.stage;
@@ -152,8 +114,7 @@ export function startOpen(
   raw: Record<string, unknown>,
   authored: (name: string) => boolean,
 ): boolean {
-  // The scope's `open` defaults to false, so it is never absent. The
-  // authored predicate is what says whether the host chose it.
+  // The scope's `open` defaults to false, so it is never absent.
   return authored("open") ? raw["open"] === true : raw["defaultOpen"] === true;
 }
 
@@ -174,7 +135,7 @@ export type FloatingPanelEvent =
   | { type: "MINIMIZE" }
   | { type: "MAXIMIZE" }
   | { type: "RESTORE" }
-  /** The size: the size itself, or the JSON text a host wrote. */
+  /** The size, or the JSON text a host wrote. */
   | { type: "SIZE.SET"; size: FloatingPanelSize | string };
 
 const config = {
@@ -196,19 +157,12 @@ const config = {
     closeOnEscape: true,
     boundary: { w: 1024, h: 768 },
   },
-  // Root tier: the programmatic channel (a host's authoritative open and
-  // the size write) works from every state.
   on: {
     "SIZE.SET": { actions: [{ assign: "setSize" }] },
-    // The stage is prop-driven: a host's `stage` write alternates it from
-    // any state, and the stage only gates which gestures are legal.
     "MINIMIZE": [{ actions: [{ assign: "setMinimized" }] }],
     "MAXIMIZE": [{ actions: [{ assign: "setMaximized" }] }],
     "RESTORE": [{ actions: [{ assign: "setRestored" }] }],
   },
-  // Flat states: the fork's targets are plain names, and the gesture modes
-  // (dragging, resizing) only matter while the panel is open — a close
-  // from any of them is one transition, not three.
   states: {
     closed: {
       on: {
@@ -280,8 +234,6 @@ const implementations = {
     },
     setSize: (_ctx: FloatingPanelContext, e: FloatingPanelEvent): Partial<FloatingPanelContext> => {
       if (e.type !== "SIZE.SET") return {};
-      // The size arrives the way the host wrote it; the machine shapes it,
-      // wherever it came from.
       const size = sizeOf(e.size);
       if (size === null) return {};
       return { size: { w: size.w, h: size.h } };
@@ -388,10 +340,6 @@ function clampPosition(
   };
 }
 
-/**
- * The floating-panel machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function floatingPanel(
   args: FloatingPanelArgs = {},
   authored: (name: string) => boolean,
@@ -401,13 +349,10 @@ export function floatingPanel(
     ...implementations,
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts. A field with an event is
+     * REPORTED: the host's write is an event, the machine decides, and the
+     * change reaches the host. A field without one is SILENT: the write
+     * lands in the field and nothing reports.
      */
     fields: {
       size: { event: "SIZE.SET" },

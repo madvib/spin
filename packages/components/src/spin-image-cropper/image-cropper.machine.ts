@@ -35,34 +35,16 @@ import {
   resolveCropAspectRatio,
 } from "./crop-geometry.ts";
 
-/**
- * The image-cropper's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultZoom`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
- */
 export interface ImageCropperArgs {
-  /** The crop's shape: "rect" or "circle". */
   cropShape?: string;
-  /** The crop's aspect ratio. */
   aspectRatio?: number;
-  /** The crop's smallest width. */
   minWidth?: number;
-  /** The crop's smallest height. */
   minHeight?: number;
-  /** The crop's largest width. */
   maxWidth?: number;
-  /** The crop's largest height. */
   maxHeight?: number;
-  /** Whether the crop area is fixed. */
   fixedCropArea?: boolean;
-  /** The zoom, as the host wrote it. */
   zoom?: string | number;
-  /** The rotation, as the host wrote it. */
   rotation?: string | number;
-  /** The flip, as the host wrote it. */
   flip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
   defaultFlip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
 }
@@ -77,7 +59,6 @@ const asCount = (raw: unknown): number | null => {
   return null;
 };
 
-/** A flip off the transport: `{ horizontal, vertical }` booleans by name. */
 export function flipOf(raw: unknown): { horizontal: boolean; vertical: boolean } | null {
   if (!isRecord(raw)) return null;
   const horizontal: unknown = raw["horizontal"];
@@ -86,24 +67,17 @@ export function flipOf(raw: unknown): { horizontal: boolean; vertical: boolean }
   return { horizontal: horizontal === true, vertical: vertical === true };
 }
 
-/** The zoom the machine holds: a number inside the machine's own range. */
 const zoomOf = (raw: unknown): number | null => {
   const zoom = asCount(raw);
   return zoom === null ? null : Math.min(8, Math.max(0.1, zoom));
 };
 
-/** The rotation the machine holds: degrees inside the machine's own range. */
 const rotationOf = (raw: unknown): number | null => {
   const rotation = asCount(raw);
   return rotation === null ? null : Math.min(360, Math.max(0, rotation));
 };
 
-/** The machine's own defaults, and the host's arguments where it has them. */
 export function initial(args: ImageCropperArgs = {}, authored: (name: string) => boolean): ImageCropperContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultZoom` wrote
-  // the channel too — and the framework has already resolved it into the
-  // argument.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const flip = flipOf(args.flip) ?? { horizontal: false, vertical: false };
@@ -187,10 +161,8 @@ export type ImageCropperEvent =
   | { type: "SET_ROTATION"; rotation: number }
   | {
     type: "SET_FLIP";
-    /** The command's payload: the axes the host named. */
     horizontal?: boolean;
     vertical?: boolean;
-    /** The host write's payload: the prop's own name. */
     flip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
   }
   | { type: "NUDGE_RESIZE"; handlePosition: CropHandle; large?: boolean }
@@ -418,7 +390,6 @@ const implementations = {
     setZoom: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_ZOOM") return {};
       void ctx;
-      // The zoom arrives the way the host wrote it; the machine shapes it.
       const zoom = zoomOf(event.zoom);
       if (zoom === null) return {};
       return { zoom };
@@ -426,16 +397,12 @@ const implementations = {
     setRotation: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_ROTATION") return {};
       void ctx;
-      // The rotation arrives the way the host wrote it; the machine shapes
-      // it.
       const rotation = rotationOf(event.rotation);
       if (rotation === null) return {};
       return { rotation };
     },
     setFlip: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_FLIP") return {};
-      // The flip arrives the way the host wrote it: the command names the
-      // axes, the host write names the field. The machine shapes it.
       const host = event.flip === undefined ? null : flipOf(event.flip);
       return {
         flipHorizontal: host !== null ? host.horizontal : event.horizontal ?? ctx.flipHorizontal,
@@ -516,7 +483,6 @@ const implementations = {
 
 export { clampPoint, getMaxBounds };
 
-/** True while a gesture owns the pointer. */
 export const isGesturing = (phase: string): boolean => phase === "dragging" || phase === "panning";
 
 /** The selection in whole pixels for aria and export. */
@@ -527,10 +493,6 @@ export const roundedCrop = (ctx: ImageCropperContext): CropRect => ({
   height: Math.round(ctx.crop.height),
 });
 
-/**
- * The image-cropper machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function imageCropper(
   args: ImageCropperArgs = {},
   authored: (name: string) => boolean,

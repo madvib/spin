@@ -1,23 +1,15 @@
 /**
  * Async-list machine: the load lifecycle and the cursor the pages walk.
  *
- * Zag ships three states, and all three survive. `idle` holds what the last
- * load produced; `loading` is a fetch in flight; `sorting` is a client-side
- * sort in flight. No transitional states: the fetch itself is a bridge-owned
- * reflex (a promise plus an abort controller plus a sequence number, Zag's
- * `refs`) that reports back through SUCCESS/ERROR/ABORT, exactly the way the
- * clock in spin-timer is an action the view drives. The machine is pure.
+ * Zag ships three states and all three survive: `idle` holds what the last
+ * load produced, `loading` is a fetch in flight, `sorting` is a client-side
+ * sort in flight. The fetch is a bridge-owned reflex — a promise, an abort
+ * controller, a sequence number — that reports back through
+ * SUCCESS/ERROR/ABORT; there are no transitional states.
  *
- * Two facts from the props reach the config as context, because the fork's
- * conds read context and a host's `sort` function is not state: `hasSortFn`
- * says whether SORT takes the client-side branch, and the initial seed
- * (`initialItems`, `initialFilterText`, `initialSortDescriptor`) lands here
- * at service creation rather than through a transition.
- *
- * The cursor is `null` when there is no next page, which is Zag's
- * `cursor != null` guard on LOAD_MORE: an exhausted list ignores load-more.
- * Zag's `undefined` cursor normalizes to `null` on the way in, because the
- * fork's context has no optional fields.
+ * The seed lands at service creation, not through a transition, and the
+ * cursor is `null` when there is no next page: Zag's `cursor != null` guard
+ * on LOAD_MORE, so an exhausted list ignores load-more.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -31,20 +23,13 @@ export interface SortDescriptor {
 /**
  * The async-list's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The seeds
- * (`initialItems`, `initialFilterText`, `initialSortDescriptor`) are the
- * list's starting state; the sort function is the host's own, and the
- * machine only asks whether it is there.
+ * The seeds are the list's starting state, and the sort function is the
+ * host's own — the machine only asks whether it is there.
  */
 export interface AsyncListArgs {
-  /** The items the list starts with. */
   initialItems?: readonly unknown[];
-  /** The filter the list starts with. */
   initialFilterText?: string;
-  /** The sort the list starts with. */
   initialSortDescriptor?: SortDescriptor;
-  /** The host's sort function, when it wrote one. */
   sortFn?: unknown;
 }
 
@@ -56,24 +41,17 @@ export const isSortDescriptor = (value: unknown): value is SortDescriptor => {
     (direction === "ascending" || direction === "descending");
 };
 
-/** An array off the prop channel: property writes land verbatim, and the
- * grammar's `string[]` coerces a `= []` default to `["[]"]` — the lone
- * artifact entry drops, once, for every reader. */
+/** An array off the prop channel: the grammar's `string[]` coerces a
+ * `= []` default to `["[]"]`, so the lone artifact entry drops. */
 export function itemsOf(raw: unknown): readonly unknown[] {
   if (!Array.isArray(raw)) return [];
   if (raw.length === 1 && raw[0] === "[]") return [];
   return [...raw];
 }
 
-/**
- * The machine's context: the static seed lands at service creation, not
- * through a transition — a static list renders, sorts, and filters
- * client-side.
- */
+/** The static seed lands at service creation, not through a transition. */
 export function initial(args: AsyncListArgs, authored: (name: string) => boolean): AsyncListContext {
-  // The one channel the contract names is whether the host brought a sort
-  // function: the prop carries it, and the twin is the framework's
-  // convention — a host that wrote the seed twin wrote the channel too.
+  // A host that wrote `defaultSortFn` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const sortFn = written("sortFn") ? args.sortFn : undefined;
@@ -93,17 +71,12 @@ export function initial(args: AsyncListArgs, authored: (name: string) => boolean
 }
 
 export interface AsyncListContext {
-  /** The loaded items. Host data: the machine never looks inside. */
   items: readonly unknown[];
-  /** Where the next page starts; `null` means the list is exhausted. */
   cursor: unknown;
   filterText: string;
   sortDescriptor: SortDescriptor | null;
-  /** The last failure, or undefined while the load is clean. */
   error: unknown;
-  /** The host authored a `sort` function — the guard's only input. */
   hasSortFn: boolean;
-  /** The dependency hash the watcher captured; undefined until mounted. */
   dependenciesHash: string | undefined;
 }
 
@@ -119,16 +92,14 @@ export type AsyncListEvent =
 const config = {
   id: "async-list",
   initial: "idle",
-  // Zag's root tier. A reload is valid from anywhere: `sorting` shadows it to
-  // cancel the in-flight sort on the way, which is what its extra work is.
+  // A reload is valid from anywhere; `sorting` shadows the root's to cancel
+  // the in-flight sort on the way out.
   on: {
     RELOAD: { target: "loading", actions: [{ assign: "clearItems" }] },
   },
   states: {
     idle: {
       on: {
-        // Guarded double transition: an exhausted list ignores load-more,
-        // which is Zag's `hasCursor` guard.
         LOAD_MORE: [{ cond: "hasCursor", target: "loading" }],
         SORT: [
           {
@@ -145,7 +116,7 @@ const config = {
       },
     },
     loading: {
-      // Zag's performFetch entry: a fetch in flight holds no stale error.
+      // A fetch in flight holds no stale error.
       entry: [{ assign: "clearError" }],
       on: {
         SUCCESS: {
@@ -154,10 +125,9 @@ const config = {
         },
         ERROR: { target: "idle", actions: [{ assign: "setError" }] },
         ABORT: { target: "idle" },
-        // A filter change mid-flight re-enters `loading`: the fork always
-        // runs exit and entry for an explicit target, which is Zag's
-        // `reenter: true` here, so the superseded fetch is cancelled by the
-        // bridge's abort before the new one starts.
+        // A filter change mid-flight re-enters `loading`: the fork runs exit
+        // and entry for an explicit target (Zag's `reenter: true`), so the
+        // bridge aborts the superseded fetch before the new one starts.
         FILTER: {
           target: "loading",
           actions: [{ assign: "setFilterText" }, { assign: "clearCursor" }],
@@ -199,9 +169,9 @@ const implementations = {
     clearItems: (): Partial<AsyncListContext> => ({ items: [] }),
     setItems: (ctx: AsyncListContext, e: AsyncListEvent): Partial<AsyncListContext> => {
       if (e.type !== "SUCCESS") return {};
-      // A load-more appends; every other result replaces. The bridge is
-      // where a host's resolution is normalized, so the items it forwards
-      // are already an array.
+      // A load-more appends; every other result replaces. The bridge
+      // normalizes a host's resolution, so the items it forwards are already
+      // an array.
       const loaded = [...e.items];
       return { items: e.append ? [...ctx.items, ...loaded] : loaded };
     },
@@ -218,10 +188,6 @@ const implementations = {
   },
 };
 
-/**
- * The async-list machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function asyncList(
   args: AsyncListArgs = {},
   authored: (name: string) => boolean,
@@ -230,15 +196,6 @@ export function asyncList(
     ...config,
     context: initial(args, authored),
     ...implementations,
-    /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     */
     fields: {
       hasSortFn: {},
     },

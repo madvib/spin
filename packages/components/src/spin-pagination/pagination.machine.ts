@@ -1,18 +1,4 @@
-/**
- * Pagination machine: one idle state with guarded transitions, over Zag's
- * single-state machine.
- *
- * The gating is the whole component: SET_PAGE refuses out-of-range pages,
- * PREVIOUS refuses page one, NEXT refuses the last page, and a page-size
- * change that strands the page resets to one. The ellipsis/sibling/
- * boundary window math is Zag's own `pagination.utils`, vendored below
- * because it is pure integer arithmetic. The machine owns no math of its
- * own.
- *
- * Context stays serializable for the scope channel: page, page size, and
- * the counts the window math reads. There is one state because there is
- * one mode; the events are all legal, always, subject to the guards.
- */
+/** Pagination machine: one idle state with guarded transitions. */
 
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
@@ -72,13 +58,11 @@ export function pageRange(ctx: PaginationContext): { start: number; end: number 
   return { start, end: Math.min(start + ctx.pageSize, ctx.count) };
 }
 
-/** Zag's pagination.utils range, vendored: inclusive integer span. */
 function range(start: number, end: number): number[] {
   const length = end - start + 1;
   return Array.from({ length }, (_, index) => index + start);
 }
 
-/** Zag's getRange, vendored: the sibling/boundary/ellipsis window. */
 export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
   const total = totalPages(ctx);
   const { siblingCount, boundaryCount } = ctx;
@@ -110,7 +94,7 @@ export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
   } else {
     pages.push(...range(1, total));
   }
-  // An ellipsis hiding a single page becomes the page.
+  // An ellipsis hiding a single page becomes that page.
   const at = (index: number): number | null => {
     const value: unknown = pages[index];
     return typeof value === "number" ? value : null;
@@ -128,27 +112,20 @@ export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
 /**
  * The pagination's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultPage`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The twin (`defaultPage`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
  */
 export interface PaginationArgs {
-  /** The page, as the host wrote it. */
   page?: string | number;
-  /** The page size, as the host wrote it. */
   pageSize?: string | number;
-  /** How many records the collection holds. */
   count?: number;
-  /** How many siblings the window shows on each side. */
   siblingCount?: number;
-  /** How many boundary pages the window shows at each end. */
   boundaryCount?: number;
   defaultBoundaryCount?: number;
 }
 
 /** A numeric prop: numbers pass, numeric strings parse, everything else
- * absent. Named once; transport owns the grammar. */
+ * absent. */
 const asCount = (raw: unknown): number | null => {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
   if (typeof raw === "string" && raw.trim().length > 0) {
@@ -161,19 +138,13 @@ const asCount = (raw: unknown): number | null => {
 /** The machine's context, from its arguments: the page falls back to one,
  * the size to ten, and the window's own counts to one each.
  *
- * The page and the page size are channels: the host's write, or the
- * machine's own default. The element's declared default is not a write,
- * so it never stands in for one. The seed twins (`defaultPage`,
- * `defaultPageSize`) are the host's writes of the page and the size — the
- * framework resolved them into the args — so they count as writes too.
- * The collection and the window's counts are the element's own data, as
- * they are.
+ * The seed twins (`defaultPage`, `defaultPageSize`) are the host's writes
+ * of the page and the size — the framework resolved them into the args —
+ * so they count as writes too.
  */
 export function initial(args: PaginationArgs, authored: (name: string) => boolean): PaginationContext {
-  // A channel: the host's write, or the machine's own default. The twins
-  // are the framework's convention — a host that wrote `defaultPage` (or
-  // `defaultPageSize`) wrote the channel too — and the framework has
-  // already resolved them into the arguments.
+  // A host that wrote `defaultPage` (or `defaultPageSize`) wrote the
+  // channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   return {
@@ -185,7 +156,6 @@ export function initial(args: PaginationArgs, authored: (name: string) => boolea
   };
 }
 
-/** Zag's transform: numbers become page items, gaps become ellipses. */
 export function pageItems(ctx: PaginationContext): PaginationPageItem[] {
   let ellipsis = 0;
   return pageWindow(ctx).map((value) => {
@@ -199,10 +169,6 @@ export function pageItems(ctx: PaginationContext): PaginationPageItem[] {
 
 const clampPage = (page: number, total: number): number => Math.min(Math.max(page, 1), total);
 
-/**
- * The pagination machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function pagination(
   args: PaginationArgs = {},
   authored: (name: string) => boolean,
@@ -211,13 +177,10 @@ export function pagination(
     id: "pagination",
     initial: "idle",
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       page: { event: "SET_PAGE" },
@@ -253,8 +216,7 @@ export function pagination(
     assigns: {
       setPage: (ctx: PaginationContext, event: PaginationEvent): Partial<PaginationContext> => {
         if (event.type !== "SET_PAGE") return {};
-        // The page arrives the way the host wrote it; the machine shapes
-        // it, wherever it came from.
+        // The page arrives the way the host wrote it; the machine shapes it.
         const page = clampPage(asCount(event.page) ?? 1, totalPages(ctx));
         return page === ctx.page ? {} : { page };
       },

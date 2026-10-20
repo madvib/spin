@@ -1,8 +1,8 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { tagsInput } from "./tags.bindings.ts";
-const createTagsBridge = tagsInput.createBridge;
+import { tags } from "./tags.bindings.ts";
+const createTagsBridge = tags.createBridge;
 import type { TagsCommands } from "./tags.bindings.ts";
 import type { TagsApi, TagsRow } from "./tags.bindings.ts";
 

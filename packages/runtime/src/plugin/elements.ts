@@ -4,11 +4,21 @@ import { emit } from "./emit.ts";
 
 export interface SpinElementsOptions {
   readonly actionsDir?: string;
+  /**
+   * Where the machines live, when the markup does not sit beside them.
+   *
+   * A consume name resolves by walking up from the markup, which finds
+   * the machine when the markup is the machine's own example. A markup
+   * that lives elsewhere — the playground's element, say — names the
+   * root, and the machine is found under `<root>/spin-<name>/`.
+   */
+  readonly machines?: string;
 }
 
 const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
   const options = raw ?? {};
   const actionsDir = options.actionsDir ?? "actions";
+  const machinesRoot = options.machines;
   return {
     name: "spin-elements",
     enforce: "pre",
@@ -164,6 +174,32 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const parent = path.dirname(walk);
           if (parent === walk) break;
           walk = parent;
+        }
+        if (defMod === undefined && machinesRoot !== undefined) {
+          // A markup that does not sit beside its machine names the
+          // machines root. The machine's DIRECTORY is not always named
+          // after the consume (`cascade` lives in `spin-cascade-select`),
+          // so the machine dirs are scanned for the file.
+          const path = await import("node:path");
+          let dirs: string[] = [];
+          try {
+            dirs = (await fs.readdir(machinesRoot)).filter((n) => n.startsWith("spin-"));
+          } catch {
+            // No machines root: the consume name is inert.
+          }
+          outer: for (const machine of dirs) {
+            for (const stem of stems) {
+              const candidate = path.join(machinesRoot, machine, stem);
+              try {
+                await fs.access(candidate);
+                defMod = path.relative(dir, candidate).replace(/\.\//g, "./");
+                if (!defMod.startsWith(".")) defMod = `./${defMod}`;
+                break outer;
+              } catch {
+                // Next stem.
+              }
+            }
+          }
         }
         if (defMod === undefined) {
           // Cross-machine consume: a name the walk-up misses may live in

@@ -10,24 +10,12 @@ import {
 } from "./async-list.machine.ts";
 
 /**
- * Async-list definition: the DOM contract as data. The machine holds the
- * lifecycle (idle/loading/sorting); this file maps props to channels,
- * parts to attribute bags, commands to sends, and load-success/load-error
- * transitions to their events.
+ * Async-list definition: the DOM contract as data.
  *
- * Zag's connect returns no DOM props at all — this machine has no parts.
- * The parts here are the recipe's: a root that states the lifecycle, a
- * progress bar, the item list, the empty and error regions, the filter
- * field, the reload / load-more / sort triggers, and the sentinel that
- * drives the infinite scroll.
- *
- * The fetch lives here and nowhere else. Both the abort controller and
- * the sequence number are reflexes over host data, so per-bridge view
- * state owns them and the machine stays pure. The sequence is what makes
- * a stale resolution a no-op instead of a write over newer data, and the
- * controller is what tells a superseded fetch to stop. The `settled`
- * reflex drives the work: which event needs which fetch, and the
- * SUCCESS/ERROR report back outward.
+ * The fetch lives here and nowhere else: the abort controller and the
+ * sequence number are per-bridge reflexes over host data. The sequence
+ * makes a stale resolution a no-op instead of a write over newer data; the
+ * controller tells a superseded fetch to stop.
  */
 
 export interface AsyncListRow {
@@ -36,7 +24,7 @@ export interface AsyncListRow {
   readonly index: number;
 }
 
-/** A sort trigger: the column and the direction it asks for. */
+/** A sort trigger. */
 export interface SortTrigger {
   readonly column: string;
   readonly direction: SortDescriptor["direction"];
@@ -50,8 +38,6 @@ export interface AsyncListFailure {
   readonly error: unknown;
 }
 
-/** The signal the fetch aborts on, the cursor the page starts from, and
- * the filter and sort the fetch honors. */
 export interface LoadDetails {
   readonly signal: AbortSignal | undefined;
   readonly filterText: string;
@@ -66,7 +52,6 @@ export interface LoadResult {
 
 export type LoadFn = (details: LoadDetails) => Promise<LoadResult>;
 
-/** The sort details, and the two shapes its function may answer in. */
 export interface SortDetails {
   readonly items: readonly unknown[];
   readonly descriptor: SortDescriptor | undefined;
@@ -129,9 +114,6 @@ const descriptorOf = (event: { readonly type: string } & Record<string, unknown>
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
 
-/** A load the host resolved with. A result missing its items is an empty
- * page rather than a crash inside the assign. */
-
 const fieldOf = (raw: unknown, field: string): unknown =>
   isRecord(raw) ? raw[field] : undefined;
 
@@ -150,8 +132,6 @@ const asSortResult = (raw: unknown): SortResult => {
   return { items: itemsOf(fieldOf(raw, "items")) };
 };
 
-/** The `value` a row is addressed by: a non-empty string `value` field,
- * else the row's index. */
 const textField = (item: unknown, field: string): string | undefined => {
   const raw: unknown = fieldOf(item, field);
   return typeof raw === "string" && raw.length > 0 ? raw : undefined;
@@ -279,17 +259,14 @@ const startSort = (
 
 const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   name: "async-list",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => asyncListMachine(props as AsyncListArgs, authored),
-  // An autoReload mount loads once; the reconcile watcher answers every
+  // `autoReload` loads once at mount; the reconcile watcher answers every
   // dependency change after it.
   establish: (raw) => {
     return raw["autoReload"] === true ? [{ type: "RELOAD" }] : [];
   },
-  // The reflex table runs after every transmit: which event needs which
-  // piece of async work, with the state the send landed in.
+  // Runs after every transmit: which event needs which async work, with the
+  // state the send landed in.
   settled: ({ event, before, after, props, root, send }) => {
     const view = viewOf(root());
     const load: unknown = props["load"];
@@ -297,8 +274,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     const beforeState = before.state;
     const afterCtx = after.context;
     const afterState = after.state;
-    // Sorting drives the sort fn; loading drives the fetch. The sort fn
-    // rides the props, read live at drive time.
+    // The sort fn rides the props, read live at drive time.
     if (event.type === "ABORT") {
       if (beforeState !== "idle") advanceSequence(view);
       return;
@@ -314,21 +290,17 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       startFetch(view, send, load, event, afterCtx);
     }
   },
-  // The derived flag: the machine's follows the host's sort function, so
-  // a host that writes one after the mount still sorts client-side. The
-  // contract cannot carry it — the host writes the function, not the flag.
-  //
-  // The merge runs BEFORE the send (the bridge calls it on the way in), so
-  // a sort issued right after the host's write takes the client-side
-  // branch. The reconcile would be too late: it runs in the effect.
+  // The derived flag follows the host's sort function, so a host that
+  // writes one after the mount still sorts client-side. The merge runs
+  // BEFORE the send (on the way in), so a sort issued right after the
+  // write takes the client-side branch; the reconcile would be too late.
   scalarsOf: (parsed) => ({
     hasSortFn: isSortFn(parsed["sortFn"]),
   }),
   reconcile: ({ context, parsed, send }) => {
     let moved = false;
-    // The dependencies watcher: the mount hash is captured, never
-    // dispatched — the watcher fires on a change only, and the mount load
-    // is autoReload's job.
+    // The mount hash is captured, never dispatched: the watcher fires on a
+    // change only, and the mount load is autoReload's job.
     const raw: unknown = parsed["dependencies"];
     const dependencies = itemsOf(raw).filter((dependency) => Boolean(dependency)).join(",");
     if (context.dependenciesHash === undefined) {
@@ -482,8 +454,6 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
           "data-state": scope.state,
           hidden: !more,
           "data-more": dataAttr(more),
-          // The infinite scroll: hidden once the cursor runs out, and
-          // never visible to anything but the action attached to it.
           "use:infinite-scroll": {
             enabled: more,
             onLoadMore: (): void => scope.send({ type: "LOAD_MORE" }),
@@ -569,9 +539,8 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   methods: {
     getRows: {
       call: (context) => {
-        // The `for` effect re-runs only on signals its source reads, and
-        // the rows live in machine context: the tick is the subscription
-        // that re-reads them after a load.
+        // The `for` effect re-runs only on the signals its source reads:
+        // the tick is the subscription that re-reads the rows after a load.
         machineTick();
         return rowsFor(context.items);
       },
@@ -602,7 +571,7 @@ const toRowIndexed = (item: unknown, index: number): AsyncListRow => toRow(item,
 /** Rows memoized on the items array's identity: a fresh row object per
  * read would replace the nodes and detach every gesture in flight. A load
  * produces a new array, so the rows rebuild exactly when the data does.
- * Pure data, so sharing across bridges on one array is correct. */
+ * Pure data, so sharing one array's rows across bridges is correct. */
 const rowsByItems = new WeakMap<readonly unknown[], readonly AsyncListRow[]>();
 const rowsFor = (items: readonly unknown[]): readonly AsyncListRow[] => {
   const hit = rowsByItems.get(items);

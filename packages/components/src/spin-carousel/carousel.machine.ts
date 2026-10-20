@@ -1,20 +1,11 @@
 /**
  * Carousel machine: the page index and the mode it is in, and nothing else.
  *
- * Zag's carousel spends ten track/watch effects on slide mutation, slide
- * intersections, resize, keyboard scroll, pointer move, scroll-end timers
- * and the autoplay interval. Every one of those is a REFLEX, and every
- * reflex here is a stdlib action attached through the connect's bag:
- * `use:drag-scroll` owns the pointer and reports DRAG.START / DRAG.END,
- * `use:autoplay` owns the clock and reports AUTOPLAY.TICK, `use:intersect`
- * owns the observer and reports SLIDE.VIEW, `use:resize-observer` reports
- * layout change. What survives in this file is a flat chart with exactly
- * two states — `idle` and `autoplay` — plus pure assigns.
- *
- * Dragging is deliberately NOT a state. It is `dragStatus` in context,
- * moved by the action's reports, and the settle is completed by the
- * platform's own `scrollend` (or by the next intersection report) rather
- * than by a 200ms timer the machine would own.
+ * Every reflex is a stdlib action attached to the markup (`use:drag-scroll`,
+ * `use:autoplay`, `use:intersect`, `use:resize-observer`), not machine
+ * logic. Dragging is deliberately NOT a state: it is `dragStatus` in
+ * context, moved by the action's reports, and the settle is completed by
+ * the platform's own `scrollend` rather than by a timer the machine owns.
  */
 
 import { defaultTwin, isRecord } from "@spin/runtime";
@@ -71,22 +62,15 @@ export interface CarouselAutoplayStatusChange {
 }
 
 export interface CarouselContext {
-  /** The page on screen. Zag calls it `page`; the element says `index`. */
+  /** Zag calls it `page`; the element says `index`. */
   index: number;
-  /** How many pages there are, derived from the slide props by the bridge. */
   pageCount: number;
-  /** Slide indices currently intersecting, reported by `use:intersect`. */
   slidesInView: number[];
-  /** Whether focus is inside the carousel, for the rest value of dragStatus. */
   focused: boolean;
-  /** Drag modality. Not a state: it is moved by the action's reports. */
   dragStatus: CarouselDragStatus;
-  /** Props the assigns read, synced from scope by the bridge. */
   loop: boolean;
-  /** Slides advanced per page, so a slide index maps to its page. */
   perMove: number;
-  /** The slide params the page count derives from, so `refresh` recomputes
-   * without the props (commands never see them). Synced by the bridge. */
+  /** The slide params the page count derives from: commands never see props. */
   slideParams: {
     readonly perMove: number;
     readonly slidesPerPage: number;
@@ -105,9 +89,9 @@ export type CarouselEvent =
   | { type: "DRAG.END" }
   /**
    * The platform's own settle notification, carrying the page the view
-   * MEASURED. The view owns the measurement because the machine must never
-   * walk the DOM; the intersection report is the engine-independent
-   * fallback, which is why it may only move the page mid-gesture.
+   * MEASURED: the machine must never walk the DOM. The intersection report
+   * is the engine-independent fallback, which is why it may only move the
+   * page mid-gesture.
    */
   | { type: "SCROLL.SETTLE"; index: number }
   | { type: "POINTER.DOWN" }
@@ -170,9 +154,7 @@ const config = {
 
 /**
  * Pure transforms. `next` is shared by the trigger, the keyboard and the
- * autoplay tick because advancing a page is advancing a page — an assign
- * that has to know WHICH event fired it is a transition that was not split
- * far enough.
+ * autoplay tick: advancing a page is advancing a page.
  */
 const implementations = {
   assigns: {
@@ -188,8 +170,6 @@ const implementations = {
     }),
     goTo: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> => {
       if (e.type !== "GO_TO") return {};
-      // The index arrives the way the host wrote it; the machine shapes
-      // it, wherever it came from.
       if (typeof e.index !== "number" || !Number.isFinite(e.index)) return {};
       return { index: clampIndex(e.index, ctx.pageCount) };
     },
@@ -227,7 +207,6 @@ const implementations = {
     },
     dragStart: (): Partial<CarouselContext> => ({ dragStatus: "dragging" }),
     dragEnd: (): Partial<CarouselContext> => ({ dragStatus: "settling" }),
-    // The platform says the scroll stopped, and names the page it measured.
     settle: (
       ctx: CarouselContext,
       e: CarouselEvent,
@@ -252,7 +231,6 @@ const implementations = {
 const asInt = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
 
-/** How many slides a page holds: at least one. */
 export const slidesPerPageOf = (raw: unknown): number => Math.max(1, asInt(raw, 1));
 
 /** How many slides a page advances: the host's number, or one page of
@@ -264,24 +242,13 @@ export const slidesPerMoveOf = (raw: unknown, perPage: number): number => {
 
 /**
  * The carousel's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultIndex`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
  */
 export interface CarouselArgs {
-  /** The page on screen, as the host wrote it. */
   index?: number;
-  /** Whether the carousel loops around. */
   loop?: boolean;
-  /** The slides the track holds, as the host wrote them. */
   items?: readonly unknown[];
-  /** How many slides a page holds. */
   slidesPerPage?: number;
-  /** How many slides a page advances; "auto" means one page of slides. */
   slidesPerMove?: string;
-  /** Whether the slides size themselves to the track. */
   autoSize?: boolean;
   defaultLoop?: boolean;
 }
@@ -292,10 +259,8 @@ export interface CarouselArgs {
  * slides it holds, the step, and the page size.
  */
 export function initial(args: CarouselArgs, authored: (name: string) => boolean): CarouselContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultIndex`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // A twin counts as written: a host that wrote `defaultIndex` wrote the
+  // channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const slidesPerPage = slidesPerPageOf(args.slidesPerPage);
@@ -317,7 +282,7 @@ export function initial(args: CarouselArgs, authored: (name: string) => boolean)
   };
 }
 
-/** Zag's page snap points, read as slide indices: what the machine derives. */
+/** Zag's page snap points, read as slide indices. */
 export function pageCountFor(
   slideCount: number,
   perMove: number,
@@ -336,10 +301,6 @@ export function pageCountFor(
   return count;
 }
 
-/**
- * The carousel machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function carousel(
   args: CarouselArgs = {},
   authored: (name: string) => boolean,
@@ -348,15 +309,6 @@ export function carousel(
     ...config,
     context: initial(args, authored),
     ...implementations,
-    /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     */
     fields: {
       index: { event: "GO_TO" },
       loop: {},

@@ -17,15 +17,7 @@ import {
 
 export type { SliderArgs };
 
-/**
- * Slider definition: the DOM contract as data. The machine owns the three
- * phases, the values, the focused index, and the step/collision math; this
- * file maps parts to attribute bags, commands to sends, and value/focus
- * transitions to their events. Geometry that needs a node
- * (pointer-to-value measurement, pointer capture, thumb-grab offset, the
- * checked-thumb focus after a keyboard move) lives in the part bags —
- * reported in as stepped values, because the machine never touches the DOM.
- */
+/** Slider definition: the DOM contract as data. */
 
 export interface SliderApi {
   setValue(value: readonly number[]): void;
@@ -87,8 +79,7 @@ const markerRowsOf = (markers: readonly number[]): readonly { readonly value: nu
   return made;
 };
 
-/** A client point as a stepped track value, measured off the track node via
- * the runtime focuser/measure (geometry-effect gap recorded). */
+/** A client point as a stepped track value, measured off the track node. */
 const trackValue = (
   scope: ScopeLike,
   orientation: string,
@@ -108,11 +99,11 @@ const trackValue = (
   return valueOfPercent(context, Math.min(1, Math.max(0, percent)));
 };
 
-/** Thumb slots are a pure function of the thumb count. */
 const thumbIndexCache = new Map<number, readonly number[]>();
 /** The thumb slots, as plain indices: the recipe wraps each one
  * (`{ index: row }`) and the wrapper is the slot's identity — a WeakMap
- * key, so it must be an object. */
+ * key, so it must be an object.
+ */
 const thumbIndexes = (length: number): readonly number[] => {
   const hit = thumbIndexCache.get(length);
   if (hit !== undefined) return hit;
@@ -133,9 +124,6 @@ const capturePointer = (target: EventTarget | null, pointerId: number): void => 
 
 const def: ComponentDef<SliderContext, SliderEvent> = {
   name: "slider",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => sliderMachine(props as SliderArgs, authored),
   start: "idle",
   commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
@@ -214,8 +202,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
             event.preventDefault();
             event.stopPropagation();
             // Capture the pointer: a release off the track must still end
-            // the drag, or the phase strands in dragging and later keys
-            // silently no-op (the cropper's stranded-dragging lesson).
+            // the drag, or the phase strands in dragging.
             capturePointer(event.currentTarget, event.pointerId);
             scope.send({ type: "POINTER_DOWN", pointValue: value });
           },
@@ -254,7 +241,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
         const percents = context.value.map((value) => percentOf(context, value));
         const origin = scope.props["origin"];
         // Single-thumb ranges start at the origin edge, not the thumb: a
-        // lone 50% value fills 0-50 (tark basic), not a zero-width band.
+        // lone 50% value fills 0-50, not a zero-width band.
         const single = percents.length < 2;
         const low = single && origin === "start" ? 0 : Math.min(...percents);
         const high = single && origin === "end" ? 100 : Math.max(...percents);
@@ -369,7 +356,6 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
               event.preventDefault();
               event.stopPropagation();
               scope.send({ type, step: large });
-          // focus handled by settled hook (geometry-effect gap recorded)
               return true;
             };
             const horizontal = scope.context.orientation === "horizontal";

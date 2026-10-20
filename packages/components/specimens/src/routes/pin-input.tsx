@@ -5,8 +5,8 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-pin-input.html";
 
+import "./spin-pin-input.html";
 interface PinCommands {
   setValue(values: string[]): void;
   setValueAtIndex(index: number, value: string): void;

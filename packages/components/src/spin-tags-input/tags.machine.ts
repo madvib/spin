@@ -1,29 +1,12 @@
 /**
  * Tags-input machine: four states, one flat config.
  *
- * What Zag models as `idle` / `focused:input` / `navigating:tag` /
- * `editing:tag` survives here unchanged — they are genuine interaction
- * modes, not timer holders. What leaves is every effect: the live region,
- * the form-control tracking, the input sync and the focus reflexes are
- * view work (connect + stdlib actions), and the raf-wrapped action
- * helpers Zag needs (its sends are async) collapse into synchronous
- * context writes.
- *
- * Two deliberate shape changes from the Zag original:
- *
- * 1. Tags are tracked by INDEX, not by element id. Zag's context carries
- *    `highlightedTagId` / `editedTagId` because its guards read the DOM
- *    (`getIndexOfId`, `getTagElAtIndex`). Here the machine owns the value
- *    list, so an index is the honest key and the connect derives part ids
- *    (`tags-input:<id>:tag:<value>:<index>`) for the DOM.
- * 2. The two behavioral host functions (`sanitizeValue`, `validate`) are
- *    context fields, synced like the scalars. They are transforms the
- *    assigns apply, not out-side callbacks, so they belong with the state
- *    they govern rather than behind a prop read the machine cannot see.
+ * Tags are tracked by index, not element id: the machine owns the value
+ * list, so the connect derives the part ids.
  *
  * Caret position and blur targets are DOM facts: the view puts them on
  * the events it sends (`caretAtStart`, `relatedToInput`) and the guards
- * read them there, exactly as the guards read a click's modifier keys.
+ * read them there.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -50,14 +33,12 @@ export type TagsLog =
 export interface TagsContext {
   value: string[];
   inputValue: string;
-  /** Index of the keyboard/pointer-highlighted tag; null when none. */
   highlightedIndex: number | null;
   editedValue: string;
   editedIndex: number | null;
-  /** The last mutation and the one before it, for the live region. */
   log: TagsLog | null;
   logPrev: TagsLog | null;
-  /** Set when an add was refused for validity; the bridge reports and clears. */
+  /** Set when an add was refused; the bridge reports and clears it. */
   refusal: "invalidTag" | null;
   max: number;
   allowOverflow: boolean;
@@ -128,43 +109,28 @@ const validateDefault: ValidateTag = (): boolean => true;
 /**
  * The tags-input's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twins
- * (`defaultValue`, `defaultInputValue`) are resolved by the framework
- * before the factory is called, so the live values carry a written
- * twin; the twins stay in the bag, and they are the machine's fallback
- * for the channels they seed.
+ * The twins are resolved by the framework before the factory runs, so a
+ * written twin already rides the live value; the twin stays in the bag as
+ * the machine's fallback for the channel it seeds.
  *
- * The two host functions ride the element, not the scope: a function
- * cannot cross the scope channel, so the machine's defaults stand until
- * the element installs the host's own.
+ * A function cannot cross the scope channel, so the host's sanitizer and
+ * validator ride the element: the machine's defaults stand until the
+ * element installs the host's own.
  */
 export interface TagsArgs {
-  /** The tags, as the host wrote them. */
   readonly value?: string;
-  /** The tags the host seeded with: the twin of `value`. */
   readonly defaultValue?: string;
-  /** The entry field's text, as the host wrote it. */
   readonly inputValue?: string;
-  /** The entry field's seed: the twin of `inputValue`. */
   readonly defaultInputValue?: string;
-  /** The cap on the tag count. */
   readonly max?: number;
-  /** Whether the list may grow past the cap. */
   readonly allowOverflow?: boolean;
-  /** Whether the same tag may be added twice. */
   readonly allowDuplicates?: boolean;
-  /** Whether a tag can be renamed. */
   readonly editable?: boolean;
-  /** Whether a paste adds tags. */
   readonly addOnPaste?: boolean;
   /** The blur behavior: `add` commits, `clear` empties, neither does. */
   readonly blurBehavior?: string;
-  /** The paste separator. */
   readonly delimiter?: string;
-  /** The host's sanitizer, when the element carries one. */
   readonly sanitizeValue?: SanitizeValue;
-  /** The host's validator, when the element carries one. */
   readonly validate?: ValidateTag;
 }
 
@@ -187,33 +153,16 @@ export function stringsOf(raw: unknown): string[] {
   }
 }
 
-/** Two tag lists are one selection when every tag matches in order. */
 export function sameTags(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
-/** The factory's shaping: the value and the input plus every scalar the
- * assigns read.
- *
- * The tag list and the entry text are the host's channels: the host's own
- * write stands, and the twin is the framework's convention for that same
- * write — a host that wrote `defaultValue` wrote the channel too.
- *
- * The cap and the flags are the element's configuration: the machine has
- * no opinion about them, so they are taken as they are. */
 export function initial(args: TagsArgs, authored: (name: string) => boolean): Pick<TagsContext, "value" | "inputValue" | "max" | "allowOverflow" | "allowDuplicates" | "editable" | "addOnPaste" | "addOnBlur" | "clearOnBlur" | "delimiter" | "sanitizeValue" | "validate"> {
   const count = (value: unknown): number => typeof value === "number" && Number.isFinite(value) ? value : Infinity;
   const flag = (value: unknown): boolean => value === true;
   const text = (value: unknown, fallback: string): string => typeof value === "string" ? value : fallback;
   const fn = <T>(value: unknown, fallback: T): T => (typeof value === "function" ? value as T : fallback);
   const behavior: unknown = args.blurBehavior;
-  // A channel: the host's write, or the twin's — the framework's
-  // convention for the same write, since a host that wrote
-  // `defaultValue` wrote the channel too. The framework has already
-  // resolved the twin into the argument, so `args.value` carries it; the
-  // twin's own value is the machine's fallback, the way the
-  // pre-conversion seed read it. The element declares the twin empty, so
-  // the fallback is the machine's own default.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   return {
@@ -237,14 +186,11 @@ export function initial(args: TagsArgs, authored: (name: string) => boolean): Pi
 }
 
 /** Zag's `isAtMax`, an exact count rather than a ceiling: a list already
- * past the cap (the overflow that makes the root invalid) is not "at" it,
- * so the insert still goes through. The cap blocks only the count that
- * equals it, which is why `api.atMax` below reports `>=` while the insert
- * guard reports equality — they answer different questions. */
+ * past the cap is not "at" it, so the insert still goes through — which is
+ * why `api.atMax` reports `>=` while this guard reports equality. */
 const isAtMax = (ctx: TagsContext): boolean => ctx.value.length === ctx.max;
 
-/** The overflow guard Zag's INSERT_TAG carries: at the cap the input text
- * survives the event rather than being cleared away with the tag. */
+/** Zag's INSERT_TAG overflow guard: at the cap the input text survives. */
 const canAdd = (ctx: TagsContext): boolean => ctx.allowOverflow || !isAtMax(ctx);
 
 const caretAtStart = (event: TagsEvent): boolean => {
@@ -259,11 +205,8 @@ const caretAtStart = (event: TagsEvent): boolean => {
   }
 };
 
-/**
- * A highlight move, announced as a selection when a mutation left a log.
- * Zag emits this from a watch on `highlightedTagId`; the equivalent here
- * is to write it wherever the highlight moves.
- */
+/** Zag announces the selection from a watch on the highlight; here it is
+ * written wherever the highlight moves. */
 const withSelectLog = (ctx: TagsContext, index: number | null): Partial<TagsContext> => {
   if (index === null || ctx.log === null) return { highlightedIndex: index };
   const value = ctx.value[index];
@@ -273,8 +216,8 @@ const withSelectLog = (ctx: TagsContext, index: number | null): Partial<TagsCont
 
 const valueAtIndex = (ctx: TagsContext, index: number): string | undefined => ctx.value[index];
 
-/** The insert Zag's `raiseInsertTagEvent` performs: append the sanitized
- * input text, then clear it. Guarded by `canInsert` at every call site. */
+/** Zag's `raiseInsertTagEvent`: append the sanitized input text, then
+ * clear it. Guarded by `canInsert` at every call site. */
 const addFromInput = (ctx: TagsContext): Partial<TagsContext> => {
   const inputValue = ctx.sanitizeValue(ctx.inputValue);
   if (!ctx.validate({ inputValue, value: ctx.value })) return { refusal: "invalidTag" as const };
@@ -310,8 +253,6 @@ const config = {
     sanitizeValue: sanitizeDefault,
     validate: validateDefault,
   },
-  // Root tier: the tag gestures and the programmatic commands Zag also
-  // answers in every state.
   on: {
     DOUBLE_CLICK_TAG: [
       { cond: "isTagEditable", target: "editing:tag", actions: [{ assign: "beginEdit" }] },
@@ -341,12 +282,10 @@ const config = {
         ],
       },
     },
-    // Zag runs `clearHighlightedId` as this state's entry action. Composed
-    // into the transitions that reach it rather than written as `entry`,
-    // because the one transition whose own assigns set a highlight (the
-    // navigating:tag Delete that lands on the tag that slid in) must win:
-    // the fork folds exit -> actions -> entry, so an entry action would
-    // wipe what its own transition just set.
+    // Zag runs `clearHighlightedId` as this state's entry action, but it
+    // is composed into the transitions that reach it: the fork folds
+    // exit -> actions -> entry, so an entry action would wipe the
+    // highlight a transition's own assigns just set.
     "focused:input": {
       on: {
         TYPE: { actions: [{ assign: "setInputValue" }] },
@@ -577,8 +516,6 @@ const implementations = {
       withSelectLog(ctx, ctx.value.length > 0 ? 0 : null),
     highlightLast: (ctx: TagsContext): Partial<TagsContext> =>
       withSelectLog(ctx, ctx.value.length > 0 ? ctx.value.length - 1 : null),
-    // Zag's highlightTagAtIndex: the index the delete or the edit left
-    // behind, clamped to what the removal left in the list.
     highlightAtIndex: (ctx: TagsContext): Partial<TagsContext> => {
       const index = ctx.editedIndex;
       return withSelectLog(ctx, index === null ? null : clampIndex(index, ctx.value.length));
@@ -615,10 +552,6 @@ const implementations = {
   },
 };
 
-/**
- * The tags-input machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function tags(
   args: TagsArgs = {},
   authored: (name: string) => boolean,
@@ -626,23 +559,7 @@ export function tags(
   return createMachine<TagsContext, TagsEvent>({
     ...config,
     context: { ...config.context, ...initial(args, authored) },
-    /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     *
-     * The tag list and the entry text are the host's own channels: they
-     * alternate silently, so they carry no event — the element keeps the
-     * shaped list in sync with the raw prop.
-     */
     fields: {
-      // The list is shaped: the host writes it as text or an array, and
-      // the machine's own `stringsOf` makes the list. The same shaping
-      // the start applies, so a host's write and the start agree.
       value: { parse: stringsOf },
       inputValue: {},
       max: {},

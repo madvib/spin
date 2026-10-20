@@ -5,8 +5,8 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-date-input.html";
 
+import "./spin-date-input.html";
 interface DateValue {
   readonly year: number;
   readonly month: number;

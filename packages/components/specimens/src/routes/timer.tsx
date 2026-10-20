@@ -6,8 +6,8 @@ import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
 import type { TimerTickChange } from "../../../src/spin-timer/timer.bindings.ts";
-import "./spin-timer.html";
 
+import "./spin-timer.html";
 interface TimerCommands {
   start: () => void;
   pause: () => void;

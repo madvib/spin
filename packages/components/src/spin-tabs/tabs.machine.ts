@@ -1,17 +1,4 @@
-/**
- * Tabs machine: selection is component state, not platform state.
- *
- * The platform owns no tab selection (unlike popover open-ness or input
- * value), so per the state-ownership rule this is a machine, not a
- * controller. It is deliberately small: a single value, VALUE.SET for
- * outer writes, TAB.SELECT for picks, arrow/Home/End navigation with
- * automatic activation (select + focus move together, Zag's model).
- * Roving tabindex falls out of the value: the selected tab is tabbable.
- *
- * The machine is a FACTORY over the element's props: it builds its own
- * context from the arguments it wants, and it declares its contract — the
- * context fields a host may write, and the event each write carries.
- */
+/** Tabs machine: selection is component state, not platform state. */
 
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
@@ -26,8 +13,7 @@ export interface TabsContext {
   value: string;
   defaultValue: string;
   /** Configuration-that-never-changes: the shaped rows, supplied once at
-   * instantiation via `initial` (the def declares no channels — the
-   * transport owns prop coercion). Bags read this for keyboard navigation. */
+   * instantiation. Bags read this for keyboard navigation. */
   items: readonly TabsItem[];
 }
 
@@ -39,9 +25,8 @@ export type TabsValueChange = {
   readonly value: string;
 };
 
-/** A transport-coerced row: the scope prop grammar has decoded the JSON and
- * typed the fields. `label` may be absent — transport does not invent
- * labels, `initial` falls back to the value. */
+/** A transport-coerced row: `label` may be absent — transport does not
+ * invent labels, `initial` falls back to the value. */
 export interface TabsRow {
   readonly value?: unknown;
   readonly label?: unknown;
@@ -51,19 +36,14 @@ export interface TabsRow {
 /**
  * The tabs' arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value; the machine keeps
- * the twin's own text in its context, so it also reads it when the
+ * The twin (`defaultValue`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value; the machine
+ * keeps the twin's own text in its context, so it also reads it when the
  * factory is called on its own.
  */
 export interface TabsArgs {
-  /** The tabs, as the host wrote them. */
   items?: readonly unknown[];
-  /** The selected tab, as the host wrote it. */
   value?: string;
-  /** The tab the flow starts at, as the host wrote it. */
   defaultValue?: string;
 }
 
@@ -71,20 +51,13 @@ export interface TabsArgs {
  * Shape the arguments into the machine's initial context.
  * Pure shaping only: label-from-value, content-to-empty, and the
  * first-selected fallback (the host's write, then `defaultValue`, then the
- * first row). Items enter the context as config-that-never-changes. No
- * parsing and no casts — the transport owns prop coercion.
+ * first row).
  *
- * The selection is a channel: the host's write, or the machine's own
- * default. The element's declared default is not a write, so it never
- * stands in for one. The seed twin (`defaultValue`) is the host's write of
- * the selection — the framework resolved it into the args — so it counts as
- * a write too.
+ * The seed twin (`defaultValue`) is the host's write of the selection —
+ * the framework resolved it into the args — so it counts as a write too.
  */
 export function initial(args: TabsArgs = {}, authored: (name: string) => boolean): TabsContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const rows: readonly unknown[] = Array.isArray(args.items) ? args.items : [];
@@ -113,10 +86,6 @@ export function initial(args: TabsArgs = {}, authored: (name: string) => boolean
   };
 }
 
-/**
- * The tabs machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function tabs(
   args: TabsArgs = {},
   authored: (name: string) => boolean,
@@ -126,13 +95,10 @@ export function tabs(
     initial: "idle",
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      *
      * The rows are the machine's own configuration: they never change
      * while the tabs live, so the host may not write them.
@@ -153,8 +119,7 @@ export function tabs(
       setValue: (ctx: TabsContext, event: TabsEvent): Partial<TabsContext> => {
         if (event.type !== "VALUE.SET") return {};
         void ctx;
-        // The value arrives the way the host wrote it; the machine shapes
-        // it, wherever it came from.
+        // The value arrives the way the host wrote it; the machine shapes it.
         return { value: typeof event.value === "string" ? event.value : "" };
       },
       selectTab: (ctx: TabsContext, event: TabsEvent): Partial<TabsContext> => {

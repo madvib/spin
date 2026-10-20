@@ -16,14 +16,9 @@ import {
   type ComboboxEvent,
 } from "./combobox.machine.ts";
 /**
- * Combobox definition: the DOM contract as data. The machine owns the four
- * phases, the selection, the input text, the highlight, and the inline
- * completion; this file maps props to channels, parts to attribute bags,
- * commands to sends, and value/highlight/input/open/select transitions to
- * their events. Navigation (arrows, Home, End) computes its target against
- * the rows the view holds and sends it in — the machine never walks data.
- * The collection parses once per prop identity: row objects are stable, so
- * the `for` bindings never re-stamp.
+ * Combobox definition: the DOM contract as data. The collection parses
+ * once per prop identity: row objects are stable, so the `for` bindings
+ * never re-stamp.
  */
 
 export interface ComboboxItem {
@@ -38,7 +33,6 @@ export interface ComboboxRow {
   readonly label: string;
   readonly disabled: boolean;
   readonly group: string;
-  /** Position in collection order — what the group walk reads. */
   readonly index: number;
 }
 
@@ -155,8 +149,6 @@ const toRows = (items: readonly ComboboxItem[]): readonly ComboboxRow[] => {
   return rows.map((row, index) => ({ ...row, index }));
 };
 
-/** The scope grammar's object-array type carries the fields the host typed;
- * anything else arriving on the prop channel is treated as no items. */
 const parseItems = (raw: unknown): readonly ComboboxRow[] => {
   if (!Array.isArray(raw)) return [];
   return toRows(raw.filter((item): item is ComboboxItem => typeof item === "object" && item !== null));
@@ -165,12 +157,11 @@ const parseItems = (raw: unknown): readonly ComboboxRow[] => {
 const sameKeys = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
-/** A non-empty text prop, or null — the shape `highlightedValue` travels in. */
 const nullableProp = (raw: unknown): string | null =>
   typeof raw === "string" && raw.length > 0 ? raw : null;
 
-/** Why the input's text moved. Zag reports the event's `src`; ours names the
- * event that produced the move, because the prop channel carries no `src`. */
+/** Why the input's text moved: the prop channel carries no `src`, so ours
+ * names the event that produced the move. */
 const INPUT_REASON: Record<string, string> = {
   "INPUT.CHANGE": "input-change",
   "INPUT_VALUE.SET": "script",
@@ -185,8 +176,8 @@ const INPUT_REASON: Record<string, string> = {
   "LAYER.INTERACT_OUTSIDE": "interact-outside",
 };
 
-/** Why the panel opened or closed: the four user-facing reasons Zag names,
- * and `script` for everything the host asked for. */
+/** Why the panel opened or closed: the reasons Zag names, and `script` for
+ * everything the host asked for. */
 const OPEN_REASON: Record<string, string> = {
   "TRIGGER.CLICK": "trigger-click",
   "INPUT.CLICK": "input-click",
@@ -203,8 +194,7 @@ const OPEN_REASON: Record<string, string> = {
 /**
  * Zag's `context({bindable})` for `inputValue`: the field starts as the
  * authored text, and a single-mode field with no authored text starts as the
- * selection's string — replaced for `replace`, kept in full for `preserve`,
- * emptied for `clear`.
+ * selection's string.
  */
 function seedInputValue(
   authoredText: string,
@@ -250,9 +240,7 @@ const labelsOf = (parsed: Record<string, unknown>): Record<string, string> =>
   Object.fromEntries(rowsOf(parsed).map((row) => [row.value, row.label]));
 
 /** Blocks memoized on the rows' identity: the `for` directive iterates this
- * array, and fresh wrappers per read would re-stamp the groups. Keyed by the
- * rows array itself, so sharing across bridges is correct — identical rows
- * build identical blocks. */
+ * array, and fresh wrappers per read would re-stamp the groups. */
 const blocksCache = new WeakMap<readonly ComboboxRow[], readonly ComboboxBlock[]>();
 const blocksOf = (rows: readonly ComboboxRow[]): readonly ComboboxBlock[] => {
   const hit = blocksCache.get(rows);
@@ -295,8 +283,7 @@ const resolveKey = (event: KeyboardEvent, dir: string): string => {
  * starts at the highlighted row's position — so a highlight sitting on a
  * disabled row still moves — skips the disabled rows it passes, and returns
  * null when it runs off the end. With no reference point at all the RAW
- * first (or last) row is the answer, disabled or not, which is Zag's
- * `collection.firstValue`.
+ * first (or last) row is the answer, disabled or not.
  */
 const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
   const list = rowsOf(scope.props);
@@ -405,11 +392,10 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
-/** Row handlers, built once per row per bridge: the scope reads live
- * through proxies, so a cached closure never goes stale — while bindSpread's
- * listener-identity diffing skips re-attaching what did not change. Keyed by
- * the bridge's own send fn first, so two bridges sharing one collection
- * identity never share handlers. */
+/** Row handlers, built once per row per bridge: the scope reads live through
+ * proxies, so a cached closure never goes stale. Keyed by the bridge's own
+ * send fn first, so two bridges sharing one collection identity never share
+ * handlers. */
 type RowHandlerSet = {
   readonly onPointerMove: (event: PointerEvent) => void;
   readonly onPointerLeave: () => void;
@@ -443,8 +429,7 @@ const rowHandlers = (
       scope.send({ type: "ITEM.POINTER_LEAVE", value: row.value });
     },
     // A modified click is the browser's — a new tab, a download, a context
-    // menu — and never a selection. Zag asks the same three questions of
-    // the event; on a plain row their union is this guard.
+    // menu — and never a selection.
     onClick: (event: MouseEvent): void => {
       if (event.defaultPrevented) return;
       if (scope.props["disabled"] === true) return;
@@ -474,16 +459,11 @@ const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => (
 
 const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   name: "combobox",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => comboboxMachine(props as ComboboxArgs, authored),
   start: (props) => (props["open"] === true || props["defaultOpen"] === true ? "suggesting" : "idle"),
-  // The idle phase's entry clears the highlight — that is what makes a
-  // reopen start from nothing — so the host's seeded highlight is
-  // established AFTER the start, where the machine's own entry cannot
-  // clear it again. Silent: establish sends run before the watch cursors
-  // prime.
+  // The idle phase's entry clears the highlight, so the host's seeded
+  // highlight is established AFTER the start, where the machine's own entry
+  // cannot clear it again.
   establish: (raw, authored) => {
     const highlight: unknown = authored("highlightedValue")
       ? raw["highlightedValue"]
@@ -506,8 +486,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     }
     // The host owns the panel when it authored `open`: the machine follows
     // the prop, and the machine's own move is what reports it. The panel's
-    // visibility is the machine's STATE, not a context field, so it stays
-    // here rather than in the machine's contract.
+    // visibility is the machine's STATE, not a context field.
     if (authored("open")) {
       const open = parsed["open"] === true;
       if (open !== isOpenPhase(state)) {
@@ -540,8 +519,6 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
           "data-readonly": scope.attr(scope.props["readOnly"] === true),
           "data-invalid": scope.attr(scope.props["invalid"] === true),
           "data-required": scope.attr(scope.props["required"] === true),
-          // The layer: a press outside the whole widget dismisses, and
-          // Escape while it is up does too.
           "use:dismissable": {
             onEscape: (): void => {
               if (!isOpenPhase(scope.state)) return;
@@ -569,7 +546,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
         "data-focused": scope.attr(scope.state !== "idle"),
         onClick: (): void => {
           // The label's click is the input's: native focus follows the
-          // label activation, no framework path needed.
+          // label activation.
         },
       }),
     },
@@ -598,7 +575,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
           "data-phase": scope.state,
           // Zag measures a floating placement and reports it; the recipe
           // anchors the panel with utilities, so the authored placement and
-          // the side it implies are the state the theme keys on.
+          // the side it implies are what the theme keys on.
           "data-placement": placement,
           "data-side": placement.split("-")[0] ?? placement,
         };
@@ -630,7 +607,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
           autoCapitalize: "none",
           spellCheck: false,
           // The field is controlled: the bag binds the machine's text, and
-          // an inline completion rides on top of it while one is live.
+          // an inline completion rides on top of it.
           value: display,
           "aria-invalid": scope.props["invalid"],
           "aria-autocomplete": ctx.inputBehavior === "autocomplete" ? "both" : "list",
@@ -780,8 +757,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
             if (event.button !== 0) return;
             event.preventDefault();
           },
-          // The active descendant is revealed by the browser's own scroll,
-          // and the lists go home when it goes away.
+          // The active descendant is revealed by the browser's own scroll.
           "use:scroll-into-view": {
             activeId: (): string => {
               const highlighted = scope.context.highlightedValue;

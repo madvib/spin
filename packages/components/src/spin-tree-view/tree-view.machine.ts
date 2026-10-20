@@ -1,34 +1,9 @@
 /**
  * Tree-view on the forked FSM — the hard case, deliberately.
- *
- * Why this machine is the test: it is the one Zag component whose
- * complexity is NOT a state chart. Thirty-ish events (expand, collapse,
- * select, check, arrows at every depth, typeahead, rename, lazy load) with
- * per-node state (loading, rename mode) and per-selection-mode semantics.
- * If the config-first fork holds here — small, legible config with a
- * table of pure assigns and named guards beside it — the architecture is
- * proven. If it degenerates into flag-soup, we learn the boundary.
- *
- * Two things make it work, and both are the reusable ideas:
- *
- * 1. **`TreeCollection` is unnecessary.** Zag ships a 19kB collection class
- *    to answer "what is visible". Here it is a derived computation over the
- *    raw tree plus `expandedValue` — the reactive core does the work, and
- *    the visible-row list is a plain function the template iterates.
- * 2. **Per-node async state lives in context maps.** `loadingStatus` is a
- *    record keyed by node value; the async WORK lives in an action (which
- *    owns its abort map, as the machine's `refs.pendingAborts` did), and
- *    talks to the machine in events. No actors required for this.
  */
 
 import { coerceJsonArray, defaultTwin, isRecord } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-/**
- * Tree-view machine: the config and its vocabulary. States, events, guards,
- * and pure assigns. The bridge (`bridge.ts`) turns scope values into this
- * machine; the connect (`connect.ts`) turns machine state into DOM.
- */
-
 export interface TreeExpandedChange {
   readonly expandedValue: readonly string[];
 }
@@ -47,24 +22,13 @@ export interface TreeLoadComplete {
 
 /**
  * The tree-view's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultExpandedValue`) is resolved by the framework before the factory
- * is called, so the machine only ever sees the live value.
  */
 export interface TreeArgs {
-  /** The expanded node values, as the host wrote them. */
   readonly expandedValue?: readonly string[];
-  /** The selected node values, as the host wrote them. */
   readonly selectedValue?: readonly string[];
-  /** The checked node values, as the host wrote them. */
   readonly checkedValue?: readonly string[];
-  /** How many nodes the host may select: one, or many. */
   readonly selectionMode?: string;
-  /** Whether a click on a branch opens it. */
   readonly expandOnClick?: boolean;
-  /** Whether a node can be renamed. */
   readonly rename?: boolean;
 }
 
@@ -75,8 +39,7 @@ export interface TreeNodeShape {
   readonly children?: readonly TreeNodeShape[] | undefined;
 }
 
-/** A node entry: value names it, the rest is text; children recurse.
- * Malformed entries drop; anything else is no nodes. */
+/** Malformed entries drop. */
 const shapeNode = (entry: unknown): TreeNodeShape | null => {
   if (!isRecord(entry)) return null;
   const value: unknown = entry["value"];
@@ -100,12 +63,10 @@ const shapeNode = (entry: unknown): TreeNodeShape | null => {
   return node;
 };
 
-/** The tree off any transport: the scope grammar has no recursive shape,
- * so the collection parses here. Well-shaped entries only. */
+/** The scope grammar has no recursive shape, so the collection parses here. */
 export function nodesOf(raw: unknown): TreeNodeShape[] {
-  // The scope declares `nodes` as a string, so the host's write is JSON.
-  // An array is accepted too: a host that holds the nodes already parsed
-  // should not have to serialize them back.
+  // `nodes` is declared as a string, so the host's write is JSON. An
+  // already-parsed array is accepted too.
   const list: readonly unknown[] = typeof raw === "string"
     ? coerceJsonArray(raw, [])
     : Array.isArray(raw)
@@ -119,24 +80,11 @@ export function nodesOf(raw: unknown): TreeNodeShape[] {
   return out;
 }
 
-/** The node values off any transport: the strings only. */
 const keysOf = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   return value.filter((v): v is string => typeof v === "string");
 };
 
-/**
- * The machine's context, from its arguments: the three value sets start at
- * their defaults, empty, and the three flags at theirs.
- *
- * The twin (`defaultExpandedValue`) was resolved by the framework before the
- * factory was called, so the arguments carry the live value.
- *
- * The value sets and the flags are the host's channels: the host's own write
- * stands — the live prop or its twin, which is the same write under the
- * framework's convention — else the machine's own default. The nodes are
- * the element's data: the collection is taken as it is.
- */
 export function initial(
   args: TreeArgs,
   authored: (name: string) => boolean = () => true,
@@ -159,8 +107,8 @@ export function initial(
   };
 }
 
-/** Two sets with the same members: an assign returning no-op is an event
- * that moved nothing, and the bridge's change detection depends on it. */
+/** An assign returning no-op is an event that moved nothing, and the
+ * bridge's change detection depends on it. */
 const sameSet = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((v) => b.includes(v));
 
@@ -172,16 +120,14 @@ export interface TreeContext {
   renamingValue: string | null;
   loadingStatus: Record<string, "loading" | "loaded" | "error">;
   typeahead: string;
-  /** Props the guards read. Synced per send from scope values. */
   selectionMode: "single" | "multiple";
   expandOnClick: boolean;
   rename: boolean;
 }
 
 /**
- * Callbacks live on the prop channel, not in context: the machine's context
- * stays pure state (serializable for the studio), and the bridge fires these
- * after a send when the matching field moved.
+ * Callbacks live on the prop channel, not in context: the context stays pure
+ * state, and the bridge fires these after a send when the field moved.
  */
 export interface TreeCallbacks {
   onExpandedChange: ((details: TreeExpandedChange) => void) | undefined;
@@ -194,9 +140,7 @@ export interface TreeCallbacks {
 export type TreeEvent =
   | {
     type: "EXPANDED.SET";
-    /** The command's payload: the values the view names. */
     value?: string[];
-    /** The host write's payload: the prop's own name. */
     expandedValue?: string[];
   }
   | { type: "EXPANDED.CLEAR" }
@@ -205,9 +149,7 @@ export type TreeEvent =
   | { type: "BRANCH.TOGGLE"; value: string }
   | {
     type: "SELECTED.SET";
-    /** The command's payload: the values the view names. */
     value?: string[];
-    /** The host write's payload: the prop's own name. */
     selectedValue?: string[];
   }
   | { type: "SELECTED.CLEAR" }
@@ -216,9 +158,7 @@ export type TreeEvent =
   | { type: "CHECKED.TOGGLE"; value: string }
   | {
     type: "CHECKED.SET";
-    /** The command's payload: the values the view names. */
     value?: string[];
-    /** The host write's payload: the prop's own name. */
     checkedValue?: string[];
   }
   | { type: "CHECKED.CLEAR" }
@@ -328,11 +268,9 @@ const config = {
 };
 
 /**
- * The four members of the vocabulary the config references. Navigation
- * (arrows/home/end/typeahead) is NOT here: those need the visible-node
- * list, which is a *view* concern — they live as the `use:navigate` action
- * plus connect handlers, and send events this machine answers. The
- * guards/assigns below are pure transforms of state only.
+ * Navigation (arrows/home/end/typeahead) is NOT here: it needs the
+ * visible-node list, a view concern. The guards and assigns below are pure
+ * transforms of state only.
  */
 const implementations = {
   conds: {
@@ -350,8 +288,7 @@ const implementations = {
   assigns: {
     setExpanded: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
       if (e.type !== "EXPANDED.SET") return {};
-      // The values arrive the way the host wrote them: the command names
-      // the set, the host write names the field. The machine shapes it.
+      // A host write names the field, a command names the set; the field wins.
       const raw = e.expandedValue !== undefined ? e.expandedValue : e.value;
       if (raw === undefined) return {};
       const next = keysOf(raw);
@@ -385,9 +322,8 @@ const implementations = {
       e.type === "NODE.FOCUS" && e.value !== ctx.focusedValue
         ? { focusedValue: e.value, typeahead: "" }
         : {},
-    // No event-type guard: this assign is composed into BRANCH.TOGGLE and
-    // BRANCH_NODE.CLICK. An assign that must know WHICH event fired it is a
-    // modeling error — split the transitions instead.
+    // No event-type guard: composed into BRANCH.TOGGLE and BRANCH_NODE.CLICK.
+    // An assign that must know which event fired it is a modeling error.
     toggleBranch: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
       const value = "value" in e ? (e.value as string) : "";
       return {
@@ -453,16 +389,8 @@ const implementations = {
       return { loadingStatus: next };
     },
   },
-  // No `actions` table: every transition is a pure assign. The out-side
-  // callbacks fire from the bridge after each send, guarded by a change
-  // snapshot, so "no-op event" means no event anywhere — not a stale one
-  // replayed.
 };
 
-/**
- * The tree-view machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function treeView(
   args: TreeArgs = {},
   authored: (name: string) => boolean = () => true,
@@ -472,13 +400,10 @@ export function treeView(
     ...implementations,
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event, the
-     * machine decides, and the change reaches the host. A field without
-     * one is SILENT: the host's write lands in the field, and nothing
-     * reports.
+     * The machine's contract with its hosts. A field with an event is
+     * REPORTED: the host's write is an event, the machine decides, and the
+     * change reaches the host. A field without one is SILENT: the write
+     * lands in the field, and nothing reports.
      */
     fields: {
       expandedValue: { event: "EXPANDED.SET" },

@@ -13,17 +13,14 @@ import {
   type ListboxEvent,
 } from "./listbox.machine.ts";
 /**
- * Listbox definition: the DOM contract as data. The machine owns the
- * highlight, the selection and the focus in one idle phase; this file maps
- * props to channels, parts to attribute bags, commands to sends, and
+ * Listbox definition: the DOM contract as data. This file maps props to
+ * channels, parts to attribute bags, commands to sends, and
  * value/highlight/select transitions to their events. Navigation (arrows,
  * Home, End, typeahead) computes its target against the rows the view
- * holds and sends it in — the machine never walks data. The collection
- * parses once per prop identity: row objects are stable, so the `for`
- * bindings never re-stamp.
+ * holds and sends it in. The collection parses once per prop identity: row
+ * objects are stable, so the `for` bindings never re-stamp.
  */
 
-/** One collection entry as the host authored it: value first, label optional. */
 export interface ListboxItem {
   readonly value: string;
   readonly label?: string | undefined;
@@ -36,7 +33,6 @@ export interface ListboxRow {
   readonly label: string;
   readonly disabled: boolean;
   readonly group: string;
-  /** Position in collection order — what the group walk reads. */
   readonly index: number;
 }
 
@@ -46,7 +42,7 @@ export interface ListboxBlock {
   readonly rows: readonly ListboxRow[];
 }
 
-/** Zag's `getItemState`, verbatim in shape: what one option is worth. */
+/** Zag's `getItemState`, verbatim in shape. */
 export interface ListboxItemState {
   readonly value: string;
   readonly disabled: boolean;
@@ -139,14 +135,11 @@ const toRows = (items: readonly ListboxItem[]): readonly ListboxRow[] => {
   return rows.map((row, index) => ({ ...row, index }));
 };
 
-/** The scope grammar's object-array type carries the fields the host typed;
- * anything else arriving on the prop channel is treated as no items. */
 const parseItems = (raw: unknown): readonly ListboxRow[] => {
   if (!Array.isArray(raw)) return [];
   return toRows(raw.filter((item): item is ListboxItem => typeof item === "object" && item !== null));
 };
 
-/** A non-empty text prop, or null — the shape `highlightedValue` travels in. */
 const nullableProp = (raw: unknown): string | null =>
   typeof raw === "string" && raw.length > 0 ? raw : null;
 
@@ -227,8 +220,8 @@ const rowHandlers = (scope: ScopeLike, row: ListboxRow): RowHandlerSet => {
       scope.send({ type: "ITEM.POINTER_LEAVE" });
     },
     // Shift is selection, not the browser's: it extends the range from the
-    // highlight, which is the anchor Zag reads. The rest of the modifiers
-    // are the browser's — a new tab, a download, a context menu.
+    // highlight, which is the anchor Zag reads. The other modifiers are
+    // the browser's — a new tab, a download, a context menu.
     onClick: (event: MouseEvent): void => {
       if (event.defaultPrevented) return;
       if (scope.props["disabled"] === true) return;
@@ -255,11 +248,10 @@ const itemStateOf = (scope: ScopeLike, row: ListboxRow): ListboxItemState => ({
 
 /**
  * One step through the collection, mirroring Zag's `getNextValue`: the walk
- * starts at the highlighted row's position — so a highlight sitting on a
- * disabled row still moves — skips the disabled rows it passes, and returns
- * null when it runs off the end. With no reference point at all the RAW
- * first (or last) row is the answer, disabled or not, which is Zag's
- * `collection.firstValue`.
+ * starts at the highlighted row's position — so a highlight on a disabled row
+ * still moves — skips the disabled rows it passes, and returns null at the
+ * end. With no reference point the RAW first (or last) row is the answer,
+ * disabled or not, which is Zag's `collection.firstValue`.
  */
 const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
   const list = rowsOf(scope.props);
@@ -279,9 +271,9 @@ const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
 };
 
 /** The walk a highlight command takes: from the highlight, skipping the
- * disabled values the collection names, wrapping only when the host loops.
- * Reconcile maintains the disabled set next to the order, so the command —
- * which reads context, not rows — walks what the view would walk. */
+ * disabled values, wrapping only when the host loops. Reconcile maintains
+ * the disabled set next to the order, so the command — which reads context,
+ * not rows — walks what the view would walk. */
 const highlightStep = (
   order: readonly string[],
   disabled: readonly string[],
@@ -314,7 +306,6 @@ const edge = (scope: ScopeLike, from: "first" | "last"): string | null => {
   return row === undefined ? null : row.value;
 };
 
-/** The arrow's target: the walk, wrapping only when the host loops. */
 const nextWalked = (scope: ScopeLike, delta: 1 | -1): string | null => {
   const value = step(scope, delta);
   if (value !== null) return value;
@@ -322,7 +313,6 @@ const nextWalked = (scope: ScopeLike, delta: 1 | -1): string | null => {
   return edge(scope, delta > 0 ? "first" : "last");
 };
 
-/** A typeahead keystroke: a single printable character with no modifier. */
 const isTypeaheadKey = (event: KeyboardEvent): boolean =>
   event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
 
@@ -404,9 +394,6 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 };
 const def: ComponentDef<ListboxContext, ListboxEvent> = {
   name: "listbox",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => listboxMachine(props as ListboxArgs, authored),
   reconcile: ({ context, parsed, send }) => {
     const ctx = context;

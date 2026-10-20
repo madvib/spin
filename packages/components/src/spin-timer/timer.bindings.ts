@@ -11,21 +11,15 @@ import {
 } from "./timer.machine.ts";
 
 /**
- * Timer definition: the DOM contract as data. The machine owns the phase
- * (idle/running/paused) and the count; this file maps props to channels,
- * parts to attribute bags, commands to sends, and tick/complete
- * transitions to their events.
+ * Timer definition: the DOM contract as data.
  *
- * The clock is NOT here. A `use:autoplay` action on the root owns the
- * interval and reports `onTick`; the bag's handler measures the span since
- * the last send (the def's `settled` captures the epoch per bridge) and
- * the machine decides what the tick is worth. `startMs` restarts the run
- * on change (Zag's `watch`); an authored `currentMs` alternates the count.
+ * The clock is not here: a `use:autoplay` action on the root owns the
+ * interval and reports `onTick`; the handler measures the span since the
+ * last send (`settled` captures the epoch per bridge).
  */
 
 /** One row of the display: the unit, its caption, and whether a separator
- * follows it. `getUnits` is the recipe's row source, the way a listbox's
- * `getBlocks` is. */
+ * follows it. */
 export interface TimerUnit {
   readonly type: TimePart;
   readonly label: string;
@@ -86,9 +80,9 @@ interface SlotLike<R> extends SlotScope<R, TimerContext> {}
 
 const timeOf = (context: TimerContext): Time => msToTime(context.currentMs);
 
-/** The run's progress as a fraction: a countdown runs from full to empty,
- * a stopwatch from empty to full. A target of zero is Zag's default when
- * none is given, which leaves a targetless stopwatch at zero progress. */
+/** A countdown runs from full to empty, a stopwatch from empty to full. A
+ * targetless stopwatch stays at zero progress (Zag's default target is
+ * zero). */
 const progressOf = (context: TimerContext): number => {
   const { currentMs, startMs, targetMs, countdown } = context;
   const target = targetMs ?? 0;
@@ -102,8 +96,8 @@ const progressOf = (context: TimerContext): number => {
  * last send, and `settled` runs after every transmit. */
 const epochByRoot = new WeakMap<Element, number>();
 
-/** The units the recipe renders, and their captions. Milliseconds stays on
- * the api — a host that wants it reads `formattedTime.milliseconds`. */
+/** The units the recipe renders, and their captions. Milliseconds stays off
+ * the display — a host that wants it reads `formattedTime.milliseconds`. */
 const UNIT_LABELS: Readonly<Record<TimePart, string>> = {
   days: "days",
   hours: "hrs",
@@ -112,7 +106,6 @@ const UNIT_LABELS: Readonly<Record<TimePart, string>> = {
   milliseconds: "ms",
 };
 
-/** A separator's unit: the row carries `after`, defaulting to seconds. */
 const separatorAfter = (slot: unknown): TimePart => {
   if (!isRecord(slot)) return "seconds";
   const after: unknown = slot["after"];
@@ -122,13 +115,11 @@ const separatorAfter = (slot: unknown): TimePart => {
 const isLast = (slot: unknown): boolean =>
   isRecord(slot) && slot["last"] === true;
 
-
-/** An action trigger's action: the five valid verbs, defaulting to start. */
 const isAction = (value: unknown): value is TimerActionTrigger["action"] =>
   typeof value === "string" && (VALID_ACTIONS as Record<string, unknown>)[value] === true;
 
 /** An action trigger's action: the five valid verbs. Anything else is a
- * host bug, refused loudly at the call — never a silent default. */
+ * host bug, refused loudly — never a silent default. */
 const actionOf = (slot: unknown): TimerActionTrigger["action"] => {
   const action: unknown = isRecord(slot) ? slot["action"] : undefined;
   if (isAction(action)) return action;
@@ -146,9 +137,9 @@ const SECOND_UNIT: TimerUnit = { type: "seconds", label: "sec", last: true };
 const UNITS_WITH_DAYS: readonly TimerUnit[] = [DAY_UNIT, HOUR_UNIT, MINUTE_UNIT, SECOND_UNIT];
 const UNITS_WITHOUT_DAYS: readonly TimerUnit[] = [HOUR_UNIT, MINUTE_UNIT, SECOND_UNIT];
 
-/** Tark keeps the days row for day-scale runs (00 days at 23:59:57): days
- * shows when the current time has one, or the run's start/target reaches
- * a day — both fixed for the run, so no mid-run row flip. */
+/** The days row shows when the current time has one, or the run's
+ * start/target reaches a day — both fixed for the run, so no mid-run row
+ * flip. */
 function showDays(context: TimerContext): boolean {
   const ctx = context;
   if (timeOf(context).days > 0) return true;
@@ -164,7 +155,7 @@ const ACTIONS: readonly TimerActionTrigger[] = [
   { action: "restart" },
 ];
 
-/** Zag's `validActions` — the machine refuses anything else. */
+/** Zag's `validActions`. */
 const VALID_ACTIONS: Readonly<Record<string, true>> = {
   start: true,
   pause: true,
@@ -175,9 +166,6 @@ const VALID_ACTIONS: Readonly<Record<string, true>> = {
 
 const def: ComponentDef<TimerContext, TimerEvent> = {
   name: "timer",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => timerMachine(props as TimerArgs, authored),
   start: (raw) => (raw["autoStart"] === true ? "running" : "idle"),
 
@@ -198,7 +186,6 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         "data-scope": "timer",
         "data-part": "root",
         "data-state": scope.state,
-        // The clock: the action owns the interval, the machine owns nothing.
         "use:autoplay": {
           interval: scope.context.interval,
           enabled: scope.state === "running",
@@ -221,7 +208,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
           role: "timer",
           "data-scope": "timer",
           "data-part": "area",
-          // Zag's translation, verbatim: the units a screen reader hears.
+          // Zag's translation: the units a screen reader hears.
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
           "aria-atomic": true,
           "data-state": scope.state,
@@ -336,10 +323,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         }
         const running = scope.state === "running";
         const paused = scope.state === "paused";
-        // Which triggers the phase answers: a stopped clock offers start
-        // and restart, a running one pause and reset, a paused one resume,
-        // reset and restart. Reset hides only when there is nothing to
-        // reset (fresh clock) — never an empty control mid-run.
+        // Reset hides only when there is nothing to reset (a fresh clock)
+        // — never an empty control mid-run.
         const ctx = scope.context;
         const atStart = ctx.countdown
           ? ctx.currentMs >= ctx.startMs
@@ -372,10 +357,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
   methods: {
     getUnits: {
       call: (context) => {
-        // The rows read plain-mutated context through a snapshot getter,
-        // which tracks nothing on its own: `machineTick` is the runtime's
-        // subscription for exactly that path, and it is what wakes the
-        // `for` directive so the digits get re-read.
+        // `machineTick` is the runtime's subscription for this path: it
+        // wakes the `for` directive so the digits get re-read.
         machineTick();
         return [...(showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS)];
       },
@@ -404,8 +387,7 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
         return { value: typeof value === "number" ? value : 0 };
       },
       // A tick only counts while running — a stray one on a paused or
-      // finished clock is not Zag's `invokeOnTick`, which sits on the
-      // running TICK transition.
+      // finished clock is not counted.
       select: (event, _before, after: TimerContext, states) => {
         if (event.type !== "TICK" || states?.was !== "running") return null;
         const time = msToTime(after.currentMs);
@@ -416,8 +398,8 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       prop: "onComplete",
       watch: () => [],
       detail: () => ({}),
-      // Only a completing tick leaves `running` for `idle`: a pause goes
-      // to `paused`, a reset stays or goes home without ending the run.
+      // Only a completing tick leaves `running` for `idle`; a pause goes to
+      // `paused` and a reset does not end the run.
       select: (event, _before, _after, states) => {
         if (event.type !== "TICK" || states?.was !== "running" || states?.is !== "idle") return null;
         return {};

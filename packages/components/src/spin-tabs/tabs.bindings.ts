@@ -9,21 +9,7 @@ import {
   type TabsValueChange,
 } from "./tabs.machine.ts";
 
-/**
- * Tabs definition: the DOM contract (data). Selection is component
- * state — the platform owns no tab selection — so this is a machine,
- * not a controller. Automatic activation: arrows/Home/End select and
- * move DOM focus together (the toggle-group reflex pattern).
- *
- * Bag names match the old controller exactly (getRootProps,
- * getListProps, getTriggerProps(row), getContentProps(row), select,
- * value), so the eleven examples render unchanged.
- *
- * Shipped shape: no channels (the transport's prop grammar owns prop
- * coercion), no parse helpers, no DOM access, no CSS custom properties
- * — the bags emit roles, ARIA pairing and `data-state`/`data-part` hooks
- * only; recipes own the visual chrome via `data-[state]` Uno variants.
- */
+/** Tabs definition: the DOM contract (data). */
 export type { TabsItem, TabsValueChange };
 
 const enabledValues = (scope: PartScope<TabsItem, TabsContext>): string[] =>
@@ -39,9 +25,6 @@ const neighbor = (scope: PartScope<TabsItem, TabsContext>, value: string, direct
 
 const def: ComponentDef<TabsContext, TabsEvent> = {
   name: "tabs",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => tabsMachine(props as TabsArgs, authored),
   parts: {
     root: {

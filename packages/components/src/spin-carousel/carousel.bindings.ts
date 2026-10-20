@@ -25,13 +25,10 @@ import {
 export type { CarouselDragStatus, CarouselSlide };
 
 /**
- * Carousel definition: the DOM contract as data. The machine holds a page
- * index and a mode (idle/autoplay). Everything that MOVES is the browser:
- * the item group is a native scroll container with scroll-snap, so a drag,
- * a fling and a settle are one motion the platform owns and no transform
- * is ever written. This file maps props to channels, parts to attribute
- * bags, commands to sends, and index/drag/autoplay transitions to their
- * events, with `send` as the only outward path for the stdlib reflexes.
+ * Carousel definition: the DOM contract as data. Everything that MOVES is
+ * the browser: the item group is a native scroll container with scroll-snap,
+ * so a drag, a fling and a settle are one motion the platform owns and no
+ * transform is ever written.
  *
  * `index` is this machine's name for the page — the element's prop, its
  * command and its event all say `index`, because a carousel pages slides
@@ -83,8 +80,7 @@ export interface CarouselApi {
   /**
    * The readout as a one-row list. The markup's text channel is a one-shot:
    * a `{...}` interpolation is captured at build and only re-run when its
-   * row updates, so a value that must change on its own rides a row. The
-   * holder is stable and re-read by that row, so the text follows the page.
+   * row updates, so a value that must change on its own rides a row.
    */
   getProgressRows(): readonly CarouselReadout[];
   scrollToIndex(index: number): void;
@@ -120,7 +116,6 @@ const intersectThreshold = (raw: unknown): number => {
   return Math.min(1, Math.max(0, percent / 100));
 };
 
-/** Everything the machine derives from the slide props, in one place. */
 const derive = (parsed: Record<string, unknown>): {
   readonly slidesPerPage: number;
   readonly perMove: number;
@@ -157,9 +152,7 @@ const movesOf = (ctx: Ctx): number => Math.max(1, Math.trunc(ctx.perMove));
  * it. Keyed by the bridge's id function, which is stable per element.
  */
 interface CarouselView {
-  /** `${page}:${pageCount}` of the last positioning; `""` until the first. */
   appliedKey: string;
-  /** The "1 / 5" readout, rewritten on every build. */
   readonly readout: CarouselReadout;
 }
 type IdFn = (part: string, slot?: number) => string;
@@ -175,7 +168,7 @@ const viewOf = (id: (part: string, slot?: number) => string): CarouselView => {
 };
 
 /** Whether the track holds a tabbable descendant: the track itself
- * leaves the tab order then. Reads inside the owned root only. */
+ * leaves the tab order then. */
 const hasTabbable = (scope: ScopeLike): boolean => {
   const host = scope.root();
   if (typeof host.querySelector !== "function") return false;
@@ -184,16 +177,14 @@ const hasTabbable = (scope: ScopeLike): boolean => {
   return group.querySelector(TABBABLE) !== null;
 };
 
-/** Descendants that take the keyboard away from the track. */
 const TABBABLE =
   "a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])";
 
 /**
- * Slides-per-page as presence attributes.
- *
- * A slide's width is `1/N` of the track minus the gaps, and the only way to
- * say a runtime N in a class name is to enumerate it. Six is every real
- * carousel; past that the element renders full-width slides and says so.
+ * Slides-per-page as presence attributes: a slide's width is `1/N` of the
+ * track minus the gaps, and a runtime N can only be said in a class name by
+ * enumerating it. Six is every real carousel; past that the element renders
+ * full-width slides and says so.
  */
 const MAX_SLIDES_PER_PAGE = 6;
 const snapOf = (arg: unknown): string => {
@@ -260,8 +251,7 @@ const applyScroll = (
   perMove: number,
   behavior: ScrollBehavior,
 ): void => {
-  // Scroll positioning is a view write with no framework path: the query
-  // stays inside the owned root, never the global document.
+  // DOM reads stay inside the owned root, never the global document.
   const host = root();
   const group = host.querySelector(`[id="${id("itemGroup")}"]`);
   if (!(group instanceof HTMLElement)) return;
@@ -274,7 +264,6 @@ const applyScroll = (
   group.scrollTo({ [axis]: to - from + at, behavior });
 };
 
-/** Reposition when the page or the page count moved — and on nothing else. */
 const syncView = (
   id: (part: string, slot?: number) => string,
   root: () => Element,
@@ -299,15 +288,13 @@ const syncView = (
 
 /**
  * The page the track is actually showing, measured from the DOM: the slide
- * whose start edge sits closest to the container's start edge. This is the
- * only thing that turns a scroll into a page — so the view owns the
- * measurement and the machine never walks the DOM.
+ * whose start edge sits closest to the container's start edge. The view owns
+ * the measurement; the machine never walks the DOM.
  */
 const settlePage = (scope: ScopeLike): number => {
   const ctx = scope.context;
   const horizontal = scope.props["orientation"] !== "vertical";
-  // Slide enumeration has no framework path: the query stays inside the
-  // owned root, and the rects come from measure where a single node does.
+  // DOM reads stay inside the owned root, never the global document.
   const host = scope.root();
   if (typeof host.querySelectorAll !== "function") return ctx.index;
   const group = host.querySelector(`[id="${scope.id("itemGroup")}"]`);
@@ -349,16 +336,13 @@ const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<CarouselContext, CarouselEvent> = {
   name: "carousel",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // nothing about the machine's state.
   machine: (props, authored) => carouselMachine(props as CarouselArgs, authored),
   start: (raw, _authored) => (raw["autoplay"] === true ? "autoplay" : "idle"),
   // The first positioning must not glide: mounted positions without motion,
   // and every later page move glides through settled.
   mounted: ({ props, id, root }) => {
-    // The machine's own context: the twins resolved the way the factory
-    // saw them, so the view lands on the page the machine is on.
+    // The twins resolved the way the factory saw them, so the view lands
+    // on the page the machine is on.
     const shaped = initial(
       resolveTwins(props, authoredProps(() => props)) as CarouselArgs,
       authoredProps(() => props),
@@ -419,7 +403,6 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
         "data-state": scope.state === "autoplay" ? "playing" : "idle",
         dir: scope.props["dir"],
         onPointerdown: (): void => scope.send({ type: "POINTER.DOWN" }),
-        // The clock: the action owns the interval, the machine owns nothing.
         "use:autoplay": {
           interval: scope.props["autoplayDelay"],
           enabled: scope.state === "autoplay",
@@ -461,7 +444,6 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
           onFocusout: (): void => scope.send({ type: "VIEWPORT.BLUR" }),
           onKeydown: (event: KeyboardEvent): void => onTrackKeydown(scope, event),
           onScrollend: (): void => scope.send({ type: "SCROLL.SETTLE", index: settlePage(scope) }),
-          // The gesture: pointer capture plus scroll offset, reported out.
           ...(scope.props["allowMouseDrag"] === true && horizontal
             ? {
               "use:drag-scroll": {
@@ -477,7 +459,6 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
               },
             }
             : {}),
-          // Layout change is the track resize: re-measure, re-position.
           "use:resize-observer": {
             onResize: (): void => {
               const ctx = scope.context;
@@ -632,8 +613,6 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
           "aria-roledescription": "slide",
           "aria-label": `${item.index + 1} of ${slidesOf(scope.props["items"]).length}`,
           "aria-hidden": !inView,
-          // One observer per slide: the slide says whether it is on
-          // screen, and the machine decides what that means.
           "use:intersect": {
             threshold: intersectThreshold(scope.props["inViewThreshold"]),
             onVisibility: (visible: boolean): void => {
@@ -730,8 +709,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       call: (context: CarouselContext, _state, _args, _props, id) => {
         const ctx = context;
         // The row's update re-reads the holder, which is why the holder is
-        // a stable object rewritten here rather than a string the row
-        // captured.
+        // a stable object rewritten here rather than a captured string.
         const view = viewOf(isIdFn(id) ? id : fallbackId);
         view.readout.value = `${ctx.index + 1} / ${ctx.pageCount}`;
         machineTick();

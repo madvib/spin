@@ -52,7 +52,6 @@ export interface MenuRow {
   readonly label: string;
   readonly shortcut: string;
   readonly disabled: boolean;
-  /** Undefined for a plain item; a defined value makes it a checkable item. */
   readonly checked: boolean | undefined;
   readonly children: readonly MenuEntry[];
 }
@@ -61,37 +60,21 @@ export interface MenuBlock {
   readonly id: string;
   readonly label: string | null;
   readonly rows: readonly MenuRow[];
-  /** A hairline separator renders after this block. */
   readonly separator: boolean;
 }
 
-/**
- * The menu's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultOpen`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
- */
 export interface MenuArgs {
-  /** The items: the JSON text the host wrote, or the entries themselves. */
   items?: string | readonly MenuEntry[];
-  /** Whether this level is a submenu of the level above. */
   submenu?: boolean;
 }
 
 export interface MenuContext {
-  /** Which item is highlighted, at any menu level (one map per instance). */
   highlightedValue: string | null;
-  /** Item value whose submenu is open, on this level. */
   openSubmenu: string | null;
-  /** Pointer coordinate for a context menu; null for trigger-driven ones. */
   anchorPoint: { x: number; y: number } | null;
-  /** Syncs from scope: which item is the submenu trigger for this instance. */
   isSubmenu: boolean;
-  /** Validated entries: shaped once at seed from transport input.
-   * Bags derive rows/blocks per read (memoized on this identity);
-   * submenu children stay nested for child instances. */
+  // Bags derive rows/blocks per read, memoized on this identity;
+  // submenu children stay nested for child instances.
   readonly entries: readonly MenuEntry[];
 }
 
@@ -120,8 +103,7 @@ export type MenuEvent =
   | { type: "SUBMENU_CLOSE" }
   | { type: "ITEM_CLICK"; value: string };
 
-/** Transport delivers objects or nothing; the guard names the
- * trust point instead of casting at every field read. */
+/** Transport delivers objects or nothing. */
 function isRecord(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === "object" && raw !== null;
 }
@@ -164,7 +146,6 @@ function parseEntry(raw: unknown): MenuEntry | undefined {
   return row;
 }
 
-/** The entries the host's items name: only well-shaped entries survive. */
 export function entriesOf(raw: unknown): readonly MenuEntry[] {
   // Arrays arrive shaped; JSON text (nested trees the grammar cannot
   // type) coerces through the framework grammar first.
@@ -181,12 +162,10 @@ export function entriesOf(raw: unknown): readonly MenuEntry[] {
   return entries;
 }
 
-/** The machine's own defaults, and the host's arguments where it has them. */
 export function initial(args: MenuArgs = {}, authored: (name: string) => boolean): MenuContext {
   // A channel: the host's write, or the machine's own default. The twin
   // is the framework's convention — a host that wrote `defaultSubmenu`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   return {
@@ -196,7 +175,6 @@ export function initial(args: MenuArgs = {}, authored: (name: string) => boolean
     // The contract names the field `isSubmenu`; the element's prop is
     // `submenu`, and the prop is the one the host writes.
     isSubmenu: written("submenu") ? args.submenu === true : false,
-    // The entries are the element's data: the collection is taken as it is.
     entries: entriesOf(args.items),
   };
 }
@@ -234,7 +212,6 @@ const config = {
   },
 };
 
-/** Two entry lists, same rows: the submenu's children change the tree. */
 function sameEntries(a: readonly MenuEntry[], b: readonly MenuEntry[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((entry, index) => {
@@ -273,17 +250,12 @@ const implementations = {
     openSubmenu: (ctx: MenuContext, e: MenuEvent): Partial<MenuContext> =>
       e.type === "SUBMENU_OPEN" ? { openSubmenu: e.value, highlightedValue: e.value } : { openSubmenu: ctx.openSubmenu },
     closeSubmenu: (): Partial<MenuContext> => ({ openSubmenu: null }),
-    /** The bridge relays ITEM_CLICK as a select event; context keeps the last pick. */
     select: (): Partial<MenuContext> => ({}),
   },
 };
 
 export type MenuService = Service<MenuContext, MenuEvent>;
 
-/**
- * The menu machine: state and nothing else. It is headless — it knows its
- * own arguments, and nothing about props, markup, or the DOM.
- */
 export function menu(
   args: MenuArgs = {},
   authored: (name: string) => boolean,
@@ -293,21 +265,10 @@ export function menu(
     context: initial(args, authored),
     assigns: implementations.assigns,
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     *
-     * The panel's own `open` prop is NOT here: it drives the machine's
-     * STATE, not a context field, so the element's reconcile keeps it in
-     * step with the state.
+     * The `open` prop is NOT here: it drives the machine's STATE, not a
+     * context field, so the element's reconcile keeps it in step.
      */
     fields: {
-      // The level's own flag: the element's prop is `submenu`, and the
-      // context field keeps the value the machine was built with.
       isSubmenu: {},
     },
   });

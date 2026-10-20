@@ -5,8 +5,8 @@ import { DemoControls } from "../demo-controls.tsx";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-hover-card.html";
 
+import "./spin-hover-card.html";
 interface HoverCardCommands {
   show(): void;
   hide(): void;

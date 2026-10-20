@@ -19,17 +19,7 @@ import {
   type StepsStepChange,
 } from "./steps.machine.ts";
 
-/**
- * Steps bindings: the DOM contract as data. The machine owns the step
- * index, the count, and the guarded transitions; this file maps parts to
- * attribute bags and navigation to sends.
- *
- * No channels: the transport owns prop coercion. No parsing, no DOM
- * access, no CSS custom properties. Progress is a literal bag style
- * computed from context, not a var. Navigation events carry host
- * validators (functions cannot cross the scope channel, so the machine's
- * guards read them off the event).
- */
+/** Steps bindings: the DOM contract as data. */
 
 export interface StepsComplete {
   readonly step: number;
@@ -64,7 +54,7 @@ export interface StepsApi {
 interface ScopeLike extends PartScope<unknown, StepsContext> {}
 interface SlotLike<R> extends SlotScope<R, StepsContext> {}
 
-/** Titles arrive as an array (transport-coerced); anything else is empty. */
+/** Titles arrive as an array; anything else is empty. */
 const parseTitles = (raw: unknown): readonly string[] => {
   if (Array.isArray(raw)) return raw.filter((item): item is string => typeof item === "string");
   return [];
@@ -73,7 +63,7 @@ const parseTitles = (raw: unknown): readonly string[] => {
 type Validator = (index: number) => boolean;
 
 /** Stable index-array identity per count: the recipe's `for` re-stamps rows
- * when the source identity moves (the slider's focus-loss lesson). */
+ * when the source identity moves. */
 const indexCache = new Map<number, readonly number[]>();
 const stepIndexes = (count: number): readonly number[] => {
   const hit = indexCache.get(count);
@@ -83,10 +73,8 @@ const stepIndexes = (count: number): readonly number[] => {
   return made;
 };
 
-/** A step index slot: numbers in, numbers out. Rows iterate these. */
 const slotIndex = (slot: SlotLike<{ readonly index: number }>): number => slot.slot.index;
 
-/** Trigger keys move the selection: arrows step, Home/End jump. */
 const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (event.defaultPrevented) return;
   const order = stepIndexes(scope.context.count);
@@ -123,9 +111,6 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const def: ComponentDef<StepsContext, StepsEvent> = {
   name: "steps",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => stepsMachine(props as StepsArgs, authored),
   start: "idle",
   dispatch: (event, props) => {

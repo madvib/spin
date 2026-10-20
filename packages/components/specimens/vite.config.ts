@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import UnoCSS from "@unocss/vite";
@@ -14,7 +15,7 @@ export default defineConfig({
   plugins: [
     // `enforce: "pre"`: the element transform owns the `.html` component files
     // before Solid's babel pass ever sees them.
-    spinElements({}),
+    spinElements({ machines: resolve(fileURLToPath(new URL("../src", import.meta.url))) }),
     solid(),
     UnoCSS({
       presets: [

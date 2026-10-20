@@ -1,36 +1,24 @@
 /**
  * Listbox machine: a single idle state with guards.
  *
- * Zag ships one state — every event is legal always — so the fork keeps one
- * state and the gating lives in named conds, exactly where Zag put it:
- * CONTENT.FOCUS highlights the selection when there is one and the first
- * item when there is not; NAVIGATE selects on keyboard only when the mode
- * says so. What the machine does read is `order` and `labels`, the
- * collection synced from scope by the bridge, because highlight targets,
- * the "is the highlight still in the collection" question and the
- * selection's string form are statements about positions, not rows.
+ * Zag ships one state — every event is legal always — so the gating lives
+ * in named conds. The machine reads `order` and `labels`, synced from scope
+ * by the bridge, because highlight targets and the selection's string form
+ * are statements about positions, not rows.
  *
- * Navigation is NOT here. Arrows/Home/End/typeahead compute their target
- * against the rows the view holds — including the disabled ones they must
- * skip — and send NAVIGATE carrying that value. The machine never walks
- * data.
+ * Navigation is NOT here: arrows/Home/End/typeahead compute their target
+ * against the rows the view holds and send NAVIGATE carrying that value.
  */
 
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface ListboxContext {
-  /** The selected values, in the order they were added. */
   value: string[];
   highlightedValue: string | null;
-  /** Whether the content itself holds focus (vs an item). */
   focused: boolean;
-  /** The collection's values in order. Synced from scope by the bridge. */
   order: string[];
-  /** The collection's labels by value. Synced from scope by the bridge. */
   labels: Record<string, string>;
-  /** Disabled values, synced alongside order/labels. Commands that skip
-   * disabled rows read this instead of reaching back into props. */
   disabledValues: readonly string[];
   multiple: boolean;
   selectOnHighlight: boolean;
@@ -42,9 +30,7 @@ export type ListboxEvent =
   | { type: "SELECTED_ITEMS.SYNC" }
   | {
     type: "HIGHLIGHTED_VALUE.SET";
-    /** The command's payload: the value the host named. */
     value?: string | null;
-    /** The host write's payload: the prop's own name. */
     highlightedValue?: string | null;
   }
   | { type: "HIGHLIGHTED_VALUE.CLEAR" }
@@ -167,7 +153,7 @@ const implementations = {
     setHighlightedValue: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
       if (event.type !== "HIGHLIGHTED_VALUE.SET") return {};
       // The highlight arrives the way the host wrote it: the command names
-      // the value, the host write names the field. The machine shapes it.
+      // the value, the host write names the field.
       const raw = event.highlightedValue !== undefined
         ? event.highlightedValue
         : event.value;
@@ -228,16 +214,12 @@ const implementations = {
   },
 };
 
-/** True when the content shows the selection affordance. */
 export const hasValue = (ctx: ListboxContext): boolean => ctx.value.length > 0;
 
 /** The selected values as a comma-joined string for the hidden input. */
 export const stringifyValues = (ctx: ListboxContext): string => ctx.value.join(",");
 
-/**
- * One collection entry, as the host wrote it. A type alias, so it carries
- * the implicit index signature the machine's own reader expects.
- */
+/** A type alias, so it carries the implicit index signature the machine's own reader expects. */
 export type ListboxArgsItem = {
   readonly value: string;
   readonly label?: string | undefined;
@@ -246,32 +228,21 @@ export type ListboxArgsItem = {
 };
 
 /**
- * The listbox's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The listbox's arguments: the values the host may set. The names are the
+ * element's prop names — the machine is instantiated with the element's
+ * prop bag and picks what it wants.
  */
 export interface ListboxArgs {
-  /** The collection: one entry per row. */
   items?: readonly ListboxArgsItem[];
-  /** The selected values, as the host wrote them. */
   value?: string | readonly string[];
-  /** The highlighted value, as the host wrote it. */
   highlightedValue?: string;
-  /** Whether more than one row may be selected. */
   multiple?: boolean;
-  /** Whether the highlight commits the selection. */
   selectOnHighlight?: boolean;
-  /** Whether the arrow walk wraps around. */
   loopFocus?: boolean;
-  /** How a plain click treats the selection. */
   selectionBehavior?: string;
   defaultHighlightedValue?: string;
 }
 
-/** The collection's rows, as the machine reads them. */
 interface ListboxRowData {
   value: string;
   label: string;
@@ -279,7 +250,6 @@ interface ListboxRowData {
   group: string;
 }
 
-/** The rows the collection holds: only well-shaped entries survive. */
 const rowsOf = (items: unknown): ListboxRowData[] => {
   const rows: ListboxRowData[] = [];
   for (const entry of Array.isArray(items) ? items : []) {
@@ -300,7 +270,6 @@ const rowsOf = (items: unknown): ListboxRowData[] => {
   return rows;
 };
 
-/** The selected values: a list, a comma-joined string, or none. */
 const parseKeys = (value: unknown): string[] => {
   if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
   if (typeof value !== "string") return [];
@@ -308,12 +277,10 @@ const parseKeys = (value: unknown): string[] => {
   return list.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
 };
 
-/** The machine's own defaults, and the host's arguments where it has them. */
 export function initial(args: ListboxArgs = {}, authored: (name: string) => boolean): ListboxContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote
-  // `defaultHighlightedValue` wrote the channel too — and the framework
-  // has already resolved it into the argument.
+  // A channel: the host's write, or the machine's own default. A host that
+  // wrote `defaultHighlightedValue` wrote the channel too, and the
+  // framework has already resolved the twin into the argument.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const rows = rowsOf(args.items);
@@ -328,8 +295,8 @@ export function initial(args: ListboxArgs = {}, authored: (name: string) => bool
         ? "clear"
         : "replace";
   return {
-    // The selection is the element's data: the collection's twin seeds it
-    // through the framework's resolution, so it is taken as it is.
+    // The selection is the element's data: the framework has already
+    // resolved the twin into it, so it is taken as it is.
     value: parseKeys(args.value),
     disabledValues: rows.filter((row) => row.disabled).map((row) => row.value),
     highlightedValue: written("highlightedValue") &&
@@ -347,10 +314,6 @@ export function initial(args: ListboxArgs = {}, authored: (name: string) => bool
   };
 }
 
-/**
- * The listbox machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function listbox(
   args: ListboxArgs = {},
   authored: (name: string) => boolean,
@@ -361,13 +324,10 @@ export function listbox(
     assigns: implementations.assigns,
     conds: implementations.conds,
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: a field with an event is
+     * REPORTED (the host's write becomes an event, the machine decides,
+     * the change reaches the host); a field without one is SILENT (the
+     * write lands in the field and nothing reports).
      */
     fields: {
       highlightedValue: { event: "HIGHLIGHTED_VALUE.SET" },

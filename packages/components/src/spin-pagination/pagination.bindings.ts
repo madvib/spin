@@ -20,13 +20,7 @@ import {
   type PaginationPageItem,
 } from "./pagination.machine.ts";
 
-/**
- * Pagination definition: the DOM contract as data. The machine owns the
- * page, the page size, the count, the window math, and the guards; this
- * file maps props to channels, parts to attribute bags, commands to sends,
- * and page moves to their event. Templates have no conditional, so the
- * recipe renders button + span twins and the wrong kind hides itself.
- */
+/** Pagination definition: the DOM contract as data. */
 
 export interface PaginationApi {
   setPage(page: number): void;
@@ -54,8 +48,7 @@ export interface PaginationApi {
   getLastTriggerProps(): Record<string, unknown>;
 }
 
-/** A string prop off the bag: parsed text arrives as a string, anything
- * else is absent. Named once; the grammar owns the parse. */
+/** A string prop off the bag: anything else is absent. */
 const textOf = (props: Record<string, unknown>, name: string): string | undefined => {
   const value: unknown = props[name];
   return typeof value === "string" ? value : undefined;
@@ -81,9 +74,6 @@ const windowItems = (context: PaginationContext): readonly PaginationPageItem[] 
 
 const def: ComponentDef<PaginationContext, PaginationEvent> = {
   name: "pagination",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => paginationMachine(props as PaginationArgs, authored),
   start: "idle",
   parts: {

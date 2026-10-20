@@ -5,8 +5,8 @@ import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-tags-input.html";
 
+import "./spin-tags-input.html";
 type TagsElement = HTMLElement & {
   label?: string;
   placeholder?: string;

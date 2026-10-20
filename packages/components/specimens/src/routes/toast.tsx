@@ -6,8 +6,8 @@ import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
 import type { ToastStatusChange } from "../../../src/spin-toast/toast.bindings.ts";
-import "./spin-toast.html";
 
+import "./spin-toast.html";
 interface ToastCommands {
   create: (item: {
     id: string;

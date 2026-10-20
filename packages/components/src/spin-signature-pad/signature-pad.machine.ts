@@ -1,22 +1,9 @@
-/**
- * Signature-pad machine: idle/drawing over Zag's two states.
- *
- * Stroke ink is `perfect-freehand`'s pure `getStroke` (imported directly
- * from its ESM bundle — no DOM in that module, only point math); the SVG
- * outline is Zag's own `getSvgPathFromStroke`, vendored below because it is
- * 30 lines of string building. The machine owns no stroke math of its own.
- *
- * Context stays serializable for the scope channel: points and paths are
- * values, the tuning is a value. Guards sit where Zag put them:
- * POINTER_DOWN draws only when interactive; moves with no active stroke are
- * refused; POINTER_UP with no stroke is a no-op.
- */
+/** Signature-pad machine: idle/drawing over Zag's two states. */
 
 import { getStroke } from "perfect-freehand";
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
-/** A stroke sample: canvas-relative position plus pointer pressure. */
 export interface SignaturePoint {
   readonly x: number;
   readonly y: number;
@@ -68,26 +55,19 @@ export type SignaturePadDrawDetails = {
 /**
  * The signature-pad's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultPaths`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
+ * The twin (`defaultPaths`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value.
  */
 export interface SignaturePadArgs {
-  /** The committed paths, as the host wrote them. */
   paths?: string | readonly string[];
-  /** Whether the pad is disabled. */
   disabled?: boolean;
-  /** Whether the pad is read-only. */
   readOnly?: boolean;
-  /** The stroke tuning, off the opaque `drawing` prop. */
   drawing?: unknown;
   defaultReadOnly?: boolean;
 }
 
 /** Paths off any transport: well-shaped string lists only (the grammar
- * coerces `= []` to `["[]"]`), anything else is empty. The machine and the
- * reconcile share it. */
+ * coerces `= []` to `["[]"]`), anything else is empty. */
 export function pathsOf(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.every((item): item is string => typeof item === "string") ? [...value] : [];
@@ -106,18 +86,11 @@ export function pathsOf(value: unknown): string[] {
 /** The machine's context, from its arguments: the committed paths, the
  * pad's own flags, and the stroke tuning the opaque `drawing` prop names.
  *
- * The paths are a channel: the host's write, or the machine's own
- * default. The element's declared default is not a write, so it never
- * stands in for one. The seed twin (`defaultPaths`) is the host's write of
- * the paths — the framework resolved it into the args — so it counts as a
- * write too. The flags and the tuning are the element's own data, as they
- * are.
+ * The seed twin (`defaultPaths`) is the host's write of the paths — the
+ * framework resolved it into the args — so it counts as a write too.
  */
 export function initial(args: SignaturePadArgs, authored: (name: string) => boolean): SignaturePadContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultPaths`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // A host that wrote `defaultPaths` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   return {
@@ -130,8 +103,7 @@ export function initial(args: SignaturePadArgs, authored: (name: string) => bool
   };
 }
 
-/** The tuning off the opaque `drawing` prop: numbers by name, nothing
- * else. The seed and the reconcile share it — both name the fields once. */
+/** The tuning off the opaque `drawing` prop: numbers by name, nothing else. */
 export function tuningOf(value: unknown): Partial<DrawingTuning> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
   const bag: Record<string, unknown> = { ...value };
@@ -151,7 +123,6 @@ export function tuningOf(value: unknown): Partial<DrawingTuning> {
   };
 }
 
-/** Zag's get-svg-path, vendored: outline points to a closed SVG path. */
 export function svgPathFromStroke(points: readonly (readonly number[])[], closed = true): string {
   const len = points.length;
   if (len < 4) return "";
@@ -196,10 +167,6 @@ export function isEmpty(ctx: SignaturePadContext): boolean {
   return ctx.paths.length === 0;
 }
 
-/**
- * The signature-pad machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function signaturePad(
   args: SignaturePadArgs = {},
   authored: (name: string) => boolean,
@@ -208,13 +175,10 @@ export function signaturePad(
     id: "signature-pad",
     initial: "idle",
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       paths: { event: "SET_PATHS" },
@@ -277,8 +241,7 @@ export function signaturePad(
       setPaths: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {
         if (event.type !== "SET_PATHS") return {};
         void ctx;
-        // The paths arrive the way the host wrote them; the machine shapes
-        // them, wherever they came from.
+        // The paths arrive the way the host wrote them; the machine shapes them.
         return { paths: pathsOf(event.paths) };
       },
       setDisabled: (ctx: SignaturePadContext, event: SignaturePadEvent): Partial<SignaturePadContext> => {

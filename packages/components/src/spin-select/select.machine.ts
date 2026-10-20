@@ -3,39 +3,26 @@
  * (`focused`), open (`open`) — plus the selection, the highlight, and the
  * placement the content was last positioned at.
  *
- * Zag ships exactly these three states, with the value/highlight events on
- * the root tier. The fork has no nesting, so the root tier is the root `on`
- * and the closed states shadow only what Zag defines per-state.
- *
  * The controlled-open events (`CONTROLLED.OPEN` / `CONTROLLED.CLOSE`) carry
  * Zag's "was the open state authored" distinction: the bridge reports a host
  * write as one of these, and the machine moves only when the host owns the
- * state. A host that never writes `open` sends plain `OPEN`/`CLOSE` and the
- * machine owns it. Which of the two a close lands in (`focused` vs `idle`)
- * is the restoreFocus question, decided by who asked: a layer dismissal
- * after a non-focusable interaction lands in `idle`; everything else the
- * trigger focused, so it returns to `focused`.
- *
- * Navigation is NOT here. Arrows, Home and End compute their target against
- * the collection the view holds — the connect sends the resolved value or a
- * `CONTENT.*` event, exactly as the combobox and listbox ports do. The
- * machine reads `order` and `labels` (the element's derived sync over the
- * `items` prop) for the selection's string form and the "is the highlight
- * still in the collection" question.
+ * state. Which of the two a close lands in (`focused` vs `idle`) is the
+ * restoreFocus question, decided by who asked: a layer dismissal after a
+ * non-focusable interaction lands in `idle`; everything else the trigger
+ * focused, so it returns to `focused`.
  */
 
 import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface SelectContext {
-  /** The selected values, in the order they were added. */
   value: string[];
   highlightedValue: string | null;
-  /** The collection's values in order. The element keeps it in step with
-   * the `items` prop — a derived sync, not a host write. */
+  /** The collection's values in order — a derived sync over the `items`
+   * prop, not a host write. */
   order: string[];
-  /** The collection's labels by value. The element keeps it in step with
-   * the `items` prop — a derived sync, not a host write. */
+  /** The collection's labels by value — a derived sync over the `items`
+   * prop, not a host write. */
   labels: Record<string, string>;
   multiple: boolean;
   closeOnSelect: boolean;
@@ -78,7 +65,6 @@ export type SelectEvent =
   | { type: "LAYER.ESCAPE" }
   | { type: "LAYER.INTERACT_OUTSIDE"; restoreFocus?: boolean };
 
-/** The label the trigger shows for one value, or the joined many. */
 export const selectLabel = (ctx: SelectContext): string => {
   if (ctx.value.length === 0) return "";
   if (!ctx.multiple) return ctx.labels[ctx.value[0]!] ?? "";
@@ -93,20 +79,14 @@ export interface SelectRow {
 /**
  * The select's arguments: the values the host may set.
  *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twins
- * (`defaultValue`, `defaultHighlightedValue`) are resolved by the
+ * The twins (`defaultValue`, `defaultHighlightedValue`) are resolved by the
  * framework before the factory is called, so the machine only ever sees
  * the live values.
  */
 export interface SelectArgs {
-  /** The selected values, as the host wrote them. */
   value?: string | readonly string[];
-  /** The highlighted value, as the host wrote it. */
   highlightedValue?: string;
-  /** The collection, as the host wrote it. */
   items?: string | readonly SelectRow[];
-  /** Whether the select takes many values. */
   multiple?: boolean;
   /**
    * Whether a pick closes the panel. The machine's own default is Zag's
@@ -114,7 +94,6 @@ export interface SelectArgs {
    * contract carries that write.
    */
   closeOnSelect?: boolean;
-  /** Whether the arrow walk loops. */
   loopFocus?: boolean;
   defaultCloseOnSelect?: boolean;
 }
@@ -130,8 +109,8 @@ const parseKeys = (raw: unknown): string[] => {
 const nullableProp = (raw: unknown): string | null =>
   typeof raw === "string" && raw.length > 0 ? raw : null;
 
-/** The collection's rows, off any transport: a row needs a value, and
- * the label falls back to the value. */
+/** The collection's rows, off any transport: a row needs a value, and the
+ * label falls back to the value. */
 const rowsOf = (raw: unknown): SelectRow[] => {
   const rows: SelectRow[] = [];
   const arr = Array.isArray(raw) ? raw : [];
@@ -152,19 +131,12 @@ const rowsOf = (raw: unknown): SelectRow[] => {
 /** The machine's context, from its arguments: the selection, the
  * highlight, the collection's order and labels, and the select's modes.
  *
- * The close-on-select flag and the highlight are channels: the host's
- * write, or the machine's own default. The element's declared default is
- * not a write, so it never stands in for one. The seed twins
- * (`defaultHighlightedValue`) are the host's writes of the highlight — the
- * framework resolved them into the args — so they count as writes too.
- * The collection, the selection and the modes are the element's own data,
- * as they are.
+ * The seed twin (`defaultHighlightedValue`) is the host's write of the
+ * highlight — the framework resolved it into the args — so it counts as a
+ * write too.
  */
 export function initial(args: SelectArgs, authored: (name: string) => boolean): SelectContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote
-  // `defaultHighlightedValue` wrote the channel too — and the framework
-  // has already resolved it into the argument.
+  // A host that wrote `defaultHighlightedValue` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const rows = rowsOf(args.items);
@@ -197,16 +169,11 @@ export function initial(args: SelectArgs, authored: (name: string) => boolean): 
   };
 }
 
-/** True when the value is still in the synced collection. */
 const inCollection = (
   ctx: SelectContext,
   value: string | null,
 ): value is string => value !== null && ctx.order.includes(value);
 
-/**
- * The select machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function select(
   args: SelectArgs = {},
   authored: (name: string) => boolean,
@@ -215,22 +182,19 @@ export function select(
     id: "select",
     initial: "idle",
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
+     * The machine's contract with its hosts: the context fields a host may
+     * write, and the event each write carries. A field with an event is
+     * REPORTED — the machine decides, and the change reaches the host; a
+     * field without one is SILENT.
      */
     fields: {
       highlightedValue: { event: "HIGHLIGHTED_VALUE.SET" },
       closeOnSelect: {},
     },
     context: initial(args, authored),
-    // The root tier: the value and highlight events Zag fires from every
-    // state, so a controlled write or a programmatic select lands the same
-    // whatever the panel is doing.
+    // The value and highlight events fire from every state, so a controlled
+    // write or a programmatic select lands the same whatever the panel is
+    // doing.
     on: {
       "SELECTED_ITEMS.SYNC": { actions: [{ assign: "dropVanishedSelection" }] },
       "HIGHLIGHTED_VALUE.SET": { actions: [{ assign: "setHighlighted" }] },
@@ -246,7 +210,7 @@ export function select(
         on: {
           "TRIGGER.FOCUS": { target: "focused" },
           // The imperative toggle: OPEN's own transition, so the highlight
-          // pre-places exactly as a gesture open does.
+          // pre-places as a gesture open does.
           TOGGLE: {
             target: "open",
             actions: [{ assign: "highlightFirstOrSelected" }],
@@ -284,9 +248,8 @@ export function select(
             target: "open",
             actions: [{ assign: "highlightFirstOrSelected" }],
           },
-          // The trigger's own open gestures: Enter and the arrows open with the
-          // highlight pre-placed (first for Enter/Down, last for Up), and the
-          // closed-mode arrows only move the selection when they do NOT open.
+          // The trigger's own open gestures: Enter and the arrows open with
+          // the highlight pre-placed (first for Enter/Down, last for Up).
           "TRIGGER.ARROW_DOWN": [
             { target: "open", actions: [{ assign: "highlightFirst" }] },
           ],
@@ -297,8 +260,7 @@ export function select(
             { target: "open", actions: [{ assign: "highlightFirst" }] },
           ],
           // The closed-mode selection moves: single-select cycles the
-          // selection itself while closed, which is Zag's trigger-level
-          // behavior for the non-multiple case.
+          // selection itself while closed.
           "TRIGGER.ARROW_RIGHT": [
             { cond: "single", actions: [{ assign: "selectNextInOrder" }] },
           ],
@@ -382,7 +344,7 @@ export function select(
         event: SelectEvent,
       ): Partial<SelectContext> => {
         // The highlight arrives the way the host wrote it — a value, or
-        // nothing at all; the field holds it as it comes.
+        // nothing at all.
         if (event.type === "HIGHLIGHTED_VALUE.SET") {
           return { highlightedValue: event.highlightedValue };
         }
@@ -404,8 +366,7 @@ export function select(
         value: [],
         highlightedValue: null,
       }),
-      // ITEM.SELECT adds (single) or toggles (multiple); the guard on the
-      // event's type is what keeps the assign signature honest.
+      // ITEM.SELECT adds (single) or toggles (multiple).
       selectValue: (
         ctx: SelectContext,
         event: SelectEvent,
@@ -421,8 +382,7 @@ export function select(
         return { value: [event.value] };
       },
       // The click carries the row it landed on: a click without a preceding
-      // pointer-move must still select the row under the cursor, which is why
-      // this is not the highlight.
+      // pointer-move must still select the row under the cursor.
       selectClicked: (
         ctx: SelectContext,
         event: SelectEvent,
@@ -497,8 +457,8 @@ export function select(
         );
         return value === undefined ? {} : { highlightedValue: value };
       },
-      // The closed-mode selection moves: the trigger itself changes the
-      // selection without opening.
+      // The closed-mode selection moves: the trigger changes the selection
+      // without opening.
       selectFirstInOrder: (ctx: SelectContext): Partial<SelectContext> => ({
         value: ctx.order.length === 0 ? ctx.value : [ctx.order[0]!],
       }),
@@ -532,6 +492,7 @@ export function select(
         return value === undefined ? {} : { value: [value] };
       },
       // A collection change can strand the selection and the highlight.
+      // The strand resolves to the first surviving value.
       dropVanishedSelection: (ctx: SelectContext): Partial<SelectContext> => {
         const value = ctx.value.filter((candidate) =>
           ctx.order.includes(candidate)

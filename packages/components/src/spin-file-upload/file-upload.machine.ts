@@ -21,23 +21,16 @@ export interface FileRecord {
   readonly name: string;
   readonly size: number;
   readonly type: string;
-  /** The folder-relative path; empty for flat picks. */
   readonly path: string;
 }
 
 export interface FileUploadContext {
-  /** Files that passed validation, in the order they arrived. */
   acceptedFiles: FileRecord[];
-  /** Files that failed, each with the rule that refused it. */
   rejectedFiles: FileRejection[];
-  /** The rules the assigns read, written by the machine's contract. */
   multiple: boolean;
   directory: boolean;
-  /** A comma-joined accept list (`.png,image/*`); empty accepts all. */
   accept: string;
-  /** The most files a selection may hold; 0 is unbounded. */
   maxFiles: number;
-  /** Size bounds in bytes; 0 is unbounded on that side. */
   maxSize: number;
   minSize: number;
   disabled: boolean;
@@ -45,7 +38,6 @@ export interface FileUploadContext {
 
 export interface FileRejection {
   readonly file: FileRecord;
-  /** The rule that refused it: `accept`, `too-large`, `too-small`, `too-many`. */
   readonly code: string;
 }
 
@@ -54,36 +46,20 @@ export interface FileUploadValueChange {
   readonly rejectedFiles: readonly FileRejection[];
 }
 
-/**
- * The file-upload's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twin
- * (`defaultValue`) is resolved by the framework before the factory is
- * called, so the machine only ever sees the live value.
- */
 export interface FileUploadArgs {
-  /** The selection, as the host wrote it: the files, or their JSON. */
   value?: string;
-  /** Whether the selection holds more than one file. */
   multiple?: boolean;
-  /** Whether the picker takes a folder. */
   directory?: boolean;
-  /** The accept list: `.png,image/*`; empty accepts everything. */
   accept?: string;
-  /** The most files a selection may hold; 0 is unbounded. */
   maxFiles?: number;
-  /** The size ceiling in bytes; 0 is unbounded. */
   maxSize?: number;
-  /** The size floor in bytes; 0 is unbounded. */
   minSize?: number;
-  /** Whether the dropzone is disabled. */
   disabled?: boolean;
   defaultDisabled?: boolean;
 }
 
-/** The files a write carries: the records themselves, or the JSON text a
- * host wrote. Well-shaped entries survive; anything else is no file. */
+/** A write carries the records themselves, or the JSON text a host wrote;
+ * well-shaped entries survive, anything else is no file. */
 export function filesOf(raw: unknown): FileRecord[] {
   const list: readonly unknown[] = Array.isArray(raw)
     ? raw
@@ -106,13 +82,10 @@ export function filesOf(raw: unknown): FileRecord[] {
   return files;
 }
 
-/** The machine's context, built from the arguments: the rules the
- * validation reads, and the selection the host wrote. */
 export function initial(args: FileUploadArgs = {}, authored: (name: string) => boolean): FileUploadContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultValue`
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
+  // The twin is the framework's convention: a host that wrote
+  // `defaultValue` wrote the channel too, and the framework has already
+  // resolved it into the argument.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const count = (value: unknown): number =>
@@ -138,7 +111,6 @@ export type FileUploadEvent =
   | { type: "DROPZONE.DRAG_OVER" }
   | { type: "DROPZONE.DRAG_LEAVE" }
   | { type: "FILE.REMOVE"; name: string }
-  /** The selection: the files themselves, or the JSON text a host wrote. */
   | { type: "VALUE.SET"; value: readonly FileRecord[] | string }
   | { type: "VALUE.CLEAR" };
 
@@ -156,7 +128,7 @@ const config = {
     minSize: 0,
     disabled: false,
   },
-  // Root tier: the value moves work from every state, which is what lets
+  // The value moves live at the root tier so they work from every state:
   // the host's commands and the controlled channel write the selection
   // without knowing whether the dropzone holds focus.
   on: {
@@ -210,9 +182,9 @@ export interface SplitResult {
 }
 
 /**
- * The validation split: each file is checked against accept, the size
- * bounds, and the count cap in that order — the first rule that refuses a
- * file is the one reported, so the host's message names one reason.
+ * Each file is checked against accept, the size bounds, and the count cap
+ * in that order — the first rule that refuses a file is the one reported,
+ * so the host's message names one reason.
  */
 export function splitFiles(
   files: readonly FileRecord[],
@@ -259,7 +231,6 @@ const implementations = {
         rejectedFiles: [...split.rejected],
       };
     },
-    /** A drop appends to the selection (multiple) or replaces it. */
     addFiles: (ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
       if (e.type !== "DROP") return {};
       const split = splitFiles(e.files, ctx, ctx.acceptedFiles.length);
@@ -282,18 +253,12 @@ const implementations = {
     },
     setValue: (_ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
       if (e.type !== "VALUE.SET") return {};
-      // The selection arrives the way the host wrote it; the machine shapes
-      // it, wherever it came from.
       return { acceptedFiles: filesOf(e.value), rejectedFiles: [] };
     },
     clearValue: (): Partial<FileUploadContext> => ({ acceptedFiles: [], rejectedFiles: [] }),
   },
 };
 
-/**
- * The file-upload machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function fileUpload(
   args: FileUploadArgs = {},
   authored: (name: string) => boolean,

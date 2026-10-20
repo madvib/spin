@@ -1,25 +1,17 @@
 /**
- * Color-picker machine: closed and unfocused, closed and focused, open with
- * the user driving (`active`), open with a drag in flight (`dragging`).
+ * Color-picker machine: closed (idle), focused, open (active), dragging.
  *
  * Zag nests `open.{idle,dragging}` under an `open` parent whose handlers the
  * children share. The fork has no nesting, so the open parent's handlers sit
- * at the root tier (the events that work from every open phase) and the
- * closed states shadow what they must not inherit — the same shape as the
- * combobox's open parent.
+ * at the root tier and the closed states shadow what they must not inherit.
  *
- * The color travels as a STRING. Context must stay serializable for the
+ * The color travels as a STRING: context must stay serializable for the
  * scope channel, so every assign parses, mutates through the Color object,
- * and writes back the string in the machine's format. `parseColor` is the
- * only import from `@zag-js/color-utils` — the machine owns no color math
- * of its own.
+ * and writes back the string in the machine's format.
  *
- * Geometry is NOT here. Area and channel drags compute their percent in the
- * view (against the node the pointer is over) and send events carrying that
- * percent; the machine turns percent into channel values. What the machine
- * does read is the format and the active channel, synced from scope by the
- * bridge, because parsing and stepping are statements about the color, not
- * about nodes.
+ * Geometry is NOT here: area and channel drags compute their percent in the
+ * view and send events carrying that percent; the machine turns percent into
+ * channel values.
  */
 
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
@@ -29,12 +21,9 @@ import { createMachine, type Machine } from "@spin/runtime/fsm";
 export type ColorFormat = "hex" | "hexa" | "rgb" | "rgba" | "hsl" | "hsla" | "hsb" | "hsba";
 
 export interface ColorPickerContext {
-  /** The color, serialized in `format`. */
   value: string;
   format: ColorFormat;
-  /** The channel the focused input or drag owns. */
   activeChannel: ColorChannel | null;
-  /** The area's x/y channels. */
   areaX: ColorChannel;
   areaY: ColorChannel;
   disabled: boolean;
@@ -170,7 +159,6 @@ const config = {
   },
 };
 
-/** Parse, tolerating garbage: an unparseable string keeps the old color. */
 const parse = (value: string, fallback: string): { color: ReturnType<typeof parseColor>; raw: string } => {
   try {
     return { color: parseColor(value), raw: value };
@@ -191,7 +179,7 @@ type AreaFormat = "hsla" | "hsba";
 
 const implementations = {
   conds: {
-    // Controlled inline is always open: the host owns the visibility.
+    // Inline means controlled: the host owns the visibility.
     isOpenControlled: (ctx: ColorPickerContext): boolean => ctx.inline,
     closeOnSelect: (ctx: ColorPickerContext): boolean => ctx.closeOnSelect,
   },
@@ -208,8 +196,6 @@ const implementations = {
     },
     setFormat: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
       if (event.type !== "FORMAT.SET") return {};
-      // The format arrives the way the host wrote it: the machine shapes it,
-      // and a format it does not know is no write at all.
       if (!isFormat(event.format)) return {};
       const { color } = parse(ctx.value, "#000000");
       return { format: event.format, value: serialize(color, event.format) };
@@ -270,9 +256,9 @@ const implementations = {
     },
     stepArea: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
       if (event.type !== "AREA.ARROW") return {};
-      // The area's channels live in the area format (hsla/hsba): an rgb
-      // color has no saturation channel, so stepping it throws. Convert
-      // first, step, serialize back — which is Zag's `areaValue`.
+      // The area's channels live in the area format (hsla/hsba): an rgb color
+      // has no saturation channel, so stepping it throws. Convert first, step,
+      // serialize back — Zag's `areaValue`.
       const { color } = parse(ctx.value, "#000000");
       const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
       const v = color.toFormat(areaFormat);
@@ -297,9 +283,8 @@ const implementations = {
     stepChannel: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
       if (event.type !== "CHANNEL_SLIDER.ARROW") return {};
       // Hue/saturation/brightness are not rgb channels: without a format the
-      // slider computes against the area value (hsla/hsba), which is Zag's
-      // `normalizedValue` fallback. Alpha exists everywhere, so it converts
-      // to itself.
+      // slider computes against the area value (hsla/hsba), Zag's
+      // `normalizedValue` fallback. Alpha converts to itself.
       const { color } = parse(ctx.value, "#000000");
       const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
       const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
@@ -325,26 +310,13 @@ const implementations = {
   },
 };
 
-/**
- * The color-picker's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twins
- * (`defaultValue`, `defaultFormat`) are resolved by the framework before
- * the factory is called, so the machine only ever sees the live value.
- */
+/** The color-picker's arguments: the values the host may set. */
 export interface ColorPickerArgs {
-  /** The color, as the host wrote it. */
   value?: string;
-  /** The format the color is serialized in. */
   format?: string;
-  /** Whether the panel is inline — and so always open. */
   inline?: boolean;
-  /** Whether the control is disabled. */
   disabled?: boolean;
-  /** Whether the control is read-only. */
   readOnly?: boolean;
-  /** Whether a swatch selection closes the panel. */
   closeOnSelect?: boolean;
   defaultInline?: boolean;
 }
@@ -359,24 +331,16 @@ const textOf = (raw: unknown, fallback: string): string =>
 
 /**
  * The color the host wrote, normalized the way the machine's own assigns
- * would: the value first in hex, then reserialized in the format. The two
- * steps are the machine's, in that order — a color with an alpha loses it
- * in hex and keeps it in the format.
+ * would: the value first in hex, then reserialized in the format — a color
+ * with an alpha loses it in hex and keeps it in the format.
  */
 const valueOf = (raw: unknown, format: ColorFormat): string => {
   const hex = serialize(parse(textOf(raw, "#000000"), "#000000").color, "hex");
   return serialize(parse(hex, "#000000").color, format);
 };
 
-/**
- * The machine's context: the flags name themselves, and the color is the
- * host's own text put through the machine's parser.
- */
 export function initial(args: ColorPickerArgs, authored: (name: string) => boolean): ColorPickerContext {
-  // A channel: the host's write, or the machine's own default. The twins
-  // are the framework's convention — a host that wrote `defaultValue` (or
-  // `defaultFormat`) wrote the channel too — and the framework has already
-  // resolved them into the arguments.
+  // A host that wrote the twin (`defaultValue`) wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const format = written("format")
@@ -397,23 +361,17 @@ export function initial(args: ColorPickerArgs, authored: (name: string) => boole
   };
 }
 
-/** The seeded open state: authored wins, else inline/default-open. */
 export function startOpen(raw: Record<string, unknown>): boolean {
   if (typeof raw["open"] === "boolean") return raw["open"];
   return raw["inline"] === true || raw["defaultOpen"] === true;
 }
 
-/** True when the panel shows. Inline is always open: the host owns it. */
+/** True when the panel shows; inline is always open. */
 export const isOpenPhase = (phase: string, inline: boolean): boolean =>
   inline || phase === "active" || phase === "dragging";
 
-/** The value string the hidden input carries. */
 export const valueAsString = (ctx: ColorPickerContext): string => ctx.value;
 
-/**
- * The color-picker machine: state and nothing else. It is headless — it
- * knows its own arguments, and nothing about props, markup, or the DOM.
- */
 export function colorPicker(
   args: ColorPickerArgs = {},
   authored: (name: string) => boolean,
@@ -422,15 +380,6 @@ export function colorPicker(
     ...config,
     ...implementations,
     context: initial(args, authored),
-    /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     */
     fields: {
       value: { event: "VALUE.SET" },
       format: { event: "FORMAT.SET" },

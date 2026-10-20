@@ -10,18 +10,11 @@ import {
 } from "./cascade.machine.ts";
 
 /**
- * Cascade-select definition: the DOM contract as data. The machine owns
- * idle/focused/open, the selected paths and the highlighted path; this file
- * maps props to channels, parts to attribute bags, commands to sends, and
- * open/value/highlight transitions to their events.
+ * Cascade-select definition: the DOM contract as data.
  *
- * Zag's machine walks a `TreeCollection` to answer "what is the next
- * enabled sibling" and "is the highlighted node at the root level". Here
- * those are plain functions over the raw tree plus `highlightedValue`, and
- * the visible levels are a derivation: every node along the highlighted
- * path contributes its children as one level, so the level stack IS the
- * highlight. The collection parses once per prop identity: level and item
- * objects are stable, so the `for` bindings never re-stamp.
+ * The visible levels are a derivation: every node along the highlighted path
+ * contributes its children as one level, so the level stack IS the
+ * highlight.
  */
 
 /** A node of the host's tree: exactly what the JSON transport carries. */
@@ -34,28 +27,22 @@ export interface CascadeNode {
 
 /** One visible level: a parent's children, drilled in by the highlight. */
 export interface CascadeLevel {
-  /** 0 for the root level. */
   readonly depth: number;
-  /** The parent's path, `[]` for the root level; the row key and list id. */
+  /** The parent's path, `[]` for the root level. */
   readonly path: readonly string[];
-  /** The list part's id suffix. */
   readonly key: string;
   readonly items: readonly CascadeItem[];
 }
 
 /** A row of one level. Structural data only — state is read from context. */
 export interface CascadeItem {
-  /** The row key: every segment from the root to this node. */
   readonly key: string;
-  /** The node's own value path. */
   readonly path: readonly string[];
   readonly value: string;
   readonly label: string;
   readonly disabled: boolean;
-  /** A branch has children, so it can be drilled into. */
   readonly hasChildren: boolean;
   readonly depth: number;
-  /** The row's index inside its level, and its index path from the root. */
   readonly indexInLevel: number;
   readonly indexPath: readonly number[];
 }
@@ -64,12 +51,10 @@ export interface CascadeItem {
 export interface CascadeItemState {
   readonly value: readonly string[];
   readonly disabled: boolean;
-  /** Part of the highlighted path — this level is being shown. */
   readonly highlighted: boolean;
   readonly selected: boolean;
   readonly hasChildren: boolean;
   readonly depth: number;
-  /** The child value this row's level highlights, if any. */
   readonly highlightedChild: string | undefined;
   readonly highlightedIndex: number | undefined;
 }
@@ -148,13 +133,12 @@ export interface CascadeApi {
   getHiddenInputProps(): Record<string, unknown>;
 }
 
-/** Path segments join with a comma in ids — the same spelling the item's
- * id uses, so a branch's aria-controls resolves. */
+/** Path segments join with a comma in ids. */
 const SEP = ",";
 
 export const pathKey = (path: readonly string[]): string => path.join(SEP);
 
-/** Validate the host's tree: a row without a string value and label is
+/** Validate the host's tree: a row without a non-empty string value is
  *  dropped rather than poisoning the level stack. */
 const parseNode = (raw: unknown): CascadeNode | undefined => {
   if (!isRecord(raw)) return undefined;
@@ -188,8 +172,7 @@ const parseNodes = (list: readonly unknown[]): readonly CascadeNode[] =>
 
 /** The collection crosses the prop channel as JSON text (the grammar has no
  *  recursive type), so it is parsed and validated here rather than trusted
- *  at every read. A host holding the live object stops at the scope
- *  boundary: arrays arrive raw, already shaped. */
+ *  at every read. */
 export const parseCollection = (raw: unknown): readonly CascadeNode[] => {
   if (Array.isArray(raw)) return parseNodes(raw);
   if (typeof raw !== "string" || raw.length === 0) return [];
@@ -204,7 +187,6 @@ export const parseCollection = (raw: unknown): readonly CascadeNode[] => {
 
 const isString = (segment: unknown): segment is string => typeof segment === "string";
 
-/** The node a path leads to, or undefined when the path left the tree. */
 export const nodeAtPath = (
   collection: readonly CascadeNode[],
   path: readonly string[],
@@ -219,8 +201,7 @@ export const nodeAtPath = (
   return found;
 };
 
-/** The nodes along a path, one per level — Zag's `highlightedItems` /
- *  `selectedItems` chains. */
+/** The nodes along a path, one per level. */
 export const itemsAlongPath = (
   collection: readonly CascadeNode[],
   path: readonly string[],
@@ -236,12 +217,9 @@ export const itemsAlongPath = (
   return chain;
 };
 
-/** Zag's `context.hash("value")`: each path's segments, then the paths. */
 export const hashValue = (value: readonly string[][]): string =>
   value.map((path) => path.join(",")).join(", ");
 
-/** A guarded index read, so no bag or navigation site needs a non-null
- *  assertion to reach into a list it bounds-checked a line earlier. */
 const itemAt = <T>(list: readonly T[], index: number): T | undefined =>
   index >= 0 && index < list.length ? list[index] : undefined;
 
@@ -272,9 +250,9 @@ const collectionCache = new WeakMap<object, readonly CascadeNode[]>();
  * on the array) then missed, churning row identities. */
 const jsonCollections = new Map<string, readonly CascadeNode[]>();
 
-/** The collection, memoized on the transport's identity: the parse shapes
- * on every read, and the levels cache keys on the array — an unmemoized
- * parse would defeat both the level and the handler identity. */
+/** The collection, memoized on the transport's identity: the levels cache
+ * keys on the array, so an unmemoized parse would defeat both the level
+ * and the handler identity. */
 const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] => {
   const raw: unknown = parsed["collection"];
   if (typeof raw === "object" && raw !== null) {
@@ -421,8 +399,6 @@ const itemHandlers = (scope: ScopeLike, item: CascadeItem): ItemHandlerSet => {
   return made;
 };
 
-/** Zag's `fieldsetDisabled`, tracked by trackFormControlState: here it is a
- *  read of the enclosing fieldset, not a tracked effect. */
 const fieldsetDisabled = (root: () => Element): boolean => {
   const fieldset = root().closest("fieldset");
   return fieldset !== null && fieldset.hasAttribute("disabled");
@@ -431,8 +407,6 @@ const fieldsetDisabled = (root: () => Element): boolean => {
 const disabledOf = (scope: ScopeLike): boolean =>
   scope.props["disabled"] === true || fieldsetDisabled(scope.root);
 
-/** Zag's computed `isInteractive`: a disabled or read-only control takes no
- *  pointer or key. */
 const isInteractive = (scope: ScopeLike): boolean =>
   !(disabledOf(scope) || scope.props["readOnly"] === true);
 
@@ -447,7 +421,6 @@ const siblingsOf = (scope: ScopeLike, path: readonly string[]): readonly Cascade
   return level === undefined ? [] : level.items;
 };
 
-/** The first (or last) enabled row of the root level. */
 const rootEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undefined => {
   const level = levelsOf(collectionOf(scope.props), scope.context.highlightedValue)
     .find((candidate) => candidate.depth === 0);
@@ -457,7 +430,6 @@ const rootEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undef
     : [...items].reverse().find((item) => !item.disabled);
 };
 
-/** The first (or last) enabled row of the level the highlight sits in. */
 const levelEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undefined => {
   const items = siblingsOf(scope, scope.context.highlightedValue);
   return edge === "first"
@@ -493,7 +465,6 @@ const moveHighlight = (scope: ScopeLike, delta: number): void => {
   }
 };
 
-/** Zag's `canNavigateToChild` + `highlightFirstChild`. */
 const enterChild = (scope: ScopeLike): void => {
   const path = scope.context.highlightedValue;
   const children = nodeAtPath(collectionOf(scope.props), path)?.children ?? [];
@@ -502,8 +473,7 @@ const enterChild = (scope: ScopeLike): void => {
   if (child !== undefined) highlightPath(scope, [...path, child.value]);
 };
 
-/** Zag's `canNavigateToParent` + `highlightParent`, closing at the root
- *  level with focus back on the trigger. */
+/** Leaving at the root level closes with focus back on the trigger. */
 const leaveChild = (scope: ScopeLike): void => {
   const path = scope.context.highlightedValue;
   if (path.length <= 1) {
@@ -513,8 +483,6 @@ const leaveChild = (scope: ScopeLike): void => {
   highlightPath(scope, path.slice(0, -1));
 };
 
-/** Zag's `selectHighlightedItem`; a branch that may not be selected is
- *  inert, exactly as CONTENT.ENTER has no fallback for it. */
 const selectHighlighted = (scope: ScopeLike): void => {
   const path = scope.context.highlightedValue;
   const item = itemByPath(collectionOf(scope.props), path, path);
@@ -573,7 +541,7 @@ const reportOutside = (
 
 const dismissSelf = (scope: ScopeLike, restoreFocus: boolean): void => {
   // Zag's focusTriggerEl honors restoreFocusFn; the machine's `focused`
-  // target is the same decision, so the settled reflex focuses from it.
+  // target is the same decision.
   scope.send({ type: "CLOSE", restoreFocus });
 };
 
@@ -665,8 +633,7 @@ const onContentFocusOut = (scope: ScopeLike, event: FocusEvent): void => {
   dismissSelf(scope, false);
 };
 
-/** The readout text: labels along each path, one selection per entry —
- * shared by the bag, the methods and the event-free rows. */
+/** The readout text: labels along each path, one selection per entry. */
 const textFor = (context: CascadeContext, props: Record<string, unknown>): string => {
   const chains = context.value.map((path) => itemsAlongPath(collectionOf(props), path));
   const custom: unknown = props["formatValue"];
@@ -677,8 +644,6 @@ const textFor = (context: CascadeContext, props: Record<string, unknown>): strin
   return chains.map((chain) => chain.map((node) => node.label).join(" / ")).join(", ");
 };
 
-/** Zag's computed `valueAsString`: labels along each path, one selection
- *  per entry. */
 const valueAsString = (scope: ScopeLike): string => textFor(scope.context, scope.props);
 
 /** A host readout formatter: functions cannot cross the scope channel, so
@@ -790,12 +755,7 @@ const scrollParam = (
 
 const def: ComponentDef<CascadeContext, CascadeEvent> = {
   name: "cascade",
-  // The machine: a factory over the element's props. The machine builds
-  // its own context from the arguments it wants; the element decides
-  // which of its props reach the machine.
   machine: (props, authored) => cascadeMachine(props as CascadeArgs, authored),
-  // Focus follows the gesture: opening lands in the content, a restoring
-  // close and a clear land back on the trigger.
   settled: ({ event, before, after, focus }) => {
     if (after.state === "open" && before.state !== "open") focus("content");
     if (event.type === "CLOSE" && event.restoreFocus === true) focus("trigger");
@@ -805,8 +765,8 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
   reconcile: ({ parsed, authored, send, state }) => {
     // The host owns the panel when it authored `open`: the machine follows
     // the prop, and the machine's own move is what reports it. The panel's
-    // visibility is the machine's STATE, not a context field, so it stays
-    // here rather than in the machine's contract.
+    // visibility is state, not a context field, so it stays out of the
+    // machine's contract.
     if (authored("open")) {
       const outer = parsed["open"] === true;
       const open = state === "open";
@@ -936,9 +896,9 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
         ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
       }),
     },
-    // Not memoized, exactly as before: the geometry is a measurement, so
-    // the bag is rebuilt per read and the recipe's bracketed utilities
-    // re-apply the var as the trigger moves or resizes.
+    // Not memoized: the geometry is a measurement, so the bag is rebuilt
+    // per read and the recipe's bracketed utilities re-apply the var as the
+    // trigger moves.
     positioner: {
       sig: () => `${Date.now()}`,
       attrs: (scope: ScopeLike) => {

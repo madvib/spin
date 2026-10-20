@@ -6,19 +6,14 @@
  *
  * Zag ships `closed.{idle,focused}` and `open.{interacting,suggesting}`, with
  * an `open` parent whose handlers are shared by its two children. The fork
- * has no nesting and no parent, so:
+ * has no nesting and no parent: Zag's ROOT tier and the `open` parent's
+ * handlers both sit at the fork's root, and the two closed states shadow
+ * the ones Zag does not define there. The fork tries state handlers first
+ * and falls through to the root, so an unconditional state handler shadows a
+ * root one — which is the whole reason this needs no nesting.
  *
- * - Zag's ROOT tier (the events that work in every state) is the fork's root
- *   `on`, programmatic `OPEN`/`CLOSE` with it.
- * - Zag's `open` parent's handlers (`INPUT.ENTER`, `ITEM.CLICK`,
- *   `TRIGGER.CLICK`, `LAYER.INTERACT_OUTSIDE`) sit at the root too, and the
- *   two closed states shadow the ones Zag does not define there. The fork
- *   tries state handlers first and falls through to the root, so an
- *   unconditional state handler shadows a root one — which is the whole
- *   reason this needs no nesting.
- * - `VALUE.CLEAR` is state-dependent in Zag, but every variant is "clear the
- *   selection and the input, and land in `focused`", so it is one root
- *   handler; `focused` already is `focused`, so the target is a no-op there.
+ * `VALUE.CLEAR` is state-dependent in Zag, but every variant is "clear the
+ * selection and the input, and land in `focused`", so it is one root handler.
  *
  * Navigation is NOT here. Arrows, Home and End compute their target against
  * the rows the view holds — including the disabled ones they must skip —
@@ -34,22 +29,17 @@ import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 
 export interface ComboboxContext {
-  /** The selected values, in the order they were added. */
   value: string[];
-  /** What the user typed, or what a selection committed. */
   inputValue: string;
   highlightedValue: string | null;
   /**
    * The inline completion the input shows while a keypress-driven highlight
    * is live. Zag writes this straight into the input element rather than
    * into `inputValue`, so the machine's own text stays what the user typed
-   * and `isCustomValue` keeps answering about that. Null when nothing is
-   * completing, which is when the input shows `inputValue`.
+   * and `isCustomValue` keeps answering about that.
    */
   autofill: string | null;
-  /** The collection's values in order. Synced from scope by the bridge. */
   order: string[];
-  /** The collection's labels by value. Synced from scope by the bridge. */
   labels: Record<string, string>;
   multiple: boolean;
   closeOnSelect: boolean;
@@ -88,7 +78,6 @@ export type ComboboxEvent =
   | { type: "LAYER.INTERACT_OUTSIDE" }
   | { type: "CHILDREN_CHANGE" };
 
-/** A transport-coerced row. */
 export interface ComboboxRow {
   readonly value?: string;
   readonly label?: string;
@@ -96,33 +85,17 @@ export interface ComboboxRow {
 
 /**
  * The combobox's arguments: the values the host may set.
- *
- * The names are the element's prop names — the machine is instantiated
- * with the element's prop bag and picks what it wants. The twins
- * (`defaultValue`, `defaultInputValue`, `defaultHighlightedValue`) are
- * resolved by the framework before the factory is called, so the machine
- * only ever sees the live value.
  */
 export interface ComboboxArgs {
-  /** The collection's rows. */
   items?: readonly ComboboxRow[];
-  /** The selected values, as the host wrote them. */
   value?: string;
-  /** What the input shows, as the host wrote it. */
   inputValue?: string;
-  /** The highlighted value, as the host wrote it. */
   highlightedValue?: string;
-  /** Whether more than one value may be selected. */
   multiple?: boolean;
-  /** Whether a selection closes the panel. */
   closeOnSelect?: boolean;
-  /** Whether a value outside the collection may be typed. */
   allowCustomValue?: boolean;
-  /** The inline completion behaviour: `none`, `autocomplete` or `autohighlight`. */
   inputBehavior?: string;
-  /** What a selection does to the input's text. */
   selectionBehavior?: string;
-  /** Whether typing opens the panel. */
   openOnChange?: boolean;
   defaultOpenOnChange?: boolean;
 }
@@ -136,18 +109,10 @@ const textProp = (raw: unknown): string => (typeof raw === "string" ? raw : "");
 const nullableProp = (raw: unknown): string | null => (typeof raw === "string" && raw.length > 0 ? raw : null);
 
 /**
- * The machine's context: the collection becomes the order and the labels,
- * the selection and the highlight come from the host's own text, and the
- * field's text follows the selection the way Zag's does.
- *
- * The collection, the selection and the highlight are the machine's own —
- * no host may write them — so they are taken as they are.
+ * The machine's context. The collection, the selection and the highlight
+ * are the machine's own — no host may write them.
  */
 export function initial(args: ComboboxArgs, authored: (name: string) => boolean): ComboboxContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote the seed twin
-  // wrote the channel too — and the framework has already resolved it
-  // into the argument.
   const written = (field: string): boolean =>
     authored(field) || authored(defaultTwin(field));
   const multiple = written("multiple") ? args.multiple === true : false;
@@ -170,12 +135,11 @@ export function initial(args: ComboboxArgs, authored: (name: string) => boolean)
   const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)] as const));
   const value = parseKeys(args.value);
   // The scope's `highlightedValue` default is "", so an unauthored
-  // highlight looks present. The framework's twin resolution is what says
-  // whether the host chose it.
+  // highlight looks present.
   const highlighted = nullableProp(args.highlightedValue);
   // Zag's `closeOnSelect: !props.multiple` — a coerced default is not a
   // write, so an explicit `closeOnSelect` is the only thing that overrides
-  // the mode's own answer. The contract carries that write.
+  // the mode's own answer.
   const closeOnSelect = written("closeOnSelect") ? args.closeOnSelect === true : !multiple;
   const allowCustomValue = written("allowCustomValue") ? args.allowCustomValue === true : false;
   const openOnChange = written("openOnChange") ? args.openOnChange !== false : true;
@@ -216,11 +180,6 @@ const config = {
     selectionBehavior: "replace" as "replace" | "preserve" | "clear",
     openOnChange: true,
   },
-  // Zag's root tier, plus the two commands that work from anywhere:
-  // `OPEN`/`CLOSE` are the host's `setOpen`, and `VALUE.CLEAR` is the host's
-  // `clearValue` — every one of Zag's state-specific variants of it is the
-  // same sentence with a different landing pad, and every landing pad is
-  // `focused`.
   on: {
     "SELECTED_ITEMS.SYNC": { actions: [{ assign: "syncSelectedItems" }] },
     "HIGHLIGHTED_VALUE.SET": { actions: [{ assign: "setHighlightedValue" }] },
@@ -232,13 +191,10 @@ const config = {
     OPEN: { target: "interacting" },
     CLOSE: { target: "focused" },
     "VALUE.CLEAR": { target: "focused", actions: [{ assign: "clearInputValue" }, { assign: "clearValue" }] },
-    // Zag's `open` parent. The two closed states shadow what they must not
-    // inherit: an unconditional state handler is tried before the root's.
-    // Zag's root INPUT.ESCAPE (guard: custom value the machine refuses):
-    // it must land in every state — a typed query in `suggesting` reverts
-    // the same way a typed query in `focused` does. The state's own
-    // handlers shadow it only where they must (interacting escapes to
-    // focused with no revert).
+    // Zag's `open` parent. The root INPUT.ESCAPE (guard: custom value the
+    // machine refuses) must land in every state — a typed query in
+    // `suggesting` reverts the same way a typed query in `focused` does —
+    // so the closed states shadow it only where they must.
     "INPUT.ESCAPE": [
       {
         cond: "revertsToValue",
@@ -277,8 +233,6 @@ const config = {
     ],
   },
   states: {
-    // closed.idle. The entry clears the highlight, which is what makes a
-    // reopen start from nothing.
     idle: {
       entry: [{ assign: "clearHighlightedValue" }],
       on: {
@@ -291,13 +245,12 @@ const config = {
           target: "interacting",
           actions: [{ assign: "highlightFirstOrSelectedItem" }],
         },
-        // Zag's `open` parent owns Enter and item clicks; a closed, unfocused
-        // combobox has no panel to act on.
+        // Zag's `open` parent owns Enter and item clicks; a closed combobox
+        // has no panel to act on.
         "INPUT.ENTER": { actions: [] },
         "ITEM.CLICK": { actions: [] },
       },
     },
-    // closed.focused.
     focused: {
       entry: [{ assign: "clearHighlightedValue" }],
       on: {
@@ -343,7 +296,7 @@ const config = {
         ],
         // Zag's closed.focused dismisses with no revert: the text the user
         // typed is theirs. This MUST shadow the root's reverting candidate —
-        // state handlers are tried first, so without this the root reverts.
+        // state handlers are tried first.
         "LAYER.INTERACT_OUTSIDE": { target: "idle" },
         "LAYER.ESCAPE": { target: "idle" },
         // The clear word keeps the highlight here: an internal transition
@@ -353,7 +306,6 @@ const config = {
         "ITEM.CLICK": { actions: [] },
       },
     },
-    // open.interacting — the user is driving with the keyboard or pointer.
     interacting: {
       on: {
         "CHILDREN_CHANGE": {
@@ -385,18 +337,16 @@ const config = {
         "ITEM.POINTER_MOVE": { actions: [{ assign: "setHighlightedValue" }] },
         "ITEM.POINTER_LEAVE": { actions: [{ assign: "clearHighlightedValue" }] },
         // Escape out of a suggestion: the completion is dropped and the
-        // input's own binding shows `inputValue` again, which is what Zag's
+        // input's own binding shows `inputValue` again — what Zag's
         // DOM-writing `syncInputValue` achieves against an uncontrolled
-        // field. With autoComplete the completion is kept in the text until
-        // the panel closes, so only the highlight goes.
+        // field. With autoComplete the completion is kept until the panel
+        // closes, so only the highlight goes.
         "LAYER.ESCAPE": [
           { cond: "inlineAutocomplete", actions: [{ assign: "clearHighlightedValue" }] },
           { target: "focused" },
         ],
       },
     },
-    // open.suggesting — the input is proposing, and the arrows hand control
-    // back to the user.
     suggesting: {
       on: {
         "CHILDREN_CHANGE": [
@@ -435,9 +385,9 @@ const config = {
   },
 };
 
-/** The four phases that mean "the panel is up", as the view and the bridge
- * read them. Two of the four are open, and which is the question every
- * `data-state` and open-change decision asks. */
+/** The four phases that mean "the panel is up" — two of the four are open,
+ * and which is the question every `data-state` and open-change decision
+ * asks. */
 const OPEN_PHASES: Record<string, true> = { interacting: true, suggesting: true };
 
 export const isOpenPhase = (phase: string): boolean => OPEN_PHASES[phase] === true;
@@ -500,8 +450,7 @@ const pickValue = (ctx: ComboboxContext, value: string): string[] =>
 export const pickOutcome = pickValue;
 
 /** Zag's `computed.isCustomValue`: the input holds text the selection does
- * not explain. Written as an input mutation rather than a watched computed,
- * so the guards read it straight off the context. */
+ * not explain. */
 const isCustomValue = (ctx: ComboboxContext): boolean =>
   ctx.inputValue !== stringifyValues(ctx, ctx.value);
 
@@ -531,7 +480,8 @@ const implementations = {
       isCustomValue(ctx) && !ctx.allowCustomValue && ctx.highlightedValue === null,
     revertsOnOutside: (ctx: ComboboxContext): boolean =>
       isCustomValue(ctx) && !ctx.allowCustomValue,
-    /** The removal an auto-highlight repairs. */
+    /** The removal an auto-highlight repairs: the highlight is gone from
+     * the collection. */
     autoHighlightAfterRemoval: (ctx: ComboboxContext): boolean =>
       ctx.inputBehavior === "autohighlight" &&
       ctx.highlightedValue !== null &&
@@ -551,7 +501,7 @@ const implementations = {
     setHighlightedValue: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
       // ITEM.POINTER_MOVE carries the row's value directly (the pointer is
       // already there); HIGHLIGHTED_VALUE.SET carries it with a keypress
-      // flag for inline completion. Both land here.
+      // flag for inline completion.
       if (e.type === "ITEM.POINTER_MOVE") {
         return { highlightedValue: e.value, autofill: completion(ctx, e.value, false) };
       }
@@ -647,10 +597,6 @@ const implementations = {
   },
 };
 
-/**
- * The combobox machine: state and nothing else. It is headless — it knows
- * its own arguments, and nothing about props, markup, or the DOM.
- */
 export function combobox(
   args: ComboboxArgs = {},
   authored: (name: string) => boolean,
@@ -660,14 +606,6 @@ export function combobox(
     ...implementations,
     context: initial(args, authored),
     /**
-     * The machine's contract with its hosts: the context fields a host
-     * may write, and the event each write carries.
-     *
-     * A field with an event is REPORTED: the host's write is an event,
-     * the machine decides, and the change reaches the host. A field
-     * without one is SILENT: the host's write lands in the field, and
-     * nothing reports.
-     *
      * The selection, the field's text and the highlight are the machine's
      * own: no host may write them.
      */

@@ -5,8 +5,8 @@ import { DemoControls } from "../demo-controls.tsx";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import "./spin-tooltip.html";
 
+import "./spin-tooltip.html";
 interface TooltipCommands {
   show(): void;
   hide(): void;
