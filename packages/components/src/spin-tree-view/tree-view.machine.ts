@@ -44,6 +44,8 @@ export interface TreeLoadComplete {
 
 export interface TreeInitial {
   readonly nodes?: unknown;
+  readonly expandedValue?: unknown;
+  readonly selectedValue?: unknown;
   readonly defaultExpandedValue?: unknown;
   readonly defaultSelectedValue?: unknown;
   readonly defaultCheckedValue?: unknown;
@@ -99,14 +101,20 @@ export function nodesOf(raw: unknown): TreeNodeShape[] {
 }
 
 /** Seed shaping: the three value sets start at their defaults, empty. */
-export function initial(raw: TreeInitial): Pick<TreeContext, "expandedValue" | "selectedValue" | "checkedValue" | "selectionMode" | "expandOnClick" | "rename"> {
+export function initial(
+  raw: TreeInitial,
+  authored: (name: string) => boolean,
+): Pick<TreeContext, "expandedValue" | "selectedValue" | "checkedValue" | "selectionMode" | "expandOnClick" | "rename"> {
   const keysOf = (value: unknown): string[] => {
     if (!Array.isArray(value)) return [];
     return value.filter((v): v is string => typeof v === "string");
   };
+  // The scope's `expandedValue` and `selectedValue` default to [], so an
+  // unauthored value looks present. The authored predicate is what says
+  // whether the host chose it.
   return {
-    expandedValue: keysOf(raw.defaultExpandedValue),
-    selectedValue: keysOf(raw.defaultSelectedValue),
+    expandedValue: authored("expandedValue") ? keysOf(raw.expandedValue) : keysOf(raw.defaultExpandedValue),
+    selectedValue: authored("selectedValue") ? keysOf(raw.selectedValue) : keysOf(raw.defaultSelectedValue),
     checkedValue: keysOf(raw.defaultCheckedValue),
     selectionMode: raw.selectionMode === "multiple" ? "multiple" : "single",
     expandOnClick: raw.expandOnClick !== false,

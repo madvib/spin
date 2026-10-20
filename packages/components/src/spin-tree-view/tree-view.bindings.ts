@@ -454,9 +454,9 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       focus("rename", after.context.renamingValue);
     }
   },
-  seed: (raw, _authored) => {
+  seed: (raw, authored) => {
     const props: TreeInitial = isTreeInitial(raw) ? raw : {};
-    const shaped = initial(props);
+    const shaped = initial(props, authored);
     return {
       ...shaped,
       focusedValue: null,

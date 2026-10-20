@@ -166,11 +166,11 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   name: "floating-panel",
   config,
   implementations,
-  start: (raw, _authored) => {
+  start: (raw, authored) => {
     const props: FloatingPanelInitial = isFloatingPanelInitial(raw) ? raw : {};
-    return startOpen(props) ? "open" : "closed";
+    return startOpen(props, authored) ? "open" : "closed";
   },
-  seed: (raw, _authored) => {
+  seed: (raw, authored) => {
     const props: FloatingPanelInitial = isFloatingPanelInitial(raw) ? raw : {};
     const shaped = initial(props);
     return {
@@ -178,7 +178,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
       position: { x: 0, y: 0 },
       restoreSize: null,
       restorePosition: null,
-      stage: startStage(props),
+      stage: startStage(props, authored),
       dragFrom: null,
       resizeFrom: null,
       axis: null,

@@ -124,13 +124,15 @@ export function initial(raw: FloatingPanelInitial): Pick<FloatingPanelContext, "
 }
 
 /** The seeded open state: an authored open wins, else its default. */
-export function startOpen(raw: FloatingPanelInitial): boolean {
-  return raw.open === true || (raw.open === undefined && raw.defaultOpen === true);
+export function startOpen(raw: FloatingPanelInitial, authored: (name: string) => boolean): boolean {
+  // The scope's `open` defaults to false, so it is never absent. The
+  // authored predicate is what says whether the host chose it.
+  return authored("open") ? raw.open === true : raw.defaultOpen === true;
 }
 
 /** The seeded stage: a staged default opens staged, else restored. */
-export function startStage(raw: FloatingPanelInitial): FloatingPanelStage {
-  const stage: unknown = raw.stage ?? raw.defaultStage;
+export function startStage(raw: FloatingPanelInitial, authored: (name: string) => boolean): FloatingPanelStage {
+  const stage: unknown = authored("stage") ? raw.stage : raw.defaultStage;
   return stage === "minimized" || stage === "maximized" ? stage : "restored";
 }
 

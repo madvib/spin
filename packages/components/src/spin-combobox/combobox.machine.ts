@@ -132,7 +132,7 @@ export function initial(raw: ComboboxInitial, authored: (name: string) => boolea
   const highlighted = authored("highlightedValue")
     ? nullableProp(raw.highlightedValue)
     : nullableProp(raw.defaultHighlightedValue);
-  const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
+  const closeOnSelect = authored("closeOnSelect") ? raw.closeOnSelect === true : !multiple;
   const allowCustomValue = raw.allowCustomValue === true;
   const openOnChange = raw.openOnChange !== false;
   const seedCtx: ComboboxContext = {
@@ -150,7 +150,7 @@ export function initial(raw: ComboboxInitial, authored: (name: string) => boolea
     openOnChange,
   };
   const valueAsString = value.map((v) => labels[v] ?? v).join(", ");
-  const seeded = raw.inputValue !== undefined ? textProp(raw.inputValue) : textProp(raw.defaultInputValue);
+  const seeded = authored("inputValue") ? textProp(raw.inputValue) : textProp(raw.defaultInputValue);
   const inputValue = seeded.trim().length > 0 || multiple ? seeded : (selectionBehavior === "clear" ? "" : valueAsString);
   return { ...seedCtx, inputValue };
 }
