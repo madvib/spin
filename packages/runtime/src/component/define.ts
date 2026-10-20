@@ -88,20 +88,16 @@ export interface ReaderDef<C extends object = Record<string, unknown>> {
  * context field the event fills, and the prop whose value seeds that
  * field (the live prop seeds it when the host authored it).
  */
-export interface PropEvent<C extends object, E extends { type: string }> {
-  /** The event the consumer sends when the prop changes. */
-  readonly event: E["type"];
-  /** The context field the event's payload fills. */
-  readonly field: keyof C & string;
-  /** The prop whose value seeds the field. Default: the prop itself. */
-  readonly seed?: string;
-  /**
-   * How the raw prop becomes the field's value: the consumer owns the
-   * shape, the machine owns the state. Absent, the prop's value is the
-   * field's value.
-   */
-  readonly parse?: (raw: unknown) => unknown;
-}
+/**
+ * How a consumer initializes the machine it consumes.
+ *
+ * - `undefined` — the machine's own defaults stand.
+ * - a context patch — a literal the consumer chose.
+ * - a function — the consumer reads the host's props and decides.
+ */
+export type InitSpec<C extends object, E extends { type: string }> =
+  | Partial<C>
+  | ((props: Readonly<Record<string, unknown>>, authored: (name: string) => boolean) => Partial<C>);
 
 export interface MethodDef<C extends object = Record<string, unknown>> {
   /** An indexed read (`getThumbValue(index)`): live context + state + args
@@ -265,7 +261,13 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * event, never a context write: the machine owns its state, and one
    * machine can drive any number of consumers.
    */
-  readonly props?: Readonly<Record<string, PropEvent<C, E>>>;
+  /**
+   * How the machine starts. The consumer owns initialization: nothing
+   * (the machine's own defaults), a literal, or a value read from the
+   * host's props. The machine owns its contract; the consumer owns the
+   * starting point.
+   */
+  readonly init?: InitSpec<C, E>;
   /**
    * The machine that owns this consumer's state. The machine is a
    * separate artifact: it knows nothing about the consumer, and one

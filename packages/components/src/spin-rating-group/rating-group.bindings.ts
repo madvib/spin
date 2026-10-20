@@ -1,4 +1,5 @@
 import {
+  defaultTwin,
   defineComponent,
   isComposing,
   type ComponentDef,
@@ -59,6 +60,19 @@ const itemIndexes = (length: number): readonly number[] => {
   return made;
 };
 
+/**
+ * The value a field starts with: the host's live prop when it wrote
+ * one, otherwise the initial twin. The convention is the framework's.
+ */
+const seedOf = (
+  props: Readonly<Record<string, unknown>>,
+  authored: (name: string) => boolean,
+  field: string,
+): unknown => {
+  const twin = defaultTwin(field);
+  return authored(field) ? props[field] : props[twin];
+};
+
 /** The host's count: a number, at least one. */
 const countOf = (raw: unknown): number => {
   const n = typeof raw === "number" ? raw : Number(raw);
@@ -75,15 +89,16 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
   machine: ratingGroupMachine,
   start: "idle",
-  // The props this consumer feeds the machine. A prop write is an
-  // event: the consumer sends, the machine decides.
-  props: {
-    count: { event: "SET_COUNT", field: "count", parse: countOf },
-    value: { event: "SET_VALUE", field: "value", seed: "defaultValue", parse: valueOf },
-    allowHalf: { event: "SET_ALLOW_HALF", field: "allowHalf" },
-    disabled: { event: "SET_DISABLED", field: "disabled" },
-    readOnly: { event: "SET_READ_ONLY", field: "readOnly" },
-  },
+  // How this consumer starts the machine. Nothing here means the
+  // machine's own defaults stand; the function reads the host's props
+  // when the consumer wants to initialize from them.
+  init: (props, authored) => ({
+    ...(props["count"] === undefined ? {} : { count: countOf(props["count"]) }),
+    ...(seedOf(props, authored, "value") === undefined ? {} : { value: valueOf(seedOf(props, authored, "value")) }),
+    ...(props["allowHalf"] === undefined ? {} : { allowHalf: props["allowHalf"] === true }),
+    ...(props["disabled"] === undefined ? {} : { disabled: props["disabled"] === true }),
+    ...(props["readOnly"] === undefined ? {} : { readOnly: props["readOnly"] === true }),
+  }),
   parts: {
     root: {
       sig: (scope) => [scope.props["dir"]].join("|"),

@@ -167,3 +167,4 @@ export { bindActionProps, bindSpread } from "./directives/spread.ts";
 export { machineTick } from "./core/signal.ts";
 
 export { assign, defineMachine, guard } from "./machine/define.ts";
+export { defaultTwin } from "./component/synthesize.ts";

@@ -84,6 +84,15 @@ const step = (ctx: RatingGroupContext): number => (ctx.allowHalf ? 0.5 : 1);
 export const ratingGroupMachine = defineMachine<RatingGroupContext, RatingGroupEvent>({
   id: "rating-group",
   initial: "idle",
+  /**
+   * The machine's contract with its hosts: which context fields a host
+   * may write, and the event that carries each write. The consumer
+   * never restates this, and a host cannot reach past it.
+   */
+  fields: [
+    { field: "value", event: "SET_VALUE" },
+    { field: "count", event: "SET_COUNT" },
+  ],
   context: {
     value: -1,
     hoveredValue: -1,

@@ -119,6 +119,24 @@ export type SpecTransition<C extends object, E extends EventObject, A extends As
       )[];
     };
 
+/**
+ * One field of the machine's context a host may write, and the event
+ * that carries the write. The machine owns this map: the consumer
+ * never names a machine field, and a host never touches machine state.
+ */
+export interface FieldContract<C extends object, E extends EventObject> {
+  /** The context field the host may write. */
+  readonly field: keyof C & string;
+  /** The event the machine answers when the host writes it. */
+  readonly event: E["type"];
+  /**
+   * Whether the host's write owns the field: an owned field follows the
+   * host on every change. An unowned field is write-once (the host sets
+   * it at mount and the machine keeps it).
+   */
+  readonly controlled?: boolean;
+}
+
 export interface MachineSpec<
   C extends object,
   E extends EventObject,
@@ -152,6 +170,12 @@ export interface MachineSpec<
       }
     >
   >;
+  /**
+   * The machine's contract with its hosts: which context fields a host
+   * may write, and the event that carries each write. The machine owns
+   * this map — the consumer does not, and a host cannot reach past it.
+   */
+  readonly fields?: readonly FieldContract<C, E>[];
   /** The context transforms, each bound to the event it answers. */
   readonly assigns?: A;
   /** The guards, each bound to the event it answers. */
@@ -166,6 +190,8 @@ export interface Machine<C extends object, E extends EventObject> {
   readonly contextType?: C;
   /** The event type, for the consumers that send this machine events. */
   readonly eventType?: E;
+  /** The contract: which fields a host may write, and how. */
+  readonly fields: readonly FieldContract<C, E>[];
 }
 
 /**
@@ -203,5 +229,6 @@ export function defineMachine<
     },
     contextType: spec.context,
     eventType: undefined as unknown as E,
+    fields: spec.fields ?? [],
   };
 }

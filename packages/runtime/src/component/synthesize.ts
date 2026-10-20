@@ -12,6 +12,16 @@ import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
 import type { Config, Implementations } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
+/**
+ * The initial-value twin of a field: `value` -> `defaultValue`. A host
+ * that writes the live prop owns the field; a host that writes only the
+ * twin seeds it. The convention is the framework's, so a consumer never
+ * re-implements it.
+ */
+export function defaultTwin(field: string): string {
+  return `default${field.charAt(0).toUpperCase()}${field.slice(1)}`;
+}
+
 export function defineComponent<
   C extends object,
   E extends { type: string },
@@ -99,41 +109,42 @@ export function defineComponent<
     return {
       noteSent,
       seed: (props, authored) => {
-        if (def.props === undefined) {
+        // The consumer owns initialization: nothing (the machine's own
+        // defaults stand), a literal, or a value read from the host's
+        // props. The machine's contract says which fields exist; it
+        // never says what the host may set.
+        if (def.init === undefined) {
           return (def.seed?.(props(), authored) ?? {}) as Partial<C>;
         }
-        // The seed is the machine's own defaults plus the props the
-        // consumer maps onto it. The machine never reads a prop: the
-        // consumer names the field and the event, and the machine
-        // decides what the value means.
-        const parsed = props();
-        const seeded: Record<string, unknown> = {};
-        for (const [name, mapping] of Object.entries(def.props)) {
-          const source = authored(name) ? name : mapping.seed ?? name;
-          const value = parsed[source];
-          if (value === undefined || value === null) continue;
-          seeded[mapping.field] = mapping.parse === undefined ? value : mapping.parse(value);
+        if (typeof def.init === "function") {
+          return def.init(props(), authored) as Partial<C>;
         }
-        return seeded as Partial<C>;
+        return def.init as Partial<C>;
       },
+
       establish: (_svc, props, authored) => {
         if (def.establish === undefined) return [];
         return def.establish(props(), authored) as readonly E[];
       },
-      sync: (_svc, props, _authored, send) => {
-        if (def.props === undefined) return { moved: false, events: [] };
-        // A prop write is an event, not a context write: the consumer
-        // sends and the machine decides. The cursor is on the prop, so
-        // the machine's own move never talks back.
+      sync: (_svc, props, authored, send) => {
+        // The machine's contract decides this: which of its fields a
+        // host may write, and the event that carries each write. The
+        // consumer does not restate it, and a host cannot write a field
+        // the contract does not name.
+        const fields = def.machine?.fields ?? [];
+        if (fields.length === 0) return { moved: false, events: [] };
         const parsed = props();
         const events: E[] = [];
-        for (const [name, mapping] of Object.entries(def.props)) {
-          const raw = parsed[name];
+        for (const contract of fields) {
+          // The prop that carries a field is the framework's convention:
+          // the field's own name.
+          const prop = contract.field;
+          const raw = parsed[prop];
           if (raw === undefined || raw === null) continue;
-          const value = mapping.parse === undefined ? raw : mapping.parse(raw);
-          if (Object.is(lastProp.get(name), value)) continue;
-          lastProp.set(name, value);
-          const event = { type: mapping.event, [mapping.field]: value } as unknown as E;
+          if (!authored(prop)) continue;
+          if (Object.is(lastProp.get(prop), raw)) continue;
+          lastProp.set(prop, raw);
+          const event = { type: contract.event, [contract.field]: raw } as unknown as E;
           events.push(event);
           send(event);
         }
