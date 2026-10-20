@@ -247,13 +247,36 @@ const limitsOf = (
 } => ({
   minSize: { width: ctx.minWidth ?? 0, height: ctx.minHeight ?? 0 },
   maxSize: {
-    width: ctx.maxWidth ?? viewportRect.width,
-    height: ctx.maxHeight ?? viewportRect.height,
+    // A max of zero is no max: the viewport is the bound.
+    width: ctx.maxWidth !== null && ctx.maxWidth > 0 ? ctx.maxWidth : viewportRect.width,
+    height: ctx.maxHeight !== null && ctx.maxHeight > 0 ? ctx.maxHeight : viewportRect.height,
   },
 });
 
 const ratioOf = (ctx: ImageCropperContext): number | null =>
   resolveCropAspectRatio(ctx.cropShape, ctx.aspectRatio);
+
+/** The crop a viewport and an image's aspect imply, centred in it. */
+const defaultCropPatch = (
+  ctx: ImageCropperContext,
+  viewportRect: CropRect,
+): Partial<ImageCropperContext> => {
+  if (!isVisibleRect(viewportRect)) return {};
+  const aspectRatio = ratioOf(ctx);
+  const { minSize, maxSize } = limitsOf(ctx, viewportRect);
+  const defaultSize = computeDefaultCropDimensions(viewportRect, aspectRatio, ctx.fixedCropArea);
+  const clamped = computeResizeCrop({
+    cropStart: { x: 0, y: 0, width: defaultSize.width, height: defaultSize.height },
+    handlePosition: "se",
+    delta: { x: 0, y: 0 },
+    viewportRect,
+    minSize,
+    maxSize,
+    aspectRatio,
+  });
+  const at = centerRect({ width: clamped.width, height: clamped.height }, viewportRect);
+  return { crop: { x: at.x, y: at.y, width: clamped.width, height: clamped.height } };
+};
 
 export const implementations = {
   conds: {
@@ -271,8 +294,11 @@ export const implementations = {
   assigns: {
     setNaturalSize: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_NATURAL_SIZE") return {};
-      void ctx;
-      return { naturalSize: { ...event.size } };
+      // The crop's default is derived from the viewport and the image's
+      // aspect. Whichever arrives last wins, so a natural size that lands
+      // after the viewport recomputes the crop.
+      const next = { ...ctx, naturalSize: { ...event.size } };
+      return { naturalSize: { ...event.size }, ...defaultCropPatch(next, ctx.viewportRect) };
     },
     setViewport: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_VIEWPORT") return {};
@@ -282,24 +308,7 @@ export const implementations = {
     setDefaultCrop: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "SET_DEFAULT_CROP") return {};
       const viewportRect = { ...event.viewport };
-      if (!isVisibleRect(viewportRect)) return { viewportRect };
-      const aspectRatio = ratioOf(ctx);
-      const { minSize, maxSize } = limitsOf(ctx, viewportRect);
-      const defaultSize = computeDefaultCropDimensions(viewportRect, aspectRatio, ctx.fixedCropArea);
-      const clamped = computeResizeCrop({
-        cropStart: { x: 0, y: 0, width: defaultSize.width, height: defaultSize.height },
-        handlePosition: "se",
-        delta: { x: 0, y: 0 },
-        viewportRect,
-        minSize,
-        maxSize,
-        aspectRatio,
-      });
-      const at = centerRect({ width: clamped.width, height: clamped.height }, viewportRect);
-      return {
-        viewportRect,
-        crop: { x: at.x, y: at.y, width: clamped.width, height: clamped.height },
-      };
+      return { viewportRect, ...defaultCropPatch(ctx, viewportRect) };
     },
     setPointerStart: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
       if (event.type !== "POINTER_DOWN" && event.type !== "PAN_POINTER_DOWN") return {};
