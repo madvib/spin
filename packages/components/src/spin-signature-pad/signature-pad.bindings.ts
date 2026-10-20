@@ -265,6 +265,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       }),
     },
     clearTrigger: {
+      id: "clear-trigger",
       sig: (scope: ScopeLike, arg: unknown) => {
         const ctx = scope.context;
         return [`${textOf(arg)}`, scope.state, ctx.paths.length, `${scope.props["disabled"] === true}`].join(" ");
@@ -274,7 +275,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
         const ctx = scope.context;
         const disabled = scope.props["disabled"] === true;
         return {
-          id: scope.id("clearTrigger"),
+          id: scope.id("clear-trigger"),
           type: "button",
           "aria-label": label,
           "data-scope": "signature-pad",

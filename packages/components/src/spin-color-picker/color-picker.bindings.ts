@@ -696,7 +696,10 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       sig: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        return [scope.context.value, orientation, scope.props["dir"]].join(" ");
+        // The channel is part of the signature: the bag carries the
+        // channel's id, and one bag per tree would give both sliders the
+        // first one's id.
+        return [slots.channel, scope.context.value, orientation, scope.props["dir"]].join(" ");
       },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
@@ -719,7 +722,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       sig: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        return [scope.context.value, orientation, scope.props["dir"], scope.props["disabled"]].join(" ");
+        return [slots.channel, scope.context.value, orientation, scope.props["dir"], scope.props["disabled"]].join(" ");
       },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
@@ -778,7 +781,10 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderLabel: {
       id: "channel-slider-label",
-      sig: (scope) => [`${scope.props["dir"]}`].join(" "),
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
+        return [slots.channel, `${scope.props["dir"]}`].join(" ");
+      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         return { "data-channel": slots.channel, dir: scope.props["dir"] };
@@ -786,7 +792,10 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderValueText: {
       id: "channel-slider-value-text",
-      sig: (scope) => [scope.context.value].join(" "),
+      sig: (scope: ScopeLike, arg?: unknown) => {
+        const slots = channelOf(arg);
+        return [slots.channel, scope.context.value].join(" ");
+      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         return { "data-channel": slots.channel };
