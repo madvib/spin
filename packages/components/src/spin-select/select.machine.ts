@@ -122,7 +122,11 @@ export function initial(raw: SelectInitial, authored: (name: string) => boolean)
     });
   }
   const multiple = raw.multiple === true;
-  const closeOnSelect = raw.closeOnSelect === undefined ? !multiple : raw.closeOnSelect === true;
+  // The scope's `closeOnSelect` default is `true`, so the prop is never
+  // absent: the authored predicate is what says whether the host chose.
+  // Unauthored, the effective value is Zag's `!multiple` — a multiple
+  // select keeps its panel open over each pick.
+  const closeOnSelect = authored("closeOnSelect") ? raw.closeOnSelect === true : !multiple;
   const loopFocus = raw.loopFocus === true;
   const valueRaw = authored("value") ? raw.value : raw.defaultValue;
   const value = parseKeys(valueRaw);
