@@ -166,6 +166,21 @@ export function define(tag: string, spec: ElementSpec): void {
     #scope: OwnerScope | undefined;
     #table: ScopeTable | undefined;
 
+    constructor() {
+      super();
+      // A property written before the upgrade shadowed the accessor with
+      // a plain own property: the store never saw it, and the build read
+      // an empty prop. Move those values into the store and drop the
+      // shadow, so `build` reads what the host wrote.
+      for (const name of propNames) {
+        const own = Object.getOwnPropertyDescriptor(this, name);
+        if (own === undefined || own.get !== undefined || own.set !== undefined) continue;
+        const value = own.value;
+        delete (this as unknown as Record<string, unknown>)[name];
+        propFor(this, name)(value);
+      }
+    }
+
     connectedCallback(): void {
       // Custom elements are inline by default; content children sized in %
       // (slider tracks, carousel slides) would shrink-wrap. Block layout is

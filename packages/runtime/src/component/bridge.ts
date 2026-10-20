@@ -202,7 +202,6 @@ export function defineBridge<
         actions: [],
         matches: (v: string): boolean => v === startValue,
       });
-      console.log("DBG svc ctx keys:", Object.keys(svc.state.context).join(","), "min:", JSON.stringify((svc.state.context as Record<string, unknown>)["min"]));
       // Scalars first: seed sends run assigns that read them.
       hooks.refresh?.(svc, props, authored);
       // The seed replaced the context, so the bags must re-read it: the

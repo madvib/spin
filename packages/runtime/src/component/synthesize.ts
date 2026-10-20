@@ -75,7 +75,6 @@ export function defineComponent<
       const context = typeof rec.state === "object" && rec.state !== null
         ? (rec.state as { readonly context: unknown }).context
         : rec.context;
-      console.log("DBG ctxOf -> keys:", Object.keys((context ?? {}) as object).join(","), "min:", JSON.stringify((context as Record<string, unknown> | undefined)?.["min"]), "stateType:", typeof rec.state);
       return context as C;
     };
     const focusPart = focuser(names);

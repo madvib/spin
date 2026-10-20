@@ -98,7 +98,6 @@ export default function TreeViewFsm() {
     if (ctl === undefined) return undefined;
     return ctl.bind(
       {
-        nodes: JSON.stringify(TREE),
         selectionMode: multi() ? "multiple" : "single",
       },
       {
@@ -127,6 +126,8 @@ export default function TreeViewFsm() {
         prop:defaultExpandedValue={["src", "components"]}
         ref={(node) => {
           setTreeViewEl(node);
+          // The collection is read during build: it lands before connect.
+          (node as TreeElement).nodes = JSON.stringify(TREE);
           // Lazy loading crosses the property channel: the bridge calls the
           // host's function when a branch has no children key.
           (node as TreeElement).loadChildren = loadChildren;

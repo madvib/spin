@@ -251,7 +251,6 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
             if (event.pointerType === "mouse" && event.button !== 0) return;
             if (event.metaKey || event.ctrlKey || event.altKey) return;
             const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), context, event.clientX, event.clientY);
-            console.log("DBG slider press, value =", value, "state =", scope.state, "min =", context.min, "max =", context.max, "step =", context.step, "ctxkeys =", Object.keys(context).join(","));
             if (value === null) return;
             event.preventDefault();
             event.stopPropagation();
