@@ -57,7 +57,11 @@
     "@spin/hooks/react": "../hooks/src/react.ts",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",
     "@orpc/server": "npm:@orpc/server@^1.0.0",
-    "valibot": "npm:valibot@^1.0.0"
+    "valibot": "npm:valibot@^1.0.0",
+    "@zag-js/image-cropper/utils/crop": "npm:@zag-js/image-cropper@1.44.0/dist/utils/crop.mjs",
+    "@zag-js/utils/number": "npm:@zag-js/utils@1.44.0/dist/number.mjs",
+    "@zag-js/image-cropper": "npm:@zag-js/image-cropper@1.44.0",
+    "@zag-js/utils": "npm:@zag-js/utils@1.44.0"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-import src/",

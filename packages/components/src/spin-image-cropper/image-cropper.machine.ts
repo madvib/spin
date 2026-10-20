@@ -30,7 +30,7 @@ import {
   getMaxBounds,
   isVisibleRect,
   resolveCropAspectRatio,
-} from "../../../../node_modules/@zag-js/image-cropper/dist/utils/crop.mjs";
+} from "./crop-geometry.ts";
 
 export interface ImageCropperInitial {
   readonly cropShape?: unknown;
