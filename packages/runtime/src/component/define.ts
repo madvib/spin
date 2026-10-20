@@ -262,10 +262,11 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * machine can drive any number of consumers.
    */
   /**
-   * How the machine starts. The consumer owns initialization: nothing
-   * (the machine's own defaults), a literal, or a value read from the
-   * host's props. The machine owns its contract; the consumer owns the
-   * starting point.
+   * How the machine starts, when the scope's declared parameters are not
+   * enough. The consumer owns initialization: the scope's declared
+   * props and their defaults seed the machine, and this overrides that
+   * only when the consumer must derive the start (a value out of a JSON
+   * text, say). Absent, the machine's own defaults stand.
    */
   readonly init?: InitSpec<C, E>;
   /**

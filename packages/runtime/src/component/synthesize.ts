@@ -109,17 +109,25 @@ export function defineComponent<
     return {
       noteSent,
       seed: (props, authored) => {
-        // The consumer owns initialization: nothing (the machine's own
-        // defaults stand), a literal, or a value read from the host's
-        // props. The machine's contract says which fields exist; it
-        // never says what the host may set.
-        if (def.init === undefined) {
-          return (def.seed?.(props(), authored) ?? {}) as Partial<C>;
+        // The scope's declared parameters ARE the initialization: a prop
+        // the host wrote seeds its field, and the scope's declared
+        // default seeds it when the host wrote nothing. The machine's
+        // contract says which fields a host may write and the event
+        // that carries each; the machine never sees a prop.
+        const seeded: Record<string, unknown> = {};
+        for (const contract of def.machine?.fields ?? []) {
+          const twin = defaultTwin(contract.field);
+          const source = authored(contract.field) ? contract.field : twin;
+          const raw = props()[source];
+          if (raw === undefined || raw === null) continue;
+          seeded[contract.field] = raw;
         }
-        if (typeof def.init === "function") {
-          return def.init(props(), authored) as Partial<C>;
+        // The consumer's own init wins: it knows what the start means.
+        if (def.init !== undefined) {
+          const over = typeof def.init === "function" ? def.init(props(), authored) : def.init;
+          return { ...seeded, ...over } as Partial<C>;
         }
-        return def.init as Partial<C>;
+        return { ...(def.seed?.(props(), authored) ?? {}), ...seeded } as Partial<C>;
       },
 
       establish: (_svc, props, authored) => {

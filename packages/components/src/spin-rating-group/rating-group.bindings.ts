@@ -89,12 +89,13 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
   machine: ratingGroupMachine,
   start: "idle",
-  // How this consumer starts the machine. Nothing here means the
-  // machine's own defaults stand; the function reads the host's props
-  // when the consumer wants to initialize from them.
-  init: (props, authored) => ({
+  // How this consumer starts the machine, when the scope's declared
+  // parameters are not enough. The scope declares `count` and
+  // `defaultValue`, and the framework seeds those fields from them; the
+  // machine owns its own defaults for everything else.
+  init: (props) => ({
     ...(props["count"] === undefined ? {} : { count: countOf(props["count"]) }),
-    ...(seedOf(props, authored, "value") === undefined ? {} : { value: valueOf(seedOf(props, authored, "value")) }),
+    ...(props["defaultValue"] === undefined ? {} : { value: valueOf(props["defaultValue"]) }),
     ...(props["allowHalf"] === undefined ? {} : { allowHalf: props["allowHalf"] === true }),
     ...(props["disabled"] === undefined ? {} : { disabled: props["disabled"] === true }),
     ...(props["readOnly"] === undefined ? {} : { readOnly: props["readOnly"] === true }),
