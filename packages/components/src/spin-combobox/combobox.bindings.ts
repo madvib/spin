@@ -498,18 +498,29 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       openOnChange: parsed["openOnChange"] === undefined ? true : parsed["openOnChange"] !== false,
     };
   },
-  reconcile: ({ context, state, parsed, send }) => {
+  reconcile: ({ context, state, parsed, authored, send }) => {
     const ctx = context;
     const order = orderOf(parsed);
-    if (sameKeys(ctx.order, order)) return false;
-    ctx.order = order;
-    ctx.labels = labelsOf(parsed);
-    // Zag's `watch` on the collection: an open panel re-homes itself over
-    // a collection that changed under it.
-    if (isOpenPhase(state)) {
-      send({ type: "CHILDREN_CHANGE" });
+    const orderChanged = !sameKeys(ctx.order, order);
+    if (orderChanged) {
+      ctx.order = order;
+      ctx.labels = labelsOf(parsed);
+      // Zag's `watch` on the collection: an open panel re-homes itself
+      // over a collection that changed under it.
+      if (isOpenPhase(state)) {
+        send({ type: "CHILDREN_CHANGE" });
+      }
     }
-    return true;
+    // The host owns the panel when it authored `open`: the machine follows
+    // the prop, and the machine's own move is what reports it.
+    if (authored("open")) {
+      const open = parsed["open"] === true;
+      if (open !== isOpenPhase(state)) {
+        send({ type: open ? "OPEN" : "CLOSE" });
+        return true;
+      }
+    }
+    return orderChanged;
   },
   settled: ({ event, before, after, focus }) => {
     const wasOpen = isOpenPhase(before.state);
