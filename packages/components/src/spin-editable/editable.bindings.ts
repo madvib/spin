@@ -225,6 +225,14 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
           size: scope.props["autoResize"] === true ? 1 : undefined,
           onInput: (event: { readonly currentTarget: { readonly value: string } }): void =>
             scope.send({ type: "VALUE.SET", value: event.currentTarget.value }),
+          // Focus selects the whole value: the next keystroke replaces it,
+          // which is what the field is for.
+          onFocus: (event: FocusEvent): void => {
+            if (scope.props["selectOnFocus"] === false) return;
+            const target = event.currentTarget;
+            if (!(target instanceof HTMLInputElement)) return;
+            target.select();
+          },
           onKeydown: (event: KeyboardEvent): void => {
             if (event.defaultPrevented) return;
             if (event.isComposing === true) return;
@@ -251,7 +259,12 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
             }
           },
           "use:interact-outside": {
-            exclude: (): readonly (Element | null)[] => [],
+            // The field's own controls are inside: a press on the cancel
+            // trigger is the cancel, not a walk-away that submits.
+            exclude: (): readonly (Element | null)[] => [
+              document.getElementById(scope.id("cancelTrigger")),
+              document.getElementById(scope.id("editTrigger")),
+            ],
             onPointerDownOutside: (event: InteractOutsideEvent): void => {
               callHandler(scope, "onPointerDownOutside", event);
               callHandler(scope, "onInteractOutside", event);

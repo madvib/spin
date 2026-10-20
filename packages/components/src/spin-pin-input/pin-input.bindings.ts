@@ -364,7 +364,10 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
     const isComplete = pinView(afterCtx.value, afterCtx.count).complete;
     if (!wasComplete && isComplete) {
       if (props["blurOnComplete"] === true) {
-        // GAP: blur on complete; runtime focuser has no blur. Recorded.
+        // The focus leaves the pin: the cell that took it drops it, so the
+        // host's own field can take it next.
+        const active = root().ownerDocument.activeElement;
+        if (active instanceof HTMLElement && root().contains(active)) active.blur();
       }
       if (props["autoSubmit"] === true) {
         const name = props["name"];
