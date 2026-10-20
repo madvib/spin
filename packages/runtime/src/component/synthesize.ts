@@ -10,7 +10,7 @@
  * framework. Specified in `.agents/specs/`.
  */
 
-import { dataAttr, keyed, memo, type BagMemo } from "./bags.ts";
+import { dataAttr, keyed, memo, type BagMemo, type BagReads, type ReadRecorder } from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
@@ -86,6 +86,14 @@ export function defineComponent<
     };
     const focusPart = focuser(names);
     const measurePart = measurer(names);
+    // What the LAST bag build read: the context fields and the props.
+    // The proxies record every read, so the key that decides the next
+    // rebuild is derived from the reads rather than written by hand.
+    const lastReads: { context: string[]; props: string[] } = { context: [], props: [] };
+    let recording: ReadRecorder | undefined;
+    const record = (kind: "context" | "props", key: string): void => {
+      recording?.(kind, key);
+    };
     const bagMemos = new Map<string, ReturnType<typeof memo>>();
     const bagFor = (part: string): ReturnType<typeof memo> => {
       let found = bagMemos.get(part);
@@ -263,6 +271,15 @@ export function defineComponent<
             resolveId,
           );
         }
+        /** The key a bag's reads make: the values of the fields it read. */
+        const readsKey = (reads: BagReads): string => {
+          const ctx = ctxOf(service) as unknown as Record<string, unknown>;
+          const props = readProps();
+          const parts: string[] = [];
+          for (const field of reads.context) parts.push(`c:${field}=${String(ctx[field])}`);
+          for (const prop of reads.props) parts.push(`p:${prop}=${String(props[prop])}`);
+          return parts.join("|");
+        };
         function liveScope(extra: { readonly slot: unknown }): SlotScope<unknown, C>;
         function liveScope(): PartScope<unknown, C>;
         function liveScope(extra?: { readonly slot: unknown }): PartScope<unknown, C> | SlotScope<unknown, C> {
@@ -271,7 +288,10 @@ export function defineComponent<
           // bag memo still bounds rebuilds by signature. Proxies cost a
           // lookup per read; bags build rarely, handlers fire rarely.
           const props = new Proxy({} as Record<string, unknown>, {
-            get: (_target, key: string) => readProps()[key],
+            get: (_target, key: string) => {
+              record("props", key);
+              return readProps()[key];
+            },
             has: (_target, key: string) => key in readProps(),
           });
           // Dynamic bag reads: sig/attrs key arbitrary context fields
@@ -282,7 +302,10 @@ export function defineComponent<
           const live = (): Record<string, unknown> =>
             ctxOf(service) as unknown as Record<string, unknown>;
           const context = new Proxy({} as Record<string, unknown>, {
-            get: (_target, key: string) => live()[key],
+            get: (_target, key: string) => {
+              record("context", key);
+              return live()[key];
+            },
             has: (_target, key: string) => key in live(),
           });
           const scope: Record<string, unknown> = {
@@ -305,7 +328,21 @@ export function defineComponent<
           const method = `get${part[0]?.toUpperCase() ?? ""}${part.slice(1)}Props`;
           api[method] = (...callArgs: readonly unknown[]) => {
             const scope = liveScope({ slot: callArgs[0] });
-            return bagFor(part)(partDef.sig(scope, callArgs[0]), () => partDef.attrs(scope, callArgs[0]));
+            // The author's own signature, AND the key derived from the
+            // reads: a part that forgot to name a field can no longer go
+            // stale.
+            const bag = bagFor(part);
+            return bag(
+              (reads) => `${partDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,
+              (rec) => {
+                recording = rec;
+                try {
+                  return partDef.attrs(scope, callArgs[0]);
+                } finally {
+                  recording = undefined;
+                }
+              },
+            );
           };
         }
         for (const [slotName, slotDef] of Object.entries(def.slots ?? {}) as [string, SlotDef<unknown, C>][]) {
@@ -313,7 +350,19 @@ export function defineComponent<
           const slotMemos = new WeakMap<object, BagMemo>();
           api[`get${cap}Props`] = (slot: object, ...callArgs: readonly unknown[]) => {
             const scope = liveScope({ slot });
-            return keyed(slotMemos, slot, slotDef.sig(scope, callArgs[0]), () => slotDef.attrs(scope, callArgs[0]));
+            return keyed(
+              slotMemos,
+              slot,
+              (reads) => `${slotDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,
+              (rec) => {
+                recording = rec;
+                try {
+                  return slotDef.attrs(scope, callArgs[0]);
+                } finally {
+                  recording = undefined;
+                }
+              },
+            );
           };
           // Stable identities: a fresh identity per read re-stamps rows.
           // Rows/blocks memoize on the collection's identity upstream, so
