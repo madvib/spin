@@ -22,7 +22,7 @@ function carousel(
   loop = false,
 ): Service<CarouselContext, CarouselEvent> {
   const svc = interpret(
-    createMachine<CarouselContext, CarouselEvent>(config, implementations),
+    createMachine<CarouselContext, CarouselEvent>({ ...config, ...implementations }),
   );
   svc.start("idle");
   svc.send({ type: "PAGES.SET", count: slideCount });

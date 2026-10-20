@@ -148,7 +148,7 @@ export function createNumberInputBridge(
 ): { readonly api: NumberInputApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
-  const machine = createMachine<NumberInputContext, NumberInputEvent>(config, implementations);
+  const machine = createMachine<NumberInputContext, NumberInputEvent>({ ...config, ...implementations });
 
   let service: Service<NumberInputContext, NumberInputEvent> | undefined;
   /** What a form reset restores: the seed, captured with the service. */

@@ -89,10 +89,15 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   name: "rating-group",
   machine: ratingGroupMachine,
   start: "idle",
-  // How this consumer starts the machine, when the scope's declared
-  // parameters are not enough. The scope declares `count` and
-  // `defaultValue`, and the framework seeds those fields from them; the
-  // machine owns its own defaults for everything else.
+  // The machine's fields this component's own props carry. The
+  // framework's rule is by NAME: the prop `value` seeds the field
+  // `value`, and a host write to it sends the machine's event `value`.
+  machineFields: ["value", "count"],
+  // The view's wiring: a host's `value` write is the machine's
+  // `SET_VALUE`. The prop's name is the payload's key.
+  propEvents: { value: "SET_VALUE", count: "SET_COUNT" },
+  // How this component starts the machine, for the fields the scope's
+  // declared parameters cannot express on their own.
   init: (props) => ({
     ...(props["count"] === undefined ? {} : { count: countOf(props["count"]) }),
     ...(props["defaultValue"] === undefined ? {} : { value: valueOf(props["defaultValue"]) }),

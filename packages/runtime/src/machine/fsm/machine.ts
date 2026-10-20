@@ -104,9 +104,10 @@ export interface Config<TContext extends object, TEvent extends EventObject> {
 
 export interface Machine<TContext extends object, TEvent extends EventObject> {
   readonly config: Config<TContext, TEvent>;
-  /** Internal: the implementations table, so `interpret`'s start() can fold
-   * entry actions when reseeding. Not part of the public contract. */
-  readonly _impl?: Implementations<TContext, TEvent>;
+  /** The implementations table, so `interpret`'s start() can fold entry
+   * actions when reseeding, and a component can read the machine's own
+   * tables. */
+  readonly implementations: Implementations<TContext, TEvent>;
   readonly initialState: State<TContext>;
   transition(state: string | State<TContext>, event: TEvent["type"] | TEvent): State<TContext>;
 }
@@ -209,10 +210,66 @@ function resolveCond<TContext extends object, TEvent extends EventObject>(
   return (fn as (context: TContext, event: TEvent) => boolean)(context, event);
 }
 
+/**
+ * The machine: one call, one object.
+ *
+ * The config says what the machine IS (its context, its states, its
+ * transitions). The assigns and the guards say what it DOES, each bound
+ * to the event it answers. The table keys are the names the config
+ * refers to, so a name cannot drift from its implementation.
+ */
+export interface MachineSpec<TContext extends object, TEvent extends EventObject> {
+  readonly id?: string;
+  /** The machine's own defaults. No prop reaches this: a machine does
+   * not know what a host is. */
+  readonly context: TContext;
+  readonly initial: string;
+  readonly on?: Readonly<
+    Record<string, readonly Transition<TContext, TEvent>[] | Transition<TContext, TEvent>>
+  >;
+  readonly states: Readonly<
+    Record<
+      string,
+      {
+        readonly entry?: readonly Action<TContext, TEvent>[];
+        readonly exit?: readonly Action<TContext, TEvent>[];
+        readonly on?: Readonly<
+          Record<string, readonly Transition<TContext, TEvent>[] | Transition<TContext, TEvent>>
+        >;
+      }
+    >
+  >;
+  /** The context transforms, referenced by name from the config. */
+  readonly assigns?: Readonly<Record<string, (context: TContext, event: TEvent) => Partial<TContext>>>;
+  /** The guards, referenced by name from the config. */
+  readonly conds?: Readonly<Record<string, (context: TContext, event: TEvent) => boolean>>;
+  /** The side-effect actions, referenced by name. */
+  readonly actions?: Readonly<Record<string, (context: TContext, event: TEvent) => void>>;
+}
+
 export function createMachine<TContext extends object, TEvent extends EventObject>(
-  config: Config<TContext, TEvent>,
-  implementations: Implementations<TContext, TEvent> = {},
+  spec: MachineSpec<TContext, TEvent>,
 ): Machine<TContext, TEvent> {
+  const config: Config<TContext, TEvent> = {
+    ...(spec.id === undefined ? {} : { id: spec.id }),
+    initial: spec.initial,
+    context: spec.context,
+    ...(spec.on === undefined ? {} : { on: spec.on }),
+    states: spec.states,
+  };
+  const implementations: Implementations<TContext, TEvent> = {
+    ...(spec.conds === undefined
+      ? {}
+      : {
+        conds: { ...spec.conds },
+      }),
+    ...(spec.assigns === undefined
+      ? {}
+      : {
+        assigns: { ...spec.assigns },
+      }),
+    ...(spec.actions === undefined ? {} : { actions: spec.actions }),
+  };
   const initial = fold(
     toArray(config.states[config.initial]?.entry),
     (config.context ?? ({} as TContext)),
@@ -222,7 +279,7 @@ export function createMachine<TContext extends object, TEvent extends EventObjec
 
   return {
     config,
-    _impl: implementations,
+    implementations,
     initialState: {
       value: config.initial,
       actions: initial.actions,
@@ -293,7 +350,7 @@ export function interpret<TContext extends object, TEvent extends EventObject>(
   let stopped = false;
   // The same implementations table createMachine closed over, needed to
   // resolve entry actions when start() reseeds.
-  const impl = (machine as unknown as { _impl?: Implementations<TContext, TEvent> })._impl ?? {};
+  const impl = machine.implementations ?? {};
 
   const runActions = (state: State<TContext>, event: EventObject): void => {
     for (const action of state.actions) action.exec?.(state.context, event);

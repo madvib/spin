@@ -24,6 +24,7 @@ import {
   type Config,
   type Implementations,
   type Service,
+  type MachineSpec,
 } from "@spin/runtime/fsm";
 
 export interface BridgeService<C, E extends { type: string }> {
@@ -33,8 +34,14 @@ export interface BridgeService<C, E extends { type: string }> {
 }
 
 export interface BridgeShared<C extends object, E extends { type: string }> {
-  readonly config: Config<C, E>;
-  readonly implementations: Implementations<C, E>;
+  /**
+   * The machine: one object. The context, the states, the transitions,
+   * and the assigns and the guards that answer them.
+   */
+  readonly machine?: MachineSpec<C, E>;
+  /** The legacy shape: the config and the implementations apart. */
+  readonly config?: Config<C, E>;
+  readonly implementations?: Implementations<C, E>;
   /** The start state. Undefined starts at the machine's own initial. */
   readonly startState?: string;
 }
@@ -180,9 +187,24 @@ export function defineBridge<
   const tick = signal(0);
   const authored = authoredProps(props);
   const hooks = spec.hooks(id, root);
+  // The machine: the component's own spec, or the legacy config plus
+  // implementations. One object either way.
   const machine = createMachine<C, E>(
-    { ...spec.config, context: { ...(spec.config.context ?? {}) } as C },
-    spec.implementations,
+    spec.machine ?? {
+      ...(spec.config ?? {}),
+      context: { ...(spec.config?.context ?? {}) } as C,
+      initial: spec.config?.initial ?? "idle",
+      states: spec.config?.states ?? {},
+      ...(spec.implementations?.assigns === undefined
+        ? {}
+        : { assigns: spec.implementations.assigns as never }),
+      ...(spec.implementations?.conds === undefined
+        ? {}
+        : { conds: spec.implementations.conds as never }),
+      ...(spec.implementations?.actions === undefined
+        ? {}
+        : { actions: spec.implementations.actions }),
+    },
   );
 
   let service: Service<C, E> | undefined;

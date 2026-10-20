@@ -115,12 +115,12 @@ export function defineComponent<
         // contract says which fields a host may write and the event
         // that carries each; the machine never sees a prop.
         const seeded: Record<string, unknown> = {};
-        for (const contract of def.machine?.fields ?? []) {
-          const twin = defaultTwin(contract.field);
-          const source = authored(contract.field) ? contract.field : twin;
+        for (const field of def.machineFields ?? []) {
+          const twin = defaultTwin(field);
+          const source = authored(field) ? field : twin;
           const raw = props()[source];
           if (raw === undefined || raw === null) continue;
-          seeded[contract.field] = raw;
+          seeded[field] = raw;
         }
         // The consumer's own init wins: it knows what the start means.
         if (def.init !== undefined) {
@@ -139,20 +139,18 @@ export function defineComponent<
         // host may write, and the event that carries each write. The
         // consumer does not restate it, and a host cannot write a field
         // the contract does not name.
-        const fields = def.machine?.fields ?? [];
-        if (fields.length === 0) return { moved: false, events: [] };
+        if (def.propEvents === undefined) return { moved: false, events: [] };
         const parsed = props();
         const events: E[] = [];
-        for (const contract of fields) {
-          // The prop that carries a field is the framework's convention:
-          // the field's own name.
-          const prop = contract.field;
+        for (const [prop, type] of Object.entries(def.propEvents ?? {})) {
           const raw = parsed[prop];
           if (raw === undefined || raw === null) continue;
           if (!authored(prop)) continue;
           if (Object.is(lastProp.get(prop), raw)) continue;
           lastProp.set(prop, raw);
-          const event = { type: contract.event, [contract.field]: raw } as unknown as E;
+          // The prop's name is the payload's key: the prop `value` sends
+          // `{ type: "SET_VALUE", value }`.
+          const event = { type, [prop]: raw } as unknown as E;
           events.push(event);
           send(event);
         }
@@ -394,8 +392,14 @@ export function defineComponent<
       : def.start;
     const bridged = defineBridge(
       {
-        config: (def.machine?.config ?? def.config) as Config<C, E>,
-        implementations: (def.machine?.implementations ?? def.implementations ?? {}) as Implementations<C, E>,
+        // The machine: the component's own spec, or the legacy config
+        // plus implementations.
+        ...(def.machine === undefined
+          ? {
+            config: def.config as Config<C, E>,
+            implementations: (def.implementations ?? {}) as Implementations<C, E>,
+          }
+          : { machine: def.machine }),
         ...(startState === undefined ? {} : { startState }),
         hooks,
       },

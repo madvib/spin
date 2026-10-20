@@ -35,8 +35,6 @@ const machine = createMachine<Ctx, { type: "BUMP"; by: number } | { type: "LABEL
         },
       },
     },
-  },
-  {
     conds: {
       isBig: (ctx, event) => event.type === "BUMP" && ctx.count + (event as { by: number }).by >= 10,
     },
@@ -56,8 +54,7 @@ const machine = createMachine<Ctx, { type: "BUMP"; by: number } | { type: "LABEL
         recorded.push(ctx.label);
       },
     },
-  },
-);
+});
 
 let exited: string[] = [];
 let entered: number[] = [];
@@ -68,8 +65,7 @@ Deno.test("initial state applies entry actions and initial context", () => {
     initial: "idle",
     context: { count: 7, label: "seed" },
     states: { idle: { entry: ["recordLabel"] } },
-  }, {
-    actions: { recordLabel: (ctx) => recorded.push(ctx.label) },
+    actions: { recordLabel: (ctx: Ctx) => recorded.push(ctx.label) },
   });
   recorded = [];
   assertEquals(m.initialState.value, "idle");
@@ -124,10 +120,11 @@ Deno.test("wildcard handlers catch every event", () => {
 });
 
 Deno.test("unknown cond or assign name throws with the name", () => {
-  const m = createMachine<Ctx, { type: "GO" }>(
-    { initial: "a", context: { count: 0, label: "" }, states: { a: { on: { GO: { target: "a", cond: "missing" } } } } },
-    {},
-  );
+  const m = createMachine<Ctx, { type: "GO" }>({
+    initial: "a",
+    context: { count: 0, label: "" },
+    states: { a: { on: { GO: { target: "a", cond: "missing" } } } },
+  });
   const svc = interpret(m);
   assertThrows(() => svc.send({ type: "GO" }), Error, "missing");
 });
@@ -147,10 +144,13 @@ Deno.test("transition from a bare state name starts from initial context", () =>
 });
 
 Deno.test("root handlers reach states that declare no on", () => {
-  const svc = interpret(createMachine<{ n: number }, { type: "BUMP" }>(
-    { initial: "bare", context: { n: 0 }, on: { BUMP: { actions: [{ assign: "bump" }] } }, states: { bare: {}, other: { on: { BUMP: { actions: [{ assign: "bump" }] } } } } },
-    { assigns: { bump: (c) => ({ n: c.n + 1 }) } },
-  )).start();
+  const svc = interpret(createMachine<{ n: number }, { type: "BUMP" }>({
+    initial: "bare",
+    context: { n: 0 },
+    on: { BUMP: { actions: [{ assign: "bump" }] } },
+    states: { bare: {}, other: { on: { BUMP: { actions: [{ assign: "bump" }] } } } },
+    assigns: { bump: (c: { n: number }) => ({ n: c.n + 1 }) },
+  })).start();
   assertEquals(svc.state.value, "bare");
   svc.send({ type: "BUMP" });
   assertEquals(svc.state.context.n, 1);

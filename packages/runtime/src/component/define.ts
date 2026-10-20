@@ -11,8 +11,7 @@
  * The framework synthesizes the bridge and the connect from this; no
  * hand-written `getXProps()` exists for any component. */
 
-import type { Config, Implementations } from "@spin/runtime/fsm";
-import type { Machine } from "../machine/define.ts";
+import type { Config, Implementations, MachineSpec } from "@spin/runtime/fsm";
 
 export interface ParseHost {
   /** The element root: behavioral host props (sanitize, validate,
@@ -274,7 +273,24 @@ export interface ComponentDef<C extends object, E extends { type: string }> {
    * separate artifact: it knows nothing about the consumer, and one
    * machine can drive any number of consumers.
    */
-  readonly machine?: Machine<C, E>;
+  readonly machine?: MachineSpec<C, E>;
+  /**
+   * The machine's context fields a host write reaches. The framework's
+   * rule is by NAME: a host write to the prop `value` sends the
+   * machine's event `value`, and the same prop seeds the field when the
+   * machine starts. The machine never names a prop; the component says
+   * which of the machine's fields its own props carry.
+   */
+  readonly machineFields?: readonly (keyof C & string)[];
+  /**
+   * The view's wiring: which of the component's own props send which of
+   * the machine's events. The prop's name is the payload's key.
+   *
+   * This is the VIEW's business, not the machine's: the markup decides
+   * that a host's `value` write is the machine's `SET_VALUE`. The
+   * framework carries it; it does not decide it.
+   */
+  readonly propEvents?: Readonly<Record<string, E["type"]>>;
   readonly parts: Record<string, PartDef<unknown, C>>;
   readonly slots?: Record<string, SlotDef<unknown, C>>;
   readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;

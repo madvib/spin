@@ -167,5 +167,24 @@ export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts
 export { bindActionProps, bindSpread } from "./directives/spread.ts";
 export { machineTick } from "./core/signal.ts";
 
-export { assign, defineMachine, guard } from "./machine/define.ts";
+/**
+ * The machine API: one function, one object.
+ *
+ * `createMachine({ context, initial, states, assigns, conds })` — the
+ * config says what the machine IS, the assigns and the guards say what
+ * it DOES, each bound to the event it answers. A machine knows nothing
+ * about props, hosts, or markup.
+ */
+export {
+  createMachine,
+  interpret,
+  type Config,
+  type EventObject,
+  type Implementations,
+  type Machine,
+  type MachineSpec,
+  type Service,
+  type State,
+  type Transition,
+} from "./machine/fsm/machine.ts";
 export { defaultTwin } from "./component/synthesize.ts";
