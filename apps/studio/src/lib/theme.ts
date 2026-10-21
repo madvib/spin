@@ -1,46 +1,30 @@
-import {
-  parseTokens,
-  requiredPaths,
-  validateLegibility,
-  validateTokens,
-} from "@spin/theme";
-import type { Mode, TokenTree, ValidationIssue } from "@spin/theme";
-
-export interface ThemeState {
-  tree: TokenTree | undefined;
-  error: string | undefined;
-  issues: ValidationIssue[];
-}
+import { validateTheme } from "@spin/theme";
+import type { Mode, ThemeReport } from "@spin/theme";
 
 /**
- * Parse and validate a document, locally.
+ * What the studio knows about a theme's document.
  *
- * Still the studio's own, and that is a known remainder rather than a
- * decision: the analysis runs on every keystroke-adjacent commit across eight
- * call sites, so it would have to become async everywhere at once to move
- * behind RPC — a refactor of its own, not a move to fold into this one. The
- * cost is bounded (@spin/theme is pure TS with no dependencies), and the
- * AUTHORITY is already the daemon: `preview.css` re-judges the whole document
- * when it generates and refuses what breaks a floor.
+ * The theme module's own answer under the studio's name: the tree, the
+ * problems, and the verdict. The studio does not parse a theme, does not
+ * judge one, and does not decide whether one is valid — it asks the module
+ * that owns those facts and reads the answer back.
+ */
+export type ThemeState = ThemeReport;
+
+/**
+ * Ask the theme module what is wrong with this document.
+ *
+ * The judgement is the module's: it owns the token language, the roles a
+ * theme owes, the values a browser will take and the contrast floors those
+ * roles must meet. The studio asks it here, in the browser, because the
+ * analysis runs on every commit and an edit that waited on a round trip
+ * would lag behind the author.
+ *
+ * The words are the module's, so the panel and the daemon — which asks the
+ * same operation over RPC — cannot say different things about one document.
  */
 export function analyzeTheme(text: string): ThemeState {
-  let doc: unknown;
-  try {
-    doc = JSON.parse(text);
-  } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
-    return { tree: undefined, error: `invalid JSON: ${detail}`, issues: [] };
-  }
-  const parsed = parseTokens(doc);
-  if (!parsed.ok) return { tree: undefined, error: parsed.error, issues: [] };
-  // The required roles, because the daemon judges the document by them: the
-  // preset refuses a theme that is missing one, and a panel that said
-  // "nothing to report" about such a theme was answering a weaker question
-  // than the one the preview asks. The roles are the theme package's, so
-  // the studio and the daemon cannot disagree about what a theme owes.
-  const report = validateTokens(parsed.tree, { required: requiredPaths() });
-  const issues = [...report.issues, ...validateLegibility(parsed.tree)];
-  return { tree: parsed.tree, error: undefined, issues };
+  return validateTheme(text);
 }
 
 /**

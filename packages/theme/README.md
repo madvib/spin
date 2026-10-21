@@ -13,7 +13,7 @@ set; `@spin/theme/theme-types` the generated token types.
 @spin/theme
   parse        parseTokens · parseDocument · isTokenType
   resolve      resolveAliases · indexTree · lookupNode · cssVarName · detectCycles · aliasTarget
-  validate     validateTokens · validateLegibility · everyTokenTypeIsDecided
+  validate     validateTokens · validateTheme · validateLegibility · everyTokenTypeIsDecided
   author       setToken · removeToken · renameToken · treeToJson · scaffoldTheme
   emit         generateCss · generateThemeCss · generateTypes
   contract     BASE_ROLES · ELEMENT_ROLES · requiredPaths · themeSchema · spinThemeJsonSchema
@@ -63,6 +63,24 @@ is already dark is a complete theme.
 `parse → resolve → validate → emit`. Each stage is independent and can be
 entered on its own. Aliases emit as `var(--token)`, never inlined, so switching
 themes is a selector swap.
+
+## Judging a document
+
+`validateTheme(text, options?)` is the operation over a whole document: it
+parses the text, checks the tree against the roles the document owes, and
+measures the contrast floors, then answers with the tree, the problems and the
+verdict. It is the one answer to "is this theme valid" — a studio's issues panel
+and the daemon's `theme.analyze` ask the same operation, so they cannot say
+different things about one document.
+
+The options are the caller's facts, not the module's guesses:
+
+- `required` — the paths the document must declare. Absent: the base roles.
+- `modes` — the modes the document **serves**. Absent: the caller makes no
+  claim, so no override is judged dead. Existence cannot say what is served.
+- `mode` — the mode the document is judged **in**. Absent: the base values. A
+  theme is a different document in dark, and the floors are measured where the
+  theme is read.
 
 ## Development
 

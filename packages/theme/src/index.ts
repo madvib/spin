@@ -51,6 +51,11 @@ export {
   everyTokenTypeIsDecided,
   validateTokens,
 } from "./pipeline/validate.ts";
+export { validateTheme } from "./contract/validate-theme.ts";
+export type {
+  ThemeReport,
+  ValidateThemeOptions,
+} from "./contract/validate-theme.ts";
 export {
   BASE_ROLES,
   inkTokens,

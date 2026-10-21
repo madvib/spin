@@ -22,32 +22,37 @@ import type { MutationResult } from "../authoring/mutate.ts";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
 import { requiredPaths } from "./roles.ts";
 import type { Mode } from "../modes.ts";
-import { validateLegibility } from "./schema.ts";
-import { validateTokens } from "../pipeline/validate.ts";
 import type { TokenTree } from "../pipeline/types.ts";
 import { themeContract } from "./contract.ts";
+import { validateTheme } from "./validate-theme.ts";
 
 const os = implement(themeContract);
 
+/**
+ * The daemon's answer to "what is wrong with this theme?".
+ *
+ * The judgement is the module's: `validateTheme` owns the required roles, the
+ * value rules and the contrast floors, so the daemon and the studio that
+ * asks it in the browser cannot answer differently. What the handler adds is
+ * the claim: the modes the document serves are its own (the root `modes`
+ * field), a caller may state them instead, and a caller that says nothing
+ * gets the document's answer.
+ */
 function analyze(
   text: string,
   required?: readonly string[],
   modes?: readonly Mode[],
 ) {
-  const parsed = parseDocument(text);
-  if (!parsed.ok) return { error: parsed.error, issues: [], tree: null };
-  // The modes the document serves are its own claim: the root `modes` field.
-  // A caller may state them, and a caller that says nothing gets the
-  // document's answer — so the check that follows is the same whoever asks.
-  const served = modes ?? parsed.modes ?? [];
-  const report = validateTokens(parsed.tree, {
+  const declared = parseDocument(text);
+  const served = modes ?? (declared.ok ? declared.modes : undefined) ?? [];
+  const report = validateTheme(text, {
     required: required ?? requiredPaths(),
     modes: served,
   });
   return {
-    error: null,
-    issues: [...report.issues, ...validateLegibility(parsed.tree)],
-    tree: parsed.tree,
+    error: report.error ?? null,
+    issues: [...report.issues],
+    tree: report.tree ?? null,
   };
 }
 
