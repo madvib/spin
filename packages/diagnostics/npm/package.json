@@ -1,0 +1,45 @@
+{
+  "name": "@spin/diagnostics",
+  "version": "0.1.0",
+  "description": "The diagnostics: the lints, the rendered checks, and the service over them.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./eslint": {
+      "types": "./dist/eslint.d.ts",
+      "default": "./dist/eslint.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "default": "./dist/cli.js"
+    }
+  },
+  "bin": {
+    "spin": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.71.0"
+  },
+  "peerDependencies": {
+    "@spin/animation": "^0.1.0",
+    "@spin/preset": "^0.1.0",
+    "@spin/theme": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "@spin/lint",
+  "name": "@spin/diagnostics",
   "version": "0.1.0",
   "exports": {
     ".": "./src/index.ts",
@@ -7,9 +7,9 @@
     "./cli": "./src/cli.ts"
   },
   "imports": {
-    "@spin/lint": "./src/index.ts",
-    "@spin/lint/eslint": "./src/eslint.ts",
-    "@spin/lint/cli": "./src/cli.ts",
+    "@spin/diagnostics": "./src/index.ts",
+    "@spin/diagnostics/eslint": "./src/eslint.ts",
+    "@spin/diagnostics/cli": "./src/cli.ts",
     "@spin/preset": "../preset/src/index.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@spin/theme/themes": "../theme/src/themes/index.ts",

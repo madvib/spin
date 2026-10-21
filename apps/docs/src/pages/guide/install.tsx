@@ -79,7 +79,10 @@ const GET = [
     "the starter themes — imports that carry validated documents",
   ],
   ["@spin/api", "mountSpinApp() — the theme studio, served in dev"],
-  ["@spin/lint", "the oxlint plugin — authored markup checked, in CI"],
+  [
+    "@spin/diagnostics",
+    "the oxlint plugin — authored markup checked, in CI",
+  ],
 ];
 
 /** The bundlers, and what each one changes. */

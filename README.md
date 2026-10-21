@@ -14,15 +14,15 @@ product's look without touching its markup.
 
 ### Packages
 
-| Package           | What it is                                                             |
-| ----------------- | ---------------------------------------------------------------------- |
-| `@spin/theme`     | The token pipeline: parse, validate, mutate, scaffold, emit.           |
-| `@spin/preset`    | The UnoCSS preset: the utilities, the element library, the plugin.     |
-| `@spin/animation` | Keyframes, and the `animate-*` utilities that name them.               |
-| `@spin/lint`      | An oxlint plugin: checks that authored markup stays inside the system. |
-| `@spin/api`       | The daemon: the procedures, over RPC, that the tools share.            |
-| `@spin/mcp`       | The MCP server over those procedures, for agents.                      |
-| `@spin/kit`       | Shared Solid pieces: the theme state and the theme picker.             |
+| Package             | What it is                                                                  |
+| ------------------- | --------------------------------------------------------------------------- |
+| `@spin/theme`       | The token pipeline: parse, validate, mutate, scaffold, emit.                |
+| `@spin/preset`      | The UnoCSS preset: the utilities, the element library, the plugin.          |
+| `@spin/animation`   | Keyframes, and the `animate-*` utilities that name them.                    |
+| `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them. |
+| `@spin/api`         | The daemon: the procedures, over RPC, that the tools share.                 |
+| `@spin/mcp`         | The MCP server over those procedures, for agents.                           |
+| `@spin/kit`         | Shared Solid pieces: the theme state and the theme picker.                  |
 
 ### Apps
 

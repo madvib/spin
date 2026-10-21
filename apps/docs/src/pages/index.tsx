@@ -467,7 +467,7 @@ export default function Home(): JSX.Element {
                     Lint errors name the fix.
                   </p>
                   <p class="m-0 mt-2 text-sm">
-                    <code class="text-xs">@spin/lint</code>{" "}
+                    <code class="text-xs">@spin/diagnostics</code>{" "}
                     runs in oxlint: a hardcoded{" "}
                     <code class="text-xs">#c8102e</code>{" "}
                     fails with the token to use instead; a class the preset will

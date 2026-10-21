@@ -1,16 +1,20 @@
 /**
- * Spin lint — the enforcement layer.
+ * Spin diagnostics — the domain of what is wrong with this code.
  *
- * These are lints, not tests. A test asserts the library behaves; a lint
- * asserts that *authored code* stays inside the system. The distinction
- * matters: `packages/theme/tests` asks "does the button work", and this asks
- * "is anyone allowed to write this".
+ * Two halves. The lints read the source: rules that ask whether authored
+ * markup stays inside the system — a class the theme cannot produce, a
+ * decision the theme already made, an ink the palette does not pair. The
+ * rendered checks read the page: contrast in every state, geometry, a
+ * console with something thrown into it. Both answer the same question —
+ * what is wrong here, and how do I fix it — and both are delivered as
+ * findings with the edit that settles them.
  *
  * This file is the oxlint adapter: the plugin oxlint loads, and the
- * package's entry point. The decisions live in `./core.ts` and know nothing
- * about a linter; the rules themselves live in `./rules.ts`, and the same
- * objects are what the ESLint plugin and the CLI run — so the three front
- * ends cannot drift apart.
+ * package's entry point. The decisions live in `./core.ts` and know
+ * nothing about a linter; the rules themselves live in `./rules.ts`, and
+ * the same objects are what the ESLint plugin, the CLI and the service
+ * run — so the four front ends cannot drift apart. The service lives in
+ * `./service.ts`, and it is the same core underneath.
  *
  * What each rule needs to know about the vocabulary comes from
  * `@spin/theme` and `@spin/preset` rather than being duplicated here, so a
@@ -51,6 +55,40 @@ export {
   type RuleName,
   RULES,
 } from "./rules.ts";
+export {
+  applyFixes,
+  type Diagnostic,
+  lintTree,
+  parseFile,
+  type RuleRun,
+} from "./engine.ts";
+export {
+  check,
+  DISK,
+  filesUnder,
+  lint,
+  type LintOptions,
+  type LintReport,
+  type LintView,
+  type StagedDocument,
+} from "./service.ts";
+export {
+  type CheckConfig,
+  type CheckName,
+  type CheckRoute,
+  type FrameState,
+  type GeometryClaim,
+  type PageAdapter,
+  type RenderedFinding,
+  type RenderedHarness,
+  type RenderedRun,
+  type SubjectState,
+} from "./check.ts";
+export {
+  findHarness,
+  workspaceHarness,
+  type WorkspaceHarnessOptions,
+} from "./workspace.ts";
 
 /**
  * The plugin, as oxlint's JavaScript plugin API reads it.

@@ -16,20 +16,23 @@ import {
   type LiteralFacts,
   type SemanticOptions,
 } from "../src/core.ts";
-import { applyFixes, type CliFinding, lint } from "../src/cli.ts";
+import { applyFixes, type Diagnostic } from "../src/engine.ts";
+import { run } from "../src/cli.ts";
 import eslintPlugin from "../src/eslint.ts";
 import { factsForFile } from "../src/provider.ts";
 import { renderMessage, type RuleName, RULES } from "../src/rules.ts";
+import { lint } from "../src/service.ts";
 
 /**
- * The three front ends, and the core, have to say the same thing.
+ * The front ends, and the core, have to say the same thing.
  *
- * The core decides; oxlint, ESLint and the CLI deliver. If a delivery
- * differs from the decision, the difference is a bug in the delivery — and
- * a bug that only shows up in one linter is the worst kind, because the
- * project moves on and the gate that was supposed to hold it did not.
+ * The core decides; oxlint, ESLint, the CLI and the service deliver. If a
+ * delivery differs from the decision, the difference is a bug in the
+ * delivery — and a bug that only shows up in one linter is the worst kind,
+ * because the project moves on and the gate that was supposed to hold it
+ * did not.
  *
- * So this runs one fixture through all four and holds them to each other:
+ * So this runs one fixture through all five and holds them to each other:
  * the same rules, the same message ids, the same sentences, the same lines
  * and columns — and the same EDITS, because a rule that can drop a class
  * has to drop it the same way wherever it is delivered. The expectation is
@@ -497,19 +500,39 @@ async function oxlintFixed(file: string): Promise<string> {
 /* ------------------------------------------------------------------- cli -- */
 
 /** The findings the CLI reports. */
-function cliFindings(
+async function cliFindings(
   file: string,
   semantic: SemanticOptions,
-): Canonical[] {
-  const { findings } = lint([file], {
-    paths: [file],
-    format: "text",
-    semantic,
+): Promise<Canonical[]> {
+  // The CLI is driven the way a project drives it: the command line, and
+  // the answer it prints. The JSON format is the machine's answer.
+  const lines: string[] = [];
+  await run(
+    ["lint", "--format", "json", "--strictness", semantic.strictness, file],
+    (line) => lines.push(line),
+  );
+  const report = JSON.parse(lines.join("\n")) as { findings: Diagnostic[] };
+  return ordered(report.findings.map((finding) => ({
+    rule: finding.ruleId.replace("spin/", ""),
+    messageId: finding.messageId,
+    message: finding.message,
+    line: finding.line,
+    column: finding.column,
+  })));
+}
+
+/* --------------------------------------------------------------- service -- */
+
+/** The findings the service reports. */
+async function serviceFindings(
+  file: string,
+  semantic: SemanticOptions,
+): Promise<Canonical[]> {
+  const { findings } = await lint(file, undefined, {
     rules: Object.keys(RULES) as RuleName[],
-    fix: false,
-    help: false,
+    semantic,
   });
-  return ordered(findings.map((finding: CliFinding) => ({
+  return ordered(findings.map((finding) => ({
     rule: finding.ruleId.replace("spin/", ""),
     messageId: finding.messageId,
     message: finding.message,
@@ -528,17 +551,18 @@ async function fixture(): Promise<string> {
   return file;
 }
 
-Deno.test("oxlint, ESLint and the CLI report what the core decided", async () => {
+Deno.test("oxlint, ESLint, the CLI and the service report what the core decided", async () => {
   const file = await fixture();
   try {
     const core = coreFindings(file, STRICT);
     const oxlint = await oxlintFindings(file, STRICT);
     const eslint = eslintFindings(file, STRICT);
-    const cli = cliFindings(file, STRICT);
+    const cli = await cliFindings(file, STRICT);
+    const service = await serviceFindings(file, STRICT);
 
-    // oxlint reports the rule and the sentence; the other three report the
+    // oxlint reports the rule and the sentence; the other four report the
     // message id as well. The sentences carry the ids, so the sentences are
-    // what the four are held to.
+    // what the five are held to.
     const sentences = (findings: Canonical[]) =>
       findings.map((finding) => ({
         rule: finding.rule,
@@ -550,17 +574,19 @@ Deno.test("oxlint, ESLint and the CLI report what the core decided", async () =>
     assertEquals(sentences(oxlint), sentences(core));
     assertEquals(sentences(eslint), sentences(core));
     assertEquals(sentences(cli), sentences(core));
+    assertEquals(sentences(service), sentences(core));
   } finally {
     await Deno.remove(file, { recursive: true });
   }
 });
 
-Deno.test("the three front ends report the same message ids", async () => {
+Deno.test("the front ends report the same message ids", async () => {
   const file = await fixture();
   try {
     const core = coreFindings(file, STRICT);
     const eslint = eslintFindings(file, STRICT);
-    const cli = cliFindings(file, STRICT);
+    const cli = await cliFindings(file, STRICT);
+    const service = await serviceFindings(file, STRICT);
     const ids = (findings: Canonical[]) =>
       findings.map((finding) => ({
         rule: finding.rule,
@@ -570,12 +596,13 @@ Deno.test("the three front ends report the same message ids", async () => {
       }));
     assertEquals(ids(eslint), ids(core));
     assertEquals(ids(cli), ids(core));
+    assertEquals(ids(service), ids(core));
   } finally {
     await Deno.remove(file, { recursive: true });
   }
 });
 
-Deno.test("the three front ends make the same edits", async () => {
+Deno.test("the front ends make the same edits", async () => {
   const file = await fixture();
   try {
     // The fixture, with the core's own edits applied: what every front end
@@ -596,6 +623,28 @@ Deno.test("the three front ends make the same edits", async () => {
   }
 });
 
+Deno.test("the service carries the edits the core decided", async () => {
+  const file = await fixture();
+  try {
+    // The service does not write: the finding carries the edit, and the
+    // caller applies it. So the edits the service offers are the core's,
+    // and applying them settles the fixture the same way.
+    const { findings } = await lint(file, undefined, {
+      rules: Object.keys(RULES) as RuleName[],
+      semantic: STRICT,
+    });
+    const edits = findings
+      .map((finding) => finding.fix)
+      .filter((fix): fix is NonNullable<typeof fix> => fix !== undefined);
+    assertEquals(
+      applyFixes(FIXTURE, edits).code,
+      patched(file),
+    );
+  } finally {
+    await Deno.remove(file, { recursive: true });
+  }
+});
+
 Deno.test("the dials reach every front end", async () => {
   const file = await fixture();
   try {
@@ -605,7 +654,8 @@ Deno.test("the dials reach every front end", async () => {
     const core = coreFindings(file, BALANCED);
     const oxlint = await oxlintFindings(file, BALANCED);
     const eslint = eslintFindings(file, BALANCED);
-    const cli = cliFindings(file, BALANCED);
+    const cli = await cliFindings(file, BALANCED);
+    const service = await serviceFindings(file, BALANCED);
     const sentences = (findings: Canonical[]) =>
       findings.map((finding) => ({
         rule: finding.rule,
@@ -616,6 +666,7 @@ Deno.test("the dials reach every front end", async () => {
     assertEquals(sentences(oxlint), sentences(core));
     assertEquals(sentences(eslint), sentences(core));
     assertEquals(sentences(cli), sentences(core));
+    assertEquals(sentences(service), sentences(core));
   } finally {
     await Deno.remove(file, { recursive: true });
   }

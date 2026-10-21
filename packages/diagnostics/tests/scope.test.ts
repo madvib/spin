@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { parseFile } from "../src/cli.ts";
+import { parseFile } from "../src/engine.ts";
 import { ancestorsOf } from "../src/scope.ts";
 import { walk } from "../src/walk.ts";
 

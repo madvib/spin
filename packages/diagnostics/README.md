@@ -1,19 +1,25 @@
-# @spin/lint
+# @spin/diagnostics
 
-The lints: rules that help authored markup stay idiomatic inside the system.
-These are lints, not tests — a test asks whether the library behaves; a lint
-asks whether anyone is allowed to write this.
+The diagnostics: what is wrong with this code, and how do I fix it.
+
+Two halves. The **lints** read the source — rules that ask whether authored
+markup stays inside the system: a class the theme cannot produce, a decision the
+theme already made, an ink the palette does not pair. The **rendered checks**
+read the page — contrast in every state, geometry, a console with something
+thrown into it. Both answer in the same shape: a finding, and the edit that
+settles it.
 
 The rules are decided once, in a core that knows nothing about a linter, and
-delivered three ways: an **oxlint plugin**, an **ESLint plugin**, and a
-**standalone CLI**. All three run the same rules, under the same names, with the
-same messages and the same options — so moving between them changes a
-configuration and nothing else.
+delivered four ways: an **oxlint plugin**, an **ESLint plugin**, a **standalone
+CLI**, and the **service** — the two operations every other delivery is a client
+of. All four run the same rules, under the same names, with the same messages
+and the same options — so moving between them changes a configuration and
+nothing else.
 
 ## Exports
 
 ```
-@spin/lint
+@spin/diagnostics
   default           the oxlint plugin: { meta, rules }
 
   rules
@@ -34,14 +40,84 @@ configuration and nothing else.
   projectFacts                 the facts, from a project's own themes
   findProjectRoot              the project a file belongs to
 
-@spin/lint/eslint
+  lint(path, view?)            the service: the rules over a path
+  check(url, harness)          the service: the rendered checks
+
+@spin/diagnostics/eslint
   default           the ESLint plugin: { meta, rules, configs }
   rules             the same rules, in ESLint's shape
   configs           recommended: the rules, as errors
 
-@spin/lint/cli
-  run               the CLI: the rules over a path, and what they found
+@spin/diagnostics/cli
+  run               the CLI: the service, and what it found
 ```
+
+## The service
+
+A module owns its facts, so it owns the operations over them. The service is the
+package's front door, and it has two operations.
+
+### `lint(path, view?)`
+
+The rules over a path, returning the findings **with their fixes**.
+
+The path is a file or a directory; the files read are the JavaScript and the
+TypeScript ones. The answer is data:
+
+```ts
+interface LintReport {
+  readonly findings: readonly Diagnostic[];
+  readonly unreadable: readonly string[];
+  readonly missing: readonly string[];
+}
+```
+
+A `Diagnostic` carries where it is (file, line, column), which rule said it
+(`ruleId`, `messageId`), the sentence (`message`), how bad it is (`severity`),
+and the edit that settles it (`fix`) when there is one.
+
+**The view is what is being linted.** By default it is the disk. A caller that
+holds the text it wants read can hand it over instead:
+
+```ts
+const report = await lint("src/app.tsx", {
+  kind: "staged",
+  documents: [{ path: "src/app.tsx", text: unsaved }],
+});
+```
+
+That is the studio's findings panel: it reports on what the editor holds, while
+the editor's linter reports on what is saved. The two are the same operation
+over different bytes — the same rules, the same facts, the same decisions — so a
+finding means the same thing either way. A staged document is found by the path
+it resolves to, so a caller may hand a path absolute or relative.
+
+The service never writes. The decision about what to change belongs to the core;
+the change belongs to whoever holds the file.
+
+### `check(url, harness)`
+
+The rendered checks, over a running app: contrast in every state, the geometry
+the theme named, the console, the network.
+
+The checks are the harness's — it is what knows how to ask a browser what it
+painted, and it holds the app's own facts (the routes, the themes, how the app
+says it has rendered). So the service calls the harness through a port and reads
+back what it measured; it never looks at a page itself, because a second set of
+eyes would be a second set of answers.
+
+```ts
+interface RenderedHarness {
+  run(url: string): Promise<{
+    readonly findings: readonly RenderedFinding[];
+    readonly passed: boolean;
+  }>;
+}
+```
+
+The harness in the workspace's own tree is bound to that port by
+`workspaceHarness(config)`: it is internal tooling, and the service calls it
+rather than copying it.
 
 ## Wiring it up
 
@@ -52,7 +128,7 @@ The plugin is a JavaScript plugin; oxlint loads it and names its rules
 
 ```json
 {
-  "jsPlugins": ["@spin/lint"],
+  "jsPlugins": ["@spin/diagnostics"],
   "rules": {
     "spin/closed-vocabulary": "error",
     "spin/no-redundant-class": "error"
@@ -67,7 +143,7 @@ named `spin/<rule>` — the same names oxlint gives them.
 
 ```js
 // eslint.config.js
-import spin from "@spin/lint/eslint";
+import spin from "@spin/diagnostics/eslint";
 
 export default [
   {
@@ -85,7 +161,7 @@ Or the preset, which turns the rules on — as errors, except `prefer-element`,
 which is a warning:
 
 ```js
-import spin from "@spin/lint/eslint";
+import spin from "@spin/diagnostics/eslint";
 
 export default [...spin.configs.recommended];
 ```
@@ -102,20 +178,27 @@ JSX on its own — a project with JSX configures its parser (typescript-eslint, 
 ### The CLI
 
 The checks with no linter at all: a project runs them over its own source and
-reads what they say.
+reads what they say. The CLI is a client of the service: it reads the command
+line, asks the service, and prints what came back.
 
 ```
-deno task lint:cli src/          # from a project that depends on spin
-deno run -A jsr:@spin/lint/cli src/
+spin lint [options] <path...>
+spin check [options] [url]
 ```
 
 ```
-spin lint — the checks, without a linter.
+deno task lint:cli lint src/       # from a project that depends on spin
+deno run -A jsr:@spin/diagnostics/cli lint src/
+```
+
+```
+spin — the diagnostics, without a linter.
 
 Usage:
-  spin-lint [options] <path...>
+  spin lint [options] <path...>
+  spin check [options] [url]
 
-Options:
+Options for lint:
   --format <text|json>     how the findings are printed (default: text)
   --strictness <dial>      strict | balanced | lenient (default: strict)
   --semantic-tags <which>  all | native | spin | none (default: all)
@@ -169,6 +252,19 @@ is an error, and `prefer-element` is a warning.
 `--fix` applies the edits the findings carry: a class that says what the element
 already says, and a class the theme cannot produce, are both dropped. The files
 are written back, and the findings that remain are the ones no edit settled.
+
+### Running it
+
+The package ships a `bin`, so it runs without being installed:
+
+```
+npx @spin/diagnostics lint src/
+bunx @spin/diagnostics lint src/
+```
+
+The bin is a JavaScript file, not a compiled executable: `dist/cli.js` runs on
+Node and on Bun, and the build gives it the shebang and the bit that says it may
+be run.
 
 ## The vocabulary
 
@@ -303,10 +399,10 @@ text that replaces it — and the decision about what to change belongs to the
 core; the change itself belongs to whoever is holding the file. So oxlint's
 fixer, ESLint's fixer and the CLI's own writer all apply the same edit. The
 rules — the message each finding is reported under, the dials, and the visitor
-that turns a node into facts — are shared by all three front ends, so they
-cannot drift: `tests/frontends.test.ts` runs one fixture through the core,
-through oxlint, through ESLint and through the CLI, and holds the four to the
-same findings — and to the same edits.
+that turns a node into facts — are shared by all four front ends, so they cannot
+drift: `tests/frontends.test.ts` runs one fixture through the core, through
+oxlint, through ESLint, through the CLI and through the service, and holds the
+five to the same findings — and to the same edits.
 
 The facts are read the same way too: the project's theme and the catalogued
 vocabulary come from one provider that knows no linter at all, so what a rule
@@ -315,8 +411,9 @@ decides does not depend on who is asking.
 ## The dependencies
 
 The package carries no dependency on a linter: the oxlint plugin, the ESLint
-plugin and the rules between them import nothing but spin. Two npm packages are
-here for the tooling around them, and neither is imported by the rules:
+plugin, the service and the rules between them import nothing but spin. Two npm
+packages are here for the tooling around them, and neither is imported by the
+rules:
 
 - `@typescript-eslint/parser` — the CLI's parser. The CLI has no linter to bring
   a tree with it, and this reads TypeScript and JavaScript, JSX included, into

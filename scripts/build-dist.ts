@@ -712,9 +712,38 @@ async function buildPackage(
       await Deno.remove(dir).catch(() => {});
     }
 
+    // A bin is run, not imported: it says how it is run, and it is allowed
+    // to run. npm links the file into `node_modules/.bin`, and the link is
+    // only as good as the file it points at.
+    await markBins(dir);
+
     return { name: manifest.name, files: (await walk(dist)).length };
   } finally {
     await Deno.remove(copyDir, { recursive: true }).catch(() => {});
+  }
+}
+
+/**
+ * The bins a package ships, ready to be run.
+ *
+ * The manifest says which file is the bin; the build gives it a shebang
+ * and the bit that says it may be run. A bin without them is a file npm
+ * links into `node_modules/.bin` and nobody can start.
+ */
+async function markBins(dir: string): Promise<void> {
+  const manifest = await readJson(join(dir, NPM_DIR, "package.json"));
+  const bins = manifest["bin"];
+  const targets = typeof bins === "string"
+    ? [bins]
+    : Object.values((bins ?? {}) as Record<string, string>);
+  for (const target of targets) {
+    const path = join(dir, NPM_DIR, target);
+    if (!await exists(path)) continue;
+    const text = await Deno.readTextFile(path);
+    if (!text.startsWith("#!")) {
+      await Deno.writeTextFile(path, `#!/usr/bin/env node\n${text}`);
+    }
+    await Deno.chmod(path, 0o755);
   }
 }
 

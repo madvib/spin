@@ -40,15 +40,15 @@ to build from, and oracles that mechanically verify the result.
 
 ## Packages
 
-| Package           | Role                                                                                                   |
-| ----------------- | ------------------------------------------------------------------------------------------------------ |
-| `@spin/theme`     | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.    |
-| `@spin/animation` | Keyframes and the `animate-*` utilities that name them — the one global CSS namespace, given one home. |
-| `@spin/preset`    | UnoCSS preset: the utility vocabulary a theme spends, and the element library as rules.                |
-| `@spin/lint`      | oxlint plugin: programmatic checks that authored UI stays inside the system.                           |
-| `@spin/api`       | The daemon: the procedures, over RPC, that the studio and the MCP server share.                        |
-| `@spin/mcp`       | The MCP server over those procedures, for agents.                                                      |
-| `@spin/kit`       | Shared Solid pieces: the theme state and the theme picker.                                             |
+| Package             | Role                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| `@spin/theme`       | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.    |
+| `@spin/animation`   | Keyframes and the `animate-*` utilities that name them — the one global CSS namespace, given one home. |
+| `@spin/preset`      | UnoCSS preset: the utility vocabulary a theme spends, and the element library as rules.                |
+| `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them.                            |
+| `@spin/api`         | The daemon: the procedures, over RPC, that the studio and the MCP server share.                        |
+| `@spin/mcp`         | The MCP server over those procedures, for agents.                                                      |
+| `@spin/kit`         | Shared Solid pieces: the theme state and the theme picker.                                             |
 
 ### The element library
 
@@ -81,9 +81,9 @@ Supporting trees:
 - A package that is not `@spin/theme` MUST NOT hardcode a token value. Read it
   from the theme.
 - A package that is not `@spin/preset` MUST NOT reference UnoCSS internals.
-- `@spin/lint` MUST NOT re-implement theme resolution; it asks the theme.
-  Dependencies point downward: lint → preset → theme; lint → animation → theme;
-  api → preset → theme; mcp → api.
+- `@spin/diagnostics` MUST NOT re-implement theme resolution; it asks the theme.
+  Dependencies point downward: diagnostics → preset → theme; diagnostics →
+  animation → theme; api → preset → theme; mcp → api.
 - Every package owns its `deno.json`, exports only from `src/index.ts`, and has
   its own `test` / `lint` / `fmt` tasks.
 

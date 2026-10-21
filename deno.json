@@ -5,7 +5,7 @@
     "./packages/theme",
     "./packages/animation",
     "./packages/preset",
-    "./packages/lint",
+    "./packages/diagnostics",
     "./packages/kit",
     "./packages/api",
     "./packages/mcp",
@@ -22,7 +22,7 @@
   "imports": {
     "@spin/theme": "./packages/theme/src/index.ts",
     "@spin/preset": "./packages/preset/src/index.ts",
-    "@spin/lint": "./packages/lint/src/index.ts",
+    "@spin/diagnostics": "./packages/diagnostics/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
     "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",

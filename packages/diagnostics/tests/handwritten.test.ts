@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
-import { type CliOptions, lint } from "../src/cli.ts";
 import plugin from "../src/index.ts";
 import type { GateNode } from "../src/rules.ts";
+import { lint, type LintOptions } from "../src/service.ts";
 
 /**
  * A token written by hand.
@@ -142,15 +142,11 @@ body { color: var(--color-text); }
 \`;
 `,
     );
-    const options: CliOptions = {
-      paths: [file],
-      format: "text",
+    const options: LintOptions = {
       semantic: { strictness: "strict", semanticTags: "all" },
       rules: ["no-handwritten-tokens"],
-      fix: false,
-      help: false,
     };
-    const { findings } = lint([file], options);
+    const { findings } = await lint(file, undefined, options);
     assertEquals(findings, []);
   } finally {
     await Deno.remove(directory, { recursive: true });

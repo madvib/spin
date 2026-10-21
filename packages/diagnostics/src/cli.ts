@@ -1,87 +1,44 @@
 /**
- * The standalone CLI.
+ * The CLI: a client of the service.
  *
- * The checks, without a linter: a project runs them over its own source
- * and reads the findings, with nothing installed but spin. The rules are
- * the very objects the oxlint plugin and the ESLint plugin ship, so what
- * the CLI says and what a linter says are the same decisions — and
- * `tests/frontends.test.ts` holds the three to that.
+ * The rules are decided in the core, and the service owns the operations
+ * over them. The CLI is a client: it reads the command line, asks the
+ * service, and prints what came back. It decides nothing about what is
+ * wrong with the code — that is the service's answer, and the editor's
+ * answer, and they are the same answer.
+ *
+ * The two commands are the two operations:
+ *
+ *   spin lint [path] [--fix] [--format json]   the rules, over a path
+ *   spin check [url]                           the rendered checks
  *
  * The parser is the one thing the CLI needs that a linter brings with it:
  * a tree to walk. It reads TypeScript and JavaScript, JSX included, and
  * hands over the same ESTree shape ESLint's own parser produces — which is
- * why the CLI's findings land on the same lines and columns a linter's do.
+ * why the findings land on the same lines and columns a linter's do.
  */
 
-import { join } from "node:path";
-import { parseForESLint } from "@typescript-eslint/parser";
-import type { SemanticOptions, SemanticTags, Strictness } from "./core.ts";
-import {
-  type GateContext,
-  type GateNode,
-  renderMessage,
-  type RuleName,
-  RULES,
-} from "./rules.ts";
-import { walk, type WalkNode } from "./walk.ts";
-
-/** What the CLI was asked to do. */
-export interface CliOptions {
-  /** The paths to read. */
-  readonly paths: readonly string[];
-  /** How the findings are printed. */
-  readonly format: "text" | "json";
-  /** The dial the semantic rule reads. */
-  readonly semantic: SemanticOptions;
-  /** The rules to run. */
-  readonly rules: readonly RuleName[];
-  /** Whether the CLI was asked to apply the edits the findings carry. */
-  readonly fix: boolean;
-  /** Whether the CLI was asked what it does. */
-  readonly help: boolean;
-}
-
-/**
- * A text edit, as the CLI carries it.
- *
- * The range is in the source's own offsets, which is the shape the core
- * decided it in and the shape every linter's fixer speaks.
- */
-export interface CliFix {
-  readonly range: readonly [number, number];
-  readonly text: string;
-}
-
-/** What the CLI found. */
-export interface CliFinding {
-  /** The file the finding is in. */
-  readonly file: string;
-  /** The line, counted from one. */
-  readonly line: number;
-  /** The column, counted from one — the convention every linter prints. */
-  readonly column: number;
-  /** The rule's name, as a configuration writes it. */
-  readonly ruleId: string;
-  /** The message id the rule reported under. */
-  readonly messageId: string;
-  /** The sentence the message id stands for. */
-  readonly message: string;
-  /**
-   * The severity.
-   *
-   * The rule's own: a problem is an error, and a suggestion is a warning.
-   * An advisory does not fail a run — the wrong element cannot be banned.
-   */
-  readonly severity: "error" | "warning";
-  /** The edit that settles the finding, when it has one. */
-  readonly fix?: CliFix;
-}
+import { readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import type { CheckConfig } from "./check.ts";
+import type {
+  SemanticOptions,
+  SemanticTags,
+  Strictness,
+  TextEdit,
+} from "./core.ts";
+import { applyFixes, type Diagnostic } from "./engine.ts";
+import { type RuleName, RULES } from "./rules.ts";
+import { check, lint } from "./service.ts";
+import { workspaceHarness } from "./workspace.ts";
 
 /** A usage the CLI cannot make sense of. */
 export class CliUsageError extends Error {}
 
 /* ------------------------------------------------------------ the options -- */
 
+/** The dials the semantic rules read. */
 const STRICTNESS: readonly Strictness[] = ["strict", "balanced", "lenient"];
 const SEMANTIC_TAGS: readonly SemanticTags[] = [
   "all",
@@ -89,20 +46,73 @@ const SEMANTIC_TAGS: readonly SemanticTags[] = [
   "spin",
   "none",
 ];
-
 const FORMATS = ["text", "json"] as const;
 
-const USAGE = `spin lint — the checks, without a linter.
+/** How the findings are printed. */
+export type Format = (typeof FORMATS)[number];
+
+/** What the CLI was asked to do: the rules, over a path. */
+export interface LintCommand {
+  readonly kind: "lint";
+  /** The paths to read. */
+  readonly paths: readonly string[];
+  /** How the findings are printed. */
+  readonly format: Format;
+  /** The dials the semantic rules read. */
+  readonly semantic: SemanticOptions;
+  /** The rules to run. */
+  readonly rules: readonly RuleName[];
+  /** Whether the edits the findings carry were asked for. */
+  readonly fix: boolean;
+}
+
+/** What the CLI was asked to do: the rendered checks, over a running app. */
+export interface CheckCommand {
+  readonly kind: "check";
+  /** The app under test. */
+  readonly url?: string;
+  /** How the findings are printed. */
+  readonly format: Format;
+  /** The module the app's check configuration is written in. */
+  readonly config: string;
+  /** The harness to call, when the workspace's own is not the one. */
+  readonly harness?: string;
+  /** The options the harness's own runner takes. */
+  readonly argv: readonly string[];
+}
+
+/** What the CLI was asked to do. */
+export type Command = LintCommand | CheckCommand | HelpCommand;
+
+/** What the CLI was asked to do when it was asked what it does. */
+export interface HelpCommand {
+  readonly kind: "help";
+}
+
+const USAGE = `spin — the diagnostics, without a linter.
 
 Usage:
-  spin-lint [options] <path...>
+  spin lint [options] <path...>
+  spin check [options] [url]
 
-Options:
+Commands:
+  lint    the rules, over a path
+  check   the rendered checks, over a running app
+
+Options for lint:
   --format <text|json>     how the findings are printed (default: text)
   --strictness <dial>      strict | balanced | lenient (default: strict)
   --semantic-tags <which>  all | native | spin | none (default: all)
   --rule <name>            run only this rule (repeatable)
   --fix                    apply the edits the findings carry
+  -h, --help               this text
+
+Options for check:
+  --format <text|json>     how the findings are printed (default: text)
+  --config <module>        the app's check configuration (required)
+  --harness <module>       the harness to call (default: the workspace's)
+  --route <substring>      only routes whose hash contains this (repeatable)
+  --themes a,b,c           themes to render (default: the app's own)
   -h, --help               this text
 
 Paths may be files or directories. The files read are the JavaScript and
@@ -119,42 +129,47 @@ Exit codes:
  * The dials are the semantic rule's own, under the names the rule's schema
  * gives them: `--strictness balanced` is `{ strictness: "balanced" }`.
  */
-export function parseArgs(argv: readonly string[]): CliOptions {
+export function parseArgs(argv: readonly string[]): Command {
+  // A `--` is the end of the options: everything after it is the command,
+  // whatever it is called. `deno task lint:cli -- lint src/` is one way to
+  // say it.
+  const [command, ...rest] = argv[0] === "--" ? argv.slice(1) : argv;
+  if (command === undefined) {
+    throw new CliUsageError("Name a command: lint, or check.");
+  }
+  if (command === "-h" || command === "--help") return { kind: "help" };
+  if (command === "lint") return parseLint(rest);
+  if (command === "check") return parseCheck(rest);
+  throw new CliUsageError(`Unknown command "${command}".`);
+}
+
+/** The rules, over a path. */
+function parseLint(argv: readonly string[]): Command {
   const paths: string[] = [];
   const rules: RuleName[] = [];
-  let format: CliOptions["format"] = "text";
+  let format: Format = "text";
   let strictness: Strictness = "strict";
   let semanticTags: SemanticTags = "all";
   let fix = false;
   let help = false;
 
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index] as string;
-    const next = (): string => {
-      const value = argv[index + 1];
-      if (value === undefined) {
-        throw new CliUsageError(`${argument} needs a value.`);
-      }
-      index += 1;
-      return value;
-    };
-    switch (argument) {
-      case "-h":
-      case "--help":
+  for (const argument of read(argv)) {
+    switch (argument.name) {
+      case "help":
         help = true;
         break;
-      case "--format": {
-        const value = next();
-        if (!FORMATS.includes(value as "text" | "json")) {
+      case "format": {
+        const value = argument.value as string;
+        if (!FORMATS.includes(value as Format)) {
           throw new CliUsageError(
             `--format takes ${FORMATS.join(" or ")}, not "${value}".`,
           );
         }
-        format = value as "text" | "json";
+        format = value as Format;
         break;
       }
-      case "--strictness": {
-        const value = next();
+      case "strictness": {
+        const value = argument.value as string;
         if (!STRICTNESS.includes(value as Strictness)) {
           throw new CliUsageError(
             `--strictness takes ${STRICTNESS.join(", ")}, not "${value}".`,
@@ -163,8 +178,8 @@ export function parseArgs(argv: readonly string[]): CliOptions {
         strictness = value as Strictness;
         break;
       }
-      case "--semantic-tags": {
-        const value = next();
+      case "semantic-tags": {
+        const value = argument.value as string;
         if (!SEMANTIC_TAGS.includes(value as SemanticTags)) {
           throw new CliUsageError(
             `--semantic-tags takes ${
@@ -175,8 +190,8 @@ export function parseArgs(argv: readonly string[]): CliOptions {
         semanticTags = value as SemanticTags;
         break;
       }
-      case "--rule": {
-        const value = next();
+      case "rule": {
+        const value = argument.value as string;
         const name = value.startsWith("spin/") ? value.slice(5) : value;
         if (!(name in RULES)) {
           throw new CliUsageError(
@@ -186,31 +201,25 @@ export function parseArgs(argv: readonly string[]): CliOptions {
         rules.push(name as RuleName);
         break;
       }
-      case "--fix":
+      case "fix":
         fix = true;
         break;
       default:
-        if (argument.startsWith("-")) {
-          throw new CliUsageError(`Unknown option "${argument}".`);
+        if (argument.option) {
+          throw new CliUsageError(`Unknown option "${argument.raw}".`);
         }
-        paths.push(argument);
+        paths.push(argument.name);
     }
   }
 
   if (help) {
-    return {
-      paths,
-      format,
-      semantic: { strictness, semanticTags },
-      rules: [],
-      fix,
-      help,
-    };
+    return { kind: "help" };
   }
   if (paths.length === 0) {
     throw new CliUsageError("Nothing to read: name a file or a directory.");
   }
   return {
+    kind: "lint",
     paths,
     format,
     semantic: { strictness, semanticTags },
@@ -218,211 +227,141 @@ export function parseArgs(argv: readonly string[]): CliOptions {
       ? [...new Set(rules)]
       : (Object.keys(RULES) as RuleName[]),
     fix,
-    help,
   };
 }
 
-/* ------------------------------------------------------------- the files -- */
+/** The rendered checks, over a running app. */
+function parseCheck(argv: readonly string[]): Command {
+  let format: Format = "text";
+  let config: string | undefined;
+  let harness: string | undefined;
+  let url: string | undefined;
+  const passed: string[] = [];
 
-/** The files the CLI reads. */
-const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs)$/;
+  for (const argument of read(argv)) {
+    switch (argument.name) {
+      case "help":
+        return { kind: "help" };
+      case "format": {
+        const value = argument.value as string;
+        if (!FORMATS.includes(value as Format)) {
+          throw new CliUsageError(
+            `--format takes ${FORMATS.join(" or ")}, not "${value}".`,
+          );
+        }
+        format = value as Format;
+        break;
+      }
+      case "config":
+        config = argument.value as string;
+        break;
+      case "harness":
+        harness = argument.value as string;
+        break;
+      default: {
+        // The harness's own options are the runner's to read: the routes to
+        // walk, the themes to render. So they are passed through, as they
+        // were written.
+        if (!argument.option) {
+          url ??= argument.name;
+          break;
+        }
+        passed.push(argument.raw);
+        if (argument.value !== undefined) passed.push(argument.value);
+      }
+    }
+  }
 
-/** The directories a scan does not walk into. */
-const SKIPPED = new Set([
-  ".git",
-  ".deno",
-  ".output",
-  ".vite",
-  "coverage",
-  "dist",
-  "node_modules",
-]);
+  if (config === undefined) {
+    throw new CliUsageError(
+      "The rendered checks need the app's own facts: name its check " +
+        "configuration with --config <module>.",
+    );
+  }
+  return { kind: "check", url, format, config, harness, argv: passed };
+}
 
 /**
- * The files under a path.
+ * The arguments, as name and value.
  *
- * A path that names a file is that file; a path that names a directory is
- * everything under it that the CLI can read.
+ * An option that takes a value takes the next argument; one that does not
+ * is named on its own. A `--name=value` is the same as a `--name value`.
  */
-export function collectFiles(paths: readonly string[]): string[] {
-  const out: string[] = [];
-  for (const path of paths) {
-    let stats: Deno.FileInfo;
-    try {
-      stats = Deno.statSync(path);
-    } catch {
-      throw new CliUsageError(`Cannot read "${path}".`);
+function read(argv: readonly string[]): Argument[] {
+  const out: Argument[] = [];
+  const takesValue = new Set([
+    "format",
+    "strictness",
+    "semantic-tags",
+    "rule",
+    "config",
+    "harness",
+    // The harness's own options: the runner reads them, but the values
+    // they carry are theirs, not the command's.
+    "route",
+    "themes",
+    "modes",
+    "out",
+    "baseline",
+    "write-baseline",
+    "chrome",
+    "viewport",
+  ]);
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index] as string;
+    if (argument === "--") {
+      // The end of the options: what follows is what the command is given.
+      for (const rest of argv.slice(index + 1)) {
+        out.push({ name: rest, option: false, raw: rest });
+      }
+      break;
     }
-    if (stats.isFile) {
-      out.push(path);
+    if (!argument.startsWith("-")) {
+      out.push({ name: argument, option: false, raw: argument });
       continue;
     }
-    if (!stats.isDirectory) continue;
-    const stack = [path];
-    while (stack.length > 0) {
-      const directory = stack.pop() as string;
-      let entries: Deno.DirEntry[];
-      try {
-        entries = Array.from(Deno.readDirSync(directory));
-      } catch {
-        continue;
-      }
-      for (const entry of entries) {
-        const child = join(directory, entry.name);
-        if (entry.isDirectory) {
-          if (!SKIPPED.has(entry.name)) stack.push(child);
-          continue;
-        }
-        if (SOURCE.test(entry.name)) out.push(child);
-      }
+    const equals = argument.indexOf("=");
+    if (equals >= 0) {
+      const name = argument.slice(2, equals);
+      out.push({
+        name,
+        value: argument.slice(equals + 1),
+        option: true,
+        raw: argument,
+      });
+      continue;
     }
+    const name = argument.replace(/^--?/, "");
+    if (!takesValue.has(name)) {
+      out.push({ name, option: true, raw: argument });
+      continue;
+    }
+    const value = argv[index + 1];
+    if (value === undefined) {
+      throw new CliUsageError(`${argument} needs a value.`);
+    }
+    index += 1;
+    out.push({ name, value, option: true, raw: argument });
   }
   return out;
 }
 
-/* -------------------------------------------------------------- the rules -- */
-
-/**
- * The tree of a file, as the rules read it.
- *
- * The parser is the one thing the CLI needs that a linter brings with it.
- * It reads TypeScript and JavaScript, JSX included, and hands over the
- * same ESTree shape ESLint's own parser produces — which is why the CLI's
- * findings land on the lines and columns a linter's do.
- */
-export function parseFile(code: string, filename: string): WalkNode {
-  const parsed = parseForESLint(code, { filePath: filename });
-  return parsed.ast as unknown as WalkNode;
-}
-
-/**
- * The findings in one file.
- *
- * The rules run exactly as a linter runs them: each is given its own
- * context, with the file's name and the dials, and each reports what the
- * core decided.
- */
-export function lintFile(
-  filename: string,
-  code: string,
-  options: CliOptions,
-): CliFinding[] {
-  return lintTree(filename, parseFile(code, filename), options);
-}
-
-/** The findings in one tree. */
-export function lintTree(
-  filename: string,
-  ast: WalkNode,
-  options: CliOptions,
-): CliFinding[] {
-  const findings: CliFinding[] = [];
-  const visitors = new Map<string, ((node: GateNode) => void)[]>();
-
-  for (const name of options.rules) {
-    const rule = RULES[name];
-    const context: GateContext = {
-      filename,
-      options: [options.semantic],
-      report(descriptor) {
-        // The rule offers its edit as a fixer would: the CLI asks it for the
-        // pair, exactly as ESLint and oxlint do.
-        const fix = descriptor.fix?.();
-        findings.push({
-          file: filename,
-          line: descriptor.node.loc?.start.line ?? 0,
-          column: (descriptor.node.loc?.start.column ?? 0) + 1,
-          ruleId: `spin/${name}`,
-          messageId: descriptor.messageId,
-          message: renderMessage(rule.meta, {
-            messageId: descriptor.messageId,
-            data: descriptor.data ?? {},
-            position: {
-              line: descriptor.node.loc?.start.line ?? 0,
-              column: descriptor.node.loc?.start.column ?? 0,
-            },
-          }),
-          severity: rule.meta.type === "problem" ? "error" : "warning",
-          ...(fix === undefined ? {} : { fix }),
-        });
-      },
-    };
-    for (const [type, visitor] of Object.entries(rule.create(context))) {
-      const list = visitors.get(type) ?? [];
-      list.push(visitor);
-      visitors.set(type, list);
-    }
-  }
-
-  walk(ast, (node) => {
-    for (const visitor of visitors.get(node.type) ?? []) visitor(node);
-  });
-  return findings;
-}
-
-/**
- * The findings over a set of files.
- *
- * A file the CLI cannot read — a file that is not there, a file that does
- * not parse — is reported as such and does not stop the run. A rule that
- * throws is a different thing: that is a bug, and it stops the run.
- */
-export function lint(
-  files: readonly string[],
-  options: CliOptions,
-): { findings: CliFinding[]; unreadable: string[] } {
-  const findings: CliFinding[] = [];
-  const unreadable: string[] = [];
-  for (const file of files) {
-    let code: string;
-    try {
-      code = Deno.readTextFileSync(file);
-    } catch {
-      unreadable.push(file);
-      continue;
-    }
-    let ast: WalkNode;
-    try {
-      ast = parseFile(code, file);
-    } catch {
-      unreadable.push(file);
-      continue;
-    }
-    findings.push(...lintTree(file, ast, options));
-  }
-  return { findings, unreadable };
+/** One argument, as the command line wrote it. */
+interface Argument {
+  /** The name, without the dashes. */
+  readonly name: string;
+  /** The value, when the option takes one. */
+  readonly value?: string;
+  /** Whether it was written as an option. */
+  readonly option: boolean;
+  /** The text as it was written. */
+  readonly raw: string;
 }
 
 /* -------------------------------------------------------------- the report -- */
 
-/**
- * The edits of a set of findings, applied to a source.
- *
- * The edits are applied from the end of the file backwards, so an edit's
- * offsets stay true as the text before them changes — and two edits that
- * overlap are not both applied: the first one wins, and the second is left
- * for the next run, because applying both would change the text neither one
- * was decided against.
- */
-export function applyFixes(
-  code: string,
-  fixes: readonly CliFix[],
-): { code: string; applied: number } {
-  const sorted = [...fixes].toSorted((a, b) => a.range[0] - b.range[0]);
-  let out = "";
-  let cursor = 0;
-  let applied = 0;
-  for (const fix of sorted) {
-    if (fix.range[0] < cursor) continue;
-    out += code.slice(cursor, fix.range[0]) + fix.text;
-    cursor = fix.range[1];
-    applied += 1;
-  }
-  return { code: out + code.slice(cursor), applied };
-}
-
 /** The findings, as text. */
-export function formatText(findings: readonly CliFinding[]): string {
+export function formatText(findings: readonly Diagnostic[]): string {
   const lines: string[] = [];
   let file = "";
   for (const finding of findings) {
@@ -444,7 +383,7 @@ export function formatText(findings: readonly CliFinding[]): string {
 }
 
 /** The findings, as JSON. */
-export function formatJson(findings: readonly CliFinding[]): string {
+export function formatJson(findings: readonly Diagnostic[]): string {
   const files = new Set(findings.map((finding) => finding.file));
   return JSON.stringify(
     {
@@ -463,68 +402,94 @@ export function formatJson(findings: readonly CliFinding[]): string {
  * Run the CLI.
  *
  * The exit code is what a script reads: 0 when there is nothing to report,
- * 1 when there is an error, 2 when the CLI could not read what it was asked
- * to read. A warning is reported and does not fail the run: an advisory is
- * another way of doing it, not a mistake.
+ * 1 when there is an error, 2 when the CLI could not read what it was
+ * asked to read. A warning is reported and does not fail the run: an
+ * advisory is another way of doing it, not a mistake.
  */
-export function run(
+export async function run(
   argv: readonly string[],
   write: (line: string) => void = (line) => console.log(line),
   warn: (line: string) => void = (line) => console.error(line),
-): number {
-  let options: CliOptions;
+): Promise<number> {
+  let command: Command;
   try {
-    options = parseArgs(argv);
+    command = parseArgs(argv);
   } catch (error) {
     warn(error instanceof Error ? error.message : String(error));
     write(USAGE);
     return 2;
   }
-  if (options.help) {
-    write(USAGE);
-    return 0;
-  }
+  return command.kind === "help"
+    ? (write(USAGE), 0)
+    : command.kind === "lint"
+    ? await runLint(command, write, warn)
+    : await runCheck(command, write, warn);
+}
 
-  let files: string[];
-  try {
-    files = collectFiles(options.paths);
-  } catch (error) {
-    warn(error instanceof Error ? error.message : String(error));
-    return 2;
-  }
+/** The rules, over a path. */
+async function runLint(
+  command: LintCommand,
+  write: (line: string) => void,
+  warn: (line: string) => void,
+): Promise<number> {
+  const options = {
+    rules: command.rules,
+    semantic: command.semantic,
+  };
+  let report = await lintAll(command.paths, options);
+  for (const path of report.missing) warn(`Cannot read "${path}".`);
+  for (const file of report.unreadable) warn(`Could not read "${file}".`);
 
-  const { findings, unreadable } = lint(files, options);
-  for (const file of unreadable) {
-    warn(`Could not read "${file}".`);
+  if (command.fix) {
+    report = await fix(command.paths, options, warn);
   }
-  const remaining = options.fix ? fix(files, options, warn) : findings;
   write(
-    options.format === "json" ? formatJson(remaining) : formatText(remaining),
+    command.format === "json"
+      ? formatJson(report.findings)
+      : formatText(report.findings),
   );
-  if (unreadable.length > 0) return 2;
-  return remaining.some((finding) => finding.severity === "error") ? 1 : 0;
+  if (report.missing.length > 0 || report.unreadable.length > 0) return 2;
+  return report.findings.some((finding) => finding.severity === "error")
+    ? 1
+    : 0;
+}
+
+/** The rules, over every path, and the reports they give. */
+async function lintAll(
+  paths: readonly string[],
+  options: { rules: readonly RuleName[]; semantic: SemanticOptions },
+) {
+  const findings: Diagnostic[] = [];
+  const unreadable: string[] = [];
+  const missing: string[] = [];
+  for (const path of paths) {
+    const report = await lint(path, undefined, options);
+    findings.push(...report.findings);
+    unreadable.push(...report.unreadable);
+    missing.push(...report.missing);
+  }
+  return { findings, unreadable, missing };
 }
 
 /**
  * Apply the edits the findings carry, and read the files again.
  *
- * Two edits can touch the same text — a class and its neighbour both leaving
- * — and only one of them can be applied at a time. So the files are read
- * again after the edits, and the next pass settles what the first could
- * not. The loop ends when a pass changes nothing.
+ * Two edits can touch the same text — a class and its neighbour both
+ * leaving — and only one of them can be applied at a time. So the files
+ * are read again after the edits, and the next pass settles what the first
+ * could not. The loop ends when a pass changes nothing.
  */
-function fix(
-  files: readonly string[],
-  options: CliOptions,
+async function fix(
+  paths: readonly string[],
+  options: { rules: readonly RuleName[]; semantic: SemanticOptions },
   warn: (line: string) => void,
-): CliFinding[] {
-  let findings = lint(files, options).findings;
+): Promise<Awaited<ReturnType<typeof lintAll>>> {
+  let report = await lintAll(paths, options);
   for (let pass = 0; pass < 10; pass += 1) {
-    const changed = writeFixes(findings, warn);
-    if (!changed) break;
-    findings = lint(files, options).findings;
+    if (!writeFixes(report.findings, warn)) break;
+    report = await lintAll(paths, options);
   }
-  return findings;
+  return report;
 }
 
 /**
@@ -535,10 +500,10 @@ function fix(
  * text — stay, because the file still says what they said.
  */
 function writeFixes(
-  findings: readonly CliFinding[],
+  findings: readonly Diagnostic[],
   warn: (line: string) => void,
 ): boolean {
-  const byFile = new Map<string, CliFinding[]>();
+  const byFile = new Map<string, Diagnostic[]>();
   for (const finding of findings) {
     if (finding.fix === undefined) continue;
     const list = byFile.get(finding.file) ?? [];
@@ -549,18 +514,18 @@ function writeFixes(
   for (const [file, list] of byFile) {
     let code: string;
     try {
-      code = Deno.readTextFileSync(file);
+      code = readFileSync(file, "utf8");
     } catch {
       warn(`Could not read "${file}".`);
       continue;
     }
     const { code: patched, applied } = applyFixes(
       code,
-      list.map((finding) => finding.fix as CliFix),
+      list.map((finding) => finding.fix as TextEdit),
     );
     if (applied === 0) continue;
     try {
-      Deno.writeTextFileSync(file, patched);
+      writeFileSync(file, patched);
     } catch (error) {
       warn(error instanceof Error ? error.message : String(error));
       continue;
@@ -570,6 +535,129 @@ function writeFixes(
   return changed;
 }
 
-if (import.meta.main) {
-  Deno.exit(run(Deno.args));
+/** The rendered checks, over a running app. */
+async function runCheck(
+  command: CheckCommand,
+  write: (line: string) => void,
+  warn: (line: string) => void,
+): Promise<number> {
+  let config: CheckConfig;
+  try {
+    config = await loadConfig(command.config);
+  } catch (error) {
+    warn(error instanceof Error ? error.message : String(error));
+    return 2;
+  }
+  const harness = workspaceHarness(config, {
+    ...(command.harness === undefined ? {} : { harness: command.harness }),
+    argv: command.argv,
+  });
+  let report: Awaited<ReturnType<typeof check>>;
+  try {
+    report = await check(command.url ?? config.defaultUrl, harness);
+  } catch (error) {
+    // The harness says what it could not do: the app is not there, the
+    // browser would not start, the theme it was given is not one it knows.
+    warn(error instanceof Error ? error.message : String(error));
+    return 2;
+  }
+  write(
+    command.format === "json"
+      ? formatCheckJson(report.findings)
+      : formatCheckText(report.findings),
+  );
+  // The harness's verdict is the run's verdict: 0 when it passed, 1 when
+  // it found something, 2 when it could not run at all.
+  return report.code === 0 ? 0 : report.code === 1 ? 1 : 2;
+}
+
+/** The app's check configuration, as the module hands it over. */
+async function loadConfig(path: string): Promise<CheckConfig> {
+  const module = await import(
+    pathToFileURL(resolve(path)).href
+  ) as {
+    default?: CheckConfig;
+    config?: CheckConfig;
+  };
+  const config = module.config ?? module.default;
+  if (config === undefined) {
+    throw new Error(`${path} exports no check configuration.`);
+  }
+  return config;
+}
+
+/** The rendered findings, as text. */
+function formatCheckText(
+  findings: readonly {
+    route: string;
+    theme: string;
+    mode: string;
+    check: string;
+    subject: string;
+    detail: string;
+    state: string;
+  }[],
+): string {
+  const lines: string[] = [];
+  for (const finding of findings) {
+    lines.push(
+      `${finding.route} · ${finding.theme}/${finding.mode} — ${finding.subject}` +
+        (finding.state === "rest" ? "" : ` (${finding.state})`),
+    );
+    lines.push(`      ${finding.detail}`);
+  }
+  if (findings.length > 0) {
+    lines.push("");
+    lines.push(
+      `${findings.length} finding${findings.length === 1 ? "" : "s"}`,
+    );
+  }
+  return lines.join("\n");
+}
+
+/** The rendered findings, as JSON. */
+function formatCheckJson(
+  findings: readonly { check: string }[],
+): string {
+  const checks = new Set(findings.map((finding) => finding.check));
+  return JSON.stringify(
+    {
+      version: 1,
+      findings,
+      summary: { findings: findings.length, checks: checks.size },
+    },
+    null,
+    2,
+  );
+}
+
+/* ------------------------------------------------------------------ the run -- */
+
+/**
+ * Whether this module is the one that was run.
+ *
+ * `import.meta.main` is the answer on Deno, on Bun, and on the Node
+ * versions that have it; the command line is the answer everywhere else,
+ * and a bin installed by npm is run through a link — so the two paths are
+ * compared as they resolve.
+ */
+function invokedDirectly(): boolean {
+  const meta = import.meta as { main?: boolean };
+  if (meta.main === true) return true;
+  const entry = process.argv[1];
+  if (entry === undefined) return false;
+  return sameFile(entry, fileURLToPath(import.meta.url));
+}
+
+/** Whether two paths are the same file. */
+function sameFile(left: string, right: string): boolean {
+  try {
+    return realpathSync(left) === realpathSync(right);
+  } catch {
+    return resolve(left) === resolve(right);
+  }
+}
+
+if (invokedDirectly()) {
+  process.exit(await run(process.argv.slice(2)));
 }

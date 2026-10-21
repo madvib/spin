@@ -1,20 +1,15 @@
 import { assertEquals } from "@std/assert";
-import {
-  CliUsageError,
-  collectFiles,
-  formatJson,
-  lint,
-  parseArgs,
-  run,
-} from "../src/cli.ts";
+import { CliUsageError, formatJson, parseArgs, run } from "../src/cli.ts";
+import { filesUnder, lint } from "../src/service.ts";
 
 /**
  * The CLI, on its own.
  *
- * The CLI is the checks without a linter: a project runs them over its own
- * source and reads what they say. What matters here is that the readings
- * are the rules' readings — the same decisions the linters deliver — and
- * that a script can read the answer, whether it is a person or a pipeline.
+ * The CLI is a client of the service: it reads the command line, asks the
+ * service, and prints what came back. What matters here is that the
+ * readings are the rules' readings — the same decisions the linters
+ * deliver — and that a script can read the answer, whether it is a person
+ * or a pipeline.
  */
 
 /** A file with something to report, and a file with nothing. */
@@ -37,18 +32,23 @@ async function fixture(): Promise<string> {
 }
 
 /** The CLI's findings, over a directory. */
-function findingsOf(
+async function findingsOf(
   directory: string,
   argv: readonly string[] = [],
-): ReturnType<typeof lint>["findings"] {
-  const options = parseArgs([...argv, directory]);
-  return lint(collectFiles(options.paths), options).findings;
+): Promise<Awaited<ReturnType<typeof lint>>["findings"]> {
+  const command = parseArgs(["lint", ...argv, directory]);
+  if (command.kind !== "lint") throw new Error("not a lint command");
+  const report = await lint(directory, undefined, {
+    rules: command.rules,
+    semantic: command.semantic,
+  });
+  return report.findings;
 }
 
 Deno.test("the CLI reports what the rules decided", async () => {
   const directory = await fixture();
   try {
-    const findings = findingsOf(directory);
+    const findings = await findingsOf(directory);
     assertEquals(findings.map((finding) => finding.ruleId), [
       "spin/closed-vocabulary",
     ]);
@@ -66,7 +66,7 @@ Deno.test("the CLI reports what the rules decided", async () => {
 Deno.test("the CLI reads the files under a path, not the ones beside it", async () => {
   const directory = await fixture();
   try {
-    const files = collectFiles([directory]);
+    const files = await filesUnder(directory);
     assertEquals(files.toSorted(), [
       `${directory}/clean.tsx`,
       `${directory}/dirty.tsx`,
@@ -83,8 +83,8 @@ Deno.test("the dials are the rule's own", async () => {
       `${directory}/app.tsx`,
       `export const App = () => <button className="text-sm bg-primary" />;\n`,
     );
-    const strict = findingsOf(directory, ["--strictness", "strict"]);
-    const balanced = findingsOf(directory, ["--strictness", "balanced"]);
+    const strict = await findingsOf(directory, ["--strictness", "strict"]);
+    const balanced = await findingsOf(directory, ["--strictness", "balanced"]);
     assertEquals(strict.map((finding) => finding.message), [
       "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
       "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
@@ -107,7 +107,7 @@ Deno.test("the CLI applies the edits its findings carry", async () => {
     );
     // A class the theme cannot produce styles nothing, so dropping it
     // changes nothing — and the CLI drops it.
-    const code = run([file, "--fix"], () => {});
+    const code = await run(["lint", file, "--fix"], () => {});
     assertEquals(code, 0);
     assertEquals(
       await Deno.readTextFile(file),
@@ -127,7 +127,7 @@ Deno.test("the CLI says what it fixed", async () => {
       `export const App = () => <span className="not-a-class" />;\n`,
     );
     const lines: string[] = [];
-    const code = run([file, "--fix"], (line) => lines.push(line));
+    const code = await run(["lint", file, "--fix"], (line) => lines.push(line));
     // The finding was settled by the edit, so there is nothing left to
     // report: the exit code says so.
     assertEquals(code, 0);
@@ -140,7 +140,7 @@ Deno.test("the CLI says what it fixed", async () => {
 Deno.test("the JSON format is a machine's answer", async () => {
   const directory = await fixture();
   try {
-    const findings = findingsOf(directory);
+    const findings = await findingsOf(directory);
     const report = JSON.parse(formatJson(findings)) as {
       findings: { ruleId: string; line: number; column: number }[];
       summary: { findings: number; files: number };
@@ -160,7 +160,10 @@ Deno.test("the exit code is what a script reads", async () => {
   const directory = await fixture();
   try {
     const lines: string[] = [];
-    const dirty = run([`${directory}/dirty.tsx`], (line) => lines.push(line));
+    const dirty = await run(
+      ["lint", `${directory}/dirty.tsx`],
+      (line) => lines.push(line),
+    );
     assertEquals(dirty, 1);
     assertEquals(
       lines.join("\n"),
@@ -172,26 +175,21 @@ Deno.test("the exit code is what a script reads", async () => {
       ].join("\n"),
     );
 
-    const clean = run([`${directory}/clean.tsx`], (line) => lines.push(line));
+    const clean = await run(
+      ["lint", `${directory}/clean.tsx`],
+      (line) => lines.push(line),
+    );
     assertEquals(clean, 0);
   } finally {
     await Deno.remove(directory, { recursive: true });
   }
 });
 
-Deno.test("a path that cannot be read is a usage error", () => {
-  let thrown: unknown;
-  try {
-    collectFiles(["/nowhere/at/all"]);
-  } catch (error) {
-    thrown = error;
-  }
-  assertEquals(thrown instanceof CliUsageError, true);
-
+Deno.test("a path that cannot be read is reported", async () => {
   const lines: string[] = [];
   const warnings: string[] = [];
-  const code = run(
-    ["/nowhere/at/all"],
+  const code = await run(
+    ["lint", "/nowhere/at/all"],
     (line) => lines.push(line),
     (line) => warnings.push(line),
   );
@@ -206,8 +204,8 @@ Deno.test("a file that does not parse is reported, not swallowed", async () => {
   try {
     await Deno.writeTextFile(`${directory}/broken.tsx`, `export const = ;\n`);
     const warnings: string[] = [];
-    const code = run(
-      [`${directory}/broken.tsx`],
+    const code = await run(
+      ["lint", `${directory}/broken.tsx`],
       () => {},
       (line) => warnings.push(line),
     );
@@ -229,7 +227,7 @@ Deno.test("an advisory is reported and does not fail the run", async () => {
       file,
       `export const App = () => <span className="text-3xl" />;\n`,
     );
-    const findings = findingsOf(directory);
+    const findings = await findingsOf(directory);
     assertEquals(
       findings.map((finding) => [finding.ruleId, finding.severity]),
       [
@@ -237,7 +235,7 @@ Deno.test("an advisory is reported and does not fail the run", async () => {
       ],
     );
     const lines: string[] = [];
-    assertEquals(run([file], (line) => lines.push(line)), 0);
+    assertEquals(await run(["lint", file], (line) => lines.push(line)), 0);
   } finally {
     await Deno.remove(directory, { recursive: true });
   }
@@ -253,7 +251,7 @@ Deno.test("an error fails the run", async () => {
       file,
       `export const App = () => <h3 className="text-sm" />;\n`,
     );
-    const findings = findingsOf(directory);
+    const findings = await findingsOf(directory);
     assertEquals(
       findings.map((finding) => [finding.ruleId, finding.severity]),
       [
@@ -261,7 +259,7 @@ Deno.test("an error fails the run", async () => {
       ],
     );
     const lines: string[] = [];
-    assertEquals(run([file], (line) => lines.push(line)), 1);
+    assertEquals(await run(["lint", file], (line) => lines.push(line)), 1);
   } finally {
     await Deno.remove(directory, { recursive: true });
   }
@@ -270,9 +268,44 @@ Deno.test("an error fails the run", async () => {
 Deno.test("an option the CLI does not know is a usage error", () => {
   let thrown: unknown;
   try {
-    parseArgs(["--nonsense", "src"]);
+    parseArgs(["lint", "--nonsense", "src"]);
   } catch (error) {
     thrown = error;
   }
   assertEquals(thrown instanceof CliUsageError, true);
+});
+
+Deno.test("a command the CLI does not know is a usage error", () => {
+  let thrown: unknown;
+  try {
+    parseArgs(["diagnose", "src"]);
+  } catch (error) {
+    thrown = error;
+  }
+  assertEquals(thrown instanceof CliUsageError, true);
+});
+
+Deno.test("the rendered checks need the app's own facts", () => {
+  // The checks cannot guess an app's routes or its themes, so the command
+  // says so rather than measuring a page nobody named.
+  let thrown: unknown;
+  try {
+    parseArgs(["check", "http://localhost:5173"]);
+  } catch (error) {
+    thrown = error;
+  }
+  assertEquals(thrown instanceof CliUsageError, true);
+});
+
+Deno.test("the check command names the app and its configuration", () => {
+  const command = parseArgs([
+    "check",
+    "--config",
+    "./visual/check.ts",
+    "http://localhost:5173",
+  ]);
+  assertEquals(command.kind, "check");
+  if (command.kind !== "check") return;
+  assertEquals(command.url, "http://localhost:5173");
+  assertEquals(command.config, "./visual/check.ts");
 });

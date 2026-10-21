@@ -1,12 +1,12 @@
 /**
- * Verify: the four oracles and the gate they run in.
+ * Verify: the diagnostics, and what they check.
  */
 import type { JSX } from "solid-js";
 import { Code, Section } from "../../bits.tsx";
 
 const GATE = `// deno.json — the gate
 {
-  "tasks": { "gate": "spin-gate --app . --themes spin" }
+  "tasks": { "check": "spin check --config path/to/check.ts http://localhost:5173" }
 }`;
 
 const ORACLES = [
@@ -21,9 +21,10 @@ export default function Verify(): JSX.Element {
   return (
     <Section id="verify" title="Verify">
       <p>
-        Two oracles — visual and layout — rendering your app in a real browser.
-        Both are installed and tested like every other package in this
-        repository.
+        Two kinds of check, both from the same package: the lints, which read
+        your source, and the rendered checks, which open your app in a real
+        browser and measure what a person would see. Both ship as{" "}
+        <code class="font-mono">npx spin</code>.
       </p>
       <div class="mt-4">
         {ORACLES.map(([name, what]) => (
@@ -33,7 +34,7 @@ export default function Verify(): JSX.Element {
           </div>
         ))}
       </div>
-      <p>The gate:</p>
+      <p>Running them:</p>
       <Code code={GATE} />
     </Section>
   );

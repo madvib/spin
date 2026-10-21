@@ -58,7 +58,13 @@ const THEMES = starterThemes as unknown as Record<
   Parameters<typeof themeModes>[0]
 >;
 
-const config: CheckConfig = {
+/**
+ * The reference's check configuration.
+ *
+ * It is exported so the diagnostics' CLI can check this app: the checks
+ * need the app's own facts, and the app is the only one that has them.
+ */
+export const config: CheckConfig = {
   baseDir: BASE,
   defaultUrl: "http://localhost:5173",
   routes,
