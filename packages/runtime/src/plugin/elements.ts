@@ -47,7 +47,11 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
     async transform(source, id) {
       // Example notes live in HTML comments (rendered in the code tab);
       // they are source-only and never reach the IR.
-      const code = expandVariantGroups(source.replace(/<!--[\s\S]*?-->/g, ""));
+      // The includes are resolved BEFORE the parse: the parser never
+      // sees them, and the included file's body is inlined.
+      const code = expandVariantGroups(
+        (await resolveIncludes(source.replace(/<!--[\s\S]*?-->/g, ""), id)).code,
+      );
       if (/<!doctype|<script[\s>]|<style[\s>]/i.test(code)) {
         throw new Error(`spin-elements: ${id} looks like a document, not a component`);
       }
@@ -353,6 +357,53 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
     },
   };
 });
+
+/**
+ * The includes in a markup: `<include file="./_markup.html" />`.
+ *
+ * A family's markup lives ONCE, and its examples are that markup with
+ * their own parameters. The include is resolved textually, before the
+ * parse, so the parser never sees it: the included file's body is
+ * inlined, and the INCLUDING file's scope decl stands (the included
+ * file's own scope decl is dropped — it is the family's, and the
+ * example's is narrower).
+ */
+async function resolveIncludes(
+  source: string,
+  id: string,
+): Promise<{ readonly code: string }> {
+  const file = id.split("?")[0]!;
+  const dir = file.split("/").slice(0, -1).join("/");
+  let code = source;
+  // A family nests its examples one level, so an include may reach up.
+  for (let pass = 0; pass < 8; pass += 1) {
+    const m = /<include\s+file="([^"]+)"\s*\/?>/.exec(code);
+    if (m === null) break;
+    const target = m[1]!;
+    const path = target.startsWith("/")
+      ? target.slice(1)
+      : `${dir}/${target}`;
+    const resolved = path.split("/").reduce((parts, part) => {
+      if (part === "..") return parts.slice(0, -1);
+      if (part === ".") return parts;
+      return [...parts, part];
+    }, [] as string[]).join("/");
+    let included: string;
+    try {
+      // The plugin runs in the app's runtime (Node, Bun, Deno), so the
+      // file is read the way the other hooks read it.
+      const fs = await import("node:fs/promises");
+      included = await fs.readFile(resolved, "utf8");
+    } catch {
+      throw new Error(`spin-elements: ${id} includes ${target}, which is not there`);
+    }
+    // The included file's scope decl is the family's; the example's
+    // stands. Only the BODY is shared.
+    const body = included.replace(/<scope>[\s\S]*?<\/scope>\s*/, "");
+    code = code.replace(m[0], body);
+  }
+  return { code };
+}
 
 export const spinElements = unplugin.vite;
 export const spinElementsRollup = unplugin.rollup;
