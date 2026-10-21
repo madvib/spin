@@ -3,17 +3,17 @@ import { defaultTwin, isRecord } from "@spin/runtime";
 /**
  * Image-cropper machine: idle, dragging the selection, panning the image.
  *
- * Zag's three states with real gating: POINTER_DOWN only drags when the
- * viewport is measured and the area is not fixed; PAN_POINTER_DOWN only pans
- * when both sizes are visible; every nudge and zoom refuses without a
- * viewport rect. `dragging` runs updateCrop on moves, `panning` runs
- * updatePanOffset — which handler runs is the state.
+ * Three states with real gating: POINTER_DOWN only drags when the viewport
+ * is measured and the area is not fixed; PAN_POINTER_DOWN only pans when both
+ * sizes are visible; every nudge and zoom refuses without a viewport rect.
+ * `dragging` runs updateCrop on moves, `panning` runs updatePanOffset — which
+ * handler runs is the state.
  *
  * Rects travel as PLAIN DATA. Context must stay serializable for the scope
  * channel, so crop/viewport/offset/naturalSize are `{x,y,width,height}` and
- * every assign reads and writes them as values. The geometry itself is Zag's
- * pure `utils/crop.mjs` (imported directly — no DOM in that module, only
- * `@zag-js/utils` scalars); the machine owns no crop math of its own.
+ * every assign reads and writes them as values. The geometry itself is the
+ * vendored slice (no DOM in it, only pure scalar math); the machine owns no
+ * crop math of its own.
  *
  * Measurement is NOT here. Viewport rects, pointer points and image sizes
  * are measured in the view and sent in events; the machine turns points
@@ -119,8 +119,8 @@ export function initial(args: ImageCropperArgs = {}, authored: (name: string) =>
   };
 }
 
-/** A positioned rectangle: Zag's CropRect, declared here because the
- * geometry module exports values only. */
+/** A positioned rectangle, declared here because the geometry module
+ * exports values only. */
 export interface CropRect {
   readonly x: number;
   readonly y: number;

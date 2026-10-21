@@ -1,15 +1,15 @@
 /**
  * Async-list machine: the load lifecycle and the cursor the pages walk.
  *
- * Zag ships three states and all three survive: `idle` holds what the last
- * load produced, `loading` is a fetch in flight, `sorting` is a client-side
- * sort in flight. The fetch is a bridge-owned reflex — a promise, an abort
+ * Three states and all three survive: `idle` holds what the last load
+ * produced, `loading` is a fetch in flight, `sorting` is a client-side sort
+ * in flight. The fetch is a bridge-owned reflex — a promise, an abort
  * controller, a sequence number — that reports back through
  * SUCCESS/ERROR/ABORT; there are no transitional states.
  *
  * The seed lands at service creation, not through a transition, and the
- * cursor is `null` when there is no next page: Zag's `cursor != null` guard
- * on LOAD_MORE, so an exhausted list ignores load-more.
+ * cursor is `null` when there is no next page: the `cursor != null` guard on
+ * LOAD_MORE, so an exhausted list ignores load-more.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -158,8 +158,8 @@ const config: Omit<MachineSpec<AsyncListContext, AsyncListEvents>, "context"> = 
         ERROR: { target: "idle", assign: setError },
         ABORT: { target: "idle" },
         // A filter change mid-flight re-enters `loading`: the fork runs exit
-        // and entry for an explicit target (Zag's `reenter: true`), so the
-        // bridge aborts the superseded fetch before the new one starts.
+        // and entry for an explicit target (`reenter: true`), so the bridge
+        // aborts the superseded fetch before the new one starts.
         FILTER: {
           target: "loading",
           assign: [setFilterText, clearCursor],

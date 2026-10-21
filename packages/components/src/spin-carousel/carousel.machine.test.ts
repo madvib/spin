@@ -40,7 +40,7 @@ Deno.test("Given a five-slide carousel / When it starts / Then it is idle on pag
 });
 
 Deno.test("Given the slide count / When it reaches a page for every step / Then the page count follows", () => {
-  // Hand-worked from Zag's getPageSnapPoints: pages start every `perMove`
+  // Hand-worked from the page snap points: pages start every `perMove`
   // slides and stop before one would run past the end.
   assertEquals(pageCountFor(5, 1, 1, false), 5);
   assertEquals(pageCountFor(5, 2, 1, false), 3);

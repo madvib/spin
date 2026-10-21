@@ -348,7 +348,7 @@ Deno.test("Given a sort function / When a sort runs / Then the host sorts and th
   h.api.sort({ column: "name", direction: "descending" });
   assertEquals(state(h.api), "sorting", "a sort function sorts");
   assertEquals(h.api.sorting, true, "and the api says so");
-  // Zag's `loading` matches both `loading` and `sorting`: work is in flight.
+  // `loading` matches both `loading` and `sorting`: work is in flight.
   assertEquals(h.api.loading, true, "the api reports the work in flight");
   assertEquals(h.sortCalls.length, 1, "the host's sort ran once");
   assertEquals(

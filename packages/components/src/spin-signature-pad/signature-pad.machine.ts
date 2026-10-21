@@ -1,4 +1,4 @@
-/** Signature-pad machine: idle/drawing over Zag's two states. */
+/** Signature-pad machine: idle/drawing over two states. */
 
 import { getStroke } from "perfect-freehand";
 import { defaultTwin } from "@spin/runtime";
@@ -10,8 +10,8 @@ export interface SignaturePoint {
   readonly pressure: number;
 }
 
-/** perfect-freehand's tuning surface; mirrors Zag's DrawingOptions minus
- * fill (a view concern — the recipe paints the stroke). */
+/** perfect-freehand's tuning surface; mirrors the upstream DrawingOptions
+ * minus fill (a view concern — the recipe paints the stroke). */
 export interface DrawingTuning {
   readonly size: number;
   readonly simulatePressure: boolean;

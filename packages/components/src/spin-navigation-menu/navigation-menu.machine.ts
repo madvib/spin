@@ -2,9 +2,9 @@
  * Navigation-menu machine: the closed and open modes, and the pointer
  * gesture that moves between them.
  *
- * Zag holds navigation-menu in ONE state with the open item as context —
- * but the modes are real here: with a panel open the keyboard walks INTO
- * it, and without one LEFT/RIGHT move between the top-level items. That
+ * The upstream holds navigation-menu in ONE state with the open item as
+ * context — but the modes are real here: with a panel open the keyboard walks
+ * INTO it, and without one LEFT/RIGHT move between the top-level items. That
  * legality difference is what earns the machine; the open-delay and
  * close-delay clocks themselves are the `hover-delay` action on the item
  * bags, and the viewport's geometry rides the anchor channel.

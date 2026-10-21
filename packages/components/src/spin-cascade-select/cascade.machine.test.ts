@@ -273,7 +273,7 @@ Deno.test("Given an open select / When the trigger is clicked again / Then it cl
   handler<(event: MouseEvent) => void>(h.api.getTriggerProps(), "onClick")(click());
   handler<(event: MouseEvent) => void>(h.api.getTriggerProps(), "onClick")(click());
   assertEquals(h.state(), "closed", "the toggle closes the panel");
-  assertEquals(h.api.focused, true, "the close lands on focused, as Zag's does");
+  assertEquals(h.api.focused, true, "the close lands on focused");
   assertEquals(h.events.openChange, [{ open: true, value: [] }, { open: false, value: [] }], "both directions report");
 });
 

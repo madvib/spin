@@ -297,8 +297,8 @@ Deno.test("Given a list past the cap / When every part is read / Then all four c
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(keydown("Enter"));
   assertEquals(h.api.value, ["a", "b", "c"], "overflow lets the chip through");
-  // Zag's `invalid = prop("invalid") || computed("isOverflowing")`: one
-  // derived boolean flowing to root, control, label and input alike.
+  // `invalid = prop("invalid") || computed("isOverflowing")`: one derived
+  // boolean flowing to root, control, label and input alike.
   for (const read of [
     () => h.api.getRootProps(),
     () => h.api.getControlProps(),
@@ -532,7 +532,7 @@ Deno.test("Given a field with text / When the window drops focus / Then nothing 
   h.input.value = "onblur";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
   // A window blur leaves the focused element alone — there is no new
-  // element to read as outside the component, so Zag reports nothing.
+  // element to read as outside the component, so nothing reports.
   const original = Object.getOwnPropertyDescriptor(document, "hasFocus");
   Object.defineProperty(document, "hasFocus", { value: () => false, configurable: true });
   handler<(event: FocusEvent) => void>(h.bag(), "onFocusOut")(focusOut(null));
@@ -580,7 +580,7 @@ Deno.test("Given navigating:tag with a caret mid-text / When ArrowLeft arrives /
   h.caret(false);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(keydown("ArrowLeft"));
   assertEquals(dataFocus(h), true, "the walk hands back to the caret");
-  assertEquals(h.api.highlightedIndex, null, "entering the field clears the highlight, as Zag's entry does");
+  assertEquals(h.api.highlightedIndex, null, "entering the field clears the highlight");
   h.dispose();
 });
 
@@ -1046,7 +1046,7 @@ Deno.test("Given a max / When the list passes it / Then value-invalid reports th
   h.api.setValue(["a", "b"]);
   assertEquals(h.changes.invalid, [], "at the cap is not over it");
   h.api.addValue("c");
-  assertEquals(h.api.value, ["a", "b", "c"], "addValue is unguarded, as in Zag");
+  assertEquals(h.api.value, ["a", "b", "c"], "addValue is unguarded");
   assertEquals(h.changes.invalid, ["rangeOverflow"], "the overflow reports once");
   h.api.addValue("d");
   assertEquals(h.changes.invalid, ["rangeOverflow"], "still over, no second report");

@@ -1,5 +1,5 @@
 /**
- * Avatar machine: loading/error/loaded over Zag's three states.
+ * Avatar machine: loading/error/loaded over three states.
  *
  * Load and error signals arrive as events from the image node; the
  * machine owns which face shows.

@@ -4,16 +4,14 @@
  * proposing (`suggesting`) — plus the selection, the input text, the
  * highlight and the inline completion.
  *
- * Zag ships `closed.{idle,focused}` and `open.{interacting,suggesting}`, with
- * an `open` parent whose handlers are shared by its two children. The fork
- * has no nesting and no parent: Zag's ROOT tier and the `open` parent's
- * handlers both sit at the fork's root, and the two closed states shadow
- * the ones Zag does not define there. The fork tries state handlers first
+ * There is no nesting and no parent: the root tier and the open phase's
+ * shared handlers both sit at the root, and the two closed states shadow the
+ * ones the root does not define there. The fork tries state handlers first
  * and falls through to the root, so an unconditional state handler shadows a
  * root one — which is the whole reason this needs no nesting.
  *
- * `VALUE.CLEAR` is state-dependent in Zag, but every variant is "clear the
- * selection and the input, and land in `focused`", so it is one root handler.
+ * `VALUE.CLEAR` has the same effect in every state — "clear the selection
+ * and the input, and land in `focused`" — so it is one root handler.
  *
  * Navigation is NOT here. Arrows, Home and End compute their target against
  * the rows the view holds — including the disabled ones they must skip —
@@ -107,7 +105,7 @@ export interface ComboboxContext {
   highlightedValue: string | null;
   /**
    * The inline completion the input shows while a keypress-driven highlight
-   * is live. Zag writes this straight into the input element rather than
+   * is live. It is written straight into the input element rather than
    * into `inputValue`, so the machine's own text stays what the user typed
    * and `isCustomValue` keeps answering about that.
    */
@@ -216,9 +214,9 @@ export function initial(args: ComboboxArgs, authored: (name: string) => boolean)
   // The scope's `highlightedValue` default is "", so an unauthored
   // highlight looks present.
   const highlighted = nullableProp(args.highlightedValue);
-  // Zag's `closeOnSelect: !props.multiple` — a coerced default is not a
-  // write, so an explicit `closeOnSelect` is the only thing that overrides
-  // the mode's own answer.
+  // The default `closeOnSelect` is `!props.multiple` — a coerced default is
+  // not a write, so an explicit `closeOnSelect` is the only thing that
+  // overrides the mode's own answer.
   const closeOnSelect = written("closeOnSelect") ? args.closeOnSelect === true : !multiple;
   const allowCustomValue = written("allowCustomValue") ? args.allowCustomValue === true : false;
   const openOnChange = written("openOnChange") ? args.openOnChange !== false : true;
@@ -279,10 +277,10 @@ const config: MachineSpec<ComboboxContext, ComboboxEvents> = {
     OPEN: { target: "interacting" },
     CLOSE: { target: "focused" },
     "VALUE.CLEAR": { target: "focused", assign: [clearInputValue, clearValue] },
-    // Zag's `open` parent. The root INPUT.ESCAPE (guard: custom value the
-    // machine refuses) must land in every state — a typed query in
-    // `suggesting` reverts the same way a typed query in `focused` does —
-    // so the closed states shadow it only where they must.
+    // The root INPUT.ESCAPE (guard: custom value the machine refuses) must
+    // land in every state — a typed query in `suggesting` reverts the same
+    // way a typed query in `focused` does — so the closed states shadow it
+    // only where they must.
     "INPUT.ESCAPE": [
       {
         cond: revertsToValue,
@@ -333,7 +331,7 @@ const config: MachineSpec<ComboboxContext, ComboboxEvents> = {
           target: "interacting",
           assign: highlightFirstOrSelectedItem,
         },
-        // Zag's `open` parent owns Enter and item clicks; a closed combobox
+        // Enter and item clicks belong to the open phase; a closed combobox
         // has no panel to act on.
         "INPUT.ENTER": { },
         "ITEM.CLICK": { },
@@ -386,13 +384,13 @@ const config: MachineSpec<ComboboxContext, ComboboxEvents> = {
     },
           },
         ],
-        // Zag's closed.focused dismisses with no revert: the text the user
-        // typed is theirs. This MUST shadow the root's reverting candidate —
-        // state handlers are tried first.
+        // The closed, focused phase dismisses with no revert: the text the
+        // user typed is theirs. This MUST shadow the root's reverting
+        // candidate — state handlers are tried first.
         "LAYER.INTERACT_OUTSIDE": { target: "idle" },
         "LAYER.ESCAPE": { target: "idle" },
         // The clear word keeps the highlight here: an internal transition
-        // runs no entry action, which is Zag's closed.focused exactly.
+        // runs no entry action, so the highlight survives the clear.
         "VALUE.CLEAR": { assign: [clearInputValue, clearValue] },
         "INPUT.ENTER": { },
         "ITEM.CLICK": { },
@@ -431,10 +429,10 @@ const config: MachineSpec<ComboboxContext, ComboboxEvents> = {
         "ITEM.POINTER_MOVE": { assign: setHighlightedValue },
         "ITEM.POINTER_LEAVE": { assign: clearHighlightedValue },
         // Escape out of a suggestion: the completion is dropped and the
-        // input's own binding shows `inputValue` again — what Zag's
-        // DOM-writing `syncInputValue` achieves against an uncontrolled
-        // field. With autoComplete the completion is kept until the panel
-        // closes, so only the highlight goes.
+        // input's own binding shows `inputValue` again — against an
+        // uncontrolled field that means writing the value back into the DOM.
+        // With autoComplete the completion is kept until the panel closes,
+        // so only the highlight goes.
         "LAYER.ESCAPE": [
           { cond: inlineAutocomplete, assign: clearHighlightedValue },
           { target: "focused" },
@@ -489,18 +487,18 @@ const OPEN_PHASES: Record<string, true> = { interacting: true, suggesting: true 
 
 export const isOpenPhase = (phase: string): boolean => OPEN_PHASES[phase] === true;
 
-/** Zag's `computed.autoComplete` — the behaviour, without the mode filter. */
+/** The autoComplete behaviour, without the mode filter. */
 const completesInline = (ctx: ComboboxContext): boolean => ctx.inputBehavior === "autocomplete";
 
-/** Zag's `guards.autoComplete` — the completion AND a single-mode selection,
- * which is the combination the arrow keys and the open transitions read. */
+/** The completion AND a single-mode selection, which is the combination the
+ * arrow keys and the open transitions read. */
 const inlineSingle = (ctx: ComboboxContext): boolean =>
   completesInline(ctx) && !ctx.multiple;
 
 const labelOf = (ctx: ComboboxContext, value: string): string | undefined => ctx.labels[value];
 
-/** Zag's `collection.stringifyMany`: the labels a set resolves to, joined,
- * with a value the collection cannot resolve contributing nothing. */
+/** The labels a set resolves to, joined, with a value the collection cannot
+ * resolve contributing nothing. */
 export const stringifyValues = (
   ctx: ComboboxContext,
   values: readonly string[],
@@ -517,7 +515,7 @@ const completion = (ctx: ComboboxContext, value: string, keypress: boolean): str
   return labelOf(ctx, value) ?? ctx.inputValue;
 };
 
-/** Zag's `match(selectionBehavior)`, applied to every value move: the input
+/** The `selectionBehavior` match, applied to every value move: the input
  * is recomputed from the selection, kept, or emptied. */
 const inputValueFor = (ctx: ComboboxContext, next: readonly string[]): string => {
   if (ctx.selectionBehavior === "preserve") return ctx.inputValue;
@@ -538,7 +536,7 @@ const applySelection = (
 const toggle = (value: readonly string[], at: string): string[] =>
   value.includes(at) ? value.filter((v) => v !== at) : [...value, at];
 
-/** Zag's `addOrRemove` in `multiple` mode, replacement otherwise. */
+/** Add-or-remove in `multiple` mode, replacement otherwise. */
 const pickValue = (ctx: ComboboxContext, value: string): string[] =>
   ctx.multiple ? toggle(ctx.value, value) : [value];
 
@@ -546,8 +544,7 @@ const pickValue = (ctx: ComboboxContext, value: string): string[] =>
  * reports the same array the machine just assigned. */
 export const pickOutcome = pickValue;
 
-/** Zag's `computed.isCustomValue`: the input holds text the selection does
- * not explain. */
+/** The input holds text the selection does not explain. */
 const isCustomValue = (ctx: ComboboxContext): boolean =>
   ctx.inputValue !== stringifyValues(ctx, ctx.value);
 

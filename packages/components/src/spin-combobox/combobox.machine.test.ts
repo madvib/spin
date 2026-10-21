@@ -274,7 +274,7 @@ Deno.test("Given a clear selectionBehaviour / When a single combobox mounts with
 
 Deno.test("Given defaultOpen / When the combobox mounts / Then suggesting is the reachable start state", () => {
   const h = mount(FRUIT_ITEMS, { defaultOpen: true });
-  assertEquals(h.phase(), "suggesting", "Zag's initialState opens into suggesting");
+  assertEquals(h.phase(), "suggesting", "the initial state opens into suggesting");
   assertEquals(h.api.open, true, "the api reports open");
   assertEquals(h.api.getInputProps()["aria-expanded"], true, "the input agrees");
 });
@@ -774,7 +774,7 @@ Deno.test("Given a clear selectionBehaviour / When a pick runs / Then the field 
 Deno.test("Given a combobox / When setValue runs / Then the array is assigned verbatim", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setValue(["date", "banana"]);
-  assertEquals(SELECTED(h), ["date", "banana"], "Zag's setValue is not mode-aware");
+  assertEquals(SELECTED(h), ["date", "banana"], "the value set is not mode-aware");
   assertEquals(INPUT_TEXT(h), "Date, Banana", "and the field's replace behaviour follows");
 });
 
@@ -1335,7 +1335,7 @@ Deno.test("Given a combobox / When setOpen runs / Then the panel follows the hos
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
   assertEquals(h.api.open, true, "the command opens the panel");
-  assertEquals(h.phase(), "interacting", "in the phase Zag's setOpen reaches");
+  assertEquals(h.phase(), "interacting", "in the phase setOpen reaches");
   h.api.setOpen(false);
   assertEquals(h.api.open, false, "and closes it");
   assertEquals(h.phase(), "focused", "landing in the focused phase");

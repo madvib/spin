@@ -5,11 +5,11 @@ import { createAction, type ElementAction } from "../../../../runtime/src/action
 /**
  * interact-outside — report focus and pointer movement outside the node.
  *
- * The port of Zag's `trackInteractOutside`, which the editable uses to
- * submit (or cancel) a field the user walks away from. Zag fires a
- * cancelable custom event on the node and lets `onInteractOutside` veto by
- * calling `preventDefault`; this action hands the same event object to the
- * same three callbacks, with the same veto.
+ * The port of `trackInteractOutside`, which the editable uses to submit (or
+ * cancel) a field the user walks away from. A cancelable custom event fires
+ * on the node and `onInteractOutside` vetoes by calling `preventDefault`;
+ * this action hands the same event object to the same three callbacks, with
+ * the same veto.
  *
  * Two faithful details worth keeping:
  *
@@ -22,7 +22,7 @@ import { createAction, type ElementAction } from "../../../../runtime/src/action
  *
  * The excluded set is a thunk so the caller resolves the parts it owns at
  * event time; the node's own `aria-controls` targets count as inside, which
- * is Zag's `isControlledElement`.
+ * is the `isControlledElement` rule.
  */
 
 export interface InteractOutsideDetail {

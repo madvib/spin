@@ -9,7 +9,7 @@ const clearAll = () : Partial<MenuContext> => { return ({ highlightedValue: null
 /**
  * Menu machine: open/closed, plus where the highlight sits.
  *
- * The Zag machine this replaces has six states, and the interesting fact is
+ * The machine this replaces has six states, and the interesting fact is
  * what they are: `opening`, `opening:contextmenu` and `closing` are not
  * structure — they exist to hold a timer (hover-intent delay, long-press,
  * close delay). In this architecture timers are reflexes, so they leave:
@@ -17,7 +17,7 @@ const clearAll = () : Partial<MenuContext> => { return ({ highlightedValue: null
  * send OPEN when the delay elapses, and the machine has no transitional
  * states at all.
  *
- * Submenus are likewise not statechart children in Zag — each submenu is a
+ * Submenus are likewise not statechart children — each submenu is a
  * separate machine instance and the parent's context tracks the highlighted
  * child. Same answer here: `openSubmenu` is a context map keyed by item
  * value, exactly as tree-view tracks per-node loading. This is why a flat

@@ -7,10 +7,10 @@ const clearResizeFrom = () : Partial<FloatingPanelContext> => { return ({ resize
 
 
 /**
- * Floating-panel machine, in zag's shape: `closed` / `open{ idle, dragging,
- * resizing }` with `stage` (minimized/maximized/restored) in context — the
- * stage is not a state because it gates transitions (a maximized panel
- * cannot drag) without changing which events exist.
+ * Floating-panel machine: `closed` / `open{ idle, dragging, resizing }` with
+ * `stage` (minimized/maximized/restored) in context — the stage is not a
+ * state because it gates transitions (a maximized panel cannot drag) without
+ * changing which events exist.
  *
  * Position and size are continuous values reported through the geometry
  * channel as custom properties. The boundary clamp and the initial focus
@@ -177,8 +177,8 @@ const config: MachineSpec<FloatingPanelContext, FloatingPanelEvents> = {
     "MINIMIZE": [{ assign: (ctx) => {
       if (ctx.stage === "minimized") return {};
       // Stash only when leaving restored: a staged-to-staged move keeps
-      // the original geometry, matching zag (prevSize survives until
-      // the restore, not until the next stage).
+      // the original geometry: prevSize survives until the restore, not
+      // until the next stage.
       return ctx.stage === "restored"
         ? { stage: "minimized", restoreSize: { ...ctx.size }, restorePosition: { ...ctx.position } }
         : { stage: "minimized" };

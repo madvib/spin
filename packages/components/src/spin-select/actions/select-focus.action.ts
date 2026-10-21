@@ -3,8 +3,8 @@ import { createAction, type ElementAction } from "@spin/runtime";
 /**
  * select-focus — move focus into the panel when it opens.
  *
- * Zag's `setInitialFocus`: a keyboard user who opened the panel with the
- * trigger expects the arrow keys to move the highlight next, and the
+ * The `setInitialFocus` behaviour: a keyboard user who opened the panel with
+ * the trigger expects the arrow keys to move the highlight next, and the
  * trigger's own keys stop applying once the panel is open. The content is
  * the panel's tab stop, so opening hands it focus (unless focus already
  * moved inside — a pointer that landed on a row must not be yanked away).

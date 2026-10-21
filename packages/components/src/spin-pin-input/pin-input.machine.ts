@@ -164,7 +164,7 @@ export function pinInput(
           ? { value: fill(parseChars(event.value), ctx.count) }
           : {}; } },
       ],
-      // Zag's VALUE.CLEAR also parks the index on the first cell: the value is
+      // VALUE.CLEAR also parks the index on the first cell: the value is
       // empty, so the next keystroke belongs there.
       "VALUE.CLEAR": { assign: [(ctx) => { return ({ value: fill([], ctx.count) }); }, setFocusIndexToFirst] },
     },
@@ -222,8 +222,8 @@ export function pinInput(
 }
 
 /**
- * Zag's `fill`: the value padded (or truncated) to the cell count. A cell
- * the value does not reach reads as the empty string.
+ * The value padded (or truncated) to the cell count. A cell the value does
+ * not reach reads as the empty string.
  */
 export function fill(value: readonly string[], count: number): string[] {
   const length = count || value.length;
@@ -251,10 +251,10 @@ export function pinView(value: readonly string[], count: number): PinValueView {
 }
 
 /**
- * Zag's `getNextValue`: the character a keystroke lands on when the cell
- * already holds one. The incoming value may carry both the old and the new
- * character (a browser appends over a selected cell), and the one that
- * differs from the current character is the write.
+ * The character a keystroke lands on when the cell already holds one. The
+ * incoming value may carry both the old and the new character (a browser
+ * appends over a selected cell), and the one that differs from the current
+ * character is the write.
  */
 export function getNextValue(current: string, next: string): string {
   let nextValue = next;
@@ -263,10 +263,10 @@ export function getNextValue(current: string, next: string): string {
   } else if (current[0] === next[1]) {
     nextValue = next[0] ?? "";
   }
-  // Zag's version calls split on whatever survived, which throws when the
-  // current character equals a single-character incoming value; the view
-  // guards that case upstream (a re-typed character is an ADVANCE), so the
-  // empty read here is unreachable by construction.
+  // The upstream version calls split on whatever survived, which throws when
+  // the current character equals a single-character incoming value; the view
+  // guards that case (a re-typed character is an ADVANCE), so the empty read
+  // here is unreachable by construction.
   const chars = nextValue.split("");
   return chars[chars.length - 1] ?? "";
 }

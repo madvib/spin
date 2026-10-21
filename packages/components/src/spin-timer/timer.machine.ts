@@ -2,8 +2,8 @@
  * Timer machine: the clock's phase and the count it holds.
  *
  * The clock is not here: an `autoplay`-shaped action on the view owns the
- * interval and reports `TICK`; a tick's delta is rounded to `interval`, as
- * Zag rounds `event.deltaMs`.
+ * interval and reports `TICK`; a tick's delta is rounded to `interval`, the
+ * way `event.deltaMs` is rounded upstream.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -62,8 +62,7 @@ export function parseMs(raw: unknown): number | undefined {
   return Number.isNaN(at) ? undefined : at;
 }
 
-/** Zag's `validateProps`: an impossible clock refuses to build. Checked
- * once, at seed. */
+/** An impossible clock refuses to build. Checked once, at seed. */
 export function validateTimer(
   startMs: number | undefined,
   targetMs: number | undefined,
@@ -198,7 +197,7 @@ const MS_PER_MINUTE = 60 * MS_PER_SECOND;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
 const MS_PER_DAY = 24 * MS_PER_HOUR;
 
-/** Zag's `msToTime`. Days are whole days; every smaller unit wraps. */
+/** Days are whole days; every smaller unit wraps. */
 export function msToTime(ms: number): Time {
   const time = Math.max(0, ms);
   return {
@@ -210,7 +209,6 @@ export function msToTime(ms: number): Time {
   };
 }
 
-/** Zag's `formatTime`. */
 export function formatTime(time: Time): Time<string> {
   return {
     days: time.days.toString().padStart(2, "0"),

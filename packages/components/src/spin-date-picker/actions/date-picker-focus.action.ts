@@ -3,7 +3,7 @@ import { createAction, type ElementAction } from "@spin/runtime";
 /**
  * date-picker-focus — move focus to the focused day when the panel opens.
  *
- * Zag's `setInitialFocus`: a keyboard user who opened the calendar
+ * The `setInitialFocus` behaviour: a keyboard user who opened the calendar
  * expects the arrow keys to move the focused day, and the trigger's own
  * keys stop applying once the panel is up. The focused cell is the
  * panel's tab stop, so opening hands it focus (unless focus already

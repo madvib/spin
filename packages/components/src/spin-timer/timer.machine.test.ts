@@ -295,9 +295,8 @@ Deno.test("Given a countdown at the target / When a tick would pass it / Then th
   h.api.start();
   h.tick(4_000);
   assertEquals(time(h.api).seconds, 1, "the count is clamped at targetMs, not past it");
-  // The guard reads the count as it was BEFORE the tick's own write, which is
-  // Zag's ordering: the tick that lands on the target is counted, and the
-  // next one ends the run.
+  // The guard reads the count as it was BEFORE the tick's own write: the tick
+  // that lands on the target is counted, and the next one ends the run.
   assertEquals(h.state(), "running", "the landing tick is still counted");
   h.tick();
   assertEquals(h.state(), "idle", "the next tick ends the run");
@@ -338,8 +337,8 @@ Deno.test("Given a countdown to zero / When the last tick arrives / Then it comp
   assertEquals(h.state(), "idle", "the run ends");
   assertEquals(h.events.complete, 1, "complete fires once");
   assertEquals(h.events.tick.at(-1)?.value, 0, "the last tick still reports");
-  // A started-but-finished clock completes on its next tick, exactly as Zag's
-  // guard does: the count is already at the target.
+  // A started-but-finished clock completes on its next tick: the count is
+  // already at the target.
   h.api.start();
   h.tick();
   assertEquals(h.events.complete, 2, "starting again completes at once");

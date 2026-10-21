@@ -4,7 +4,6 @@ import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine, type EventUnion, type MachineSpec, type Transitions } from "@spin/runtime/fsm";
 const createToast = (ctx: ToastContext, e: ToastEvent) : Partial<ToastContext> => {
       if (e.type !== "TOAST.CREATE") return {};
-      // A known id updates in place, as Zag's store does.
       if (ctx.toasts.some((entry) => entry.id === e.id)) {
         return updateToast(ctx, e);
       }
@@ -22,7 +21,7 @@ const updateToast = (ctx: ToastContext, e: ToastEvent) : Partial<ToastContext> =
         type: e.toastType,
         action: e.action,
         priority: priorityFor(e.toastType, e.priority, e.action.length > 0),
-        // Zag's `resetCloseTimer`: the update starts a new clock.
+        // The update starts a new clock.
         remaining: durationFor(e.toastType, e.duration),
       });
       const toasts = amend(ctx.toasts, e.id, merge);
@@ -132,7 +131,6 @@ export interface ToastEvents {
 export type ToastEvent = EventUnion<ToastEvents>;
 
 
-/** Zag's `defaultTimeouts`. */
 const DURATIONS: Readonly<Record<ToastType, number>> = {
   info: 5000,
   error: 5000,
@@ -141,7 +139,7 @@ const DURATIONS: Readonly<Record<ToastType, number>> = {
   loading: Infinity,
 };
 
-/** Zag's `priorities`: [actionable, plain] per type, lower sorts first. */
+/** The priority pair per type: [actionable, plain], lower sorts first. */
 const PRIORITIES: Readonly<Record<ToastType, readonly [number, number]>> = {
   error: [1, 2],
   warning: [3, 6],
@@ -151,7 +149,7 @@ const PRIORITIES: Readonly<Record<ToastType, readonly [number, number]>> = {
 };
 
 /** An authored duration of 0 or less means "unset" — the type decides, and a
- * loading toast never takes one (Zag's `shouldPersist`). */
+ * loading toast never takes one. */
 export const durationFor = (type: ToastType, authored: number): number =>
   authored > 0 && type !== "loading" ? authored : DURATIONS[type];
 
@@ -181,8 +179,8 @@ const makeEntry = (e: Extract<ToastEvent, { type: "TOAST.CREATE" }>): ToastEntry
   mounted: false,
 });
 
-/** Zag's `processQueue`: the queue promotes the highest priority first, and
- * on a tie the older one — the sort is stable. */
+/** The queue promotes the highest priority first, and on a tie the older
+ * one — the sort is stable. */
 const promote = (ctx: ToastContext): Pick<ToastContext, "toasts" | "queued"> => {
   const toasts = [...ctx.toasts];
   const waiting = [...ctx.queued].sort((a, b) => a.priority - b.priority);
@@ -298,8 +296,8 @@ const config: MachineSpec<ToastContext, ToastEvents> = {
     focusWithin: false,
     pageIdle: false,
   },
-  // Zag's REGION.BLUR is the one gesture with three outcomes: collapse,
-  // return to stack, or forget the focus.
+  // REGION.BLUR is the one gesture with three outcomes: collapse, return
+  // to stack, or forget the focus.
   on: {
     "TOAST.PAUSE": { assign: (ctx, e) => {
       if (e.type !== "TOAST.PAUSE") return {};

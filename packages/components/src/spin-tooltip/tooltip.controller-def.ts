@@ -7,11 +7,12 @@ import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
  * native popover behavior to the declared commands and events, and the
  * surface comes from the `tooltip` primitive's CSS.
  *
- * The delays Zag holds as opening/closing states are the `hover-delay`
- * action on the trigger bag: dwell opens, absence closes, and the attach
- * maps both reports onto the native methods. Focus opens immediately and
- * blur closes — keyboard users never wait out a hover clock. Touch never
- * opens: a tooltip that opens on tap steals the tap the trigger wanted.
+ * The delays the upstream holds as opening/closing states are the
+ * `hover-delay` action on the trigger bag: dwell opens, absence closes, and
+ * the attach maps both reports onto the native methods. Focus opens
+ * immediately and blur closes — keyboard users never wait out a hover clock.
+ * Touch never opens: a tooltip that opens on tap steals the tap the trigger
+ * wanted.
  *
  * The panel positions against the trigger through the `anchor` action,
  * which reports geometry the bag carries as style properties. Placement

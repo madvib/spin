@@ -1,4 +1,4 @@
-/** Splitter machine: idle/hover/focus/dragging over Zag's states. */
+/** Splitter machine: idle/hover/focus/dragging over four states. */
 import { coerceJsonArray, defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
 const setFocusedHandle = (ctx: SplitterContext, event: EventUnion<SplitterEvents>) : Partial<SplitterContext> => {

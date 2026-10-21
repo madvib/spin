@@ -2,7 +2,7 @@
  * Date-picker machine: the open/closed modes, the view mode (day, month,
  * year), and the three selection modes' value moves.
  *
- * Zag's date-picker is `idle`/`focused` (closed) and `open`, with the view
+ * The date-picker is `idle`/`focused` (closed) and `open`, with the view
  * held in context because the legal meaning of a cell click differs per
  * view — exactly the fork's shape. The calendar math (a weekday grid, a
  * month's length, the next page) is the view's job per the corpus rule:
@@ -10,9 +10,9 @@
  * `FOCUS.SET`; this machine constrains it and moves it. Nothing here walks
  * a collection or a DOM.
  *
- * The calendars Zag depends on (`@internationalized/date`) stay out. The
- * machine holds plain ISO day records, and a date the records cannot
- * express (era, time zone, non-Gregorian calendars) is out of scope.
+ * The calendars the upstream depends on (`@internationalized/date`) stay
+ * out. The machine holds plain ISO day records, and a date the records
+ * cannot express (era, time zone, non-Gregorian calendars) is out of scope.
  */
 
 import { defaultTwin, isRecord } from "@spin/runtime";

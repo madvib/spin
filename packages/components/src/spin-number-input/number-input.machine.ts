@@ -128,7 +128,7 @@ export function asNumber(raw: unknown, fallback: number): number {
 
 /**
  * The machine's verbatim form of an authored value: the host's own text.
- * Zag's controlled bindable writes the prop as the host authored it — no
+ * The controlled bindable writes the prop as the host authored it — no
  * parse, no clamp, no format — so a controlled host owns every character
  * the field shows. A write that is not a value at all is null.
  */
@@ -192,9 +192,9 @@ export function initial(
 }
 
 /**
- * A press always leaves `idle`: Zag's `before:spin` carries the focus tag, so
- * the machine is focused for the whole gesture whether or not the input took
- * DOM focus.
+ * A press always leaves `idle`: the `before:spin` state carries the focus
+ * tag, so the machine is focused for the whole gesture whether or not the
+ * input took DOM focus.
  */
 const pressDown = [
   { target: "focused", cond: isDecrementHint, assign: [beginSpin, decrement] },
@@ -236,8 +236,8 @@ const config: MachineSpec<NumberInputContext, NumberInputEvents> = {
     // the gesture is live.
     "CHANGE_DELAY": [
       { cond: (ctx) => { return ctx.spinOnPress && !outOfRange(ctx); }, assign: () => { return ({ spin: "repeat" }); } },
-      // A dwell that cannot earn a repeat ends the gesture: Zag leaves the
-      // machine waiting for the press-up, with the repeat never armed.
+      // A dwell that cannot earn a repeat ends the gesture: the machine
+      // waits for the press-up, with the repeat never armed.
       { assign: endSpin },
     ],
     "SPIN": [

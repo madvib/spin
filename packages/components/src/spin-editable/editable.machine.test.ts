@@ -442,7 +442,7 @@ Deno.test("Given an editing field / When Escape is pressed / Then the value reve
 });
 
 Deno.test("Given an editing field that started blank / When CANCEL arrives / Then the typed text stays", () => {
-  // Zag's revert restores the previous value only when it is not empty, so a
+  // The revert restores the previous value only when it is not empty, so a
   // field that opened blank keeps what was typed into it.
   const h = mount();
   h.trigger("edit");
@@ -487,7 +487,7 @@ Deno.test("Given an editing field / When the host vetoes the outside report / Th
   assertEquals(h.state(), "edit", "a vetoed report leaves the field open");
   assertEquals(h.commits, [], "and commits nothing");
   assertEquals(h.reverts, [], "and reverts nothing");
-  // The report reaches the host before the veto is read, the way Zag's
+  // The report reaches the host before the veto is read, the way the
   // callAll of the two callbacks works.
   assertEquals(h.outside.focus, 1, "onFocusOutside still reports");
   assertEquals(h.outside.interact, 1, "onInteractOutside still reports");

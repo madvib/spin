@@ -7,10 +7,10 @@ import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
  * native popover behavior to the declared commands and events, and the
  * panel is a card surface from utilities.
  *
- * The delays Zag holds as opening/closing states are one `hover-delay`
- * action on the root bag: the trigger and the panel are both inside the
- * root, so moving between them never leaves it, and a single clock pair
- * owns the open/absence handoff with no cross-instance race. Focus opens
+ * The delays the upstream holds as opening/closing states are one
+ * `hover-delay` action on the root bag: the trigger and the panel are both
+ * inside the root, so moving between them never leaves it, and a single clock
+ * pair owns the open/absence handoff with no cross-instance race. Focus opens
  * at once and blur closes — keyboard users never wait out a hover clock.
  * Touch never opens: a card that opens on tap steals the tap the trigger
  * wanted.

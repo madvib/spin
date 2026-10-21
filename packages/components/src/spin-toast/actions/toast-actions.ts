@@ -1,6 +1,6 @@
 /**
- * The toast's own reflexes — the two timers Zag's toast machine runs as
- * effects, as actions instead, because a timer is never machine state.
+ * The toast's own reflexes — the two timers the upstream toast machine runs
+ * as effects, as actions instead, because a timer is never machine state.
  *
  * `toast-timer` rides one toast row and owns two clocks:
  *
@@ -11,7 +11,7 @@
  *     `onRemove` after `removeDelay` — the exit beat that finally takes the
  *     row out of the queue.
  *
- * The pause is where Zag's `syncRemainingTime` lives: it subtracts the
+ * The pause is where the `syncRemainingTime` lives: it subtracts the
  * elapsed time from the armed duration and hands it back through
  * `onPause`, so the number the machine holds is the number the clock
  * resumes from. A row that never pauses keeps its `remaining` untouched and
@@ -19,7 +19,7 @@
  *
  * `toast-row` is the one-row counterpart of the stdlib's observers: it reads
  * the row's layout height once it is in the document and reports it, which
- * is the measurement Zag's group machine wants for its stack offsets.
+ * is the measurement the group machine wants for its stack offsets.
  */
 
 // Leaf import, not "@spin/runtime": the actions table imports this module,
@@ -162,7 +162,7 @@ export interface ToastRegionParam {
 }
 
 /**
- * The region's document reflexes — Zag's `trackHotKeyPress` and
+ * The region's document reflexes — the `trackHotKeyPress` and
  * `trackDocumentVisibility` effects. Both are listeners on the document,
  * which is what an action is for: the element it is attached to is the
  * region, and the only thing it does with it is focus it.

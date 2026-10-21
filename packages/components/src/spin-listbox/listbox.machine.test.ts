@@ -179,7 +179,7 @@ function mount(
 }
 
 Deno.test("focus keeps the highlight empty when there is a selection", () => {
-  // Zag's guarded branch sets focused only: a selection is already visible,
+  // The guarded branch sets focused only: a selection is already visible,
   // so there is nothing to default the highlight to.
   const h = mount(FRUIT_ITEMS, { value: "banana" });
   assertEquals(h.api.highlightedValue, null);
@@ -334,8 +334,8 @@ Deno.test("commands move the machine", () => {
   assertEquals(h.api.highlightedValue, null);
   h.api.highlightNext();
   assertEquals(h.api.highlightedValue, "apple");
-  // Single mode: selectAll is a refusal, not a move — Zag throws, the
-  // port keeps the value rather than punishing the host.
+  // Single mode: selectAll is a refusal, not a move — the upstream throws,
+  // the port keeps the value rather than punishing the host.
   h.api.selectAll();
   assertEquals([...h.api.value], ["banana"]);
   h.api.setValue([]);

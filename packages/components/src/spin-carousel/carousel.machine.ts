@@ -44,7 +44,7 @@ export const slidesOf = (raw: unknown): readonly CarouselSlide[] => {
   return slides;
 };
 
-/** The event detail of `index-change`: Zag's `onPageChange`, faithful. */
+/** The event detail of `index-change`: the `onPageChange` payload. */
 export interface CarouselIndexChange {
   readonly index: number;
   readonly pageCount: number;
@@ -69,7 +69,7 @@ export interface CarouselAutoplayStatusChange {
 }
 
 export interface CarouselContext {
-  /** Zag calls it `page`; the element says `index`. */
+  /** The upstream calls it `page`; the element says `index`. */
   index: number;
   pageCount: number;
   slidesInView: number[];
@@ -173,8 +173,8 @@ const config: Omit<MachineSpec<CarouselContext, CarouselEvents>, "context"> = {
           ...(ctx.dragStatus === "settling" ? { dragStatus: rest(ctx) } : {}),
         }
         : {}; } },
-    // A press inside the carousel stops the rotation, as Zag's own trigger
-    // events do: every PAGE.* event there targets `idle`.
+    // A press inside the carousel stops the rotation: every PAGE.* event
+    // targets `idle`.
     "POINTER.DOWN": { target: "idle" },
     "VIEWPORT.FOCUS": {
       target: "idle",
@@ -262,7 +262,7 @@ export function initial(args: CarouselArgs, authored: (name: string) => boolean)
   };
 }
 
-/** Zag's page snap points, read as slide indices. */
+/** The page snap points, read as slide indices. */
 export function pageCountFor(
   slideCount: number,
   perMove: number,

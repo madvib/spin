@@ -158,8 +158,8 @@ const config: MachineSpec<DateInputContext, DateInputEvents> = {
     min: null as string | null,
     max: null as string | null,
   },
-  // The root tier, exactly as Zag: the value events work from every state,
-  // so a host's command writes the value whether or not a segment holds focus.
+  // The root tier: the value events work from every state, so a host's
+  // command writes the value whether or not a segment holds focus.
   on: {
     "VALUE.SET": { assign: (ctx, e) => {
       if (e.type !== "VALUE.SET") return {};
@@ -187,7 +187,7 @@ const config: MachineSpec<DateInputContext, DateInputEvents> = {
     focused: {
       on: {
         // DOM focus catching up to an auto-advance must not discard keys
-        // already typed into it — Zag's `isActiveSegmentFocus` guard.
+        // already typed into it — the `isActiveSegmentFocus` guard.
         "SEGMENT.FOCUS": [
           { cond: (ctx, e) => { return e.type === "SEGMENT.FOCUS" && e.index === ctx.activeSegment; }, assign: setActiveSegment },
           { assign: [setActiveSegment, clearEnteredKeys] },

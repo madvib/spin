@@ -15,7 +15,7 @@ import type {
  * straight to the fork, which is what makes this interpreter a drop-in behind
  * the `<name>.machine-def.ts` contract the plugin consumes.
  *
- * Events are faithful to Zag's callbacks: `value-change` carries
+ * Events are faithful to the upstream callbacks: `value-change` carries
  * `onValueChange` with the raw value and its number, `value-commit` carries
  * `onValueCommit` on a blur or Enter, `value-invalid` carries `onValueInvalid`
  * with the reason the value left the range, and `focus-change` carries

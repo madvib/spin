@@ -1,4 +1,4 @@
-/** Slider machine: idle/focus/dragging over Zag's three states. */
+/** Slider machine: idle/focus/dragging over three states. */
 
 import {
   clampValue,

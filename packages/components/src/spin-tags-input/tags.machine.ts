@@ -295,12 +295,12 @@ export function initial(args: TagsArgs, authored: (name: string) => boolean): Pi
   };
 }
 
-/** Zag's `isAtMax`, an exact count rather than a ceiling: a list already
- * past the cap is not "at" it, so the insert still goes through — which is
- * why `api.atMax` reports `>=` while this guard reports equality. */
+/** An exact count rather than a ceiling: a list already past the cap is not
+ * "at" it, so the insert still goes through — which is why `api.atMax`
+ * reports `>=` while this guard reports equality. */
 const isAtMax = (ctx: TagsContext): boolean => ctx.value.length === ctx.max;
 
-/** Zag's INSERT_TAG overflow guard: at the cap the input text survives. */
+/** The INSERT_TAG overflow guard: at the cap the input text survives. */
 const canAdd = (ctx: TagsContext): boolean => ctx.allowOverflow || !isAtMax(ctx);
 
 const caretAtStart = (event: TagsEvent): boolean => {
@@ -315,7 +315,7 @@ const caretAtStart = (event: TagsEvent): boolean => {
   }
 };
 
-/** Zag announces the selection from a watch on the highlight; here it is
+/** The selection is announced from a watch on the highlight; here it is
  * written wherever the highlight moves. */
 const withSelectLog = (ctx: TagsContext, index: number | null): Partial<TagsContext> => {
   if (index === null || ctx.log === null) return { highlightedIndex: index };
@@ -326,8 +326,8 @@ const withSelectLog = (ctx: TagsContext, index: number | null): Partial<TagsCont
 
 const valueAtIndex = (ctx: TagsContext, index: number): string | undefined => ctx.value[index];
 
-/** Zag's `raiseInsertTagEvent`: append the sanitized input text, then
- * clear it. Guarded by `canInsert` at every call site. */
+/** Append the sanitized input text, then clear it. Guarded by `canInsert`
+ * at every call site. */
 const addFromInput = (ctx: TagsContext): Partial<TagsContext> => {
   const inputValue = ctx.sanitizeValue(ctx.inputValue);
   if (!ctx.validate({ inputValue, value: ctx.value })) return { refusal: "invalidTag" as const };
@@ -415,9 +415,9 @@ const config: MachineSpec<TagsContext, TagsEvents> = {
         ],
       },
     },
-    // Zag runs `clearHighlightedId` as this state's entry action, but it
-    // is composed into the transitions that reach it: the fork folds
-    // exit -> actions -> entry, so an entry action would wipe the
+    // `clearHighlightedId` runs as this state's entry action upstream, but
+    // here it is composed into the transitions that reach it: the fork
+    // folds exit -> actions -> entry, so an entry action would wipe the
     // highlight a transition's own assigns just set.
     "focused:input": {
       on: {

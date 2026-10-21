@@ -1,5 +1,5 @@
 /**
- * Toggle-group machine: idle/focused over Zag's two states.
+ * Toggle-group machine: idle/focused over two states.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -32,8 +32,8 @@ export interface ToggleGroupContext {
   loopFocus: boolean;
   orientation: "horizontal" | "vertical";
   disabled: boolean;
-  /** A mousedown preceded the focus: don't steal it. Zag uses a ref; this
-   * fork has no ref tier, so it is a flag. */
+  /** A mousedown preceded the focus: don't steal it. The upstream uses a
+   * ref; this fork has no ref tier, so it is a flag. */
   clickFocus: boolean;
   tabbingBackward: boolean;
 }

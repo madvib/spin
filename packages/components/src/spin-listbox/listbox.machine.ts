@@ -1,8 +1,8 @@
 /**
  * Listbox machine: a single idle state with guards.
  *
- * Zag ships one state — every event is legal always — so the gating lives
- * in named conds. The machine reads `order` and `labels`, synced from scope
+ * One state — every event is legal always — so the gating lives in named
+ * conds. The machine reads `order` and `labels`, synced from scope
  * by the bridge, because highlight targets and the selection's string form
  * are statements about positions, not rows.
  *

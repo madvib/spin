@@ -194,7 +194,7 @@ Deno.test("Given toasts on the items prop / When the region mounts / Then the qu
 Deno.test("Given a row / When the entry beat has not run / Then the row waits below its settled offset", () => {
   const h = mount(ITEMS);
   const bag = h.bag("one");
-  // `data-state` is Zag's visibility: the row is visible, it has simply not
+  // `data-state` is the visibility: the row is visible, it has simply not
   // been painted into place yet, which is what `data-mounted` says.
   assertEquals(bag["data-state"], "open", "the row is visible");
   assertEquals(bag["data-mounted"], undefined, "nothing has reported the frame");

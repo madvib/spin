@@ -1,11 +1,10 @@
 /**
  * File-upload machine: the dropzone's modes and the accept/reject split.
  *
- * Zag's file-upload is `idle`/`focused`/`dragging` — the fork's shape
- * exactly, with the validation (accept, size bounds, count cap) as assigns
- * that decide what a set of files may become. That decision is the
- * machine's: it is the only part where a file list becomes a legal
- * selection.
+ * Three modes — `idle`/`focused`/`dragging` — with the validation (accept,
+ * size bounds, count cap) as assigns that decide what a set of files may
+ * become. That decision is the machine's: it is the only part where a file
+ * list becomes a legal selection.
  *
  * Files are plain records here (`{ name, size, type }`). The connect
  * builds them from the platform's `FileList` on the input and drop

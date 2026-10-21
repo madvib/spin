@@ -1,8 +1,8 @@
 /**
- * Angle-slider machine: idle/focused/dragging over Zag's three states.
+ * Angle-slider machine: idle/focused/dragging over three states.
  *
- * The angle math is Zag's own, vendored below (atan2 around the center, RTL
- * mirror, step snap). Context stays serializable for the scope channel.
+ * The angle math is vendored below (atan2 around the center, RTL mirror,
+ * step snap). Context stays serializable for the scope channel.
  */
 
 import { defaultTwin } from "@spin/runtime";
@@ -34,7 +34,8 @@ export interface AngleSliderContext {
   readOnly: boolean;
   invalid: boolean;
   /** The grab offset in degrees: raw click angle minus value at press.
-   * Zag keeps it in a ref; the fork has no ref tier, so it is a value. */
+   * The upstream keeps it in a ref; the fork has no ref tier, so it is a
+   * value. */
   dragOffset: number | null;
 }
 
@@ -112,8 +113,8 @@ function mirrorAngle(angle: number): number {
   return (360 - angle) % 360;
 }
 
-/** @zag-js/rect-utils' getPointAngle, vendored: degrees around the center,
- * zero at the top, clockwise. */
+/** The vendored `getPointAngle`: degrees around the center, zero at the top,
+ * clockwise. */
 export function pointAngle(
   centerX: number,
   centerY: number,
@@ -126,7 +127,7 @@ export function pointAngle(
   return 360 - deg;
 }
 
-/** Zag's getAngle: the raw pointer angle, offset for relative thumb drags. */
+/** The raw pointer angle, offset for relative thumb drags. */
 export function pointerAngle(
   centerX: number,
   centerY: number,
@@ -140,8 +141,8 @@ export function pointerAngle(
   return dir === "rtl" ? mirrorAngle(angle) : angle;
 }
 
-/** Zag's getPointerValue, pure half: with a grab offset the dial turns
- * relative to the grab, without one it jumps to the pointer. */
+/** The pure half of the pointer-value math: with a grab offset the dial
+ * turns relative to the grab, without one it jumps to the pointer. */
 export function resolveValue(
   rawAngle: number,
   angularOffset: number | null,
@@ -163,7 +164,7 @@ export function clampAngle(degree: number): number {
   return Math.min(Math.max(degree, MIN_VALUE), MAX_VALUE);
 }
 
-/** Zag's constrainAngle: snap up to the step grid, wrapping 359 to 0. */
+/** Snap up to the step grid, wrapping 359 to 0. */
 export function constrainAngle(degree: number, step: number): number {
   const clamped = clampAngle(degree);
   const upper = Math.ceil(clamped / step);

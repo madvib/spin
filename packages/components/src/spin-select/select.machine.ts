@@ -4,7 +4,7 @@
  * placement the content was last positioned at.
  *
  * The controlled-open events (`CONTROLLED.OPEN` / `CONTROLLED.CLOSE`) carry
- * Zag's "was the open state authored" distinction: the bridge reports a host
+ * the "was the open state authored" distinction: the bridge reports a host
  * write as one of these, and the machine moves only when the host owns the
  * state. Which of the two a close lands in (`focused` vs `idle`) is the
  * restoreFocus question, decided by who asked: a layer dismissal after a
@@ -150,9 +150,9 @@ export interface SelectArgs {
   items?: string | readonly SelectRow[];
   multiple?: boolean;
   /**
-   * Whether a pick closes the panel. The machine's own default is Zag's
-   * (`!multiple`); a host that writes the prop owns it, and the machine's
-   * contract carries that write.
+   * Whether a pick closes the panel. The machine's own default is `!multiple`;
+   * a host that writes the prop owns it, and the machine's contract carries
+   * that write.
    */
   closeOnSelect?: boolean;
   loopFocus?: boolean;
@@ -204,7 +204,7 @@ export function initial(args: SelectArgs, authored: (name: string) => boolean): 
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const rows = rowsOf(args.items);
   const multiple = args.multiple === true;
-  // Zag's default: a multiple select keeps its panel open over each pick.
+  // The default: a multiple select keeps its panel open over each pick.
   // The scope's `closeOnSelect` default is `true`, so the prop is never
   // absent and its presence says nothing: the authored predicate is what
   // says whether the host chose it.

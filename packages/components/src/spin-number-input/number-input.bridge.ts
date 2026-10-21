@@ -49,7 +49,7 @@ export interface NumberInputCallbacks {
   readonly onFocusChange: ((details: NumberInputFocusChange) => void) | undefined;
 }
 
-/** Zag's defaults, before any prop is authored. */
+/** The defaults, before any prop is authored. */
 const DEFAULT_INPUT_MODE = "decimal";
 const DEFAULT_PATTERN = "-?[0-9]*(.[0-9]+)?";
 const INCREMENT_LABEL = "increment value";
@@ -97,12 +97,12 @@ function seedValue(p: Record<string, unknown>, authored: (name: string) => boole
  * step sizes, and the three behaviour flags); and publish the connect api
  * through the live-view proxy.
  *
- * The callbacks are Zag's, resolved here rather than in the machine: what
- * each one means is a statement about a machine move, so the bridge reports
- * them the way Zag's watchers and blur branches do — the commit on the two
- * committing events, the invalid report when the range state moves or a blur
- * leaves an out-of-range value standing, and the focus whenever the machine
- * leaves or returns to `idle`.
+ * The callbacks are resolved here rather than in the machine: what each one
+ * means is a statement about a machine move, so the bridge reports them the
+ * way the watchers and blur branches do — the commit on the two committing
+ * events, the invalid report when the range state moves or a blur leaves an
+ * out-of-range value standing, and the focus whenever the machine leaves or
+ * returns to `idle`.
  */
 export function createNumberInputBridge(
   props: () => Record<string, unknown>,
@@ -149,8 +149,8 @@ function readArgs(): NumberInputArgs {
     largeStep: p["largeStep"] as string | number,
     smallStep: p["smallStep"] as string | number,
     allowOverflow,
-    // Zag: `clampValueOnBlur` defaults to the opposite of `allowOverflow`,
-    // and a coerced default is not a write.
+    // `clampValueOnBlur` defaults to the opposite of `allowOverflow`, and a
+    // coerced default is not a write.
     clampValueOnBlur: authored("clampValueOnBlur")
       ? p["clampValueOnBlur"] === true
       : !allowOverflow,
@@ -207,10 +207,9 @@ function readArgs(): NumberInputArgs {
     // context from them, so every instance of the element seeds — and then
     // reads — its own context.
     //
-    // An authored `value` is the first state, exactly as Zag's bindable
-    // prefers it; `defaultValue` seeds the uncontrolled case. Either way
-    // the seed tells no one — a controlled host is not told the value it
-    // just wrote.
+    // An authored `value` is the first state, the way the bindable prefers
+    // it; `defaultValue` seeds the uncontrolled case. Either way the seed
+    // tells no one — a controlled host is not told the value it just wrote.
     const machine = numberInput(readArgs(), authored);
     initialValue = machine.initialState.context.value;
     service = owner.run(() => interpret(machine).start());
@@ -236,7 +235,7 @@ function readArgs(): NumberInputArgs {
   }
 
   /**
-   * Report what the move did. Zag's bindable fires `onValueChange` from
+   * Report what the move did. The bindable fires `onValueChange` from
    * inside the write, so a move that leaves the value alone reports nothing.
    */
   function notify(type: string): void {
@@ -255,7 +254,7 @@ function readArgs(): NumberInputArgs {
 
     if (type === "INPUT.BLUR" || type === "INPUT.ENTER") {
       callbacks.onValueCommit?.(detail(after.value));
-      // Enter commits without leaving the field, but Zag reports the blur.
+      // Enter commits without leaving the field, but the blur still reports.
       if (lastFocused) {
         lastFocused = false;
         callbacks.onFocusChange?.({ focused: false, ...detail(after.value) });
@@ -266,7 +265,7 @@ function readArgs(): NumberInputArgs {
       return;
     }
 
-    // A range flip caused by typing is Zag's `INPUT.CHANGE` guard: the host is
+    // A range flip caused by typing is the `INPUT.CHANGE` guard: the host is
     // still writing, and a blur will report it if it survives.
     if (out && flipped && type !== "INPUT.CHANGE") reportInvalid(after.value, scalars.max);
     if (ensureService().state.value !== "idle" && !lastFocused) {

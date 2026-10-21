@@ -1,6 +1,5 @@
 /**
- * Zag's crop geometry, vendored: the slice the image-cropper's machine
- * uses.
+ * The crop geometry, vendored: the slice the image-cropper's machine uses.
  *
  * @zag-js/image-cropper, MIT, (c) Zag. The upstream package does not
  * export these utilities, so the pure functions the crop math needs are
@@ -37,7 +36,7 @@ export type CropHandle =
 
 var { min, max, abs, round } = Math;
 
-/** Zag's clamp: a value held between two bounds, NaN folded to the low. */
+/** A value held between two bounds, NaN folded to the low. */
 var clampValue = (v: number, vmin: number, vmax: number): number =>
   min(max(Number.isNaN(v) ? vmin : v, vmin), vmax);
 
@@ -65,7 +64,7 @@ var resolveSizeLimits = (options: {
   viewportSize: { width: number; height: number };
   aspectRatio: number | null;
 }): { minWidth: number; minHeight: number; maxWidth: number; maxHeight: number; hasAspect: boolean } => {
-  // Zag's `hasAspect` gate: the aspect branch only runs when there is one.
+  // The `hasAspect` gate: the aspect branch only runs when there is one.
   const { minSize, maxSize, viewportSize, aspectRatio } = options;
   let minWidth = min(minSize.width, viewportSize.width);
   let minHeight = min(minSize.height, viewportSize.height);

@@ -649,7 +649,7 @@ Deno.test("Given a pin / When clearValue runs / Then every cell empties and the 
     { value: ["", "", "", ""], valueAsString: "" },
     "value-change reports the clear",
   );
-  // Zag's VALUE.CLEAR parks the index on the first cell, and the cell's
+  // VALUE.CLEAR parks the index on the first cell, and the cell's
   // placeholder is what reads it.
   assertEquals(h.bag(0)["placeholder"], "", "the first cell is the parked index");
   assertEquals(h.bag(1)["placeholder"], "\u25CB", "the others keep their placeholder");

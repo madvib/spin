@@ -2,11 +2,11 @@
  * Editable machine: whether the field is being edited, the value, and the
  * value a cancel returns to.
  *
- * Zag's editable is two states — `preview` and `edit` — with every event
- * on one of them and `VALUE.SET` on the root tier, so the config is a root
- * `on` plus the two states.
+ * Two states — `preview` and `edit` — with every event on one of them and
+ * `VALUE.SET` on the root tier, so the config is a root `on` plus the two
+ * states.
  *
- * Nothing here touches the DOM. Zag's `focusInput`, `restoreFocus` and
+ * Nothing here touches the DOM. The `focusInput`, `restoreFocus` and
  * `blurInput` actions are the view's job in this port — the bridge reports
  * the transition and the connect performs the reflex.
  *

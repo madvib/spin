@@ -3,8 +3,8 @@
  * both spell, defined once.
  */
 
-/** Zag's `dataAttr`: the attribute is present when the condition holds and
- * absent otherwise, which is what `hidden`-style utilities key on. */
+/** The `dataAttr` helper: the attribute is present when the condition holds
+ * and absent otherwise, which is what `hidden`-style utilities key on. */
 export function dataAttr(value: boolean): string | undefined {
   return value ? "" : undefined;
 }

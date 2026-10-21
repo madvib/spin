@@ -4,7 +4,7 @@
  *
  * What the machine owns stays there: the value, its range, and the phase of
  * the press gesture. What lives here is everything that needs a node: the
- * arrow/Home/End key map (with Zag's modifier-key step sizes), the wheel,
+ * arrow/Home/End key map (with the upstream modifier-key step sizes), the wheel,
  * the partial-number guard on `beforeinput`, the focus the machine asks for
  * by changing state, the scrubber's drag arithmetic (client deltas, wrap,
  * RTL flip), and the geometry channel that places the virtual cursor.
@@ -46,7 +46,7 @@ export interface NumberInputConnectProps {
   readonly smallStep: number;
 }
 
-/** The element's imperative surface — Zag's api methods. Every one is a send:
+/** The element's imperative surface — the api methods. Every one is a send:
  * the view resolves the host's words before the machine hears them. */
 export interface NumberInputCommands {
   setValue(value: number | string): void;
@@ -98,7 +98,7 @@ export type ReadNumberInputProps = () => NumberInputConnectProps;
 const NAMESPACE = "number-input";
 
 /** The dwell before the auto-repeat starts, and the repeat rate itself —
- * Zag's `waitForChangeDelay` and `spinValue`. */
+ * the `waitForChangeDelay` and `spinValue` values. */
 const SPIN_DWELL = 300;
 const SPIN_REPEAT = 50;
 
@@ -106,8 +106,8 @@ const SPIN_REPEAT = 50;
  * under the pointer that grabbed it. */
 const CURSOR_HALF = 7.5;
 
-/** Zag's `dataAttr`: the attribute is present when the condition holds and
- * absent otherwise, which is what the state utilities key on. */
+/** The `dataAttr` helper: the attribute is present when the condition holds
+ * and absent otherwise, which is what the state utilities key on. */
 function dataAttr(value: boolean): string | undefined {
   return value ? "" : undefined;
 }
@@ -308,7 +308,7 @@ export function connectRobotNumberInput(
 
   // ---- the keyboard map ---------------------------------------------------
 
-  /** Zag's `getEventStepValue`: Alt takes the small step, Shift takes the
+  /** The `getEventStepValue` rule: Alt takes the small step, Shift takes the
    * large one, and everything else takes `step`. */
   const stepFor = (event: KeyboardEvent): number => {
     const props = readProps();

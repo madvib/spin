@@ -1,9 +1,10 @@
 /**
  * Color-picker machine: closed (idle), focused, open (active), dragging.
  *
- * Zag nests `open.{idle,dragging}` under an `open` parent whose handlers the
- * children share. The fork has no nesting, so the open parent's handlers sit
- * at the root tier and the closed states shadow what they must not inherit.
+ * The open phases nest `open.{idle,dragging}` under an `open` parent whose
+ * handlers the children share. The fork has no nesting, so the open parent's
+ * handlers sit at the root tier and the closed states shadow what they must
+ * not inherit.
  *
  * The color travels as a STRING: context must stay serializable for the
  * scope channel, so every assign parses, mutates through the Color object,
@@ -211,7 +212,7 @@ const config: MachineSpec<ColorPickerContext, ColorPickerEvents> = {
         "AREA.ARROW": { assign: (ctx, event) => {
       // The area's channels live in the area format (hsla/hsba): an rgb color
       // has no saturation channel, so stepping it throws. Convert first, step,
-      // serialize back — Zag's `areaValue`.
+      // serialize back — the `areaValue` form.
       const { color } = parse(ctx.value, "#000000");
       const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
       const v = color.toFormat(areaFormat);
@@ -234,7 +235,7 @@ const config: MachineSpec<ColorPickerContext, ColorPickerEvents> = {
     } },
         "CHANNEL_SLIDER.ARROW": { assign: (ctx, event) => {
       // Hue/saturation/brightness are not rgb channels: without a format the
-      // slider computes against the area value (hsla/hsba), Zag's
+      // slider computes against the area value (hsla/hsba), the
       // `normalizedValue` fallback. Alpha converts to itself.
       const { color } = parse(ctx.value, "#000000");
       const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";

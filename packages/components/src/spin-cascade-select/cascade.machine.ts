@@ -244,9 +244,9 @@ const config: MachineSpec<CascadeContext, CascadeEvents> = {
     },
     open: {
       on: {
-        // Zag's restoreFocusFn: a focusable outside (or a context menu) takes
-        // the focus instead of the trigger, so the machine lands idle rather
-        // than focused.
+        // The restore-focus rule: a focusable outside (or a context menu)
+        // takes the focus instead of the trigger, so the machine lands idle
+        // rather than focused.
         CONTROLLED_CLOSE: [
           {
             cond: restoresFocus,
@@ -263,7 +263,7 @@ const config: MachineSpec<CascadeContext, CascadeEvents> = {
           },
           { target: "idle", assign: clearHighlightedValue },
         ],
-        // A press on the trigger while open is a toggle, and Zag's dismiss
+        // A press on the trigger while open is a toggle, and the dismiss
         // layer reports the close with focus back on the trigger.
         TRIGGER_CLICK: { target: "focused", assign: clearHighlightedValue },
         ITEM_CLICK: [
@@ -276,7 +276,7 @@ const config: MachineSpec<CascadeContext, CascadeEvents> = {
           { assign: (_ctx, e) => { return e.type === "ITEM_CLICK" ? { highlightedValue: clonePath(e.value) } : {}; } },
         ],
         // The connect reports every pointer move; the highlight-follows-hover
-        // behaviour stays opt-in, as Zag's isHoverHighlight guard does.
+        // behaviour stays opt-in, as the `isHoverHighlight` guard does.
         ITEM_POINTER_ENTER: [
           { cond: (ctx) => { return ctx.highlightTrigger === "hover"; }, assign: (_ctx, e) => { return e.type === "ITEM_POINTER_ENTER"
         ? { highlightedValue: e.hasChildren ? clonePath(e.value) : e.value.slice(0, -1) }

@@ -547,10 +547,10 @@ Deno.test("Given a focused input / When Enter arrives / Then the value is reform
     h.events.focusChange,
     [
       { focused: true, value: "5", valueAsNumber: 5 },
-      // Zag's Enter reports the blur even though the field keeps focus.
+      // Enter reports the blur even though the field keeps focus.
       { focused: false, value: "5.5", valueAsNumber: 5.5 },
     ],
-    "Enter reports focus leaving, as Zag does",
+    "Enter reports focus leaving",
   );
 });
 
@@ -820,7 +820,7 @@ Deno.test("Given a spin control / When its bag is read / Then the trigger semant
   assertEquals(dec["aria-label"], "less", "and its decrement label");
 });
 
-Deno.test("Given Zag's default labels / When no translation is authored / Then the defaults are used", () => {
+Deno.test("Given the default labels / When no translation is authored / Then the defaults are used", () => {
   const h = mount();
   assertEquals(h.trigger("increment")["aria-label"], "increment value", "the increment default");
   assertEquals(h.trigger("decrement")["aria-label"], "decrease value", "and the decrement one");
@@ -999,7 +999,7 @@ Deno.test("Given the input in the document / When a trigger is pressed / Then th
   const h = mount({ defaultValue: "5" });
   const input = attachInput();
   h.pressTrigger("increment");
-  assertEquals(input.focused.length, 1, "a press focuses the field, as Zag's focusInput does");
+  assertEquals(input.focused.length, 1, "a press focuses the field");
   assertEquals(h.api.value, "6", "and the press steps once");
 });
 

@@ -1,5 +1,5 @@
 /**
- * Rating-group machine: idle/focus/hover over Zag's three states.
+ * Rating-group machine: idle/focus/hover over three states.
  *
  * The machine never touches focus: the view focuses the checked radio after
  * a move, and the halfway hover flag arrives measured in POINTER_OVER.

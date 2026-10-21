@@ -216,6 +216,6 @@ Deno.test("authored value seeds the dial and a host write moves it", () => {
 
 Deno.test("constrainAngle wraps the top of the dial", () => {
   assertEquals(constrainAngle(359, 1), 0);
-  // Zag snaps UP to the grid, not nearest.
+  // The snap goes UP to the grid, not to the nearest.
   assertEquals(constrainAngle(90.4, 1), 91);
 });
