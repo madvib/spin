@@ -51,14 +51,14 @@ export const ROUTES = [
   {
     path: "/icons",
     label: "Icons",
-    icon: "i-lucide-shapes",
+    icon: "i-lucide-grid-2x2",
     rail: "concern",
     owns: [["icon"]],
   },
   {
     path: "/motion",
     label: "Motion",
-    icon: "i-lucide-zap",
+    icon: "i-lucide-square-play",
     rail: "concern",
     owns: [["motion"]],
   },
@@ -72,7 +72,7 @@ export const ROUTES = [
   {
     path: "/style",
     label: "Style",
-    icon: "i-lucide-layers",
+    icon: "i-lucide-sliders-horizontal",
     rail: "concern",
     owns: [["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
       "focus",
@@ -81,13 +81,13 @@ export const ROUTES = [
   {
     path: "/components",
     label: "Elements",
-    icon: "i-lucide-blocks",
+    icon: "i-lucide-layout-dashboard",
     rail: "concern",
     children: ["", "/:name"],
   },
   {
     path: "/preferences",
-    label: "Settings",
+    label: "Preferences",
     icon: "i-lucide-settings",
     rail: "foot",
   },

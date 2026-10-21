@@ -10,6 +10,7 @@
 
 import { MetaProvider, Title } from "@solidjs/meta";
 import { A, Route, Router } from "@solidjs/router";
+import { Web } from "@spin/kit";
 import ColorsPage from "./routes/colors.tsx";
 import TypePage from "./routes/type.tsx";
 import IconsPage from "./routes/icons.tsx";
@@ -283,6 +284,37 @@ function EditorHeader() {
   );
 }
 
+/**
+ * The name of a rail row, as a tip that opens BESIDE the row.
+ *
+ * A native `title` is what every icon control in the studio carries, and it
+ * is what the pointer reads. It cannot serve the keyboard: no browser shows a
+ * `title` on focus, so a reader who tabs the rail would have to remember
+ * every glyph it passes. This is the system's own tooltip primitive — the
+ * same element spin uses everywhere — set beside the row rather than under
+ * it, because the rail hugs the edge of the viewport and a tip that hung off
+ * the outer edge would fall off the screen. In the drawer the rail mirrors to
+ * the right edge, so the tip opens to the left there.
+ *
+ * It keeps out of the pointer's way: the row's own `title` is the pointer's
+ * tip, and two tips for one hover is one tip too many.
+ */
+function RailTip(props: { label: string; top?: string }) {
+  return (
+    <tooltip
+      class={`absolute ${
+        props.top ?? "top-0"
+      } translate-none peer-hover:invisible ${
+        inDrawer() && dockSide() === "right"
+          ? "end-full start-auto"
+          : "start-full"
+      }`}
+    >
+      {props.label}
+    </tooltip>
+  );
+}
+
 export default function App() {
   return (
     <Router
@@ -328,102 +360,136 @@ export default function App() {
               concerns in bands, the foot that carries the tool's own verbs.
               It wears the studio's own theme, so editing a theme cannot
               restyle the tool you are editing it with.
-            */
+
+              It is a STRIP, not a menu: forty-eight pixels of icons, and
+              every row is nothing but its glyph. So every row carries its
+              name twice — a `title` for the pointer, and an `aria-label` for
+              the reader and for the keyboard, where the row takes focus and
+              has to announce itself.
+              */
             }
             <nav
               aria-label="Studio"
-              class="sticky top-0 flex h-screen w-12 shrink-0 flex-col items-center gap-1 overflow-hidden border-border bg-surface-raised py-2"
+              class="sticky top-0 flex h-screen w-12 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-1"
               classList={{
                 "border-r": !inDrawer() || dockSide() === "left",
                 "border-l": inDrawer() && dockSide() === "right",
               }}
             >
+              {
+                /*
+                The mark: the web, in the studio's own ink. The kit draws it
+                in strokes on `currentColor`, so it wears whatever surface it
+                lands on, and the slot around it is roomier than a row's —
+                the mark breathes, and the space under it is what separates it
+                from the concerns. A rule would say "this ends"; space says
+                "this is a different thing", which is what a mark is.
+                */
+              }
               <A
                 href={hostPath(MARK.path)}
-                class="row-sm mb-2 shrink-0 justify-center font-semibold"
+                // `end`: the mark is the overview and nothing else. Without it
+                // the root path matches every path, and the mark would read as
+                // current on every page.
+                end
+                class="peer mb-1 flex w-10 shrink-0 items-center justify-center rounded-md py-4 text-text hover:bg-surface"
                 title={MARK.label}
+                aria-label={MARK.label}
               >
-                <span
-                  class={`inline-block icon-md shrink-0 ${MARK.icon} text-text`}
-                  aria-hidden="true"
-                />
+                <Web size={24} class="h-6 w-6 shrink-0" />
               </A>
-              <ul class="flow-list stack-sm shrink-0 items-center">
+              <RailTip label={MARK.label} top="top-4" />
+              <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-1">
                 <For each={CONCERNS}>
                   {(route) => (
-                    <li>
+                    <li class="m-0 w-full">
                       <A
                         href={hostPath(route.path)}
-                        activeClass="text-text font-semibold underline"
+                        activeClass="bg-surface-sunken text-text font-semibold"
                         inactiveClass="text-text"
-                        class="row-sm justify-center"
+                        class="peer flex items-center justify-center rounded-md hover:bg-surface"
                         title={route.label}
+                        aria-label={route.label}
                       >
                         <span
-                          class={`inline-block shrink-0 icon-md ${route.icon}`}
+                          class={`inline-block shrink-0 text-xl ${route.icon}`}
                           aria-hidden="true"
                         />
                       </A>
+                      <RailTip label={route.label} />
                     </li>
                   )}
                 </For>
               </ul>
-              <div class="stack-sm mt-auto shrink-0 items-center border-t border-border pt-2">
-                <button
-                  type="button"
-                  class="bare shrink-0 text-text"
-                  onClick={() => undo()}
-                  disabled={!canUndo()}
-                  aria-label="Undo"
-                  title="Undo"
-                >
-                  <span
-                    class="inline-block icon-md i-lucide-undo-2"
-                    aria-hidden="true"
-                  />
-                </button>
-                <button
-                  type="button"
-                  class="bare shrink-0 text-text"
-                  onClick={() => redo()}
-                  disabled={!canRedo()}
-                  aria-label="Redo"
-                  title="Redo"
-                >
-                  <span
-                    class="inline-block icon-md i-lucide-redo-2"
-                    aria-hidden="true"
-                  />
-                </button>
-                <button
-                  type="button"
-                  class="bare shrink-0 text-text"
-                  onClick={async () => {
-                    const name = activeName();
-                    void saveThemeToDisk(name);
-                  }}
-                  disabled={!isDirty(activeName())}
-                  aria-label="Save to disk"
-                  title={saveTitle()}
-                >
-                  <span
-                    class="inline-block icon-md i-lucide-save"
-                    aria-hidden="true"
-                  />
-                </button>
-                <A
-                  href={hostPath(FOOT.path)}
-                  activeClass="text-text font-semibold underline"
-                  inactiveClass="text-text"
-                  class="row-sm justify-center"
-                  title={FOOT.label}
-                >
-                  <span
-                    class={`inline-block icon-md ${FOOT.icon}`}
-                    aria-hidden="true"
-                  />
-                </A>
-              </div>
+              <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2">
+                <li class="m-0 w-full">
+                  <button
+                    type="button"
+                    class="peer bare flex w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
+                    onClick={() => undo()}
+                    disabled={!canUndo()}
+                    aria-label="Undo"
+                    title="Undo"
+                  >
+                    <span
+                      class="inline-block shrink-0 text-xl i-lucide-undo-2"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <RailTip label="Undo" />
+                </li>
+                <li class="m-0 w-full">
+                  <button
+                    type="button"
+                    class="peer bare flex w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
+                    onClick={() => redo()}
+                    disabled={!canRedo()}
+                    aria-label="Redo"
+                    title="Redo"
+                  >
+                    <span
+                      class="inline-block shrink-0 text-xl i-lucide-redo-2"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <RailTip label="Redo" />
+                </li>
+                <li class="m-0 w-full">
+                  <button
+                    type="button"
+                    class="peer bare flex w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
+                    onClick={async () => {
+                      const name = activeName();
+                      void saveThemeToDisk(name);
+                    }}
+                    disabled={!isDirty(activeName())}
+                    aria-label="Save to disk"
+                    title={saveTitle()}
+                  >
+                    <span
+                      class="inline-block shrink-0 text-xl i-lucide-save"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <RailTip label="Save to disk" />
+                </li>
+                <li class="m-0 w-full">
+                  <A
+                    href={hostPath(FOOT.path)}
+                    activeClass="bg-surface-sunken text-text font-semibold"
+                    inactiveClass="text-text"
+                    class="peer flex items-center justify-center rounded-md hover:bg-surface"
+                    title={FOOT.label}
+                    aria-label={FOOT.label}
+                  >
+                    <span
+                      class={`inline-block shrink-0 text-xl ${FOOT.icon}`}
+                      aria-hidden="true"
+                    />
+                  </A>
+                  <RailTip label={FOOT.label} />
+                </li>
+              </ul>
             </nav>
             {
               /* The editor's header and the column under it. The header is
