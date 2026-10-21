@@ -61,16 +61,35 @@ function twinOf(declared: string): string {
   return rest.charAt(0).toLowerCase() + rest.slice(1);
 }
 
-/** The declared props of one component, read from its scope decls. */
+/**
+ * The declared props of one component, read from its scope decls.
+ *
+ * The CANONICAL element's decl is the contract — every component has one,
+ * in the specimens' routes. The examples' decls add the instances' own
+ * defaults (a slider's example seeds `[50]`), so they are read too.
+ */
 function declaredProps(name: string): PropDecl[] {
   const here = import.meta.dirname ?? ".";
-  const examples = join(here, `spin-${name}`, "examples");
   const decls = new Map<string, PropDecl>();
-  for (const file of readdirSync(examples)) {
-    if (!file.endsWith(".html")) continue;
-    for (const decl of parseScope(readFileSync(join(examples, file), "utf8")).props) {
+  const read = (file: string): void => {
+    for (const decl of parseScope(readFileSync(file, "utf8")).props) {
       if (!decls.has(decl.name)) decls.set(decl.name, decl);
     }
+  };
+  const canonical = join(here, "..", "specimens", "src", "routes", `spin-${name}.html`);
+  try {
+    read(canonical);
+  } catch {
+    // the component has no canonical element
+  }
+  const examples = join(here, `spin-${name}`, "examples");
+  try {
+    for (const file of readdirSync(examples)) {
+      if (!file.endsWith(".html")) continue;
+      read(join(examples, file));
+    }
+  } catch {
+    // the component ships no examples
   }
   return [...decls.values()];
 }
