@@ -14,13 +14,13 @@ import { dataAttr, keyed, memo, type BagMemo, type BagReads, type ReadRecorder }
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
-import type { Machine } from "@spin/runtime/fsm";
+import type { EventMap, EventUnion, Machine } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
 
 export function defineComponent<
   C extends object,
-  E extends { type: string },
+  E extends EventMap,
   Api extends object = Record<string, unknown>,
 >(def: ComponentDef<C, E>): Omit<MachineDef, "createBridge"> & {
   readonly createBridge: (
@@ -119,7 +119,7 @@ export function defineComponent<
 
       establish: (_svc, props, authored) => {
         if (def.establish === undefined) return [];
-        return def.establish(props(), authored) as readonly E[];
+        return def.establish(props(), authored) as readonly EventUnion<E>[];
       },
       kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
       refresh: (svc, props, authored) => {
@@ -230,7 +230,7 @@ export function defineComponent<
           focus: focusPart,
           measure: measurePart,
           send: (report: { readonly type: string } & Record<string, unknown>): void => {
-            send(report as E);
+            send(report as EventUnion<E>);
           },
         });
       },
@@ -238,7 +238,9 @@ export function defineComponent<
         const focusHere = focuser(ids(def.name, id));
         const measureHere = measurer(ids(def.name, id));
         const dispatch = (event: { type: string } & Record<string, unknown>): void => {
-          service.send((def.dispatch !== undefined ? def.dispatch(event, readProps()) : event) as E);
+          service.send(
+            (def.dispatch !== undefined ? def.dispatch(event, readProps()) : event) as EventUnion<E>,
+          );
         };
         const api: Record<string, unknown> = {};
         for (const [name, command] of Object.entries(def.commands)) {

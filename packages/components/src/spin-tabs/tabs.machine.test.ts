@@ -4,7 +4,7 @@ import {
   tabs as tabsMachine,
   type TabsArgs,
   type TabsContext,
-  type TabsEvent,
+  type TabsEvents,
 } from "./tabs.machine.ts";
 
 /**
@@ -14,12 +14,12 @@ import {
  * arguments the host would set. Everything asserted after that is what
  * a host observes.
  */
-function tabs(args: TabsArgs = {}): Service<TabsContext, TabsEvent> {
+function tabs(args: TabsArgs = {}): Service<TabsContext, TabsEvents> {
   return interpret(tabsMachine(args, () => true)).start("idle");
 }
 
 const contextOf = (
-  svc: Service<TabsContext, TabsEvent>,
+  svc: Service<TabsContext, TabsEvents>,
 ): TabsContext => svc.state.context;
 
 Deno.test("tabs starts idle with seeded value", () => {

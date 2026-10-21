@@ -57,56 +57,63 @@ export type EventObject = { type: string } & Record<string, unknown>;
  */
 export type EventMap = object;
 
-/** The event a key names: its discriminant, plus the payload the map gives. */
-export type EventOf<TMap extends EventMap, TKey extends keyof TMap> = {
-  readonly type: TKey;
-} & TMap[TKey & keyof TMap];
+/**
+ * The map's keys, as NAMES. A map is an interface, so it has no index
+ * signature — the names are extracted, not read off an index.
+ */
+export type EventNames<TMap extends EventMap> = Extract<keyof TMap, string>;
+
+/**
+ * The event a name names: its discriminant, plus the payload the map
+ * gives under that name.
+ */
+export type EventOf<TMap extends EventMap, TName extends EventNames<TMap>> = {
+  readonly type: TName;
+} & TMap[TName & keyof TMap];
 
 /** Every event of a map, as the union a service sends. */
 export type EventUnion<TMap extends EventMap> = {
-  [TKey in keyof TMap]: EventOf<TMap, TKey>;
-}[keyof TMap];
+  [TName in EventNames<TMap>]: EventOf<TMap, TName>;
+}[EventNames<TMap>];
 
-/** The state a service holds: a value, the context, and the actions to run. */
+/** The name of an event of a map. */
+export type EventName<TMap extends EventMap> = EventNames<TMap>;
+
+/** The state a service holds: a value, the context, and what it matches. */
 export interface State<TContext extends object> {
   readonly value: string;
   readonly context: TContext;
-  /** Non-assign actions resolved for the transition, awaiting execution. */
-  readonly actions: readonly ResolvedAction<TContext>[];
   readonly matches: (value: string) => boolean;
 }
 
-interface ResolvedAction<TContext extends object> {
-  readonly type: string;
-  readonly exec: ((context: TContext, event: EventObject) => void) | undefined;
-}
-
 /** A transition target: a state name, or a record with an optional target. */
-export type Transition<TContext extends object, TEvent extends EventObject> =
+export type Transition<TContext extends object, TEvent> =
   | string
   | {
-      target?: string;
-      cond?: string | ((context: TContext, event: TEvent) => boolean);
-      actions?: readonly Action<TContext, TEvent>[];
+      readonly target?: string;
+      readonly cond?: (context: TContext, event: TEvent) => boolean;
+      readonly assign?: Assign<TContext, TEvent> | readonly Assign<TContext, TEvent>[];
     };
 
-/** What an `actions` entry may be. Plain strings and functions resolve from
- * the implementations; `{ assign: "name" }` is a context write. */
-export type Action<TContext extends object, TEvent extends EventObject> =
-  | string
-  | ((context: TContext, event: TEvent) => void)
-  | { readonly assign: string };
+/** A context write: a pure transform of the context. */
+export type Assign<TContext extends object, TEvent> = (
+  context: TContext,
+  event: TEvent,
+) => Partial<TContext>;
 
-export interface Implementations<TContext extends object, TEvent extends EventObject> {
-  /** Named conds referenced by `cond: "name"`. */
-  readonly conds?: Record<string, (context: TContext, event: TEvent) => boolean>;
-  /** Named pure context transforms referenced by `{ assign: "name" }`. */
-  readonly assigns?: Record<string, (context: TContext, event: TEvent) => Partial<TContext>>;
-  /** Named side-effect actions referenced by bare strings. */
-  readonly actions?: Record<string, (context: TContext, event: TEvent) => void>;
-}
+/**
+ * The transitions of a map: each KEY narrows its own event.
+ *
+ * The author writes the event map once, and every transition reads its
+ * event through the narrowing its key gives.
+ */
+export type Transitions<TContext extends object, TEventMap extends EventMap> = {
+  readonly [TName in EventNames<TEventMap>]?:
+    | Transition<TContext, EventOf<TEventMap, TName>>
+    | readonly Transition<TContext, EventOf<TEventMap, TName>>[];
+};
 
-export interface Config<TContext extends object, TEvent extends EventObject> {
+export interface Config<TContext extends object, TEventMap extends EventMap> {
   readonly id?: string;
   readonly initial: string;
   readonly context?: TContext;
@@ -114,34 +121,33 @@ export interface Config<TContext extends object, TEvent extends EventObject> {
    * for the same event shadow these; everything else falls through here,
    * which states "this event works everywhere" once instead of duplicating
    * it across states. */
-  readonly on?: Readonly<Record<string, readonly Transition<TContext, TEvent>[] | Transition<TContext, TEvent>>>;
+  readonly on?: Transitions<TContext, TEventMap>;
   readonly states: Readonly<
     Record<
       string,
       {
-        readonly entry?: readonly Action<TContext, TEvent>[];
-        readonly exit?: readonly Action<TContext, TEvent>[];
-        readonly on?: Readonly<Record<string, readonly Transition<TContext, TEvent>[] | Transition<TContext, TEvent>>>;
+        readonly entry?: readonly Assign<TContext, EventUnion<TEventMap>>[];
+        readonly exit?: readonly Assign<TContext, EventUnion<TEventMap>>[];
+        readonly on?: Transitions<TContext, TEventMap>;
       }
     >
   >;
 }
 
-export interface Machine<TContext extends object, TEvent extends EventObject> {
-  readonly config: Config<TContext, TEvent>;
-  /** The implementations table, so `interpret`'s start() can fold entry
-   * actions when reseeding, and a component can read the machine's own
-   * tables. */
-  readonly implementations: Implementations<TContext, TEvent>;
+export interface Machine<TContext extends object, TEventMap extends EventMap> {
+  readonly config: Config<TContext, TEventMap>;
   /** The machine's contract with its hosts: the fields a host may write,
    * and the event each write carries. */
-  readonly fields: Readonly<Record<string, FieldContract<TEvent>>>;
+  readonly fields: Readonly<Record<string, FieldContract<TEventMap>>>;
   readonly initialState: State<TContext>;
-  transition(state: string | State<TContext>, event: TEvent["type"] | TEvent): State<TContext>;
+  transition(
+    state: string | State<TContext>,
+    event: EventUnion<TEventMap>,
+  ): State<TContext>;
 }
 
-export interface Service<TContext extends object, TEvent extends EventObject> {
-  send(event: TEvent["type"] | TEvent): void;
+export interface Service<TContext extends object, TEventMap extends EventMap> {
+  send(event: EventUnion<TEventMap>): void;
   /**
    * Replace part of the context, the way a transition's assigns do: the
    * context object is replaced, so subscribers see it. The seed uses
@@ -152,8 +158,8 @@ export interface Service<TContext extends object, TEvent extends EventObject> {
   /** Start (or restart) at an optional state, running that state's entry
    * actions. This is how `defaultOpen`-style seeds work: the service's
    * first state is not always the config's `initial`. */
-  start(state?: string | State<TContext>): Service<TContext, TEvent>;
-  stop(): Service<TContext, TEvent>;
+  start(state?: string | State<TContext>): Service<TContext, TEventMap>;
+  stop(): Service<TContext, TEventMap>;
   readonly state: State<TContext>;
   readonly stopped: boolean;
 }
@@ -165,114 +171,100 @@ function toArray<T>(value: readonly T[] | T | undefined): T[] {
   return Array.isArray(value) ? [...value] : [value as T];
 }
 
-function toEvent(event: string | { type: string } & Record<string, unknown>): { type: string } & Record<string, unknown> {
-  return typeof event === "string" ? { type: event } : event;
+function toEvent<TEventMap extends EventMap>(
+  event: EventUnion<TEventMap>,
+): EventUnion<TEventMap> {
+  return event;
 }
 
 function stateOf<TContext extends object>(value: string, context: TContext): State<TContext> {
-  return { value, context, actions: [], matches: (v) => v === value };
+  return { value, context, matches: (v) => v === value };
 }
 
 /**
- * Resolve the implementation for an action entry. `{ assign }` entries are
- * NOT returned as actions — they are context writes, applied during the fold
- * below, so `state.actions` only ever holds side effects.
+ * Whether a value is a list of transitions. `Array.isArray` does not
+ * narrow a readonly array, so the test is named.
  */
-function resolveAction<TContext extends object, TEvent extends EventObject>(
-  entry: Action<TContext, TEvent>,
-  impl: Implementations<TContext, TEvent>,
-): ResolvedAction<TContext> {
-  if (typeof entry === "string") {
-    const fn = impl.actions?.[entry];
-    return { type: entry, exec: fn ? (context, event) => fn(context, event as TEvent) : undefined };
-  }
-  if (typeof entry === "function") {
-    return { type: entry.name || "anonymous", exec: (context, event) => entry(context, event as TEvent) };
-  }
-  // `{ assign: "name" }` — resolved by the caller during folding; this branch
-  // is never returned as an action. See `fold` below.
-  return { type: (entry as { assign: string }).assign, exec: undefined };
+function isList<T>(value: T | readonly T[]): value is readonly T[] {
+  return Array.isArray(value);
 }
 
-interface FoldResult<TContext extends object> {
-  readonly actions: ResolvedAction<TContext>[];
-  readonly context: TContext;
-  readonly assigned: boolean;
+/**
+ * The event a key names. The guard is sound: the event IS the one its
+ * type names, and the check is the one the dispatch already does.
+ *
+ * Narrowing the event BEFORE the lookup is what keeps the lookup exact:
+ * a mapped type's indexed access does not distribute over a union of
+ * keys, so `on[event.type]` alone would lose the correlation.
+ */
+function isEvent<TEventMap extends EventMap, TName extends EventNames<TEventMap>>(
+  event: EventUnion<TEventMap>,
+  name: TName,
+): event is EventOf<TEventMap, TName> {
+  return event.type === name;
 }
 
-/** Fold assign entries into the context; collect the rest as actions. */
-function fold<TContext extends object, TEvent extends EventObject>(
-  entries: readonly Action<TContext, TEvent>[],
+/**
+ * The transitions a name names.
+ *
+ * The lookup is exact because the event is narrowed FIRST: a mapped type's
+ * indexed access does not distribute over a union of keys, so
+ * `on[event.type]` alone would lose the correlation between the name and
+ * the event. After the guard, `event.type` is the one name, and the lookup
+ * returns that name's transitions.
+ */
+function candidatesFor<TContext extends object, TEventMap extends EventMap, TName extends EventNames<TEventMap>>(
+  on: Transitions<TContext, TEventMap> | undefined,
+  event: EventUnion<TEventMap>,
+  name: TName,
+): readonly Transition<TContext, EventOf<TEventMap, TName>>[] {
+  if (!isEvent(event, name)) return [];
+  const found = on?.[event.type];
+  if (found === undefined) return [];
+  return isList(found) ? found : [found];
+}
+
+/**
+ * Apply a transition's context writes, in order. Each write sees the
+ * context the previous one left, so a chain reads what the chain wrote.
+ */
+function fold<TContext extends object, TEvent>(
+  assigns: Assign<TContext, TEvent> | readonly Assign<TContext, TEvent>[] | undefined,
   startContext: TContext,
   event: TEvent,
-  impl: Implementations<TContext, TEvent>,
-): FoldResult<TContext> {
+): TContext {
+  if (assigns === undefined) return startContext;
   let context = startContext;
-  let assigned = false;
-  const actions: ResolvedAction<TContext>[] = [];
-  for (const entry of entries) {
-    if (typeof entry === "object" && entry !== null && "assign" in entry) {
-      const name = entry.assign;
-      const assigner = impl.assigns?.[name];
-      if (!assigner) throw new Error(`[spin] no assign implementation "${name}"`);
-      context = { ...context, ...assigner(context, event) };
-      assigned = true;
-      continue;
-    }
-    actions.push(resolveAction(entry, impl));
+  for (const assign of (isList(assigns) ? assigns : [assigns])) {
+    context = { ...context, ...assign(context, event) };
   }
-  return { actions, context, assigned };
-}
-
-function resolveCond<TContext extends object, TEvent extends EventObject>(
-  cond: string | ((context: TContext, event: TEvent) => boolean) | undefined,
-  context: TContext,
-  event: TEvent,
-  impl: Implementations<TContext, TEvent>,
-): boolean {
-  if (cond === undefined) return true;
-  const fn = typeof cond === "string" ? impl.conds?.[cond] : cond;
-  if (typeof cond === "string" && !fn) {
-    throw new Error(`[spin] no cond implementation "${cond}"`);
-  }
-  return (fn as (context: TContext, event: TEvent) => boolean)(context, event);
+  return context;
 }
 
 /**
  * The machine: one call, one object.
  *
- * The config says what the machine IS (its context, its states, its
- * transitions). The assigns and the guards say what it DOES, each bound
- * to the event it answers. The table keys are the names the config
- * refers to, so a name cannot drift from its implementation.
+ * The spec says what the machine IS (its context, its states, its
+ * transitions) and what it DOES (its context writes, its guards) — each
+ * bound to the event it answers, by the transition's KEY.
  */
-export interface MachineSpec<TContext extends object, TEvent extends EventObject> {
+export interface MachineSpec<TContext extends object, TEventMap extends EventMap> {
   readonly id?: string;
   /** The machine's own defaults. No prop reaches this: a machine does
    * not know what a host is. */
   readonly context: TContext;
   readonly initial: string;
-  readonly on?: Readonly<
-    Record<string, readonly Transition<TContext, TEvent>[] | Transition<TContext, TEvent>>
-  >;
+  readonly on?: Transitions<TContext, TEventMap>;
   readonly states: Readonly<
     Record<
       string,
       {
-        readonly entry?: readonly Action<TContext, TEvent>[];
-        readonly exit?: readonly Action<TContext, TEvent>[];
-        readonly on?: Readonly<
-          Record<string, readonly Transition<TContext, TEvent>[] | Transition<TContext, TEvent>>
-        >;
+        readonly entry?: readonly Assign<TContext, EventUnion<TEventMap>>[];
+        readonly exit?: readonly Assign<TContext, EventUnion<TEventMap>>[];
+        readonly on?: Transitions<TContext, TEventMap>;
       }
     >
   >;
-  /** The context transforms, referenced by name from the config. */
-  readonly assigns?: Readonly<Record<string, (context: TContext, event: TEvent) => Partial<TContext>>>;
-  /** The guards, referenced by name from the config. */
-  readonly conds?: Readonly<Record<string, (context: TContext, event: TEvent) => boolean>>;
-  /** The side-effect actions, referenced by name. */
-  readonly actions?: Readonly<Record<string, (context: TContext, event: TEvent) => void>>;
   /**
    * The machine's contract with its hosts: the context fields a host may
    * write, and the event each write carries.
@@ -284,7 +276,7 @@ export interface MachineSpec<TContext extends object, TEvent extends EventObject
    * The machine owns this map. The element does not restate it, and a
    * host cannot write a field the contract does not name.
    */
-  readonly fields?: Readonly<Record<string, FieldContract<TEvent>>>;
+  readonly fields?: Readonly<Record<string, FieldContract<TEventMap>>>;
 }
 
 /**
@@ -299,49 +291,33 @@ export interface MachineSpec<TContext extends object, TEvent extends EventObject
  *   path. The same shaping the machine's `initial` applies to the
  *   argument, so a host's write and the start agree.
  */
-export interface FieldContract<TEvent extends EventObject> {
-  readonly event?: TEvent["type"];
+export interface FieldContract<TEventMap extends EventMap> {
+  readonly event?: EventUnion<TEventMap>["type"];
   readonly parse?: (raw: unknown) => unknown;
 }
 
-export function createMachine<TContext extends object, TEvent extends EventObject>(
-  spec: MachineSpec<TContext, TEvent>,
-): Machine<TContext, TEvent> {
-  const config: Config<TContext, TEvent> = {
+export function createMachine<TContext extends object, TEventMap extends EventMap>(
+  spec: MachineSpec<TContext, TEventMap>,
+): Machine<TContext, TEventMap> {
+  const config: Config<TContext, TEventMap> = {
     ...(spec.id === undefined ? {} : { id: spec.id }),
     initial: spec.initial,
     context: spec.context,
     ...(spec.on === undefined ? {} : { on: spec.on }),
     states: spec.states,
   };
-  const implementations: Implementations<TContext, TEvent> = {
-    ...(spec.conds === undefined
-      ? {}
-      : {
-        conds: { ...spec.conds },
-      }),
-    ...(spec.assigns === undefined
-      ? {}
-      : {
-        assigns: { ...spec.assigns },
-      }),
-    ...(spec.actions === undefined ? {} : { actions: spec.actions }),
-  };
   const initial = fold(
-    toArray(config.states[config.initial]?.entry),
+    config.states[config.initial]?.entry,
     (config.context ?? ({} as TContext)),
-    INIT as unknown as TEvent,
-    implementations,
+    INIT as unknown as EventUnion<TEventMap>,
   );
 
   return {
     config,
-    implementations,
     fields: spec.fields ?? {},
     initialState: {
       value: config.initial,
-      actions: initial.actions,
-      context: initial.context,
+      context: initial,
       matches: (v) => v === config.initial,
     },
     transition(stateOrValue, eventOrType): State<TContext> {
@@ -356,43 +332,37 @@ export function createMachine<TContext extends object, TEvent extends EventObjec
       // No early return on a missing `on`: a state that declares nothing
       // still inherits the root tier. `stateDef` itself stays optional —
       // root handlers must work even for a state absent from the map.
+      const name = event.type as EventName<TEventMap>;
       const candidates = [
-        ...toArray(stateDef?.on?.[event.type]),
-        ...toArray(stateDef?.on?.["*"]),
+        ...candidatesFor(stateDef?.on, event, name),
         // Root handlers are the fallback tier: a state-level handler for the
         // same event shadows them by ordering. One place states "this event
         // works everywhere" instead of a copy in every state.
-        ...toArray(config.on?.[event.type]),
-        ...toArray(config.on?.["*"]),
-      ].filter((c) => c !== undefined);
+        ...candidatesFor(config.on, event, name),
+      ];
       if (candidates.length === 0) return stateOf(current, ctx);
       for (const candidate of candidates) {
-        const { target, cond, actions = [] } =
-          typeof candidate === "string" ? { target: candidate, cond: undefined, actions: [] } : candidate;
-        if (!resolveCond(cond, ctx, event as TEvent, implementations)) continue;
+        const { target, cond, assign } =
+          typeof candidate === "string" ? { target: candidate, cond: undefined, assign: undefined } : candidate;
+        if (cond !== undefined && !cond(ctx, event)) continue;
 
-        // Internal transition (no target): only this transition's actions
+        // Internal transition (no target): only this transition's writes
         // run — no exit, no entry, no state change.
         if (target === undefined) {
-          const folded = fold(actions, ctx, event as TEvent, implementations);
-            return {
+          return {
             value: current,
-            context: folded.context,
-            actions: folded.actions,
+            context: fold(assign, ctx, event),
             matches: (v) => v === current,
           };
         }
         const nextDef = config.states[target];
-        const chain = [
-          ...toArray(stateDef?.exit).filter((a) => a !== undefined),
-          ...actions,
-          ...toArray(nextDef?.entry).filter((a) => a !== undefined),
-        ];
-        const folded = fold(chain, ctx, event as TEvent, implementations);
+        // The chain: the state's exit, the transition's writes, the next
+        // state's entry — in that order, each seeing what the last left.
+        const context = fold(stateDef?.exit, ctx, event);
+        const written = fold(assign, context, event);
         return {
           value: target,
-          context: folded.context,
-          actions: folded.actions,
+          context: fold(nextDef?.entry, written, event),
           matches: (v) => v === target,
         };
       }
@@ -401,30 +371,20 @@ export function createMachine<TContext extends object, TEvent extends EventObjec
   };
 }
 
-export function interpret<TContext extends object, TEvent extends EventObject>(
-  machine: Machine<TContext, TEvent>,
-): Service<TContext, TEvent> {
+export function interpret<TContext extends object, TEventMap extends EventMap>(
+  machine: Machine<TContext, TEventMap>,
+): Service<TContext, TEventMap> {
   let current = machine.initialState;
   let stopped = false;
-  // The same implementations table createMachine closed over, needed to
-  // resolve entry actions when start() reseeds.
-  const impl = machine.implementations ?? {};
 
-  const runActions = (state: State<TContext>, event: EventObject): void => {
-    for (const action of state.actions) action.exec?.(state.context, event);
-  };
-
-  const service: Service<TContext, TEvent> = {
+  const service: Service<TContext, TEventMap> = {
     setContext(patch) {
       current = { ...current, context: { ...current.context, ...patch } };
       machineTick(machineTick() + 1);
     },
     send(event) {
       if (stopped) return;
-      const normalized = toEvent(event);
-      const next = machine.transition(current, normalized as unknown as TEvent["type"]);
-      current = next;
-      runActions(next, normalized);
+      current = machine.transition(current, event);
       // The reactivity seam: consumers read this service through a
       // `computed` that subscribes to the tick, as every binding does.
       machineTick(machineTick() + 1);
@@ -434,22 +394,18 @@ export function interpret<TContext extends object, TEvent extends EventObject>(
       if (next !== undefined) {
         const value = typeof next === "string" ? next : next.value;
         const context = typeof next === "string" ? machine.initialState.context : next.context;
-        const entry = fold(
-          toArray(machine.config.states[value]?.entry),
-          context,
-          INIT as unknown as TEvent,
-          impl,
-        );
         current = {
           value,
-          context: entry.context,
-          actions: entry.actions,
+          context: fold(
+            machine.config.states[value]?.entry,
+            context,
+            INIT as unknown as EventUnion<TEventMap>,
+          ),
           matches: (v) => v === value,
         };
       } else {
         current = machine.initialState;
       }
-      runActions(current, INIT as unknown as TEvent);
       return service;
     },
     stop() {

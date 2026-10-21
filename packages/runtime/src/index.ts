@@ -179,13 +179,19 @@ export { machineTick } from "./core/signal.ts";
 export {
   createMachine,
   interpret,
+  type Assign,
   type Config,
+  type EventMap,
+  type EventName,
+  type EventNames,
   type EventObject,
-  type Implementations,
+  type EventOf,
+  type EventUnion,
   type Machine,
   type MachineSpec,
   type Service,
   type State,
   type Transition,
+  type Transitions,
 } from "./machine/fsm/machine.ts";
 export { defaultTwin, resolveTwins } from "./props.ts";

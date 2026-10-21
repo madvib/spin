@@ -1,7 +1,7 @@
 /** Tabs machine: selection is component state, not platform state. */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type EventUnion, type Machine } from "@spin/runtime/fsm";
 
 export interface TabsItem {
   readonly value: string;
@@ -17,9 +17,17 @@ export interface TabsContext {
   items: readonly TabsItem[];
 }
 
-export type TabsEvent =
-  | { type: "VALUE.SET"; value: string }
-  | { type: "TAB.SELECT"; value: string };
+/**
+ * The tabs' events, as a MAP: the contract with the outside. The spec's
+ * `on` map is typed over it, so a transition's KEY narrows the event it
+ * receives — an assign reads its payload with no guard and no cast.
+ */
+export interface TabsEvents {
+  "VALUE.SET": { value: string };
+  "TAB.SELECT": { value: string };
+}
+
+export type TabsEvent = EventUnion<TabsEvents>;
 
 export type TabsValueChange = {
   readonly value: string;
@@ -91,8 +99,8 @@ export function initial(args: TabsArgs = {}, authored: (name: string) => boolean
 export function tabs(
   args: TabsArgs = {},
   authored: (name: string) => boolean,
-): Machine<TabsContext, TabsEvent> {
-  return createMachine<TabsContext, TabsEvent>({
+): Machine<TabsContext, TabsEvents> {
+  return createMachine<TabsContext, TabsEvents>({
     id: "tabs",
     initial: "idle",
     context: initial(args, authored),
@@ -111,23 +119,17 @@ export function tabs(
     states: {
       idle: {
         on: {
-          "VALUE.SET": { actions: [{ assign: "setValue" }] },
-          "TAB.SELECT": { actions: [{ assign: "selectTab" }] },
+          "VALUE.SET": {
+            // The KEY narrows the event: `event.value` is a string.
+            assign: (_ctx, event) => ({
+              value: typeof event.value === "string" ? event.value : "",
+            }),
+          },
+          "TAB.SELECT": {
+            assign: (ctx, event) =>
+              event.value.length === 0 || event.value === ctx.value ? {} : { value: event.value },
+          },
         },
-      },
-    },
-    assigns: {
-      // Outer writes win outright; the seed resolves default-vs-value once.
-      setValue: (ctx: TabsContext, event: TabsEvent): Partial<TabsContext> => {
-        if (event.type !== "VALUE.SET") return {};
-        void ctx;
-        // The value arrives the way the host wrote it; the machine shapes it.
-        return { value: typeof event.value === "string" ? event.value : "" };
-      },
-      selectTab: (ctx: TabsContext, event: TabsEvent): Partial<TabsContext> => {
-        if (event.type !== "TAB.SELECT") return {};
-        if (event.value.length === 0 || event.value === ctx.value) return {};
-        return { value: event.value };
       },
     },
   });

@@ -21,17 +21,20 @@ import { computed, effect, machineTick, scope, signal, untrack, type Signal } fr
 import { resolveTwins } from "../props.ts";
 import {
   interpret,
+  type EventMap,
+  type EventName,
+  type EventUnion,
   type Service,
   type Machine,
 } from "@spin/runtime/fsm";
 
-export interface BridgeService<C, E extends { type: string }> {
+export interface BridgeService<C, E extends EventMap> {
   readonly context: C;
   readonly state: string;
-  send(event: E): void;
+  send(event: EventUnion<E>): void;
 }
 
-export interface BridgeShared<C extends object, E extends { type: string }> {
+export interface BridgeShared<C extends object, E extends EventMap> {
   /**
    * The machine: a factory over the element's props. The factory builds
    * the machine with its context already seeded from the arguments it
@@ -58,7 +61,7 @@ export interface BridgeLive {
 
 export interface BridgeHooks<
   C extends object,
-  E extends { type: string },
+  E extends EventMap,
   Api extends object,
   ConnectProps,
   Callbacks,
@@ -75,7 +78,7 @@ export interface BridgeHooks<
     svc: Service<C, E>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
-  ): readonly E[];
+  ): readonly EventUnion<E>[];
   /** The machine's contract decides what a host write means: a field
    * with an event is REPORTED, a field without one is SILENT. The
    * bridge applies the contract; there is no per-component sync. */
@@ -87,17 +90,17 @@ export interface BridgeHooks<
     svc: Service<C, E>,
     callbacks: Callbacks,
     kind: "move" | "commit",
-    event?: E,
+    event?: EventUnion<E>,
     before?: { readonly context: C; readonly state: string },
     parsed?: Record<string, unknown>,
     source?: string,
   ): void;
   /** Classify the send: commit sends fire `on: "commit"` events, moves fire
    * `on: "move"` (unset) events. Absent, every send notifies as a move. */
-  kind?(event: E): "move" | "commit";
+  kind?(event: EventUnion<E>): "move" | "commit";
   /** Observe every transmitted event type (sync writes included): a
    * controlled close reads the last one to tell a commit from a cancel. */
-  noteSent?(type: string): void;
+  noteSent?(type: EventName<E>): void;
   /** Derived-context reconcile inside the owned effect (collection order
    * re-homed over a changed item tree). Absent, the effect only alternates
    * controlled channels. */
@@ -106,7 +109,7 @@ export interface BridgeHooks<
     state: string,
     parsed: Record<string, unknown>,
     authored: (name: string) => boolean,
-    send: (event: E) => void,
+    send: (event: EventUnion<E>) => void,
   ): boolean;
   /** Once, after the first connect build (cells exist in markup): entry
    * focus and other mount-time view reflexes. */
@@ -116,13 +119,13 @@ export interface BridgeHooks<
   /** Post-send view reflexes (the panel's opening owes the field its focus).
    * View-side only: focus management, never state. */
   settled?(args: {
-    readonly event: E;
+    readonly event: EventUnion<E>;
     readonly before: { readonly context: C; readonly state: string };
     readonly after: { readonly context: C; readonly state: string };
     readonly props: () => Record<string, unknown>;
     /** The full funnel: a settled reflex that kicks a DOM poll reports
      * its findings back through this, with reporting and ticks. */
-    readonly send: (event: E) => void;
+    readonly send: (event: EventUnion<E>) => void;
   }): void;
   /** Merge parsed props into machine context (pre-send and in the owned
    * effect, so a host scalar write lands without waiting for a gesture).
@@ -139,7 +142,7 @@ export interface BridgeHooks<
 
 export interface BridgeSpec<
   C extends object,
-  E extends { type: string },
+  E extends EventMap,
   Api extends object,
   ConnectProps,
   Callbacks,
@@ -165,18 +168,18 @@ export function authoredProps(props: () => Record<string, unknown>): (name: stri
  * The machine's contract, applied: for every field the host wrote, send
  * the field's event, or write the field silently.
  */
-function applyContract<C extends object, E extends { type: string }>(
+function applyContract<C extends object, E extends EventMap>(
   svc: Service<C, E>,
-  fields: Readonly<Record<string, { readonly event?: E["type"]; readonly parse?: (raw: unknown) => unknown }>>,
+  fields: Readonly<Record<string, { readonly event?: EventUnion<E>["type"]; readonly parse?: (raw: unknown) => unknown }>>,
   props: () => Record<string, unknown>,
   authored: (name: string) => boolean,
   cursor: Map<string, unknown>,
-  send: (event: E) => void,
-): { readonly moved: boolean; readonly events: readonly E[] } {
+  send: (event: EventUnion<E>) => void,
+): { readonly moved: boolean; readonly events: readonly EventUnion<E>[] } {
   if (Object.keys(fields).length === 0) return { moved: false, events: [] };
   const parsed = props();
   const context = svc.state.context as unknown as Record<string, unknown>;
-  const events: E[] = [];
+  const events: EventUnion<E>[] = [];
   let moved = false;
   for (const [field, contract] of Object.entries(fields)) {
     const raw = parsed[field];
@@ -196,8 +199,10 @@ function applyContract<C extends object, E extends { type: string }>(
       continue;
     }
     // A reported field: the host's write is an event, and the prop's
-    // name is the payload's key.
-    const event = { type: contract.event, [field]: raw } as unknown as E;
+    // name is the payload's key. The event's shape is the machine's own
+    // business — the contract names the EVENT, and the machine reads the
+    // payload it declared.
+    const event = { type: contract.event, [field]: raw } as EventUnion<E>;
     events.push(event);
     moved = true;
     send(event);
@@ -219,7 +224,7 @@ export function textProp(raw: unknown): string {
 
 export function defineBridge<
   C extends object,
-  E extends { type: string },
+  E extends EventMap,
   Api extends object,
   ConnectProps,
   Callbacks,
@@ -315,7 +320,7 @@ export function defineBridge<
       // would leave the signals stale — the readers would see the
       // machine's old state.
       const rawSend = svc.send.bind(svc);
-      svc.send = (event: E) => {
+      svc.send = (event: EventUnion<E>) => {
         rawSend(event);
         mirror(svc.state.context, svc.state.value);
         machineTick(machineTick() + 1);
@@ -353,7 +358,7 @@ export function defineBridge<
   // and completion reflexes run for controlled writes too. Reporting stays
   // manual: the effect's trailing notify covers reconcile moves, and
   // watch-cursors suppress its echo of these sends.
-  const transmit = (event: E): {
+  const transmit = (event: EventUnion<E>): {
     readonly svc: Service<C, E>;
     readonly before: { readonly context: C; readonly state: string };
   } => {
@@ -369,7 +374,7 @@ export function defineBridge<
       before,
       after: { context: svc.state.context, state: svc.state.value },
       props,
-      send: (report: E): void => send(report),
+      send: (report: EventUnion<E>): void => send(report),
     });
     // The send mirrored the context into the signals; the tick is the
     // invalidation bus every binding watches.
@@ -378,7 +383,7 @@ export function defineBridge<
     return { svc, before };
   };
 
-  const send = (event: E): void => {
+  const send = (event: EventUnion<E>): void => {
     const { svc, before } = transmit(event);
     hooks.notify(
       svc,
@@ -452,7 +457,7 @@ export function defineBridge<
       // reader sees the machine's value.
       mirror(svc.state.context, svc.state.value);
       const parsed = readParsed();
-      const reconciled: E[] = [];
+      const reconciled: EventUnion<E>[] = [];
       const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {
         reconciled.push(event);
         transmit(event);

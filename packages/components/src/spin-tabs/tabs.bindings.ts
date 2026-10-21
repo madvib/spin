@@ -4,7 +4,7 @@ import {
   tabs as tabsMachine,
   type TabsArgs,
   type TabsContext,
-  type TabsEvent,
+  type TabsEvents,
   type TabsItem,
   type TabsValueChange,
 } from "./tabs.machine.ts";
@@ -23,7 +23,7 @@ const neighbor = (scope: PartScope<TabsItem, TabsContext>, value: string, direct
   return items[next]?.value ?? null;
 };
 
-const def: ComponentDef<TabsContext, TabsEvent> = {
+const def: ComponentDef<TabsContext, TabsEvents> = {
   name: "tabs",
   machine: (props, authored) => tabsMachine(props as TabsArgs, authored),
   parts: {
@@ -107,4 +107,4 @@ const def: ComponentDef<TabsContext, TabsEvent> = {
   },
 };
 
-export const tabs = defineComponent<TabsContext, TabsEvent>(def);
+export const tabs = defineComponent<TabsContext, TabsEvents>(def);

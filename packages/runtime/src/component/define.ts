@@ -11,7 +11,7 @@
  * The framework synthesizes the bridge and the connect from this; no
  * hand-written `getXProps()` exists for any component. */
 
-import type { Machine } from "@spin/runtime/fsm";
+import type { EventMap, EventUnion, Machine } from "@spin/runtime/fsm";
 
 export interface ParseHost {
   /** The element root: behavioral host props (sanitize, validate,
@@ -94,7 +94,7 @@ export interface ReaderDef<C extends object = Record<string, unknown>> {
  * - a context patch — a literal the consumer chose.
  * - a function — the consumer reads the host's props and decides.
  */
-export type InitSpec<C extends object, E extends { type: string }> =
+export type InitSpec<C extends object, E extends EventMap> =
   | Partial<C>
   | ((props: Readonly<Record<string, unknown>>, authored: (name: string) => boolean) => Partial<C>);
 
@@ -106,7 +106,7 @@ export type InitSpec<C extends object, E extends { type: string }> =
  * needs a descriptor of the machine's arguments, and the arguments
  * cannot drift from the context they fill.
  */
-export type MachineFactory<C extends object, E extends { type: string }> = (
+export type MachineFactory<C extends object, E extends EventMap> = (
   props: Record<string, unknown>,
   authored: (name: string) => boolean,
 ) => Machine<C, E>;
@@ -128,7 +128,7 @@ export interface MethodDef<C extends object = Record<string, unknown>> {
 export type CommandDef<
   A extends readonly unknown[] = readonly unknown[],
   C extends object = Record<string, unknown>,
-  E extends { type: string } = { type: string },
+  E extends EventMap = Record<string, object>,
 > =
   | {
     /** A sending command: name + event from args, live context, and part
@@ -142,7 +142,7 @@ export type CommandDef<
       args: A,
       context: C,
       id: (part: string, slot?: unknown) => string,
-    ): E;
+    ): EventUnion<E>;
     readonly view?: undefined;
   }
   | {
@@ -190,7 +190,7 @@ export interface EventDef<W extends readonly unknown[] = readonly unknown[], C e
     source?: string,
   ) => Record<string, unknown> | readonly Record<string, unknown>[] | null;
 }
-export interface ComponentDef<C extends object, E extends { type: string }> {
+export interface ComponentDef<C extends object, E extends EventMap> {
   readonly name: string;
   /** The start state, or its computation from parsed props (an authored
    * `open` starts the panel up). Absent, the machine's own initial. */
