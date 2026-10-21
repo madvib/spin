@@ -46,6 +46,7 @@
   },
   "peerDependencies": {
     "@spin/preset": "^0.1.0",
+    "@spin/project": "^0.1.0",
     "@spin/theme": "^0.1.0"
   },
   "publishConfig": {

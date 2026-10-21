@@ -45,6 +45,7 @@ to build from, and oracles that mechanically verify the result.
 | `@spin/theme`       | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.    |
 | `@spin/animation`   | Keyframes and the `animate-*` utilities that name them — the one global CSS namespace, given one home. |
 | `@spin/preset`      | UnoCSS preset: the utility vocabulary a theme spends, and the element library as rules.                |
+| `@spin/project`     | The project: where it is, what it holds, and the operations over its files.                            |
 | `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them.                            |
 | `@spin/api`         | The daemon: the procedures, over RPC, that the studio and the MCP server share.                        |
 | `@spin/mcp`         | The MCP server over those procedures, for agents.                                                      |
@@ -81,9 +82,12 @@ Supporting trees:
 - A package that is not `@spin/theme` MUST NOT hardcode a token value. Read it
   from the theme.
 - A package that is not `@spin/preset` MUST NOT reference UnoCSS internals.
+- A package that is not `@spin/project` MUST NOT read or write a project's
+  files. The project owns where its themes and its configuration live; ask it.
 - `@spin/diagnostics` MUST NOT re-implement theme resolution; it asks the theme.
   Dependencies point downward: diagnostics → preset → theme; diagnostics →
-  animation → theme; api → preset → theme; mcp → api.
+  animation → theme; project → preset → theme; api → project → preset → theme;
+  api → preset → theme; mcp → api.
 - Every package owns its `deno.json`, exports only from `src/index.ts`, and has
   its own `test` / `lint` / `fmt` tasks.
 

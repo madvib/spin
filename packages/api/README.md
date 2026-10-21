@@ -21,15 +21,12 @@ contract and its own handlers, and this one mounts them.
                    primitivesContract · primitivesRouter
                    projectContract · previewContract · iconsContract
 
-  project          projectRouter · setProjectRoot
-                   initFiles · isWired · PROJECT_DIR
-
 @spin/api/daemon
   startDaemon      bind a port and serve the shared app
   DaemonOptions    Daemon
 
 @spin/api/project
-  projectRouter · setProjectRoot · initFiles · isWired · PROJECT_DIR
+  projectRouter · setProjectRoot
 
 @spin/api/serve
   the `spin daemon` entry: one process, one port, one project root
@@ -51,9 +48,11 @@ The router is the union of every module's router:
 | `icons.*`      | the installed iconify collections: names, then glyph bodies                              |
 | `fonts.*`      | the font catalogue, filtered by name                                                     |
 
-`project.*` lives here rather than in `@spin/theme` because it touches a
-filesystem: a theme is text, and this is what happens to text on its way to a
-directory.
+`project.*` is transport over `@spin/project`. The contract stays here — it is
+the wire shape, and the wire is the daemon's — while the operations live in the
+module that owns them: where a project's files are, what a theme document is,
+and what a configuration declares. The handlers hold no filesystem code; they
+name the root, ask the service, and answer.
 
 ## Contract
 

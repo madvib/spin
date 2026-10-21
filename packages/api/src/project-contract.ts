@@ -1,27 +1,18 @@
 /**
- * @spin/api — the project contract, and the procedures only a host can have.
+ * @spin/api — the project contract: the wire shape of a project's facts.
  *
- * `project.*` is here rather than in `@spin/theme` because it touches a
- * filesystem: a theme is text, and this is what happens to text on its way to
- * a directory. The theme package stays pure and reusable without a daemon.
+ * The contract is the transport's business, and it stays here: it says what
+ * a call looks like over the wire, and nothing else. The OPERATIONS over a
+ * project live in `@spin/project` — the module that owns where a project's
+ * files are, what a theme document is, and what a configuration declares.
  *
- * The other reason this lives here is composition. `project.init` writes a
- * project, and a project is not only a theme: it is a theme AND a build
- * config that wires the preset. Neither package knows that fact — `@spin/theme`
- * has never heard of uno, and `@spin/preset` has no idea a project has a root.
- * The daemon is the one thing that knows both, so it is the one that stitches
- * them.
- *
- * The pieces it stitches are themselves pure: `@spin/theme` produces a theme
- * document as text, `@spin/preset` produces an uno config as text. Both are
- * exported as text producers precisely so a host can compose them without
- * either one growing a filesystem.
+ * The two are separated because they answer different questions. This file
+ * says what a caller may ask; `@spin/project` says what the answer is. The
+ * daemon mounts the one on the other and adds the transport.
  */
 
 import { oc } from "@orpc/contract";
 import * as v from "valibot";
-import { scaffoldTheme, treeToJson } from "@spin/theme";
-import { configScaffoldText } from "../../preset/src/config.ts";
 
 /** A theme on disk, named by its file stem. */
 const ThemeName = v.pipe(
@@ -29,17 +20,6 @@ const ThemeName = v.pipe(
   v.regex(/^[a-z0-9][a-z0-9-]*$/i),
   v.description("A theme file stem, e.g. `default`."),
 );
-
-/**
- * The directory a project's themes live in, relative to its root.
- *
- * `spin/` rather than `themes/` because the name is the marker: a directory
- * called `spin` at a project root is a claim, and no dependency has one. A
- * `themes/` directory is ambiguous — libraries ship those, unrelated
- * subdirectories have that name, and a scanner that trusts it finds projects
- * that are not projects.
- */
-export const PROJECT_DIR = "spin";
 
 const ProjectTheme = v.object({
   /** File stem, and the name written back to disk. */
@@ -208,33 +188,3 @@ export const projectContract = {
     },
   },
 };
-
-/**
- * The `spin/` directory contents, by starter.
- *
- * `spin init` is a composer: it writes what each piece knows how to write.
- * Keeping the mapping here — rather than inside either package — is what lets
- * a project gain a file later (a `.gitignore`, an entry point) without the
- * theme package learning what a project is.
- */
-export function initFiles(
-  options: { readonly name: string; readonly starter: string },
-): Record<string, string> {
-  return {
-    [`${options.name}.json`]: treeToJson(scaffoldTheme()),
-    "uno.config.ts": configScaffoldText(),
-  };
-}
-
-/**
- * Whether a text is an uno config that applies spin.
- *
- * Two entry points wire spin, and both count: the encapsulated form
- * (`@spin/config`, `spin()`) that `spin init` writes, and the raw form
- * (`@spin/preset`, `spinPreset()`) that the escape hatch uses. A detector
- * that knew only one would report a correctly wired project as unwired —
- * which is how this bug shipped, caught by the init test.
- */
-export function isWired(text: string): boolean {
-  return /@spin\/config|spin\s*\(|@spin\/preset|spinPreset/.test(text);
-}

@@ -2,7 +2,9 @@
  * @spin/api — transport for module-owned procedures.
  *
  * Each module owns its contract and its handler (`themeContract` /
- * `themeRouter` live in `@spin/theme` because the theme implements them).
+ * `themeRouter` live in `@spin/theme` because the theme implements them;
+ * `projectContract` lives here because the wire shape of a project is the
+ * daemon's, while the operations over one live in `@spin/project`).
  * This package owns nothing procedural: it mounts routers on handlers,
  * builds the typed client the studio and CLI use, and names the daemon's
  * single router. Transport, not definition.
@@ -28,12 +30,7 @@ export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
 export { previewRouter } from "./preview-procedures.ts";
 export { previewContract } from "./preview-procedures.ts";
-export {
-  initFiles,
-  isWired,
-  PROJECT_DIR,
-  projectContract,
-} from "./project-contract.ts";
+export { projectContract } from "./project-contract.ts";
 export { themeContract } from "@spin/theme";
 export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 export { primitivesContract } from "../../preset/src/primitives-procedures.ts";

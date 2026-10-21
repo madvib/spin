@@ -9,6 +9,7 @@
   },
   "imports": {
     "@spin/api": "./src/index.ts",
+    "@spin/project": "../project/src/index.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "hono": "npm:hono@^4.13.13",

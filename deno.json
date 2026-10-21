@@ -5,6 +5,7 @@
     "./packages/theme",
     "./packages/animation",
     "./packages/preset",
+    "./packages/project",
     "./packages/diagnostics",
     "./packages/kit",
     "./packages/api",
@@ -22,6 +23,7 @@
   "imports": {
     "@spin/theme": "./packages/theme/src/index.ts",
     "@spin/preset": "./packages/preset/src/index.ts",
+    "@spin/project": "./packages/project/src/index.ts",
     "@spin/diagnostics": "./packages/diagnostics/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
