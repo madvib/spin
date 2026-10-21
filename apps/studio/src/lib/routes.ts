@@ -5,18 +5,27 @@
  * by tests as well as by the app.
  */
 
-/** Where an entry sits in the icon rail. */
-export type RailPlace = "mark" | "concern" | "foot";
+/**
+ * Where an entry sits in the studio's chrome.
+ *
+ * The chrome is three places now, and each of them says something different
+ * about the route it carries. The rail is navigation and nothing else: the
+ * mark that goes home, and the concerns the project is filed by. The bar
+ * along the bottom is the studio's own: the verbs that edit the document and
+ * the report on it. A route the chrome does not offer is served but not
+ * offered, which is a fact the table states rather than the app guessing.
+ */
+export type ChromePlace = "mark" | "concern" | "bar";
 
 /** One route, and what the studio knows about it. */
 export interface StudioRoute {
   readonly path: string;
-  /** The rail's tooltip. */
+  /** The chrome's tooltip. */
   readonly label: string;
-  /** The rail's glyph, as a whole utility class — the scanner reads source. */
+  /** The chrome's glyph, as a whole utility class — the scanner reads source. */
   readonly icon: string;
-  /** Absent means link-only; nothing has needed that yet. */
-  readonly rail?: RailPlace;
+  /** Absent means the route is served but the chrome does not offer it. */
+  readonly place?: ChromePlace;
   /** Token path prefixes this route's editor owns, so a readout can link to it. */
   readonly owns?: readonly (readonly string[])[];
   /**
@@ -26,54 +35,54 @@ export interface StudioRoute {
   readonly children?: readonly string[];
 }
 
-/** Every navigable route, in rail order. */
+/** Every navigable route, in chrome order. */
 export const ROUTES = [
   {
     path: "/",
     label: "Overview",
     icon: "i-lucide-loader-pinwheel",
-    rail: "mark",
+    place: "mark",
   },
   {
     path: "/colors",
     label: "Color",
     icon: "i-lucide-palette",
-    rail: "concern",
+    place: "concern",
     owns: [["color"]],
   },
   {
     path: "/type",
     label: "Type",
     icon: "i-lucide-type",
-    rail: "concern",
+    place: "concern",
     owns: [["font"]],
   },
   {
     path: "/icons",
     label: "Icons",
     icon: "i-lucide-shapes",
-    rail: "concern",
+    place: "concern",
     owns: [["icon"]],
   },
   {
     path: "/motion",
     label: "Motion",
     icon: "i-lucide-square-play",
-    rail: "concern",
+    place: "concern",
     owns: [["motion"]],
   },
   {
     path: "/spacing",
     label: "Spacing",
     icon: "i-lucide-ruler",
-    rail: "concern",
+    place: "concern",
     owns: [["spacing"], ["breakpoint"]],
   },
   {
     path: "/style",
     label: "Style",
     icon: "i-lucide-contrast",
-    rail: "concern",
+    place: "concern",
     owns: [["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
       "focus",
     ]],
@@ -82,14 +91,14 @@ export const ROUTES = [
     path: "/components",
     label: "Elements",
     icon: "i-lucide-layout-dashboard",
-    rail: "concern",
+    place: "concern",
     children: ["", "/:name"],
   },
   {
     path: "/preferences",
     label: "Preferences",
     icon: "i-lucide-settings",
-    rail: "foot",
+    place: "bar",
   },
 ] as const satisfies readonly StudioRoute[];
 
@@ -106,34 +115,41 @@ export const CHILD_PATHS: readonly string[] = ROUTES.flatMap((route) =>
 /** One route's path, as a type — so a router path cannot drift from the table. */
 export type RoutePath = (typeof ROUTES)[number]["path"];
 
-/** The rail's three places, derived. */
-function rail(place: RailPlace): readonly StudioRoute[] {
-  return ROUTES.filter((route) => route.rail === place);
+/** The chrome's places, derived. */
+function placed(place: ChromePlace): readonly StudioRoute[] {
+  return ROUTES.filter((route) => route.place === place);
 }
 
-/** The single route placed at a mark or a foot. Two claiming it is an error. */
-function railAt(place: RailPlace): StudioRoute {
-  const placed = ROUTES.filter((route) => route.rail === place);
-  if (placed.length === 0) {
+/** The single route placed at a mark or a bar. Two claiming it is an error. */
+function chromeAt(place: ChromePlace): StudioRoute {
+  const claimed = ROUTES.filter((route) => route.place === place);
+  if (claimed.length === 0) {
     throw new Error(
-      `no route is placed at "${place}" in the rail — one of the entries has to set rail: "${place}"`,
+      `no route is placed at "${place}" in the chrome — one of the entries has to set place: "${place}"`,
     );
   }
-  if (placed.length > 1) {
+  if (claimed.length > 1) {
     throw new Error(
-      `the rail's "${place}" is claimed by ${
-        placed.map((route) => route.path).join(" and ")
-      } — a place in the rail is one route`,
+      `the chrome's "${place}" is claimed by ${
+        claimed.map((route) => route.path).join(" and ")
+      } — a place in the chrome is one route`,
     );
   }
-  return placed[0]!;
+  return claimed[0]!;
 }
 
 /** The rail's mark: the link back to the overview. */
-export const MARK: StudioRoute = railAt("mark");
+export const MARK: StudioRoute = chromeAt("mark");
 
 /** The rail's concerns, in the order the rail offers them. */
-export const CONCERNS: readonly StudioRoute[] = rail("concern");
+export const CONCERNS: readonly StudioRoute[] = placed("concern");
 
-/** The rail's foot: the entry that sits with undo, redo and save. */
-export const FOOT: StudioRoute = railAt("foot");
+/**
+ * The bar's own routes.
+ *
+ * The rail is navigation to the PROJECT's concerns, so the studio's own
+ * settings do not live in it: the bar along the bottom carries them beside
+ * the verbs that edit the document. A list rather than one route, because a
+ * bar can carry more than one thing and the table should say so.
+ */
+export const BAR: readonly StudioRoute[] = placed("bar");

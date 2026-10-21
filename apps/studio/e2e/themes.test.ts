@@ -625,10 +625,17 @@ test("a theme file that is not valid JSON is reported, not swallowed", async () 
       );
       await page.settle(1500);
 
+      // The checks are a status in the editing bar; the detail is a panel.
       const reported = await page.eval<string>(
         `(() => {
-          const section = document.querySelector('section[aria-label="Issues"]');
-          return (section?.innerText ?? "").trim();
+          const bar = document.querySelector('footer[aria-label="Editing"]');
+          const status = bar?.innerText ?? "";
+          const trigger = [...(bar?.querySelectorAll("button") ?? [])].find((x) =>
+            x.hasAttribute("aria-expanded")
+          );
+          trigger?.click();
+          const panel = document.querySelector('dialog[aria-label="Checks"]');
+          return (panel?.innerText ?? status).trim();
         })()`,
       );
       assert(

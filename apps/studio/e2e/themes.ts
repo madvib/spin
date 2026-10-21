@@ -273,13 +273,13 @@ export interface RailState {
   readonly save: boolean;
 }
 
-/** What the rail offers: undo, redo and save, each enabled or not. */
+/** What the editing bar offers: undo, redo and save, each enabled or not. */
 export async function railState(page: StudioPage): Promise<RailState> {
   return await page.eval<RailState>(
     `(() => {
-      const rail = document.querySelector('nav[aria-label="Studio"]');
+      const bar = document.querySelector('footer[aria-label="Editing"]');
       const one = (label) => {
-        const b = [...(rail?.querySelectorAll("button") ?? [])].find((x) =>
+        const b = [...(bar?.querySelectorAll("button") ?? [])].find((x) =>
           x.getAttribute("aria-label") === label
         );
         return b === undefined ? false : b.disabled === false;
@@ -290,10 +290,11 @@ export async function railState(page: StudioPage): Promise<RailState> {
 }
 
 /**
- * Press one of the rail's controls.
+ * Press one of the editing bar's controls.
  *
- * The rail's controls are glyphs: they are named by their `aria-label`, not
- * by a text a press could look for.
+ * The bar's controls are glyphs: they are named by their `aria-label`, not by
+ * a text a press could look for. The rail is navigation; the verbs that
+ * answer the editing state live in the bar.
  */
 export async function pressRail(
   page: StudioPage,
@@ -302,8 +303,8 @@ export async function pressRail(
   return await page.eval<string>(
     `(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-      const rail = document.querySelector('nav[aria-label="Studio"]');
-      const b = [...(rail?.querySelectorAll("button") ?? [])].find((x) =>
+      const bar = document.querySelector('footer[aria-label="Editing"]');
+      const b = [...(bar?.querySelectorAll("button") ?? [])].find((x) =>
         x.getAttribute("aria-label") === ${JSON.stringify(label)}
       );
       if (!b) return "absent";

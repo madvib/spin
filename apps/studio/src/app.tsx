@@ -6,6 +6,12 @@
  * (`data-theme="studio"`), and only the preview follows the picker. Editing a
  * theme therefore cannot restyle the tool you are editing it with, which is
  * what makes a broken theme recoverable.
+ *
+ * The chrome is three pieces and each of them has one job. The rail on the
+ * edge is navigation: the mark that goes home, and the concerns the project
+ * is filed by. The column is the work: the preview of the document being
+ * edited. The bar along the bottom is the state: what is being edited, what
+ * is true about the file, and the verbs that change it.
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
@@ -26,30 +32,17 @@ import { createSignal, For, Show, Suspense } from "solid-js";
 import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
-import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
+import StatusBar from "./components/StatusBar.tsx";
+import { CONCERNS, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 
 import {
   activeMode,
   activeName,
-  activeTokenCount,
-  canRedo,
-  canUndo,
-  divergedFromDisk,
   dockSide,
-  isDirty,
   lastNotice,
   lastRefusal,
-  note,
-  noteRefusal,
-  redo,
-  reloadFromDisk,
-  revertToSaved,
-  saveThemeToDisk,
-  undo,
 } from "./lib/store.ts";
-import { problemText } from "./lib/themes.ts";
 import { hostPath } from "./lib/client.ts";
-import { stateLabel } from "./lib/theme.ts";
 
 /**
  * The chrome's own theme. A constant rather than a lookup, so the shell does
@@ -148,143 +141,6 @@ function childPage(path: string, child: string): Component {
 }
 
 /**
- * What a save control says about itself.
- *
- * The file moved under the studio: the save would write over a change the
- * studio never saw, so the control says so before it is pressed. The press
- * itself refuses — the save is the studio's, and the studio knows what the
- * file holds.
- */
-function saveTitle(): string {
-  if (divergedFromDisk(activeName())) {
-    return "The file changed on disk — reload from disk first";
-  }
-  return isDirty(activeName()) ? "Save to disk" : "Saved";
-}
-
-/**
- * The editor's header: what is being edited, and what is true about it.
- *
- * The unsaved-changes state lives here, so the two actions that answer it
- * live here too: a writer who is somewhere other than the overview — on the
- * colours, on the type — can take the file's word for it or drop their own
- * edits without walking back to the card that carries the same two verbs.
- *
- * It is CHROME, and it wears the studio's own theme: the control that saves
- * a theme must not be restyled by the theme it is saving.
- */
-function EditorHeader() {
-  /** The theme being edited. */
-  const theme = () => activeName();
-  /** Whether the editor holds edits the file does not. */
-  const dirty = () => isDirty(theme());
-  /** Whether the file moved under the studio. */
-  const diverged = () => divergedFromDisk(theme());
-
-  /**
-   * What is true about the file, in the studio's words.
-   *
-   * Two facts can hold at once: the editor holds edits the file does not
-   * ("unsaved changes"), and the file holds something the studio did not
-   * write ("changed on disk"). The second is the one that bites — the save
-   * that would overwrite it is refused — so it is said even when the first
-   * is true as well.
-   */
-  function state(): string {
-    const parts: string[] = [];
-    if (dirty()) parts.push(stateLabel("unsaved"));
-    if (diverged()) parts.push(stateLabel("changed"));
-    if (parts.length === 0) parts.push(stateLabel("saved"));
-    return parts.join(" · ");
-  }
-
-  /**
-   * Takes the file's word for it.
-   *
-   * The same verb the card carries, on the theme being edited: the file's
-   * text moves into the editor, and the edits that were never written go
-   * with it.
-   */
-  async function reload(): Promise<void> {
-    const name = theme();
-    try {
-      const found = await reloadFromDisk(name);
-      note(
-        found === "changed"
-          ? `${name} changed on disk — the studio now shows the file.`
-          : `${name} reloaded from disk.`,
-      );
-    } catch (err) {
-      noteRefusal(problemText(err));
-    }
-  }
-
-  /** Drops the edits that have not been written. */
-  function discard(): void {
-    const name = theme();
-    revertToSaved(name);
-    note(`${name} — the unsaved edits were dropped.`);
-  }
-
-  return (
-    <header
-      aria-label="Theme editor"
-      class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border bg-surface px-3 py-2"
-    >
-      <p class="min-w-0 text-sm text-text-muted">
-        Editing <strong class="text-text">{theme()}</strong>
-        {" · "}
-        {activeMode()}
-        {" · "}
-        {activeTokenCount()} tokens
-        {" · "}
-        {state()}
-      </p>
-      <Show when={lastNotice()}>
-        {(message) => (
-          <p class="text-sm text-text-muted" role="status">
-            {message()}
-          </p>
-        )}
-      </Show>
-      <span class="flex-1" />
-      <button
-        type="button"
-        class="bare shrink-0 text-sm text-text-muted"
-        title="Re-read this theme from disk"
-        onClick={() => {
-          void reload();
-        }}
-      >
-        Reload from disk
-      </button>
-      <button
-        type="button"
-        class="bare shrink-0 text-sm text-text-muted disabled:opacity-50"
-        title={dirty()
-          ? "Drop the edits that have not been saved"
-          : "There are no unsaved edits to drop"}
-        disabled={!dirty()}
-        onClick={discard}
-      >
-        Discard changes
-      </button>
-      <button
-        type="button"
-        class="bare shrink-0 text-sm text-text-muted disabled:opacity-50"
-        title={saveTitle()}
-        disabled={!dirty()}
-        onClick={() => {
-          void saveThemeToDisk(theme());
-        }}
-      >
-        Save to disk
-      </button>
-    </header>
-  );
-}
-
-/**
  * The name of a rail row, as a tip that opens BESIDE the row.
  *
  * A native `title` is what every icon control in the studio carries, and it
@@ -337,255 +193,235 @@ export default function App() {
             // Declared, not inherited: <html> is stamped light in index.html
             // and never changes, so a themed host that stays quiet inherits
             // the document root's ink instead of its own.
-            class="flex bg-surface text-text"
-            // A row, not a stack: the rail takes an edge and the preview
-            // takes the rest. In the drawer the rail mirrors to the outer
-            // edge — the host's drawer is right-anchored, so a left rail
-            // traps the content between chrome and the viewport edge.
+            class="flex flex-col bg-surface text-text"
+            // A column, not a row: the bar along the bottom is the width of
+            // the window, so the rail and the work sit above it in a row of
+            // their own. Modal: the shell is exactly one viewport and clips,
+            // so the DOCUMENT never scrolls and the sticky rail has no
+            // reason to move. Drawer: the shell grows with the page and the
+            // host's frame scrolls it, which is the only scroll that works
+            // there — a `h-screen` shell would pin the rail to a box the
+            // document drags away.
             classList={{
-              // Modal: the shell is exactly one viewport and clips, so the
-              // DOCUMENT never scrolls and the sticky rail has no reason to
-              // move. Drawer: the shell grows with the page and the host's
-              // frame scrolls it, which is the only scroll that works
-              // there — a `h-screen` shell would pin the rail to a box the
-              // document drags away.
               "h-screen overflow-hidden": !inDrawer(),
               "min-h-full": inDrawer(),
-              "flex-row-reverse": inDrawer() && dockSide() === "right",
             }}
           >
-            {
-              /*
-              The rail is the reference app's rail: the mark at the top, the
-              concerns in bands, the foot that carries the tool's own verbs.
-              It wears the studio's own theme, so editing a theme cannot
-              restyle the tool you are editing it with.
-
-              It is a STRIP, not a menu: forty-eight pixels of icons, and
-              every row is nothing but its glyph. So every row carries its
-              name twice — a `title` for the pointer, and an `aria-label` for
-              the reader and for the keyboard, where the row takes focus and
-              has to announce itself.
-              */
-            }
-            <nav
-              aria-label="Studio"
-              class="sticky top-0 flex h-screen w-12 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-1"
+            <div
+              // The row the rail and the work share. In the drawer the rail
+              // mirrors to the outer edge — the host's drawer is
+              // right-anchored, so a left rail traps the content between
+              // chrome and the viewport edge.
+              class="flex flex-1 flex-row"
               classList={{
-                "border-r": !inDrawer() || dockSide() === "left",
-                "border-l": inDrawer() && dockSide() === "right",
+                // Modal: the row takes what the bar leaves, and may be
+                // shorter than its content — the page scrolls INSIDE it.
+                // Drawer: the row is as tall as the page, and the document
+                // scrolls.
+                "min-h-0": !inDrawer(),
+                "flex-row-reverse": inDrawer() && dockSide() === "right",
               }}
             >
               {
                 /*
-                The mark: the web, in the studio's own ink. The kit draws it
-                in strokes on `currentColor`, so it wears whatever surface it
-                lands on, and the slot around it is roomier than a row's —
-                the mark breathes, and the space under it is what separates it
-                from the concerns. A rule would say "this ends"; space says
-                "this is a different thing", which is what a mark is.
+                The rail is navigation and nothing else: the mark at the top
+                and the concerns below it. The verbs that change the
+                document — undo, redo, save — and the studio's own settings
+                are not navigation, and they live in the bar along the
+                bottom where the state they answer is written down.
+
+                It wears the studio's own theme, so editing a theme cannot
+                restyle the tool you are editing it with.
+
+                It is a STRIP, not a menu: forty-eight pixels of icons, and
+                every row is nothing but its glyph. So every row carries its
+                name twice — a `title` for the pointer, and an `aria-label`
+                for the reader and for the keyboard, where the row takes
+                focus and has to announce itself.
                 */
               }
-              <A
-                href={hostPath(MARK.path)}
-                // `end`: the mark is the overview and nothing else. Without it
-                // the root path matches every path, and the mark would read as
-                // current on every page.
-                end
-                class="peer mb-1 flex w-10 shrink-0 items-center justify-center rounded-md py-4 text-text hover:bg-surface"
-                title={MARK.label}
-                aria-label={MARK.label}
+              <nav
+                aria-label="Studio"
+                class="sticky top-0 flex w-12 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-1"
+                classList={{
+                  "border-r": !inDrawer() || dockSide() === "left",
+                  "border-l": inDrawer() && dockSide() === "right",
+                  // Modal: the row is the height of the window less the
+                  // bar, and the rail fills it. Drawer: the row is as tall
+                  // as the page, so the rail is a window's worth and
+                  // stays put while the document scrolls under it.
+                  "h-screen": inDrawer(),
+                }}
               >
-                <Web size={24} class="h-6 w-6 shrink-0" />
-              </A>
-              <RailTip label={MARK.label} top="top-5" />
-              <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-2">
-                <For each={CONCERNS}>
-                  {(route) => (
-                    <li class="m-0 w-full">
-                      <A
-                        href={hostPath(route.path)}
-                        activeClass="bg-surface-sunken text-text font-semibold"
-                        inactiveClass="text-text"
-                        class="peer flex items-center justify-center rounded-md hover:bg-surface"
-                        title={route.label}
-                        aria-label={route.label}
-                      >
-                        <span
-                          class={`inline-block shrink-0 text-xl ${route.icon}`}
-                          aria-hidden="true"
-                        />
-                      </A>
-                      <RailTip label={route.label} />
-                    </li>
-                  )}
-                </For>
-              </ul>
-              <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-2 border-t border-border pt-2">
-                <li class="m-0 w-full">
-                  <button
-                    type="button"
-                    class="peer bare flex w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
-                    onClick={() => undo()}
-                    disabled={!canUndo()}
-                    aria-label="Undo"
-                    title="Undo"
-                  >
-                    <span
-                      class="inline-block shrink-0 text-xl i-lucide-undo-2"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <RailTip label="Undo" />
-                </li>
-                <li class="m-0 w-full">
-                  <button
-                    type="button"
-                    class="peer bare flex w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
-                    onClick={() => redo()}
-                    disabled={!canRedo()}
-                    aria-label="Redo"
-                    title="Redo"
-                  >
-                    <span
-                      class="inline-block shrink-0 text-xl i-lucide-redo-2"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <RailTip label="Redo" />
-                </li>
-                <li class="m-0 w-full">
-                  <button
-                    type="button"
-                    class="peer bare flex w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
-                    onClick={async () => {
-                      const name = activeName();
-                      void saveThemeToDisk(name);
-                    }}
-                    disabled={!isDirty(activeName())}
-                    aria-label="Save to disk"
-                    title={saveTitle()}
-                  >
-                    <span
-                      class="inline-block shrink-0 text-xl i-lucide-save"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <RailTip label="Save to disk" />
-                </li>
-                <li class="m-0 w-full">
-                  <A
-                    href={hostPath(FOOT.path)}
-                    activeClass="bg-surface-sunken text-text font-semibold"
-                    inactiveClass="text-text"
-                    class="peer flex items-center justify-center rounded-md hover:bg-surface"
-                    title={FOOT.label}
-                    aria-label={FOOT.label}
-                  >
-                    <span
-                      class={`inline-block shrink-0 text-xl ${FOOT.icon}`}
-                      aria-hidden="true"
-                    />
-                  </A>
-                  <RailTip label={FOOT.label} />
-                </li>
-              </ul>
-            </nav>
-            {
-              /* The editor's header and the column under it. The header is
-                chrome — the studio's own theme, above the project's — and it
-                heads the editing area: the state of the file, the save, and
-                the two actions that answer a file that moved. */
-            }
-            <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-              <EditorHeader />
+                {
+                  /*
+                  The mark: the web, in the studio's own ink. The kit draws it
+                  in strokes on `currentColor`, so it wears whatever surface it
+                  lands on, and the slot around it is roomier than a row's —
+                  the mark breathes, and the space under it is what separates it
+                  from the concerns. A rule would say "this ends"; space says
+                  "this is a different thing", which is what a mark is.
+                  */
+                }
+                <A
+                  href={hostPath(MARK.path)}
+                  // `end`: the mark is the overview and nothing else. Without it
+                  // the root path matches every path, and the mark would read as
+                  // current on every page.
+                  end
+                  class="peer mb-1 flex w-10 shrink-0 items-center justify-center rounded-md py-4 text-text hover:bg-surface"
+                  title={MARK.label}
+                  aria-label={MARK.label}
+                >
+                  <Web size={24} class="h-6 w-6 shrink-0" />
+                </A>
+                <RailTip label={MARK.label} top="top-5" />
+                <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-2">
+                  <For each={CONCERNS}>
+                    {(route) => (
+                      <li class="m-0 w-full">
+                        <A
+                          href={hostPath(route.path)}
+                          activeClass="bg-surface-sunken text-text font-semibold"
+                          inactiveClass="text-text"
+                          class="peer flex items-center justify-center rounded-md hover:bg-surface"
+                          title={route.label}
+                          aria-label={route.label}
+                        >
+                          <span
+                            class={`inline-block shrink-0 text-xl ${route.icon}`}
+                            aria-hidden="true"
+                          />
+                        </A>
+                        <RailTip label={route.label} />
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </nav>
               {
-                /* What the studio refused, said where the state is: the
-                  refusal is the tool's own word about the author's own
-                  document, so it belongs with the header rather than inside
-                  the project it is talking about. */
+                /*
+                The work: the preview of the document being edited, under
+                the project's own theme. The rail is NOT inside it — the
+                navigation is the tool's, and the content is the project's.
+                */
               }
-              <Show when={lastRefusal()}>
-                {(message) => (
+              <main
+                class="flex min-w-0 flex-1 flex-col"
+                // Modal: the column may be shorter than the page, and the
+                // page scrolls inside it. Drawer: the column is as tall as
+                // the page, and the document scrolls.
+                classList={{ "min-h-0": !inDrawer() }}
+              >
+                {
+                  /* What the studio refused, and what it did about the
+                    file: said where the state is. Both are the tool's own
+                    words about the author's own document, so they belong
+                    with the chrome rather than inside the project they are
+                    talking about. */
+                }
+                <Show
+                  when={lastRefusal() !== undefined ||
+                    lastNotice() !== undefined}
+                >
                   <div
                     role="status"
-                    class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm text-semantic-error"
+                    class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm"
                   >
-                    <span
-                      class="i-lucide-shield-alert mr-2 inline-block align-middle"
-                      aria-hidden="true"
-                    />
-                    {message()}
-                  </div>
-                )}
-              </Show>
-              {
-                /* The preview carries the project's theme. Everything above is
-                  chrome and stays on the studio's own. `spin-preview` is the
-                  sheet's scope: the theme's rules apply inside the pane — a
-                  page that never spells a control still styles one — and
-                  never to the chrome. */
-              }
-              <div
-                data-theme={activeName()}
-                data-mode={activeMode()}
-                // Same debt as the chrome's: <html> is stamped light, so a
-                // label that only inherits keeps that ink on a dark surface.
-                // `spin-preview` is the sheet's scope: the theme's rules
-                // apply inside the pane — a page that never spells a control
-                // still styles one — and never to the chrome.
-                class="spin-preview flex min-h-0 min-w-0 flex-1 flex-col bg-surface text-text"
-                // Modal, this column is the scroller: a page that brings its
-                // own rail fills it exactly and never triggers this, and a
-                // page that does not scrolls HERE rather than dragging the
-                // document — and with it the rail. The drawer's pages do not
-                // scroll here at all: the host's frame scrolls them, so the
-                // page's own region grows with its content instead.
-                classList={{ "overflow-y-auto": !inDrawer() }}
-              >
-                <Show
-                  when={new URLSearchParams(location.search).get("app") !==
-                    null}
-                >
-                  <div class="flex shrink-0 items-center justify-end gap-1 border-b border-border bg-surface px-2 py-1">
-                    <button
-                      type="button"
-                      class="bare shrink-0 text-text"
-                      aria-label={inDrawer() ? "Modal" : "Drawer"}
-                      title={inDrawer() ? "Modal" : "Drawer"}
-                      onClick={() => {
-                        const next = inDrawer() ? "modal" : "drawer";
-                        setHostMode(next);
-                        globalThis.parent.postMessage(
-                          next === "modal" ? "spin:modal" : "spin:drawer",
-                          "*",
-                        );
-                      }}
-                    >
-                      <span
-                        class="inline-block icon-md i-lucide-panel-right"
-                        aria-hidden="true"
-                      />
-                    </button>
-                    <button
-                      type="button"
-                      class="bare shrink-0 text-text"
-                      aria-label="Close"
-                      title="Close"
-                      onClick={() =>
-                        globalThis.parent.postMessage("spin:close", "*")}
-                    >
-                      <span
-                        class="inline-block icon-md i-lucide-x"
-                        aria-hidden="true"
-                      />
-                    </button>
+                    <Show when={lastRefusal()}>
+                      {(message) => (
+                        <p class="text-semantic-error">
+                          <span
+                            class="i-lucide-shield-alert mr-2 inline-block align-middle"
+                            aria-hidden="true"
+                          />
+                          {message()}
+                        </p>
+                      )}
+                    </Show>
+                    <Show when={lastNotice()}>
+                      {(message) => <p class="text-text-muted">{message()}</p>}
+                    </Show>
                   </div>
                 </Show>
-                <PreviewStyles />
-                <Suspense>{props.children}</Suspense>
-              </div>
+                {
+                  /* The preview carries the project's theme. Everything
+                    around it is chrome and stays on the studio's own.
+                    `spin-preview` is the sheet's scope: the theme's rules
+                    apply inside the pane — a page that never spells a
+                    control still styles one — and never to the chrome. */
+                }
+                <div
+                  data-theme={activeName()}
+                  data-mode={activeMode()}
+                  // Same debt as the chrome's: <html> is stamped light, so a
+                  // label that only inherits keeps that ink on a dark surface.
+                  // `spin-preview` is the sheet's scope: the theme's rules
+                  // apply inside the pane — a page that never spells a control
+                  // still styles one — and never to the chrome.
+                  class="spin-preview flex min-w-0 flex-1 flex-col bg-surface text-text"
+                  // Modal, this column is the scroller: a page that brings its
+                  // own rail fills it exactly and never triggers this, and a
+                  // page that does not scrolls HERE rather than dragging the
+                  // document — and with it the rail. The drawer's pages do not
+                  // scroll here at all: the host's frame scrolls them, so the
+                  // page's own region grows with its content instead.
+                  classList={{
+                    "min-h-0": !inDrawer(),
+                    "overflow-y-auto": !inDrawer(),
+                  }}
+                >
+                  <Show
+                    when={new URLSearchParams(location.search).get("app") !==
+                      null}
+                  >
+                    <div class="flex shrink-0 items-center justify-end gap-1 border-b border-border bg-surface px-2 py-1">
+                      <button
+                        type="button"
+                        class="bare shrink-0 text-text"
+                        aria-label={inDrawer() ? "Modal" : "Drawer"}
+                        title={inDrawer() ? "Modal" : "Drawer"}
+                        onClick={() => {
+                          const next = inDrawer() ? "modal" : "drawer";
+                          setHostMode(next);
+                          globalThis.parent.postMessage(
+                            next === "modal" ? "spin:modal" : "spin:drawer",
+                            "*",
+                          );
+                        }}
+                      >
+                        <span
+                          class="inline-block icon-md i-lucide-panel-right"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        class="bare shrink-0 text-text"
+                        aria-label="Close"
+                        title="Close"
+                        onClick={() =>
+                          globalThis.parent.postMessage("spin:close", "*")}
+                      >
+                        <span
+                          class="inline-block icon-md i-lucide-x"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </div>
+                  </Show>
+                  <PreviewStyles />
+                  <Suspense>{props.children}</Suspense>
+                </div>
+              </main>
             </div>
+            {
+              /* The bar along the bottom: the state of the document being
+                edited and the verbs that change it. It is chrome, so it
+                wears the studio's own theme — the control that saves a
+                theme must not be restyled by the theme it is saving. */
+            }
+            <StatusBar />
           </div>
         </MetaProvider>
       )}

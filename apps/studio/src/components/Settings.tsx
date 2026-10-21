@@ -89,8 +89,13 @@ export function ModePicker() {
  * own files — not the studio's own chrome. The selected theme drives the
  * preview surface only; a `<label>` names it rather than a bare floating
  * select.
+ *
+ * It lives in the bar along the bottom of the window, on every route: the
+ * theme under edit is a fact about the whole studio, not about one page, and
+ * a control that only some pages carry is a control the reader has to hunt
+ * for.
  */
-export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
+export function ThemePicker(props: { compact?: boolean }) {
   let select: HTMLSelectElement | undefined;
   // The options arrive after the select does, and the browser answers an
   // option list it just filled by selecting the first one — so the picker
@@ -101,11 +106,13 @@ export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
       select.value = activeName();
     }
   });
-  const selectEl = (
+  return (
     <select
       ref={select}
-      id={props.compact ? "theme-picker-compact" : "theme-picker"}
-      class="min-w-0 flex-1"
+      // The id the studio's own end-to-end tests read the picker by. It is
+      // part of the studio's contract with its tests, not decoration.
+      id={props.compact === true ? "theme-picker-compact" : "theme-picker"}
+      class="min-w-0"
       aria-label="Theme"
       onChange={(event) => setActiveName(event.currentTarget.value)}
     >
@@ -116,47 +123,49 @@ export function ThemePicker(props: { compact?: boolean; full?: boolean }) {
       </Show>
     </select>
   );
-  if (props.compact === true) return selectEl;
+}
+
+/**
+ * Which edge the host's drawer takes.
+ *
+ * The studio does not know where the host will put it, so it asks: the host
+ * answers with a message and the layout re-branches in place. A handedness
+ * choice rather than a session one, so it is remembered.
+ */
+export function DrawerEdge() {
   return (
-    <div class="stack-sm">
-      <div class="row-sm">
-        <label for="theme-picker">Theme</label>
-        {selectEl}
-      </div>
-      <ModePicker />
-      <div class="row-sm" role="group" aria-label="Drawer edge">
-        <span>Drawer</span>
-        <button
-          type="button"
-          class="bare row-sm whitespace-nowrap text-text"
-          aria-pressed={dockSide() === "left"}
-          onClick={() => {
-            setDockSide("left");
-            globalThis.parent.postMessage("spin:side-left", "*");
-          }}
-        >
-          <span
-            class="inline-block icon-md i-lucide-panel-left"
-            aria-hidden="true"
-          />
-          <span>Left</span>
-        </button>
-        <button
-          type="button"
-          class="bare row-sm whitespace-nowrap text-text"
-          aria-pressed={dockSide() === "right"}
-          onClick={() => {
-            setDockSide("right");
-            globalThis.parent.postMessage("spin:side-right", "*");
-          }}
-        >
-          <span
-            class="inline-block icon-md i-lucide-panel-right"
-            aria-hidden="true"
-          />
-          <span>Right</span>
-        </button>
-      </div>
+    <div class="row-sm" role="group" aria-label="Drawer edge">
+      <span>Drawer</span>
+      <button
+        type="button"
+        class="bare row-sm whitespace-nowrap text-text"
+        aria-pressed={dockSide() === "left"}
+        onClick={() => {
+          setDockSide("left");
+          globalThis.parent.postMessage("spin:side-left", "*");
+        }}
+      >
+        <span
+          class="inline-block icon-md i-lucide-panel-left"
+          aria-hidden="true"
+        />
+        <span>Left</span>
+      </button>
+      <button
+        type="button"
+        class="bare row-sm whitespace-nowrap text-text"
+        aria-pressed={dockSide() === "right"}
+        onClick={() => {
+          setDockSide("right");
+          globalThis.parent.postMessage("spin:side-right", "*");
+        }}
+      >
+        <span
+          class="inline-block icon-md i-lucide-panel-right"
+          aria-hidden="true"
+        />
+        <span>Right</span>
+      </button>
     </div>
   );
 }

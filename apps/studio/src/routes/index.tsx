@@ -15,6 +15,10 @@
  * chips are painted by a utility — `bg-primary` resolves the preview
  * stylesheet's own answer — and the value beside each one is that same token
  * resolved here, which is the check that the two answers still match.
+ *
+ * The checks are NOT here: they are the same on every route, so a section on
+ * one page would be a section missing from the other eight. They live in the
+ * bar along the bottom, where the count sits beside the state it is about.
  */
 
 import {
@@ -28,12 +32,7 @@ import {
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { scaffoldTheme, treeToJson } from "@spin/theme";
-import PlayRig from "../components/demos/PlayRig.tsx";
-import {
-  ModePicker,
-  refetchProjectThemes,
-  ThemePicker,
-} from "../components/Settings.tsx";
+import { refetchProjectThemes } from "../components/Settings.tsx";
 import { inDrawer } from "../app.tsx";
 import {
   activeComponents,
@@ -62,7 +61,7 @@ import {
   saveTheme,
 } from "../lib/themes.ts";
 import { analyzeTheme } from "../lib/theme.ts";
-import { editorRouteFor, groupTokens } from "../lib/tokens.ts";
+import { groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
 import {
   durationUtility,
@@ -73,6 +72,7 @@ import {
   surfaceSteps,
 } from "../lib/overview.ts";
 import type { Chip, ElementSample, Face } from "../lib/overview.ts";
+import { durationMs } from "../lib/motion.ts";
 import { DISPLAY, MONOSPACE, PHRASE } from "../lib/specimen-copy.ts";
 import type { RoutePath } from "../lib/routes.ts";
 
@@ -108,22 +108,8 @@ export default function OverviewPage() {
   const radius = createMemo(() => rows([["radius"]]));
   const shadow = createMemo(() => rows([["shadow"]]));
   const durations = createMemo(() => rows([["motion", "duration"]]));
+  const easings = createMemo(() => rows([["motion", "easing"]]));
   const samples = createMemo(() => elementSamples(library() ?? []));
-  const play = createMemo(() => {
-    const row = durations()[0];
-    return row === undefined
-      ? undefined
-      : { path: row.path, utility: durationUtility(row.path) };
-  });
-  const issues = createMemo(() => {
-    const report = analyzeTheme(themeText());
-    return [
-      ...(report.error === undefined
-        ? []
-        : [{ path: "", message: report.error }]),
-      ...report.issues,
-    ];
-  });
   const componentsLine = () => (activeComponents() ?? []).join(", ");
 
   /**
@@ -141,10 +127,11 @@ export default function OverviewPage() {
   createEffect(() => {
     registerMarkup([
       ...samples().map((sample) => sample.row.html),
-      ...durations().map((row) => durationUtility(row.path)),
-      // What a rig plays beside its own duration, spelled out for the same
-      // reason: the rig composes these at runtime.
-      "transition-colors duration-base",
+      // The specimens the motion card plays. They are the library's own
+      // animation utilities, and they are named here for the same reason
+      // the elements are: what is on screen is what the sheet is generated
+      // for.
+      "animate-slide-up animate-fade-in animate-spin",
     ].join("\n"));
   });
   onCleanup(() => registerMarkup(""));
@@ -317,25 +304,16 @@ export default function OverviewPage() {
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
             <h1 class="text-3xl">Themes</h1>
             <span class="flex-1" />
-            <div class="row-sm min-w-0">
-              <label
-                for="theme-picker-compact"
-                class="text-sm text-text-muted"
-              >
-                Theme
-              </label>
-              <ThemePicker compact />
-            </div>
-            <ModePicker />
             <button type="button" onClick={() => setOpen(true)}>
               New theme
             </button>
           </div>
           {
-            /* The status line is NOT here. It is the editor's header, on
-              every route, because the unsaved-changes state lives with the
-              editor's own actions — and a state that is visible everywhere
-              does not need a second telling on one page. */
+            /* The theme picker, the mode and the state of the file are NOT
+              here. They are in the bar along the bottom, on every route,
+              because they are facts about the whole studio rather than
+              about this page — and a fact that is visible everywhere does
+              not need a second telling on one page. */
           }
           <Show when={note() !== null}>
             <p class="text-sm text-text-muted" role="status">{note()}</p>
@@ -583,42 +561,9 @@ export default function OverviewPage() {
             <TypeCard faces={faces()} />
             <ShapeCard radius={radius()} shadow={shadow()} />
             <SpaceCard steps={space()} />
-            <MotionCard play={play()} />
+            <MotionCard durations={durations()} easings={easings()} />
             <ElementsCard samples={samples()} />
           </div>
-        </section>
-
-        <section class="stack-sm" aria-label="Issues">
-          <h2 class="text-xl">Issues</h2>
-          <Show
-            when={issues().length > 0}
-            fallback={
-              <p class="text-sm text-text-muted">
-                Nothing to report: the document parses, and every value it
-                declares clears the floors.
-              </p>
-            }
-          >
-            <ul class="stack-sm">
-              <For each={issues()}>
-                {(issue) => (
-                  <li class="panel flex flex-wrap items-baseline gap-2 text-sm">
-                    <A
-                      href={editorRouteFor(issue.path)}
-                      class="hover:underline"
-                    >
-                      <code>
-                        {issue.path === "" ? "(document)" : issue.path}
-                      </code>
-                    </A>
-                    <span class="min-w-0 flex-1 text-text-muted">
-                      {issue.message}
-                    </span>
-                  </li>
-                )}
-              </For>
-            </ul>
-          </Show>
         </section>
 
         <footer class="stack-sm border-t border-border pt-4 text-xs text-text-muted">
@@ -971,30 +916,194 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
   );
 }
 
+/**
+ * The motion card: the theme's own clock, spent on things that move.
+ *
+ * The card this replaces showed a swatch changing colour on a loop. That is a
+ * slideshow: a colour fading in and out says nothing about how the theme
+ * MOVES, and a theme's motion is exactly that — how long things take and how
+ * they arrive. So the card spends the theme's own scale instead: the durations
+ * it declares as a ladder of shares, the easings it declares beside them,
+ * and three specimens that move at the theme's tempo — a card that slides in,
+ * a row that arrives one after another, and a spinner at the theme's cadence.
+ *
+ * The specimens are the library's `animate-*` utilities, and those spend the
+ * theme's motion tokens rather than naming a time: `animate-slide-up` runs
+ * for `--motion-duration-base` and curves by `--motion-easing-decelerate`.
+ * So what moves here moves at the edited theme's tempo, and the numbers
+ * beside it are that theme's own.
+ */
 function MotionCard(props: {
-  play: { path: string; utility: string } | undefined;
+  durations: readonly TokenRow[];
+  easings: readonly TokenRow[];
 }) {
+  /** The counter that makes the specimens arrive again. */
+  const [run, setRun] = createSignal(0);
+
+  /** One token's own value, read by the name it ends in. */
+  const valueOf = (
+    rows: readonly TokenRow[],
+    name: string,
+  ): string | undefined =>
+    rows.find((row) => row.path.split(".").pop() === name)?.value;
+
+  const fast = () => valueOf(props.durations, "fast");
+  const base = () => valueOf(props.durations, "base");
+  const slow = () => valueOf(props.durations, "slow");
+  const decelerate = () => valueOf(props.easings, "decelerate");
+  const linear = () => valueOf(props.easings, "linear");
+
+  /**
+   * The longest run on the ladder, so a share is a share of something.
+   */
+  const longest = () =>
+    Math.max(1, ...props.durations.map((row) => durationMs(row.value) ?? 0));
+
+  /**
+   * The step between the arrivals of a staggered row.
+   *
+   * The theme's shortest breath: a row that waits as long as the theme's
+   * fastest step is a row the theme set, not one the studio invented.
+   */
+  const step = () => durationMs(fast() ?? base() ?? "") ?? 150;
+
   return (
     <ConcernCard
       path="/motion"
       title="Motion"
-      blurb="A duration, playing on a loop: the one family a still sample cannot show."
+      blurb="The theme's own clock: the durations and easings it declares, spent on something that actually moves."
     >
       <Show
-        when={props.play}
-        keyed
+        when={props.durations.length > 0}
         fallback={
           <p class="text-sm text-text-muted">
-            This theme declares no durations yet.
+            This theme declares no durations yet, so nothing here has a time to
+            take.
           </p>
         }
       >
-        {(play) => (
+        <div class="stack-sm">
           <div class="stack-sm">
-            <PlayRig utility={play.utility} />
-            <code class="text-xs text-text-muted">{play.path}</code>
+            <span class="text-xs font-semibold uppercase text-text-muted">
+              Durations
+            </span>
+            <ul class="flow-list stack-sm">
+              <For each={props.durations}>
+                {(row) => (
+                  <li class="stack-sm">
+                    <div class="split">
+                      <code class="truncate text-xs text-text-muted">
+                        {row.path}
+                      </code>
+                      <span class="shrink-0 text-xs text-text-muted">
+                        {row.value}
+                      </span>
+                    </div>
+                    <div class="h-2 w-full overflow-hidden rounded-sm bg-surface-sunken">
+                      <div
+                        class="h-full rounded-sm bg-primary"
+                        // The share is arithmetic over the theme's own
+                        // numbers — not a length the studio chose — so it is
+                        // written here rather than named by a token.
+                        style={{
+                          width: `${
+                            ((durationMs(row.value) ?? 0) / longest()) * 100
+                          }%`,
+                        }}
+                      />
+                    </div>
+                    <code class="truncate text-xs text-text-muted">
+                      {durationUtility(row.path)}
+                    </code>
+                  </li>
+                )}
+              </For>
+            </ul>
           </div>
-        )}
+
+          <Show when={props.easings.length > 0}>
+            <div class="stack-sm">
+              <span class="text-xs font-semibold uppercase text-text-muted">
+                Easings
+              </span>
+              <ul class="flow-list stack-sm">
+                <For each={props.easings}>
+                  {(row) => (
+                    <li class="split">
+                      <code class="truncate text-xs text-text-muted">
+                        {row.path}
+                      </code>
+                      <span
+                        class="min-w-0 truncate text-xs text-text-muted"
+                        title={row.value}
+                      >
+                        {row.value}
+                      </span>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </div>
+          </Show>
+
+          <div class="stack-sm">
+            <div class="split">
+              <span class="text-xs font-semibold uppercase text-text-muted">
+                Spent
+              </span>
+              <button
+                type="button"
+                class="bare shrink-0 text-xs text-text-muted hover:text-text"
+                title="Run the specimens again"
+                onClick={() => setRun(run() + 1)}
+              >
+                play
+              </button>
+            </div>
+            {
+              /*
+                The specimens. The counter is the key: a new one remakes
+                the elements, and an element that is made afresh runs its
+                entrance again. The spinner is outside — it never stops.
+              */
+            }
+            <For each={[run()]}>
+              {() => (
+                <div class="stack-sm">
+                  <div class="animate-slide-up rounded-md border border-border bg-surface-raised p-3 text-sm">
+                    A card that slides in — {base() ?? "base"} by{" "}
+                    {decelerate() ?? "decelerate"}.
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <For each={[0, 1, 2]}>
+                      {(index) => (
+                        <span
+                          class="animate-fade-in rounded-md bg-surface-sunken px-2 py-1 text-xs text-text"
+                          style={{ "animation-delay": `${index * step()}ms` }}
+                        >
+                          {index + 1}
+                        </span>
+                      )}
+                    </For>
+                    <span class="text-xs text-text-muted">
+                      A row that arrives one after another, {step()}ms apart.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </For>
+            <div class="row-sm">
+              <span
+                class="inline-block shrink-0 animate-spin icon-md i-lucide-loader-circle"
+                aria-hidden="true"
+              />
+              <span class="text-xs text-text-muted">
+                A spinner at the theme's cadence — {slow() ?? "slow"} by{" "}
+                {linear() ?? "linear"}.
+              </span>
+            </div>
+          </div>
+        </div>
       </Show>
     </ConcernCard>
   );
