@@ -39,6 +39,12 @@
  *   namespace, which a spin theme does not have. Those rules are detected by
  *   RUNNING them and reading what they produced, not by reading their source,
  *   so the answer stays right when wind4 respells a family.
+ * - **Colour.** wind4's colour rules take an arbitrary value and write it
+ *   into the sheet as it stands — `fill-[#000]` becomes `fill: #000` — and a
+ *   colour written by hand is a design decision the theme never made. So a
+ *   class carrying one produces NO CSS AT ALL: it is dead on arrival rather
+ *   than broken, and the ordinary vocabulary rule catches it the way it
+ *   catches a typo.
  */
 
 import type {
@@ -59,6 +65,7 @@ import {
 } from "@unocss/preset-wind4";
 import { spinRules } from "./rules/index.ts";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
+import { hasRawColor } from "./utils/color.ts";
 
 /** Options for {@link wind4Layers}. */
 export interface Wind4Options {
@@ -505,6 +512,13 @@ function isDynamic(rule: Rule): rule is DynamicRule {
  * silently deletes every static wind4 utility rather than auditing it. Static
  * rules are audited in place instead, because their output is the literal
  * declaration object sitting in the rule tuple.
+ *
+ * The wrapper is also where a raw colour is refused. wind4's colour rules
+ * take an arbitrary value and write it into the sheet as it stands —
+ * `fill-[#000]` becomes `fill: #000` — and a colour written by hand is a
+ * design decision the theme never made. So a class carrying one produces
+ * NO CSS AT ALL: it is dead on arrival rather than broken, and the ordinary
+ * vocabulary rule catches it the way it catches a typo.
  */
 function guarded(
   rule: DynamicRule,
@@ -526,6 +540,11 @@ function guarded(
   return [
     matcher,
     (async (match: RegExpMatchArray, ctx: Readonly<RuleContext>) => {
+      // The colour check comes first: a class carrying a raw colour is
+      // refused whatever the rule would have said, and a rule that cannot
+      // answer it must not be reported as inert — it is not broken, it is
+      // answering a question this system does not ask.
+      if (hasRawColor(ctx.currentSelector)) return undefined;
       let value: unknown;
       try {
         value = await handler(match, ctx);

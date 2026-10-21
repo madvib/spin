@@ -54,6 +54,9 @@ export function typographyRules(): Rule[] {
     // would name a colour the theme has never vetted, which is a different
     // decision from naming a number: a size the theme does not carry is a
     // missing step, a colour it does not carry is an unapproved palette.
+    // The hatch refuses it by the same rule every other arbitrary value is
+    // read by — see `utils/color.ts` — so the class is dead on arrival
+    // rather than broken.
     [
       /^text-(.+)$/,
       ([, name]: string[]) => {

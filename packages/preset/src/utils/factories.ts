@@ -2,6 +2,7 @@ import type { Rule } from "@unocss/core";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
 import type { ThemeRef } from "@spin/theme";
 import { named, namesIn, type ThemeContext } from "./lookup.ts";
+import { carriesRawColor } from "./color.ts";
 
 /**
  * An alternation of a family's names, for autocomplete templates.
@@ -144,6 +145,13 @@ export function arbitraryValue(name: string): string | undefined {
   if (wrapped === null) return undefined;
   const source = (wrapped[1] as string).replace(/_/g, " ").trim();
   if (source === "") return undefined;
+  // A raw colour is a design decision, and a design decision in this system
+  // is a TOKEN. The hatch is for numbers — a length, a percentage, a time,
+  // an expression of those — and a colour is not one of them: it belongs to
+  // the theme's palette. So the hatch refuses it, and the class that
+  // carried it is DEAD ON ARRIVAL: it produces no CSS at all, and the
+  // ordinary vocabulary rule catches it the way it catches a typo.
+  if (carriesRawColor(source)) return undefined;
   // A fraction is the scale's own vocabulary spelled inside brackets, so it
   // resolves through the same table `w-1/2` reads rather than emitting `1/2`,
   // which is not a width.

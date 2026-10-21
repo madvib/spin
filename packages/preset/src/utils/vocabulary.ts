@@ -8,11 +8,17 @@
  * should have to change.
  */
 
+import { CSS_WIDE_COLORS } from "@spin/theme";
+
 /**
  * Colour vocabulary that is a value rather than a token. Resolved by
  * `rules/color.ts`, which reads this before falling back to the theme.
+ *
+ * The list is the theme's own — `CSS_WIDE_COLORS` — because there is one
+ * list of the CSS-wide colour keywords in this system, and the theme is
+ * where it is declared. The preset spends it; it does not restate it.
  */
-export const COLOR_KEYWORDS = ["transparent", "currentColor"] as const;
+export const COLOR_KEYWORDS = CSS_WIDE_COLORS;
 
 /**
  * Utilities with no token behind them, owned statically by the preset.
