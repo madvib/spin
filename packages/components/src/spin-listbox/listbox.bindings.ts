@@ -406,6 +406,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   },
   parts: {
     root: {
+      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["dir"], scope.props["orientation"]].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
           "data-scope": "listbox",
@@ -416,6 +417,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
       }),
     },
     label: {
+      sig: (scope) => [scope.props["disabled"], scope.props["dir"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
           "data-scope": "listbox",
@@ -426,6 +428,10 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     valueText: {
       id: "value-text",
+      sig: (scope) => {
+        const value = scope.context.value;
+        return [value.length, value.join(",")].join(" ");
+      },
       attrs: (scope) => ({
         id: scope.id("valueText"),
           "data-scope": "listbox",
@@ -434,6 +440,19 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
       }),
     },
     content: {
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [
+          scope.state,
+          ctx.focused,
+          ctx.highlightedValue,
+          scope.props["disabled"],
+          scope.props["dir"],
+          scope.props["orientation"],
+          ctx.multiple,
+          rowsOf(scope.props).length,
+        ].join(" ");
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const highlighted = ctx.highlightedValue;
@@ -473,6 +492,10 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     item: {
       id: "item",
       indexes: (_context, props) => rowsOf(props),
+      sig: (scope: SlotLike<ListboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return [state.highlighted, state.selected, state.disabled, scope.props["dir"], scope.props["orientation"]].join(" ");
+      },
       attrs: (scope: SlotLike<ListboxRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -498,6 +521,10 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     itemText: {
       indexes: (_context, props) => rowsOf(props),
+      sig: (scope: SlotLike<ListboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return [state.selected, state.disabled, state.highlighted].join(" ");
+      },
       attrs: (scope: SlotLike<ListboxRow>) => {
         const state = itemStateOf(scope, scope.slot);
         return {
@@ -509,6 +536,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     },
     itemIndicator: {
       indexes: (_context, props) => rowsOf(props),
+      sig: (scope: SlotLike<ListboxRow>) => `${itemStateOf(scope, scope.slot).selected}`,
       attrs: (scope: SlotLike<ListboxRow>) => {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
@@ -521,6 +549,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     itemGroup: {
       id: "item-group",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
+      sig: (scope: SlotLike<ListboxBlock>) => `${scope.slot.id}`,
       attrs: (scope: SlotLike<ListboxBlock>) => {
         const block = scope.slot;
         return {
@@ -539,6 +568,7 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
     itemGroupLabel: {
       id: "item-group-label",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
+      sig: (scope: SlotLike<ListboxBlock>) => `${scope.slot.id}`,
       attrs: (scope: SlotLike<ListboxBlock>) => {
         const block = scope.slot;
         return {

@@ -22,9 +22,8 @@ export interface ParseHost {
 export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
 
 
-/** What a part bag reads. All live — the framework calls this per tick,
- * and the bag is a computed over the fields the build read, so the
- * dependency is tracked by the read. */
+/** What a part bag reads. All live — the framework calls this per tick
+ * and memoizes on the returned signature. */
 export interface PartScope<R = unknown, C extends object = Record<string, unknown>> {
   readonly props: Record<string, unknown>;
   readonly context: C;
@@ -45,6 +44,10 @@ export interface PartDef<R = unknown, C extends object = Record<string, unknown>
    * Keys are bag entries; values may read the scope. Receives the recipe's
    * argument when the part takes one (`getTriggerProps({ focusable })`). */
   attrs(scope: PartScope<R, C>, arg?: unknown): Record<string, unknown>;
+  /** The memo signature: every scope field `attrs` reads, joined — the
+   * recipe argument included. A stale signature is a stale bag; the
+   * framework cannot infer this. */
+  sig(scope: PartScope<R, C>, arg?: unknown): string;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
@@ -63,6 +66,7 @@ export interface SlotDef<R = unknown, C extends object = Record<string, unknown>
     props: Record<string, unknown>,
   ) => readonly unknown[];
   attrs(scope: SlotScope<R, C>, arg?: unknown): Record<string, unknown>;
+  sig(scope: SlotScope<R, C>, arg?: unknown): string;
 }
 
 export interface ReaderDef<C extends object = Record<string, unknown>> {

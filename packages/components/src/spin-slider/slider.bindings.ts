@@ -120,6 +120,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
   parts: {
     root: {
+      sig: (scope: ScopeLike) => [scope.props["dir"], scope.props["orientation"], scope.props["disabled"], scope.props["invalid"], scope.state].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -133,6 +134,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       }),
     },
     label: {
+      sig: (scope: ScopeLike) => [scope.props["label"], scope.props["disabled"], scope.props["orientation"]].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("label"),
         dir: scope.props["dir"],
@@ -154,6 +156,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     },
     valueText: {
       id: "value-text",
+      sig: (scope: ScopeLike) => [scope.context.value.join(","), scope.props["disabled"], scope.props["orientation"], scope.props["invalid"], scope.state].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("valueText"),
         dir: scope.props["dir"],
@@ -166,6 +169,18 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       }),
     },
     control: {
+      sig: (scope: ScopeLike) => {
+        const context = scope.context;
+        return [
+          scope.props["disabled"],
+          scope.props["readOnly"],
+          scope.props["orientation"],
+          scope.props["invalid"],
+          context.disabled,
+          context.readOnly,
+          scope.state,
+        ].join("|");
+      },
       attrs: (scope: ScopeLike) => {
         const trackId = scope.id("track");
         return {
@@ -213,6 +228,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       },
     },
     track: {
+      sig: (scope: ScopeLike) => [scope.props["disabled"], scope.props["invalid"], scope.props["orientation"], scope.state].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("track"),
         dir: scope.props["dir"],
@@ -227,6 +243,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       }),
     },
     range: {
+      sig: (scope: ScopeLike) => [scope.context.value.join(","), scope.props["orientation"], scope.props["disabled"], scope.props["invalid"], scope.state].join("|"),
       attrs: (scope: ScopeLike) => {
         const context = scope.context;
         const percents = context.value.map((value) => percentOf(context, value));
@@ -255,6 +272,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     },
     markerGroup: {
       id: "marker-group",
+      sig: (scope: ScopeLike) => [`${scope.props["dir"]}`].join(" "),
       attrs: (scope: ScopeLike) => ({
         dir: scope.props["dir"],
         "data-scope": "slider",
@@ -265,6 +283,21 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
   slots: {
     thumb: {
       indexes: (context: SliderContext) => thumbIndexes(context.value.length),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const context = scope.context;
+        const value = context.value[slotIndex(scope.slot)] ?? context.min;
+        return [
+          value,
+          context.focusedIndex,
+          scope.state,
+          scope.props["disabled"],
+          scope.props["readOnly"],
+          context.disabled,
+          context.readOnly,
+          scope.props["orientation"],
+          scope.props["dir"],
+        ].join("|");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const context = scope.context;
         const value = context.value[slotIndex(scope.slot)] ?? context.min;
@@ -389,6 +422,10 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     },
     marker: {
       indexes: (context: SliderContext) => markerRowsOf(context.markers),
+      sig: (scope: SlotLike<{ readonly value: number }>) => {
+        const slot = scope.slot;
+        return [slot.value, scope.context.value.join(",")].join(" ");
+      },
       attrs: (scope: SlotLike<{ readonly value: number }>) => {
         const slot = scope.slot;
         const context = scope.context;
@@ -413,6 +450,7 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     hiddenInput: {
       id: "input",
       indexes: (context: SliderContext) => context.value.map((_, index) => ({ index })),
+      sig: (scope: ScopeLike) => [scope.props["name"], scope.context.value[slotIndex(scope.slot)], slotIndex(scope.slot)].join("|"),
       attrs: (scope: ScopeLike) => {
         const context = scope.context;
         const value = context.value[slotIndex(scope.slot)] ?? context.min;

@@ -111,9 +111,14 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
   parts: {
     root: {
       id: "",
+      sig: (scope) => [scope.props["dir"]].join(""),
       attrs: (scope) => ({ id: scope.id(""), dir: scope.props["dir"] }),
     },
     area: {
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [scope.props["dir"], editingOf(scope), scope.props["disabled"], scope.props["autoResize"], ctx.value.trim() === ""].join("");
+      },
       attrs: (scope) => {
         const focused = editingOf(scope);
         const placeholderShown = scope.context.value.trim() === "";
@@ -133,6 +138,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
       },
     },
     label: {
+      sig: (scope) => [scope.props["dir"], editingOf(scope), scope.props["invalid"], scope.props["required"], scope.props["disabled"]].join(""),
       attrs: (scope) => {
         const focused = editingOf(scope);
         return {
@@ -155,6 +161,10 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
       },
     },
     input: {
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [scope.props["dir"], scope.props["name"], scope.props["form"], scope.props["maxLength"], typeof scope.props["placeholder"] === "string" ? scope.props["placeholder"] : "", scope.props["disabled"], scope.props["readOnly"], scope.props["required"], scope.props["invalid"], scope.props["autoResize"], editingOf(scope), ctx.value].join("");
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const focused = editingOf(scope);
@@ -253,6 +263,11 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
       },
     },
     preview: {
+      sig: (scope) => {
+        const ctx = scope.context;
+        const text = ctx.value.trim() === "" ? typeof scope.props["placeholder"] === "string" ? scope.props["placeholder"] : "" : ctx.value;
+        return [scope.props["dir"], text, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["autoResize"], editingOf(scope), interactive(scope), scope.props["activationMode"]].join("");
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const focused = editingOf(scope);
@@ -305,6 +320,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     },
     editTrigger: {
       id: "edit",
+      sig: (scope) => [scope.props["dir"], editingOf(scope), scope.props["disabled"]].join(""),
       attrs: (scope) => {
         const focused = editingOf(scope);
         return {
@@ -327,10 +343,12 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
       },
     },
     control: {
+      sig: (scope) => [scope.props["dir"]].join(""),
       attrs: (scope) => ({ id: scope.id("control"), dir: scope.props["dir"] }),
     },
     submitTrigger: {
       id: "submit",
+      sig: (scope) => [scope.props["dir"], editingOf(scope), scope.props["disabled"]].join(""),
       attrs: (scope) => {
         const focused = editingOf(scope);
         return {
@@ -354,6 +372,7 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
     },
     cancelTrigger: {
       id: "cancel",
+      sig: (scope) => [scope.props["dir"], editingOf(scope), scope.props["disabled"]].join(""),
       attrs: (scope) => {
         const focused = editingOf(scope);
         return {

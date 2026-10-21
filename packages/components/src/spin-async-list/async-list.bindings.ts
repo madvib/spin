@@ -316,6 +316,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   },
   parts: {
     root: {
+      sig: (scope) => `${scope.state}`,
       attrs: (scope) => ({
         id: scope.id(""),
         "data-state": scope.state,
@@ -323,6 +324,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       }),
     },
     progress: {
+      sig: (scope) => `${scope.state}`,
       attrs: (scope) => ({
         id: scope.id("progress"),
         role: "progressbar",
@@ -332,6 +334,10 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       }),
     },
     list: {
+      sig: (scope) => {
+        const items = scope.context.items;
+        return `${scope.state} ${items.length}`;
+      },
       attrs: (scope) => {
         const count = scope.context.items.length;
         const loading = scope.state === "loading" || scope.state === "sorting";
@@ -346,6 +352,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       },
     },
     empty: {
+      sig: (scope) => `${scope.context.items.length}`,
       attrs: (scope) => {
         const count = scope.context.items.length;
         return {
@@ -355,6 +362,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       },
     },
     error: {
+      sig: (scope) => `${scope.context.error !== undefined}`,
       attrs: (scope) => {
         const failed = scope.context.error !== undefined;
         return {
@@ -366,6 +374,10 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     },
     filterInput: {
       id: "filter",
+      sig: (scope) => {
+        const ctx = scope.context;
+        return `${ctx.filterText} ${scope.state === "loading" || scope.state === "sorting"}`;
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -385,6 +397,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     },
     clearFilter: {
       id: "clear-filter",
+      sig: (scope) => `${scope.context.filterText.length === 0}`,
       attrs: (scope) => {
         const empty = scope.context.filterText.length === 0;
         return {
@@ -398,6 +411,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       },
     },
     reload: {
+      sig: (scope) => `${scope.state}`,
       attrs: (scope) => ({
         id: scope.id("reload"),
         type: "button",
@@ -407,6 +421,10 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     },
     loadMore: {
       id: "load-more",
+      sig: (scope) => {
+        const ctx = scope.context;
+        return `${ctx.cursor != null} ${scope.state}`;
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const more = ctx.cursor != null;
@@ -423,6 +441,10 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
       },
     },
     sentinel: {
+      sig: (scope) => {
+        const ctx = scope.context;
+        return `${ctx.cursor != null} ${scope.state}`;
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const more = ctx.cursor != null;
@@ -443,6 +465,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
   slots: {
     item: {
       indexes: (context: AsyncListContext) => rowsFor(context.items),
+      sig: (scope: SlotLike<AsyncListRow>) => `${scope.slot.value}`,
       attrs: (scope: SlotLike<AsyncListRow>) => {
         const row = scope.slot;
         return {
@@ -456,6 +479,13 @@ const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
     sortTrigger: {
       id: "sort-trigger",
       indexes: () => [],
+      sig: (scope: SlotLike<SortTrigger>) => {
+        const trigger = scope.slot;
+        const ctx = scope.context;
+        const active = ctx.sortDescriptor?.column === trigger.column &&
+          ctx.sortDescriptor?.direction === trigger.direction;
+        return `${scope.state} ${active}`;
+      },
       attrs: (scope: SlotLike<SortTrigger>) => {
         const trigger = scope.slot;
         const ctx = scope.context;

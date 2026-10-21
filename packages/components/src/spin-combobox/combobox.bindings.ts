@@ -505,6 +505,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   },
   parts: {
     root: {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"]].join("\u0000"),
       attrs: (scope: ScopeLike) => {
         const open = isOpenPhase(scope.state);
         return {
@@ -532,6 +533,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     label: {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"]].join("\u0000"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("label"),
         dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
@@ -549,6 +551,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }),
     },
     control: {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["invalid"]].join("\u0000"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("control"),
           "data-scope": "combobox",
@@ -560,6 +563,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }),
     },
     positioner: {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["placement"]].join("\u0000"),
       attrs: (scope: ScopeLike) => {
         const _placementRaw = scope.props["placement"];
         const placement = typeof _placementRaw === "string" && _placementRaw.length > 0 ? _placementRaw : "bottom";
@@ -578,6 +582,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     input: {
+      sig: (scope: ScopeLike) => {
+        const ctx = scope.context;
+        return [scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.props["required"], scope.props["name"], scope.props["form"], scope.props["placeholder"], ctx.highlightedValue, ctx.autofill ?? ctx.inputValue, ctx.inputValue].join("\u0000");
+      },
       attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
         const display = ctx.autofill ?? ctx.inputValue;
@@ -636,6 +644,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     trigger: {
+      sig: (scope, arg) => [scope.state, scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"], scope.props["triggerLabel"], (typeof arg === "object" && arg !== null && "focusable" in arg && arg.focusable === true)].join("\u0000"),
       attrs: (scope, arg) => {
         const focusable = typeof arg === "object" && arg !== null && "focusable" in arg && arg.focusable === true;
         const open = isOpenPhase(scope.state);
@@ -689,6 +698,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     triggerIndicator: {
+      sig: (scope: ScopeLike) => ["indicator", scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr")].join("\u0000"),
       attrs: (scope: ScopeLike) => ({
         "aria-hidden": true,
         dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
@@ -696,6 +706,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }),
     },
     clearTrigger: {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], scope.props["invalid"], scope.context.value.length, scope.props["clearTriggerLabel"]].join("\u0000"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("clearTrigger"),
           "data-scope": "combobox",
@@ -721,6 +732,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       }),
     },
     content: {
+      sig: (scope: ScopeLike) => [scope.state, scope.props["disabled"], (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"], scope.context.multiple, scope.props["placement"], itemsOf(scope.props).length, scope.context.highlightedValue].join("\u0000"),
       attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
         const _placementRaw = scope.props["placement"];
@@ -757,6 +769,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
       },
     },
     list: {
+      sig: (scope: ScopeLike) => [scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), scope.props["composite"], scope.context.multiple, itemsOf(scope.props).length].join("\u0000"),
       attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
         const composite = scope.props["composite"] !== false;
@@ -776,6 +789,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     item: {
       id: "item",
       indexes: (_context, props) => rowsOf(props),
+      sig: (scope: SlotLike<ComboboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return `${state.highlighted}\u0000${state.selected}\u0000${state.disabled}`;
+      },
       attrs: (scope: SlotLike<ComboboxRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -797,6 +814,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     },
     itemText: {
       indexes: (_context, props) => rowsOf(props),
+      sig: (scope: SlotLike<ComboboxRow>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return `${state.highlighted}\u0000${state.selected}\u0000${state.disabled}`;
+      },
       attrs: (scope: SlotLike<ComboboxRow>) => {
         const state = itemStateOf(scope, scope.slot);
         return {
@@ -808,6 +829,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     },
     itemIndicator: {
       indexes: (_context, props) => rowsOf(props),
+      sig: (scope: SlotLike<ComboboxRow>) => `${itemStateOf(scope, scope.slot).selected}`,
       attrs: (scope: SlotLike<ComboboxRow>) => {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
@@ -820,6 +842,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     itemGroup: {
       id: "item-group",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
+      sig: (scope: SlotLike<ComboboxBlock>) => [scope.state, (scope.props["dir"] === "rtl" ? "rtl" : "ltr"), rowsOf(scope.props).length].join("\u0000"),
       attrs: (scope: SlotLike<ComboboxBlock>) => {
         const block = scope.slot;
         return {
@@ -834,6 +857,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
     itemGroupLabel: {
       id: "item-group-label",
       indexes: (_context, props) => blocksOf(rowsOf(props)),
+      sig: (scope: SlotLike<ComboboxBlock>) => `${scope.slot.label}`,
       attrs: (scope: SlotLike<ComboboxBlock>) => {
         const block = scope.slot;
         return {

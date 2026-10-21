@@ -770,6 +770,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
   },
   parts: {
     root: {
+      sig: (scope) => [dirOf(scope.props), disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], scope.state].join(" "),
       attrs: (scope) => ({
         // The bare namespace: the root part carries no suffix, so
         // owner-scoped lookups never collide with a part name.
@@ -783,6 +784,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     label: {
+      sig: (scope) => [dirOf(scope.props), disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
         dir: dirOf(scope.props),
@@ -800,6 +802,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     control: {
+      sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
         dir: dirOf(scope.props),
@@ -811,6 +814,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     trigger: {
+      sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"], placementOf(scope.props), scope.context.value.length].join(" "),
       attrs: (scope) => ({
         id: scope.id("trigger"),
         type: "button",
@@ -839,6 +843,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     indicator: {
+      sig: (scope) => [scope.state, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("indicator"),
         dir: dirOf(scope.props),
@@ -851,6 +856,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     valueText: {
       id: "value-text",
+      sig: (scope) => [scope.state, disabledOf(scope), scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
         dir: dirOf(scope.props),
@@ -863,6 +869,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     clearTrigger: {
       id: "clear-trigger",
+      sig: (scope) => [scope.context.value.length, disabledOf(scope), scope.props["readOnly"], scope.props["invalid"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("clearTrigger"),
         type: "button",
@@ -884,6 +891,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     // per read and the style object re-applies the trigger's width as the
     // trigger moves.
     positioner: {
+      sig: () => `${Date.now()}`,
       attrs: (scope: ScopeLike) => {
         const rect = scope.measure("trigger");
         return {
@@ -904,6 +912,19 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       },
     },
     content: {
+      sig: (scope) => {
+        const highlighted = scope.context.highlightedValue;
+        return [
+          scope.state,
+          highlighted.length,
+          scope.props["multiple"],
+          scope.props["required"],
+          scope.props["readOnly"],
+          disabledOf(scope),
+          scope.props["scrollToIndexFn"] === undefined,
+          scope.id("item", pathKey(highlighted)),
+        ].join(" ");
+      },
       attrs: (scope) => {
         const highlighted = scope.context.highlightedValue;
         return {
@@ -944,6 +965,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
+      sig: (scope: ScopeLike) => [hashValue(scope.context.value), propText(scope.props["name"]), propText(scope.props["form"])].join(" "),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("hiddenInput"),
         ...(propText(scope.props["name"]).length > 0 ? { name: propText(scope.props["name"]) } : {}),
@@ -962,6 +984,10 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
     list: {
       indexes: (_context, props) =>
         levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? [])),
+      sig: (scope: SlotLike<CascadeLevel>) => {
+        const level = scope.slot;
+        return `${level.depth} ${dirOf(scope.props)}`;
+      },
       attrs: (scope: SlotLike<CascadeLevel>) => {
         const level = scope.slot;
         return {
@@ -979,6 +1005,10 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       indexes: (_context, props) =>
         levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
           .flatMap((level) => level.items),
+      sig: (scope: SlotLike<CascadeItem>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return `${state.highlighted} ${state.selected} ${state.hasChildren}`;
+      },
       attrs: (scope: SlotLike<CascadeItem>) => {
         const item = scope.slot;
         const state = itemStateOf(scope, item);
@@ -1007,6 +1037,10 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       indexes: (_context, props) =>
         levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
           .flatMap((level) => level.items),
+      sig: (scope: SlotLike<CascadeItem>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return `${state.highlighted} ${state.selected} ${state.disabled}`;
+      },
       attrs: (scope: SlotLike<CascadeItem>) => {
         const item = scope.slot;
         const state = itemStateOf(scope, item);
@@ -1023,6 +1057,10 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       indexes: (_context, props) =>
         levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
           .flatMap((level) => level.items),
+      sig: (scope: SlotLike<CascadeItem>) => {
+        const state = itemStateOf(scope, scope.slot);
+        return `${state.selected} ${state.highlighted} ${state.hasChildren}`;
+      },
       attrs: (scope: SlotLike<CascadeItem>) => {
         const item = scope.slot;
         const state = itemStateOf(scope, item);

@@ -392,6 +392,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
   },
   parts: {
     root: {
+      sig: (scope) => [scope.state, scope.props["dir"], scope.props["orientation"], scope.props["autoplayDelay"]].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-scope": "carousel",
@@ -410,6 +411,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
       }),
     },
     control: {
+      sig: (scope) => [`${scope.props["orientation"]}`].join(" "),
       attrs: (scope) => ({
         role: "group",
         "aria-label": "Carousel controls",
@@ -418,6 +420,10 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     itemGroup: {
       id: "item-group",
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [scope.state, ctx.dragStatus, scope.props["orientation"], scope.props["allowMouseDrag"], ctx.index, ctx.pageCount].join(" ");
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const horizontal = scope.props["orientation"] !== "vertical";
@@ -474,6 +480,10 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     prevTrigger: {
       id: "prev-trigger",
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [`${ctx.loop || ctx.index > 0}`, scope.props["orientation"]].join(" ");
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const can = ctx.loop || ctx.index > 0;
@@ -493,6 +503,10 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     nextTrigger: {
       id: "next-trigger",
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [`${ctx.loop || ctx.index < lastPageOf(ctx)}`, scope.props["orientation"]].join(" ");
+      },
       attrs: (scope) => {
         const ctx = scope.context;
         const can = ctx.loop || ctx.index < lastPageOf(ctx);
@@ -512,6 +526,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     autoplayTrigger: {
       id: "autoplay-trigger",
+      sig: (scope) => [scope.state, scope.props["orientation"]].join(" "),
       attrs: (scope) => {
         const playing = scope.state === "autoplay";
         return {
@@ -529,6 +544,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     indicatorGroup: {
       id: "indicator-group",
+      sig: (scope) => [`${scope.props["orientation"]}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("indicatorGroup"),
         "data-scope": "carousel",
@@ -541,6 +557,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     progressText: {
       id: "progress-text",
+      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("progressText"),
         "data-scope": "carousel",
@@ -551,6 +568,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     autoplayProgress: {
       id: "autoplay-progress",
+      sig: (scope) => [scope.state, scope.props["orientation"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("autoplayProgress"),
         "data-scope": "carousel",
@@ -562,6 +580,7 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     autoplayProgressFill: {
       id: "autoplay-progress-fill",
+      sig: (scope) => [scope.state, scope.props["orientation"]].join(" "),
       attrs: (scope) => ({
         "data-orientation": scope.props["orientation"],
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
@@ -571,6 +590,10 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
   slots: {
     item: {
       indexes: (_context, props) => slidesOf(props["items"]),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const item = scope.slot;
+        return [`${slideInView(scope, item.index)}`, scope.props["orientation"], scope.props["slidesPerPage"], scope.props["autoSize"]].join(" ");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>, arg?: unknown) => {
         const item = scope.slot;
         const snap = snapOf(arg);
@@ -601,6 +624,10 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
     },
     indicator: {
       indexes: (_context, props) => slidesOf(props["items"]).map((slide, index) => ({ ...slide, index })),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const item = scope.slot;
+        return [`${item.index === scope.context.index}`, scope.props["orientation"]].join(" ");
+      },
       attrs: (scope: SlotLike<{ readonly index: number; readonly label: string }>, arg?: unknown) => {
         const item = scope.slot;
         const readOnly = isRecord(arg) && arg["readOnly"] === true;

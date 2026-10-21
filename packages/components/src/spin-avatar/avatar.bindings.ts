@@ -48,6 +48,7 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
   start: "loading",
   parts: {
     root: {
+      sig: (scope) => [scope.props["dir"], scope.state].join("|"),
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -57,6 +58,7 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
       }),
     },
     image: {
+      sig: (scope: ScopeLike) => [scope.context.src, scope.state].join("|"),
       attrs: (scope: ScopeLike) => {
         const src = scope.context.src;
         const loaded = scope.state === "loaded";
@@ -89,6 +91,7 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
       },
     },
     fallback: {
+      sig: (scope: ScopeLike) => [textOf(scope.props, "fallback"), scope.state].join("|"),
       attrs: (scope: ScopeLike) => {
         const loaded = scope.state === "loaded";
         return {

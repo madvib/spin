@@ -86,6 +86,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   start: "idle",
   parts: {
     root: {
+      sig: (scope) => [scope.props["dir"]].join("|"),
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -94,6 +95,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
       }),
     },
     label: {
+      sig: (scope) => [scope.props["label"], scope.props["disabled"]].join("|"),
       attrs: (scope) => ({
         id: scope.id("label"),
         dir: scope.props["dir"],
@@ -110,6 +112,10 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
       }),
     },
     control: {
+      sig: (scope) =>
+        [scope.state, scope.props["disabled"], scope.props["readOnly"]].join(
+          "|",
+        ),
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "radiogroup",
@@ -134,6 +140,9 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
     },
     hiddenInput: {
       id: "input",
+      sig: (scope) =>
+        [scope.props["name"], scope.context.value, scope.props["disabled"]]
+          .join("|"),
       attrs: (scope) => {
         const rawName = scope.props["name"];
         const name = typeof rawName === "string" ? rawName : "";
@@ -154,6 +163,18 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
   slots: {
     item: {
       indexes: (context) => itemIndexes(context.count),
+      sig: (scope) => {
+        const state = itemState(scope.context, slotIndex(scope.slot));
+        return [
+          scope.state,
+          state.highlighted,
+          state.half,
+          state.checked,
+          scope.props["disabled"],
+          scope.props["readOnly"],
+          scope.props["dir"],
+        ].join("|");
+      },
       attrs: (scope) => {
         const index = slotIndex(scope.slot);
         const context = scope.context;

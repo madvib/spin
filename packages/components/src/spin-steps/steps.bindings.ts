@@ -125,6 +125,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
   },
   parts: {
     root: {
+      sig: (scope: ScopeLike) => [scope.props["orientation"], scope.props["dir"], percent(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id(""),
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
@@ -134,6 +135,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
       }),
     },
     list: {
+      sig: (scope: ScopeLike) => [scope.props["orientation"], scope.props["dir"], scope.context.count].join("|"),
       attrs: (scope: ScopeLike) => {
         const items = stepIndexes(scope.context.count);
         return {
@@ -150,6 +152,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     nextTrigger: {
       id: "next-trigger",
+      sig: (scope: ScopeLike) => [hasNextStep(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => ({
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         type: "button",
@@ -164,6 +167,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     prevTrigger: {
       id: "prev-trigger",
+      sig: (scope: ScopeLike) => [hasPrevStep(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => ({
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         type: "button",
@@ -179,6 +183,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     // The track: the bar's extent, not its progress. The progress is the
     // fill's width, and it rides the fill's style object.
     progress: {
+      sig: (scope: ScopeLike) => [percent(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => {
         const value = percent(scope.context);
         return {
@@ -196,6 +201,7 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     // The fill: the machine's progress, measured in the bag's style.
     progressFill: {
+      sig: (scope: ScopeLike) => [percent(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("progress-fill"),
         "data-scope": "steps",
@@ -207,6 +213,10 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
   slots: {
     item: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const state = itemState(scope.context, slotIndex(scope));
+        return [state.current, state.completed, state.incomplete, scope.props["orientation"]].join("|");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const state = itemState(scope.context, slotIndex(scope));
         return {
@@ -220,6 +230,10 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     trigger: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const state = itemState(scope.context, slotIndex(scope));
+        return [state.current, state.completed, state.incomplete, scope.props["linear"], scope.props["orientation"]].join("|");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const index = slotIndex(scope);
         const state = itemState(scope.context, index);
@@ -249,6 +263,10 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     content: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const state = itemState(scope.context, slotIndex(scope));
+        return [state.current, scope.props["orientation"]].join("|");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const index = slotIndex(scope);
         const state = itemState(scope.context, index);
@@ -268,6 +286,10 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     indicator: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const state = itemState(scope.context, slotIndex(scope));
+        return [state.current, state.completed, state.incomplete].join("|");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const state = itemState(scope.context, slotIndex(scope));
         return {
@@ -283,6 +305,10 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
     },
     separator: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
+      sig: (scope: SlotLike<{ readonly index: number }>) => {
+        const state = itemState(scope.context, slotIndex(scope));
+        return [state.current, state.completed, state.incomplete, scope.props["orientation"]].join("|");
+      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const state = itemState(scope.context, slotIndex(scope));
         return {
