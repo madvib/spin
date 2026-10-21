@@ -15,7 +15,12 @@
  * here, and one no theme produces is not.
  */
 
-import { CSS_WIDE_COLORS, indexTree, parseTokens } from "@spin/theme";
+import {
+  cssVarName,
+  indexTree,
+  parseTokens,
+  resolveAliases,
+} from "@spin/theme";
 import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 import {
@@ -27,7 +32,9 @@ import { primitiveVariants as animationVariants } from "@spin/animation";
 import type { Facts, ScopeFact } from "./core.ts";
 import { generatedClasses } from "./generated.ts";
 import { paintKeyFor, type Tier, TIER_BY_GROUP } from "./tiers.ts";
+import type { Decision } from "./properties.ts";
 import { noShortcuts, type ShortcutDeclaration } from "./shortcuts.ts";
+import { surfacesFor } from "./surface.ts";
 
 /** The catalog group that holds the variant prefixes. */
 const VARIANTS_GROUP = "variants";
@@ -118,7 +125,7 @@ export function factsFor(
   const catalog = new Set<string>();
   const utilities = new Set<string>(generated);
   const tiers = new Map<string, Tier>();
-  const paints = new Map<string, string>();
+  const paints = new Map<string, Decision>();
   const prefixes = new Set<string>();
   const weights = weightNames(trees);
   for (const tree of trees) {
@@ -176,12 +183,35 @@ export function factsFor(
     prefixes,
     colors,
     inks,
-    rawColor: rawColorPattern(catalog, colors),
+    values: valuesOf(trees),
+    surfaces: surfacesFor(documents),
     // A declaration the lint could not read leaves the vocabulary
     // incomplete: the rule that asks "can this be produced?" stands down,
     // and the rest of the facts still stand.
     shortcuts: shortcuts.unreadable ? null : shortcuts.shortcuts,
   };
+}
+
+/**
+ * The theme's own values, by custom property name.
+ *
+ * The values are the ones the theme resolved to: an alias is followed, so
+ * the value a comparison reads is the value the browser would compute. A
+ * theme that says the same thing twice — a project's own theme and the
+ * starter it was forked from — is read in the order the documents came in,
+ * so the last one is the answer.
+ */
+function valuesOf(trees: readonly TokenTree[]): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const tree of trees) {
+    const resolved = resolveAliases(tree);
+    for (const leaf of Object.values(indexTree(resolved.tree).leaves)) {
+      const value = leaf.value;
+      if (value === undefined || value === null) continue;
+      out.set(cssVarName(leaf.path), String(value));
+    }
+  }
+  return out;
 }
 
 /** The facts of a vocabulary nobody could read. */
@@ -196,51 +226,20 @@ function unreadable(): Facts {
     prefixes: new Set(),
     colors: new Set(),
     inks: new Set(),
-    rawColor: /(?!)/,
+    values: new Map(),
+    surfaces: surfacesFor([]),
     shortcuts: null,
   };
-}
-
-/**
- * The colours the themes declare, by the palettes' own spelling.
- *
- * A colour is named by its path under `color` — `neutral-700`, not `700` —
- * because the step only means something next to its ramp. The leaf name
- * alone would put `50` in the list, and `50` is not a colour: it is a step
- * of one, and `z-50` is a z-index.
- */
-function colorWords(colors: ReadonlySet<string>): Set<string> {
-  return new Set<string>([...CSS_WIDE_COLORS, ...colors]);
-}
-
-/**
- * The pattern that matches a colour written by hand.
- *
- * The prefixes come from the catalog and the colour words from the themes,
- * so neither list is hardcoded here.
- */
-function rawColorPattern(
-  utilities: ReadonlySet<string>,
-  colors: ReadonlySet<string>,
-): RegExp {
-  const prefixes = new Set<string>();
-  for (const utility of utilities) prefixes.add(utility.split("-")[0] ?? "");
-  const words = [...colorWords(colors)];
-  return new RegExp(
-    `^(?:${
-      [...prefixes].join("|")
-    })-(?:\\[?(?:#[0-9a-f]{3,8}|rgba?\\(|oklch\\(|hsl\\(|(?:${
-      words.join("|")
-    })\\b))`,
-    "i",
-  );
 }
 
 /**
  * The facts of a project: its own themes, and the starters beside them.
  *
  * The starters are the fallback, not the floor: a project that has forked
- * a theme still serves the others, so both are in the vocabulary.
+ * a theme still serves the others, so both are in the vocabulary. And the
+ * project's own theme is read LAST, because a value is the project's
+ * answer: where the project and the starter it was forked from disagree,
+ * the project is what the pages render.
  */
 export function projectFacts(
   projectThemes: Record<string, ThemeDocument>,
@@ -248,7 +247,7 @@ export function projectFacts(
   shortcuts: ShortcutDeclaration = noShortcuts(),
 ): Facts {
   return factsFor(
-    [...Object.values(projectThemes), ...Object.values(starterThemes)],
+    [...Object.values(starterThemes), ...Object.values(projectThemes)],
     generated,
     shortcuts,
   );

@@ -24,6 +24,7 @@
  */
 import type { JSX } from "solid-js";
 import { For, onCleanup, onMount } from "solid-js";
+import { Web } from "./web.tsx";
 
 const RAD = Math.PI / 180;
 const HUB = { x: 60, y: 13 };
@@ -375,7 +376,6 @@ const LOGO_SHAPES: readonly string[] = [
 ];
 
 /** The mark's tilt: the spider leans, the way it hangs. */
-const LOGO_TILT = -8;
 
 const LOGO_BOX: Record<
   LogoSize,
@@ -433,19 +433,7 @@ export function Logo(
         props.class ?? ""
       }`}
     >
-      <svg
-        viewBox={spec().viewBox}
-        width={spec().px}
-        height={spec().px}
-        fill={spec().ink}
-        fill-rule={spec().fillRule}
-        class={`${spec().box} shrink-0`}
-        aria-hidden="true"
-      >
-        <g transform={`rotate(${LOGO_TILT} 12 15.2)`}>
-          <For each={spec().shapes}>{(d) => <path d={d} />}</For>
-        </g>
-      </svg>
+      <Web size={spec().px} class={`${spec().box} shrink-0`} />
       <span class={word().text}>spin</span>
     </span>
   );

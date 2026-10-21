@@ -66,12 +66,11 @@ Deno.test("the corner mark is one drawing at every size", async () => {
 });
 
 Deno.test("the corner mark is painted in the ink it inherits", async () => {
-  // One ink, so the mark wears whatever surface it lands on. The hourglass
-  // is cut out of the body rather than painted on it, so it shows the
-  // surface through the mark.
+  // One ink, so the mark wears whatever surface it lands on: the web is
+  // drawn in strokes, and the hub is filled with the same ink.
   const html = await renderToString(() => <Logo size="sm" />);
+  assertStringIncludes(html, 'stroke="currentColor"');
   assertStringIncludes(html, 'fill="currentColor"');
-  assertStringIncludes(html, 'fill-rule="evenodd"');
 });
 
 Deno.test("the corner mark carries the wordmark in the brand face", async () => {

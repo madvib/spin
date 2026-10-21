@@ -30,9 +30,12 @@ export {
   readProjectShortcuts,
   type ShortcutDeclaration,
 } from "./shortcuts.ts";
-export { decisionOf, type Tier, TIER_BY_GROUP } from "./tiers.ts";
+export { decisionOf, type Tier, TIER_BY_GROUP, tierInPlace } from "./tiers.ts";
+export { type Decision, isSpacing, sameValue } from "./properties.ts";
+export { type Surfaces, surfacesFor } from "./surface.ts";
 export {
   type GateContext,
+  type GateFix,
   type GateMeta,
   type GateNode,
   type GateRule,

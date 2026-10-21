@@ -5,16 +5,18 @@ import * as tsParser from "@typescript-eslint/parser";
 import {
   checkClosedVocabulary,
   checkNoHandwrittenTokens,
-  checkNoRawColors,
+  checkNoRedundantClass,
   checkNoUnpairedInk,
-  checkNoUtilitiesOnSemantic,
+  checkPreferElement,
+  checkPreferThemeValue,
   type ClassFacts,
+  type ClassToken,
   type Facts,
   type Finding,
   type LiteralFacts,
   type SemanticOptions,
 } from "../src/core.ts";
-import { type CliFinding, lint } from "../src/cli.ts";
+import { applyFixes, type CliFinding, lint } from "../src/cli.ts";
 import eslintPlugin from "../src/eslint.ts";
 import { factsForFile } from "../src/provider.ts";
 import { renderMessage, type RuleName, RULES } from "../src/rules.ts";
@@ -29,9 +31,11 @@ import { renderMessage, type RuleName, RULES } from "../src/rules.ts";
  *
  * So this runs one fixture through all four and holds them to each other:
  * the same rules, the same message ids, the same sentences, the same lines
- * and columns. The expectation is built from the core's own checks over
- * facts read off the fixture's text — not from a snapshot — so a change in
- * the rules moves both sides at once and only a disagreement shows.
+ * and columns — and the same EDITS, because a rule that can drop a class
+ * has to drop it the same way wherever it is delivered. The expectation is
+ * built from the core's own checks over facts read off the fixture's text —
+ * not from a snapshot — so a change in the rules moves both sides at once
+ * and only a disagreement shows.
  */
 
 /** The fixture: a class attribute on each kind of element the rules read. */
@@ -39,7 +43,8 @@ const FIXTURE = `export function App() {
   return (
     <div className="flex gap-2">
       <button className="bg-primary p-4">Save</button>
-      <p className="text-sm text-text-muted bg-accent">A paragraph</p>
+      <h2 className="text-xl">A heading</h2>
+      <span className="text-3xl">big</span>
       <span className="not-a-class">plain</span>
       <em style="color: var(--color-text)" />
       <i className={\`var(--color-text)\`} />
@@ -54,7 +59,7 @@ const PLUGIN = new URL("../src/index.ts", import.meta.url).pathname;
 /** The package, whose import map the oxlint plugin is resolved against. */
 const PACKAGE = new URL("../", import.meta.url).pathname;
 
-/** The dials the semantic rule reads. */
+/** The dials the semantic rules read. */
 const STRICT: SemanticOptions = { strictness: "strict", semanticTags: "all" };
 const BALANCED: SemanticOptions = {
   strictness: "balanced",
@@ -92,21 +97,30 @@ interface Element {
   classes: string[];
   line: number;
   column: number;
+  /** Where the class list starts in the source. */
+  valueStart: number;
 }
 
 /**
  * The elements the fixture declares, read off its text.
  *
  * Read from the text rather than from a parse tree, so the expectation is
- * built independently of the adapters under test.
+ * built independently of the adapters under test. The offsets are read the
+ * same way: the class list starts after the quote that opens it, and each
+ * class sits where the text says it sits.
  */
 function elementsOf(source: string): Element[] {
   const out: Element[] = [];
+  let at = 0;
   source.split("\n").forEach((line, index) => {
+    const start = at;
+    at += line.length + 1;
     const match = /<([a-z][a-z0-9]*)([^<>]*?\s)(class(?:Name)?="([^"]*)")/.exec(
       line,
     );
     if (match === null) return;
+    const attribute = match[3] as string;
+    const name = attribute.slice(0, attribute.indexOf("="));
     out.push({
       tag: match[1] as string,
       classes: (match[4] as string).split(/\s+/).filter(Boolean),
@@ -114,6 +128,9 @@ function elementsOf(source: string): Element[] {
       // Where the attribute starts, which is where a linter reports it.
       column: (match.index ?? 0) + 1 + (match[1] as string).length +
         (match[2] as string).length,
+      // Where the class list starts: after the name, the `=` and the quote.
+      valueStart: start + (match.index ?? 0) + 1 + (match[1] as string).length +
+        (match[2] as string).length + name.length + 2,
     });
   });
   return out;
@@ -169,16 +186,20 @@ const CHECKS: readonly {
   check: (facts: Facts, node: ClassFacts) => Finding[];
 }[] = [
   {
-    rule: "no-utilities-on-semantic",
-    check: (facts, node) => checkNoUtilitiesOnSemantic(facts, node, STRICT),
+    rule: "no-redundant-class",
+    check: (facts, node) => checkNoRedundantClass(facts, node, STRICT),
+  },
+  {
+    rule: "prefer-theme-value",
+    check: (facts, node) => checkPreferThemeValue(facts, node, STRICT),
+  },
+  {
+    rule: "prefer-element",
+    check: (facts, node) => checkPreferElement(facts, node, STRICT),
   },
   {
     rule: "closed-vocabulary",
     check: (facts, node) => checkClosedVocabulary(facts, node),
-  },
-  {
-    rule: "no-raw-colors",
-    check: (facts, node) => checkNoRawColors(facts, node),
   },
   {
     rule: "no-unpaired-ink",
@@ -218,8 +239,12 @@ function coreFindings(file: string, semantic: SemanticOptions): Canonical[] {
       position: { line: element.line, column: element.column },
     };
     for (const { rule, check } of CHECKS) {
-      const findings = rule === "no-utilities-on-semantic"
-        ? checkNoUtilitiesOnSemantic(facts, node, semantic)
+      const findings = rule === "no-redundant-class"
+        ? checkNoRedundantClass(facts, node, semantic)
+        : rule === "prefer-theme-value"
+        ? checkPreferThemeValue(facts, node, semantic)
+        : rule === "prefer-element"
+        ? checkPreferElement(facts, node, semantic)
         : check(facts, node);
       for (const finding of findings) {
         out.push(canonical(rule, finding, node.position));
@@ -238,6 +263,77 @@ function coreFindings(file: string, semantic: SemanticOptions): Canonical[] {
   return ordered(out);
 }
 
+/* ----------------------------------------------------------------- fixes -- */
+
+/** One edit, as the core decided it. */
+interface Edit {
+  readonly range: readonly [number, number];
+  readonly text: string;
+}
+
+/**
+ * The edits the core offers, over the fixture.
+ *
+ * Read from the same facts the front ends read, so the edits are the
+ * decision rather than a copy of it.
+ */
+function coreEdits(file: string): Edit[] {
+  const facts = factsForFile(file);
+  const out: Edit[] = [];
+  for (const element of elementsOf(FIXTURE)) {
+    const node: ClassFacts = {
+      tag: element.tag,
+      classes: element.classes,
+      tokens: tokensOf(element),
+      position: { line: element.line, column: element.column },
+    };
+    for (const finding of checkNoRedundantClass(facts, node, STRICT)) {
+      if (finding.fix !== undefined) out.push(finding.fix);
+    }
+    for (const finding of checkClosedVocabulary(facts, node)) {
+      if (finding.fix !== undefined) out.push(finding.fix);
+    }
+  }
+  return out;
+}
+
+/**
+ * Where each class of an element sits, read off the fixture's text.
+ *
+ * The same facts the adapters read: the class's own text in the source,
+ * and whether a space sits against it.
+ */
+function tokensOf(element: Element): ClassToken[] {
+  const value = element.classes.join(" ");
+  const out: ClassToken[] = [];
+  let at = 0;
+  for (const name of element.classes) {
+    const from = value.indexOf(name, at);
+    out.push({
+      name,
+      range: [
+        element.valueStart + from,
+        element.valueStart + from + name.length,
+      ],
+      spaceBefore: from > 0,
+      spaceAfter: from + name.length < value.length,
+    });
+    at = from + name.length;
+  }
+  return out;
+}
+
+/** The fixture with the core's edits applied. */
+function patched(file: string): string {
+  return applyFixes(
+    FIXTURE,
+    coreEdits(file) as {
+      range: [number, number];
+      text: string;
+    }[],
+  ).code;
+}
+
 /* ---------------------------------------------------------------- eslint -- */
 
 /** The rules, as an ESLint configuration writes them. */
@@ -247,9 +343,10 @@ function eslintConfig(semantic: SemanticOptions): Linter.Config {
     languageOptions: { parser: tsParser },
     plugins: { spin: eslintPlugin },
     rules: {
-      "spin/no-utilities-on-semantic": ["error", semantic],
+      "spin/no-redundant-class": ["error", semantic],
+      "spin/prefer-theme-value": ["error", semantic],
+      "spin/prefer-element": ["error", semantic],
       "spin/closed-vocabulary": "error",
-      "spin/no-raw-colors": "error",
       "spin/no-handwritten-tokens": "error",
       "spin/no-unpaired-ink": "error",
     },
@@ -276,6 +373,17 @@ function eslintFindings(
   );
 }
 
+/** The fixture as ESLint's fixer leaves it. */
+function eslintFixed(file: string): string {
+  const linter = new Linter({ configType: "flat", cwd: dirname(file) });
+  const result = linter.verifyAndFix(
+    FIXTURE,
+    eslintConfig(STRICT),
+    file,
+  );
+  return result.output;
+}
+
 /* ----------------------------------------------------------------- oxlint -- */
 
 /** The rules, as an oxlint configuration writes them. */
@@ -283,9 +391,10 @@ function oxlintConfig(semantic: SemanticOptions) {
   return {
     jsPlugins: [PLUGIN],
     rules: {
-      "spin/no-utilities-on-semantic": ["error", semantic],
+      "spin/no-redundant-class": ["error", semantic],
+      "spin/prefer-theme-value": ["error", semantic],
+      "spin/prefer-element": ["error", semantic],
       "spin/closed-vocabulary": "error",
-      "spin/no-raw-colors": "error",
       "spin/no-handwritten-tokens": "error",
       "spin/no-unpaired-ink": "error",
     },
@@ -296,8 +405,8 @@ function oxlintConfig(semantic: SemanticOptions) {
  * The findings oxlint reports.
  *
  * oxlint is run for real: the plugin is loaded by the linter, over the
- * fixture, and its diagnostics are read back. Nothing here reaches into
- * the plugin's internals — what comes out is what a project would see.
+ * fixture, and its diagnostics are read back. Nothing here reaches into the
+ * plugin's internals — what comes out is what a project would see.
  */
 async function oxlintFindings(
   file: string,
@@ -353,6 +462,38 @@ async function oxlintFindings(
   return ordered(out);
 }
 
+/**
+ * The fixture as oxlint's fixer leaves it.
+ *
+ * oxlint is run for real, over a copy of the fixture, with its own fix
+ * flag: what comes back is the file the project would have.
+ */
+async function oxlintFixed(file: string): Promise<string> {
+  const config = `${file}.oxlintrc.json`;
+  await Deno.writeTextFile(config, JSON.stringify(oxlintConfig(STRICT)));
+  const command = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      "npm:oxlint@1.85.0",
+      "--config",
+      config,
+      "--fix",
+      file,
+    ],
+    cwd: PACKAGE,
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const { code, stderr } = await command.output();
+  if (code > 1) {
+    throw new Error(
+      `oxlint exited with ${code}: ${new TextDecoder().decode(stderr)}`,
+    );
+  }
+  return await Deno.readTextFile(file);
+}
+
 /* ------------------------------------------------------------------- cli -- */
 
 /** The findings the CLI reports. */
@@ -365,6 +506,7 @@ function cliFindings(
     format: "text",
     semantic,
     rules: Object.keys(RULES) as RuleName[],
+    fix: false,
     help: false,
   });
   return ordered(findings.map((finding: CliFinding) => ({
@@ -433,12 +575,33 @@ Deno.test("the three front ends report the same message ids", async () => {
   }
 });
 
+Deno.test("the three front ends make the same edits", async () => {
+  const file = await fixture();
+  try {
+    // The fixture, with the core's own edits applied: what every front end
+    // has to arrive at when it delivers the decision.
+    const expected = patched(file);
+    const eslint = eslintFixed(file);
+
+    // oxlint writes the file it fixes, so it is given a copy to write to.
+    const copy = `${file}.copy.tsx`;
+    await Deno.writeTextFile(copy, FIXTURE);
+    const oxlint = await oxlintFixed(copy);
+    await Deno.remove(copy);
+
+    assertEquals(eslint, expected);
+    assertEquals(oxlint, expected);
+  } finally {
+    await Deno.remove(file, { recursive: true });
+  }
+});
+
 Deno.test("the dials reach every front end", async () => {
   const file = await fixture();
   try {
     // `balanced` reads a type size as a decision about content rather than
-    // about the element's own look: the paragraph's `text-sm` is free, and
-    // the button's `bg-primary` is not.
+    // about the element's own look: the heading's `text-xl` is free, and
+    // the button's `p-4` is not.
     const core = coreFindings(file, BALANCED);
     const oxlint = await oxlintFindings(file, BALANCED);
     const eslint = eslintFindings(file, BALANCED);

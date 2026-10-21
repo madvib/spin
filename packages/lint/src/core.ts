@@ -3,7 +3,7 @@
  *
  * A linter is a delivery mechanism; the decision belongs to spin. Everything
  * in this module takes two things — the facts (the vocabulary, the
- * primitives' claims, the palette's pairings) and a normalized view of the
+ * primitives' claims, the theme's own values) and a normalized view of the
  * code — and answers with findings. An adapter walks an AST, builds the
  * input, and reports what comes back: oxlint's plugin API today, ESLint's
  * tomorrow, a standalone CLI the day after.
@@ -12,15 +12,33 @@
  * document looks like. That is what makes the answers portable, and it is
  * what makes them testable: a test hands the core a fact and a class list
  * and reads the findings.
+ *
+ * A finding may carry an EDIT: the range it covers and the text that
+ * replaces it. The decision about what to change belongs here; the change
+ * itself belongs to whoever is holding the file.
  */
 
 import { isNativeElement } from "./html.ts";
-import { decisionOf, type Tier } from "./tiers.ts";
+import { type Tier, tierInPlace } from "./tiers.ts";
+import type { Decision } from "./properties.ts";
+import { sameValue } from "./properties.ts";
+import type { Surfaces } from "./surface.ts";
 
 /** Where a finding sits: the start of the node that caused it. */
 export interface Position {
   readonly line: number;
   readonly column: number;
+}
+
+/**
+ * A text edit: the range it covers, and what replaces it.
+ *
+ * The range is in the source's own offsets, which is the shape every
+ * linter's fixer speaks — oxlint's, ESLint's, and the CLI's own writer.
+ */
+export interface TextEdit {
+  readonly range: readonly [number, number];
+  readonly text: string;
 }
 
 /**
@@ -38,6 +56,8 @@ export interface Finding {
   readonly data: Record<string, string>;
   /** Where the finding is. */
   readonly position: Position;
+  /** The edit that settles the finding, when the finding has one. */
+  readonly fix?: TextEdit;
 }
 
 /**
@@ -78,7 +98,7 @@ export interface Facts {
    * decision says WHICH. A background and a font weight are both skin, and
    * only one of them is a second opinion about an element's fill.
    */
-  readonly paints: ReadonlyMap<string, string>;
+  readonly paints: ReadonlyMap<string, Decision>;
   /** The prefixes a variant carries: `hover:`, `md:`, … */
   readonly prefixes: ReadonlySet<string>;
   /**
@@ -98,8 +118,21 @@ export interface Facts {
   readonly colors: ReadonlySet<string>;
   /** The inks among them — the colours named `on-…`. */
   readonly inks: ReadonlySet<string>;
-  /** The pattern that matches a colour written by hand. */
-  readonly rawColor: RegExp;
+  /**
+   * The theme's own values, by custom property name.
+   *
+   * A value the theme resolves to is what two declarations are compared as:
+   * `1px` and `var(--border-width)` are the same value when the theme's
+   * border is a pixel wide, and they are the lint's business only then.
+   */
+  readonly values: ReadonlyMap<string, string>;
+  /**
+   * What the theme puts on elements, and what a class sets.
+   *
+   * Read by running the preset's own rules, so the lint cannot disagree
+   * with the stylesheet the theme ships.
+   */
+  readonly surfaces: Surfaces;
 }
 
 /**
@@ -131,34 +164,34 @@ export interface ScopeFact {
 }
 
 /**
- * How much the semantic rule reports.
+ * How much the semantic rules report.
  *
- * - `strict` — skin and structure both count as painting over the element's
- *   own decision. The default, and the strictest reading.
+ * - `strict` — skin, structure and spacing all count as painting over the
+ *   element's own decision. The default, and the strictest reading.
  * - `balanced` — only skin counts. A type size on a text element is a
  *   decision about content, and a project that wants it free says so.
- * - `lenient` — neither counts. The rule stands down; the closed vocabulary
- *   still speaks.
+ * - `lenient` — none of it counts. The rules stand down; the closed
+ *   vocabulary still speaks.
  */
 export type Strictness = "strict" | "balanced" | "lenient";
 
 /**
- * Which tags the semantic rule treats as semantic.
+ * Which tags the semantic rules treat as semantic.
  *
  * - `all` — every tag a primitive claims. The default.
  * - `native` — only the elements HTML defines.
  * - `spin` — only spin's own elements.
- * - `none` — no tag is semantic, and the rule says nothing.
+ * - `none` — no tag is semantic, and the rules say nothing.
  */
 export type SemanticTags = "all" | "native" | "spin" | "none";
 
-/** The dial the semantic rule reads. */
+/** The dial the semantic rules read. */
 export interface SemanticOptions {
   readonly strictness: Strictness;
   readonly semanticTags: SemanticTags;
 }
 
-/** What the semantic rule does when nothing says otherwise. */
+/** What the semantic rules do when nothing says otherwise. */
 export const DEFAULT_SEMANTIC_OPTIONS: SemanticOptions = {
   strictness: "strict",
   semanticTags: "all",
@@ -211,6 +244,9 @@ function isReported(tier: Tier, strictness: Strictness): boolean {
  * project declared is a class the project produces. What the shortcut
  * EXPANDS to is checked as well — a shortcut that spends a class the theme
  * cannot make styles nothing, and that is worth saying out loud.
+ *
+ * A class the theme cannot produce is DEAD: it renders nothing, so dropping
+ * it changes nothing. The finding therefore carries the edit that drops it.
  */
 export function checkClosedVocabulary(
   facts: Facts,
@@ -223,7 +259,7 @@ export function checkClosedVocabulary(
   // say the wrong thing.
   if (facts.shortcuts === null) return [];
   const out: Finding[] = [];
-  for (const cls of node.classes) {
+  for (const [index, cls] of node.classes.entries()) {
     if (facts.variants.has(cls)) continue;
     if (facts.utilities.has(cls)) continue;
     const core = coreName(cls, facts.prefixes);
@@ -247,6 +283,7 @@ export function checkClosedVocabulary(
       messageId: "unknown",
       data: { cls },
       position: node.position,
+      fix: removalOf(node, index),
     });
   }
   return out;
@@ -269,52 +306,252 @@ function producible(facts: Facts, cls: string): boolean {
   return false;
 }
 
+/* --------------------------------------------------------------- the class -- */
+
 /**
- * A utility that paints over an element's own decision.
+ * One class on one element, as the core reads it.
  *
- * A utility on a raw element is fine. A utility that overwrites how the
- * element looks is not: the element already decided, and the class is a
- * second opinion. Layout is free — where a box sits is the author's call.
- *
- * The decision is looked up in the SCOPE, not in a list of tags. A primitive
- * paints inside its own scope — its own element, and the elements of the
- * column it owns — so whether a utility is a second opinion depends on where
- * the element sits, and on which decision the primitive actually makes
- * about it. A paragraph the document surface does not own is the author's; a
- * button the button primitive owns is not.
+ * The reading is what the three rules need: what the class sets, what the
+ * element already sets, and which decision the class makes.
  */
-export function checkNoUtilitiesOnSemantic(
+interface Reading {
+  /** The class as the author wrote it. */
+  readonly cls: string;
+  /** The declarations the class sets. */
+  readonly declarations: ReadonlyMap<string, string>;
+  /** The decision the class makes, when it makes one. */
+  readonly decision: Decision | undefined;
+  /** The tier of the class, in the place it is used. */
+  readonly tier: Tier;
+  /** Whether the class is dead weight where it stands. */
+  readonly dead: boolean;
+  /** The properties the class and the element both set. */
+  readonly shared: readonly string[];
+}
+
+/**
+ * The classes of an element, read.
+ *
+ * A class the primitives define themselves is skipped: a variant is how a
+ * primitive is told to change, and the theme's own variants are the
+ * sanctioned way to spend it. A class under a state is skipped too: the
+ * element's resting value is not the value the state sees, and comparing
+ * the two would be comparing two different things.
+ */
+function readings(
+  facts: Facts,
+  node: ClassFacts,
+  options: SemanticOptions,
+): Reading[] {
+  const tag = node.tag;
+  if (tag === undefined) return [];
+  if (!isSemanticTag(tag, options.semanticTags)) return [];
+  const element = facts.surfaces.element(tag, node.ancestors ?? []);
+  const out: Reading[] = [];
+  for (const cls of node.classes) {
+    if (facts.variants.has(cls)) continue;
+    const core = coreName(cls, facts.prefixes);
+    if (facts.variants.has(core)) continue;
+    if (core !== cls) continue;
+    const tier = facts.tiers.get(core);
+    if (tier === undefined) continue;
+    const declarations = facts.surfaces.utility(core);
+    if (declarations.size === 0) continue;
+    const shared = [...declarations.keys()].filter((property) =>
+      element.has(property)
+    );
+    const dead = shared.length === declarations.size && shared.every(
+      (property) =>
+        sameValue(
+          declarations.get(property) as string,
+          element.get(property) as string,
+          facts.values,
+        ),
+    );
+    out.push({
+      cls,
+      declarations,
+      decision: facts.paints.get(core),
+      tier: tierInPlace(tier, [...declarations.keys()], element),
+      dead,
+      shared,
+    });
+  }
+  return out;
+}
+
+/**
+ * A class that says what the element already says.
+ *
+ * DEAD WEIGHT: the class sets properties the element sets too, and it sets
+ * them to the values the element already has. It changes nothing, so it can
+ * be dropped — which is an edit, and the edit is what the finding carries.
+ */
+export function checkNoRedundantClass(
   facts: Facts,
   node: ClassFacts,
   options: SemanticOptions = DEFAULT_SEMANTIC_OPTIONS,
 ): Finding[] {
   const tag = node.tag;
   if (tag === undefined) return [];
-  if (!isSemanticTag(tag, options.semanticTags)) return [];
-  const owners = ownersOf(facts, node);
-  if (owners.length === 0) return [];
   const out: Finding[] = [];
-  for (const cls of node.classes) {
-    // The primitives' own variants are how an element is told to change.
-    if (facts.variants.has(cls)) continue;
-    const core = coreName(cls, facts.prefixes);
-    if (facts.variants.has(core)) continue;
-    const tier = facts.tiers.get(core);
-    if (tier === undefined) continue;
-    if (!isReported(tier, options.strictness)) continue;
-    const decision = facts.paints.get(core);
-    if (decision === undefined) continue;
-    // The owner has to own THIS decision: a control that sets its own fill
-    // says nothing about the scale its text is read in, and a text element
-    // that sets its own scale says nothing about the fill around it.
-    if (!owners.some((owner) => owner.owns.includes(decision))) continue;
+  for (const reading of readings(facts, node, options)) {
+    if (!isReported(reading.tier, options.strictness)) continue;
+    if (!reading.dead) continue;
+    const index = node.classes.indexOf(reading.cls);
     out.push({
-      messageId: "utility",
-      data: { tag, cls, decision: decisionOf(tier) },
+      messageId: "redundant",
+      data: {
+        tag,
+        cls: reading.cls,
+        properties: reading.shared.join(", "),
+      },
+      position: node.position,
+      fix: removalOf(node, index),
+    });
+  }
+  return out;
+}
+
+/**
+ * A class that says something else where the theme has already said.
+ *
+ * The element owns the decision — the theme's own answer for how it looks —
+ * and the class says a different one. That is a second opinion about a
+ * decision the theme owns: it belongs in the theme, or nowhere.
+ */
+export function checkPreferThemeValue(
+  facts: Facts,
+  node: ClassFacts,
+  options: SemanticOptions = DEFAULT_SEMANTIC_OPTIONS,
+): Finding[] {
+  const tag = node.tag;
+  if (tag === undefined) return [];
+  const owners = ownersOf(facts, node);
+  const out: Finding[] = [];
+  for (const reading of readings(facts, node, options)) {
+    if (!isReported(reading.tier, options.strictness)) continue;
+    if (reading.dead) continue;
+    const decision = reading.decision;
+    const owns = decision !== undefined &&
+      owners.some((owner) => owner.owns.includes(decision));
+    const spacing = reading.tier === "spacing";
+    if (!owns && !spacing) continue;
+    const noun = owns && decision !== undefined ? nounOf(decision) : "spacing";
+    out.push({
+      messageId: "override",
+      data: {
+        tag,
+        cls: reading.cls,
+        decision: noun,
+        source: sourceOf(decision, spacing),
+      },
       position: node.position,
     });
   }
   return out;
+}
+
+/**
+ * A class that reaches for a decision the theme gave another element.
+ *
+ * The theme gave the size to the heading, and the fill to the button; a
+ * class that carries that decision on an element the theme does not type is
+ * the markup asking for something the theme already answered elsewhere. The
+ * element that carries it is named, because the advice is only useful if it
+ * says which element to reach for.
+ */
+export function checkPreferElement(
+  facts: Facts,
+  node: ClassFacts,
+  options: SemanticOptions = DEFAULT_SEMANTIC_OPTIONS,
+): Finding[] {
+  const tag = node.tag;
+  if (tag === undefined) return [];
+  const owners = ownersOf(facts, node);
+  const out: Finding[] = [];
+  for (const reading of readings(facts, node, options)) {
+    if (!isReported(reading.tier, options.strictness)) continue;
+    const decision = reading.decision;
+    if (decision === undefined) continue;
+    if (owners.some((owner) => owner.owns.includes(decision))) continue;
+    const element = ownerOf(facts, decision, reading);
+    if (element === undefined) continue;
+    out.push({
+      messageId: "element",
+      data: {
+        tag,
+        cls: reading.cls,
+        element,
+        decision: nounOf(decision),
+      },
+      position: node.position,
+    });
+  }
+  return out;
+}
+
+/**
+ * The element the theme gave a decision to, with that value.
+ *
+ * The element is found by the VALUE: the theme gave the size to the heading
+ * whose size it is, and the fill to the control whose fill it is. An
+ * element that owns the decision but sets a different value is a different
+ * answer, and naming it would be naming the wrong element.
+ *
+ * And when SEVERAL elements carry that value, the lint names none: the
+ * theme offers more than one way to say it, and which one the author meant
+ * is a question the lint cannot answer. The rule says nothing rather than
+ * point at the wrong element.
+ */
+function ownerOf(
+  facts: Facts,
+  decision: Decision,
+  reading: Reading,
+): string | undefined {
+  const found = new Set<string>();
+  for (const scope of facts.scopes) {
+    if (!scope.owns.includes(decision)) continue;
+    const surface = facts.surfaces.element(scope.tag, []);
+    for (const [property, value] of reading.declarations) {
+      const own = surface.get(property);
+      if (own === undefined) continue;
+      if (!sameValue(value, own, facts.values)) continue;
+      found.add(scope.tag);
+      break;
+    }
+  }
+  return found.size === 1 ? [...found][0] : undefined;
+}
+
+/**
+ * The word a decision is named by in a message.
+ *
+ * The fill is the system's word for the painted appearance of an element —
+ * the theme's surfaces, inks, borders and accents — so a decision about the
+ * fill is one word whether it is the background, the ink or the edge.
+ */
+function nounOf(decision: Decision): string {
+  if (decision === "size") return "size";
+  if (
+    decision === "face" || decision === "weight" ||
+    decision === "tracking" || decision === "case" ||
+    decision === "decoration"
+  ) {
+    return decision;
+  }
+  return "fill";
+}
+
+/**
+ * Where the element's value comes from.
+ *
+ * The type scale is a ladder, and a ladder is what a theme climbs; the rest
+ * of an element's look is the theme's own.
+ */
+function sourceOf(decision: Decision | undefined, spacing: boolean): string {
+  if (spacing) return "the theme";
+  return decision === "size" ? "the theme's ladder" : "the theme";
 }
 
 /**
@@ -358,30 +595,6 @@ function insideScope(scope: ScopeFact, node: ClassFacts): boolean {
     if (ancestor.classes.includes(scope.self)) return true;
   }
   return false;
-}
-
-/**
- * A colour written by hand where a token belongs.
- *
- * A token utility names a theme colour; anything else in a colour position
- * is a literal the theme cannot change.
- */
-export function checkNoRawColors(
-  facts: Facts,
-  node: ClassFacts,
-): Finding[] {
-  if (!facts.readable) return [];
-  const out: Finding[] = [];
-  for (const cls of node.classes) {
-    if (facts.utilities.has(cls)) continue;
-    if (!facts.rawColor.test(cls)) continue;
-    out.push({
-      messageId: "raw",
-      data: { cls },
-      position: node.position,
-    });
-  }
-  return out;
 }
 
 /**
@@ -468,12 +681,40 @@ export function checkNoHandwrittenTokens(
   return out;
 }
 
+/**
+ * The edit that drops a class from an element.
+ *
+ * The class goes, and the space that touched it goes with it — otherwise
+ * the list is left with a gap in it. The space after is preferred, because
+ * the space before may be the one a neighbouring class is leaving with.
+ */
+function removalOf(
+  node: ClassFacts,
+  index: number,
+): TextEdit | undefined {
+  const token = node.tokens?.[index];
+  if (token === undefined) return undefined;
+  const [start, end] = token.range;
+  if (token.spaceAfter) return { range: [start, end + 1], text: "" };
+  if (token.spaceBefore) return { range: [start - 1, end], text: "" };
+  return { range: [start, end], text: "" };
+}
+
 /** The classes of one element, and where it sits. */
 export interface ClassFacts {
   /** The element's tag, when the attribute is on one. */
   readonly tag: string | undefined;
   /** The classes, split. */
   readonly classes: readonly string[];
+  /**
+   * Where each class sits in the source.
+   *
+   * A fix has to say WHICH text to remove, and the offsets are the only
+   * thing that says so. An adapter that cannot supply them reports the
+   * finding without an edit — the finding is still true, and the author can
+   * still drop the class by hand.
+   */
+  readonly tokens?: readonly ClassToken[];
   /**
    * The elements above this one, nearest first.
    *
@@ -485,6 +726,24 @@ export interface ClassFacts {
   readonly ancestors?: readonly AncestorFacts[];
   /** Where the attribute starts. */
   readonly position: Position;
+}
+
+/**
+ * One class, and where it sits.
+ *
+ * The range is the class's own text in the source's offsets; the spaces say
+ * whether the class is followed or preceded by one, which is what a fix
+ * needs to leave the list tidy.
+ */
+export interface ClassToken {
+  /** The class's name. */
+  readonly name: string;
+  /** The class's own range in the source. */
+  readonly range: readonly [number, number];
+  /** Whether a space sits before the class in the list. */
+  readonly spaceBefore: boolean;
+  /** Whether a space sits after the class in the list. */
+  readonly spaceAfter: boolean;
 }
 
 /** One element above the one being read. */

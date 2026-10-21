@@ -8,16 +8,17 @@
  *
  * The node and the context are declared structurally rather than imported,
  * so the very same rule object serves oxlint's plugin API, ESLint's rule
- * API, and the CLI's own walk. None of the three is named here, and none
- * of them can drift from the others: the rules are shared, not copied.
+ * API, and the CLI's own walk. None of the three is named here, and none of
+ * them can drift from the others: the rules are shared, not copied.
  */
 
 import {
   checkClosedVocabulary,
   checkNoHandwrittenTokens,
-  checkNoRawColors,
+  checkNoRedundantClass,
   checkNoUnpairedInk,
-  checkNoUtilitiesOnSemantic,
+  checkPreferElement,
+  checkPreferThemeValue,
   DEFAULT_SEMANTIC_OPTIONS,
   type Finding,
   type SemanticOptions,
@@ -49,6 +50,8 @@ export interface GateNode {
   value?: unknown;
   parent?: GateNode | null;
   loc?: { start: { line: number; column: number } } | null;
+  /** The node's own range in the source, when the linter gives one. */
+  range?: readonly [number, number];
 }
 
 /** What a linter hands a rule. */
@@ -62,8 +65,23 @@ export interface GateContext {
     node: GateNode;
     messageId: string;
     data?: Record<string, string>;
+    /** The edit that settles the finding, when it has one. */
+    fix?: GateFix;
   }): void;
 }
+
+/**
+ * A text edit, in the shape every linter's fixer speaks.
+ *
+ * The range is in the source's own offsets and the text is what replaces
+ * it. The edit is a FUNCTION because that is what a linter's fixer is: ESLint
+ * hands the rule a fixer and takes back `{ range, text }`, and oxlint takes
+ * the same pair. So one rule object can offer the same edit to both.
+ */
+export type GateFix = () => {
+  readonly range: readonly [number, number];
+  readonly text: string;
+};
 
 /**
  * The JSON Schema a rule's options are validated against.
@@ -83,6 +101,14 @@ export interface GateSchema {
 /** What a rule says about itself. */
 export interface GateMeta {
   type: "problem";
+  /**
+   * Whether the rule offers edits.
+   *
+   * A linter that is told a rule fixes nothing will not apply the edits it
+   * is given, so the flag travels with the rule rather than with the
+   * finding.
+   */
+  fixable?: "code";
   docs: { description: string };
   schema: GateSchema[];
   messages: Record<string, string>;
@@ -123,9 +149,75 @@ function attributeValue(node: GateNode): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-/** The string a literal carries, when it is one. */
-function literalValue(node: GateNode): string | undefined {
-  return typeof node.value === "string" ? node.value : undefined;
+/**
+ * The string a literal carries, and where its content starts.
+ *
+ * A fix has to say WHICH text to remove, and the offsets are the only thing
+ * that says so. The content of a literal starts one character after the
+ * literal does: the quote is not part of the class list.
+ */
+function literalOf(
+  node: GateNode,
+): { text: string; start: number } | undefined {
+  const holder = node.value as
+    | {
+      type?: string;
+      value?: unknown;
+      range?: readonly [number, number];
+      expression?: unknown;
+    }
+    | undefined;
+  if (holder === undefined || holder === null) return undefined;
+  let literal = holder;
+  if (holder.type === "JSXExpressionContainer") {
+    const expression = holder.expression as
+      | { type?: string; value?: unknown; range?: readonly [number, number] }
+      | undefined;
+    if (expression === undefined || expression.type !== "Literal") {
+      return undefined;
+    }
+    literal = expression;
+  }
+  if (literal.type !== "Literal") return undefined;
+  if (typeof literal.value !== "string") return undefined;
+  const range = literal.range;
+  if (range === undefined) return undefined;
+  return { text: literal.value, start: range[0] + 1 };
+}
+
+/**
+ * The classes of an element, and where each one sits.
+ *
+ * The offsets are the class's own text in the source, and the spaces say
+ * whether the class is touched by one — which is what a fix needs to leave
+ * the list reading as it did.
+ */
+function tokensOf(
+  text: string,
+  start: number,
+): {
+  name: string;
+  range: [number, number];
+  spaceBefore: boolean;
+  spaceAfter: boolean;
+}[] {
+  const out: {
+    name: string;
+    range: [number, number];
+    spaceBefore: boolean;
+    spaceAfter: boolean;
+  }[] = [];
+  for (const match of text.matchAll(/\S+/g)) {
+    const from = match.index;
+    const to = from + match[0].length;
+    out.push({
+      name: match[0],
+      range: [start + from, start + to],
+      spaceBefore: from > 0 && /\s/.test(text[from - 1] as string),
+      spaceAfter: to < text.length && /\s/.test(text[to] as string),
+    });
+  }
+  return out;
 }
 
 /** Where a node sits, for the finding that names it. */
@@ -138,9 +230,17 @@ function positionOf(node: GateNode) {
 
 /** The classes of an element, as the core reads them. */
 function classFacts(node: GateNode) {
+  const literal = literalOf(node);
+  const classes = classTokens(attributeValue(node) ?? "");
   return {
     tag: tagOf(node),
-    classes: classTokens(attributeValue(node) ?? ""),
+    classes,
+    // Where each class sits, so a finding that drops one can say which text
+    // to remove. A linter that does not give offsets gets the finding
+    // without the edit.
+    tokens: literal === undefined
+      ? undefined
+      : tokensOf(literal.text, literal.start),
     // The chain of elements above this one: a primitive that paints a
     // *descendant* (prose's document treatment) only owns what is inside
     // it, and the core cannot know that without the ancestors.
@@ -297,6 +397,11 @@ function markupStrings(node: unknown, out: MarkupText[]): void {
   }
 }
 
+/** The string a literal carries, when it is one. */
+function literalValue(node: GateNode): string | undefined {
+  return typeof node.value === "string" ? node.value : undefined;
+}
+
 /** Report what the core found, at the node that caused it. */
 function report(
   context: GateContext,
@@ -304,10 +409,14 @@ function report(
   findings: readonly Finding[],
 ): void {
   for (const finding of findings) {
+    const edit = finding.fix;
     context.report({
       node,
       messageId: finding.messageId,
       data: finding.data,
+      ...(edit === undefined ? {} : {
+        fix: () => ({ range: edit.range, text: edit.text }),
+      }),
     });
   }
 }
@@ -331,7 +440,7 @@ function oneOf<T extends string>(
 }
 
 /**
- * The dial the semantic rule reads, from the configuration.
+ * The dial the semantic rules read, from the configuration.
  *
  * The options arrive the way every linter delivers them: as the rule's
  * first option, in `context.options`. The first option is the object the
@@ -351,7 +460,7 @@ export function semanticOptions(context: GateContext): SemanticOptions {
   };
 }
 
-/** The options the semantic rule accepts. */
+/** The options the semantic rules accept. */
 const SEMANTIC_SCHEMA: GateSchema[] = [
   {
     type: "object",
@@ -364,7 +473,7 @@ const SEMANTIC_SCHEMA: GateSchema[] = [
       semanticTags: {
         enum: [...SEMANTIC_TAGS],
         description:
-          "Which tags the rule treats as semantic: native elements, spin's own, both, or neither.",
+          "Which tags the rules treat as semantic: native elements, spin's own, both, or neither.",
       },
     },
     additionalProperties: false,
@@ -374,23 +483,24 @@ const SEMANTIC_SCHEMA: GateSchema[] = [
 /* -------------------------------------------------------------- the rules -- */
 
 /**
- * Disallow a utility that paints over an element's own decision.
+ * Disallow a class that says what the element already says.
  *
- * A utility on a raw element is fine. A utility that overwrites how the
- * element looks is not: the element already decided, and the class is a
- * second opinion. Layout is free — where a box sits is the author's call.
+ * Dead weight: the class sets a property the element sets too, and it sets
+ * it to the value the element already has. It changes nothing, so it can be
+ * dropped — and the rule drops it.
  */
-const semanticOwnership: GateRule = {
+const noRedundantClass: GateRule = {
   meta: {
     type: "problem",
+    fixable: "code",
     docs: {
       description:
-        "Disallow utility classes that paint over an element the theme styles itself.",
+        "Disallow a class that sets what the element already sets, and drop it.",
     },
     schema: SEMANTIC_SCHEMA,
     messages: {
-      utility:
-        "`<{{tag}}>` already sets its own {{decision}}; drop `{{cls}}`; add a variant to the primitive or move it to the parent.",
+      redundant:
+        "`{{cls}}` sets `{{properties}}` to what `<{{tag}}>` already sets. Drop the class.",
     },
   },
   create(context) {
@@ -401,7 +511,89 @@ const semanticOwnership: GateRule = {
         report(
           context,
           node,
-          checkNoUtilitiesOnSemantic(
+          checkNoRedundantClass(
+            factsForFile(context.filename ?? ""),
+            classFacts(node),
+            options,
+          ),
+        );
+      },
+    };
+  },
+};
+
+/**
+ * Disallow a class that says something else where the theme has already
+ * said.
+ *
+ * The element owns the decision — the theme's own answer for how it looks —
+ * and the class says a different one. That is a second opinion about a
+ * decision the theme owns: it belongs in the theme, or nowhere. There is no
+ * edit for it: what the author meant is a question only the author can
+ * answer.
+ */
+const preferThemeValue: GateRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow a class that overrides a decision the theme already made for the element.",
+    },
+    schema: SEMANTIC_SCHEMA,
+    messages: {
+      override:
+        "`<{{tag}}>` takes its {{decision}} from {{source}}; `{{cls}}` overrides it. If that is intended, it belongs in the theme.",
+    },
+  },
+  create(context) {
+    const options = semanticOptions(context);
+    return {
+      JSXAttribute(node) {
+        if (!carriesClasses(node)) return;
+        report(
+          context,
+          node,
+          checkPreferThemeValue(
+            factsForFile(context.filename ?? ""),
+            classFacts(node),
+            options,
+          ),
+        );
+      },
+    };
+  },
+};
+
+/**
+ * Disallow a class that reaches for a decision the theme gave another
+ * element.
+ *
+ * The theme gave the size to the heading and the fill to the button; a
+ * class that carries that decision on an element the theme does not type is
+ * the markup asking for something the theme already answered elsewhere.
+ */
+const preferElement: GateRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow a class that reaches for a decision the theme gave another element.",
+    },
+    schema: SEMANTIC_SCHEMA,
+    messages: {
+      element:
+        "the theme gives `<{{element}}>` that {{decision}}; `<{{tag}}>` is not the element that carries it.",
+    },
+  },
+  create(context) {
+    const options = semanticOptions(context);
+    return {
+      JSXAttribute(node) {
+        if (!carriesClasses(node)) return;
+        report(
+          context,
+          node,
+          checkPreferElement(
             factsForFile(context.filename ?? ""),
             classFacts(node),
             options,
@@ -417,14 +609,16 @@ const semanticOwnership: GateRule = {
  *
  * The vocabulary is the project's theme, catalogued, unioned with the
  * starters — so a class the theme can produce is known, and a class nothing
- * produces is not.
+ * produces is not. A class nothing produces styles nothing, so dropping it
+ * changes nothing: the rule drops it.
  */
 const closedVocabulary: GateRule = {
   meta: {
     type: "problem",
+    fixable: "code",
     docs: {
       description:
-        "Disallow classes the project's theme cannot generate, including raw color utilities.",
+        "Disallow classes the project's theme cannot generate, and drop them.",
     },
     schema: [],
     messages: {
@@ -442,33 +636,6 @@ const closedVocabulary: GateRule = {
           context,
           node,
           checkClosedVocabulary(
-            factsForFile(context.filename ?? ""),
-            classFacts(node),
-          ),
-        );
-      },
-    };
-  },
-};
-
-const noRawColors: GateRule = {
-  meta: {
-    type: "problem",
-    docs: { description: "Disallow raw color literals in class attributes." },
-    schema: [],
-    messages: {
-      raw:
-        "`{{cls}}` hardcodes a color. Use a semantic token (`text-text`, `bg-surface`, `border-border`) so the theme can change it.",
-    },
-  },
-  create(context) {
-    return {
-      JSXAttribute(node) {
-        if (!carriesClasses(node)) return;
-        report(
-          context,
-          node,
-          checkNoRawColors(
             factsForFile(context.filename ?? ""),
             classFacts(node),
           ),
@@ -582,9 +749,10 @@ const noUnpairedInk: GateRule = {
  * configuration, whatever the linter calls it.
  */
 export const RULES = {
-  "no-utilities-on-semantic": semanticOwnership,
+  "no-redundant-class": noRedundantClass,
+  "prefer-theme-value": preferThemeValue,
+  "prefer-element": preferElement,
   "closed-vocabulary": closedVocabulary,
-  "no-raw-colors": noRawColors,
   "no-handwritten-tokens": noHandwrittenTokens,
   "no-unpaired-ink": noUnpairedInk,
 } satisfies Record<string, GateRule>;

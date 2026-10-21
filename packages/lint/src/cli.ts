@@ -35,8 +35,21 @@ export interface CliOptions {
   readonly semantic: SemanticOptions;
   /** The rules to run. */
   readonly rules: readonly RuleName[];
+  /** Whether the CLI was asked to apply the edits the findings carry. */
+  readonly fix: boolean;
   /** Whether the CLI was asked what it does. */
   readonly help: boolean;
+}
+
+/**
+ * A text edit, as the CLI carries it.
+ *
+ * The range is in the source's own offsets, which is the shape the core
+ * decided it in and the shape every linter's fixer speaks.
+ */
+export interface CliFix {
+  readonly range: readonly [number, number];
+  readonly text: string;
 }
 
 /** What the CLI found. */
@@ -55,6 +68,8 @@ export interface CliFinding {
   readonly message: string;
   /** The severity. Every rule here is a problem. */
   readonly severity: "error";
+  /** The edit that settles the finding, when it has one. */
+  readonly fix?: CliFix;
 }
 
 /** A usage the CLI cannot make sense of. */
@@ -82,6 +97,7 @@ Options:
   --strictness <dial>      strict | balanced | lenient (default: strict)
   --semantic-tags <which>  all | native | spin | none (default: all)
   --rule <name>            run only this rule (repeatable)
+  --fix                    apply the edits the findings carry
   -h, --help               this text
 
 Paths may be files or directories. The files read are the JavaScript and
@@ -104,6 +120,7 @@ export function parseArgs(argv: readonly string[]): CliOptions {
   let format: CliOptions["format"] = "text";
   let strictness: Strictness = "strict";
   let semanticTags: SemanticTags = "all";
+  let fix = false;
   let help = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -164,6 +181,9 @@ export function parseArgs(argv: readonly string[]): CliOptions {
         rules.push(name as RuleName);
         break;
       }
+      case "--fix":
+        fix = true;
+        break;
       default:
         if (argument.startsWith("-")) {
           throw new CliUsageError(`Unknown option "${argument}".`);
@@ -178,6 +198,7 @@ export function parseArgs(argv: readonly string[]): CliOptions {
       format,
       semantic: { strictness, semanticTags },
       rules: [],
+      fix,
       help,
     };
   }
@@ -191,6 +212,7 @@ export function parseArgs(argv: readonly string[]): CliOptions {
     rules: rules.length > 0
       ? [...new Set(rules)]
       : (Object.keys(RULES) as RuleName[]),
+    fix,
     help,
   };
 }
@@ -298,6 +320,9 @@ export function lintTree(
       filename,
       options: [options.semantic],
       report(descriptor) {
+        // The rule offers its edit as a fixer would: the CLI asks it for the
+        // pair, exactly as ESLint and oxlint do.
+        const fix = descriptor.fix?.();
         findings.push({
           file: filename,
           line: descriptor.node.loc?.start.line ?? 0,
@@ -313,6 +338,7 @@ export function lintTree(
             },
           }),
           severity: "error",
+          ...(fix === undefined ? {} : { fix }),
         });
       },
     };
@@ -363,6 +389,32 @@ export function lint(
 }
 
 /* -------------------------------------------------------------- the report -- */
+
+/**
+ * The edits of a set of findings, applied to a source.
+ *
+ * The edits are applied from the end of the file backwards, so an edit's
+ * offsets stay true as the text before them changes — and two edits that
+ * overlap are not both applied: the first one wins, and the second is left
+ * for the next run, because applying both would change the text neither one
+ * was decided against.
+ */
+export function applyFixes(
+  code: string,
+  fixes: readonly CliFix[],
+): { code: string; applied: number } {
+  const sorted = [...fixes].toSorted((a, b) => a.range[0] - b.range[0]);
+  let out = "";
+  let cursor = 0;
+  let applied = 0;
+  for (const fix of sorted) {
+    if (fix.range[0] < cursor) continue;
+    out += code.slice(cursor, fix.range[0]) + fix.text;
+    cursor = fix.range[1];
+    applied += 1;
+  }
+  return { code: out + code.slice(cursor), applied };
+}
 
 /** The findings, as text. */
 export function formatText(findings: readonly CliFinding[]): string {
@@ -439,11 +491,77 @@ export function run(
   for (const file of unreadable) {
     warn(`Could not read "${file}".`);
   }
+  const remaining = options.fix ? fix(files, options, warn) : findings;
   write(
-    options.format === "json" ? formatJson(findings) : formatText(findings),
+    options.format === "json" ? formatJson(remaining) : formatText(remaining),
   );
   if (unreadable.length > 0) return 2;
-  return findings.length > 0 ? 1 : 0;
+  return remaining.length > 0 ? 1 : 0;
+}
+
+/**
+ * Apply the edits the findings carry, and read the files again.
+ *
+ * Two edits can touch the same text — a class and its neighbour both leaving
+ * — and only one of them can be applied at a time. So the files are read
+ * again after the edits, and the next pass settles what the first could
+ * not. The loop ends when a pass changes nothing.
+ */
+function fix(
+  files: readonly string[],
+  options: CliOptions,
+  warn: (line: string) => void,
+): CliFinding[] {
+  let findings = lint(files, options).findings;
+  for (let pass = 0; pass < 10; pass += 1) {
+    const changed = writeFixes(findings, warn);
+    if (!changed) break;
+    findings = lint(files, options).findings;
+  }
+  return findings;
+}
+
+/**
+ * Apply the edits the findings carry, and write the files back.
+ *
+ * The findings that were applied are gone: the file no longer says what
+ * they said. The ones that could not be applied — two edits over the same
+ * text — stay, because the file still says what they said.
+ */
+function writeFixes(
+  findings: readonly CliFinding[],
+  warn: (line: string) => void,
+): boolean {
+  const byFile = new Map<string, CliFinding[]>();
+  for (const finding of findings) {
+    if (finding.fix === undefined) continue;
+    const list = byFile.get(finding.file) ?? [];
+    list.push(finding);
+    byFile.set(finding.file, list);
+  }
+  let changed = false;
+  for (const [file, list] of byFile) {
+    let code: string;
+    try {
+      code = Deno.readTextFileSync(file);
+    } catch {
+      warn(`Could not read "${file}".`);
+      continue;
+    }
+    const { code: patched, applied } = applyFixes(
+      code,
+      list.map((finding) => finding.fix as CliFix),
+    );
+    if (applied === 0) continue;
+    try {
+      Deno.writeTextFileSync(file, patched);
+    } catch (error) {
+      warn(error instanceof Error ? error.message : String(error));
+      continue;
+    }
+    changed = true;
+  }
+  return changed;
 }
 
 if (import.meta.main) {

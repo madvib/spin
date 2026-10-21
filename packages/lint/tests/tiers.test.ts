@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { describeCatalog } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
-import { TIER_BY_GROUP } from "../src/tiers.ts";
+import { TIER_BY_GROUP, tierInPlace } from "../src/tiers.ts";
 
 /**
  * The tiers are the catalog's own grouping, read.
@@ -49,4 +49,30 @@ Deno.test("the tier of a family says what it does to an element", () => {
   assertEquals(TIER_BY_GROUP["gap"], "layout");
   assertEquals(TIER_BY_GROUP["padding"], "layout");
   assertEquals(TIER_BY_GROUP["margin"], "layout");
+});
+
+Deno.test("the spacing is layout until the theme types the element", () => {
+  // Where a box sits is the author's — so a margin is free on an element
+  // the theme says nothing about.
+  const untyped = new Map<string, string>();
+  assertEquals(tierInPlace("layout", ["margin-top"], untyped), "layout");
+});
+
+Deno.test("the spacing on a typed element is the theme's", () => {
+  // The theme states the space under a paragraph, so a margin there is a
+  // decision about the document's rhythm — and it is compared with the
+  // theme's, like a type size.
+  const typed = new Map<string, string>([
+    ["margin-bottom", "var(--spacing-2)"],
+  ]);
+  assertEquals(tierInPlace("layout", ["margin-bottom"], typed), "spacing");
+  assertEquals(tierInPlace("layout", ["padding-left"], typed), "spacing");
+});
+
+Deno.test("a tier that is not layout does not change where it is used", () => {
+  // The size of an element's text is the theme's wherever the element
+  // stands, and the fill with it.
+  const untyped = new Map<string, string>();
+  assertEquals(tierInPlace("structure", ["font-size"], untyped), "structure");
+  assertEquals(tierInPlace("skin", ["color"], untyped), "skin");
 });

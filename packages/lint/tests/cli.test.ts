@@ -86,12 +86,52 @@ Deno.test("the dials are the rule's own", async () => {
     const strict = findingsOf(directory, ["--strictness", "strict"]);
     const balanced = findingsOf(directory, ["--strictness", "balanced"]);
     assertEquals(strict.map((finding) => finding.message), [
-      "`<button>` already sets its own type scale; drop `text-sm`; add a variant to the primitive or move it to the parent.",
-      "`<button>` already sets its own fill; drop `bg-primary`; add a variant to the primitive or move it to the parent.",
+      "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
+      "`<button>` takes its size from the theme's ladder; `text-sm` overrides it. If that is intended, it belongs in the theme.",
     ]);
     assertEquals(balanced.map((finding) => finding.message), [
-      "`<button>` already sets its own fill; drop `bg-primary`; add a variant to the primitive or move it to the parent.",
+      "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
     ]);
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
+});
+
+Deno.test("the CLI applies the edits its findings carry", async () => {
+  const directory = await Deno.makeTempDir();
+  try {
+    const file = `${directory}/app.tsx`;
+    await Deno.writeTextFile(
+      file,
+      `export const App = () => <span className="not-a-class" />;\n`,
+    );
+    // A class the theme cannot produce styles nothing, so dropping it
+    // changes nothing — and the CLI drops it.
+    const code = run([file, "--fix"], () => {});
+    assertEquals(code, 0);
+    assertEquals(
+      await Deno.readTextFile(file),
+      `export const App = () => <span className="" />;\n`,
+    );
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
+});
+
+Deno.test("the CLI says what it fixed", async () => {
+  const directory = await Deno.makeTempDir();
+  try {
+    const file = `${directory}/app.tsx`;
+    await Deno.writeTextFile(
+      file,
+      `export const App = () => <span className="not-a-class" />;\n`,
+    );
+    const lines: string[] = [];
+    const code = run([file, "--fix"], (line) => lines.push(line));
+    // The finding was settled by the edit, so there is nothing left to
+    // report: the exit code says so.
+    assertEquals(code, 0);
+    assertEquals(lines, [""]);
   } finally {
     await Deno.remove(directory, { recursive: true });
   }

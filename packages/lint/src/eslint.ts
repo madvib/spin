@@ -38,6 +38,8 @@ import {
 export interface EslintRule {
   readonly meta: {
     readonly type: "problem";
+    /** Whether the rule offers edits. ESLint refuses them without it. */
+    readonly fixable?: "code";
     readonly docs: { readonly description: string };
     readonly schema: GateSchema[];
     readonly messages: Record<string, string>;
@@ -83,9 +85,9 @@ export const ruleNames = RULE_NAMES;
 /**
  * The plugin.
  *
- * `configs.recommended` is the preset: the five rules, as errors, over the
- * files the rules can read. A configuration that wants a different set
- * writes the rules out by name instead.
+ * `configs.recommended` is the preset: the rules, as errors, over the files
+ * the rules can read. A configuration that wants a different set writes the
+ * rules out by name instead.
  */
 export const plugin: EslintPlugin = {
   meta: { name: "spin", version: "0.1.0" },
@@ -99,9 +101,10 @@ plugin.configs.recommended = [
     files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
     plugins: { spin: plugin },
     rules: {
-      "spin/no-utilities-on-semantic": "error",
+      "spin/no-redundant-class": "error",
+      "spin/prefer-theme-value": "error",
+      "spin/prefer-element": "error",
       "spin/closed-vocabulary": "error",
-      "spin/no-raw-colors": "error",
       "spin/no-handwritten-tokens": "error",
       "spin/no-unpaired-ink": "error",
     },

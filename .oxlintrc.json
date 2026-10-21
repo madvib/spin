@@ -4,9 +4,10 @@
     "./packages/lint/src/index.ts"
   ],
   "rules": {
-    "spin/no-utilities-on-semantic": "error",
+    "spin/no-redundant-class": "error",
+    "spin/prefer-theme-value": "warn",
+    "spin/prefer-element": "warn",
     "spin/closed-vocabulary": "error",
-    "spin/no-raw-colors": "error",
     "spin/no-handwritten-tokens": "error",
     "spin/no-unpaired-ink": "error"
   },

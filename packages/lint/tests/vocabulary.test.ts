@@ -59,6 +59,25 @@ Deno.test("a class no theme produces is reported", () => {
   assertEquals(reported(facts, "p-40"), ["p-40"]);
 });
 
+Deno.test("a class nothing produces carries the edit that drops it", () => {
+  // The class generates no CSS, so it styles nothing: dropping it changes
+  // nothing, and the finding says so with the edit that does it.
+  const facts = factsFor(Object.values(starterThemes));
+  const node: ClassFacts = {
+    tag: "div",
+    classes: ["p-40"],
+    tokens: [{
+      name: "p-40",
+      range: [0, 4],
+      spaceBefore: false,
+      spaceAfter: false,
+    }],
+    position: { line: 1, column: 1 },
+  };
+  const [finding] = checkClosedVocabulary(facts, node);
+  assertEquals(finding?.fix, { range: [0, 4], text: "" });
+});
+
 Deno.test("a scale step the starters declare is part of the vocabulary", () => {
   // The whole point of the union: the scaffold a theme starts from has no
   // scales at all, so a vocabulary built from it calls every step unknown.

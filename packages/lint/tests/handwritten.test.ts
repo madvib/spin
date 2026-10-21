@@ -147,6 +147,7 @@ body { color: var(--color-text); }
       format: "text",
       semantic: { strictness: "strict", semanticTags: "all" },
       rules: ["no-handwritten-tokens"],
+      fix: false,
       help: false,
     };
     const { findings } = lint([file], options);

@@ -16,6 +16,9 @@
  *   overwrites it is a conflict.
  * - **structure** — how big the element's text is. A type scale is a
  *   decision about the shape of the content, not about the box around it.
+ * - **spacing** — the space between blocks, on an element the theme types.
+ *   It is CONTEXTUAL: a margin or a padding is layout everywhere else, and
+ *   the theme's rhythm wherever the theme types the element.
  *
  * The mapping is by catalog group, not by a hand-written list of class
  * names, so a rule added to the preset is tiered the moment the catalog
@@ -23,8 +26,10 @@
  * a family arrives without a tier.
  */
 
+import { type Decision, isSpacing } from "./properties.ts";
+
 /** What a utility does to an element. */
-export type Tier = "layout" | "skin" | "structure";
+export type Tier = "layout" | "skin" | "structure" | "spacing";
 
 /**
  * The tier of each catalog group.
@@ -69,10 +74,14 @@ export const TIER_BY_GROUP: Readonly<Record<string, Tier>> = {
  *
  * "Fill" is the system's word for the painted appearance of an element — the
  * theme's surfaces, inks, borders and accents — so a skin utility overwrites
- * the fill. A type size overwrites the scale the element's text is set in.
+ * the fill. A type size overwrites the scale the element's text is set in,
+ * and spacing overwrites the rhythm the theme keeps between blocks.
  */
 export function decisionOf(tier: Tier): string {
-  return tier === "structure" ? "type scale" : "fill";
+  if (tier === "structure") return "size";
+  if (tier === "spacing") return "spacing";
+  if (tier === "layout") return "layout";
+  return "fill";
 }
 
 /**
@@ -87,7 +96,7 @@ export function decisionOf(tier: Tier): string {
  * The names are the primitives' own — the decisions an element's look is made
  * of — so the lint and the manifest speak the same words.
  */
-export const PAINT_BY_GROUP: Readonly<Record<string, string>> = {
+export const PAINT_BY_GROUP: Readonly<Record<string, Decision>> = {
   background: "background",
   "text-color": "ink",
   border: "edge",
@@ -115,7 +124,7 @@ export function paintKeyFor(
   utility: string,
   group: string,
   weights: ReadonlySet<string>,
-): string | undefined {
+): Decision | undefined {
   const named = PAINT_BY_GROUP[group];
   if (named !== undefined) return named;
   if (group === "font") {
@@ -128,4 +137,28 @@ export function paintKeyFor(
     return "case";
   }
   return undefined;
+}
+
+/**
+ * The tier of a utility, in the place it is used.
+ *
+ * Where a box sits is the author's, so the spacing is layout — free,
+ * unless the theme types the element. On an element the theme types, the
+ * space between blocks is the document's rhythm and the theme states it: a
+ * margin or a padding there is a decision about the shape of the content,
+ * like a type size, and not about where the box sits.
+ *
+ * So the tier is not a property of the class alone: it is a property of the
+ * class AND the element it is on.
+ */
+export function tierInPlace(
+  tier: Tier,
+  properties: readonly string[],
+  element: ReadonlyMap<string, string>,
+): Tier {
+  if (tier !== "layout") return tier;
+  const typed = [...element.keys()].some((property) => isSpacing(property));
+  if (!typed) return tier;
+  const spacing = properties.some((property) => isSpacing(property));
+  return spacing ? "spacing" : tier;
 }

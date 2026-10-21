@@ -57,28 +57,41 @@ Deno.test("the dial reaches the rule through the linter's options", () => {
   // `strict` reads a type size as the element's own decision; `balanced`
   // reads it as a decision about content. The options travel the way ESLint
   // delivers them: as the rule's first option.
-  const code = `<button className="text-sm bg-primary" />`;
+  const code = `<button className="text-sm bg-surface-raised" />`;
   const strict = linter().verify(
     code,
     config({
-      "spin/no-utilities-on-semantic": ["error", { strictness: "strict" }],
+      "spin/prefer-theme-value": ["error", { strictness: "strict" }],
     }),
     "app.jsx",
   );
   const balanced = linter().verify(
     code,
     config({
-      "spin/no-utilities-on-semantic": ["error", { strictness: "balanced" }],
+      "spin/prefer-theme-value": ["error", { strictness: "balanced" }],
     }),
     "app.jsx",
   );
   assertEquals(strict.map((message) => message.message), [
-    "`<button>` already sets its own type scale; drop `text-sm`; add a variant to the primitive or move it to the parent.",
-    "`<button>` already sets its own fill; drop `bg-primary`; add a variant to the primitive or move it to the parent.",
+    "`<button>` takes its size from the theme's ladder; `text-sm` overrides it. If that is intended, it belongs in the theme.",
+    "`<button>` takes its fill from the theme; `bg-surface-raised` overrides it. If that is intended, it belongs in the theme.",
   ]);
   assertEquals(balanced.map((message) => message.message), [
-    "`<button>` already sets its own fill; drop `bg-primary`; add a variant to the primitive or move it to the parent.",
+    "`<button>` takes its fill from the theme; `bg-surface-raised` overrides it. If that is intended, it belongs in the theme.",
   ]);
+});
+
+Deno.test("the plugin's edits are applied by ESLint's fixer", () => {
+  // The rule offers the edit; ESLint's fixer applies it. The class the
+  // theme cannot produce styles nothing, so dropping it changes nothing.
+  const code = `<span className="not-a-class" />`;
+  const result = linter().verifyAndFix(
+    code,
+    config({ "spin/closed-vocabulary": "error" }),
+    "app.jsx",
+  );
+  assertEquals(result.output, `<span className="" />`);
+  assertEquals(result.messages, []);
 });
 
 Deno.test("the recommended preset is a flat configuration", () => {
