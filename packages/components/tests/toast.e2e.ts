@@ -29,6 +29,30 @@ async function waitCount(page: Page, expected: number): Promise<void> {
   );
 }
 
+/**
+ * The host's report history: every status the element reported, in order.
+ * The readout slot (`#last-action`) holds only the newest report, and the
+ * newest one is often not the one a step is about — a row that starts
+ * dismissing takes its own pointer with it, so the region is left and the
+ * rows behind it report themselves back to `visible` within a frame of the
+ * dismissal. The history keeps them all, so a wait can name its report.
+ */
+const reports = async (page: Page): Promise<string[]> =>
+  await page.locator("#action-log [data-report]").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-report") ?? "")
+  );
+
+/** Waits until the host's history holds exactly that report. */
+async function waitReport(page: Page, report: string): Promise<void> {
+  await page.waitForFunction(
+    (want: string) =>
+      Array.from(document.querySelectorAll("#action-log [data-report]"))
+        .some((node) => node.getAttribute("data-report") === want),
+    report,
+    { timeout: 5000 },
+  );
+}
+
 Deno.test("spin-toast e2e", () =>
   runComponentSuite({ port: 5221, route: "/toast", ready: REGION }, async ({ page }) => {
     await step("renders an empty region", async () => {
@@ -105,15 +129,16 @@ Deno.test("spin-toast e2e", () =>
 
     await step("the action trigger reports to the host and dismisses", async () => {
       await page.locator(`${row("toast-3")} button[aria-label="Undo"]`).click();
-      // The dismissing report lands before the remove delay lets go, so
-      // the src is pinned while it is current.
-      await page.waitForFunction(
-        () => document.querySelector("#last-action")?.textContent?.includes("toast-3"),
-        undefined,
-        { timeout: 5000 },
+      // The report this step is about is the dismissing one, and it is
+      // gone from the readout slot within a frame: the dismissing row
+      // takes its own pointer with it, so the region is left and the rows
+      // behind it report themselves back to `visible`. The history keeps
+      // every report, so the wait names the one it wants.
+      await waitReport(page, "toast-3 → dismissing (user)");
+      assert.ok(
+        (await reports(page)).includes("toast-3 → dismissing (user)"),
+        "the host hears the dismissal src",
       );
-      const dismissing = await page.locator("#last-action").textContent();
-      assert.match(dismissing ?? "", /toast-3 → dismissing \(user\)/, "the host hears the dismissal src");
       await waitCount(page, 2);
       assert.equal(await count(page), 2, "the action row left the queue");
     });
@@ -122,8 +147,10 @@ Deno.test("spin-toast e2e", () =>
       await page.locator(closeOf("toast-1")).click();
       await page.waitForSelector(row("toast-1"), { state: "detached", timeout: 5000 });
       await waitCount(page, 1);
-      const last = await page.locator("#last-action").textContent();
-      assert.match(last ?? "", /toast-1 → unmounted/, "the departure is reported");
+      const heard = (await reports(page)).filter((report) =>
+        report.startsWith("toast-1 →")
+      );
+      assert.equal(heard.at(-1), "toast-1 → unmounted", "the departure is reported");
     });
 
     await step("Escape on a focused toast dismisses it from the keyboard", async () => {
@@ -131,13 +158,11 @@ Deno.test("spin-toast e2e", () =>
       // focus() call does not guarantee in this app.
       await page.locator(row("toast-2")).click();
       await page.keyboard.press("Escape");
-      await page.waitForFunction(
-        () => document.querySelector("#last-action")?.textContent?.includes("toast-2"),
-        undefined,
-        { timeout: 5000 },
+      await waitReport(page, "toast-2 → dismissing (keyboard)");
+      assert.ok(
+        (await reports(page)).includes("toast-2 → dismissing (keyboard)"),
+        "the src is keyboard",
       );
-      const dismissing = await page.locator("#last-action").textContent();
-      assert.match(dismissing ?? "", /toast-2 → dismissing \(keyboard\)/, "the src is keyboard");
       await waitCount(page, 0);
     });
 

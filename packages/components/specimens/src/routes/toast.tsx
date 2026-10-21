@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
@@ -60,16 +60,25 @@ const PLACEMENTS = ["bottom", "bottom-end", "top", "top-start"] as const;
  * Toast on the forked FSM: the queue is machine state and the host's list is
  * the write channel down, exactly as the legacy element wrote it.
  *
- * The claim under test: a Zag machine whose state is mostly its own store
+ * The claim under test: a machine whose state is mostly its own store
  * becomes one context here, the per-toast lifecycle becomes a status on each
  * entry, and every clock — the dismissal countdown, the remove delay, the
  * entry beat, the region's document reflexes — is an action rather than a
- * machine timer. Upward, the only callback Zag's toast declares is the
- * per-toast status; the host keeps its own list in step from `unmounted`.
+ * machine timer. Upward, the only callback the upstream toast declares is
+ * the per-toast status; the host keeps its own list in step from `unmounted`.
  */
 export default function ToastFsm() {
   const [items, setItems] = createSignal<HostToast[]>([]);
   const [last, setLast] = createSignal("nothing yet");
+  /**
+   * Every report the element made, in order. `#last-action` is a slot the
+   * next report overwrites, and a report is often overwritten within a
+   * frame — a row that starts dismissing takes its own pointer with it, so
+   * the region is left and the rows behind it report themselves back to
+   * `visible`. The history keeps them all, so a reader can name the report
+   * it wants instead of catching whatever is current.
+   */
+  const [log, setLog] = createSignal<readonly string[]>([]);
   const [overlap, setOverlap] = createSignal(false);
   const [placement, setPlacement] = createSignal<string>("bottom");
 
@@ -78,7 +87,7 @@ export default function ToastFsm() {
   createEffect(() => {
     const ctl = toasts();
     if (ctl === undefined) return undefined;
-    return ctl.bind({
+    const unbind = ctl.bind({
       items: items(),
       overlap: overlap(),
       placement: placement(),
@@ -87,18 +96,23 @@ export default function ToastFsm() {
     }, {
       "status-change": (event: CustomEvent<ToastStatusChange>) => {
         const detail = event.detail;
-        setLast(
-          `${detail.id} → ${detail.status}${
-            detail.src.length > 0 ? ` (${detail.src})` : ""
-          }`,
-        );
+        const report = `${detail.id} → ${detail.status}${
+          detail.src.length > 0 ? ` (${detail.src})` : ""
+        }`;
+        setLast(report);
+        setLog((prev) => [...prev, report]);
         if (detail.status === "unmounted") {
           setItems((prev) => prev.filter((item) => item.id !== detail.id));
         }
       },
     });
+    // The effect re-runs on every host write, and a cleanup is taken
+    // through `onCleanup`, not through a returned function: without this
+    // the previous subscription stays on the element, and every report
+    // arrives once per bind.
+    onCleanup(unbind);
+    return undefined;
   });
-;
 
   const show = (title: string, type: string, action = ""): void => {
     const item = make(title, type, action);
@@ -175,6 +189,13 @@ export default function ToastFsm() {
           </div>
           <div>
             last: <span id="last-action">{last()}</span>
+          </div>
+          {/* The report history, one entry per report, in the order they
+              came. It is hidden on purpose: it is the machine-readable
+              record, not a readout, and it must not take space from the
+              demo around it. */}
+          <div hidden id="action-log">
+            {log().map((report) => <span data-report={report}>{report}</span>)}
           </div>
         </DemoReadout>
       </DemoCard>
