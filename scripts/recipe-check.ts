@@ -147,10 +147,18 @@ function hooksOf(path: string, source: string): void {
   const dir = path.slice(0, path.indexOf("/examples/"));
   const hooks = writtenHooks(dir);
   if (hooks.size === 0) return;
-  for (const match of source.matchAll(/data-\[([a-z][a-z0-9-]*)(?:=[a-z0-9-]+)?\]/g)) {
+  for (const match of source.matchAll(/data-\[([a-z][a-z0-9-]*)(?:=([^\]]*))?\]/g)) {
     const name = `data-${match[1] ?? ""}`;
     if (!hooks.has(name)) {
       problems.push(`${path}: \`${name}\` — the component never writes it`);
+    }
+    const value = match[2];
+    if (value === undefined) continue;
+    // An attribute selector's unquoted value must be an identifier: a
+    // number is not one, and the minifier rejects the whole sheet.
+    if (/^['"].*['"]$/.test(value)) continue;
+    if (!/^-?[A-Za-z_][\w-]*$/.test(value)) {
+      problems.push(`${path}: \`data-[${match[1]}=${value}]\` — an unquoted attribute value must be an identifier`);
     }
   }
 }
