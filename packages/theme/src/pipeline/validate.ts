@@ -194,28 +194,30 @@ function duplicateVarIssues(leaves: TokenLeaf[]): ValidationIssue[] {
   return issues;
 }
 /**
- * Every color and focus leaf the base declares must appear in the `dark`
- * group, when the document serves dark.
+ * An override for a mode the theme does not serve is dead weight.
  *
- * The groups that vary by mode are closed — color and focus — because a mode
- * is a change of ink and surface, not of space or type. A `dark` group that
- * covers only some of them inherits light values for the rest, and the
- * inherited ones are the failure: a light stripe on a dark row, white ink
- * staying white on a lifted red.
+ * `modes` at the document root says what the theme SERVES, and a mode it
+ * serves but does not override falls back to the base values — so a theme
+ * that serves dark without a single dark override is a complete theme, not
+ * a half-dark one. The other direction is a defect: a `$modes.dark` value on
+ * a theme that serves only light is never shown, so the declaration is a
+ * promise nothing keeps and a reader cannot tell it apart from a mistake.
  */
-function darkCoverageIssues(index: TokenIndex): ValidationIssue[] {
+function unservedModeIssues(
+  index: TokenIndex,
+  served: readonly ("light" | "dark")[],
+): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   for (const [path, node] of Object.entries(index.nodes)) {
-    if (node.kind !== "token") continue;
-    const [group] = path.split(".");
-    // The groups that vary by mode are closed, because a mode is a change of
-    // ink and surface, not of space or type.
-    if (group !== "color" && group !== "focus") continue;
-    if (node.modes === undefined || !("dark" in node.modes)) {
+    if (node.kind !== "token" || node.modes === undefined) continue;
+    for (const mode of Object.keys(node.modes)) {
+      if (mode === "light" || mode === "dark") {
+        if (served.includes(mode)) continue;
+      }
       issues.push({
         path,
         message:
-          `dark mode is declared but "${path}" has no "$modes.dark" value`,
+          `the theme does not serve "${mode}", so the "${mode}" value here is never shown`,
       });
     }
   }
@@ -272,13 +274,12 @@ export function validateTokens(
   }
 
   issues.push(...duplicateVarIssues(leaves));
-  // A declared dark mode is a promise to restate every color and focus leaf:
-  // a `dark` group that only covers some of them ships a theme whose dark
-  // mode inherits light values for the rest — the half-dark theme. The check
-  // reads the mode from the caller's `modes`, never from whether a `dark`
-  // group happens to exist, because existence cannot say what is served.
-  if ((opts.modes ?? []).includes("dark")) {
-    issues.push(...darkCoverageIssues(index));
+  // The modes the document serves are the claim it makes; a value written
+  // for a mode it does not serve is never shown. The check reads the claim
+  // from the caller's `modes`, never from the presence of an override:
+  // existence cannot say what is served.
+  if (opts.modes !== undefined) {
+    issues.push(...unservedModeIssues(index, opts.modes));
   }
 
   return { valid: issues.length === 0, issues };

@@ -10,8 +10,10 @@
  *
  * `tags` are bare elements the component styles; a utility class on one is a
  * conflict, enforced by the lint plugin. `variants` are the classes an author
- * may write. `reads` are the custom properties the CSS consumes, without the
- * leading `--`; every entry must resolve against the theme contract.
+ * may write. `keyframes` are the names the stylesheet defines — the global
+ * namespace, so a name here is a name nothing else may take. `reads` are the
+ * custom properties the CSS consumes, without the leading `--`; every entry
+ * must resolve against the theme contract.
  */
 
 export interface PrimitiveContract {
@@ -19,6 +21,8 @@ export interface PrimitiveContract {
   tags: readonly string[];
   /** Class names the component defines, e.g. `secondary`. */
   variants: readonly string[];
+  /** Keyframe names the stylesheet defines, e.g. `spin`. */
+  keyframes: readonly string[];
   /** Custom properties the stylesheet reads, without the leading `--`. */
   reads: readonly string[];
   /**
@@ -40,6 +44,17 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "animate-pulse",
       "animate-slide-up",
       "animate-spin",
+    ],
+    keyframes: [
+      "backdrop-in",
+      "dialog-in",
+      "fade-in",
+      "ping",
+      "progress-indeterminate",
+      "pulse",
+      "slide-up",
+      "spin",
+      "spin-skeleton-pulse",
     ],
     reads: [
       "motion-distance",

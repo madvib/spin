@@ -28,6 +28,26 @@ const stated = (doc: unknown, path: string): string => {
   return v === undefined || v === null ? "—" : String(v);
 };
 
+/**
+ * The colour roles the document declares, read from the colour group.
+ *
+ * A group holds the ramps (`neutral`, `semantic`); a token is a role — a
+ * surface, an ink, a fill. The list is the theme's own, so a role a theme
+ * declares shows up here without this page knowing its name.
+ */
+function colorRoles(doc: unknown): string[] {
+  const color = leaf(doc, "color") as Cell | undefined;
+  if (color === undefined) return [];
+  const out: string[] = [];
+  for (const [name, value] of Object.entries(color)) {
+    if (name.startsWith("$")) continue;
+    if (value === null || typeof value !== "object") continue;
+    // A role states a value; a ramp holds more roles.
+    if ("$value" in (value as Cell)) out.push(name);
+  }
+  return out;
+}
+
 /** The other mode of the active theme, if it has one. */
 const otherMode = () => (mode() === "dark" ? "light" : "dark");
 
@@ -58,19 +78,8 @@ export default function Tokens(): JSX.Element {
             <p class="m-0 mb-3 text-sm font-semibold text-text">
               {mode()}
             </p>
-            <div class="grid gap-2">
-              <For
-                each={[
-                  "surface",
-                  "surface-sunken",
-                  "surface-raised",
-                  "text",
-                  "text-muted",
-                  "border",
-                  "border-strong",
-                  "field",
-                ]}
-              >
+            <div class="grid gap-2 sm:grid-cols-2">
+              <For each={colorRoles(doc())}>
                 {(name) => <SwatchToken name={name} doc={doc()} />}
               </For>
             </div>
@@ -80,19 +89,8 @@ export default function Tokens(): JSX.Element {
               {otherMode()}
             </p>
             <Probe>
-              <div class="grid gap-2">
-                <For
-                  each={[
-                    "primary",
-                    "on-primary",
-                    "secondary",
-                    "on-secondary",
-                    "accent",
-                    "on-accent",
-                    "link",
-                    "focus-ring",
-                  ]}
-                >
+              <div class="grid gap-2 sm:grid-cols-2">
+                <For each={colorRoles(doc())}>
                   {(name) => <SwatchToken name={name} doc={doc()} />}
                 </For>
               </div>
@@ -104,17 +102,8 @@ export default function Tokens(): JSX.Element {
       <Section id="modes" title="The other mode, same markup">
         <div class="mt-4 border border-border rounded-md bg-surface-raised p-4">
           <Probe>
-            <div class="grid gap-2">
-              <For
-                each={[
-                  "primary",
-                  "surface",
-                  "text",
-                  "text-muted",
-                  "border",
-                  "semantic-error",
-                ]}
-              >
+            <div class="grid gap-2 sm:grid-cols-2">
+              <For each={colorRoles(doc())}>
                 {(name) => <SwatchToken name={name} doc={doc()} />}
               </For>
             </div>
@@ -210,7 +199,7 @@ function SwatchToken(props: { name: string; doc: unknown }): JSX.Element {
   const token = (color[props.name] ?? {}) as Cell;
   const base = String(token["$value"] ?? "—");
   const dark = String(
-    (token["modes"] as Cell | undefined)?.["dark"] ?? "",
+    (token["$modes"] as Cell | undefined)?.["dark"] ?? "",
   );
   const value = dark ? `${base}  ·  dark ${dark}` : base;
   return (

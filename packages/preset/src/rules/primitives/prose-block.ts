@@ -1,18 +1,36 @@
 /**
- * Prose blocks — the pico surface for a document's body content.
+ * Prose blocks — the elements a page writes without being asked.
  *
- * `body`, `p`, `ul`, `ol`, `li`, `dl`, `dt`, `dd`, `blockquote`: the elements
- * a page writes without being asked, each claiming its tag globally so the
- * element is the contract. The rhythm is stated per element rather than as a
- * shared block, because a shared rule would have to be keyed on one tag and
- * would drag every other tag's rule in with it.
+ * `body`, `p`, `ul`, `ol`, `li`, `dl`, `dt`, `dd`: the spacing of a page, and
+ * the type it reads in. Their treatment is TYPOGRAPHY, and typography is
+ * spin's own for the whole application — so these rules claim their tags
+ * globally. A paragraph outside a document column reads the same as a
+ * paragraph inside one, because the theme's spacing is not the document's to
+ * give.
+ *
+ * The spacing is stated per element rather than as a shared block, because a
+ * shared rule would have to be keyed on one tag and would drag every other
+ * tag's rule in with it.
  *
  * Body and container are separate rules that set disjoint properties, so
  * neither wins by source order.
  */
 
-import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
+import { claim, type Mode, proseTokens, spacing } from "./shared.ts";
+import { painted } from "./scope.ts";
 import type { Rule } from "@unocss/core";
+
+/**
+ * A block of a document.
+ *
+ * The treatment reaches the element through the prose column, and `:where()`
+ * is what keeps the reach from adding weight: the block's own specificity is
+ * unchanged by where it sits, so scoping the document does not quietly
+ * change which of two rules wins.
+ */
+function block(mode: Mode, tag: string): string {
+  return painted(mode, "prose", "descendant", tag);
+}
 
 function bodyRule(mode: Mode): Rule {
   return [
@@ -20,7 +38,7 @@ function bodyRule(mode: Mode): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "body"),
+        [ctx.symbols.selector]: () => painted(mode, "body", "global", "body"),
         ...(t.sans !== undefined ? { "font-family": t.sans } : {}),
         ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
         "line-height": "1.5",
@@ -33,21 +51,27 @@ function bodyRule(mode: Mode): Rule {
   ];
 }
 
-/** Body copy: the type, the measure, and the rhythm below it. */
+/**
+ * Body copy: the spacing below it.
+ *
+ * The paragraph's TYPE is the body's — it inherits the floor — and the
+ * paragraph's own decision is the gap it leaves under itself. Both are the
+ * theme's, and both are spent wherever a paragraph is written.
+ */
 function paragraphRule(mode: Mode): Rule {
   return [
     /^p$/,
     function* (_m, ctx) {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "p"),
-        ...rhythm(proseTokens(ctx)),
+        ...spacing(proseTokens(ctx)),
       };
     },
     { layer: "primitives", autocomplete: "p" },
   ];
 }
 
-/** A list: the shared rhythm, and an indent the markers hang off. */
+/** A list: the shared spacing, and an indent the markers hang off. */
 function listRule(mode: Mode, tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
@@ -55,7 +79,7 @@ function listRule(mode: Mode, tag: string): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
-        ...rhythm(t),
+        ...spacing(t),
         ...(t.spacing4 !== undefined
           ? { "padding-inline-start": t.spacing4 }
           : {}),
@@ -65,7 +89,13 @@ function listRule(mode: Mode, tag: string): Rule {
   ];
 }
 
-/** Items breathe a step apart, so a long list stays scannable. */
+/**
+ * Items breathe a step apart, so a long list stays scannable.
+ *
+ * The second item is the one the rule reaches: the first is the anchor it
+ * follows, so the reach is written once. A sibling is not an ancestor, so the
+ * rule paints list items wherever they are — the spacing is the theme's.
+ */
 function listItemRule(mode: Mode): Rule {
   const li = claim(mode, "li");
   return [
@@ -89,7 +119,7 @@ function definitionListRule(mode: Mode): Rule {
     function* (_m, ctx) {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "dl"),
-        ...rhythm(proseTokens(ctx)),
+        ...spacing(proseTokens(ctx)),
       };
     },
     { layer: "primitives", autocomplete: "dl" },
@@ -129,20 +159,37 @@ function definitionRule(mode: Mode): Rule {
 }
 
 /**
- * A quotation: an inset block with a rule in the margin.
+ * A quotation.
  *
- * The footer that carries the attribution is reached through the blockquote,
+ * Two treatments, and they belong to different owners.
+ *
+ * The quotation's VOICE — the face it reads in and the spacing it sits in — is
+ * typography, and typography is the theme's everywhere: a quotation in a
+ * sidebar reads in the same face as a quotation in a document. The face is
+ * the theme's editorial voice, and a theme that names none leaves the
+ * quotation in the body's face.
+ *
+ * The quotation's TREATMENT — the muted ink it reads in and the inset it is
+ * set in — is the document's furniture. It is a long-form column's way of
+ * setting a quotation apart, and it belongs inside the column: a quotation
+ * outside one is the author's, and reads like the body around it.
+ *
+ * The footer that carries the attribution is reached through the quotation,
  * so an ordinary `<footer>` elsewhere is not styled as one.
  */
 function blockquoteRule(mode: Mode): Rule {
-  const blockquote = claim(mode, "blockquote");
+  const inset = block(mode, "blockquote");
   return [
     /^blockquote$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => blockquote,
-        ...rhythm(t),
+        [ctx.symbols.selector]: () => claim(mode, "blockquote"),
+        ...(t.serif !== undefined ? { "font-family": t.serif } : {}),
+        ...spacing(t),
+      };
+      yield {
+        [ctx.symbols.selector]: () => inset,
         ...(t.spacing2 !== undefined && t.spacing4 !== undefined
           ? { padding: `${t.spacing2} ${t.spacing4}` }
           : {}),
@@ -152,7 +199,7 @@ function blockquoteRule(mode: Mode): Rule {
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
       yield {
-        [ctx.symbols.selector]: () => `${blockquote} ${claim(mode, "footer")}`,
+        [ctx.symbols.selector]: () => `${inset} :is(${claim(mode, "footer")})`,
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),

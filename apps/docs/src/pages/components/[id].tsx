@@ -83,8 +83,8 @@ export default function ComponentPage(): JSX.Element {
           </div>
         </Section>
 
-        <Show when={contract()!.character.length > 0}>
-          <Section title="Character — what the theme decides">
+        <Show when={contract()!.component.length > 0}>
+          <Section title="Component tokens — what the theme decides">
             <div class="mt-4 overflow-x-auto">
               <table class="w-full border-collapse text-sm">
                 <thead>
@@ -97,7 +97,7 @@ export default function ComponentPage(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  <For each={contract()!.character}>
+                  <For each={contract()!.component}>
                     {(token) => (
                       <tr class="border-b border-border">
                         <td class="py-2 pr-4 font-mono text-xs">

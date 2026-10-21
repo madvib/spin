@@ -10,7 +10,7 @@
  */
 import { createMemo, createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Logo } from "./mark.tsx";
+import { Logo } from "@spin/kit";
 
 type Status = "paid" | "shipped" | "pending" | "failed" | "refunded";
 

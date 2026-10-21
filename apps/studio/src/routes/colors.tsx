@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { generateScale, valuesInMode } from "@spin/theme";
+import { BASE_ROLES, generateScale, valuesInMode } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import { inDrawer } from "../app.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
@@ -36,15 +36,50 @@ import { tokenValue } from "../lib/overview.ts";
  * not a color to pick, so surface/text/border/on-* read as one Roles family
  * with reference pickers, not swatches mixed into the hues.
  */
-const ROLE_EXACT = new Set(["surface", "text", "border", "link", "field"]);
+/**
+ * The roles the contract knows.
+ *
+ * The theme package's role declaration is the one list of them: a colour the
+ * contract names as a role is a job. The page reads that list rather than
+ * keeping its own, so a role added to the contract lands here without this
+ * page learning its name — the dead pair among them.
+ */
+const CONTRACT_ROLES = new Set(
+  BASE_ROLES
+    .map((role) => role.path)
+    .filter((path) => path.startsWith("color."))
+    .map((path) => path.slice("color.".length)),
+);
+
+/**
+ * The families a theme names its own roles by.
+ *
+ * Shapes rather than names: the surface, text and border families, the inks
+ * (`on-`) and the focus ring.
+ */
 const ROLE_PREFIXES = ["surface-", "text-", "border-", "on-", "focus-"];
+
+/**
+ * The palette's own accents: the fills a theme PICKS.
+ *
+ * The contract names them as roles, and they are not jobs — a theme chooses
+ * its brand colours the way it chooses a hue — so they stay in the swatch
+ * grid, where the studio can pick them.
+ */
+const PICKS = new Set(["primary", "secondary", "accent"]);
+
 function familyOf(path: string): string {
   const leaf = path.split(".").slice(1).join(".");
   if (leaf === "neutral" || leaf.startsWith("neutral.")) return "neutral";
   if (leaf === "semantic" || leaf.startsWith("semantic.")) return "semantic";
-  if (ROLE_EXACT.has(leaf)) return "roles";
-  if (ROLE_PREFIXES.some((prefix) => leaf.startsWith(prefix))) return "roles";
+  if (isRole(leaf)) return "roles";
   return "accents";
+}
+
+/** True when a colour name is a job rather than a colour to pick. */
+function isRole(leaf: string): boolean {
+  if (ROLE_PREFIXES.some((prefix) => leaf.startsWith(prefix))) return true;
+  return CONTRACT_ROLES.has(leaf) && !PICKS.has(leaf);
 }
 
 /** Where a slot's commit lands: the token's own value, or the dark one. */

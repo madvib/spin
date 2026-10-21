@@ -7,7 +7,19 @@
   "required": [
     "color",
     "font",
-    "focus"
+    "focus",
+    "avatar",
+    "badge",
+    "button",
+    "checkbox",
+    "switch",
+    "icon",
+    "card",
+    "alert",
+    "field",
+    "stat",
+    "table",
+    "link"
   ],
   "properties": {
     "color": {
@@ -25,6 +37,8 @@
         "semantic",
         "on-primary",
         "on-semantic-error",
+        "disabled",
+        "on-disabled",
         "focus-ring",
         "link"
       ],
@@ -1133,6 +1147,162 @@
             }
           }
         },
+        "disabled": {
+          "additionalProperties": true,
+          "description": "The fill a dead control wears.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-disabled": {
+          "additionalProperties": true,
+          "description": "The ink on a dead control's fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
         "focus-ring": {
           "additionalProperties": true,
           "description": "Focus indicator.",
@@ -1553,8 +1723,2498 @@
         }
       }
     },
+    "avatar": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "sm": {
+          "additionalProperties": true,
+          "description": "The size for a face in a list or a comment.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "md": {
+          "additionalProperties": true,
+          "description": "The default: a face beside a name, or a profile header at rest.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "lg": {
+          "additionalProperties": true,
+          "description": "A face as the subject of a page.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "badge": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "edge": {
+          "additionalProperties": true,
+          "description": "The stroke the badge draws around itself.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "pill": {
+          "additionalProperties": true,
+          "description": "Whether the badge is a pill or a square tag.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "button": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "weight": {
+          "additionalProperties": true,
+          "description": "The button's own weight: a control carries more than the prose around it.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "case": {
+          "additionalProperties": true,
+          "description": "The case a button's label is written in.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "tracking": {
+          "additionalProperties": true,
+          "description": "The tracking of a button's label.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "shadow": {
+          "additionalProperties": true,
+          "description": "The elevation a button rests at.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "shadow-hover": {
+          "additionalProperties": true,
+          "description": "The elevation a button lifts to when it is touched.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "checkbox": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "depth": {
+          "additionalProperties": true,
+          "description": "How physical a checkbox is: one scalar driving three inset shadows.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "switch": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "depth": {
+          "additionalProperties": true,
+          "description": "How physical a switch is: one scalar driving three inset shadows.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "icon": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "sm": {
+          "additionalProperties": true,
+          "description": "The smallest glyph step, in `em` so it tracks the control it sits in.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "md": {
+          "additionalProperties": true,
+          "description": "The default glyph step.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "lg": {
+          "additionalProperties": true,
+          "description": "The largest glyph step.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "card": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "radius": {
+          "additionalProperties": true,
+          "description": "The card's own corner. A card is not a button and need not round the same way.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "padding": {
+          "additionalProperties": true,
+          "description": "The air inside the card, between its parts and around its edge.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "border": {
+          "additionalProperties": true,
+          "description": "The ink of the card's own edge, when it draws one.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "elevation": {
+          "additionalProperties": true,
+          "description": "The elevation the card rests at. A card that sits on the page says so.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "alert": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "radius": {
+          "additionalProperties": true,
+          "description": "The alert's own corner.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "padding": {
+          "additionalProperties": true,
+          "description": "The air above and below the alert's text.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "padding-inline": {
+          "additionalProperties": true,
+          "description": "The air beside the alert's text, where the message is read.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "edge": {
+          "additionalProperties": true,
+          "description": "The ink of the hairline the alert wears on every side.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "field": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "radius": {
+          "additionalProperties": true,
+          "description": "The field's own corner.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "border": {
+          "additionalProperties": true,
+          "description": "The ink of the field's own edge: the line a finger has to find.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "stat": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "value-size": {
+          "additionalProperties": true,
+          "description": "The size of the number a stat shows.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "value-weight": {
+          "additionalProperties": true,
+          "description": "The weight of the number a stat shows.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "table": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "header-weight": {
+          "additionalProperties": true,
+          "description": "The weight of a column's heading.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "rule": {
+          "additionalProperties": true,
+          "description": "The ink of the rule under a row.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "zebra": {
+          "additionalProperties": true,
+          "description": "The fill a striped row wears.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "link": {
+      "additionalProperties": true,
+      "type": "object",
+      "properties": {
+        "underline": {
+          "additionalProperties": true,
+          "description": "The thickness of the rule under a link. Zero marks the link by colour alone.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "modes": {
-      "description": "The modes this theme serves.",
+      "description": "The modes this theme serves. A mode the theme serves but does not override falls back to the base values.",
       "type": "array",
       "items": {
         "anyOf": [

@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import { parseTokens, treeToJson } from "@spin/theme";
+import { parseTokens, setToken, treeToJson } from "@spin/theme";
 import { scaffold } from "@spin/preset";
 import {
   createSpinClient,
@@ -278,19 +278,32 @@ Deno.test("a mutation refusal carries its code over the wire", async () => {
   }
 });
 
-Deno.test("analyze with modes reports the leaves missing a dark value", async () => {
+Deno.test("analyze reports a value written for a mode the theme does not serve", async () => {
   const { server, client } = serve();
   try {
+    // A theme that serves light and carries a dark value: the value is never
+    // shown, and the analyzer says so. The other direction is fine — a theme
+    // that serves a mode it does not override simply renders its base values
+    // there.
+    const moded = setToken(
+      scaffold(),
+      ["color", "primary"],
+      "#8db9fa",
+      undefined,
+      "dark",
+    );
+    assert(moded.ok, "the fixture override holds");
     const analysis = await client.theme.analyze({
-      text: treeToJson(scaffold()),
-      modes: ["dark"],
+      text: treeToJson(moded.tree),
+      modes: ["light"],
     });
     assertEquals(analysis.error, null);
     assert(
       analysis.issues.some((issue) =>
-        issue.path === "color.primary" && issue.message.includes("$modes.dark")
+        issue.path === "color.primary" &&
+        issue.message.includes("does not serve")
       ),
-      `no missing-dark issue: ${JSON.stringify(analysis.issues)}`,
+      `no dead-override issue: ${JSON.stringify(analysis.issues)}`,
     );
   } finally {
     await server.shutdown();

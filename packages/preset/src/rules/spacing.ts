@@ -79,7 +79,7 @@ export function spacingRules(): Rule[] {
     spacingRule(/^pb-(.+)$/, ["padding-bottom"], "p-$spacing"),
     spacingRule(/^pl-(.+)$/, ["padding-left"], "p-$spacing"),
     // `gap-gutter` is the one gap that is not a scale step: it reads the
-    // container's own rhythm, so a page's grid and its container cannot drift
+    // container's own spacing, so a page's grid and its container cannot drift
     // apart the way `gap-4` and `p-4` can.
     //
     // Static, because the name is a literal multi-word token that uno's

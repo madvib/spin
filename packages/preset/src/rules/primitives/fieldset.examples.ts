@@ -27,17 +27,17 @@ export const FIELDSET_EXAMPLES: readonly FieldsetExample[] = [
     name: "A group",
     html:
       `        <fieldset class="flex flex-col gap-2 rounded-md border border-solid border-border p-4">
-          <legend class="px-2 text-sm font-semibold">Shipping</legend>
-          <label><input type="text" placeholder="Full name"><span>Name</span></label>
-          <label><input type="text" placeholder="Street"><span>Address</span></label>
+          <legend class="px-2 text-sm font-semibold">Release policy</legend>
+          <label><input type="text" placeholder="eu-west-1"><span>Region</span></label>
+          <label><input type="text" placeholder="v4.12.0"><span>Release tag</span></label>
         </fieldset>`,
   },
   {
     name: "Disabled as one",
     html:
       `        <fieldset class="flex flex-col gap-2 rounded-md border border-solid border-border p-4" disabled>
-          <legend class="px-2 text-sm font-semibold">Unavailable</legend>
-          <label><input type="text" value="Cannot touch"><span>Name</span></label>
+          <legend class="px-2 text-sm font-semibold">Locked while a deploy runs</legend>
+          <label><input type="text" value="checkout-api"><span>Service</span></label>
         </fieldset>`,
   },
 ];

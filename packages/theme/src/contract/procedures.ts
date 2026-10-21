@@ -11,7 +11,7 @@ import {
   generateThemeCss,
   generateTypes,
 } from "../pipeline/generate.ts";
-import { parseTokens } from "../pipeline/parse.ts";
+import { parseDocument, parseTokens } from "../pipeline/parse.ts";
 import {
   removeToken,
   renameToken,
@@ -34,11 +34,15 @@ function analyze(
   required?: readonly string[],
   modes?: readonly Mode[],
 ) {
-  const parsed = parseTokens(text);
+  const parsed = parseDocument(text);
   if (!parsed.ok) return { error: parsed.error, issues: [], tree: null };
+  // The modes the document serves are its own claim: the root `modes` field.
+  // A caller may state them, and a caller that says nothing gets the
+  // document's answer — so the check that follows is the same whoever asks.
+  const served = modes ?? parsed.modes ?? [];
   const report = validateTokens(parsed.tree, {
     required: required ?? requiredPaths(),
-    ...(modes !== undefined ? { modes } : {}),
+    modes: served,
   });
   return {
     error: null,

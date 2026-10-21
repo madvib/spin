@@ -45,17 +45,17 @@ export const ICON_EXAMPLES: readonly IconExample[] = [
   {
     name: "Sizes · at the size they read",
     html: row(
-      `          <p class="text-md"><i class="i-lucide-plus icon-sm"></i> small step</p>
-          <p class="text-md"><i class="i-lucide-plus icon-md"></i> medium step</p>
-          <p class="text-md"><i class="i-lucide-plus icon-lg"></i> large step</p>`,
+      `          <p class="text-md"><i class="i-lucide-plus icon-sm"></i> Deploy</p>
+          <p class="text-md"><i class="i-lucide-plus icon-md"></i> Deploy</p>
+          <p class="text-md"><i class="i-lucide-plus icon-lg"></i> Deploy</p>`,
     ),
   },
   {
     name: "In a button",
     html: row(
-      `          <button><i class="i-lucide-plus button-icon icon-sm"></i>Save</button>
-          <button><i class="i-lucide-plus button-icon icon-md"></i>Save</button>
-          <button><i class="i-lucide-plus button-icon icon-lg"></i>Save</button>`,
+      `          <button><i class="i-lucide-plus button-icon icon-sm"></i>Deploy</button>
+          <button><i class="i-lucide-plus button-icon icon-md"></i>Deploy</button>
+          <button><i class="i-lucide-plus button-icon icon-lg"></i>Deploy</button>`,
     ),
   },
   {
@@ -69,16 +69,16 @@ export const ICON_EXAMPLES: readonly IconExample[] = [
   {
     name: "In a badge",
     html: row(
-      `          <badge><i class="i-lucide-bell icon-sm"></i>Notifications</badge>
-          <badge><i class="i-lucide-bell icon-md"></i>Notifications</badge>
-          <badge><i class="i-lucide-bell icon-lg"></i>Notifications</badge>`,
+      `          <badge><i class="i-lucide-bell icon-sm"></i>3 alerts</badge>
+          <badge><i class="i-lucide-bell icon-md"></i>3 alerts</badge>
+          <badge><i class="i-lucide-bell icon-lg"></i>3 alerts</badge>`,
     ),
   },
   {
     name: "In text",
     html:
-      `<p>An icon inline with a sentence keeps the sentence's own measure: the step is set against the root, not against the paragraph.</p>
-        <p>Press <i class="i-lucide-plus icon-md"></i> to continue, or <i class="i-lucide-x icon-md"></i> to cancel.</p>
-        <p>Visit <i class="i-lucide-globe icon-md"></i> the dashboard, or <i class="i-lucide-search icon-md"></i> to find something.</p>`,
+      `<p>An icon inline with a sentence keeps the sentence's own measure, so the line wraps where the prose wraps.</p>
+        <p>Press <i class="i-lucide-plus icon-md"></i> to add an instance, or <i class="i-lucide-x icon-md"></i> to remove it.</p>
+        <p>Open <i class="i-lucide-globe icon-md"></i> for regional status, or <i class="i-lucide-search icon-md"></i> to find a deploy.</p>`,
   },
 ];

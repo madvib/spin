@@ -55,6 +55,26 @@ export interface AuditOptions {
   readonly strobeMs: number;
   /** Restrict the audit to this subtree; the hover probe audits one element. */
   readonly root?: Element | null;
+  /**
+   * Measure the text inside inactive controls too.
+   *
+   * WCAG exempts a disabled control from the contrast rule — a label faded
+   * over its own dead input is a control saying "unavailable", not illegible
+   * text. The resting audit therefore leaves those alone. The state audit
+   * asks for them: the dimmed state is one of the states a control is read in,
+   * and whether the theme dims it into unreadability is the theme's decision
+   * to make, not the audit's.
+   */
+  readonly includeInactive?: boolean;
+  /**
+   * Elements whose text this audit does not measure.
+   *
+   * A nested control measures its own text: the audit of the control that
+   * holds it would otherwise measure the same label twice — once as part of
+   * the holder, once as the control — and report the holder's finding as if
+   * the holder's label had failed.
+   */
+  readonly exclude?: readonly Element[];
 }
 
 export interface AuditResult {
@@ -255,6 +275,12 @@ export function auditPage(options: AuditOptions): AuditResult {
   // ── contrast ────────────────────────────────────────────────────────────
   let measured = 0;
   let unresolved = 0;
+  // A control the caller has already measured elsewhere: its text belongs to
+  // that measurement, not to this one.
+  const excluded = options.exclude ?? [];
+  const skipped = options.includeInactive
+    ? `${PLATFORM_PAINTED}, [aria-hidden="true"]`
+    : `${INACTIVE}, ${PLATFORM_PAINTED}, [aria-hidden="true"]`;
   const walked = new Set<Element>();
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode: (node) =>
@@ -268,13 +294,8 @@ export function auditPage(options: AuditOptions): AuditResult {
     const el = node.parentElement;
     if (el === null || walked.has(el)) continue;
     if (!isPainted(el)) continue;
-    if (
-      el.closest(
-        `${INACTIVE}, ${PLATFORM_PAINTED}, [aria-hidden="true"]`,
-      ) !== null
-    ) {
-      continue;
-    }
+    if (el.closest(skipped) !== null) continue;
+    if (excluded.some((other) => other.contains(el))) continue;
     walked.add(el);
     const backdrop = backdropOf(el);
     if (backdrop === null) {

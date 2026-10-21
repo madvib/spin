@@ -44,6 +44,22 @@ const os = implement(projectContract);
 const CONFIG_FILENAME = "uno.config.ts";
 
 /**
+ * Whether a path is there.
+ *
+ * The copy's guard: a name that is taken holds work someone saved, and
+ * writing over it would destroy that work with no warning and no undo.
+ */
+async function exists(path: string): Promise<boolean> {
+  const { access } = await import("node:fs/promises");
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The shipped starters by name.
  *
  * Canonical JSON, not the package's file bytes: a theme is a document, and
@@ -260,7 +276,15 @@ export const projectRouter = os.router({
             text = themeJson(document);
           }
           await mkdir(dir, { recursive: true });
-          await writeFile(join(dir, `${input.to}.json`), text, "utf8");
+          // A copy never overwrites: the name is the author's, and a theme
+          // that exists holds work someone saved. Writing over it would
+          // destroy that work with no warning and no undo, so a taken name is
+          // an error the studio can show.
+          const target = join(dir, `${input.to}.json`);
+          if (await exists(target)) {
+            return { error: `a theme named ${input.to} already exists` };
+          }
+          await writeFile(target, text, "utf8");
           return { error: null };
         } catch (err) {
           return { error: err instanceof Error ? err.message : String(err) };

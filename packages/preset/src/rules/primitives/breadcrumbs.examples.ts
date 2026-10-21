@@ -44,9 +44,9 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
     name: "Boxed",
     html: `<nav class="breadcrumbs breadcrumbs-box" aria-label="Breadcrumb">
   <ol class="breadcrumbs-list">
-    <li><a href="#">Home</a></li>
-    <li><a href="#">Docs</a></li>
-    <li><a href="#" aria-current="page">Install</a></li>
+    <li><a href="#">Lodestar</a></li>
+    <li><a href="#">checkout-api</a></li>
+    <li><a href="#" aria-current="page">Deploy #4821</a></li>
   </ol>
 </nav>`,
   },
@@ -54,9 +54,9 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
     name: "Arrows",
     html: `<nav class="breadcrumbs breadcrumbs-arrow" aria-label="Breadcrumb">
   <ol class="breadcrumbs-list">
-    <li><a href="#">Home</a></li>
-    <li><a href="#">Docs</a></li>
-    <li><a href="#" aria-current="page">Install</a></li>
+    <li><a href="#">Lodestar</a></li>
+    <li><a href="#">checkout-api</a></li>
+    <li><a href="#" aria-current="page">Deploy #4821</a></li>
   </ol>
 </nav>`,
   },
@@ -64,34 +64,34 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
     name: "Breadcrumbs · three steps",
     html: trail(
       "        ",
-      link("/", "Home"),
-      link("/docs", "Docs"),
-      current("Install"),
+      link("/", "Lodestar"),
+      link("/services/checkout-api", "checkout-api"),
+      current("Deploy #4821"),
     ),
   },
   {
     name: "Breadcrumbs · a trail that wraps",
     html: trail(
       "        ",
-      link("/", "Home"),
-      link("/docs", "Docs"),
-      link("/docs/primitives", "Primitives"),
-      link("/docs/primitives/layout", "Layout"),
-      link("/docs/primitives/layout/breadcrumbs", "Breadcrumbs"),
-      link("/docs/primitives/layout/breadcrumbs/examples", "Examples"),
-      current("Markup"),
+      link("/", "Lodestar"),
+      link("/services", "Services"),
+      link("/services/checkout-api", "checkout-api"),
+      link("/services/checkout-api/deploys", "Deployments"),
+      link("/services/checkout-api/deploys/4821", "4821"),
+      link("/services/checkout-api/deploys/4821/logs", "Runtime logs"),
+      current("Build output"),
     ),
   },
   {
     name: "Breadcrumbs · in a page header",
     html: `        <header>
-          <h2>Settings</h2>
+          <h2>Rollout settings</h2>
 ${
       trail(
         "          ",
-        link("/", "Home"),
-        link("/settings", "Settings"),
-        current("Profile"),
+        link("/", "Lodestar"),
+        link("/services/checkout-api", "checkout-api"),
+        current("Rollout settings"),
       )
     }
         </header>`,

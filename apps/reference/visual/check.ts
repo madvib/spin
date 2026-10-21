@@ -23,6 +23,7 @@ import {
   themeModes,
 } from "../../../packages/theme/src/themes/index.ts";
 import { PRIMITIVES } from "../src/primitives.ts";
+import { APP_ROUTES } from "../src/routes.ts";
 import { geometryAudit, geometryClaimsFor } from "./geometry.ts";
 import { pageState, renderReady, seedTheme } from "./pages.ts";
 
@@ -35,15 +36,16 @@ const BASE = new URL(".", import.meta.url).pathname;
  */
 function routes(): readonly Route[] {
   return [
-    { hash: "/components", expectHeading: "Primitives" },
+    // The app's own routes — the section indexes and the montage — so a page
+    // the app publishes is a page the check measures.
+    ...APP_ROUTES.map((route) => ({
+      hash: route.hash,
+      expectHeading: route.expectHeading,
+    })),
     ...PRIMITIVES.map((primitive) => ({
       hash: `/components/${primitive.id}`,
       expectHeading: primitive.title,
     })),
-    // The bare utilities route is the section index. It has to render the
-    // index; today it renders the section it was not given. No heading is
-    // pinned here: what the index is called is the app's to decide.
-    { hash: "/utilities", expectHeading: null },
     ...SECTIONS.map((section) => ({
       hash: `/utilities/${section.id}`,
       expectHeading: section.title,
@@ -66,6 +68,10 @@ const config: CheckConfig = {
     ...themeModes(THEMES[theme]!).filter((mode) => mode === "dark"),
   ],
   hoverSelector: "nav button, nav a",
+  // The specimen, not the chrome: the rail is the app's navigation, and its
+  // rows are the app's business. The state-contrast pass drives the controls
+  // the specimens are made of.
+  stateScope: "main",
   outDir: `${BASE}out`,
   baseline: `${BASE}baseline.json`,
   errorText: ["No such section", "Not found"],

@@ -45,42 +45,44 @@ export const CHECKBOX_EXAMPLES: readonly ControlExample[] = [
   {
     name: "Checkbox · states",
     html: row(
-      `          ${inputCheckbox("", "unchecked")}
-          ${inputCheckbox("checked", "checked")}
-          ${inputCheckbox("data-mixed", "indeterminate")}
-          ${inputCheckbox("disabled", "disabled")}
-          ${inputCheckbox("checked disabled", "disabled, checked")}`,
+      `          ${inputCheckbox("", "Run health checks")}
+          ${inputCheckbox("checked", "Require approval")}
+          ${inputCheckbox("data-mixed", "Notify the on-call engineer")}
+          ${inputCheckbox("disabled", "Block on failing tests")}
+          ${
+        inputCheckbox("checked disabled", "Keep the previous release warm")
+      }`,
     ),
   },
   {
     name: "Checkbox · stacked",
     html: `        <div class="flex flex-col items-start gap-2">
-          ${inputCheckbox("checked", "First")}
-          ${inputCheckbox("", "Second")}
-          ${inputCheckbox("disabled", "Disabled")}
+          ${inputCheckbox("checked", "Run health checks")}
+          ${inputCheckbox("", "Require approval")}
+          ${inputCheckbox("disabled", "Notify the on-call engineer")}
         </div>`,
   },
 ];
 
 export const switchFixtureNote =
-  'A checkbox wearing `role="switch"`: same input, same states, a track instead of a box. The label carries the state word.';
+  'A checkbox wearing `role="switch"`: same input, same states, a track instead of a box. The label says what the switch turns on.';
 
 export const SWITCH_EXAMPLES: readonly ControlExample[] = [
   {
     name: "Switch · states",
     html: row(
-      `          ${inputSwitch("", "off")}
-          ${inputSwitch("checked", "on")}
-          ${inputSwitch("data-mixed", "indeterminate")}
-          ${inputSwitch("disabled", "disabled")}
-          ${inputSwitch("checked disabled", "disabled, on")}`,
+      `          ${inputSwitch("", "Auto-deploy")}
+          ${inputSwitch("checked", "Canary first")}
+          ${inputSwitch("data-mixed", "Notify the on-call engineer")}
+          ${inputSwitch("disabled", "Deploy on merge")}
+          ${inputSwitch("checked disabled", "Auto-deploy")}`,
     ),
   },
   {
     name: "Switch · with description",
     html: row(
-      `          <label><input type="checkbox" role="switch" checked> <span>Notifications <span>— email me</span></span></label>
-          <label><input type="checkbox" role="switch"> <span>Digest <span>— weekly</span></span></label>`,
+      `          <label><input type="checkbox" role="switch" checked> <span>Auto-deploy <span>every merge to main</span></span></label>
+          <label><input type="checkbox" role="switch"> <span>Nightly window <span>02:00 to 06:00 UTC</span></span></label>`,
     ),
   },
 ];

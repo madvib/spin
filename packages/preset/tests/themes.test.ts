@@ -7,7 +7,7 @@ import type { TokenLeaf, TokenNode } from "@spin/theme";
 /**
  * The shipped example themes are the reference implementations of "a theme
  * that satisfies the whole surface". Completeness is a composition claim — it
- * needs the base roles plus every enabled primitive's character tokens — so it
+ * needs the base roles plus every enabled primitive's component tokens — so it
  * is asserted here, where that composition lives, rather than in
  * `@spin/theme`, which cannot see the primitives at all.
  */

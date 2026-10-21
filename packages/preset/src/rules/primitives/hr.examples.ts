@@ -26,44 +26,44 @@ export const hrFixtureNote =
 export const HR_EXAMPLES: readonly HrExample[] = [
   {
     name: "Between paragraphs",
-    html: `<p>One thought ends here.</p>
+    html: `<p>The rollout is paused at 10% of traffic.</p>
 <hr>
-<p>The next begins.</p>`,
+<p>The on-call engineer was notified 90 seconds later.</p>`,
   },
   {
     name: "Between sections",
     html: `<article>
-  <h2>Overview</h2>
-  <p>The first section.</p>
+  <h2>Rollout</h2>
+  <p>Ten per cent of traffic is on v4.12.0 in eu-west-1.</p>
   <hr>
-  <h2>Details</h2>
-  <p>The second section.</p>
+  <h2>Rollback</h2>
+  <p>A rollback returns every instance to v4.11.2 in under two minutes.</p>
 </article>`,
   },
   {
     name: "Between groups",
     html: `<ul>
-  <li>Alpha</li>
-  <li>Bravo</li>
+  <li>checkout-api</li>
+  <li>payments-worker</li>
 </ul>
 <hr>
 <ul>
-  <li>Charlie</li>
-  <li>Delta</li>
+  <li>search-indexer</li>
+  <li>webhooks-relay</li>
 </ul>`,
   },
   {
     name: "Vertical",
     html: `<div class="flex items-center">
-  <span>Overview</span>
+  <span>production</span>
   <hr class="divider-vertical">
-  <span>Details</span>
+  <span>staging</span>
 </div>`,
   },
   {
     name: "Dashed",
-    html: `<p>One thought ends here.</p>
+    html: `<p>The rollout is paused at 10% of traffic.</p>
 <hr class="divider-dashed">
-<p>The next begins.</p>`,
+<p>The on-call engineer was notified 90 seconds later.</p>`,
   },
 ];

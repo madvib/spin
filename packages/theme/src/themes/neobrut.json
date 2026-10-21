@@ -1,7 +1,6 @@
 {
   "$extensions": {
     "spin": {
-      "id": "neobrut",
       "fonts": [
         {
           "family": "DM Sans",
@@ -120,10 +119,6 @@
       "$type": "color",
       "$value": "#ffffff"
     },
-    "on-danger": {
-      "$type": "color",
-      "$value": "#ffffff"
-    },
     "focus-ring": {
       "$type": "color",
       "$value": "#000000"
@@ -168,10 +163,24 @@
       "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
     },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
+    },
     "on-semantic-info": {
       "$type": "color",
       "$value": "#1a1a1a",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: flat grey, one step off the page. Neobrut's loudness is the black edge and the hard shadow, and a dead control wears neither."
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill. A dimmed control would dim this with it, and the label is the one thing a dead control still has to say."
     }
   },
   "spacing": {
@@ -466,7 +475,7 @@
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
@@ -546,7 +555,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
@@ -588,6 +597,105 @@
       "$type": "dimension",
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "$description": "Loud on purpose: a hard black edge, a flat high-chroma fill, and a shadow that lands like a stamp. The theme that shouts so the content does not have to.",
+  "card": {
+    "$description": "The card's own decisions: its corner, the air inside it, the ink of its edge, and the elevation it rests at. A card is not a button, and need not round the same way.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.lg}",
+      "$description": "The same five pixels as everything else: this theme rounds nothing by half."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air inside the card, between its parts and around its edge."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here."
+    },
+    "elevation": {
+      "$type": "shadow",
+      "$value": "{shadow.md}",
+      "$description": "The hard offset: a card in this theme is a block set down on the page, and it says so."
+    }
+  },
+  "alert": {
+    "$description": "The alert's own decisions: its corner, the air around its message, and the ink of the hairline it wears.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner: a message is a box, and a box is not a pill."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.2}",
+      "$description": "The air above and below the message."
+    },
+    "padding-inline": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air beside the message, where it is read."
+    },
+    "edge": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them."
+    }
+  },
+  "field": {
+    "$description": "The field's own decisions: its corner and the ink of its edge.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border-strong}",
+      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
+    }
+  },
+  "stat": {
+    "$description": "The stat's own decisions: the number it shows, and how that number is set.",
+    "value-size": {
+      "$type": "dimension",
+      "$value": "{font.size.2xl}",
+      "$description": "The size of the number: the large step of the type scale, because the number is the point of the stat."
+    },
+    "value-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    }
+  },
+  "table": {
+    "$description": "The table's own decisions: the weight of a column's heading, the ink of the rule under a row, and the fill a striped row wears.",
+    "header-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of a heading: heavier than the row beneath it, so the column names itself."
+    },
+    "rule": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the rule under a row: the page's hairline."
+    },
+    "zebra": {
+      "$type": "color",
+      "$value": "{color.surface-sunken}",
+      "$description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table."
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it.",
+    "underline": {
+      "$type": "dimension",
+      "$value": "0.09375em",
+      "$description": "A heavier rule than a plain theme's: the underline is part of the shouting."
     }
   },
   "modes": [

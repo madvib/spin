@@ -1,6 +1,7 @@
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import type { JSX } from "solid-js";
+import { primitiveCategories, primitiveElements } from "@spin/preset";
 import { library } from "../lib/store.ts";
 import { inDrawer } from "../app.tsx";
 
@@ -13,11 +14,88 @@ import { inDrawer } from "../app.tsx";
  * changes; this one is the same `primitives.list` the page renders, so the
  * navigation and the content cannot disagree.
  *
+ * The list is GROUPED, and every row wears the glyph its element is known
+ * by. The groups are the ones the taxonomy files the elements by — the same
+ * ones the reference app's rail draws and the same ones the docs' gallery
+ * reads — so an element cannot be filed in one app and drawn in another.
+ *
+ * A flat alphabetical list is a filing convention rather than a way to find
+ * anything: a reader looks for the control they want — something to type
+ * into, something to click — not for the first letter of its name. So the
+ * rows are bucketed by what the thing is FOR, and the group headings are
+ * what a reader scans.
+ *
  * The search narrows THIS list and lives here beside it: a filter that sits
  * somewhere else looks like it applies to the page. The count says what the
  * filter did without the reader having to remember what was there before,
- * and a row the search empties is hidden rather than drawn over nothing.
+ * and a group the search empties is hidden rather than drawn over nothing.
  */
+
+/**
+ * The quiet row every entry shares: a hole until it is the row you are on, at
+ * which point the surface is raised, the edge answers and the ink is full.
+ *
+ * The state paints the whole tile rather than the glyph and the text: a hit
+ * target that stops at the end of the word is a hit target a reader has to
+ * aim at.
+ *
+ * The reference app's rows are buttons and carry `ghost` — the button variant
+ * that takes the theme's paint off a control. A row here is a LINK, and the
+ * variant is scoped to buttons, so the class would style nothing.
+ *
+ * The state is drawn by `data-[current]:` rather than `aria-[current]:`,
+ * because the router's own active class would leave a gallery row dark on
+ * every page inside it, and a state a stylesheet can see has to be the state
+ * the reader is in.
+ */
+const RAIL_LINK =
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:bg-surface-raised hover:text-text data-[current]:border-border-strong data-[current]:bg-surface-raised data-[current]:text-text data-[current]:font-medium";
+
+/**
+ * The band a run of rows is bucketed into.
+ *
+ * A heading outranks the rows under it: a size that is the same or larger, a
+ * heavier weight, and full ink rather than the muted step — a rail whose
+ * group titles are SMALLER than its members reads as one flat list of
+ * unrelated things, and one whose titles are quieter reads as a caption over
+ * the very things it captions. The air above is a bigger step than the air
+ * below, so the heading belongs to its group rather than to the rail.
+ *
+ * The padding is a step wider than the row's own, so the band hangs over the
+ * column of tiles instead of hiding in it.
+ */
+const RAIL_BAND =
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
+
+/**
+ * The row, as the drawer wears it.
+ *
+ * The drawer has no room for a column: the list becomes a strip above the
+ * page it navigates, and a row that filled the width would be a row that
+ * fills the drawer instead. The state is the same state — a raised surface, a
+ * strong edge, full ink — so a reader who knows the rail knows it collapsed.
+ */
+const DRAWER_LINK =
+  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 text-sm no-underline text-text-muted hover:bg-surface-raised hover:text-text data-[current]:border-border-strong data-[current]:bg-surface-raised data-[current]:text-text data-[current]:font-medium";
+
+/**
+ * The group heading, as the drawer wears it.
+ *
+ * The drawer reads as one strip, so a heading that took a row of its own
+ * would push the rows it captions below the fold. It stays a caption: small,
+ * quiet, and beside the rows it names.
+ */
+const DRAWER_BAND =
+  "shrink-0 text-xs font-semibold normal-case tracking-normal text-text-muted";
+
+/** One row of the list: the component it names, and the glyph it wears. */
+interface Row {
+  /** The element's name, as the library lists it. */
+  readonly name: string;
+  /** The glyph the element wears: the whole class, name included. */
+  readonly icon: string;
+}
+
 export default function ComponentsLayout(props: { children?: JSX.Element }) {
   const location = useLocation();
   // The drawer has no room for a rail beside the content: the list becomes a
@@ -33,10 +111,38 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
       ? all
       : all.filter((c) => c.name.replace(/-/g, " ").includes(asked));
   };
+
+  /**
+   * The groups, in the taxonomy's order, with the rows each one shows.
+   *
+   * The order is the taxonomy's rather than the library's: the taxonomy is
+   * where the elements are filed, and a group the reader has to hunt for is
+   * not a group. A group the filter empties is dropped rather than drawn as a
+   * heading over nothing.
+   */
+  const groups = createMemo(() => {
+    const kept = new Map(
+      shown().map((component) => [component.name, component]),
+    );
+    return primitiveCategories
+      .map((category) => ({
+        label: category.label,
+        rows: primitiveElements
+          .filter((element) => element.category === category.id)
+          .map((element): Row | undefined =>
+            kept.has(element.name)
+              ? { name: element.name, icon: element.icon }
+              : undefined
+          )
+          .filter((row): row is Row => row !== undefined),
+      }))
+      .filter((group) => group.rows.length > 0);
+  });
+
   const navClass = () =>
     drawer
       ? "flex shrink-0 flex-col gap-2 border-b border-border bg-surface-raised p-3"
-      : "flex w-[11rem] shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4";
+      : "flex w-[13rem] shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4";
   const listClass = () =>
     drawer
       ? "flow-list flex flex-wrap gap-x-3 gap-y-1"
@@ -44,9 +150,7 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
 
   return (
     <div
-      class={drawer
-        ? "flex min-h-0 flex-col"
-        : "drawer-scroll flex flex-1 min-h-0"}
+      class={drawer ? "flex min-h-0 flex-col" : "drawer-scroll flex"}
     >
       <nav aria-label="Components" class={navClass()}>
         <h2
@@ -84,24 +188,52 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
                 </p>
               }
             >
-              <ul class={listClass()}>
-                <For each={shown()}>
-                  {(component) => (
-                    <li>
-                      <A
-                        href={`/components/${component.name}`}
-                        class="no-underline text-sm capitalize hover:underline"
-                        classList={{
-                          "font-semibold text-text": location.pathname ===
-                            `/components/${component.name}`,
-                        }}
-                      >
-                        {component.name.replace(/-/g, " ")}
-                      </A>
-                    </li>
+              <div
+                class={drawer
+                  ? "flex flex-wrap items-baseline gap-x-4 gap-y-1"
+                  : "flex flex-col"}
+              >
+                <For each={groups()}>
+                  {(group) => (
+                    <>
+                      {drawer
+                        ? <span class={DRAWER_BAND}>{group.label}</span>
+                        : <div class={RAIL_BAND}>{group.label}</div>}
+                      <ul class={listClass()}>
+                        <For each={group.rows}>
+                          {(row) => (
+                            <li>
+                              <A
+                                href={`/components/${row.name}`}
+                                class={drawer ? DRAWER_LINK : RAIL_LINK}
+                                // The row is current when the URL names it.
+                                // The state is drawn by `data-[current]:`, so
+                                // the router's own active class has nothing to
+                                // add — and a class that styles nothing is a
+                                // class that lies.
+                                data-current={location.pathname ===
+                                    `/components/${row.name}`
+                                  ? ""
+                                  : undefined}
+                                activeClass=""
+                                inactiveClass=""
+                              >
+                                <i
+                                  class={`${row.icon} icon-md shrink-0`}
+                                  aria-hidden="true"
+                                />
+                                <span class="min-w-0 truncate capitalize">
+                                  {row.name.replace(/-/g, " ")}
+                                </span>
+                              </A>
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                    </>
                   )}
                 </For>
-              </ul>
+              </div>
             </Show>
           }
         >

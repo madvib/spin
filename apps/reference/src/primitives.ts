@@ -126,10 +126,6 @@ import {
   TABLE_EXAMPLES,
   tableFixtureNote,
 } from "@spin/preset/rules/primitives/table.examples.ts";
-import {
-  TABS_EXAMPLES,
-  tabsFixtureNote,
-} from "@spin/preset/rules/primitives/tabs.examples.ts";
 
 export interface PrimitiveExample {
   readonly name: string;
@@ -158,63 +154,11 @@ export interface PrimitivePage {
  * look for the control they want — something to type into, something to
  * click — not for the first letter of its name. Each group is what the thing
  * is FOR, and a component sits in the group whose purpose it serves.
+ *
+ * The groups themselves live with the elements they file, in the preset's
+ * taxonomy: the studio's rail and the docs' gallery read the same one, so an
+ * element cannot be filed here and filed elsewhere.
  */
-export const CATEGORIES: readonly {
-  readonly id: string;
-  readonly label: string;
-  readonly members: readonly string[];
-}[] = [
-  {
-    id: "actions",
-    label: "Actions",
-    members: ["button", "breadcrumbs", "join", "kbd"],
-  },
-  {
-    id: "inputs",
-    label: "Inputs",
-    members: [
-      "checkbox",
-      "radio",
-      "switch",
-      "input",
-      "select",
-      "textarea",
-      "range",
-      "rating",
-      "meter",
-      "label",
-    ],
-  },
-  {
-    id: "containers",
-    label: "Containers & layout",
-    members: [
-      "card",
-      "dialog",
-      "details",
-      "popover",
-      "group",
-      "fieldset",
-      "divider",
-    ],
-  },
-  {
-    id: "display",
-    label: "Display",
-    members: ["table", "tabs", "stat", "avatar", "avatar-group"],
-  },
-  {
-    id: "feedback",
-    label: "Feedback & status",
-    members: ["alert", "badge", "progress", "skeleton", "tooltip"],
-  },
-  {
-    id: "typography",
-    label: "Typography",
-    members: ["prose", "typography", "icon"],
-  },
-];
-
 export const PRIMITIVES: readonly PrimitivePage[] = [
   {
     id: "alert",
@@ -289,7 +233,7 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...DIALOG_EXAMPLES],
   },
   {
-    id: "divider",
+    id: "hr",
     title: "Divider",
     kind: "rule",
     note: hrFixtureNote,
@@ -437,13 +381,6 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...TABLE_EXAMPLES],
   },
   {
-    id: "tabs",
-    title: "Tabs",
-    kind: "rule",
-    note: tabsFixtureNote,
-    examples: [...TABS_EXAMPLES],
-  },
-  {
     id: "textarea",
     title: "Textarea",
     kind: "rule",
@@ -465,56 +402,3 @@ export const PRIMITIVES: readonly PrimitivePage[] = [
     examples: [...TYPOGRAPHY_EXAMPLES],
   },
 ];
-
-/**
- * The glyph each primitive is known by, in the rail and the page header.
- *
- * The values are the whole class the icon preset generates, name included: a
- * name interpolated into `i-lucide-${name}` at runtime reaches no rule, and
- * the scanner only ever sees what is written down.
- */
-export const PRIMITIVE_ICONS: Readonly<Record<string, string>> = {
-  alert: "i-lucide-triangle-alert",
-  avatar: "i-lucide-circle-user",
-  "avatar-group": "i-lucide-users",
-  badge: "i-lucide-badge-check",
-  breadcrumbs: "i-lucide-chevron-right",
-  button: "i-lucide-mouse-pointer-click",
-  card: "i-lucide-square",
-  checkbox: "i-lucide-square-check",
-  details: "i-lucide-list",
-  dialog: "i-lucide-message-square",
-  divider: "i-lucide-minus",
-  fieldset: "i-lucide-boxes",
-  group: "i-lucide-group",
-  icon: "i-lucide-image",
-  input: "i-lucide-text-cursor-input",
-  join: "i-lucide-rows-3",
-  kbd: "i-lucide-keyboard",
-  label: "i-lucide-tag",
-  meter: "i-lucide-gauge",
-  mode: "i-lucide-sun-moon",
-  popover: "i-lucide-message-circle",
-  progress: "i-lucide-loader",
-  prose: "i-lucide-whole-word",
-  radio: "i-lucide-circle-dot",
-  range: "i-lucide-slash",
-  rating: "i-lucide-star",
-  select: "i-lucide-chevron-down",
-  skeleton: "i-lucide-square-dashed",
-  stat: "i-lucide-sigma",
-  switch: "i-lucide-toggle-right",
-  table: "i-lucide-table-2",
-  tabs: "i-lucide-layout-list",
-  textarea: "i-lucide-text-cursor",
-  tooltip: "i-lucide-message-circle-off",
-  typography: "i-lucide-type",
-};
-
-// A row the rail cannot draw a glyph for is a row with a hole in it — checked
-// here, where the map and the pages it serves are both in view.
-for (const page of PRIMITIVES) {
-  if (PRIMITIVE_ICONS[page.id] === undefined) {
-    throw new Error(`PRIMITIVE_ICONS: ${page.id} has no icon`);
-  }
-}

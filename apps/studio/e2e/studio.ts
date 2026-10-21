@@ -62,15 +62,47 @@ export function valueAt(
   return null;
 }
 
+/**
+ * The page went away under a read.
+ *
+ * The browser says so in one way — the execution context is destroyed when
+ * the document is replaced — and nothing else is a page that left.
+ */
+function pageWentAway(error: unknown): boolean {
+  return error instanceof Error &&
+    error.message.includes("Execution context was destroyed");
+}
+
 export class StudioPage {
-  readonly #page: Page;
+  /**
+   * The Playwright page underneath.
+   *
+   * Some steps are only Playwright's to take: a pointer that must land on a
+   * control, a clipboard the browser hands over. A test that needs one asks
+   * for it here, rather than driving a browser of its own.
+   */
+  readonly page: Page;
 
   constructor(page: Page) {
-    this.#page = page;
+    this.page = page;
   }
 
+  /**
+   * Read the page, and read it again if the page went away.
+   *
+   * A dev server that rebuilds reloads the page under the reader's hands, and
+   * a read that lands in the page that is leaving is not a verdict — it is a
+   * question asked of a page that is on its way out. The read is asked once
+   * more, in the page that arrived.
+   */
   async eval<T>(expression: string): Promise<T> {
-    return await this.#page.evaluate(expression) as T;
+    try {
+      return await this.page.evaluate(expression) as T;
+    } catch (error) {
+      if (!pageWentAway(error)) throw error;
+      await this.settle(300);
+      return await this.page.evaluate(expression) as T;
+    }
   }
 
   /** A command refused mid-navigation means ask again, not give up. */
@@ -89,14 +121,14 @@ export class StudioPage {
         // Navigating.
       }
       if (Date.now() > deadline) return undefined;
-      await this.#page.waitForTimeout(150);
+      await this.page.waitForTimeout(150);
     }
   }
 
   /** Readiness is the heading: an unrouted path renders only the shell. */
   async goto(url: string): Promise<string | undefined> {
     try {
-      await this.#page.goto(url, {
+      await this.page.goto(url, {
         waitUntil: "domcontentloaded",
         timeout: 20_000,
       });
@@ -113,12 +145,12 @@ export class StudioPage {
   }
 
   async settle(ms: number): Promise<void> {
-    await this.#page.waitForTimeout(ms);
+    await this.page.waitForTimeout(ms);
   }
 
   async reload(): Promise<void> {
     try {
-      await this.#page.reload({
+      await this.page.reload({
         waitUntil: "domcontentloaded",
         timeout: 20_000,
       });
@@ -138,7 +170,7 @@ export class StudioPage {
    * desktop.
    */
   async fitDrawer(width: number, height: number): Promise<void> {
-    await this.#page.setViewportSize({ width, height });
+    await this.page.setViewportSize({ width, height });
   }
 
   /** Read from computed style, not from the token: the claim is about the page. */
@@ -262,7 +294,7 @@ export class StudioPage {
    * landed state rather than a frame of it.
    */
   async hover(selector: string): Promise<string> {
-    const target = this.#page.locator(selector).first();
+    const target = this.page.locator(selector).first();
     if (await target.count() === 0) return "absent";
     await target.hover();
     await this.settle(600);
@@ -271,7 +303,7 @@ export class StudioPage {
 
   /** Park the pointer in a corner, so nothing reads as hovered. */
   async parkPointer(): Promise<void> {
-    await this.#page.mouse.move(0, 0);
+    await this.page.mouse.move(0, 0);
     await this.settle(100);
   }
 

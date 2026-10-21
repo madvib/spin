@@ -25,12 +25,11 @@
 import { createMemo, For, Show } from "solid-js";
 import { analyzeTheme } from "../lib/theme.ts";
 import { defaultFaceFor } from "../lib/faces.ts";
-import { elementOverrides, overrideWrites } from "../lib/elements.ts";
 import { activeMode, themeText } from "../lib/store.ts";
 import FontPicker from "../components/FontPicker.tsx";
-import { groupTokens, type TokenRow } from "../lib/tokens.ts";
+import { groupTokens, type TokenRow, toPx } from "../lib/tokens.ts";
 import { DISPLAY, HEADING } from "../lib/specimen-copy.ts";
-import { editToken, upsertToken } from "../lib/editing.ts";
+import { editToken } from "../lib/editing.ts";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
@@ -41,64 +40,81 @@ import { inDrawer } from "../app.tsx";
 function suffixOf(path: string): string {
   return path.split(".").slice(2).join("-");
 }
-/** Which face each element claims. The assignment is the design decision. */
+/**
+ * Which step of the ladder each element reads.
+ *
+ * The FACE is not here: it is read from the theme's own families — a heading
+ * reads the display face, a quotation the editorial one, the code family the
+ * mono one — so a theme that names no display face is shown reading the one
+ * it does name. The steps and the weights are the system's ladder, and they
+ * are stated once, here.
+ */
 const TAG_MAP = [
   {
     tag: "h1",
-    face: "heading",
     size: "3xl",
     weight: "bold",
     note: "the document's one opening claim",
   },
   {
     tag: "h2",
-    face: "heading",
     size: "2xl",
     weight: "semibold",
     note: "a section",
   },
   {
     tag: "h3",
-    face: "heading",
     size: "xl",
     weight: "semibold",
     note: "a sub-section",
   },
   {
     tag: "h4",
-    face: "heading",
     size: "lg",
     weight: "semibold",
     note: "a group",
   },
   {
     tag: "h5",
-    face: "heading",
     size: "md",
     weight: "semibold",
     note: "a sub-group",
   },
   {
     tag: "h6",
-    face: "heading",
     size: "sm",
     weight: "semibold",
     note: "a run of related items",
   },
-  { tag: "p", face: "body", size: "md", note: "a paragraph" },
+  { tag: "p", size: "md", note: "a paragraph" },
   {
     tag: "blockquote",
-    face: "serif",
     size: "md",
     note: "quoted editorial text",
   },
-  { tag: "code", face: "mono", size: "sm", note: "inline code" },
-  { tag: "pre", face: "mono", size: "sm", note: "a block of code" },
-  { tag: "kbd", face: "mono", size: "sm", note: "a key the reader presses" },
+  { tag: "code", size: "sm", note: "inline code" },
+  { tag: "pre", size: "sm", note: "a block of code" },
+  { tag: "kbd", size: "sm", note: "a key the reader presses" },
 ] as const;
 
-/** The scale, largest first, so it reads as a decision rather than a list. */
-const SCALE = ["3xl", "2xl", "xl", "lg", "md", "sm", "xs", "2xs"] as const;
+/**
+ * The scale the active theme declares, largest first.
+ *
+ * Read from the theme rather than from a list written here: a theme may add a
+ * step — the poster's `display` — and a page that knows a fixed set of steps
+ * quietly drops the new one, so the ramp on screen is not the ramp in the
+ * document. Order comes from the values themselves, so a theme that re-steps
+ * its scale gets the ramp in the order it actually reads.
+ */
+function scaleOrder(): readonly string[] {
+  return scaleRows()
+    .map((row) => ({
+      step: row.path.split(".").pop() ?? "",
+      px: toPx(row.value) ?? 0,
+    }))
+    .sort((a, b) => b.px - a.px)
+    .map((entry) => entry.step);
+}
 
 /**
  * The family and scale tokens the active theme declares, resolved live.
@@ -148,30 +164,9 @@ function trackingRows(): TokenRow[] {
   return groupTokens(tree, [["font", "letter-spacing"]], activeMode());
 }
 
-/** The element overrides a theme has spelt. */
-function elementTokenRows(): TokenRow[] {
-  const tree = analyzeTheme(themeText()).tree;
-  if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "element"]], activeMode());
-}
-
 /** The face names the theme actually declares. */
 function declaredFaces(): readonly string[] {
   return familyRows().map((row) => row.path.split(".").pop()!);
-}
-
-/** Options for the face select — the theme's own families, else the usual ones. */
-function faceOptions(): readonly string[] {
-  const declared = declaredFaces();
-  return declared.length > 0 ? declared : (["sans", "serif", "mono"] as const);
-}
-
-/** Options for the weight select — the theme's declared scales. */
-function weightOptions(): readonly string[] {
-  const declared = weightRows().map((row) => row.path.split(".").pop()!);
-  return declared.length > 0
-    ? declared
-    : (["400", "500", "600", "700", "800"] as const);
 }
 
 export default function TypePage() {
@@ -207,11 +202,11 @@ export default function TypePage() {
           <LinkToggle group="font.size" />
         </div>
         <p class="max-w-screen-md text-text-muted">
-          The nine steps, largest first. Each is drawn at its own size, so the
-          ramp is the judgement.
+          The steps, largest first. Each is drawn at its own size, so the ramp
+          is the judgement.
         </p>
         <div class="flex flex-col">
-          <For each={SCALE}>
+          <For each={scaleOrder()}>
             {(step) => <ScaleRow step={step} family={sizes} />}
           </For>
         </div>
@@ -302,7 +297,7 @@ export default function TypePage() {
 
       <section class="stack mt-12 mb-16 px-8">
         <p class="max-w-screen-md text-text-muted">
-          {"Every element reads a face, and any of them can read a different one from its siblings. <h1> claiming the display face while <h2> and <h3> take the body face is a decision this table makes. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
+          {"The map of what each element reads. A heading reads the theme's display face and the ladder's steps, a quotation reads the editorial face, the code family reads the mono one, and everything else reads the body's. The map is the system's, not the theme's: the faces it names are edited above, and so is the scale. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
         </p>
         {
           /* Six columns and a face specimen in each: wider than the drawer's
@@ -314,7 +309,7 @@ export default function TypePage() {
             <thead>
               <tr>
                 <th>Element</th>
-                <th>Set at</th>
+                <th>Reads</th>
                 <th>Face</th>
                 <th>Size</th>
                 <th>Weight</th>
@@ -342,52 +337,13 @@ export default function TypePage() {
                       </span>
                     </td>
                     <td>
-                      <select
-                        value={faceFor(entry.tag) ?? ""}
-                        onChange={(event) =>
-                          setType(entry.tag, {
-                            face: event.currentTarget.value,
-                          })}
-                      >
-                        <For each={faceOptions()}>
-                          {(face) => <option value={face}>{face}</option>}
-                        </For>
-                      </select>
-                    </td>
-                    {
-                      /* Size and weight are per-element, so they are overrides
-                      rather than tokens: minting a token for one element's size
-                      would be a theme file per heading. They land in the same
-                      `font.element.<tag>` group the face already uses. */
-                    }
-                    <td>
-                      <select
-                        value={sizeFor(entry.tag) ?? ""}
-                        onChange={(event) =>
-                          setType(entry.tag, {
-                            size: event.currentTarget.value || undefined,
-                          })}
-                      >
-                        <option value="">scale</option>
-                        <For each={SIZE_STEPS}>
-                          {(step) => <option value={step}>{step}</option>}
-                        </For>
-                      </select>
+                      <code>{faceFor(entry.tag)}</code>
                     </td>
                     <td>
-                      <select
-                        value={weightFor(entry.tag) ?? (tagWeight(entry.tag) ??
-                          "")}
-                        onChange={(event) =>
-                          setType(entry.tag, {
-                            weight: event.currentTarget.value || undefined,
-                          })}
-                      >
-                        <option value="">scale</option>
-                        <For each={weightOptions()}>
-                          {(weight) => <option value={weight}>{weight}</option>}
-                        </For>
-                      </select>
+                      <code>{entry.size}</code>
+                    </td>
+                    <td>
+                      <code>{tagWeight(entry.tag) || "—"}</code>
                     </td>
                     <td class="text-text-muted">{entry.note}</td>
                   </tr>
@@ -471,80 +427,39 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
   );
 }
 
-/** The face an element claims: its own token if set, else its default. */
+/**
+ * The face an element claims: the slot the system spends for it.
+ *
+ * The map is the system's, so the face is READ, not written: the theme's
+ * families are edited in the Faces section above, and the element map says
+ * which of them each element reads.
+ */
 function faceFor(tag: string): string {
-  const own = elementOverrides(elementTokenRows(), tag).face;
-  if (own) return own;
   return defaultFaceFor(tag, declaredFaces());
 }
 
-/** What one element may override about its type. Mirrors the preset's own. */
-interface ElementType {
-  face?: string;
-  size?: string;
-  weight?: string;
-}
-
-/** The size an element claims for itself, as the theme stores it. */
-function sizeFor(tag: string): string | undefined {
-  return elementTypeFor(tag).size;
-}
-
-/** The weight an element claims for itself. */
-function weightFor(tag: string): string | undefined {
-  return elementTypeFor(tag).weight;
-}
-
-/** The whole override one element carries, whatever shape it was written in. */
-function elementTypeFor(tag: string): ElementType {
-  return elementOverrides(elementTokenRows(), tag);
-}
-
-/**
- * Write one element's override.
- *
- * `font.element.<tag>` holds the leaves per property, so a face change keeps
- * the size the user already set — a write per property would drop the others.
- * A leaf the element has never specified gets minted along the way, and the
- * group keeps what it had when this field is left unset.
- */
-function setType(tag: string, change: Partial<ElementType>): void {
-  const existing = elementTokenRows();
-  for (const write of overrideWrites(existing, tag, change)) {
-    if (write.exists) {
-      editToken([...write.path], write.value);
-    } else {
-      upsertToken([...write.path], write.type, write.value);
-    }
-  }
-}
-
-/** The scale weight a heading level states, for the field's placeholder. */
+/** The scale weight a heading level states. */
 function tagWeight(tag: string): string {
   const row = TAG_MAP.find((entry) => entry.tag === tag);
   return row && "weight" in row ? String(row.weight) : "";
 }
 
-/** The scale size an element states, for its placeholder. */
+/** The scale size an element states. */
 function tagSize(tag: string): string {
   const row = TAG_MAP.find((entry) => entry.tag === tag);
   return row ? row.size : "";
 }
 
-/** The size scale a theme declares, as steps rather than freeform text. */
-const SIZE_STEPS = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl"] as const;
-
-/** A step's custom property, so a preview renders at the theme's own size. */
-const SIZE_VAR: Record<string, string> = {
-  "2xs": "--font-size-2xs",
-  xs: "--font-size-xs",
-  sm: "--font-size-sm",
-  md: "--font-size-md",
-  lg: "--font-size-lg",
-  xl: "--font-size-xl",
-  "2xl": "--font-size-2xl",
-  "3xl": "--font-size-3xl",
-};
+/**
+ * A step's custom property, so a preview renders at the theme's own size.
+ *
+ * The naming is the system's: a step named `2xs` is `--font-size-2xs`, and a
+ * step a theme invents (`display`) follows the same rule — which is why this
+ * is derived rather than listed.
+ */
+function sizeVar(step: string): string {
+  return `--font-size-${step}`;
+}
 
 /** A step's weight custom property. */
 const WEIGHT_VAR: Record<string, string> = {
@@ -557,29 +472,16 @@ const WEIGHT_VAR: Record<string, string> = {
 /**
  * The style a row's preview renders at.
  *
- * The element's own override wins, else the scale step it sits on, read as
- * the custom property the theme declared. A preview rendering at a fixed
- * size is a label, and this whole page exists to judge size.
+ * The scale step the element sits on, read as the custom property the theme
+ * declared. A preview rendering at a fixed size is a label, and this whole
+ * page exists to judge size.
  */
 function previewStyle(tag: string): Record<string, string> {
-  const own = elementTypeFor(tag);
   const style: Record<string, string> = {};
-  let size = SIZE_VAR[tagSize(tag) ?? ""] ?? SIZE_VAR.lg;
-  if (own.size !== undefined) size = SIZE_VAR[own.size] ?? own.size;
+  const size = sizeVar(tagSize(tag) ?? "lg");
   style["font-size"] = size.startsWith("--") ? `var(${size})` : size;
-  const ownWeight = own.weight;
-  let weightDecl = "";
-  if (ownWeight !== undefined) {
-    weightDecl = /^\d+$/.test(ownWeight)
-      ? ownWeight
-      : `var(--font-weight-${ownWeight})`;
-  } else {
-    const w = WEIGHT_VAR[tagWeight(tag) ?? ""] ?? "";
-    if (w !== "") weightDecl = `var(${w})`;
-  }
-  if (weightDecl !== "") {
-    style["font-weight"] = weightDecl;
-  }
+  const weight = WEIGHT_VAR[tagWeight(tag)] ?? "";
+  if (weight !== "") style["font-weight"] = `var(${weight})`;
   return style;
 }
 

@@ -1,13 +1,12 @@
 // @refresh reload
 import { render } from "solid-js/web";
-import { injectShortcuts } from "./lib/layout.ts";
 import App from "./app.tsx";
 
 // The semantic layer ships through the preset preflight, not an injected tag.
 // `entry-client` therefore mounts and nothing else: there is no second,
 // out-of-band copy of the layer for the gates to disagree with.
 //
-// The one addition is the app's own layout shortcuts, which are dogfooded here
-// and promoted to the preset only once the composition is proven.
-injectShortcuts();
+// The app's own compositions are not here either. They are shortcuts, declared
+// in `vite.config.ts`, so they are generated with the rest of the sheet — one
+// stylesheet, one source of truth.
 render(() => <App />, document.getElementById("app")!);

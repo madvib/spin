@@ -64,7 +64,7 @@ const contract = os.primitives.contract.handler(({ input }) => {
     tags: [...component.tags],
     variants: [...component.variants],
     reads: [...component.reads],
-    character: [...component.character],
+    component: [...component.component],
   };
 });
 

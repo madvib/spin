@@ -77,7 +77,6 @@ import { RATING_EXAMPLES, ratingFixtureNote } from "./rating.examples.ts";
 import { SKELETON_EXAMPLES, skeletonFixtureNote } from "./skeleton.examples.ts";
 import { STAT_EXAMPLES, statFixtureNote } from "./stat.examples.ts";
 import { TABLE_EXAMPLES, tableFixtureNote } from "./table.examples.ts";
-import { TABS_EXAMPLES, tabsFixtureNote } from "./tabs.examples.ts";
 
 /** What a component's examples are, as a value any consumer can render. */
 export interface ComponentExamples {
@@ -183,7 +182,6 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     rows: SWITCH_EXAMPLES,
   },
   table: { id: "table", note: tableFixtureNote, rows: TABLE_EXAMPLES },
-  tabs: { id: "tabs", note: tabsFixtureNote, rows: TABS_EXAMPLES },
   textarea: {
     id: "textarea",
     note: textareaFixtureNote,

@@ -8,14 +8,28 @@
  * answers "what changed".
  */
 
-import { createEffect, createResource, createSignal } from "solid-js";
+import { createEffect, createResource, createSignal, untrack } from "solid-js";
 import { listPrimitives, type RpcComponent } from "./primitives.ts";
 import { summarySwatches, type SwatchGroup } from "./overview.ts";
-import { analyzeTheme } from "./theme.ts";
+import {
+  analyzeTheme,
+  declaredModes,
+  fileMoved,
+  fileState,
+  resolveMode,
+} from "./theme.ts";
+import type { FileState } from "./theme.ts";
 import { parseTokens, validateLegibility } from "@spin/theme";
 import { indexTree } from "@spin/theme";
-import type { ValidationIssue } from "@spin/theme";
-import { listProjectThemes } from "./themes.ts";
+import type { Mode, ValidationIssue } from "@spin/theme";
+import {
+  currentProject,
+  listProjectThemes,
+  loadProjectTheme,
+  problemText,
+  type ProjectReport,
+  saveTheme,
+} from "./themes.ts";
 import { spinClient, spinClientAt } from "./client.ts";
 import type { StudioTheme } from "./themes.ts";
 
@@ -36,6 +50,51 @@ export function registry() {
 
 export function refetchThemes(): void {
   refetchResource();
+}
+
+/**
+ * The registry, re-read when the studio comes back to the window.
+ *
+ * A theme created or deleted in another tab is a change the daemon knows
+ * about and this tab does not: a list fetched once is a list only a reload
+ * can mend, and an author who comes back to the studio finds a project
+ * that moved underneath it. The focus event is the moment the author is
+ * back, so it is the moment the list is worth re-reading — and the moment
+ * the document becomes visible again is the same moment, for a browser
+ * that says so instead.
+ */
+if (typeof window !== "undefined") {
+  globalThis.addEventListener("focus", () => refetchThemes());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refetchThemes();
+  });
+}
+
+/**
+ * The project the daemon serves.
+ *
+ * A project is a place on disk with a `spin/` directory in it, and the
+ * daemon is the only one who can look. The studio asks rather than
+ * assumes: a folder that is not a project renders exactly like one until
+ * something writes to it and fails.
+ */
+const [projectData, { refetch: refetchProjectResource }] = createResource(
+  currentProject,
+);
+
+/** The project the daemon serves, or `undefined` before it answers. */
+export function project(): ProjectReport | undefined {
+  return projectData();
+}
+
+/** Why the project could not be read, when it could not be read. */
+export function projectFailure(): unknown {
+  return projectData.error;
+}
+
+/** Asks the daemon about the project again. */
+export function refetchProject(): void {
+  refetchProjectResource();
 }
 
 /**
@@ -132,7 +191,6 @@ function legibilityIssues(text: string): readonly ValidationIssue[] {
 }
 
 const [activeName, setActiveName] = createSignal("silk");
-const [activeMode, setActiveMode] = createSignal("light");
 const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
   typeof localStorage !== "undefined" &&
     localStorage.getItem("spin-dock-side") === "left"
@@ -140,7 +198,36 @@ const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
     : "right",
 );
 
-export { activeMode, activeName, dockSide, setActiveMode, setActiveName };
+export { activeName, dockSide, setActiveName };
+
+/**
+ * The mode the author chose, kept across themes.
+ *
+ * A theme owns the modes it serves: a theme that serves one of them cannot
+ * be shown in the other, so the studio clamps itself rather than render a
+ * theme's values under a name the theme does not use. The clamp must not
+ * cost the author the mode they were working in — the choice is kept here,
+ * and the theme that serves it gives it back.
+ */
+const [chosenMode, setChosenMode] = createSignal<Mode>("light");
+
+/**
+ * The mode the studio is showing.
+ *
+ * The theme's constraint and the author's choice, in that order: a theme
+ * that serves the chosen mode wears it, and a theme that does not wears
+ * its own first mode. The choice is kept either way, which is what makes
+ * the clamp reversible: seating a two-mode theme after a one-mode theme
+ * gives the mode back.
+ */
+export function activeMode(): Mode {
+  return resolveMode(activeModes(), chosenMode());
+}
+
+/** The mode the author chose. */
+export function setActiveMode(mode: Mode): void {
+  setChosenMode(mode);
+}
 
 /** The drawer edge. Persisted: a handedness choice, not a session one. */
 export function setDockSide(side: "left" | "right"): void {
@@ -152,6 +239,46 @@ export function setDockSide(side: "left" | "right"): void {
   }
 }
 
+/**
+ * The text the file holds, as the studio last heard.
+ *
+ * Three texts per theme: `docs` is what the editor shows, `saved` is what
+ * the studio last wrote, and this is what the file holds. The studio's own
+ * writes move `saved` and this together; anything else that moves this is
+ * the world changing underneath — a file edited elsewhere, a branch
+ * checked out — and the studio says so rather than claim to be saved.
+ */
+const [onDisk, setOnDisk] = createSignal<Record<string, string>>({});
+
+/**
+ * The file's text, as the registry last read it.
+ *
+ * The registry is the studio's picture of the disk, and it is re-read when
+ * the world moves: a refetch that brings back different text is a file
+ * that changed under the studio. The document the author is editing is
+ * NOT touched — their work is theirs — but the file's text is what the
+ * studio compares against, and the difference is what it reports.
+ */
+createEffect(() => {
+  const listed = registry();
+  if (listed === undefined) return;
+  // What the studio knows is read untracked: the effect answers to the
+  // registry, not to the studio's own reading of a file. A file the studio
+  // read for itself — before a save, to see what it would write over — is
+  // fresher than the registry's bulk read, and an effect that watched the
+  // studio's answer would push the older one back over the newer.
+  const known = untrack(onDisk);
+  const next: Record<string, string> = { ...known };
+  let moved = false;
+  for (const theme of listed) {
+    if (next[theme.name] !== theme.text) {
+      next[theme.name] = theme.text;
+      moved = true;
+    }
+  }
+  if (moved) setOnDisk(next);
+});
+
 /** Seed the editor from the registry entry when it first becomes visible. */
 function seed(name: string): string | undefined {
   const fromDisk = registry()?.find(
@@ -161,6 +288,7 @@ function seed(name: string): string | undefined {
   if (docs()[name] === undefined) {
     setDocs((prev) => ({ ...prev, [name]: fromDisk }));
     setSaved((prev) => ({ ...prev, [name]: fromDisk }));
+    setOnDisk((prev) => ({ ...prev, [name]: fromDisk }));
   }
   return docs()[name] ?? fromDisk;
 }
@@ -169,6 +297,36 @@ function seed(name: string): string | undefined {
 export function isDirty(name: string): boolean {
   seed(name);
   return docs()[name] !== saved()[name];
+}
+
+/**
+ * What the studio knows about a theme's file.
+ *
+ * The edited text, the last written text, and the text the file holds —
+ * three texts, one answer. The answer is what the status line reads and
+ * what the card wears.
+ */
+export function fileStateOf(name: string): FileState {
+  seed(name);
+  return fileState(docs()[name], saved()[name], onDisk()[name]);
+}
+
+/**
+ * Whether the file moved under the studio.
+ *
+ * The file holds something the studio did not write: another tool saved it,
+ * a branch was checked out, a second tab wrote it. The editor's own document
+ * is the author's and is left alone — but the file is no longer the thing the
+ * studio last wrote, and writing over it would destroy a change the studio
+ * never saw.
+ *
+ * This is the world's fact, not the author's: it can hold while the editor
+ * holds unsaved edits, and when it does, the save that would overwrite the
+ * file has to be refused.
+ */
+export function divergedFromDisk(name: string): boolean {
+  seed(name);
+  return fileMoved(saved()[name], onDisk()[name]);
 }
 
 /** What the editor shows for the active theme. */
@@ -226,6 +384,25 @@ export function lastRefusal(): string | undefined {
 /** Record why an edit did not land — the gate or the document says so. */
 export function noteRefusal(message: string): void {
   setRefusal(message);
+}
+
+/**
+ * What the studio last did about a theme's file.
+ *
+ * The refusal says what went wrong; this says what was done about it — the
+ * file reloaded, the unsaved edits dropped. It is the other half of the same
+ * conversation, and it is said beside the state rather than in place of it.
+ */
+const [notice, setNotice] = createSignal<string | undefined>();
+
+/** What the studio last did about a theme's file, when it did something. */
+export function lastNotice(): string | undefined {
+  return notice();
+}
+
+/** Say what the studio did about the file. */
+export function note(message: string): void {
+  setNotice(message);
 }
 
 /** Replaces the editor text for the active theme. Not a write to disk. */
@@ -333,48 +510,172 @@ export function redo(): void {
   void pushOverlay(name, next);
 }
 
-/** Discards the editor text since the last write. */
+/**
+ * The history a theme keeps after its document was replaced.
+ *
+ * A document that was replaced is not an edit: the edits that led to it
+ * are gone with it, and a stack that still held them would undo into a
+ * document nobody is looking at any more.
+ */
+function forgetHistory(name: string, text: string): void {
+  setHistory((prev) => ({
+    ...prev,
+    [name]: { past: [], future: [], present: text },
+  }));
+}
+
+/**
+ * Discards the editor text since the last write.
+ *
+ * The author's own undo: the edits that were never written are dropped and
+ * the document goes back to what the file last held. The file is not
+ * touched — this is about what the editor shows.
+ */
 export function revertToSaved(name: string): void {
   const snapshot = saved()[name];
   if (snapshot === undefined) return;
   setDocs((prev) => ({ ...prev, [name]: snapshot }));
+  forgetHistory(name, snapshot);
   void pushOverlay(name, snapshot);
 }
 
-/** Marks the active theme written. The caller persists; this updates state. */
+/**
+ * Re-reads one theme from disk, and shows what the file holds.
+ *
+ * The file moved under the studio — a branch checked out, an editor saved
+ * it, another tab wrote it — and the studio's document is a document that
+ * no longer exists on disk. This replaces the editor's text with the
+ * file's and reports what it found: a file that differs from what the
+ * studio last wrote is a change the author has to know about before the
+ * next save overwrites it.
+ */
+export async function reloadFromDisk(name: string): Promise<FileState> {
+  const text = await loadProjectTheme(name);
+  if (text === undefined) return fileStateOf(name);
+  const moved = text !== saved()[name];
+  setDocs((prev) => ({ ...prev, [name]: text }));
+  setSaved((prev) => ({ ...prev, [name]: text }));
+  setOnDisk((prev) => ({ ...prev, [name]: text }));
+  forgetHistory(name, text);
+  void pushOverlay(name, text);
+  return moved ? "changed" : "saved";
+}
+
+/**
+ * Marks the active theme written. The caller persists; this updates state.
+ *
+ * The file now holds what the editor holds, so the two move together: a
+ * studio that remembered the old text would claim the file changed under
+ * it the moment it had written it itself.
+ */
 export function markSaved(name: string): void {
   const current = docs()[name];
   if (current === undefined) return;
   setSaved((prev) => ({ ...prev, [name]: current }));
-}
-
-/** The preview mode, read from the active theme's declared modes. */
-export function activeModes(): string[] {
-  try {
-    const doc = JSON.parse(themeText()) as Record<string, unknown>;
-    const modes = doc["modes"];
-    if (
-      Array.isArray(modes) &&
-      modes.length > 0 &&
-      modes.every((mode) => mode === "light" || mode === "dark")
-    ) {
-      return modes as string[];
-    }
-  } catch {
-    return ["light", "dark"];
-  }
-  return ["light", "dark"];
+  setOnDisk((prev) => ({ ...prev, [name]: current }));
+  // The daemon has the change now: the registry is re-read so the studio's
+  // picture of the disk is the daemon's, and a theme created or deleted
+  // anywhere else arrives with it.
+  refetchThemes();
 }
 
 /**
- * A mode the theme does not declare cannot be worn. The theme owns its modes:
- * landing on a theme without dark mode leaves the editor on the mode that
- * theme has rather than rendering its values under the other one's name.
+ * What a save did.
  */
-createEffect(() => {
-  const modes = activeModes();
-  if (!modes.includes(activeMode())) setActiveMode(modes[0]!);
-});
+export interface SaveOutcome {
+  /** Whether the document reached the disk. */
+  readonly written: boolean;
+  /** Why it did not, when it did not. */
+  readonly problem: string | null;
+}
+
+/**
+ * Writes a theme's document to disk — unless the file moved under the studio.
+ *
+ * A save is the one act that destroys: the studio's document is written over
+ * whatever the file holds, and a change made outside the studio is gone the
+ * moment the save lands. So the file is read again first, and a file that is
+ * no longer what the studio wrote refuses the write and says why — the author
+ * chooses between taking the file's word for it (reload) and keeping their
+ * own edits, which means writing over the file on purpose.
+ *
+ * The read is what makes the refusal honest: the studio's picture of the
+ * disk is only as fresh as its last look at it, and a save that trusted a
+ * stale picture would destroy exactly the change it had not seen yet.
+ */
+export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
+  seed(name);
+  const document = docs()[name];
+  if (document === undefined) {
+    const problem = "the studio holds no document to write";
+    setRefusal(problem);
+    return { written: false, problem };
+  }
+
+  // The file's own text, read now.
+  let disk: string | undefined;
+  try {
+    disk = await loadProjectTheme(name);
+  } catch (err) {
+    const problem = `the file could not be read: ${problemText(err)}`;
+    setRefusal(problem);
+    return { written: false, problem };
+  }
+  if (disk !== undefined) {
+    // The studio's picture of the disk is now the file's own answer, not the
+    // registry's older one.
+    setOnDisk((prev) => ({ ...prev, [name]: disk }));
+  }
+
+  // A file the project held and no longer holds is a file that moved too:
+  // the read falls back to a shipped starter, and there is nothing there to
+  // write over — the author has to know before the save makes one.
+  const moved = fileMoved(saved()[name], disk) ||
+    (disk === undefined && hasProjectFile(name));
+  if (moved) {
+    const problem = `${name} changed on disk — reload from disk first.`;
+    setRefusal(problem);
+    return { written: false, problem };
+  }
+
+  const result = await saveTheme(name, document);
+  if (result.error !== null) {
+    setRefusal(result.error);
+    return { written: false, problem: result.error };
+  }
+  markSaved(name);
+  setRefusal(undefined);
+  return { written: true, problem: null };
+}
+
+/**
+ * Whether the project holds a file for this theme.
+ *
+ * The registry says so, and it is what tells a deleted file from a theme
+ * that never had one.
+ */
+function hasProjectFile(name: string): boolean {
+  const listed = registry()?.find((theme) => theme.name === name);
+  return listed !== undefined && listed.file !== null;
+}
+
+/**
+ * How many tokens the active theme's document declares.
+ *
+ * The count the studio shows about a theme is the count of its leaves, read
+ * from the same analysis the overview reads: two answers to one question
+ * have to be one answer.
+ */
+export function activeTokenCount(): number {
+  const state = analyzeTheme(themeText());
+  if (state.tree === undefined) return 0;
+  return Object.values(indexTree(state.tree).leaves).length;
+}
+
+/** The modes the active theme declares. */
+export function activeModes(): Mode[] {
+  return declaredModes(themeText());
+}
 
 /** The preview component selection, read from the active theme's raw text. */
 export function activeComponents(): string[] | undefined {
@@ -401,6 +702,16 @@ export interface ThemeSummary {
   file: string | null;
   tokens: number;
   dirty: boolean;
+  /**
+   * What the file holds, as far as the studio knows.
+   *
+   * `changed` means the file moved under the studio: the author has no
+   * unsaved edits, and the file is not what they last wrote. It is the
+   * state a card wears beside "unsaved", because the two can hold at once
+   * and the one that is not the author's own is the one that is easiest
+   * to miss.
+   */
+  state: FileState;
   valid: boolean;
   issues: string[];
   /**
@@ -429,6 +740,7 @@ export function themeSummaries(): ThemeSummary[] {
       file: theme.file,
       tokens: leaves.length,
       dirty: docs()[theme.name] !== saved()[theme.name],
+      state: fileStateOf(theme.name),
       valid: state.error === undefined && state.issues.length === 0,
       issues: [
         ...(state.error ? [state.error] : []),

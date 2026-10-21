@@ -46,21 +46,21 @@ export const AVATAR_GROUP_EXAMPLES: readonly AvatarGroupExample[] = [
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Grace Hopper",
+          "Priya Raman",
         )
       }
             ${
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Ada Lovelace",
+          "Dan Okafor",
         )
       }
             ${
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Alan Turing",
+          "Mira Lindqvist",
         )
       }
           </div>`,
@@ -74,35 +74,35 @@ export const AVATAR_GROUP_EXAMPLES: readonly AvatarGroupExample[] = [
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Grace Hopper",
+          "Priya Raman",
         )
       }
             ${
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Ada Lovelace",
+          "Dan Okafor",
         )
       }
             ${
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Alan Turing",
+          "Mira Lindqvist",
         )
       }
             ${
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Katherine Johnson",
+          "Tomas Berg",
         )
       }
             ${
         img(
           "avatar avatar-sm",
           "https://i.pravatar.cc/96?u=face",
-          "Radia Perlman",
+          "Aisha Farouk",
         )
       }
             <span>+3</span>
@@ -117,21 +117,21 @@ export const AVATAR_GROUP_EXAMPLES: readonly AvatarGroupExample[] = [
         img(
           "avatar avatar-circle avatar-md",
           "https://i.pravatar.cc/96?u=face",
-          "Ada Lovelace",
+          "Tomas Berg",
         )
       }
             ${
         img(
           "avatar avatar-circle avatar-md",
           "https://i.pravatar.cc/96?u=face",
-          "Grace Hopper",
+          "Priya Raman",
         )
       }
             ${
         img(
           "avatar avatar-circle avatar-md",
           "https://i.pravatar.cc/96?u=face",
-          "Alan Turing",
+          "Dan Okafor",
         )
       }
           </div>`,

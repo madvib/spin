@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
+import { claim, type Mode, proseTokens, spacing } from "./shared.ts";
+import { painted } from "./scope.ts";
 
 /**
  * The code family: `code`, `samp`, `pre`.
@@ -49,21 +50,36 @@ function sampRule(mode: Mode): Rule {
   ];
 }
 
-/** A code block. The inline chip is undone inside it. */
+/**
+ * A code block.
+ *
+ * Two treatments, and they belong to different owners.
+ *
+ * The block's TYPE — the mono face and the spacing it sits in — is
+ * typography, and typography is the theme's everywhere: a code block in a
+ * panel reads like a code block in a document.
+ *
+ * The block's CHROME — the padding, the raised surface, the corner — is the
+ * document's furniture, and the inline chip is undone inside it: a block is
+ * not a stack of chips.
+ */
 function preRule(mode: Mode): Rule {
-  const pre = claim(mode, "pre");
+  const chrome = painted(mode, "prose", "descendant", "pre");
   return [
     /^pre$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => pre,
+        [ctx.symbols.selector]: () => claim(mode, "pre"),
         // The mono face is what makes a block code; the SIZE is the author's.
         // A pinned font-size here beat every text utility on the same element
         // at equal specificity, so a consumer could not size their own code
         // block — the ladder exists so the app can spend it.
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...rhythm(t),
+        ...spacing(t),
+      };
+      yield {
+        [ctx.symbols.selector]: () => chrome,
         ...(t.spacing2 !== undefined && t.spacing4 !== undefined
           ? { padding: `${t.spacing2} ${t.spacing4}` }
           : {}),
@@ -78,7 +94,7 @@ function preRule(mode: Mode): Rule {
       };
       // A block is not a stack of inline chips.
       yield {
-        [ctx.symbols.selector]: () => `${pre} ${claim(mode, "code")}`,
+        [ctx.symbols.selector]: () => `${chrome} :is(${claim(mode, "code")})`,
         padding: "0",
         "background-color": "transparent",
       };

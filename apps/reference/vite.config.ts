@@ -40,6 +40,14 @@ export default defineConfig({
             here,
             "../../packages/preset/src/rules/primitives/*.examples.ts",
           ),
+          // The taxonomy names the glyph each element wears. The icon preset
+          // generates a rule for a name that is written down and for no name
+          // that is not, so a row whose glyph lives only in the taxonomy would
+          // draw nothing at all.
+          resolve(
+            here,
+            "../../packages/preset/src/rules/primitives/categories.ts",
+          ),
           resolve(here, "src/**/*.{tsx,ts}"),
         ],
         pipeline: {

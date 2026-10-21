@@ -40,12 +40,29 @@ to build from, and oracles that mechanically verify the result.
 
 ## Packages
 
-| Package            | Role                                                                                                 |
-| ------------------ | ---------------------------------------------------------------------------------------------------- |
-| `@spin/theme`      | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.  |
-| `@spin/primitives` | Finished elements as `.css` + authored manifest; codegen emits the portable module. No dependencies. |
-| `@spin/preset`     | UnoCSS preset wiring theme variables and primitives into the utility layer.                          |
-| `@spin/lint`       | oxlint plugin: programmatic checks that authored UI stays inside the system.                         |
+| Package           | Role                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `@spin/theme`     | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.    |
+| `@spin/animation` | Keyframes and the `animate-*` utilities that name them — the one global CSS namespace, given one home. |
+| `@spin/preset`    | UnoCSS preset: the utility vocabulary a theme spends, and the element library as rules.                |
+| `@spin/lint`      | oxlint plugin: programmatic checks that authored UI stays inside the system.                           |
+| `@spin/api`       | The daemon: the procedures, over RPC, that the studio and the MCP server share.                        |
+| `@spin/mcp`       | The MCP server over those procedures, for agents.                                                      |
+| `@spin/kit`       | Shared Solid pieces: the theme state and the theme picker.                                             |
+
+### The element library
+
+The primitives are a layer, not a package: they live in the preset, as RULES
+under `packages/preset/src/rules/primitives/` — one file per element, beside the
+examples that show it. There are no component stylesheets; an element ships by
+being matched.
+
+What the old `.css` + manifest package did is still here, in the shape the rules
+can carry it: each element's contract with the theme is written down in
+`packages/preset/src/rules/primitives/manifest.ts`, and `deno task codegen` in
+the preset derives that manifest by probing the rules themselves, so the
+manifest cannot disagree with the code that produces it. The lint plugin and the
+docs site read that manifest; nothing maintains a second list.
 
 Supporting trees:
 
@@ -65,8 +82,8 @@ Supporting trees:
   from the theme.
 - A package that is not `@spin/preset` MUST NOT reference UnoCSS internals.
 - `@spin/lint` MUST NOT re-implement theme resolution; it asks the theme.
-  Dependencies point downward: lint → theme; lint → primitives; preset → theme;
-  preset → primitives.
+  Dependencies point downward: lint → preset → theme; lint → animation → theme;
+  api → preset → theme; mcp → api.
 - Every package owns its `deno.json`, exports only from `src/index.ts`, and has
   its own `test` / `lint` / `fmt` tasks.
 

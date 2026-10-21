@@ -54,10 +54,10 @@ export function editToken(
  * Create a token at a path the document does not have yet, with its type.
  *
  * The one write that may ADD to the document rather than move something in
- * it: a component's character token belongs to the manifest's vocabulary,
- * and an author meets it on a component page whose theme has never had to
- * spell `button.weight`. The scaffold is the manifest's own value, so the
- * token is spendable the moment it lands.
+ * it: a component token belongs to the manifest's vocabulary, and an author
+ * meets it on a component page whose theme has never had to spell
+ * `button.weight`. The scaffold is the manifest's own value, so the token is
+ * spendable the moment it lands.
  *
  * A refusal — the path exists, a segment stands where a token stands — is
  * a false, the same word `editTokens` gives a document that will not take

@@ -18,51 +18,51 @@ export interface StatExample {
 }
 
 export const statFixtureNote =
-  "A labelled number: title, value and description as part classes on a `stat` container.";
+  "A labelled number: title, value and description as part classes on a `stat` container. A row of them is a `stat-row`, and a row wraps.";
 
 export const STAT_EXAMPLES: readonly StatExample[] = [
   {
     name: "Stat · title, value, description",
     html: `        <div class="stat">
-          <div class="stat-title">Revenue</div>
-          <div class="stat-value">$48,290</div>
-          <div class="stat-desc">vs. last month</div>
+          <div class="stat-title">Error rate</div>
+          <div class="stat-value">0.42%</div>
+          <div class="stat-desc">last 24 hours</div>
         </div>`,
   },
   {
     name: "Stat · three in a row",
-    html: `        <div class="flex items-start gap-2">
+    html: `        <div class="stat-row">
           <div class="stat">
-            <div class="stat-title">Revenue</div>
-            <div class="stat-value">$48,290</div>
-            <div class="stat-desc">vs. last month</div>
+            <div class="stat-title">p95 latency</div>
+            <div class="stat-value">214 ms</div>
+            <div class="stat-desc">last 24 hours</div>
           </div>
           <div class="stat">
-            <div class="stat-title">Orders</div>
-            <div class="stat-value">1,204</div>
-            <div class="stat-desc">vs. last month</div>
+            <div class="stat-title">Deploys</div>
+            <div class="stat-value">38</div>
+            <div class="stat-desc">last 7 days</div>
           </div>
           <div class="stat">
-            <div class="stat-title">Refunds</div>
-            <div class="stat-value">31</div>
-            <div class="stat-desc">vs. last month</div>
+            <div class="stat-title">Failed checks</div>
+            <div class="stat-value">3</div>
+            <div class="stat-desc">last 24 hours</div>
           </div>
         </div>`,
   },
   {
     name: "Stat · with a delta",
     html: `        <div class="stat">
-          <div class="stat-title">Conversion</div>
-          <div class="stat-value">3.2% <span>+0.4%</span></div>
-          <div class="stat-desc">vs. last month</div>
+          <div class="stat-title">Uptime</div>
+          <div class="stat-value">99.98% <span>+0.02%</span></div>
+          <div class="stat-desc">vs. last week</div>
         </div>`,
   },
   {
     name: "Stat · in a card",
     html: `        <card>
           <div class="stat">
-            <div class="stat-title">Active users</div>
-            <div class="stat-value">8,120</div>
+            <div class="stat-title">Deploy lead time</div>
+            <div class="stat-value">14m 32s</div>
             <div class="stat-desc">this week</div>
           </div>
         </card>`,

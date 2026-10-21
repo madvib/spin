@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, token } from "../../utils/lookup.ts";
+import { disabledPosture } from "./shared.ts";
 
 /**
  * Checkbox and switch — the two controls a theme has real decisions about.
@@ -225,12 +226,15 @@ function checkboxRule(): Rule {
 
       yield {
         [ctx.symbols.selector]: () =>
-          'input[type="checkbox"]:not([role]):disabled',
+          'input[type="checkbox"]:not([role]):is(:disabled, [aria-disabled="true"])',
         cursor: "not-allowed",
         // The depth goes with the interaction: a box you cannot press should
         // not have the shadows that say it can be.
         "box-shadow": "none",
-        opacity: token(ctx, "opacity.40") ?? 0.4,
+        // A dead control wears a posture, not a dim: the theme's disabled
+        // fill and the ink that reads on it. The tick is drawn in the
+        // control's own ink, so it wears the dead ink with it.
+        ...disabledPosture(ctx),
       };
     },
     { layer: "primitives", autocomplete: "checkbox" },
@@ -414,11 +418,21 @@ function switchRule(): Rule {
       };
       yield {
         [ctx.symbols.selector]: () =>
-          'input[type="checkbox"][role="switch"]:disabled',
+          'input[type="checkbox"][role="switch"]:is(:disabled, [aria-disabled="true"])',
         cursor: "not-allowed",
         // The depth goes with the interaction, as it does on the checkbox.
         "box-shadow": "none",
-        opacity: token(ctx, "opacity.40") ?? 0.4,
+        // A dead control wears a posture, not a dim: the theme's disabled
+        // fill and the ink that reads on it.
+        ...disabledPosture(ctx),
+      };
+      // And the thumb wears that ink with the track: the thumb is drawn in
+      // the control's own colour, so a dead switch is dead all the way
+      // through instead of keeping a live thumb on a dead track.
+      yield {
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"][role="switch"]:is(:disabled, [aria-disabled="true"])::before',
+        "background-color": "currentColor",
       };
       // An indeterminate switch has no middle position to sit at, so the grid
       // halves rather than choosing one for it.

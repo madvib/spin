@@ -11,7 +11,7 @@ import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { For, lazy, Show } from "solid-js";
 import { ThemePicker } from "@spin/kit";
-import { Logo } from "./mark.tsx";
+import { Logo } from "@spin/kit";
 
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
  * param, `[...all]` is the catch-all, and a folder joins the segments. */
@@ -97,14 +97,54 @@ function buildRoutes(): RouteDefinition[] {
 
 const ROUTES: RouteDefinition[] = buildRoutes();
 
-/** The rail's links are the real routes: every top-level page, sections
- * nesting under their folder. */
-const NAV: readonly RouteDefinition[] = [...ROUTES]
-  .filter((route) =>
-    route.path !== undefined && route.path !== "/" && route.path !== "*" &&
-    !route.path.includes(":")
-  )
-  .sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
+/** One entry in the rail: a path, and the pages nested under it. */
+interface NavEntry {
+  readonly path: string;
+  /** The word the rail shows: the last segment of the path. */
+  readonly label: string;
+  readonly children: NavEntry[];
+}
+
+/**
+ * The rail's tree, derived from the routes.
+ *
+ * A path's segments are its nesting, so a section and the pages under it
+ * read as one group whether the router nested them (a folder with an index
+ * page) or routed them flat (a folder without one). The routes are the only
+ * list; the rail is a reading of it.
+ */
+function navTree(paths: readonly string[]): NavEntry[] {
+  const roots: NavEntry[] = [];
+  const index = new Map<string, NavEntry>();
+  for (const path of paths) {
+    const segments = path.split("/").filter((segment) => segment !== "");
+    let parent: NavEntry | undefined;
+    let walked = "";
+    for (const segment of segments) {
+      walked += "/" + segment;
+      let entry = index.get(walked);
+      if (entry === undefined) {
+        entry = { path: walked, label: segment, children: [] };
+        index.set(walked, entry);
+        if (parent === undefined) roots.push(entry);
+        else (parent.children as NavEntry[]).push(entry);
+      }
+      parent = entry;
+    }
+  }
+  return roots;
+}
+
+/** The rail's links are the real routes, nested the way their paths nest. */
+const NAV: readonly NavEntry[] = navTree(
+  ROUTES
+    .map((route) => route.path)
+    .filter((path): path is string =>
+      path !== undefined && path !== "/" && path !== "*" &&
+      !path.includes(":")
+    )
+    .sort(),
+);
 
 function RailLayout(props: { children: JSX.Element }): JSX.Element {
   return (
@@ -120,34 +160,27 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
         <div class="grid gap-1">
           <p class="m-0 text-xs font-semibold text-text-muted">pages</p>
           <For each={NAV}>
-            {(route) => (
+            {(entry) => (
               <>
                 <A
-                  href={route.path as string}
+                  href={entry.path}
                   class="block py-1 px-2 text-sm rounded-sm no-underline transition-colors duration-fast"
                   activeClass="bg-surface-raised text-text font-semibold"
                   inactiveClass="text-text-muted hover:text-text"
                 >
-                  {route.path?.slice(1)}
+                  {entry.label}
                 </A>
-                <Show
-                  when={Array.isArray(route.children) &&
-                    route.children.length > 0}
-                >
+                <Show when={entry.children.length > 0}>
                   <div class="grid gap-1 pl-4">
-                    <For
-                      each={(route.children as RouteDefinition[]).filter(
-                        (child) => child.path && child.path !== "",
-                      )}
-                    >
+                    <For each={entry.children}>
                       {(child) => (
                         <A
-                          href={`${route.path}/${child.path}`}
+                          href={child.path}
                           class="block py-1 px-2 text-xs rounded-sm no-underline transition-colors duration-fast"
                           activeClass="bg-surface-raised text-text font-semibold"
                           inactiveClass="text-text-muted hover:text-text"
                         >
-                          {child.path}
+                          {child.label}
                         </A>
                       )}
                     </For>

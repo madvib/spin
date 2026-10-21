@@ -41,7 +41,7 @@ export const RANGE_EXAMPLES: readonly RangeExample[] = [
   {
     name: "Range · labelled, the value as plain text",
     html: row(
-      `          <label><input type="range" min="0" max="100" value="50"><span>50</span></label>`,
+      `          <label><input type="range" min="0" max="100" value="40"><span>40%</span></label>`,
     ),
   },
   {

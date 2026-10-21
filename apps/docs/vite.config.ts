@@ -40,6 +40,14 @@ export default defineConfig({
             "../../packages/preset/src/rules/primitives/*.examples.ts",
           ),
           resolve(here, "src/**/*.{tsx,ts}"),
+          // The taxonomy names the glyph each element wears. The icon preset
+          // generates a rule for a name that is written down and for no name
+          // that is not, so a card whose glyph lives only in the taxonomy would
+          // draw nothing at all. Mirrors the studio and the reference app.
+          resolve(
+            here,
+            "../../packages/preset/src/rules/primitives/categories.ts",
+          ),
           // The shared kit styles itself with the same vocabulary; scan it
           // so the picker's classes exist in the sheet.
           resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),

@@ -27,6 +27,55 @@ export interface StudioTheme {
 }
 
 /**
+ * What a project root looks like to the daemon.
+ *
+ * The daemon is the only one that can look at a disk: the studio is a
+ * browser, and a browser cannot say whether the folder it is pointed at
+ * holds a project. `spin` is the mark — a directory of that name at the
+ * root is a claim, and nothing else makes one.
+ */
+export interface ProjectReport {
+  /** The root that was examined. */
+  readonly root: string;
+  /** Whether the `spin/` directory is there — the mark of a spin project. */
+  readonly spin: boolean;
+  /** Whether an uno config is there, which is where the preset gets wired. */
+  readonly uno: boolean;
+  /** Whether the uno config names the spin preset. */
+  readonly wired: boolean;
+  /** The themes `spin/` holds, if it holds any. */
+  readonly themes: readonly string[];
+}
+
+/**
+ * The project the daemon serves.
+ *
+ * The daemon's own root, not one the studio names: the studio edits
+ * whatever project it was pointed at, and asking is how it finds out which
+ * one that is.
+ */
+export async function currentProject(): Promise<ProjectReport> {
+  return await (await spinClient()).project.current({});
+}
+
+/**
+ * Creates the project: the themes directory, a first theme, and the uno
+ * config that wires spin into the build.
+ *
+ * The daemon's own composer, rather than a studio that writes files
+ * itself: the three belong together, and a studio that made a directory
+ * by hand would make half of what the daemon makes.
+ */
+export async function initProject(
+  root: string,
+  name: string,
+  starter: string,
+): Promise<{ error: string | null }> {
+  const made = await (await spinClient()).project.init({ root, name, starter });
+  return { error: made.error ?? null };
+}
+
+/**
  * Every theme in the project's themes directory.
  *
  * Plain browser functions: the dev server mounts the API on the same
@@ -80,4 +129,81 @@ export async function removeTheme(
 ): Promise<{ error: string | null }> {
   const removed = await (await spinClient()).project.themes.remove({ name });
   return { error: removed.error ?? null };
+}
+
+/**
+ * The message a refused call reports.
+ *
+ * A call the daemon refuses answers with an error; a call the CONTRACT
+ * refuses — a name the file system will not take, a shape the schema will
+ * not accept — rejects, and the rejection carries the reason in its
+ * `data`. Both are shown: an author who typed a name the studio cannot
+ * use has to be told which part of it was wrong, and "Bad Request" is not
+ * that.
+ */
+export function problemText(error: unknown): string {
+  const detail = issueDetail(error);
+  if (detail !== undefined) return detail;
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+/**
+ * The validator's own words, when the rejection carries them.
+ *
+ * The RPC hands a refused input back as a list of issues: the path that
+ * failed and what was wrong with it. Read out of the rejection rather than
+ * flattened into one sentence, because a name that is not a file stem and
+ * a name that is taken are different problems.
+ */
+function issueDetail(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  const data = (error as { data?: unknown }).data;
+  const issues = readIssues(data);
+  if (issues.length === 0) return undefined;
+  return issues.join("; ");
+}
+
+/** The issues inside a rejection's data, however it carries them. */
+function readIssues(data: unknown): string[] {
+  const list = Array.isArray(data)
+    ? data
+    : typeof data === "object" && data !== null &&
+        Array.isArray((data as { issues?: unknown }).issues)
+    ? (data as { issues: unknown[] }).issues
+    : [];
+  const out: string[] = [];
+  for (const issue of list) {
+    if (typeof issue !== "object" || issue === null) continue;
+    const record = issue as { message?: unknown; path?: unknown };
+    const message = typeof record.message === "string" ? record.message : "";
+    const path = issuePath(record.path);
+    if (message === "") continue;
+    out.push(path === "" ? message : `${path}: ${message}`);
+  }
+  return out;
+}
+
+/**
+ * The path an issue names, as the author typed it.
+ *
+ * The validator's own path is a list of steps, and a step is a key and the
+ * value under it — so the key is the word the author wrote and the value is
+ * what they wrote it as. The key is the name.
+ */
+function issuePath(path: unknown): string {
+  if (typeof path === "string") return path;
+  if (!Array.isArray(path)) return "";
+  return path
+    .map((step) => {
+      if (typeof step === "string") return step;
+      if (typeof step === "object" && step !== null) {
+        const key = (step as { key?: unknown }).key;
+        if (typeof key === "string") return key;
+        if (typeof key === "number") return String(key);
+      }
+      return "";
+    })
+    .filter((segment) => segment !== "")
+    .join(".");
 }

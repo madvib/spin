@@ -2,20 +2,28 @@
   "name": "@spin/lint",
   "version": "0.1.0",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./eslint": "./src/eslint.ts",
+    "./cli": "./src/cli.ts"
   },
   "imports": {
     "@spin/lint": "./src/index.ts",
+    "@spin/lint/eslint": "./src/eslint.ts",
+    "@spin/lint/cli": "./src/cli.ts",
     "@spin/preset": "../preset/src/index.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@spin/theme/themes": "../theme/src/themes/index.ts",
     "@spin/animation": "../animation/src/index.ts",
+    "@unocss/core": "npm:@unocss/core@^66.10.5",
+    "@typescript-eslint/parser": "npm:@typescript-eslint/parser@^8.71.0",
+    "eslint": "npm:eslint@^10.11.0",
     "@std/assert": "jsr:@std/assert@^1.0.0"
   },
   "tasks": {
-    "test": "deno test --allow-read src/ tests/",
+    "test": "deno test --allow-read --allow-write --allow-env --allow-run src/ tests/",
     "lint": "deno lint",
     "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json",
+    "lint:cli": "deno run --allow-read --allow-env src/cli.ts",
     "fmt": "deno fmt"
   }
 }

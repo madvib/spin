@@ -28,68 +28,68 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
     name: "Variants",
     html: row(
-      `          <button>default</button>
-          <button class="secondary">secondary</button>
-          <button class="outline">outline</button>
-          <button class="contrast">contrast</button>
-          <button class="danger">danger</button>
-          <button class="ghost">ghost</button>`,
+      `          <button>Deploy</button>
+          <button class="secondary">Schedule</button>
+          <button class="outline">Review changes</button>
+          <button class="contrast">Promote to production</button>
+          <button class="danger">Delete environment</button>
+          <button class="ghost">Dismiss</button>`,
     ),
   },
   {
     name: "Bare variant",
     html: row(
-      `          <button class="bare text-text">bare</button>
-          <button>default</button>`,
+      `          <button class="bare text-text">View logs</button>
+          <button>Deploy</button>`,
     ),
   },
   {
     name: "Sizes",
     html: row(
-      `          <button class="s-sm">small</button>
-          <button>medium</button>
-          <button class="s-lg">large</button>`,
+      `          <button class="s-sm">Deploy to production</button>
+          <button>Deploy to production</button>
+          <button class="s-lg">Deploy to production</button>`,
     ),
   },
   {
     name: "Types",
     html: row(
-      `          <button type="submit">submit</button>
-          <button type="reset">reset</button>
-          <button type="button">button</button>`,
+      `          <button type="submit">Save changes</button>
+          <button type="reset">Discard</button>
+          <button type="button">Cancel</button>`,
     ),
   },
   {
     name: "States",
     html: row(
-      `          <button>hover me</button>
-          <button disabled>disabled</button>
-          <button aria-disabled="true">aria-disabled</button>
-          <button aria-busy="true">busy</button>`,
+      `          <button>Deploy</button>
+          <button disabled>Deploy</button>
+          <button aria-disabled="true">Deploy</button>
+          <button aria-busy="true">Deploy</button>`,
     ),
   },
   {
     name: "Busy with an icon",
     html: row(
-      `          <button aria-busy="true"><i class="i-lucide-plus button-icon"></i>Saving…</button>
-          <button aria-busy="true">Saving…</button>`,
+      `          <button aria-busy="true"><i class="i-lucide-plus button-icon"></i>Adding instance…</button>
+          <button aria-busy="true">Adding instance…</button>`,
     ),
   },
   {
     name: "With an icon",
     html: row(
-      `          <button><i class="i-lucide-plus button-icon"></i>Save</button>
-          <button class="s-sm"><i class="i-lucide-plus button-icon"></i>Save</button>
-          <button class="s-lg"><i class="i-lucide-plus button-icon"></i>Save</button>
+      `          <button><i class="i-lucide-plus button-icon"></i>Add instance</button>
+          <button class="s-sm"><i class="i-lucide-plus button-icon"></i>Add instance</button>
+          <button class="s-lg"><i class="i-lucide-plus button-icon"></i>Add instance</button>
           <button class="icon"><i class="i-lucide-plus button-icon"></i></button>`,
     ),
   },
   {
     name: "In a group · joined corners",
     html: `        <span class="flex flex-wrap items-center gap-2" role="group">
-          <button class="secondary">left</button>
-          <button class="secondary" aria-pressed="true">middle</button>
-          <button class="secondary">right</button>
+          <button class="secondary">All</button>
+          <button class="secondary" aria-pressed="true">Running</button>
+          <button class="secondary">Failed</button>
         </span>`,
   },
 ];

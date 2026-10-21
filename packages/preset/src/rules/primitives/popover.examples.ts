@@ -28,18 +28,18 @@ export const POPOVER_SURFACE_EXAMPLES: readonly PopoverExample[] = [
   {
     name: "Popover",
     html: row(
-      `          <button popovertarget="menu">Open</button>
-          <popover id="menu" popover="">Menu content</popover>`,
+      `          <button popovertarget="menu">Actions</button>
+          <popover id="menu" popover="">Copy link, re-run, view logs</popover>`,
     ),
   },
   {
     name: "Popover with content",
     html: row(
-      `          <button popovertarget="profile">Profile</button>
+      `          <button popovertarget="profile">Account</button>
           <popover id="profile" popover="">
             <div class="flex flex-col gap-2">
-              <strong>Jane Doe</strong>
-              <span>jane@example.com</span>
+              <strong>Tomas Berg</strong>
+              <span>tomas@lodestar.dev</span>
             </div>
           </popover>`,
     ),
@@ -53,28 +53,28 @@ export const TOOLTIP_EXAMPLES: readonly PopoverExample[] = [
   {
     name: "Tooltip",
     html: row(
-      `          <button>Hover me</button>
-          <tooltip>Tip text</tooltip>`,
+      `          <button>Rollback</button>
+          <tooltip>Returns traffic to v4.11.2 in under two minutes.</tooltip>`,
     ),
   },
   {
     name: "Tooltip · focus reveals",
     html: row(
-      `          <a href="#">A link</a>
-          <tooltip>Tab to the link: the tip appears on focus, not only hover.</tooltip>`,
+      `          <a href="#">Release notes</a>
+          <tooltip>Every change between v4.11.2 and v4.12.0.</tooltip>`,
     ),
   },
   {
     name: "Tooltip · inline in prose",
     html: row(
-      `          <p>A lookup table maps coordinates — <span>LUT<tooltip>Lookup table.</tooltip></span> — to values.</p>`,
+      `          <p>A canary moves <span>10%<tooltip>Share of traffic on the new release.</tooltip></span> of requests to eu-west-1.</p>`,
     ),
   },
   {
     name: "Tooltip · long text",
     html: row(
-      `          <button>Hover me</button>
-          <tooltip>A tip too long for the trigger widens beside it — one line, because the surface never wraps.</tooltip>`,
+      `          <button>Rollback</button>
+          <tooltip>The previous release keeps serving 90% of traffic until the rollout is promoted or rolled back.</tooltip>`,
     ),
   },
 ];

@@ -43,7 +43,34 @@
     },
     {
       "files": [
-        "packages/primitives/src/**/*.ts",
+        "packages/preset/src/rules/primitives/**/*.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@spin/preset"
+                ],
+                "message": "the element rules live in the preset: importing the package they are part of makes a cycle"
+              },
+              {
+                "group": [
+                  "@spin/lint",
+                  "@spin/api",
+                  "@spin/mcp"
+                ],
+                "message": "components spend tokens; they do not know what reads them"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
         "packages/animation/src/**/*.ts"
       ],
       "rules": {

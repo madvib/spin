@@ -49,7 +49,8 @@ describe("the spin MCP server", () => {
     mkdirSync(join(dir, "spin"));
 
     // The fixture theme: the scaffold, with one dark override so the
-    // round-trip has a $modes slot to lose.
+    // round-trip has a $modes slot to lose. It serves both modes, so the
+    // override it carries is one a reader will see.
     const moded = setToken(
       scaffoldTheme(),
       ["color", "primary"],
@@ -58,17 +59,27 @@ describe("the spin MCP server", () => {
       "dark",
     );
     assert(moded.ok, "fixture override expected to hold");
-    writeFileSync(join(dir, "spin", "sample.json"), treeToJson(moded.tree));
-
-    // And its opposite: a document that declares dark and holds none — the
-    // coverage failure analyze exists to report.
-    const darkless = JSON.parse(
-      treeToJson(scaffoldTheme()),
-    ) as Record<string, unknown>;
-    darkless.modes = ["dark"];
+    const sample = JSON.parse(treeToJson(moded.tree)) as Record<
+      string,
+      unknown
+    >;
+    sample.modes = ["light", "dark"];
     writeFileSync(
-      join(dir, "spin", "darkless.json"),
-      JSON.stringify(darkless, null, 2),
+      join(dir, "spin", "sample.json"),
+      JSON.stringify(sample, null, 2),
+    );
+
+    // And its opposite: a document that serves light alone and carries a dark
+    // value — the dead override analyze exists to report. A mode a theme
+    // serves but does not override is fine; a value for a mode it does not
+    // serve is a promise nothing keeps.
+    const unlighted = JSON.parse(
+      treeToJson(moded.tree),
+    ) as Record<string, unknown>;
+    unlighted.modes = ["light"];
+    writeFileSync(
+      join(dir, "spin", "unlighted.json"),
+      JSON.stringify(unlighted, null, 2),
     );
 
     daemon = startDaemon({ root: dir, port: 0 });
@@ -96,11 +107,11 @@ describe("the spin MCP server", () => {
     });
     assertEquals(jsonOf(result), [
       { name: "console", file: null },
-      { name: "darkless", file: "spin/darkless.json" },
       { name: "neobrut", file: null },
       { name: "sample", file: "spin/sample.json" },
       { name: "silk", file: null },
       { name: "spin", file: null },
+      { name: "unlighted", file: "spin/unlighted.json" },
     ]);
   });
 
@@ -259,10 +270,10 @@ describe("the spin MCP server", () => {
     assertEquals(jsonOf(written), { error: null, issues: [] });
   });
 
-  it("reports the coverage failure of a theme that declares dark", async () => {
+  it("reports the dead override of a theme that does not serve the mode", async () => {
     const result = await mcp.callTool({
       name: "theme",
-      arguments: { action: "analyze", name: "darkless" },
+      arguments: { action: "analyze", name: "unlighted" },
     });
     const analysis = jsonOf(result) as {
       error: string | null;
@@ -271,9 +282,10 @@ describe("the spin MCP server", () => {
     assertEquals(analysis.error, null);
     assert(
       analysis.issues.some((issue) =>
-        issue.path === "color.primary" && issue.message.includes("$modes.dark")
+        issue.path === "color.primary" &&
+        issue.message.includes("does not serve")
       ),
-      `missing-dark issue expected: ${JSON.stringify(analysis.issues)}`,
+      `no dead-override issue expected: ${JSON.stringify(analysis.issues)}`,
     );
   });
 

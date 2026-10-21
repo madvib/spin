@@ -1,5 +1,7 @@
 import type { Rule } from "@unocss/core";
 import { claim, type Mode, proseTokens } from "./shared.ts";
+import { painted } from "./scope.ts";
+import { token } from "../../utils/lookup.ts";
 
 /**
  * Inline text: links, weight, `small`, sub/superscript, `abbr`, `mark`, `ins`,
@@ -16,6 +18,12 @@ import { claim, type Mode, proseTokens } from "./shared.ts";
  * The underline is the accessible default — colour alone is not enough to find
  * a link — and it thickens on hover. The focus ring belongs to the link
  * because the link is what receives focus.
+ *
+ * The underline's own weight is the link's decision (`link.underline`): a
+ * theme that underlines lightly and a theme that underlines like a rule are
+ * both saying something, and neither is the browser's. A theme that writes
+ * nothing gets the browser's own underline; a theme that writes zero marks
+ * the link by colour alone, and the hover brings the underline back.
  */
 function linkRule(mode: Mode): Rule {
   const a = claim(mode, "a");
@@ -23,15 +31,26 @@ function linkRule(mode: Mode): Rule {
     /^a$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const underline = token(ctx, "link.underline");
       yield {
         [ctx.symbols.selector]: () => a,
         ...(t.link !== undefined ? { color: t.link } : {}),
         "text-decoration": "underline",
         "text-underline-offset": "0.2em",
+        // The theme's own weight for the rule, or the browser's own
+        // underline when the theme says nothing.
+        ...(underline !== undefined
+          ? { "text-decoration-thickness": underline }
+          : {}),
       };
       yield {
         [ctx.symbols.selector]: () => `${a}:hover`,
-        "text-decoration-thickness": "0.1em",
+        // The hover thickens the underline rather than replacing it, and it
+        // never thins it: a link marked by colour alone shows its rule the
+        // moment the reader reaches for it.
+        "text-decoration-thickness": underline !== undefined
+          ? `max(0.1em, calc(${underline} * 2))`
+          : "0.1em",
       };
       yield {
         [ctx.symbols.selector]: () => `${a}:focus-visible`,
@@ -112,7 +131,8 @@ function markRule(mode: Mode): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "mark"),
+        [ctx.symbols.selector]: () =>
+          painted(mode, "prose", "descendant", "mark"),
         ...(t.spacing1 !== undefined
           ? { padding: `0 calc(${t.spacing1} / 2)` }
           : {}),
@@ -133,7 +153,8 @@ function insRule(mode: Mode): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "ins"),
+        [ctx.symbols.selector]: () =>
+          painted(mode, "prose", "descendant", "ins"),
         "text-decoration": "underline",
         // The hue marks the insertion in the underline; the TEXT keeps the
         // ink. A semantic colour as text is a fill's pairing worn on a
@@ -155,7 +176,8 @@ function delRule(mode: Mode): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "del"),
+        [ctx.symbols.selector]: () =>
+          painted(mode, "prose", "descendant", "del"),
         "text-decoration": "line-through",
         ...(t.error !== undefined ? { "text-decoration-color": t.error } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),

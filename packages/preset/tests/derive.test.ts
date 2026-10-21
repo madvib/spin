@@ -4,7 +4,7 @@ import { writeManifest } from "../src/rules/primitives/derive.ts";
 
 /**
  * The manifest is written by reading the checked-in file: `variants` and
- * `reads` are derived from the rules, but tags, `character` and the comments
+ * `reads` are derived from the rules, but tags, `component` and the comments
  * that explain them are hand knowledge the CSS cannot speak to. A regen that
  * cannot read them back writes an empty field and looks like a success — so
  * the round trip is proven here, on a copy, where a failure leaves the
@@ -17,7 +17,7 @@ const MANIFEST = new URL(
 );
 
 Deno.test("a regen keeps the comment above an authored field", async () => {
-  // `character` is hand knowledge the rules cannot derive, and the comment
+  // `component` is hand knowledge the rules cannot derive, and the comment
   // above it says why the field is what it is. A regen that drops the
   // comment is one regen away from dropping the field it explains.
   const copy = await Deno.makeTempFile({ suffix: "manifest.ts" });

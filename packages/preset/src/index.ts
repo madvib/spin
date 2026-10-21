@@ -32,7 +32,7 @@
  */
 
 import { definePreset } from "@unocss/core";
-import type { Preset } from "@unocss/core";
+import type { Preset, UserShortcuts } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
@@ -81,18 +81,24 @@ export type { ThemeDocument } from "@spin/theme";
 // because a description of a rule belongs next to the rule — and the manifest
 // they read is DERIVED from those rules, so it cannot disagree with them.
 export type {
-  CharacterToken,
+  ComponentToken,
   PrimitiveComponent,
   PrimitiveContract,
 } from "./rules/primitives/manifest.ts";
 export {
   claimedElements,
   paintedElements,
+  primitiveCategories,
   primitiveComponents,
   primitiveContracts,
+  primitiveElements,
   primitiveReadsByGroup,
   primitiveVariants,
 } from "./rules/primitives/manifest.ts";
+export type {
+  PrimitiveCategory,
+  PrimitiveElement,
+} from "./rules/primitives/categories.ts";
 
 /** Options for {@link spinPreset}. */
 export interface SpinPresetOptions {
@@ -152,6 +158,21 @@ export interface SpinPresetOptions {
    * otherwise scope itself to a class a spin document never carries.
    */
   wind4?: boolean | Wind4Options;
+  /**
+   * The project's own shortcuts — Uno's `shortcuts` option, unchanged.
+   *
+   * A shortcut is a named composition: one class that stands for a set of
+   * utilities. Spin does not forbid a project from composing its own
+   * vocabulary — the layout an app repeats is the app's decision, not the
+   * framework's — and the VALUES still come from the theme: a shortcut that
+   * spends `gap-4` spends the theme's spacing step, so a theme that prefers
+   * roomier sections sets it once and every shortcut follows.
+   *
+   * The name is what a shortcut buys, and it is worth what it costs: a page
+   * that says `stack` says what it means, and the composition behind the word
+   * is declared once.
+   */
+  readonly shortcuts?: UserShortcuts;
 }
 
 /**
@@ -228,6 +249,11 @@ const factory = definePreset(
       name: "spin",
       theme,
       variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
+      // The project's own compositions. They ride the preset rather than the
+      // generator's own config so that everything that wires spin — the
+      // plugin, a consumer calling `spinPreset()` directly — carries the
+      // project's vocabulary with it.
+      shortcuts: options.shortcuts,
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.
@@ -252,8 +278,10 @@ const factory = definePreset(
       // (-50) → utilities (default 0). Without this, unregistered layer
       // names fall to 0 and localeCompare re-sorts, so primitives CSS lands
       // after utilities and `.secondary` can override `bg-primary` at equal
-      // specificity. Components come first so utilities win ties.
-      layers: { theme: -90, primitives: -50 },
+      // specificity. Components come first so utilities win ties. The reset
+      // is named here too: a layer with no order is not a layer that sorts
+      // first, it is a layer that sorts last.
+      layers: { reset: -100, theme: -90, primitives: -50 },
       autocomplete: {
         templates: [
           "bg-$colors",

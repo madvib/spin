@@ -41,14 +41,26 @@ import {
   activeModes,
   activeName,
   library,
+  project,
+  projectFailure,
+  refetchProject,
   refetchThemes,
   registerMarkup,
   registry,
+  reloadFromDisk,
+  revertToSaved,
   setActiveName,
   themeSummaries,
   themeText,
 } from "../lib/store.ts";
-import { copyTheme, removeTheme, saveTheme } from "../lib/themes.ts";
+import {
+  copyTheme,
+  initProject,
+  listProjectThemes,
+  problemText,
+  removeTheme,
+  saveTheme,
+} from "../lib/themes.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import { editorRouteFor, groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
@@ -69,6 +81,19 @@ export default function OverviewPage() {
   const active = createMemo(() =>
     summaries().find((summary) => summary.name === activeName())
   );
+
+  /**
+   * The project, when it is not one yet.
+   *
+   * `undefined` while the daemon has not answered, and `undefined` again
+   * when the answer is "this is a project": the first-run surface belongs
+   * to the folder that has no `spin/` directory in it, and to nothing else.
+   */
+  const firstRun = createMemo(() => {
+    const report = project();
+    if (report === undefined) return undefined;
+    return report.spin ? undefined : report;
+  });
 
   /** The token rows one group has, in the mode being shown. */
   function rows(prefixes: string[][]): TokenRow[] {
@@ -131,6 +156,16 @@ export default function OverviewPage() {
   const [blanks, setBlanks] = createSignal(false);
   const [problem, setProblem] = createSignal<string | null>(null);
   const [confirming, setConfirming] = createSignal<string | null>(null);
+  /** The error a delete reported, per theme: the card wears it. */
+  const [deleteProblems, setDeleteProblems] = createSignal<
+    Record<string, string>
+  >({});
+  /** What the studio did about a theme's file, said on the page. */
+  const [note, setNote] = createSignal<string | null>(null);
+  /** The first theme's name, for a project that has none. */
+  const [projectName, setProjectName] = createSignal("default");
+  /** Why the project could not be created, when it could not. */
+  const [projectProblem, setProjectProblem] = createSignal<string | null>(null);
 
   /**
    * What the copy starts from.
@@ -142,24 +177,50 @@ export default function OverviewPage() {
    */
   const chosen = () => source() ?? registry()?.[0]?.name ?? "";
 
+  /**
+   * Whether the project already serves a theme under this name.
+   *
+   * A name that is taken is a name the daemon refuses to overwrite: the
+   * copy answers "a theme named X already exists", and a scaffold's write
+   * would destroy the theme that was there. The studio asks the project
+   * itself, freshly — a list read a moment ago may not know about a theme
+   * another tab created since — and says the daemon's words.
+   */
+  async function taken(next: string): Promise<boolean> {
+    const listed = await listProjectThemes();
+    return listed.some((theme) => theme.name === next);
+  }
+
   async function create(): Promise<void> {
     const next = name().trim();
     if (next === "") return;
     setProblem(null);
-    const written = blanks()
-      ? await saveTheme(next, treeToJson(scaffoldTheme()))
-      : await copyTheme(chosen(), next);
-    if (written.error !== null) {
-      setProblem(written.error);
-      return;
+    try {
+      if (await taken(next)) {
+        setProblem(`a theme named ${next} already exists`);
+        return;
+      }
+      const written = blanks()
+        ? await saveTheme(next, treeToJson(scaffoldTheme()))
+        : await copyTheme(chosen(), next);
+      if (written.error !== null) {
+        setProblem(written.error);
+        return;
+      }
+      refetchThemes();
+      refetchProjectThemes();
+      setOpen(false);
+      setName("");
+      setSource(undefined);
+      setBlanks(false);
+      setActiveName(next);
+    } catch (err) {
+      // A refused call rejects rather than answering: the contract turned
+      // the request down — a name the file system will not take, a shape
+      // the schema will not accept — and an uncaught rejection leaves the
+      // dialog open with nothing said. The reason is what the author needs.
+      setProblem(problemText(err));
     }
-    refetchThemes();
-    refetchProjectThemes();
-    setOpen(false);
-    setName("");
-    setSource(undefined);
-    setBlanks(false);
-    setActiveName(next);
   }
 
   async function remove(theme: string): Promise<void> {
@@ -167,18 +228,90 @@ export default function OverviewPage() {
       setConfirming(theme);
       return;
     }
-    const { error } = await removeTheme(theme);
-    if (error === null) {
+    try {
+      const { error } = await removeTheme(theme);
+      if (error !== null) {
+        // The theme is still there: the card says so, and the button goes
+        // back to asking, so the author can try again or leave it alone.
+        setDeleteProblems((prev) => ({ ...prev, [theme]: error }));
+        setConfirming(null);
+        return;
+      }
+      setDeleteProblems((prev) => {
+        const next = { ...prev };
+        delete next[theme];
+        return next;
+      });
       setConfirming(null);
       refetchThemes();
       refetchProjectThemes();
+    } catch (err) {
+      setDeleteProblems((prev) => ({ ...prev, [theme]: problemText(err) }));
+      setConfirming(null);
+    }
+  }
+
+  /**
+   * Re-reads a theme from disk.
+   *
+   * The file moved under the studio — another tab wrote it, an editor
+   * saved it, a branch was checked out — and the document the author is
+   * looking at is a document that no longer exists. The reload replaces it
+   * with the file's, and the note says what the file turned out to be:
+   * a file that differs from what the studio wrote is a change the author
+   * has to know about before the next save overwrites it.
+   */
+  async function reload(theme: string): Promise<void> {
+    setNote(null);
+    try {
+      const state = await reloadFromDisk(theme);
+      refetchThemes();
+      setNote(
+        state === "changed"
+          ? `${theme} changed on disk — the studio now shows the file.`
+          : `${theme} reloaded from disk.`,
+      );
+    } catch (err) {
+      setNote(problemText(err));
+    }
+  }
+
+  /**
+   * Creates the project the daemon is serving.
+   *
+   * The daemon's own composer: the themes directory, a first theme, and
+   * the uno config that wires spin into the build. A studio that told the
+   * author to make a directory by hand would leave two of the three.
+   */
+  async function init(): Promise<void> {
+    const report = project();
+    if (report === undefined) return;
+    const next = projectName().trim();
+    if (next === "") return;
+    setProjectProblem(null);
+    try {
+      const made = await initProject(report.root, next, "silk");
+      if (made.error !== null) {
+        setProjectProblem(made.error);
+        return;
+      }
+      refetchProject();
+      refetchThemes();
+      refetchProjectThemes();
+      setActiveName(next);
+    } catch (err) {
+      setProjectProblem(problemText(err));
     }
   }
 
   return (
     // The pane's paper is the project's, because its ink is: a header reading
     // `text-text` on the chrome's surface only agrees by luck.
-    <div class="drawer-scroll flex-1 overflow-y-auto bg-surface p-4 sm:p-6 min-h-0 min-w-0">
+    <div
+      class={inDrawer()
+        ? "drawer-flow bg-surface p-4 sm:p-6"
+        : "drawer-scroll overflow-y-auto bg-surface p-4 sm:p-6"}
+    >
       <div class="mx-auto stack-lg max-w-6xl">
         <header class="stack-sm">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -199,21 +332,70 @@ export default function OverviewPage() {
             </button>
           </div>
           {
-            /* The status line names what every page below is showing. It is
-              also what the studio's own gate waits for: the shell renders
-              without a theme seated, and this line is the one thing that is
-              only true once the registry has answered. */
+            /* The status line is NOT here. It is the editor's header, on
+              every route, because the unsaved-changes state lives with the
+              editor's own actions — and a state that is visible everywhere
+              does not need a second telling on one page. */
           }
-          <p class="text-sm text-text-muted">
-            Editing <strong class="text-text">{activeName()}</strong>
-            {" · "}
-            {activeMode()}
-            {" · "}
-            {active()?.tokens ?? 0} tokens
-            {" · "}
-            {active()?.dirty === true ? "unsaved changes" : "saved"}
-          </p>
+          <Show when={note() !== null}>
+            <p class="text-sm text-text-muted" role="status">{note()}</p>
+          </Show>
         </header>
+
+        {
+          /* The first run. A project is a folder with a `spin/` directory in
+            it, and the daemon is the only one who can look — so the studio
+            asks, and when the answer is "this is not a project" it says so
+            and offers the step that makes it one. The daemon's own composer
+            does the work: the directory, a first theme, and the uno config
+            that wires spin into the build. */
+        }
+        <Show when={projectFailure()}>
+          {(failure) => (
+            <section class="stack-sm panel" aria-label="No project">
+              <h2 class="text-xl">There is no project here</h2>
+              <p class="text-sm text-text-muted">
+                The studio edits a project on disk, and the daemon it is talking
+                to is not serving one: {problemText(failure())}
+              </p>
+            </section>
+          )}
+        </Show>
+        <Show when={firstRun()}>
+          {(report) => (
+            <section class="stack-sm panel" aria-label="First run">
+              <h2 class="text-xl">This folder is not a spin project yet</h2>
+              <p class="text-sm text-text-muted">
+                A project is a folder with a <code>spin/</code>{" "}
+                directory in it. The daemon is serving{" "}
+                <code class="break-all">{report().root}</code>, and that folder
+                has no such directory — so the themes below are the shipped
+                starters, and nothing here is the project's own yet.
+              </p>
+              <p class="text-sm text-text-muted">
+                Creating the project writes the directory, a first theme, and
+                the uno config that wires spin into the build.
+              </p>
+              <div class="row-sm">
+                <label for="project-theme-name" class="text-sm text-text-muted">
+                  First theme
+                </label>
+                <input
+                  id="project-theme-name"
+                  type="text"
+                  value={projectName()}
+                  onInput={(event) => setProjectName(event.currentTarget.value)}
+                />
+                <button type="button" onClick={init}>Create the project</button>
+              </div>
+              <Show when={projectProblem() !== null}>
+                <p class="text-sm text-semantic-error" role="alert">
+                  {projectProblem()}
+                </p>
+              </Show>
+            </section>
+          )}
+        </Show>
 
         <section class="stack-sm" aria-label="Themes">
           <div class="split">
@@ -258,6 +440,14 @@ export default function OverviewPage() {
                         unsaved
                       </span>
                     </Show>
+                    <Show when={summary.state === "changed"}>
+                      <span
+                        class="shrink-0 text-xs text-semantic-warning"
+                        title="The file on disk is not what the studio wrote"
+                      >
+                        changed on disk
+                      </span>
+                    </Show>
                     <Show when={!summary.valid}>
                       <span class="shrink-0 text-xs text-semantic-error">
                         {summary.issues.length === 1
@@ -276,6 +466,50 @@ export default function OverviewPage() {
                         onClick={() => remove(summary.name)}
                       >
                         {confirming() === summary.name ? "Confirm?" : "Delete"}
+                      </button>
+                    </Show>
+                  </div>
+                  <Show when={deleteProblems()[summary.name]}>
+                    {(message) => (
+                      <p class="text-xs text-semantic-error" role="alert">
+                        {message()}
+                      </p>
+                    )}
+                  </Show>
+                  {
+                    /*
+                      The file's own two verbs. The author is editing a
+                      document that a file holds, and there are two things
+                      they may want to do with that: take the file's word
+                      for it (reload), or drop their own edits and go back
+                      to the last thing that was written (discard). Both
+                      live here rather than behind an API, because an
+                      author whose file changed underneath them has to be
+                      able to say so without leaving the page.
+                    */
+                  }
+                  <div class="row-sm">
+                    <button
+                      type="button"
+                      class="bare text-xs text-text-muted"
+                      title="Re-read this theme from disk"
+                      onClick={() => reload(summary.name)}
+                    >
+                      Reload from disk
+                    </button>
+                    <Show when={summary.dirty}>
+                      <button
+                        type="button"
+                        class="bare text-xs text-text-muted"
+                        title="Drop the edits that have not been saved"
+                        onClick={() => {
+                          revertToSaved(summary.name);
+                          setNote(
+                            `${summary.name} — the unsaved edits were dropped.`,
+                          );
+                        }}
+                      >
+                        Discard changes
                       </button>
                     </Show>
                   </div>
@@ -702,7 +936,7 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
     <ConcernCard
       path="/spacing"
       title="Space"
-      blurb="First, middle and last of the scale: the rhythm, without the whole table."
+      blurb="First, middle and last of the scale: the spacing, without the whole table."
     >
       <Show
         when={props.steps.length > 0}

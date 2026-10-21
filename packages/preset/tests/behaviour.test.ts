@@ -292,36 +292,51 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
   // Breaks if a missing token is emitted anyway — a dangling reference or an
   // invented fallback adds a declaration the full theme never stated — or if
   // the component drops its other declarations with it.
+  //
+  // The token omitted here is one with no fallback: the size an alert's
+  // message is set in. A token that HAS a fallback — the card's corner, the
+  // alert's air — is the other case: the theme's own scale answers it, and
+  // that case is proved in `elements.test.ts`.
   const reduced = JSON.parse(
     readFileSync(DEFAULT, "utf8"),
   ) as Record<string, unknown>;
-  delete (reduced["radius"] as Record<string, unknown>)["lg"];
+  const size = (reduced["font"] as Record<string, unknown>)["size"] as Record<
+    string,
+    unknown
+  >;
+  delete size["sm"];
   const reserialised = JSON.parse(JSON.stringify(reduced)) as Record<
     string,
     unknown
   >;
 
   const full = declarations(
-    bodyFor(await generate("<card>Body</card>"), "card"),
+    bodyFor(await generate("<alert>Heads up</alert>"), "alert"),
   );
   const partial = declarations(
     bodyFor(
-      await generate("<card>Body</card>", { themes: { light: reserialised } }),
-      "card",
+      await generate("<alert>Heads up</alert>", {
+        themes: { light: reserialised },
+      }),
+      "alert",
     ),
   );
 
   assert(
     Object.keys(partial).length > 0,
-    "the card must still emit without the token",
+    "the alert must still emit without the token",
   );
   assert(
-    "display" in partial && "background-color" in partial,
-    "the card must still state its other properties",
+    "display" in partial,
+    "the alert must still state its other properties",
   );
   assert(
-    "border-radius" in full,
+    "font-size" in full,
     "the full theme must spend the token the reduced one omits",
+  );
+  assert(
+    !("font-size" in partial),
+    "the omitted token's declaration must be gone",
   );
   for (const [property, value] of Object.entries(partial)) {
     assert(
@@ -350,9 +365,9 @@ Deno.test("a quiet variant states its own resting posture", async () => {
   assertEquals(body["box-shadow"], "none");
 });
 
-Deno.test("a bare control takes the character's movement back", async () => {
-  // The movement is part of the button's character the same way the shadow
-  // is, and the opt-out takes the character back with the paint: chrome
+Deno.test("a bare control takes the component tokens' movement back", async () => {
+  // The movement is part of the button's own tokens the same way the shadow
+  // is, and the opt-out takes those tokens back with the paint: chrome
   // around a control does not move when it is pointed at. Generated against
   // a theme that states a lift, so the reset is proven against a lift that
   // exists rather than against one the theme never mentions.
@@ -668,4 +683,50 @@ Deno.test("no component's type out-sizes the page's own heading", () => {
       );
     }
   }
+});
+
+/**
+ * The theme's typography is spent everywhere.
+ *
+ * Spin owns typography for the whole application: a paragraph, a list, a
+ * heading, a quotation, a code block, a figure and a caption each read the
+ * theme's type and the theme's spacing wherever they are written. A document
+ * column is for the furniture — the quotation's inset, the media's box, the
+ * code block's chrome — and not for the type: a page that had to wrap its
+ * content in a `<prose>` to look like typography would be a system that owns
+ * typography only where a document happens to be.
+ */
+Deno.test("the theme's typography is spent outside a document column", async () => {
+  const result = await generate(
+    "<p>a</p><ul><li>a</li></ul><h2>a</h2><blockquote>a</blockquote>" +
+      "<pre><code>a</code></pre><figure><figcaption>a</figcaption></figure>",
+  );
+  assert(
+    "margin-block-end" in declarations(bodyFor(result, "p")),
+    "a paragraph leaves the theme's gap under it",
+  );
+  assert(
+    "margin-block-end" in declarations(bodyFor(result, "ul")),
+    "and a list leaves the gap too",
+  );
+  assert(
+    "font-size" in declarations(bodyFor(result, "h2")),
+    "and a heading reads the theme's ladder",
+  );
+  assert(
+    "font-family" in declarations(bodyFor(result, "blockquote")),
+    "and a quotation reads the theme's editorial face",
+  );
+  assert(
+    "font-family" in declarations(bodyFor(result, "pre")),
+    "and a code block reads the theme's mono face",
+  );
+  assert(
+    "margin-block-end" in declarations(bodyFor(result, "figure")),
+    "and a figure leaves the gap in the flow",
+  );
+  assert(
+    "font-size" in declarations(bodyFor(result, "figcaption")),
+    "and a caption reads the theme's small size",
+  );
 });

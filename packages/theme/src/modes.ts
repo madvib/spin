@@ -2,10 +2,18 @@
  * Modes: what a theme declares, and what any token in it is worth.
  *
  * A mode is a *variant of a token*, not a second theme and not a group beside
- * one. `modes` at the document root says which variants exist; `$modes` on a
- * token says how this token varies. Everything else about a theme — spacing,
- * type, radius, shadow — is mode-invariant, which is a design fact rather than
- * an accident: dark mode changes ink and surface, not space.
+ * one. `modes` at the document root says which modes the theme SERVES;
+ * `$modes` on a token says how that token varies. Everything else about a
+ * theme — spacing, type, radius, shadow — is mode-invariant, which is a
+ * design fact rather than an accident: dark mode changes ink and surface,
+ * not space.
+ *
+ * One meaning, everywhere: the root field is the set of modes the theme
+ * answers to. A mode it serves but does not override falls back to the base
+ * values, so a dark-only theme whose base is already dark is a complete
+ * theme — it serves dark, and it has nothing to restate. The other side of
+ * the same rule: a value written for a mode the theme does not serve is
+ * never shown, so the validator reports it.
  *
  * These two questions are the ones a consumer actually asks, and they belong
  * here rather than in each consumer: "what modes does this theme serve?", and

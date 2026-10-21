@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
+import { disabledPosture, withFallback } from "./shared.ts";
 
 /**
  * The tokens a field box spends. Absent ones drop their declaration rather
@@ -32,13 +33,16 @@ export interface FieldTokens {
 export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
   return {
     spacing2: token(ctx, "spacing.2"),
-    radius: token(ctx, "radius.md"),
+    radius: withFallback(ctx, "field.radius", "radius.md"),
     fontFamily: token(ctx, "font.family.sans"),
     fontSize: token(ctx, "font.size.md"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
     field: token(ctx, "color.field"),
-    edge: token(ctx, "color.border-strong"),
+    // The field's own edge. A control must read as a control, so the line
+    // it wears is the field's own ink (`field.border`), falling back to the
+    // role the system keeps for it: one step stronger than a divider.
+    edge: withFallback(ctx, "field.border", "color.border-strong"),
     border: token(ctx, "color.border"),
     borderWidth: token(ctx, "border.width"),
     focusWidth: token(ctx, "focus.width"),
@@ -123,8 +127,9 @@ export function fieldBox(): Rule {
       // A control must read as a control. `color.border` is a hairline meant
       // for dividing content, and at 1px on a white field it is close to
       // invisible — which is how a textarea ends up on screen and still looks
-      // like nothing. So a field states its own edge, one step stronger than a
-      // divider, spent AFTER the shorthand so the colour is the one that wins.
+      // like nothing. So a field states its own edge (`field.border`), one
+      // step stronger than a divider by default, spent AFTER the shorthand so
+      // the colour is the one that wins.
       if (edge !== undefined) {
         Object.assign(box, { "border-color": edge });
       }
@@ -194,6 +199,17 @@ export function fieldBox(): Rule {
       yield {
         [context.symbols.selector]: () => `${FIELDS}[aria-invalid="true"]`,
         ...(error !== undefined ? { "border-color": error } : {}),
+      };
+
+      // A dead field wears the posture: the theme's disabled fill and the
+      // ink that reads on it. A field is a control like any other, and a
+      // dimmed one dims the text a reader is meant to transcribe — the one
+      // thing a field that cannot be typed into still has to be good for.
+      yield {
+        [context.symbols.selector]: () =>
+          `${FIELDS}:is(:disabled, [aria-disabled="true"])`,
+        ...disabledPosture(context),
+        cursor: "not-allowed",
       };
     },
     { layer: "primitives", autocomplete: "field" },

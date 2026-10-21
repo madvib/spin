@@ -68,7 +68,7 @@ function block(): Rule {
  * The height is the size of the text it stands in for, so a loading paragraph
  * occupies the line boxes the paragraph will occupy and the page does not
  * reflow when the words land. The full radius keeps a 14px bar a bar, and the
- * trailing space is the theme's own, so stacked lines carry the rhythm the
+ * trailing space is the theme's own, so stacked lines carry the spacing the
  * real text will carry.
  */
 function textLine(): Rule {

@@ -196,7 +196,11 @@ export default function IconsPage() {
         class="flex min-h-0 flex-1"
         classList={{ "flex-col": inDrawer(), "flex-row": !inDrawer() }}
       >
-        <div class="drawer-scroll min-h-0 min-w-0 flex-1 overflow-y-auto p-4">
+        <div
+          class={inDrawer()
+            ? "drawer-flow p-4"
+            : "drawer-scroll overflow-y-auto p-4"}
+        >
           <Switch
             fallback={
               <div class="flex flex-wrap gap-2">

@@ -156,7 +156,7 @@ function detailsRule(details: string, summary: string): Rule {
 }
 
 /**
- * The label: a row, a pointer, and the indicator.
+ * The label: a wrapping row, a pointer, and the indicator.
  *
  * The marker cannot be styled, so it is hidden and drawn again as a chevron —
  * a square with two borders on one corner, rotated to point down. The same
@@ -175,6 +175,15 @@ function summaryRule(summary: string, details: string): Rule {
       yield {
         [ctx.symbols.selector]: () => summary,
         display: "flex",
+        // The label's row WRAPS, the way the card's footer and the dialog's
+        // actions row do. The row holds the label and the indicator beside
+        // it, and a row that cannot wrap pushes the indicator out of the
+        // label it belongs to — a chevron that has left its summary is a
+        // disclosure with no state to read. The width a label needs is the
+        // theme's own type scale, so a theme with a wider scale would break
+        // every summary in a narrow column — the row that wraps is what
+        // keeps the label and its indicator together in all of them.
+        "flex-wrap": "wrap",
         "align-items": "center",
         ...(t.spacing2 !== undefined ? { gap: t.spacing2 } : {}),
         cursor: "pointer",

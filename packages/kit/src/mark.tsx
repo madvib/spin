@@ -1,26 +1,29 @@
 /**
- * The mark and the logo: one pen, two states.
+ * The brand mark, in two states: the hero and the corner.
  *
- * The MARK is the hero piece. An orb web — nine spokes from a hub, four
- * rings of sagging capture silk — spins itself in; the silk pays out from
- * the hub; the spider descends with an overshoot. Then the physics take
- * over: the silk and the spider swing as ONE body pivoting at the hub, a
- * damped pendulum the faintest draft keeps alive. Hover wakes it — the
- * sway picks up and the spider climbs its own silk onto the web; leaving
- * lets it climb back down. Shortening string quickens the beat, because
- * that is what a pendulum does.
+ * The HERO is the spinnaker. An orb web — nine spokes from a hub, four rings
+ * of sagging capture silk — spins itself in; the silk pays out from the hub;
+ * the spider descends with an overshoot. Then the physics take over: the silk
+ * and the spider swing as ONE body pivoting at the hub, a damped pendulum the
+ * faintest draft keeps alive. Hover wakes it — the sway picks up and the
+ * spider climbs its own silk onto the web; leaving lets it climb back down.
+ * Shortening string quickens the beat, because that is what a pendulum does.
  *
- * The animation lives in the asset: SMIL for the spin-in, one rAF loop
- * for the pendulum and the crawl (paused when the tab is hidden, and
- * skipped whole under prefers-reduced-motion).
+ * The animation lives in the asset: SMIL for the spin-in, one rAF loop for the
+ * pendulum and the crawl (paused when the tab is hidden, and skipped whole
+ * under prefers-reduced-motion).
  *
- * The LOGO is the corner mark: the same spider, still, drawn in the same
- * silk linework — the wordmark is spun thread, not a font, so it can
- * never clash with a starter's type and never needs an underline.
+ * The CORNER is the same creature at the size a corner mark actually
+ * appears: the spider reduced to a FILLED silhouette, one ink that inherits
+ * `currentColor` so it wears whatever surface it lands on, with spin's
+ * hourglass cut out of its abdomen. The linework that suits a hero does not
+ * survive a corner: at 16px a hairline is a grey smudge, and a mark that
+ * smudges is no mark at all. A filled shape holds its edge, and the
+ * hourglass — a bright diamond cut out of the dark body — is the one detail
+ * that still reads that small.
  */
 import type { JSX } from "solid-js";
-import { onCleanup, onMount } from "solid-js";
-import { For } from "solid-js";
+import { For, onCleanup, onMount } from "solid-js";
 
 const RAD = Math.PI / 180;
 const HUB = { x: 60, y: 13 };
@@ -68,6 +71,13 @@ const DRAW = (begin: string, dur: string): JSX.Element => (
   />
 );
 
+/**
+ * The hero mark: the spinnaker, animated.
+ *
+ * The class decides the box; the ink is whatever the class inherits. Under
+ * `prefers-reduced-motion` the drawing is complete and still: the spin-in is
+ * skipped, the physics never run, and the spider hangs where it hangs.
+ */
 export function Mark(props: { class?: string }) {
   const reduced = globalThis.matchMedia?.(
     "(prefers-reduced-motion: reduce)",
@@ -310,71 +320,133 @@ export function Mark(props: { class?: string }) {
   }
 }
 
-/**
- * The logo: the spider, still, and the wordmark in the brand face.
- *
- * The glyph is artwork — the same spider, compact — carrying the
- * theme's surface, text, and primary tokens. The wordmark is type: the
- * document's `font.family.brand`, so the logotype is a real, loaded
- * face and still only ever painted by theme values.
- */
-const LOGO_SIZES = {
-  sm: { glyph: "h-5", text: "text-lg", gap: "gap-1" },
-  md: { glyph: "h-8", text: "text-2xl", gap: "gap-2" },
-  lg: { glyph: "h-12", text: "text-3xl", gap: "gap-3" },
-} as const;
+// ── the corner mark ──────────────────────────────────────────────────────────
 
+/**
+ * The corner mark's sizes: a rail, a header, a page.
+ *
+ * The sizes are the theme's own spacing steps — a fifth, an eighth and a
+ * twelfth of a rem — so the mark sits on the same measure as the type
+ * beside it.
+ */
+export type LogoSize = "sm" | "md" | "lg";
+
+/** What the corner mark draws, and at what size. */
+export interface LogoSpec {
+  /** The box the mark is drawn in, in pixels. */
+  readonly px: number;
+  /** The theme's own step for that box, as the utility that names it. */
+  readonly box: string;
+  /** The geometry the mark is written in. */
+  readonly viewBox: string;
+  /** The mark's shapes — filled, never stroked. */
+  readonly shapes: readonly string[];
+  /** The ink the mark paints with: the colour it inherits. */
+  readonly ink: string;
+  /**
+   * How the shapes are filled. Even-odd is what cuts the hourglass out of
+   * the abdomen instead of painting it on: the mark stays one colour, and
+   * the hourglass shows whatever surface the mark sits on.
+   */
+  readonly fillRule: "evenodd" | "nonzero" | "inherit";
+}
+
+/**
+ * The mark's own drawing: the spider from above, one ink, hourglass cut out.
+ *
+ * The legs are filled tapers rather than strokes, so the silhouette holds its
+ * edge at sixteen pixels; the hourglass is cut out of the abdomen rather than
+ * painted on it, so the mark stays one colour and reads on any surface.
+ */
+const LOGO_SHAPES: readonly string[] = [
+  // four legs a side, tapering to their tips
+  "M10.9 7.4 Q8.8 4.6 5.6 3.6 L5.2 4.4 Q8.4 5.8 9.9 8.6 Z",
+  "M14.1 8.6 Q15.6 5.8 18.8 4.4 L18.4 3.6 Q15.2 4.6 13.1 7.4 Z",
+  "M9.7 10.5 Q7.5 8.8 4.9 8.6 L4.7 9.4 Q7.3 10.0 9.1 11.9 Z",
+  "M14.9 11.9 Q16.7 10.0 19.3 9.4 L19.1 8.6 Q16.5 8.8 14.3 10.5 Z",
+  "M9.1 14.2 Q7.1 14.6 4.5 15.2 L4.7 16.0 Q7.3 15.8 9.3 15.8 Z",
+  "M14.7 15.8 Q16.7 15.8 19.3 16.0 L19.5 15.2 Q16.9 14.6 14.9 14.2 Z",
+  "M9.2 17.8 Q7.9 20.1 6.2 21.4 L6.6 22.2 Q8.5 21.1 10.4 19.0 Z",
+  "M13.6 19.0 Q15.5 21.1 17.4 22.2 L17.8 21.4 Q16.1 20.1 14.8 17.8 Z",
+  // the head
+  "M9.6 8.2 A2.4 2.4 0 1 1 14.4 8.2 A2.4 2.4 0 1 1 9.6 8.2 Z",
+  // the abdomen, with the hourglass cut out of it
+  "M12.0 9.8 C17.1 11.9 17.1 17.9 12.0 20.6 C6.9 17.9 6.9 11.9 12.0 9.8 Z M12 11.8 L14.4 15.2 L12 18.6 L9.6 15.2 Z",
+];
+
+/** The mark's tilt: the spider leans, the way it hangs. */
+const LOGO_TILT = -8;
+
+const LOGO_BOX: Record<
+  LogoSize,
+  { readonly px: number; readonly box: string }
+> = {
+  sm: { px: 20, box: "h-5 w-5" },
+  md: { px: 32, box: "h-8 w-8" },
+  lg: { px: 48, box: "h-12 w-12" },
+};
+
+/** The wordmark beside the mark, in the brand face, at the size that reads. */
+const LOGO_WORD: Record<
+  LogoSize,
+  { readonly text: string; readonly gap: string }
+> = {
+  sm: { text: "text-sm", gap: "gap-1" },
+  md: { text: "text-lg", gap: "gap-2" },
+  lg: { text: "text-2xl", gap: "gap-3" },
+};
+
+/**
+ * What the corner mark draws at a size.
+ *
+ * The drawing is the same at every size: one silhouette, scaled. A corner
+ * mark that is redrawn per size is two marks to keep true.
+ */
+export function logoSpec(size: LogoSize): LogoSpec {
+  const box = LOGO_BOX[size];
+  return {
+    px: box.px,
+    box: box.box,
+    viewBox: "0 0 24 24",
+    shapes: LOGO_SHAPES,
+    ink: "currentColor",
+    fillRule: "evenodd",
+  };
+}
+
+/**
+ * The corner logo: the mark, and the name it belongs to.
+ *
+ * The wordmark is type — the theme's brand face — because a wordmark drawn as
+ * thread is a wordmark that turns to mush at the size a corner mark appears.
+ * The mark carries the picture; the word carries the name.
+ */
 export function Logo(
-  props: { size?: keyof typeof LOGO_SIZES; class?: string },
-) {
-  const size = () => LOGO_SIZES[props.size ?? "md"];
+  props: { size?: LogoSize; class?: string },
+): JSX.Element {
+  const size = () => props.size ?? "md";
+  const spec = () => logoSpec(size());
+  const word = () => LOGO_WORD[size()];
   return (
     <span
-      class={`inline-flex items-center font-brand font-semibold tracking-tighter ${size().gap} ${
+      class={`inline-flex items-center font-brand font-semibold tracking-tighter ${word().gap} ${
         props.class ?? ""
       }`}
     >
       <svg
-        viewBox="0 0 22 26"
-        fill="none"
-        class={size().glyph}
-        role="img"
-        aria-label="spin"
+        viewBox={spec().viewBox}
+        width={spec().px}
+        height={spec().px}
+        fill={spec().ink}
+        fill-rule={spec().fillRule}
+        class={`${spec().box} shrink-0`}
+        aria-hidden="true"
       >
-        <g stroke="currentColor" stroke-linecap="round">
-          <line x1="11" y1="0.5" x2="11" y2="6.8" stroke-width="1.1" />
-          <g stroke-width="1.5">
-            <path d="M9.2 10.8 C7.4 9.4 5.8 9.6 4.6 11" />
-            <path d="M8.9 13.6 C6.9 13.4 5.4 14.4 4.4 16.2" />
-            <path d="M9.6 16.8 C8.4 18.4 8 20 8.4 21.6" />
-            <path d="M12.8 10.8 C14.6 9.4 16.2 9.6 17.4 11" />
-            <path d="M13.1 13.6 C15.1 13.4 16.6 14.4 17.6 16.2" />
-            <path d="M12.4 16.8 C13.6 18.4 14 20 13.6 21.6" />
-          </g>
-          <circle
-            cx="11"
-            cy="9.4"
-            r="2.1"
-            fill="var(--color-surface, #fff)"
-            stroke-width="1.5"
-          />
-          <ellipse
-            cx="11"
-            cy="15"
-            rx="3.1"
-            ry="3.9"
-            transform="rotate(-12 11 15)"
-            fill="var(--color-surface, #fff)"
-            stroke-width="1.5"
-          />
-          <path
-            d="M11.1 13.2 L12.5 15.1 L11 17.6 L9.5 15.1 Z"
-            fill="var(--color-primary, #c8102e)"
-            stroke="none"
-          />
+        <g transform={`rotate(${LOGO_TILT} 12 15.2)`}>
+          <For each={spec().shapes}>{(d) => <path d={d} />}</For>
         </g>
       </svg>
-      <span class={size().text}>spin</span>
+      <span class={word().text}>spin</span>
     </span>
   );
 }

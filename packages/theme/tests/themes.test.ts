@@ -194,10 +194,10 @@ const REQUIRED = [
   "motion.duration.base",
   "motion.easing.standard",
   "color.on-primary",
-  "color.on-danger",
+  "color.on-semantic-error",
   "color.focus-ring",
-  // The button is the only component that owns character. Everything else it
-  // reads is a scale step, already listed above.
+  // The button is the only component that owns component tokens. Everything
+  // else it reads is a scale step, already listed above.
   "button.weight",
   "button.case",
   "button.tracking",
@@ -259,13 +259,14 @@ Deno.test("the example theme's light document parses into a token tree", async (
       `the example theme must state the \`${group}\` group`,
     );
   }
-  // Components own their character; each is a group named after the component.
+  // Components own their own tokens; each is a group named after the
+  // component.
   for (
     const component of ["button", "icon", "checkbox", "switch"]
   ) {
     assert(
       present.has(component),
-      `the example theme must state \`${component}\` character tokens`,
+      `the example theme must state \`${component}\` component tokens`,
     );
   }
 });
@@ -353,17 +354,31 @@ Deno.test("a theme states its modes at the root", async () => {
   }
 });
 
-Deno.test("silk's dark mode restates every color and focus leaf", async () => {
-  // A `modes: ["light", "dark"]` theme that only restates SOME colors is a
-  // theme that ships half a dark mode: `border-strong` keeps its light value
-  // under a dark selector, and the stripe that reads `surface-sunken` paints
-  // a light cell on a dark row. The mode key is a promise to restate all of
-  // them, and the validator holds it — not the dark group's existence.
+Deno.test("a theme that serves a mode it does not override is valid", async () => {
+  // The root `modes` says what a theme SERVES, and a mode it serves but
+  // does not override falls back to the base values. So a theme that serves
+  // dark and restates nothing is a complete theme, not a half-dark one —
+  // which is exactly what a dark-only theme with a dark base is.
+  //
+  // The rule that follows from the claim is the other direction: a value
+  // written for a mode the theme does not serve is never shown, and the
+  // validator reports it.
   const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
     "silk.json",
   );
   assertEquals(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
+
+  const darkless = treeOf(
+    parseTokens({
+      ...JSON.parse(
+        await Deno.readTextFile(new URL("console.json", THEMES_DIR)),
+      ),
+      modes: ["dark"],
+    }),
+    "console.json",
+  );
+  assertEquals(validateTokens(darkless, { modes: ["dark"] }).issues, []);
 });
 
 Deno.test("a theme declares the modes it actually has", async () => {
@@ -636,6 +651,14 @@ Deno.test("every starter's elevation ladder ascends in every mode", async () => 
   // "the step above the page" gets the resting picture back. The step a
   // component spends is its role — a card rests ON the page, a dialog floats
   // above it — and how loud each step is stays the theme's to state.
+  //
+  // A theme may also declare a FLAT ladder: two steps that both say `none`.
+  // That is a decision rather than the defect above — this theme separates
+  // with rules, spends no elevation on a card, and cuts only the overlay
+  // out of the sheet — and it is not one shadow under two names. So the
+  // ladder must never step DOWN, and a tie is allowed exactly where the
+  // tied step declares no elevation at all. Two steps that spell the same
+  // real shadow are still a defect, and still fail here.
   for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
     const tree = treeOf(
       parseTokens(await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR))),
@@ -649,12 +672,26 @@ Deno.test("every starter's elevation ladder ascends in every mode", async () => 
 
     for (const mode of modes) {
       const vars = varsInMode(css, mode);
-      assertAscending(
-        ["sm", "md", "lg"].map((step) =>
-          shadowWeight(resolve(vars, `--shadow-${step}`))
-        ),
-        `${name} ${mode} shadow`,
+      const shadows = ["sm", "md", "lg"].map((step) =>
+        resolve(vars, `--shadow-${step}`)
       );
+      const weights = shadows.map(shadowWeight);
+      for (let i = 1; i < weights.length; i++) {
+        const previous = weights[i - 1]!;
+        const current = weights[i]!;
+        assert(
+          previous <= current,
+          `${name} ${mode} shadow: ${shadows[i - 1]} must not be louder than ${
+            shadows[i]
+          } (index ${i})`,
+        );
+        assert(
+          previous !== current || shadows[i - 1]!.trim() === "none",
+          `${name} ${mode} shadow: ${shadows[i - 1]} and ${
+            shadows[i]
+          } are one elevation under two names (index ${i})`,
+        );
+      }
     }
   }
 });
@@ -726,7 +763,7 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
     ["--color-accent", "--color-on-accent"],
     ["--color-semantic-success", "--color-on-semantic-success"],
     ["--color-semantic-warning", "--color-on-semantic-warning"],
-    ["--color-semantic-error", "--color-on-danger"],
+    ["--color-semantic-error", "--color-on-semantic-error"],
   ] as const;
 
   for (const name of Object.keys(starterThemes) as StarterThemeName[]) {

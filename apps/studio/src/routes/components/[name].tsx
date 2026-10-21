@@ -6,7 +6,7 @@
  * Cancel</button>` typed by hand while `button.examples.ts` was shipping the
  * same control as data. Nothing here is a copy — the label, the note, and the
  * markup all arrive from `primitives.list`, so a change to a component's
- * examples is a change this page renders. The character tokens come from
+ * examples is a change this page renders. The component tokens come from
  * `primitives.contract`: what the manifest says the component starts at, so a
  * theme that has never spelled `button.weight` meets the token HERE, on the
  * component that spends it, and can create it scaffolded as authored.
@@ -15,6 +15,14 @@
  * is asked to render, not markup it writes. The daemon is the only thing that
  * produces it, and the same markup is registered with it so the stylesheet is
  * generated for what is actually on screen.
+ *
+ * EVERY SECTION OWNS ITS SWITCH, and the switch sits in the section's own
+ * header. A reader who wants the markup of the fourth example should not
+ * have to scroll back up to a control that governs the whole page, and two
+ * sections must be able to show different things at once — so the state
+ * belongs to the section, not to the page. The copy is the same way round: it
+ * belongs to the code it copies, so it is part of the code block and appears
+ * only while that block is on screen.
  */
 
 import {
@@ -63,19 +71,39 @@ const INK: Record<CodeKind, string> = {
 };
 
 /**
- * The specimen/code switch: a bordered group of two where unselected is a
- * hole, so the selected one is the only thing drawn. `min-h-0` drops the
- * height floor the button primitive puts under every control — a segmented
- * switch is chrome, not a call to action.
+ * How a section shows its example: the element as it renders, or the markup
+ * that produced it.
  */
-const SEGMENT_GROUP = "flex shrink-0 gap-1 rounded-md border border-border p-1";
+type View = "component" | "code";
 
-const SEGMENT =
-  "flex-1 min-h-0 justify-center rounded-md border border-transparent bg-transparent px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+/**
+ * The switch's two buttons.
+ *
+ * Quiet by default and legible when the pointer or the keyboard arrives: the
+ * pair is chrome the studio owns, and chrome that shouts — a bordered bar, a
+ * floating toolbar — competes with the specimen it sits above. `aria-pressed`
+ * says which one is showing, so the eye and the screen reader read the same
+ * fact. `min-h-0` drops the height floor the button primitive puts under
+ * every control, because a switch is a way of looking, not a call to action.
+ */
+const SWITCH =
+  "inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none hover:bg-surface-raised hover:text-text focus:bg-surface-raised focus:text-text aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text";
 
-/** The quiet copy: a link-shaped button in the corner of the code panel. */
-const COPY_BUTTON =
-  "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+/**
+ * The copy control.
+ *
+ * It belongs to the block it copies, so it is not on the page until the
+ * pointer or the keyboard reaches that block: `opacity-0` until the block is
+ * hovered, and `pointer-events-none` so an invisible control cannot be hit by
+ * accident. It appears in the code view only — the component view shows no
+ * markup, so there is nothing there to copy.
+ *
+ * It sits in the block's bottom corner, where a snippet's last line is
+ * shortest, and it sits OUTSIDE the scroller — so it stays put while a long
+ * block scrolls inside its own box.
+ */
+const COPY_CONTROL =
+  "absolute end-2 bottom-2 inline-flex min-h-0 items-center gap-1 cursor-pointer rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none opacity-0 pointer-events-none transition-opacity duration-fast group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto hover:border-border-strong hover:text-text";
 
 /**
  * The code block. It WRAPS: the primitive layer pins `overflow-x` on a bare
@@ -83,9 +111,14 @@ const COPY_BUTTON =
  * one unbreakable token would widen the page rather than scroll in its own
  * box. So `whitespace-pre-wrap` on the block and `break-all` on the tokens,
  * and the scrollbar stays as the floor for the one line that cannot break.
+ *
+ * The height is bounded: a long block scrolls inside its own box rather than
+ * pushing the page down. `max-h-80` was a number in no token and generated no
+ * CSS at all, so the bound is the one the rule allows a page to state for
+ * itself — a measure in rem.
  */
 const CODE_PRE =
-  "max-h-80 max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
+  "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
 
 /** The panel every specimen sits in: one box, one surface, room to stand. */
 const SPECIMEN_PANEL =
@@ -97,21 +130,19 @@ const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 /**
  * One fixture: the specimen, or the markup that produced it.
  *
- * Both live in ONE grid cell, so the section's height is decided by
- * measurement rather than by whichever view happens to be showing — the
- * invisible one holds the room. A stacked pair used to put the markup
- * between every two specimens, which turns a page of components into a page
- * of code with components in it.
+ * The two occupy the same place and only one of them is THERE: a section is
+ * as tall as what it shows. The panel used to hold the room for both views,
+ * so every specimen sat in a box with a hole under it as deep as the longest
+ * block on the page. Switching views now changes the section's height, which
+ * is what a section that shows one thing at a time does.
  */
 function ExampleSection(props: {
   readonly row: RpcExample;
   readonly onLoad?: string;
 }) {
-  const [tab, setTab] = createSignal<"component" | "code">("component");
-  const [copied, setCopied] = createSignal(false);
-  let copiedFor: ReturnType<typeof setTimeout> | undefined;
-  let pre!: HTMLPreElement;
-
+  // The section's own view. Two sections can show different things at once,
+  // because each one answers to its own switch and to nothing else.
+  const [view, setView] = createSignal<View>("component");
   // The panel decides the room the specimen gets, and the markup says which
   // room it is: a page header is a page-width thing, and the md measure —
   // where the page's own prose reads — squeezes a header until its trail
@@ -119,15 +150,102 @@ function ExampleSection(props: {
   const measure = props.row.html.trimStart().startsWith("<header")
     ? ""
     : SPECIMEN_MEASURE;
-  const tokens = createMemo(() =>
-    tokenizeHtml(formatExampleHtml(props.row.html))
+  const markup = createMemo(() => formatExampleHtml(props.row.html));
+  const tokens = createMemo(() => tokenizeHtml(markup()));
+  const code = () => view() === "code";
+
+  return (
+    <section class="mb-4">
+      <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h3 class="flex items-center gap-2 text-sm font-semibold">
+          <span class="block h-1 w-4 rounded-full bg-primary" />
+          {props.row.name}
+        </h3>
+        <ViewSwitch view={view()} onChange={setView} />
+      </div>
+      <Show when={!code()}>
+        <div
+          class={`${SPECIMEN_PANEL} mx-auto ${
+            measure ? SPECIMEN_MEASURE : "max-w-full"
+          }`}
+        >
+          <Specimen
+            html={props.row.html}
+            onLoad={props.onLoad}
+            measure={measure}
+          />
+        </div>
+      </Show>
+      <Show when={code()}>
+        <div
+          class={`group relative mx-auto ${
+            measure ? SPECIMEN_MEASURE : "max-w-full"
+          }`}
+        >
+          <pre class={CODE_PRE}>
+            <span class="text-lg break-all">
+              <For each={tokens()}>
+                {(token) => <span class={INK[token.kind]}>{token.text}</span>}
+              </For>
+            </span>
+          </pre>
+          <CopyControl markup={markup()} />
+        </div>
+      </Show>
+    </section>
   );
+}
+
+/**
+ * The section's switch: two small buttons, one per view, each saying whether
+ * it is the one showing.
+ *
+ * Two buttons and `aria-pressed`, rather than an element that claims to be a
+ * tab strip: the switch is chrome this page owns, and chrome that reads as
+ * borrowed furniture is louder than the specimen it sits above.
+ */
+function ViewSwitch(props: {
+  readonly view: View;
+  readonly onChange: (view: View) => void;
+}) {
+  return (
+    <div class="flex items-center gap-1">
+      <button
+        type="button"
+        class={SWITCH}
+        aria-pressed={props.view === "component"}
+        onClick={() => props.onChange("component")}
+      >
+        component
+      </button>
+      <button
+        type="button"
+        class={SWITCH}
+        aria-pressed={props.view === "code"}
+        onClick={() => props.onChange("code")}
+      >
+        code
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The copy control for one code block.
+ *
+ * What it puts on the clipboard is the block's own markup, formatted the way
+ * the block shows it — what is SHOWN is what is copied. It says so when it
+ * has done it, and then goes quiet, so the next block copied does not leave
+ * a stale claim behind.
+ */
+function CopyControl(props: { readonly markup: string }) {
+  const [copied, setCopied] = createSignal(false);
+  let copiedFor: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(copiedFor));
 
   async function copy(): Promise<void> {
     try {
-      // What is SHOWN is what is copied: the formatted string in the panel,
-      // not the fixture's source indentation beside it.
-      await navigator.clipboard.writeText(pre.textContent ?? "");
+      await navigator.clipboard.writeText(props.markup);
     } catch {
       // A clipboard the page cannot reach is a permission, not a failure to
       // report: nothing was copied, so nothing is claimed.
@@ -141,69 +259,13 @@ function ExampleSection(props: {
   }
 
   return (
-    <section class="mb-4">
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3 class="flex items-center gap-2 text-sm font-semibold">
-          <span class="block h-1 w-4 rounded-full bg-primary" />
-          {props.row.name}
-        </h3>
-        <div class={SEGMENT_GROUP} role="group" aria-label="Example view">
-          <button
-            type="button"
-            class={SEGMENT}
-            aria-current={tab() === "component" || undefined}
-            onClick={() => setTab("component")}
-          >
-            <i class="i-lucide-eye icon-md" aria-hidden="true" />
-            component
-          </button>
-          <button
-            type="button"
-            class={SEGMENT}
-            aria-current={tab() === "code" || undefined}
-            onClick={() => setTab("code")}
-          >
-            <i class="i-lucide-code-xml icon-md" aria-hidden="true" />
-            code
-          </button>
-        </div>
-      </div>
-      <div
-        class={`relative grid ${
-          measure ? SPECIMEN_MEASURE : "max-w-full"
-        } mx-auto`}
-      >
-        <pre
-          ref={pre}
-          class={`${CODE_PRE} col-start-1 row-start-1 ${
-            tab() === "code" ? "" : "hidden"
-          }`}
-          aria-hidden={tab() === "code" ? undefined : "true"}
-        >
-          <span class="text-lg break-all">
-            <For each={tokens()}>
-              {(token) => <span class={INK[token.kind]}>{token.text}</span>}
-            </For>
-          </span>
-        </pre>
-        <button type="button" onClick={copy} class={COPY_BUTTON}>
-          <i class="i-lucide-copy icon-md" aria-hidden="true" />
-          {copied() ? "copied" : "copy"}
-        </button>
-        <div
-          class={`${SPECIMEN_PANEL} col-start-1 row-start-1 ${
-            tab() === "component" ? "" : "hidden"
-          }`}
-          aria-hidden={tab() === "component" ? undefined : "true"}
-        >
-          <Specimen
-            html={props.row.html}
-            onLoad={props.onLoad}
-            measure={measure}
-          />
-        </div>
-      </div>
-    </section>
+    <button type="button" class={COPY_CONTROL} onClick={copy}>
+      <i
+        class={copied() ? "i-lucide-check icon-md" : "i-lucide-copy icon-md"}
+        aria-hidden="true"
+      />
+      {copied() ? "copied" : "copy"}
+    </button>
   );
 }
 
@@ -244,7 +306,7 @@ export default function ComponentPage() {
     () => params.name,
     (name) => primitivesTokens(name),
   );
-  // The contract carries what the list does not: the character tokens this
+  // The contract carries what the list does not: the component tokens this
   // component declares, as the manifest authors them.
   const [contract] = createResource(
     () => params.name,
@@ -286,14 +348,14 @@ export default function ComponentPage() {
   };
 
   /**
-   * Each declared character token with the theme's own word for it, or
+   * Each declared component token with the theme's own word for it, or
    * nothing where the theme is missing the path — which is the row that
    * offers creation, scaffolded from the manifest's own value. A ref
    * re-derives: an edit or a creation writes the document, and the row that
    * was a Create button comes back as the control that edits it.
    */
-  const character = createMemo(() => {
-    const declared = contract()?.character ?? [];
+  const componentTokens = createMemo(() => {
+    const declared = contract()?.component ?? [];
     const tree = analyzeTheme(themeText()).tree;
     return declared.map((entry) => ({
       entry,
@@ -303,7 +365,7 @@ export default function ComponentPage() {
     }));
   });
 
-  // A character token's slider ceiling is its FAMILY's — icon.sm beside
+  // A component token's slider ceiling is its FAMILY's — icon.sm beside
   // icon.md and icon.lg — so siblings share one track the way a scale's
   // steps do. Alone, the control takes headroom of its own. A family is
   // same-root and same-KIND: `button.weight` is a number and
@@ -311,10 +373,10 @@ export default function ComponentPage() {
   // turned a hundredth of an em into a seventy-five-em track.
   const siblingsFor = (path: string): readonly string[] | undefined => {
     const root = path.split(".")[0];
-    const own = character().find((c) => c.entry.path === path)?.row;
+    const own = componentTokens().find((c) => c.entry.path === path)?.row;
     const kind = own === undefined ? undefined : measure(own.value)?.kind;
     if (kind === undefined) return undefined;
-    const values = character()
+    const values = componentTokens()
       .filter((c) =>
         c.entry.path.split(".")[0] === root && c.row !== undefined &&
         measure(c.row.value)?.kind === kind
@@ -363,14 +425,14 @@ export default function ComponentPage() {
                 </p>
               </div>
               <div class="flex shrink-0 items-center gap-2">
-                <Show when={character().length > 0}>
+                <Show when={componentTokens().length > 0}>
                   <button
                     type="button"
                     class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text shadow-none hover:border-primary"
                     onClick={() => setShowTokens((v) => !v)}
                   >
-                    {showTokens() ? "hide" : "character tokens"}{" "}
-                    ({character().length})
+                    {showTokens() ? "hide" : "component tokens"}{" "}
+                    ({componentTokens().length})
                   </button>
                 </Show>
                 <span class="shrink-0 rounded-full border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
@@ -383,7 +445,7 @@ export default function ComponentPage() {
               {component.examples?.note ?? ""}
             </p>
 
-            <Show when={showTokens() && character().length > 0}>
+            <Show when={showTokens() && componentTokens().length > 0}>
               <div
                 class="fixed inset-0 z-40"
                 onClick={() => setShowTokens(false)}
@@ -393,10 +455,10 @@ export default function ComponentPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div class="mb-2 flex items-center justify-between">
-                    <h2 class="text-sm font-semibold">Character tokens</h2>
+                    <h2 class="text-sm font-semibold">Component tokens</h2>
                     <button
                       type="button"
-                      // `bare` takes the theme's button character back: the
+                      // `bare` takes the theme's button tokens back: the
                       // panel's close is a way out of the panel, not the
                       // loudest action in it. Without it the theme's own
                       // primary fill and hard shadow reach a control that
@@ -408,11 +470,11 @@ export default function ComponentPage() {
                     </button>
                   </div>
                   <p class="mb-2 text-xs text-text-muted">
-                    What this component declares as its own character — edited
-                    here, created here when the theme has never had to spell it.
+                    The tokens this component declares as its own — edited here,
+                    created here when the theme has never had to spell it.
                   </p>
                   <div class="stack-sm">
-                    <For each={character()}>
+                    <For each={componentTokens()}>
                       {(entry) =>
                         entry.row !== undefined
                           ? (
@@ -457,10 +519,7 @@ export default function ComponentPage() {
 
             <For each={rows()}>
               {(row) => (
-                <ExampleSection
-                  row={row}
-                  onLoad={component.examples?.onLoad}
-                />
+                <ExampleSection row={row} onLoad={component.examples?.onLoad} />
               )}
             </For>
 

@@ -58,6 +58,13 @@ export {
   requiredPaths,
   themeSchema,
 } from "./contract/roles.ts";
+export {
+  ELEMENT_ROLES,
+  elementFallback,
+  elementPaths,
+  elementRole,
+} from "./contract/elements.ts";
+export type { ElementDeclaration } from "./contract/elements.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export { STROBE_FLOOR_MS } from "./contract/motion.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";

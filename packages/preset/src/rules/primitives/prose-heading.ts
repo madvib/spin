@@ -2,8 +2,8 @@
  * Headings — `h1` through `h6`, global.
  *
  * A heading level is the element's own statement, so the tag claims the rule
- * and a page that wants the tags left alone turns prose off. The six share a
- * rhythm and differ in size, weight, and the level-one lead that opens a
+ * and a page that wants the tags left alone turns prose off. The six share
+ * the spacing and differ in size, weight, and the level-one lead that opens a
  * document.
  */
 
@@ -11,18 +11,23 @@ import {
   claim,
   type Mode,
   proseTokens,
-  rhythm,
+  spacing,
   type Tokens,
 } from "./shared.ts";
 import type { Rule } from "@unocss/core";
 
 /**
- * A heading: the scale step, the heading face, and the rhythm.
+ * A heading: the scale step, the heading face, and the spacing.
  *
  * The gap above a heading is what makes it read as a heading and the gap below
  * is what makes it read as attached to what follows, so the heading states its
  * own block start. The type declarations are the one thing that differs
  * between the six, and they arrive as a function of the tokens.
+ *
+ * The FACE is the theme's display voice, and it is the same for all six: a
+ * heading is a heading, and the six differ in scale, not in character. A
+ * theme that names no display voice falls back to its body face, so a heading
+ * never reads in a face the page does not read in.
  */
 function headingRule(
   mode: Mode,
@@ -35,7 +40,8 @@ function headingRule(
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
-        ...rhythm(t),
+        ...(t.heading !== undefined ? { "font-family": t.heading } : {}),
+        ...spacing(t),
         ...(t.spacing4 !== undefined
           ? { "margin-block-start": t.spacing4 }
           : {}),
@@ -54,7 +60,7 @@ function headingRules(mode: Mode): Rule[] {
       "line-height": "1.2",
       "letter-spacing": "-0.02em",
       // A heading level one leads the document, so its bottom gap is a step
-      // larger than the shared rhythm.
+      // larger than the shared spacing.
       ...(t.spacing4 !== undefined ? { "margin-block-end": t.spacing4 } : {}),
     })),
     headingRule(mode, "h2", (t) => ({

@@ -10,7 +10,7 @@ import { createSignal, For, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
-import { Logo, Mark } from "../mark.tsx";
+import { Logo, Mark } from "@spin/kit";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
 import { Console } from "../console.tsx";
 
@@ -26,6 +26,11 @@ const PAGES = [
     body: "Colors, modes, type — every starter side by side.",
   },
   {
+    href: "/themes",
+    title: "Themes",
+    body: "What a theme is, the starters, and how to write one.",
+  },
+  {
     href: "/components",
     title: "Components",
     body: "Every element, with live examples you can copy.",
@@ -33,7 +38,7 @@ const PAGES = [
 ];
 
 /** The landing's below-the-fold argument: one section, four layers,
- * progressive disclosure — the radios are the tabs primitive itself. */
+ * progressive disclosure — the platform's own disclosure does the work. */
 
 const TOKEN_JSON = `{
   "color": {
@@ -115,9 +120,9 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             theme: <code class="text-xs">bg-primary</code> is your primary,{" "}
             <code class="text-xs">p-4</code>{" "}
             is a step on your spacing scale, and hover and focus states come
-            from the same scale. The default theme alone generates 957 of them,
-            across color, spacing, type, layout, borders, shadows, and motion —
-            and the ones you never use are never generated.
+            from the same scale. The default theme alone generates every utility
+            it can, across color, spacing, type, layout, borders, shadows, and
+            motion — and the ones you never use are never generated.
           </p>
           <Code class="mt-4 text-xs" code={CARD_CODE} />
         </div>
@@ -151,8 +156,8 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
       <div class="grid gap-6 md:grid-cols-2">
         <div>
           <p class="m-0">
-            Thirty elements, for the parts of an interface that have behavior:
-            dialog, tabs, switch, checkbox, radio, select, range, rating,
+            The element library, for the parts of an interface that have
+            behavior: dialog, switch, checkbox, radio, select, range, rating,
             popover, table, progress, meter, disclosure, avatar, alert, badge,
             card, breadcrumbs, kbd — styled HTML, not widgets built from divs. A
             switch is a checkbox wearing{" "}
@@ -374,23 +379,14 @@ export default function Home(): JSX.Element {
                 second framework. Each layer reads the one below it, and you can
                 stop at any of them.
               </p>
-              <tabs>
-                <For each={layers()}>
-                  {(layer, i) => (
-                    <div>
-                      <label>
-                        <input
-                          type="radio"
-                          name="spin-layers"
-                          checked={i() === 0}
-                        />
-                        {layer.label}
-                      </label>
-                      <section class="pt-4">{layer.panel}</section>
-                    </div>
-                  )}
-                </For>
-              </tabs>
+              <For each={layers()}>
+                {(layer, i) => (
+                  <details open={i() === 0}>
+                    <summary>{layer.label}</summary>
+                    <div>{layer.panel}</div>
+                  </details>
+                )}
+              </For>
             </Section>
           </div>
         </Reveal>

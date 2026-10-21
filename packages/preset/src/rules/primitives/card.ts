@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+import { claim, type Mode, withFallback } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -91,12 +91,22 @@ type Tokens = {
   readonly shadow: string | undefined;
 };
 
+/**
+ * The card's own tokens, and the shared scales they fall back to.
+ *
+ * A card's corner, its air, its edge and its elevation are the CARD's
+ * decisions: a card is not a button, and a theme that squares its cards
+ * while rounding its buttons has said something. Each one falls back to the
+ * scale the card would otherwise wear, so a theme that says nothing about
+ * the card's corner gets the page's radius — the theme's answer, never the
+ * browser's.
+ */
 function cardTokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing: token(ctx, "spacing.4"),
-    radius: token(ctx, "radius.lg"),
+    spacing: withFallback(ctx, "card.padding", "spacing.4"),
+    radius: withFallback(ctx, "card.radius", "radius.md"),
     borderWidth: token(ctx, "border.width"),
-    border: token(ctx, "color.border"),
+    border: withFallback(ctx, "card.border", "color.border"),
     raised: token(ctx, "color.surface-raised"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
@@ -104,22 +114,22 @@ function cardTokens(ctx: ThemeContext | undefined): Tokens {
     sizeSm: token(ctx, "font.size.sm"),
     weightSemibold: token(ctx, "font.weight.semibold"),
 
-    shadow: token(ctx, "shadow.md"),
+    shadow: withFallback(ctx, "card.elevation", "shadow.md"),
   };
 }
 
 /**
  * The surface: a column with a gap, raised, rounded, bordered, and elevated.
  *
- * The shadow is the theme's own elevation scale (`shadow.md`), spent on the
- * surface and dropped when the theme states none — a card that sits on the
- * page rather than above it is a theme decision, not a default. The step is
- * the one for a surface resting ON the page; `shadow.lg` is for what floats
- * above it, and a theme that wants its cards louder states a louder `md`
- * rather than the card reaching for a bigger step. No transition is stated:
- * the card is a static surface with no state change of its own, so nothing
- * moves. A hover step is deliberately absent — a card is a container, not a
- * control, and the card-action child carries its own hover feedback.
+ * The shadow is the card's own (`card.elevation`), spent on the surface and
+ * dropped when the theme states none — a card that sits on the page rather
+ * than above it is a theme decision, not a default. The step the card would
+ * otherwise wear is the theme's resting one (`shadow.md`); a theme that
+ * wants its cards louder states a louder `card.elevation` rather than the
+ * card reaching for a bigger step. No transition is stated: the card is a
+ * static surface with no state change of its own, so nothing moves. A hover
+ * step is deliberately absent — a card is a container, not a control, and
+ * the card-action child carries its own hover feedback.
  */
 function cardSurface(card: string): Rule {
   return [
@@ -209,6 +219,10 @@ function cardDescription(mode: Mode): Rule {
  * The trailing slot. The auto inline-start margin is what pushes it to the
  * end of the header's row — the one value in card that is a keyword rather
  * than a token, because no theme states how far a header's action sits.
+ *
+ * It WRAPS, like the header it sits in: the slot holds controls, and a slot
+ * of controls that is wider than the card pushes them out of it. A card that
+ * cannot hold its own action is a card that is broken.
  */
 function cardAction(mode: Mode): Rule {
   return [
@@ -218,6 +232,7 @@ function cardAction(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-action"),
         display: "flex",
+        "flex-wrap": "wrap",
         "align-items": "center",
         "margin-inline-start": "auto",
         ...(spacing !== undefined ? { gap: spacing } : {}),
@@ -227,7 +242,7 @@ function cardAction(mode: Mode): Rule {
   ];
 }
 
-/** The body. Inline padding only — the surface owns the block rhythm. */
+/** The body. Inline padding only — the surface owns the block spacing. */
 function cardContent(mode: Mode): Rule {
   return [
     /^card-content$/,
@@ -248,7 +263,16 @@ function cardContent(mode: Mode): Rule {
   ];
 }
 
-/** The actions row. Closes the block padding the header and content opened. */
+/**
+ * The actions row. Closes the block padding the header and content opened.
+ *
+ * It WRAPS, and that is the whole of the fix. A card is a container and its
+ * footer is part of the card: the two buttons in a footer are the card's
+ * actions, and a footer that cannot hold them pushes them out of the surface
+ * they belong to. The width a footer's actions need is the theme's own type
+ * scale, so a theme with a wider scale would break every card in a narrow
+ * column — the row that wraps is what keeps the card whole in all of them.
+ */
 function cardFooter(mode: Mode): Rule {
   return [
     /^card-footer$/,
@@ -257,6 +281,7 @@ function cardFooter(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-footer"),
         display: "flex",
+        "flex-wrap": "wrap",
         "align-items": "center",
         ...(spacing !== undefined ? { gap: spacing } : {}),
         ...(spacing !== undefined
@@ -274,7 +299,7 @@ function cardFooter(mode: Mode): Rule {
 
 /**
  * The ghost: a card with no chrome. Transparent, borderless, flat — the
- * parts keep their rhythm but the surface disappears, for content that needs
+ * parts keep their spacing but the surface disappears, for content that needs
  * grouping without a box. An author picks ghost OR a size, never both: a
  * maximum width on an invisible surface is a constraint with nothing to
  * constrain.

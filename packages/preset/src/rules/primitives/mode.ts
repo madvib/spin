@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+import { claim, disabledPosture, type Mode } from "./shared.ts";
 
 /**
  * Mode switch — one button that cycles a theme's modes.
@@ -57,11 +57,12 @@ function modeDisabled(mode: Mode): Rule {
             claim(mode, "button")
           }.mode[aria-disabled="true"]`,
         // A disabled switcher is a statement, not a control: the theme
-        // serves one mode, so there is nothing to cycle. Opacity says
-        // inert, the a11y layer's cursor says unusable, and the element
-        // stays in the tree for a reader who tabs to it and wants to know
-        // why it does nothing.
-        opacity: token(ctx, "opacity.40") ?? 0.4,
+        // serves one mode, so there is nothing to cycle. It wears the
+        // posture every dead control wears — the theme's disabled fill and
+        // the ink that reads on it — and the a11y layer's cursor says
+        // unusable, and the element stays in the tree for a reader who tabs
+        // to it and wants to know why it does nothing.
+        ...disabledPosture(ctx),
       };
     },
     { layer: "primitives", autocomplete: "mode" },

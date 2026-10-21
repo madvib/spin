@@ -52,10 +52,10 @@ function workingTreeDocument(): ThemeDocument {
 /**
  * The working fixture with one group's tokens extended.
  *
- * The shared fixture stays silent on the character scales on purpose — the
- * fallback tests below depend on it — so a test that needs a theme to STATE
- * a step builds its own document from this, rather than teaching the fixture
- * a step and flipping half the suite.
+ * The shared fixture stays silent on the component token groups on purpose —
+ * the fallback tests below depend on it — so a test that needs a theme to
+ * STATE a step builds its own document from this, rather than teaching the
+ * fixture a step and flipping half the suite.
  */
 function withGroup(
   group: string,
@@ -390,6 +390,8 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
       },
       "on-primary": { $value: "#fff" },
       "on-semantic-error": { $value: "#fff" },
+      disabled: { $value: "#eee" },
+      "on-disabled": { $value: "#333" },
       "focus-ring": { $value: "{color.primary}" },
       "link": { $value: "{color.primary}" },
     },
@@ -448,6 +450,8 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
       },
       "on-primary": { $value: "#000" },
       "on-semantic-error": { $value: "#000" },
+      disabled: { $value: "#222" },
+      "on-disabled": { $value: "#94a3b8" },
       "focus-ring": { $value: "{color.primary}" },
       "link": { $value: "{color.primary}" },
     },

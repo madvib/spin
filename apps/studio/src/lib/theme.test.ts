@@ -79,7 +79,7 @@ Deno.test("applyEdits drops a dark override that says what the base says", () =>
 });
 
 Deno.test("createToken inserts a token the document does not have yet", () => {
-  // The path may stand on groups nobody wrote: a component's character token
+  // The path may stand on groups nobody wrote: a component token
   // (`button.weight`) belongs to a vocabulary the manifest declares and the
   // theme has never had to spell. Creation builds what the path needs and
   // lands the type with the value, so the token is spendable at once.
@@ -128,7 +128,7 @@ Deno.test("an edit lands as the JSON type the token already holds", () => {
 });
 
 Deno.test("a creation lands its scaffold as the type it declares", () => {
-  // A character token's scaffold crosses from the manifest as text; the
+  // A component token's scaffold crosses from the manifest as text; the
   // declared type is what makes it JSON. `checkbox.depth` is a number, and
   // a number written as `"1"` stops comparing like one.
   const boolean = JSON.parse(

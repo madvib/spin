@@ -3,9 +3,9 @@ import { primitiveContracts } from "./primitives/manifest.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 
 /**
- * Component character tokens, spent as utilities.
+ * Component tokens, spent as utilities.
  *
- * A component's character tokens are a customisation axis, not a parallel
+ * A component's own tokens are a customisation axis, not a parallel
  * vocabulary: `button.weight` is spent as `button-weight`, reading the same
  * `theme.button.weight` the preflight emitted. The utility is the component
  * root plus the step the theme declared — never a hardcoded list per
@@ -21,9 +21,9 @@ import { named, type ThemeContext } from "../utils/lookup.ts";
  */
 export function componentRules(roots: readonly string[]): Rule[] {
   return roots.flatMap((root): Rule[] => {
-    const character = primitiveContracts[root]?.character ?? [];
+    const component = primitiveContracts[root]?.component ?? [];
     const typeByStep: Record<string, string> = {};
-    for (const token of character) {
+    for (const token of component) {
       const step = stepOf(root, token.path);
       if (step !== undefined) typeByStep[step] = token.type;
     }

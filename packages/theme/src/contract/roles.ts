@@ -12,6 +12,7 @@ import { Type } from "@sinclair/typebox";
 import type { TSchema } from "@sinclair/typebox";
 import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
+import { ELEMENT_ROLES } from "./elements.ts";
 
 /** A contrast requirement between two roles, in WCAG terms. */
 export interface LegibilityFloor {
@@ -149,9 +150,10 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
   {
     // One ink, one name: the semantic fills pair with `on-semantic-*`, and a
     // second `on-danger` for the same red made two answers to one question
-    // while the starters disagreed on which was right. `color.on-danger` is
-    // therefore a legacy alias a theme may keep declaring; the domain's
-    // answer for "what goes on this fill?" is the `on-semantic-*` step.
+    // while the starters disagreed on which was right. The danger button and
+    // the danger badge spend THIS role, so the ink a scaffold writes is the
+    // ink the surfaces wear. `color.on-danger` is a legacy alias a theme may
+    // keep declaring; nothing reads it.
     path: "color.on-semantic-error",
     type: "color",
     value: "#ffffff",
@@ -161,6 +163,29 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
       bg: "color.semantic.error",
       min: 4.5,
     },
+  },
+  {
+    // The fill a dead control wears, and the ink that reads on it. A
+    // disabled control is not a dimmer control: dimming spends opacity on
+    // the WHOLE element, so the ink dims with the fill and a white label on
+    // a blue button lands at 1.56:1 — a button nobody can read. The pair
+    // keeps a dead control legible, which is the whole point of pairing
+    // every fill with an ink.
+    path: "color.disabled",
+    type: "color",
+    value: "#e0e0e0",
+    doc: "The fill a dead control wears.",
+    floor: {
+      fg: "color.on-disabled",
+      bg: "color.disabled",
+      min: 4.5,
+    },
+  },
+  {
+    path: "color.on-disabled",
+    type: "color",
+    value: "#3a3a3a",
+    doc: "The ink on a dead control's fill.",
   },
   {
     // Non-text indicator, so it needs the 3:1 floor rather than the text floor
@@ -247,14 +272,14 @@ const TokenTypeSchema = Type.Union(
 );
 
 /** One declared token: a value, optionally typed at the group level. */
-function leafSchema(role: RoleDeclaration) {
+function leafSchema(doc: string) {
   return Type.Object(
     {
       $value: Type.Unknown(),
       $type: Type.Optional(TokenTypeSchema),
       $description: Type.Optional(Type.String()),
     },
-    { additionalProperties: true, description: role.doc },
+    { additionalProperties: true, description: doc },
   );
 }
 
@@ -270,7 +295,15 @@ function leafSchema(role: RoleDeclaration) {
 export function themeSchema(): Record<string, unknown> {
   const properties: Record<string, TSchema> = {};
   for (const [group, paths] of Object.entries(groupedPaths())) {
-    properties[group] = groupSchema(paths);
+    properties[group] = groupSchema(paths, false);
+  }
+  // The per-element groups are known to the contract, so the schema says what
+  // they hold — but they are OPTIONAL: a theme that declares none of them is
+  // complete, and the rules fall back to the shared scales. What the schema
+  // must not do is require a group nothing demands, or make a theme that
+  // omits one invalid for the sake of a decision it never made.
+  for (const [group, paths] of Object.entries(elementGroupPaths())) {
+    properties[group] = groupSchema(paths, true);
   }
   // `modes` is document metadata, not a token: it sits at the root beside
   // the groups and no emitter reads it. `additionalProperties` would already
@@ -278,7 +311,8 @@ export function themeSchema(): Record<string, unknown> {
   // listed — and constrained to the two modes the pipeline understands.
   properties["modes"] = Type.Optional(
     Type.Array(Type.Union([Type.Literal("light"), Type.Literal("dark")]), {
-      description: "The modes this theme serves.",
+      description:
+        "The modes this theme serves. A mode the theme serves but does not override falls back to the base values.",
     }),
   );
   return {
@@ -299,6 +333,15 @@ function groupedPaths(): Record<string, string[]> {
   return out;
 }
 
+/** The per-element paths, grouped by the group they live in. */
+function elementGroupPaths(): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const role of ELEMENT_ROLES) {
+    (out[role.group] ??= []).push(role.path);
+  }
+  return out;
+}
+
 /**
  * A group before conversion: either a nested group or a finished leaf.
  *
@@ -309,8 +352,9 @@ function groupedPaths(): Record<string, string[]> {
 type GroupShape = { [segment: string]: TSchema | GroupShape };
 
 /** The nested schema for one token group, built from its role paths. */
-function groupSchema(paths: string[]): TSchema {
+function groupSchema(paths: string[], optional: boolean): TSchema {
   const byRole = new Map(BASE_ROLES.map((role) => [role.path, role]));
+  const byElement = new Map(ELEMENT_ROLES.map((role) => [role.path, role]));
   const shape: GroupShape = {};
   for (const path of paths) {
     const segments = path.split(".");
@@ -323,8 +367,14 @@ function groupSchema(paths: string[]): TSchema {
         : (level[segment] = {}) as GroupShape;
     }
     const role = byRole.get(path);
-    if (role) {
-      level[segments[segments.length - 1] as string] = leafSchema(role);
+    const element = byElement.get(path);
+    if (role !== undefined) {
+      level[segments[segments.length - 1] as string] = leafSchema(role.doc);
+    } else if (element !== undefined) {
+      const leaf = leafSchema(element.doc);
+      level[segments[segments.length - 1] as string] = optional
+        ? Type.Optional(leaf)
+        : leaf;
     }
   }
   return toSchema(shape);

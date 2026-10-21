@@ -1,4 +1,4 @@
-import { createGenerator, type Preset } from "@unocss/core";
+import { createGenerator, type Preset, type UserShortcuts } from "@unocss/core";
 import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
@@ -238,6 +238,21 @@ export interface SpinPluginOptions {
   readonly themes?: Record<string, ThemeDocument>;
   /** Presets to compose alongside ours — icons are the usual reason. */
   readonly presets?: readonly Preset[];
+  /**
+   * The project's own shortcuts — Uno's `shortcuts` option, unchanged.
+   *
+   * A shortcut is a named composition: one class that stands for a set of
+   * utilities. The compositions an app repeats are the app's own decision,
+   * so they belong to the app's configuration rather than to the framework —
+   * and spin does not forbid them. What they spend is still the theme's: a
+   * shortcut that says `gap-4` spends the theme's spacing step, so a theme
+   * that prefers roomier sections sets it once.
+   *
+   * The declaration is an object literal, and it is read as one: the lint
+   * reads the same declaration out of the same configuration, so a class the
+   * app declares is a class the lint knows.
+   */
+  readonly shortcuts?: UserShortcuts;
   /** What to scan. See `ContentOptions`. */
   readonly content?: ContentOptions;
   /** Safelist the catalog so a utility named only as data still resolves. */
@@ -388,7 +403,10 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
     // the browser graph stays clean because index.ts carries no `node:`.
     const generator = await createGenerator({
       envMode,
-      presets: [...(options.presets ?? []), spinPreset({ themes })],
+      presets: [
+        ...(options.presets ?? []),
+        spinPreset({ themes, shortcuts: options.shortcuts }),
+      ],
       safelist: options.safelist === false ? undefined : safelist,
     });
     const scanned = await generator.generate(cachedSources);

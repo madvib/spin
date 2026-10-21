@@ -1,7 +1,6 @@
 {
   "$extensions": {
     "spin": {
-      "id": "silk",
       "fonts": [
         {
           "family": "Inter",
@@ -190,13 +189,6 @@
         "dark": "#111923"
       }
     },
-    "on-danger": {
-      "$value": "#ffffff",
-      "$type": "color",
-      "$modes": {
-        "dark": "#111923"
-      }
-    },
     "focus-ring": {
       "$value": "#1c62c2",
       "$modes": {
@@ -262,12 +254,32 @@
         "dark": "#111923"
       }
     },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
+    },
     "on-semantic-info": {
       "$type": "color",
       "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
       "$modes": {
         "dark": "#111923"
+      }
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: the ramp one step off the page, so a control that cannot be pressed still reads as a control rather than as a hole in the layout.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill. Dimming the control instead would dim this with it, which is how a dead button becomes an unreadable one.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
       }
     }
   },
@@ -562,7 +574,7 @@
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
@@ -641,7 +653,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
@@ -667,7 +679,7 @@
       "$value": 1.5
     }
   },
-  "$description": "Carries a `dark` group, so this one theme answers to both modes.",
+  "$description": "A cool grey-blue surface and one confident blue: quiet, considered, and the same judgement in daylight and after dark.",
   "avatar": {
     "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
     "sm": {
@@ -684,6 +696,104 @@
       "$type": "dimension",
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "card": {
+    "$description": "The card's own decisions: its corner, the air inside it, the ink of its edge, and the elevation it rests at. A card is not a button, and need not round the same way.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.lg}",
+      "$description": "The large step: a card is a big quiet thing, and a big quiet thing rounds a little more than a control does."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air inside the card, between its parts and around its edge."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here."
+    },
+    "elevation": {
+      "$type": "shadow",
+      "$value": "{shadow.md}",
+      "$description": "The theme's resting step: a card sits on the page rather than floating above it."
+    }
+  },
+  "alert": {
+    "$description": "The alert's own decisions: its corner, the air around its message, and the ink of the hairline it wears.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner: a message is a box, and a box is not a pill."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.2}",
+      "$description": "The air above and below the message."
+    },
+    "padding-inline": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air beside the message, where it is read."
+    },
+    "edge": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them."
+    }
+  },
+  "field": {
+    "$description": "The field's own decisions: its corner and the ink of its edge.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border-strong}",
+      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
+    }
+  },
+  "stat": {
+    "$description": "The stat's own decisions: the number it shows, and how that number is set.",
+    "value-size": {
+      "$type": "dimension",
+      "$value": "{font.size.2xl}",
+      "$description": "The size of the number: the large step of the type scale, because the number is the point of the stat."
+    },
+    "value-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    }
+  },
+  "table": {
+    "$description": "The table's own decisions: the weight of a column's heading, the ink of the rule under a row, and the fill a striped row wears.",
+    "header-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of a heading: heavier than the row beneath it, so the column names itself."
+    },
+    "rule": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the rule under a row: the page's hairline."
+    },
+    "zebra": {
+      "$type": "color",
+      "$value": "{color.surface-sunken}",
+      "$description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table."
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it.",
+    "underline": {
+      "$type": "dimension",
+      "$value": "0.0625em",
+      "$description": "A hair, one pixel at the body size: a link is found without being shouted at."
     }
   },
   "modes": [

@@ -39,8 +39,8 @@ export async function listPrimitives(): Promise<readonly RpcComponent[]> {
   return listed as readonly RpcComponent[];
 }
 
-/** One character token a component declares: its path, type, scaffold value. */
-export interface RpcCharacter {
+/** One component token a component declares: its path, type, scaffold value. */
+export interface RpcComponentToken {
   readonly path: string;
   readonly type: string;
   /** What the token starts at — a manifest default, sometimes a reference
@@ -48,16 +48,16 @@ export interface RpcCharacter {
   readonly value: string;
 }
 
-/** One component's contract: vocabulary, reads, and its character tokens. */
+/** One component's contract: vocabulary, reads, and its component tokens. */
 export interface RpcContract {
   readonly tags: readonly string[];
   readonly variants: readonly string[];
   readonly reads: readonly string[];
-  readonly character: readonly RpcCharacter[];
+  readonly component: readonly RpcComponentToken[];
 }
 
 /**
- * A component's contract in one call — chiefly the character axis, which
+ * A component's contract in one call — chiefly the component-token axis, which
  * `primitives.list` does not carry: the manifest's authored idea of what
  * `button.weight` starts at, so the component page can offer to CREATE the
  * token in themes that do not have it yet, scaffolded as authored.

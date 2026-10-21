@@ -22,21 +22,19 @@ export default defineConfig({
     spin.vite({
       presets: [presetIcons({ collections: { lucide } as never })],
       apiBase: "/__spin",
-      // While building the studio itself: load it from its own dev server, so
-      // an edit there reloads the overlay instead of needing a rebuild, a
-      // restart and a cache clear.  in apps/studio on 5195.
+      // The studio, while it is being worked on. SPIN_STUDIO_DEV points at
+      // the studio's own dev server (the one in apps/studio), and the
+      // overlay's frame loads it from there: an edit in the studio reloads
+      // the frame, instead of needing a rebuild, a restart and a cache clear.
+      // Without it the frame loads the built bundle mounted beside the API —
+      // the studio in apps/studio/dist — and editing the studio is a rebuild,
+      // a restart and a cache clear per change.
       ...(process.env.SPIN_STUDIO_DEV !== undefined
         ? { studioUrl: process.env.SPIN_STUDIO_DEV }
         : {}),
       mount: mountSpinApp(here, {
         studioDir: resolve(here, "../../apps/studio/dist"),
       }),
-      // A studio checkout on its own dev server, proxied with its hot
-      // socket. Without this the mounted studio is a built bundle, so
-      // editing it is a rebuild, a restart and a cache clear per change.
-      ...(process.env.SPIN_STUDIO_DEV !== undefined
-        ? { studioDev: process.env.SPIN_STUDIO_DEV }
-        : {}),
       content: {
         filesystem: ["src/**/*.{tsx,ts}"],
         pipeline: {

@@ -1,4 +1,5 @@
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
+import type { ThemeTokenPath } from "@spin/theme/theme-types";
 
 /**
  * How a primitive claims its element.
@@ -23,26 +24,56 @@ export function claim(mode: Mode, tag: string): string {
 }
 
 /**
- * Spend a component's character tokens, reading each from the theme.
+ * Spend a component's component tokens, reading each from the theme.
  *
  * A token the theme does not declare is omitted rather than emitted as an
  * invalid `var()` — the declaration falls through to the cascade either way,
  * and omitting it keeps the rule honest about what the theme actually said.
+ *
+ * A step with a FALLBACK is the exception, and the fallback is a path into
+ * the theme's own scales: a control that inherits the browser's default is a
+ * control the theme never dressed, and the theme has the answer — the type
+ * scale's semibold, say. The path is typed, so a fallback that names a
+ * token nobody declares is a compile error rather than a silent nothing.
  */
 export function spend(
   ctx: ThemeContext | undefined,
   group: string,
   properties: Record<string, string>,
+  fallbacks: Record<string, ThemeTokenPath | undefined>,
   ...steps: string[]
 ): Record<string, string> {
   const out: Record<string, string> = {};
   for (const step of steps) {
-    const value = named(ctx, group, step);
+    const fallback = fallbacks[step];
+    // The fallback is read on its own — not inside the `??` — so the
+    // derivation that records what a rule spends sees it: a token the rule
+    // only reaches when the theme is silent is still a token the rule spends.
+    const shared = fallback === undefined ? undefined : token(ctx, fallback);
+    const value = named(ctx, group, step) ?? shared;
     if (value === undefined) continue;
     const property = properties[step];
     if (property !== undefined) out[property] = value;
   }
   return out;
+}
+
+/**
+ * A token a component spends, and the shared scale it falls back to.
+ *
+ * The fallback is read on its own — not inside the `??` — so the derivation
+ * that records what a rule spends sees both. A token the rule only reaches
+ * when the theme is silent is still a token the rule spends, and a manifest
+ * that leaves it out is a manifest that understates the contract.
+ */
+export function withFallback(
+  ctx: ThemeContext | undefined,
+  path: ThemeTokenPath,
+  fallback: ThemeTokenPath,
+): string | undefined {
+  const value = token(ctx, path);
+  const shared = token(ctx, fallback);
+  return value ?? shared;
 }
 
 /**
@@ -58,6 +89,52 @@ export function spentEntries(
   return Object.entries(declarations) as [string, string][];
 }
 
+/* ---------------------------------------------------------------- disabled --
+ *
+ * What a control wears when it cannot be used.
+ */
+
+/**
+ * The posture a dead control wears.
+ *
+ * A disabled control is not a dimmer control. Dimming spends opacity on the
+ * WHOLE element, so the ink dims with the fill: a white label on a blue
+ * button at half strength measures 1.56:1 — a button nobody can read, in the
+ * one state a reader is most likely to reach for by mistake.
+ *
+ * The posture is a PAIR, and the theme states both halves — the fill a dead
+ * control wears, and the ink that reads on it — so a dead control is muted
+ * and still legible. The edge is part of the posture: a dead control is
+ * drawn in the same ink as its label, so it reads as one object rather than
+ * as a label with a box around it.
+ *
+ * A theme that states neither role paints no posture at all: the rule then
+ * says nothing about the dead state, which is the same answer the rest of
+ * the system gives for a token a theme does not declare.
+ */
+export function disabledPosture(
+  ctx: ThemeContext | undefined,
+): Record<string, string | undefined> {
+  const fill = token(ctx, "color.disabled");
+  const ink = token(ctx, "color.on-disabled");
+  return {
+    ...(fill !== undefined ? { "background-color": fill } : {}),
+    ...(ink !== undefined ? { color: ink, "border-color": ink } : {}),
+  };
+}
+
+/**
+ * The states a LIVE control can be in.
+ *
+ * `:disabled` and `aria-disabled` are the same fact said two ways: the
+ * attribute for a control the platform has switched off, the ARIA state for
+ * one an application has switched off itself. A control that says it is dead
+ * must not answer the pointer, the press or the keyboard either — a dead
+ * button that lifts on hover, or that grows a focus ring, says the opposite
+ * of what it is.
+ */
+export const ALIVE = ':not(:disabled):not([aria-disabled="true"])';
+
 /**
  * A CSS entry, stated as a tuple rather than inferred.
  *
@@ -70,7 +147,7 @@ export type Entry = [property: string, value: string | undefined];
 
 /* -------------------------------------------------------------------- prose --
  *
- * The typography every prose rule spends, and the rhythm they share.
+ * The typography every prose rule spends, and the spacing they share.
  *
  * These live here rather than in `prose.ts` because all four prose files read
  * them and `prose.ts` imports those four — so anything prose.ts exported was a
@@ -159,7 +236,14 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
   };
 }
 
-export function rhythm(t: Tokens): Record<string, string | undefined> {
+/**
+ * The space a block leaves under itself.
+ *
+ * The block's own top margin is zeroed, so the space between two blocks is
+ * the one the theme states and nothing else: the space a heading leaves under
+ * it is the space a paragraph leaves under it.
+ */
+export function spacing(t: Tokens): Record<string, string | undefined> {
   return {
     "margin-block-start": "0",
     ...(t.spacing2 !== undefined ? { "margin-block-end": t.spacing2 } : {}),

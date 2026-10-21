@@ -106,7 +106,7 @@ const TONES: ReadonlyArray<{
   { name: "accent", fill: "accent", on: "on-accent" },
   { name: "success", fill: "semantic-success", on: "on-semantic-success" },
   { name: "warning", fill: "semantic-warning", on: "on-semantic-warning" },
-  { name: "danger", fill: "semantic-error", on: "on-danger" },
+  { name: "danger", fill: "semantic-error", on: "on-semantic-error" },
 ];
 
 function badgeTones(mode: Mode): Rule[] {

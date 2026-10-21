@@ -7,17 +7,33 @@ import {
   Show,
 } from "solid-js";
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
-import { describeCatalog } from "@spin/preset";
+import {
+  describeCatalog,
+  primitiveCategories,
+  primitiveElements,
+} from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes, themeModes } from "@spin/theme/themes";
-import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
+import { MontagePage } from "./montage.tsx";
+import { PRIMITIVES } from "./primitives.ts";
+import { MONTAGE_ROUTE } from "./routes.ts";
+import { THEMES } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
 import type { Accessor } from "solid-js";
 import type { TokenTree } from "@spin/theme";
 
-const THEMES = Object.keys(starterThemes);
+/**
+ * The glyph each element wears, keyed by the element's name.
+ *
+ * The taxonomy lives with the elements it files, in the preset: the studio's
+ * rail and the docs' gallery read the same one, so a row cannot be drawn
+ * here with one glyph and drawn elsewhere with another.
+ */
+const ICONS: Readonly<Record<string, string>> = Object.fromEntries(
+  primitiveElements.map((element) => [element.name, element.icon]),
+);
 
 let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
@@ -91,8 +107,8 @@ function useTheme() {
 }
 
 /**
- * The utilities/primitives switch, and the specimen's segmented toggle. Both
- * are one shape: a bordered group of two, where unselected is a hole —
+ * The utilities/primitives/themes switch, and the specimen's segmented
+ * toggle. Both are one shape: a bordered group, where unselected is a hole —
  * transparent edge, transparent fill, muted ink — so the selected one is the
  * only thing drawn: raised surface, strong edge, full ink and a step of
  * weight. A hover that painted the text token would put text on text in
@@ -258,11 +274,12 @@ const SPECIMEN_PANEL =
  * component is laid over — so the section's height is decided by measurement
  * rather than by whichever view happens to be showing.
  *
- * It WRAPS. The primitive layer already pins `overflow-x` on a bare `<pre>`,
- * which is what let an example's inline data URI — a 4KB face as one unbroken
- * token — widen the page to seven thousand pixels instead of scrolling in
- * its own box: a scroller only contains what it is GIVEN, and a min-content
- * chain with one unbreakable line refuses to shrink. So the block takes
+ * It WRAPS. A code block's chrome belongs to the document column it sits in,
+ * so a bare `<pre>` here brings its own: `overflow-x` is what let an
+ * example's inline data URI — a 4KB face as one unbroken token — widen the
+ * page to seven thousand pixels instead of scrolling in its own box: a
+ * scroller only contains what it is GIVEN, and a min-content chain with one
+ * unbreakable line refuses to shrink. So the block takes
  * `whitespace-pre-wrap` and the tokens `break-all`, and the scrollbar has
  * nothing left to do — it stays as the floor for the one line that somehow
  * still cannot break.
@@ -840,7 +857,7 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
         <>
           <header class="mb-8 flex items-start justify-between gap-4">
             <div class="flex items-start gap-2">
-              <i class={`${PRIMITIVE_ICONS[f().id]} ${TITLE_ICON}`} />
+              <i class={`${ICONS[f().id]} ${TITLE_ICON}`} />
               <div>
                 <h2 class="m-0 text-2xl font-bold tracking-tight">
                   {f().title}
@@ -882,7 +899,7 @@ function FeaturedSpecimen(props: { id: string }) {
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
-        <i class={`${PRIMITIVE_ICONS[props.id]} icon-md text-text-muted`} />
+        <i class={`${ICONS[props.id]} icon-md text-text-muted`} />
         <h4 class="m-0 text-sm font-semibold text-text">{page.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
@@ -916,7 +933,7 @@ function IndexRow(props: { id: string }) {
       class="flex w-full items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2 text-left shadow-sm hover:border-border-strong"
     >
       <i
-        class={`${PRIMITIVE_ICONS[props.id]} icon-md shrink-0 text-text-muted`}
+        class={`${ICONS[props.id]} icon-md shrink-0 text-text-muted`}
       />
       <span class="min-w-0 flex-1 truncate text-sm text-text">
         {page.title}
@@ -1118,6 +1135,10 @@ function Rail(props: {
 }) {
   const needle = createMemo(() => props.query().trim().toLowerCase());
   const utilities = () => props.route().startsWith("/utilities");
+  // The montage is a page of the app, not a surface of components: it holds
+  // every theme side by side, so the rail's list has nothing to say about it
+  // and the switch is the only thing that moves.
+  const montage = () => props.route().startsWith(MONTAGE_ROUTE);
 
   const components = createMemo(() =>
     PRIMITIVES.filter((page) => page.title.toLowerCase().includes(needle()))
@@ -1157,16 +1178,17 @@ function Rail(props: {
         // that go nowhere.
         rows: [],
       }))
-      : CATEGORIES
+      : primitiveCategories
         .map((cat) => ({
           label: cat.label,
-          rows: cat.members
-            .map((id) => byId().get(id))
+          rows: primitiveElements
+            .filter((element) => element.category === cat.id)
+            .map((element) => byId().get(element.name))
             .filter((page) => page !== undefined)
             .map((page) => ({
               id: page.id,
               title: page.title,
-              icon: PRIMITIVE_ICONS[page.id],
+              icon: ICONS[page.id],
             })),
         }))
         .filter((group) => group.rows.length > 0)
@@ -1195,37 +1217,55 @@ function Rail(props: {
           <button
             type="button"
             onClick={() => (location.hash = "#/components")}
-            aria-current={!utilities() || undefined}
+            aria-current={!utilities() && !montage() || undefined}
             class={SURFACE_LINK}
           >
             primitives
           </button>
+          <button
+            type="button"
+            onClick={() => (location.hash = `#${MONTAGE_ROUTE}`)}
+            aria-current={montage() || undefined}
+            class={SURFACE_LINK}
+          >
+            themes
+          </button>
         </div>
-        <label class={SEARCH_FIELD}>
-          <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
-          <input
-            type="search"
-            value={props.query()}
-            onInput={(event) => props.setQuery(event.currentTarget.value)}
-            aria-label="Filter the rail"
-            class={SEARCH_INPUT}
-          />
-        </label>
+        <Show when={!montage()}>
+          <label class={SEARCH_FIELD}>
+            <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
+            <input
+              type="search"
+              value={props.query()}
+              onInput={(event) => props.setQuery(event.currentTarget.value)}
+              aria-label="Filter the rail"
+              class={SEARCH_INPUT}
+            />
+          </label>
+        </Show>
       </div>
       <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         <div class={RAIL_HEAD}>
-          <span>{utilities() ? "sections" : "components"}</span>
+          <span>
+            {montage() ? "themes" : utilities() ? "sections" : "components"}
+          </span>
           <span class="font-mono text-xs font-regular">
-            {needle() === "" ? `${total()}` : `${shown()} of ${total()}`}
+            {montage()
+              ? `${THEMES.length}`
+              : needle() === ""
+              ? `${total()}`
+              : `${shown()} of ${total()}`}
           </span>
         </div>
         <Show
-          when={groups().length > 0}
+          when={!montage() && groups().length > 0}
           fallback={
             <p class={RAIL_EMPTY}>
-              {`No ${
-                utilities() ? "section" : "component"
-              } matches “${props.query()}”.`}
+              {montage()
+                ? "Every starter theme, side by side. The page compares them."
+                : `No ${
+                  utilities() ? "section" : "component"
+                } matches “${props.query()}”.`}
             </p>
           }
         >
@@ -1326,8 +1366,9 @@ export default function App() {
   });
   const utilities = createMemo(() => route().startsWith("/utilities"));
   const sectionId = createMemo(() => routeSection(route()));
+  const montage = createMemo(() => route().startsWith(MONTAGE_ROUTE));
   const landing = createMemo(
-    () => primitiveId() === undefined && !utilities(),
+    () => primitiveId() === undefined && !utilities() && !montage(),
   );
 
   return (
@@ -1364,6 +1405,9 @@ export default function App() {
             <Show when={sectionId() !== ""} fallback={<UtilitiesLanding />}>
               <UtilitiesPage group={sectionId()} />
             </Show>
+          </Show>
+          <Show when={montage()}>
+            <MontagePage />
           </Show>
         </main>
       </div>

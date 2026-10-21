@@ -1,5 +1,10 @@
-import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
-import type { TokenTree, ValidationIssue } from "@spin/theme";
+import {
+  parseTokens,
+  requiredPaths,
+  validateLegibility,
+  validateTokens,
+} from "@spin/theme";
+import type { Mode, TokenTree, ValidationIssue } from "@spin/theme";
 
 export interface ThemeState {
   tree: TokenTree | undefined;
@@ -28,9 +33,126 @@ export function analyzeTheme(text: string): ThemeState {
   }
   const parsed = parseTokens(doc);
   if (!parsed.ok) return { tree: undefined, error: parsed.error, issues: [] };
-  const report = validateTokens(parsed.tree);
+  // The required roles, because the daemon judges the document by them: the
+  // preset refuses a theme that is missing one, and a panel that said
+  // "nothing to report" about such a theme was answering a weaker question
+  // than the one the preview asks. The roles are the theme package's, so
+  // the studio and the daemon cannot disagree about what a theme owes.
+  const report = validateTokens(parsed.tree, { required: requiredPaths() });
   const issues = [...report.issues, ...validateLegibility(parsed.tree)];
   return { tree: parsed.tree, error: undefined, issues };
+}
+
+/**
+ * The modes a document declares.
+ *
+ * `modes` is metadata at the document's root: the modes the theme serves.
+ * A document that declares none serves both — the pair is the system's own
+ * default — and a document that cannot be read at all is caught by the
+ * parse, not by the mode list.
+ */
+export function declaredModes(text: string): Mode[] {
+  try {
+    const doc = JSON.parse(text) as Record<string, unknown>;
+    const modes = doc["modes"];
+    if (
+      Array.isArray(modes) &&
+      modes.length > 0 &&
+      modes.every((mode) => mode === "light" || mode === "dark")
+    ) {
+      return modes as Mode[];
+    }
+  } catch {
+    return ["light", "dark"];
+  }
+  return ["light", "dark"];
+}
+
+/**
+ * The mode a theme can be shown in.
+ *
+ * The theme's constraint and the author's choice, in that order: a theme
+ * that serves the chosen mode wears it, and a theme that does not wears its
+ * own first mode. The choice itself is not spent by the clamp — it is the
+ * mode the studio comes back to when a theme that serves it is seated
+ * again, so a theme that serves one mode cannot cost the author the other.
+ */
+export function resolveMode(
+  modes: readonly Mode[],
+  wanted: Mode,
+): Mode {
+  if (modes.includes(wanted)) return wanted;
+  return modes[0] ?? "light";
+}
+
+/**
+ * What the studio knows about a theme's file.
+ *
+ * Three texts, three answers. `unsaved` is the author's own: the editor
+ * holds edits the file does not. `changed` is the world's: the file holds
+ * something the studio did not write. `saved` is the only state where the
+ * editor, the studio's last write and the file all say the same thing — so
+ * it is the only state in which the studio may claim to be saved.
+ *
+ * The world's answer comes first, because the world's is the one that
+ * bites: a file that moved under the studio refuses the save that would
+ * overwrite it, and that refusal has to be visible even while the author
+ * holds edits of their own.
+ */
+export type FileState = "saved" | "unsaved" | "changed";
+
+/**
+ * What the studio knows about a theme's file, from three texts.
+ *
+ * The edited text, the last written text, and the text the file holds.
+ * Pure, so the rule can be read — and tested — without a browser: the
+ * studio's own state is the input, and the answer is the same wherever it
+ * is asked.
+ */
+export function fileState(
+  edited: string | undefined,
+  written: string | undefined,
+  onDisk: string | undefined,
+): FileState {
+  // The world's fact first. The file holds something the studio did not
+  // write — another tool saved it, a branch was checked out, a second tab
+  // wrote it — and the save that would overwrite it is refused. The
+  // author's own edits are beside that question: they can hold at the same
+  // time, and they do not make the file less moved.
+  if (onDisk !== undefined && written !== undefined && onDisk !== written) {
+    return "changed";
+  }
+  // The author's own: the editor holds edits the file does not.
+  if (edited !== written) return "unsaved";
+  return "saved";
+}
+
+/**
+ * Whether the file moved under the studio.
+ *
+ * The file holds something the studio did not write: another tool saved it,
+ * a branch was checked out, a second tab wrote it. The two texts are the
+ * studio's last write and the file's current one, and they differ exactly
+ * when the world moved underneath.
+ *
+ * A file the studio has never written, or one it cannot see, has not moved:
+ * there is nothing for it to have moved away from. That is why the answer
+ * needs both texts — one of them alone cannot tell a moved file from a file
+ * the studio has no claim on.
+ */
+export function fileMoved(
+  written: string | undefined,
+  onDisk: string | undefined,
+): boolean {
+  if (written === undefined || onDisk === undefined) return false;
+  return written !== onDisk;
+}
+
+/** The words the studio's status line reads for a state. */
+export function stateLabel(state: FileState): string {
+  if (state === "unsaved") return "unsaved changes";
+  if (state === "changed") return "changed on disk";
+  return "saved";
 }
 
 /**
@@ -147,9 +269,9 @@ function coerceScaffold(type: string, value: string): unknown {
  * Insert a token at a path the document does not have yet, with its type.
  *
  * Creation, not editing: the path may stand on groups nobody wrote — a
- * component's character token belongs to the manifest's vocabulary, and the
- * theme only has to spell it once an author decides the default is not
- * theirs. The groups a missing path needs are built on the way down.
+ * component token belongs to the manifest's vocabulary, and the theme only has
+ * to spell it once an author decides the default is not theirs. The groups a
+ * missing path needs are built on the way down.
  *
  * An existing token under the path is refused rather than rewritten: the
  * scaffold is what a token STARTS at, never what it is reset to. The

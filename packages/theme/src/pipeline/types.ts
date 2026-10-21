@@ -123,10 +123,12 @@ export interface ValidateOptions {
    */
   required?: readonly string[];
   /**
-   * The modes the document serves. When it includes `"dark"`, every color and
-   * focus leaf the base document declares must appear in the `dark` group —
-   * declaring the mode is a promise to restate all of them, and a dark mode
-   * that only restates some colors ships a theme that is half one mode.
+   * The modes the document serves, as its root `modes` field declares them.
+   *
+   * A mode the theme serves but does not override falls back to the base
+   * values, so serving a mode costs nothing and promises no restatement. The
+   * check that follows from the claim is the other direction: a value
+   * written for a mode the theme does not serve is never shown.
    */
   modes?: readonly ("light" | "dark")[];
 }

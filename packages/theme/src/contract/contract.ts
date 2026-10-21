@@ -17,7 +17,7 @@
  *   and passes it in as `required`; theme stays generic and never imports
  *   preset or primitives. Absent `required` means the base surface
  *   (`BASE_ROLES`): the palette and contrast floors, not the component
- *   character tokens. Theme owns placeholder tables for base roles only, so
+ *   tokens. Theme owns placeholder tables for base roles only, so
  *   a `required` list containing component roles throws by design — callers
  *   needing component roles must go through preset `scaffold()` /
  *   `requiredRolesFor`, which own the composition tables. A theme that is
@@ -90,9 +90,11 @@ export const analyzeTheme = oc
       text: ThemeText,
       required: v.optional(v.array(v.string())),
       /**
-       * The modes the document serves, e.g. `["dark"]`. Declaring one turns
-       * on its coverage checks: every color and focus leaf must restate its
-       * value for that mode, or the theme ships a half-dark mode.
+       * The modes the document serves, e.g. `["dark"]`. A mode the theme
+       * serves but does not override falls back to the base values, so
+       * serving one costs nothing; the check that follows is the other
+       * direction — a value written for a mode the theme does not serve is
+       * never shown. Absent, the document's own root `modes` field is read.
        */
       modes: v.optional(v.array(v.picklist(MODES))),
     }),

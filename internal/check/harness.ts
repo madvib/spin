@@ -25,6 +25,7 @@ import {
   type AuditFinding,
   auditInstallScript,
   type AuditResult,
+  type ContrastFinding,
 } from "./audit.ts";
 import {
   animationsSettled,
@@ -33,6 +34,20 @@ import {
   type HoverPoint,
   hoverPoint,
 } from "./page.ts";
+import {
+  allMarked,
+  markedSelector,
+  STATE_MARK,
+  STATE_PSEUDO,
+  type StateCandidate,
+  stateCandidates,
+  stateDetail,
+  stateFocus,
+  stateGuard,
+  statesFor,
+  stateSubject,
+  type SubjectState,
+} from "./state.ts";
 import { STROBE_FLOOR_MS } from "../../packages/theme/src/contract/motion.ts";
 /** Lowest ratio a text node may measure against its background. */
 const MIN_CONTRAST = 4.5;
@@ -58,6 +73,7 @@ const NAV_SETTLE_MS = 150;
 
 export type CheckName =
   | "contrast"
+  | "state-contrast"
   | "zero-area-interactive"
   | "strobe-animation"
   | "geometry"
@@ -67,6 +83,7 @@ export type CheckName =
 
 const CHECKS: readonly CheckName[] = [
   "contrast",
+  "state-contrast",
   "zero-area-interactive",
   "strobe-animation",
   "geometry",
@@ -74,6 +91,16 @@ const CHECKS: readonly CheckName[] = [
   "failed-request",
   "render-defect",
 ];
+
+/**
+ * The checks whose findings are reported but do not decide the run.
+ *
+ * A check earns fatality by being right: it fails on nothing, so a failure
+ * means something. The state-contrast check is a measurement the themes have
+ * not been held to yet, so it reports what it finds and leaves the verdict
+ * alone. The owner promotes it by naming it in `--state-contrast-strict`.
+ */
+const ADVISORY_CHECKS: readonly CheckName[] = ["state-contrast"];
 
 /** One thing the check found, complete enough to appear in a baseline. */
 export interface Finding {
@@ -85,8 +112,8 @@ export interface Finding {
   readonly subject: string;
   /** What was measured, as one line. */
   readonly detail: string;
-  /** True when the pointer was on the subject when it was measured. */
-  readonly hovered: boolean;
+  /** The state the subject was measured in. */
+  readonly state: SubjectState;
 }
 
 /**
@@ -101,7 +128,7 @@ export function findingKey(finding: Finding): string {
     finding.theme,
     finding.mode,
     finding.check,
-    finding.hovered ? "hover" : "rest",
+    finding.state,
     finding.subject,
   ].join("|");
 }
@@ -170,6 +197,14 @@ export interface CheckConfig {
   readonly modesFor: (theme: string) => readonly string[];
   /** The chrome hover states are measured on, or null for the resting page. */
   readonly hoverSelector: string | null;
+  /**
+   * Where the state-contrast pass looks for controls to drive.
+   *
+   * The app knows which of its parts are chrome and which are the specimen:
+   * the harness can drive a control but it cannot tell a nav row from a
+   * button. Null for an app that has no controls to drive.
+   */
+  readonly stateScope: string | null;
   /** Where screenshots go. */
   readonly outDir: string;
   /** The baseline to compare against. */
@@ -192,6 +227,10 @@ interface Options {
   readonly writeBaseline: string | null;
   readonly allowBaseline: boolean;
   readonly chrome: string | undefined;
+  /** Measure the states the app's controls can be in. */
+  readonly stateContrast: boolean;
+  /** Let the state-contrast findings decide the run. */
+  readonly stateStrict: boolean;
 }
 
 interface ComboResult {
@@ -199,6 +238,8 @@ interface ComboResult {
   readonly measured: number;
   readonly unresolved: number;
   readonly hovered: number;
+  /** The states the state-contrast pass drove. */
+  readonly states: number;
   readonly screenshot: string | null;
   readonly findings: readonly Finding[];
 }
@@ -245,6 +286,15 @@ class Driver {
   readonly #log: PageLog;
   readonly #options: Options;
   readonly #config: CheckConfig;
+  /**
+   * True when the pointer is parked where the browser hit-tests nothing.
+   *
+   * The state pass moves the pointer onto controls, and a control that is
+   * still under the pointer is a control that is still hovered: the resting
+   * measurement of the next control has to know whether the pointer is
+   * anywhere at all.
+   */
+  #pointerParked = true;
 
   constructor(
     page: Page,
@@ -273,6 +323,7 @@ class Driver {
   /** A pointer outside the viewport, where the browser hit-tests nothing. */
   async neutralPointer(): Promise<void> {
     await this.#page.mouse.move(-100, -100);
+    this.#pointerParked = true;
   }
 
   /**
@@ -372,13 +423,13 @@ class Driver {
         check: "geometry",
         subject: claim.id,
         detail: claim.detail,
-        hovered: false,
+        state: "rest",
       });
     }
 
     const rested = await this.audit(null);
     for (const finding of rested.findings) {
-      findings.push(toFinding(finding, matrix, false));
+      findings.push(toFinding(finding, matrix, "rest"));
     }
     const screenshot = await this.screenshot(screenshotName(matrix));
 
@@ -392,10 +443,17 @@ class Driver {
         const result = await this.hover(candidate.index);
         hovered++;
         for (const finding of result.findings) {
-          findings.push(toFinding(finding, matrix, true));
+          findings.push(toFinding(finding, matrix, "hover"));
         }
       }
       await this.neutralPointer();
+    }
+
+    let states = 0;
+    if (this.#options.stateContrast) {
+      const driven = await this.stateContrast(matrix);
+      states = driven.states;
+      findings.push(...driven.findings);
     }
     await sleep(NAV_SETTLE_MS);
 
@@ -408,7 +466,7 @@ class Driver {
         check: "console-error",
         subject: error,
         detail: "reached the console",
-        hovered: false,
+        state: "rest",
       });
     }
     for (const failure of log.failures) {
@@ -419,7 +477,7 @@ class Driver {
         check: "failed-request",
         subject: failure,
         detail: "the request did not complete",
-        hovered: false,
+        state: "rest",
       });
     }
 
@@ -428,6 +486,7 @@ class Driver {
       measured: rested.measured,
       unresolved: rested.unresolved,
       hovered,
+      states,
       screenshot,
       findings,
     };
@@ -486,6 +545,259 @@ class Driver {
     return result;
   }
 
+  /**
+   * The state-contrast pass: every control the app offers, driven into the
+   * states a reader can put it in, and measured there.
+   *
+   * The states are driven in the order a reader meets them — the pointer
+   * arrives, the control is pressed, the keyboard arrives — so each state is
+   * measured with the states before it already in place. A measurement taken
+   * without the state it claims is thrown away: a control under a sticky
+   * header is never hovered, and a finding about a hover that never happened
+   * is a finding about nothing.
+   */
+  private async stateContrast(
+    matrix: Matrix,
+  ): Promise<{
+    readonly states: number;
+    readonly findings: readonly Finding[];
+  }> {
+    const scope = this.#config.stateScope;
+    if (scope === null) return { states: 0, findings: [] };
+    // The page is measured, not operated: a press that lands on a link would
+    // navigate, and the document the measurement was taken in would be gone.
+    await this.#call(stateGuard.toString());
+    const candidates = await this.#call<readonly StateCandidate[]>(
+      stateCandidates.toString(),
+      { scope, mark: STATE_MARK },
+    );
+    const findings: Finding[] = [];
+    let states = 0;
+    for (let index = 0; index < candidates.length; index++) {
+      const candidate = candidates[index];
+      if (candidate === undefined) continue;
+      // Where the pointer reaches the control, found once: the point is the
+      // same for every state, and finding it scrolls the page.
+      const point = await this.#point(index);
+      const driven = await this.#drive(candidate, index, point);
+      states += driven.states;
+      for (const finding of driven.findings) {
+        findings.push({
+          route: matrix.route.hash,
+          theme: matrix.theme,
+          mode: matrix.mode,
+          check: "state-contrast",
+          ...finding,
+        });
+      }
+    }
+    await this.neutralPointer();
+    return { states, findings };
+  }
+
+  /**
+   * Drives one candidate through the states a reader can put it in, and
+   * measures what it paints in each.
+   *
+   * The states are driven in the order a reader meets them — the pointer
+   * arrives, the control is pressed, the keyboard arrives — so each state is
+   * measured with the states before it already in place, and each one costs
+   * only what it has to: a press leaves the focus behind, so the focus state
+   * is measured after the press rather than through a second one.
+   *
+   * A measurement taken without the state it claims is thrown away: a control
+   * under a sticky header is never hovered, and a finding about a hover that
+   * never happened is a finding about nothing.
+   */
+  async #drive(
+    candidate: StateCandidate,
+    index: number,
+    point: HoverPoint | null,
+  ): Promise<{
+    readonly states: number;
+    readonly findings:
+      readonly (Omit<Finding, "route" | "theme" | "mode" | "check">)[];
+  }> {
+    const findings: (Omit<
+      Finding,
+      "route" | "theme" | "mode" | "check"
+    >)[] = [];
+    let states = 0;
+    // The pointer is over the control.
+    let onControl = false;
+    // The pointer is down on the control.
+    let held = false;
+    // The control holds the focus, because it was pressed.
+    let focused = false;
+    for (const state of statesFor(candidate)) {
+      switch (state) {
+        case "rest":
+        case "disabled": {
+          // Nothing hovered, nothing focused: the control as it is found.
+          if (!this.#pointerParked) {
+            await this.neutralPointer();
+            this.#pointerParked = true;
+          }
+          // The control may have been under the pointer a moment ago — the
+          // panel that holds it, say — and a control that fades its ink is
+          // still fading when the pointer leaves. The resting measurement is
+          // of the state the control settles in, not of the way there.
+          if (point !== null) await this.#settle(point);
+          onControl = false;
+          focused = false;
+          break;
+        }
+        case "hover": {
+          if (point === null) continue;
+          await this.#page.mouse.move(point.x, point.y);
+          await this.#settle(point);
+          onControl = true;
+          this.#pointerParked = false;
+          break;
+        }
+        case "active": {
+          if (point === null) continue;
+          if (!onControl) {
+            await this.#page.mouse.move(point.x, point.y);
+            onControl = true;
+            this.#pointerParked = false;
+          }
+          await this.#page.mouse.down();
+          held = true;
+          await this.#settle(point);
+          break;
+        }
+        case "focus": {
+          // The focus a pointer press leaves behind: the control is focused,
+          // and the ring is not drawn, because the reader did not ask for it.
+          if (!candidate.focusable) continue;
+          if (!focused) {
+            if (point === null) continue;
+            if (!onControl) {
+              await this.#page.mouse.move(point.x, point.y);
+              onControl = true;
+              this.#pointerParked = false;
+            }
+            await this.#page.mouse.down();
+            held = true;
+            // The press is released away from the control: a release on top
+            // of it is a click, and a click on a link is a route change.
+            await this.#page.mouse.move(-100, -100);
+            await this.#page.mouse.up();
+            held = false;
+            onControl = false;
+            this.#pointerParked = true;
+            focused = true;
+          }
+          if (point !== null) await this.#settle(point);
+          break;
+        }
+        case "focus-visible": {
+          if (!candidate.focusable) continue;
+          // A key press is what makes the focus visible: the keyboard
+          // arrived, and the browser draws the ring for it.
+          await this.#page.keyboard.press("Shift");
+          await this.#call(stateFocus.toString(), {
+            index,
+            mark: STATE_MARK,
+          });
+          // The focus may repaint the control, and a control that fades its
+          // ink is still fading when the measurement is taken.
+          if (point !== null) await this.#settle(point);
+          focused = true;
+          break;
+        }
+      }
+      const measured = await this.#measure(index, state);
+      if (measured.reached) states++;
+      for (const audit of measured.findings) {
+        findings.push({
+          subject: stateSubject(candidate.path, audit.sample),
+          detail: stateDetail(audit.ratio, audit.color, audit.background),
+          state,
+        });
+      }
+      if (state === "active" && held) {
+        // The press is released away from the control: a release on top of
+        // it is a click, and a click on a link is a route change.
+        await this.#page.mouse.move(-100, -100);
+        await this.#page.mouse.up();
+        held = false;
+        onControl = false;
+        this.#pointerParked = true;
+        focused = candidate.focusable;
+      }
+    }
+    if (held) await this.#page.mouse.up();
+    return { states, findings };
+  }
+
+  /**
+   * The contrast of one candidate in the state it is in, measured by the
+   * audit the resting page is measured with.
+   *
+   * The measurement comes back only if the state was reached: the pseudo-class
+   * the state claims has to match, or the measurement is of a state that
+   * never happened.
+   */
+  async #measure(
+    index: number,
+    state: SubjectState,
+  ): Promise<{
+    readonly reached: boolean;
+    readonly findings: readonly ContrastFinding[];
+  }> {
+    const options = { minContrast: MIN_CONTRAST, strobeMs: STROBE_MS };
+    const resting = state === "rest" || state === "disabled";
+    const expression = [
+      "(() => {",
+      `const all = [...document.querySelectorAll(${
+        JSON.stringify(allMarked())
+      })];`,
+      `const el = all[${index}] ?? null;`,
+      "const exclude = el === null ? []",
+      "  : all.filter((other) => other !== el && el.contains(other));",
+      // The resting measurement is taken of a page at rest: whatever the
+      // last control left focused is let go of first.
+      ...(resting
+        ? [
+          "const active = document.activeElement;",
+          "if (active instanceof HTMLElement) active.blur();",
+        ]
+        : []),
+      `const result = globalThis.${AUDIT_GLOBAL}({ ...${
+        JSON.stringify(options)
+      }, root: el, includeInactive: true, exclude });`,
+      "return { findings: result.findings,",
+      `         reached: el !== null && el.matches(${
+        JSON.stringify(STATE_PSEUDO[state])
+      }) };`,
+      "})()",
+    ].join("\n");
+    const result = await this.evalPage<
+      { findings: readonly AuditFinding[]; reached: boolean }
+    >(expression);
+    return {
+      reached: result.reached,
+      findings: result.reached
+        ? result.findings.filter((finding) => finding.check === "contrast")
+        : [],
+    };
+  }
+
+  /** Where the pointer must reach to hover a candidate. */
+  async #point(index: number): Promise<HoverPoint | null> {
+    return await this.#call<HoverPoint | null>(hoverPoint.toString(), {
+      selector: markedSelector(index),
+      index: 0,
+    });
+  }
+
+  /** Waits out a transition, if the control has one. */
+  async #settle(point: HoverPoint): Promise<void> {
+    if (point.settleMs > 0) await sleep(point.settleMs);
+  }
+
   async screenshot(name: string): Promise<string> {
     await Deno.mkdir(this.#options.outDir, { recursive: true });
     const path = `${this.#options.outDir}/${name}.png`;
@@ -511,7 +823,7 @@ function renderDefects(
     check: "render-defect",
     subject,
     detail,
-    hovered: false,
+    state: "rest",
   });
   if (route.expectHeading !== null && state.heading !== route.expectHeading) {
     defects.push(
@@ -537,10 +849,10 @@ function renderDefects(
 function toFinding(
   audit: AuditFinding,
   matrix: Matrix,
-  hovered: boolean,
+  state: SubjectState,
 ): Finding {
   const { route, theme, mode } = matrix;
-  const base = { route: route.hash, theme, mode, hovered };
+  const base = { route: route.hash, theme, mode, state };
   switch (audit.check) {
     case "contrast":
       return {
@@ -655,13 +967,13 @@ async function writeBaseline(
 
 /**
  * Findings that describe one place in one state: same route, same subject,
- * same hover. A matrix repeats each of them once per theme/mode pair, which is
+ * same state. A matrix repeats each of them once per theme/mode pair, which is
  * the point of the matrix and not worth printing one line per pair for.
  */
 function groupBy(findings: readonly Finding[]): readonly Group[] {
   const groups = new Map<string, Finding[]>();
   for (const finding of findings) {
-    const key = [finding.route, finding.subject, finding.hovered].join("|");
+    const key = [finding.route, finding.subject, finding.state].join("|");
     const group = groups.get(key);
     if (group === undefined) groups.set(key, [finding]);
     else group.push(finding);
@@ -675,6 +987,18 @@ function groupBy(findings: readonly Finding[]): readonly Group[] {
 
 interface Group {
   readonly findings: readonly Finding[];
+}
+
+/**
+ * Whether a check's findings decide the run.
+ *
+ * A check earns fatality by being right: it fails on nothing, so a failure
+ * means something. An advisory check reports what it measured and leaves the
+ * verdict to the checks that have earned it.
+ */
+function isFatal(check: CheckName, options: Options): boolean {
+  if (!ADVISORY_CHECKS.includes(check)) return true;
+  return options.stateStrict;
 }
 
 async function report(
@@ -701,6 +1025,7 @@ async function report(
     0,
   );
   const probes = results.reduce((sum, result) => sum + result.hovered, 0);
+  const states = results.reduce((sum, result) => sum + result.states, 0);
 
   console.log(
     `\nspin visual check — ${results.length} combos over ` +
@@ -712,17 +1037,23 @@ async function report(
   );
   console.log(
     `${measured} text nodes measured · ${unresolved} skipped over a gradient · ` +
-      `${probes} hover probes · screenshots in ${options.outDir}`,
+      `${probes} hover probes · ${states} state probes · screenshots in ${options.outDir}`,
   );
   console.log("");
   console.log("CHECK                   FINDINGS  COMBOS  RESULT");
   for (const check of CHECKS) {
     const entry = combos.get(check) ?? { count: 0, combos: new Set<string>() };
+    const ran = check !== "state-contrast" || options.stateContrast;
+    const result = !ran
+      ? "skipped"
+      : entry.count === 0
+      ? "ok"
+      : isFatal(check, options)
+      ? "FAIL"
+      : "REPORT";
     console.log(
       `${check.padEnd(22)}  ${String(entry.count).padStart(8)}  ` +
-        `${String(entry.combos.size).padStart(6)}  ${
-          entry.count === 0 ? "ok" : "FAIL"
-        }`,
+        `${String(entry.combos.size).padStart(6)}  ${result}`,
     );
   }
 
@@ -735,7 +1066,7 @@ async function report(
     );
     if (groups.length === 0) continue;
     console.log(
-      `\nFAIL ${check} — ${
+      `\n${isFatal(check, options) ? "FAIL" : "REPORT"} ${check} — ${
         groups.reduce((sum, g) => sum + g.findings.length, 0)
       } findings in ${groups.length} places`,
     );
@@ -744,7 +1075,7 @@ async function report(
       if (first === undefined) continue;
       console.log(
         `  ${first.route}${
-          first.hovered ? " (hovered)" : ""
+          first.state === "rest" ? "" : ` (${first.state})`
         } · ${group.findings.length} pair${
           group.findings.length === 1 ? "" : "s"
         }`,
@@ -770,15 +1101,26 @@ async function report(
     return { added: findings.length, removed: 0, addedFindings: findings };
   }
   const diff = diffAgainst(baseline, findings);
+  const advisory =
+    diff.addedFindings.filter((finding) => !isFatal(finding.check, options))
+      .length;
   console.log(
     `\nbaseline ${options.baseline}: ${baseline.findings.length} findings known`,
   );
   console.log(
     `  +${diff.added} new since the baseline  -${diff.removed} no longer found`,
   );
+  if (advisory > 0) {
+    console.log(
+      `  ${advisory} of the new findings are advisory: they are reported, ` +
+        "not counted against the run",
+    );
+  }
   for (const finding of diff.addedFindings) {
     console.log(
-      `  + ${finding.route} · ${finding.theme}/${finding.mode} — ${finding.subject}`,
+      `  + ${finding.route} · ${finding.theme}/${finding.mode} — ${finding.subject}${
+        finding.state === "rest" ? "" : ` (${finding.state})`
+      }`,
     );
   }
   return diff;
@@ -797,6 +1139,9 @@ function usage(config: CheckConfig): string {
     config.hoverSelector ?? "none"
   })
   --no-hover             measure the resting page only
+  --state-contrast       measure every control in the states it can be in
+                         (advisory: reported, but the run still passes)
+  --state-contrast-strict  the same, and let its findings decide the run
   --out DIR              where screenshots go (default ${config.outDir})
   --baseline PATH        compare against this baseline (default ${config.baseline})
   --no-baseline          run without a baseline comparison
@@ -916,6 +1261,13 @@ export async function runCheck(
       : null,
     allowBaseline: args.present.has("allow-baseline"),
     chrome: last(args.values.get("chrome")),
+    // The state-contrast pass is opt-in: it drives every control in every
+    // state, which costs a pointer press per control, and the themes have
+    // not been held to it yet. The strict form lets its findings decide the
+    // run, which is where it goes once they do.
+    stateContrast: args.present.has("state-contrast") ||
+      args.present.has("state-contrast-strict"),
+    stateStrict: args.present.has("state-contrast-strict"),
   };
   if (options.routes.length === 0) {
     console.error("no routes match the filters given");
@@ -975,8 +1327,16 @@ export async function runCheck(
       // baseline it just replaced.
       return 0;
     }
-    if (results.flatMap((result) => result.findings).length === 0) return 0;
-    return options.allowBaseline && diff.added === 0 ? 0 : 1;
+    // The verdict is the checks that have earned it. An advisory check reports
+    // what it measured and leaves the exit code to the ones that fail.
+    const fatal = results
+      .flatMap((result) => result.findings)
+      .filter((finding) => isFatal(finding.check, options));
+    if (fatal.length === 0) return 0;
+    const fatalAdded = diff.addedFindings.filter((finding) =>
+      isFatal(finding.check, options)
+    ).length;
+    return options.allowBaseline && fatalAdded === 0 ? 0 : 1;
   } finally {
     await browser.close();
   }

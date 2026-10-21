@@ -68,22 +68,22 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
   {
     name: "Sizes",
     html: row(
-      `          ${img("avatar avatar-sm", GRACE_FACE, "Grace Hopper")}
-          ${img("avatar avatar-md", ADA_FACE, "Ada Lovelace")}
-          ${img("avatar avatar-lg", ALAN_FACE, "Alan Turing")}`,
+      `          ${img("avatar avatar-sm", GRACE_FACE, "Priya Raman")}
+          ${img("avatar avatar-md", ADA_FACE, "Dan Okafor")}
+          ${img("avatar avatar-lg", ALAN_FACE, "Mira Lindqvist")}`,
     ),
   },
   {
     name: "Circle",
     html: row(
       `          ${
-        img("avatar avatar-circle avatar-md", ADA_FACE, "Ada Lovelace")
+        img("avatar avatar-circle avatar-md", ADA_FACE, "Tomas Berg")
       }
           ${
         img(
           "avatar avatar-circle avatar-lg",
           KATHERINE_FACE,
-          "Katherine Johnson",
+          "Aisha Farouk",
         )
       }`,
     ),
@@ -91,21 +91,21 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
   {
     name: "Beside a name",
     html: `        <div class="flex items-center gap-2">
-          ${img("avatar avatar-md", ADA_FACE, "Ada Lovelace")}
-          <span>Ada Lovelace</span>
+          ${img("avatar avatar-md", ADA_FACE, "Tomas Berg")}
+          <span>Tomas Berg</span>
         </div>`,
   },
   {
     name: "Ring",
     html: row(
       `          ${
-        img("avatar avatar-ring avatar-md", GRACE_FACE, "Grace Hopper")
+        img("avatar avatar-ring avatar-md", GRACE_FACE, "Dan Okafor")
       }
           ${
         img(
           "avatar avatar-ring avatar-circle avatar-md",
           ALAN_FACE,
-          "Alan Turing",
+          "Mira Lindqvist",
         )
       }`,
     ),
@@ -113,12 +113,12 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
   {
     name: "Status",
     html: row(
-      `          ${withStatus("avatar avatar-md", ADA_FACE, "Ada Lovelace")}
+      `          ${withStatus("avatar avatar-md", ADA_FACE, "Aisha Farouk")}
           ${
         withStatus(
           "avatar avatar-circle avatar-lg",
           KATHERINE_FACE,
-          "Katherine Johnson",
+          "Jonah Weiss",
         )
       }`,
     ),
@@ -127,7 +127,7 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
     name: "Ring and status",
     html: row(
       `          ${
-        withStatus("avatar avatar-ring avatar-md", GRACE_FACE, "Grace Hopper")
+        withStatus("avatar avatar-ring avatar-md", GRACE_FACE, "Priya Raman")
       }`,
     ),
   },

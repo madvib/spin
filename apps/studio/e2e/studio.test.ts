@@ -13,70 +13,15 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import type { Browser } from "playwright-core";
 import { ROUTE_PATHS } from "../src/lib/routes.ts";
+import { test, withPage, withWatcher } from "./harness.ts";
 import {
   appUrl,
-  launchBrowser,
   routeTargets,
-  StudioPage,
+  type StudioPage,
   studioUrl,
   valueAt,
 } from "./studio.ts";
-
-let browser: Browser | undefined;
-
-Deno.test.beforeAll(async () => {
-  browser = await launchBrowser();
-});
-
-Deno.test.afterAll(async () => {
-  await browser?.close();
-});
-
-/**
- * A test that drives a browser.
- *
- * The browser is the subject, not the leak: its timers and sockets outlive
- * the call that started them, and the op and resource sanitizers cannot tell
- * that from a test that forgot to clean up.
- */
-function test(name: string, fn: (t: Deno.TestContext) => Promise<void>): void {
-  Deno.test({ name, fn, sanitizeOps: false, sanitizeResources: false });
-}
-
-async function withPage<T>(fn: (page: StudioPage) => Promise<T>): Promise<T> {
-  const launched = browser;
-  assert(launched !== undefined, "the browser did not launch");
-  const page = await launched.newPage({
-    viewport: { width: 1280, height: 800 },
-  });
-  try {
-    return await fn(new StudioPage(page));
-  } finally {
-    await page.close();
-  }
-}
-
-/** Two tabs: the watcher never navigates, so what it reads is the page it had. */
-async function withWatcher<T>(
-  fn: (driver: StudioPage, watcher: StudioPage) => Promise<T>,
-): Promise<T> {
-  const launched = browser;
-  assert(launched !== undefined, "the browser did not launch");
-  const driver = await launched.newPage({
-    viewport: { width: 1280, height: 800 },
-  });
-  const watcher = await launched.newPage({
-    viewport: { width: 1280, height: 800 },
-  });
-  try {
-    return await fn(new StudioPage(driver), new StudioPage(watcher));
-  } finally {
-    await driver.close();
-    await watcher.close();
-  }
-}
 
 test("every route renders", async (t) => {
   await withPage(async (page) => {
@@ -898,8 +843,8 @@ test("a classless control behaves the theme's way on every route", async () => {
   });
 });
 
-/** Open the character-token panel on the button page; the walk in between. */
-async function openCharacterPanel(page: StudioPage): Promise<string> {
+/** Open the component-token panel on the button page; the walk in between. */
+async function openComponentPanel(page: StudioPage): Promise<string> {
   const here = await page.eval<string>(
     `document.querySelector("#app h1")?.textContent ?? ""`,
   );
@@ -923,7 +868,7 @@ async function openCharacterPanel(page: StudioPage): Promise<string> {
   const opened = await page.eval<string>(
     `(async () => {
       for (let i = 0; i < 60; i++) {
-        const b = [...document.querySelectorAll("button")].find((x) => (x.textContent ?? "").trim().startsWith("character tokens"));
+        const b = [...document.querySelectorAll("button")].find((x) => (x.textContent ?? "").trim().startsWith("component tokens"));
         if (b) { b.click(); return "opened"; }
         await new Promise((r) => setTimeout(r, 100));
       }
@@ -935,16 +880,17 @@ async function openCharacterPanel(page: StudioPage): Promise<string> {
 }
 
 /**
- * The character panel's own controls are chrome, whatever the theme says.
+ * The component-token panel's own controls are chrome, whatever the theme
+ * says.
  *
  * The header chip and the panel live inside the preview scope, so the
  * seated theme's button rules reach them too: on neobrut the chip wore the
  * theme's 700 weight and the panel's close rendered as the primary fill
  * under a hard shadow — the loudest control on the page was the way out of
- * a token list. The chip takes the character back to what the page's own
- * segments read at, and the close reads as the link it means to be.
+ * a token list. The chip takes the component tokens back to what the page's
+ * own segments read at, and the close reads as the link it means to be.
  */
-test("the character-token controls read as chrome, not as calls to action", async () => {
+test("the component-token controls read as chrome, not as calls to action", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
     const seat = await page.eval<string>(
@@ -959,8 +905,8 @@ test("the character-token controls read as chrome, not as calls to action", asyn
     );
     assert(seat === "seated", `seating neobrut stopped at ${seat}`);
 
-    const opened = await openCharacterPanel(page);
-    assert(opened === "opened", `the character panel is ${opened}`);
+    const opened = await openComponentPanel(page);
+    assert(opened === "opened", `the component panel is ${opened}`);
 
     const snap = await page.eval<
       {
@@ -988,19 +934,19 @@ test("the character-token controls read as chrome, not as calls to action", asyn
         const buttons = [...document.querySelectorAll("button")];
         const toggle = buttons.find((b) => (b.textContent ?? "").trim().startsWith("hide"));
         // The unselected segment is the page's own chrome reading at its
-        // resting character: the selected one steps up to the medium weight.
+        // resting weight: the selected one steps up to the medium weight.
         const segment = buttons.find((b) => (b.textContent ?? "").trim() === "code" && !b.hasAttribute("aria-current"));
         const close = buttons.find((b) => (b.textContent ?? "").trim() === "close");
         if (!pane || !toggle || !segment || !close) return null;
-        const character = (b) => {
+        const style = (b) => {
           const s = getComputedStyle(b);
           return { weight: s.fontWeight, transform: s.textTransform, tracking: s.letterSpacing };
         };
         const s = getComputedStyle(close);
         return {
           regular: getComputedStyle(pane).getPropertyValue("--font-weight-regular").trim(),
-          toggle: character(toggle),
-          segment: character(segment),
+          toggle: style(toggle),
+          segment: style(segment),
           close: {
             background: s.backgroundColor,
             shadow: s.boxShadow,
@@ -1047,8 +993,8 @@ test("the character-token controls read as chrome, not as calls to action", asyn
 test("a negative tracking rests where the row says it does", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/components/button`);
-    const opened = await openCharacterPanel(page);
-    assert(opened === "opened", `the character panel is ${opened}`);
+    const opened = await openComponentPanel(page);
+    assert(opened === "opened", `the component panel is ${opened}`);
 
     const track = await page.eval<
       { min: string; max: string; value: string; code: string } | null

@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
+import { disabledPosture } from "./shared.ts";
 
 /**
  * Radio — a drawn control, not a themed `accent-color`.
@@ -149,12 +150,22 @@ export function radioRules(roots: readonly string[]): Rule[] {
             : {}),
         };
         yield {
-          [ctx.symbols.selector]: () => 'input[type="radio"]:disabled',
+          [ctx.symbols.selector]: () =>
+            'input[type="radio"]:is(:disabled, [aria-disabled="true"])',
           cursor: "not-allowed",
           // Flatten with the checkbox: a control you cannot press should
           // not carry the shadows that say it can be.
           "box-shadow": "none",
-          opacity: token(ctx, "opacity.40") ?? 0.4,
+          // A dead control wears a posture, not a dim: the theme's disabled
+          // fill and the ink that reads on it.
+          ...disabledPosture(ctx),
+        };
+        // And the dot wears that ink with the ring: a dead radio is dead all
+        // the way through, and a live dot on a dead ring says otherwise.
+        yield {
+          [ctx.symbols.selector]: () =>
+            'input[type="radio"]:is(:disabled, [aria-disabled="true"])::after',
+          "background-color": "currentColor",
         };
       },
       { layer: "primitives", autocomplete: "radio" },

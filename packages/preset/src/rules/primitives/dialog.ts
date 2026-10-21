@@ -171,9 +171,20 @@ export function dialogRules(
         };
 
         // The actions row, breaking out at the bottom.
+        //
+        // It WRAPS, and that is the whole of the fix — the same fix the
+        // card's footer got, for the same reason. A dialog's footer holds
+        // the dialog's actions, and a row that cannot hold them pushes them
+        // out of the panel they belong to: in a narrow column the buttons
+        // leave the dialog entirely, and a dialog whose actions have left
+        // it is a dialog with no way out. The width the actions need is the
+        // theme's own type scale, so a theme with a wider scale would break
+        // every dialog in a narrow column — the row that wraps is what keeps
+        // the panel whole in all of them.
         yield {
           [ctx.symbols.selector]: () => `${dialog} > footer:last-of-type`,
           display: "flex",
+          "flex-wrap": "wrap",
           "align-items": "center",
           "justify-content": "flex-end",
           ...(t.spacing2 !== undefined ? { gap: t.spacing2 } : {}),

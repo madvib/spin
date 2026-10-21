@@ -313,7 +313,7 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
     {
       title: "Primitive components",
       description:
-        "The primitive library: list every component with its tags, variants and token reads, or one component's contract — tags, variants, reads, its character tokens, and the example markup it ships.",
+        "The primitive library: list every component with its tags, variants and token reads, or one component's contract — tags, variants, reads, its component tokens, and the example markup it ships.",
       inputSchema: {
         action: z.enum(["list", "contract"]).describe("What to return."),
         name: z
