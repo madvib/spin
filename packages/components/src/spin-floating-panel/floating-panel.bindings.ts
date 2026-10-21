@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { dataAttr, defineComponent, disclosureTrigger, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta } from "@spin/runtime/actions";
 import {
   floatingPanel as floatingPanelMachine,
@@ -145,8 +145,10 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvents> = {
         return {
           id: scope.id("trigger"),
           "aria-label": scope.props["label"],
-          "aria-expanded": open,
-          "aria-haspopup": "dialog",
+          ...disclosureTrigger(scope, {
+            expanded: open,
+            hasPopup: "dialog",
+          }),
           "data-state": open ? "open" : "closed",
           hidden: open,
           onClick: (): void => scope.send({ type: open ? "CLOSE" : "OPEN" }),

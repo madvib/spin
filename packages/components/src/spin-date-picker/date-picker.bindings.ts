@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaCurrent, ariaInvalid, ariaLabelledBy, dataAttr, defineComponent, disclosureTrigger, isRecord, optionRow, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   dayAsString,
   daysInMonth,
@@ -394,10 +394,12 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
         return {
           id: scope.id("trigger"),
           "aria-label": scope.props["label"],
-          "aria-expanded": open,
-          "aria-haspopup": "dialog",
+          ...disclosureTrigger(scope, {
+            expanded: open,
+            hasPopup: "dialog",
+          }),
           "data-state": open ? "open" : "closed",
-          "aria-invalid": scope.props["invalid"] === true ? true : undefined,
+          ...ariaInvalid(scope.props["invalid"] === true ? true : undefined),
           onClick: (): void => scope.send({ type: open ? "CLOSE" : "OPEN" }),
         };
       },
@@ -441,7 +443,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
           id: scope.id("grid"),
           role: "grid",
           tabIndex: 0,
-          "aria-labelledby": scope.id("label"),
+          ...ariaLabelledBy(scope, { part: "label" }),
           // The view decides the grid's shape: seven weekday columns,
           // three months, four years. The recipe's `data-[view]` variants
           // read it.
@@ -520,9 +522,11 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
         return {
           id: `${scope.id("grid")}:cell:${day}`,
           role: "gridcell",
-          "aria-selected": cell.selected,
-          "aria-disabled": cell.disabled ? true : undefined,
-          "aria-current": cell.isToday && ctx.view === "day" ? "date" : undefined,
+          ...optionRow({
+            selected: cell.selected,
+            disabled: cell.disabled ? true : undefined,
+          }),
+          ...ariaCurrent(cell.isToday && ctx.view === "day" ? "date" : undefined),
           "data-value": day,
           "data-outside-month": dataAttr(cell.outside),
           "data-today": dataAttr(cell.isToday),

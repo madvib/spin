@@ -1,5 +1,13 @@
 import {
+  ariaControls,
+  ariaCurrent,
+  ariaHidden,
+  ariaLabelledBy,
+  ariaOrientation,
+  ariaOwns,
   defineComponent,
+  optionRow,
+  sliderThumb,
   type ComponentDef,
   type PartScope,
   type SlotScope,
@@ -140,8 +148,15 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
           id: scope.id("list"),
           dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
           role: "tablist",
-          "aria-owns": items.map((index) => scope.id("trigger", index)).join(" "),
-          "aria-orientation": scope.props["orientation"],
+          ...ariaOwns(scope, {
+            parts: items.map((index) => ({ part: "trigger", slot: index })),
+          }),
+          ...ariaOrientation(
+            scope.props["orientation"] === "horizontal" ||
+              scope.props["orientation"] === "vertical"
+              ? scope.props["orientation"]
+              : undefined,
+          ),
           "data-scope": "steps",
           "data-part": "list",
           "data-orientation": scope.props["orientation"],
@@ -184,10 +199,12 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
         return {
           dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
           role: "progressbar",
-          "aria-valuenow": String(Math.round(value)),
-          "aria-valuemin": "0",
-          "aria-valuemax": "100",
-          "aria-valuetext": `${Math.round(value)}% complete`,
+          ...sliderThumb({
+            now: String(Math.round(value)),
+            min: "0",
+            max: "100",
+            text: `${Math.round(value)}% complete`,
+          }),
           "data-scope": "steps",
           "data-part": "progress",
           "data-complete": scope.attr(value === 100),
@@ -213,7 +230,7 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
           dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
           "data-scope": "steps",
           "data-part": "item",
-          "aria-current": state.current ? "step" : undefined,
+          ...ariaCurrent(state.current ? "step" : undefined),
           "data-orientation": scope.props["orientation"],
         };
       },
@@ -229,8 +246,8 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
           type: "button",
           dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
           tabindex: scope.props["linear"] !== true || state.current ? "0" : "-1",
-          "aria-selected": state.current ? "true" : "false",
-          "aria-controls": scope.id("content", index),
+          ...optionRow({ selected: state.current ? "true" : "false" }),
+          ...ariaControls(scope, { part: "content", slot: index }),
           "data-scope": "steps",
           "data-part": "trigger",
           "data-state": state.current ? "open" : "closed",
@@ -262,7 +279,7 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
           "data-part": "content",
           "data-state": state.current ? "open" : "closed",
           "data-orientation": scope.props["orientation"],
-          "aria-labelledby": scope.id("trigger", index),
+          ...ariaLabelledBy(scope, { part: "trigger", slot: index }),
         };
       },
     },
@@ -272,7 +289,7 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
         const state = itemState(scope.context, slotIndex(scope));
         return {
           dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-scope": "steps",
           "data-part": "indicator",
           "data-complete": scope.attr(state.completed),

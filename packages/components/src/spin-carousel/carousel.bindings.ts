@@ -1,7 +1,13 @@
 import {
+  ariaControls,
+  ariaCurrent,
+  ariaHidden,
+  ariaPressed,
+  ariaRoleDescription,
   authoredProps,
   defineComponent,
   isRecord,
+  liveRegion,
   machineTick,
   resolveTwins,
   type ComponentDef,
@@ -397,7 +403,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-scope": "carousel",
         "data-part": "root",
         role: "region",
-        "aria-roledescription": "carousel",
+        ...ariaRoleDescription("carousel"),
         "data-orientation": scope.props["orientation"],
         "data-state": scope.state === "autoplay" ? "playing" : "idle",
         dir: scope.props["dir"],
@@ -432,7 +438,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           // and the class turns it back on. Nobody writes a style.
           ...(ctx.dragStatus === "dragging" ? { "data-dragging": "" } : {}),
           ...(scope.props["allowMouseDrag"] === true ? { "data-draggable": "" } : {}),
-          "aria-live": playing ? "off" : "polite",
+          ...liveRegion({ live: playing ? "off" : "polite" }),
           tabindex: hasTabbable(scope) ? -1 : 0,
           onFocusin: (): void => scope.send({ type: "VIEWPORT.FOCUS" }),
           onFocusout: (): void => scope.send({ type: "VIEWPORT.BLUR" }),
@@ -483,7 +489,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-part": "prev-trigger",
           type: "button",
           "aria-label": "Previous slide",
-          "aria-controls": scope.id("itemGroup"),
+          ...ariaControls(scope, { part: "itemGroup" }),
           "data-orientation": scope.props["orientation"],
           "data-disabled": can ? undefined : "",
           disabled: !can,
@@ -502,7 +508,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-part": "next-trigger",
           type: "button",
           "aria-label": "Next slide",
-          "aria-controls": scope.id("itemGroup"),
+          ...ariaControls(scope, { part: "itemGroup" }),
           "data-orientation": scope.props["orientation"],
           "data-disabled": can ? undefined : "",
           disabled: !can,
@@ -520,7 +526,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-part": "autoplay-trigger",
           type: "button",
           "aria-label": playing ? "Stop slide rotation" : "Start slide rotation",
-          "aria-pressed": playing,
+          ...ariaPressed(playing),
           "data-orientation": scope.props["orientation"],
           "data-playing": playing ? "" : undefined,
           onClick: (): void => scope.send({ type: playing ? "AUTOPLAY.STOP" : "AUTOPLAY.START" }),
@@ -557,7 +563,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-part": "autoplay-progress",
         "data-orientation": scope.props["orientation"],
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
-        "aria-hidden": true,
+        ...ariaHidden(true),
       }),
     },
     autoplayProgressFill: {
@@ -587,9 +593,9 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           ...(scope.props["autoSize"] === true
             ? { "data-auto-size": "" }
             : { ...perPageAttrs(countOf(scope.props["slidesPerPage"]) ?? 1) }),
-          "aria-roledescription": "slide",
+          ...ariaRoleDescription("slide"),
           "aria-label": `${item.index + 1} of ${slidesOf(scope.props["items"]).length}`,
-          "aria-hidden": !inView,
+          ...ariaHidden(!inView),
           "use:intersect": {
             threshold: intersectThreshold(scope.props["inViewThreshold"]),
             onVisibility: (visible: boolean): void => {
@@ -613,7 +619,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           "data-index": item.index,
           "data-orientation": scope.props["orientation"],
           "data-current": current ? "" : undefined,
-          "aria-current": current,
+          ...ariaCurrent(current),
           "aria-label": `${item.index + 1} of ${slidesOf(scope.props["items"]).length} — ${item.label}`,
           "data-readonly": readOnly ? "" : undefined,
           onClick: (): void => {

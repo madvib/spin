@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaControls, ariaHidden, dataAttr, defineComponent, disclosureTrigger, isRecord, optionRow, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   nodesOf,
   treeView as treeViewMachine,
@@ -425,9 +425,13 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
         const ctx = scope.context;
         return {
           role: "treeitem",
-          "aria-level": row.depth + 1,
-          "aria-selected": state.selected,
-          "aria-expanded": state.branch ? state.expanded : undefined,
+          ...optionRow({
+            level: row.depth + 1,
+            selected: state.selected,
+          }),
+          ...disclosureTrigger(scope, {
+            expanded: state.branch ? state.expanded : undefined,
+          }),
           "data-path": row.indexPath.join("-"),
           // The row carries the mode; the utility on the span selects on it.
           "data-checkable": state.checked || ctx.selectionMode === "multiple" ? "" : undefined,
@@ -445,7 +449,10 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
           id: scope.id("item", row.node.value),
           type: "button",
           tabindex: state.focused ? 0 : -1,
-          "aria-controls": state.branch ? scope.id("content", row.node.value) : undefined,
+          ...ariaControls(
+            scope,
+            state.branch ? { part: "content", slot: row.node.value } : undefined,
+          ),
           // The control's own box: the row's indent, and the width that
           // goes with it (0.875rem == 14px). The recipe names no var —
           // the bag carries the geometry.
@@ -469,7 +476,7 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           // `data-branch`, not `hidden`: the span carries `flex`, and an
           // author `display` beats the UA's `[hidden]` rule.
           "data-branch": state.branch ? "" : undefined,
@@ -481,7 +488,7 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
       // One icon bag per kind, not one for the whole tree.
       attrs: (scope: SlotLike<VisibleRow>) => ({
-        "aria-hidden": true,
+        ...ariaHidden(true),
         "data-kind": iconKind(scope, scope.slot),
       }),
     },
@@ -492,7 +499,7 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
         return {
           // One column left of this row's own indent — the parent's
           // chevron column. Depth 0 has no parent to draw a rail for.
-          "aria-hidden": true,
+          ...ariaHidden(true),
           hidden: row.depth === 0,
           // The rail's own box, one column left of the row's indent. The
           // recipe names no var — the bag carries the geometry.
@@ -527,7 +534,7 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
         return {
           role: "checkbox",
           tabindex: -1,
-          "aria-checked": state.checked,
+          ...optionRow({ checked: state.checked }),
           // The checked fact only: the row's own state (expanded, selected)
           // must not reach this element, or every expanded parent rendered
           // as a checked box.
@@ -548,7 +555,7 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
         const row = scope.slot;
         return {
           hidden: scope.context.loadingStatus[row.node.value] !== "loading",
-          "aria-hidden": true,
+          ...ariaHidden(true),
         };
       },
     },

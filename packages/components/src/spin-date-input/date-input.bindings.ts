@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaInvalid, ariaLabelledBy, ariaReadOnly, dataAttr, defineComponent, isRecord, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   clampValue,
   dateInput as dateInputMachine,
@@ -286,13 +286,15 @@ const def: ComponentDef<DateInputContext, DateInputEvents> = {
           role: "spinbutton",
           tabIndex: scope.props["disabled"] === true ? undefined : 0,
           "aria-label": FIELD_LABELS[field],
-          "aria-valuenow": value ?? undefined,
-          "aria-valuetext": value === null ? placeholderFor(field) : segmentText(field, value, hourCycle),
-          "aria-valuemin": limits.min,
-          "aria-valuemax": field === "day" ? maxDay : limits.max,
-          "aria-invalid": scope.props["invalid"] === true ? true : undefined,
-          "aria-readonly": scope.props["readOnly"] === true ? true : undefined,
-          "aria-disabled": scope.props["disabled"] === true ? true : undefined,
+          ...sliderThumb({
+            now: value ?? undefined,
+            text: value === null ? placeholderFor(field) : segmentText(field, value, hourCycle),
+            min: limits.min,
+            max: field === "day" ? maxDay : limits.max,
+          }),
+          ...ariaInvalid(scope.props["invalid"] === true ? true : undefined),
+          ...ariaReadOnly(scope.props["readOnly"] === true ? true : undefined),
+          ...ariaDisabled(scope.props["disabled"] === true ? true : undefined),
           inputMode: field === "dayPeriod" ? undefined : "numeric",
           "data-type": field,
           "data-placeholder-shown": dataAttr(value === null),
@@ -322,7 +324,7 @@ const def: ComponentDef<DateInputContext, DateInputEvents> = {
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "group",
-        "aria-labelledby": scope.id("label"),
+        ...ariaLabelledBy(scope, { part: "label" }),
         "data-focus": dataAttr(scope.state === "focused"),
         "data-disabled": dataAttr(scope.props["disabled"] === true),
       }),

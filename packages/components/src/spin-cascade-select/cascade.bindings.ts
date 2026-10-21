@@ -1,4 +1,18 @@
-import { coerceJsonArray, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import {
+  ariaDisabled,
+  ariaHidden,
+  ariaLabelledBy,
+  ariaOwns,
+  coerceJsonArray,
+  defineComponent,
+  disclosureTrigger,
+  isRecord,
+  listSurface,
+  optionRow,
+  type ComponentDef,
+  type PartScope,
+  type SlotScope,
+} from "@spin/runtime";
 import {
   cascade as cascadeMachine,
   parsePath,
@@ -816,10 +830,12 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         type: "button",
         role: "combobox",
         dir: dirOf(scope.props),
-        "aria-controls": scope.id("content"),
-        "aria-expanded": scope.state === "open",
-        "aria-haspopup": "listbox",
-        "aria-labelledby": scope.id("label"),
+        ...disclosureTrigger(scope, {
+          expanded: scope.state === "open",
+          hasPopup: "listbox",
+          controls: { part: "content" },
+        }),
+        ...ariaLabelledBy(scope, { part: "label" }),
         "data-placement": placementOf(scope.props),
         "data-side": placementSide(scope.props),
         "data-placeholder-shown": scope.context.value.length === 0 ? "" : undefined,
@@ -842,7 +858,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
       attrs: (scope) => ({
         id: scope.id("indicator"),
         dir: dirOf(scope.props),
-        "aria-hidden": true,
+        ...ariaHidden(true),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
         ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
@@ -910,16 +926,18 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           id: scope.id("content"),
           role: "listbox",
           dir: dirOf(scope.props),
-          "aria-labelledby": scope.id("label"),
-          "aria-activedescendant": highlighted.length === 0
-            ? undefined
-            : scope.id("item", pathKey(highlighted)),
+          ...listSurface(scope, {
+            labelledBy: { part: "label" },
+            activeDescendant: highlighted.length === 0
+              ? undefined
+              : { part: "item", slot: pathKey(highlighted) },
+            multiSelectable: scope.context.multiple,
+            required: scope.props["required"] === true,
+            readOnly: scope.props["readOnly"] === true,
+          }),
           "data-activedescendant": highlighted.length === 0
             ? undefined
             : scope.id("item", pathKey(highlighted)),
-          "aria-multiselectable": scope.context.multiple,
-          "aria-required": scope.props["required"] === true,
-          "aria-readonly": scope.props["readOnly"] === true,
           hidden: scope.state !== "open",
           tabIndex: 0,
           onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
@@ -952,8 +970,8 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         required: scope.props["required"],
         readOnly: scope.props["readOnly"],
         hidden: true,
-        "aria-hidden": true,
-        "aria-labelledby": scope.id("label"),
+        ...ariaHidden(true),
+        ...ariaLabelledBy(scope, { part: "label" }),
         value: hashValue(scope.context.value),
       }),
     },
@@ -971,7 +989,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           dir: dirOf(scope.props),
           role: "group",
           "data-depth": level.depth,
-          "aria-level": level.depth,
+          ...optionRow({ level: level.depth }),
         };
       },
     },
@@ -986,11 +1004,20 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           id: scope.id("item", pathKey(item.path)),
           role: "treeitem",
           dir: dirOf(scope.props),
-          "aria-haspopup": item.hasChildren ? "menu" : undefined,
-          "aria-expanded": item.hasChildren ? state.highlighted : false,
-          "aria-controls": item.hasChildren ? scope.id("list", pathKey(item.path)) : undefined,
-          "aria-owns": item.hasChildren ? scope.id("list", pathKey(item.path)) : undefined,
-          "aria-disabled": item.disabled,
+          ...disclosureTrigger(scope, {
+            expanded: item.hasChildren ? state.highlighted : false,
+            hasPopup: item.hasChildren ? "menu" : undefined,
+            controls: item.hasChildren
+              ? { part: "list", slot: pathKey(item.path) }
+              : undefined,
+          }),
+          ...ariaOwns(
+            scope,
+            item.hasChildren
+              ? { part: "list", slot: pathKey(item.path) }
+              : undefined,
+          ),
+          ...ariaDisabled(item.disabled),
           "data-value": item.path.join(","),
           "data-disabled": item.disabled ? "" : undefined,
           "data-highlighted": state.highlighted ? "" : undefined,
@@ -1027,7 +1054,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         const item = scope.slot;
         const state = itemStateOf(scope, item);
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           hidden: !state.selected,
           "data-value": item.value,
           "data-highlighted": state.highlighted ? "" : undefined,

@@ -1,6 +1,10 @@
 import {
+  ariaHidden,
+  ariaLabelledBy,
   defineComponent,
   isComposing,
+  listSurface,
+  optionRow,
   textProp,
   type ComponentDef,
   type PartScope,
@@ -446,10 +450,12 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           tabindex: "0",
           dir: scope.props["dir"],
           "data-orientation": scope.props["orientation"],
+          ...listSurface(scope, {
+            activeDescendant: active === undefined ? undefined : { id: active },
+            multiSelectable: ctx.multiple ? "true" : undefined,
+            labelledBy: { part: "label" },
+          }),
           "data-activedescendant": active,
-          "aria-activedescendant": active,
-          "aria-multiselectable": ctx.multiple ? "true" : undefined,
-          "aria-labelledby": scope.id("label"),
           "data-empty": scope.attr(rowsOf(scope.props).length === 0),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           "data-focused": scope.attr(ctx.focused),
@@ -483,13 +489,15 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           role: "option",
           dir: scope.props["dir"],
           "data-value": state.value,
-          "aria-selected": state.selected ? "true" : "false",
+          ...optionRow({
+            selected: state.selected ? "true" : "false",
+            disabled: state.disabled ? "true" : undefined,
+          }),
           "data-selected": scope.attr(state.selected),
           "data-state": state.selected ? "checked" : "unchecked",
           "data-orientation": scope.props["orientation"],
           "data-highlighted": scope.attr(state.highlighted),
           "data-disabled": scope.attr(state.disabled),
-          "aria-disabled": state.disabled ? "true" : undefined,
           onPointermove: rowHandlers(scope, row).onPointerMove,
           onPointerleave: rowHandlers(scope, row).onPointerLeave,
           onClick: rowHandlers(scope, row).onClick,
@@ -512,7 +520,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
       attrs: (scope: SlotLike<ListboxRow>) => {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
-          "aria-hidden": "true",
+          ...ariaHidden("true"),
           "data-state": selected ? "checked" : "unchecked",
           hidden: selected ? undefined : "",
         };
@@ -529,7 +537,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           "data-part": "item-group",
           role: "group",
           dir: scope.props["dir"],
-          "aria-labelledby": scope.id("itemGroupLabel", block.id),
+          ...ariaLabelledBy(scope, { part: "itemGroupLabel", slot: block.id }),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           "data-orientation": scope.props["orientation"],
           "data-empty": scope.attr(rowsOf(scope.props).length === 0),

@@ -62,7 +62,11 @@ Deno.test("spin-hover-card e2e", () =>
       await page.mouse.move(point.x, point.y);
       await new Promise((resolve) => setTimeout(resolve, 400));
       assert.equal(await nativeOpen(page), true, "the card stays while the pointer is over it");
-      assert.equal(await page.locator(READOUT).textContent(), "true");
+      assert.equal(
+        await page.locator(READOUT).textContent(),
+        "true",
+        "the host readout follows the platform",
+      );
     });
 
     await step("leaving both closes after the delay", async () => {

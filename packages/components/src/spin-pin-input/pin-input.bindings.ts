@@ -1,4 +1,4 @@
-import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaHidden, ariaInvalid, defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   pinInput as pinInputMachine,
   pinView,
@@ -377,7 +377,7 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
           id: scope.id("hiddenInput"),
             "data-scope": "pin-input",
             "data-part": "hidden-input",
-          "aria-hidden": true,
+          ...ariaHidden(true),
           type: "text",
           tabIndex: -1,
           hidden: true,
@@ -419,7 +419,7 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
           "data-complete": scope.attr(filled.complete),
           "data-filled": scope.attr(char !== ""),
           "data-invalid": scope.attr(props["invalid"] === true),
-          "aria-invalid": props["invalid"] === true ? true : undefined,
+          ...ariaInvalid(props["invalid"] === true ? true : undefined),
           "aria-label": label,
           inputMode: props["otp"] === true || type === "numeric" ? "numeric" : "text",
           enterKeyHint: index === filled.length - 1 ? "done" : "next",

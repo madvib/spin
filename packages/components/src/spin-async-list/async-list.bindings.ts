@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaBusy, ariaHidden, ariaPressed, dataAttr, defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   asyncList as asyncListMachine,
   isSortDescriptor,
@@ -326,8 +326,8 @@ const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
       attrs: (scope) => ({
         id: scope.id("progress"),
         role: "progressbar",
-        "aria-hidden": true,
-        "aria-busy": scope.state === "loading" || scope.state === "sorting",
+        ...ariaHidden(true),
+        ...ariaBusy(scope.state === "loading" || scope.state === "sorting"),
         "data-state": scope.state,
       }),
     },
@@ -338,7 +338,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
         return {
           id: scope.id("list"),
           role: "list",
-          "aria-busy": loading,
+          ...ariaBusy(loading),
           "data-state": scope.state,
           "data-count": count,
           "data-empty": dataAttr(count === 0),
@@ -428,7 +428,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
         const more = ctx.cursor != null;
         return {
           id: scope.id("sentinel"),
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-state": scope.state,
           hidden: !more,
           "data-more": dataAttr(more),
@@ -468,7 +468,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
           "data-direction": trigger.direction,
           "data-state": scope.state,
           "data-active": dataAttr(active),
-          "aria-pressed": active,
+          ...ariaPressed(active),
           onClick: (): void => scope.send({ type: "SORT", sortDescriptor: trigger }),
         };
       },

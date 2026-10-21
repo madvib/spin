@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaLabelledBy, dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   fileUpload as fileUploadMachine,
   type FileRecord,
@@ -156,8 +156,8 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
           id: scope.id("dropzone"),
           tabIndex: disabled ? undefined : 0,
           role: "button",
-          "aria-labelledby": scope.id("label"),
-          "aria-disabled": disabled ? true : undefined,
+          ...ariaLabelledBy(scope, { part: "label" }),
+          ...ariaDisabled(disabled ? true : undefined),
           "data-focus": dataAttr(focused),
           "data-dragging": dataAttr(dragging),
           "data-disabled": dataAttr(disabled),

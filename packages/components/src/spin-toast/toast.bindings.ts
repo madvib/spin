@@ -1,6 +1,9 @@
 import {
+  ariaDescribedBy,
+  ariaLabelledBy,
   dataAttr,
   defineComponent,
+  liveRegion,
   machineTick,
   type ComponentDef,
   type PartScope,
@@ -332,9 +335,7 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
           "aria-label": hotkey.length > 0
           ? `${label}, ${placement} (${hotkey})`
           : `${label}, ${placement}`,
-          "aria-live": "polite",
-          "aria-relevant": "additions text",
-          "aria-atomic": "false",
+          ...liveRegion({ live: "polite", relevant: "additions text", atomic: "false" }),
           "data-placement": placement,
           "data-side": side,
           "data-align": align,
@@ -392,9 +393,14 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
           id: scope.id("toast", entry.id),
           role: "status",
           tabindex: 0,
-          "aria-atomic": "true",
-          "aria-labelledby": scope.id("toast", `${entry.id}:title`),
-          "aria-describedby": entry.description.length > 0 ? scope.id("toast", `${entry.id}:description`) : undefined,
+          ...liveRegion({ atomic: "true" }),
+          ...ariaLabelledBy(scope, { part: "toast", slot: `${entry.id}:title` }),
+          ...ariaDescribedBy(
+            scope,
+            entry.description.length > 0
+              ? { part: "toast", slot: `${entry.id}:description` }
+              : undefined,
+          ),
           "data-state": visible ? "open" : "closed",
           "data-type": entry.type,
           "data-placement": placement,

@@ -63,7 +63,7 @@ Deno.test("spin-number-input e2e", () =>
       assert.equal(
         await page.locator(QUANTITY_INCREMENT).getAttribute("aria-label"),
         "increment value",
-        "with Zag's default label",
+        "with the default label",
       );
       assert.equal(
         await page.locator(QUANTITY_DECREMENT).getAttribute("aria-label"),
@@ -120,7 +120,7 @@ Deno.test("spin-number-input e2e", () =>
       assert.equal(await inputValue(QUANTITY_INPUT), "7", "a typed value lands verbatim");
       await page.keyboard.press("Enter");
       assert.equal(await readout(page, "commit"), "7", "Enter commits what was typed");
-      assert.equal(await readout(page, "focus"), "blurred", "and reports the blur, as Zag does");
+      assert.equal(await readout(page, "focus"), "blurred", "and reports the blur");
       await page.locator(QUANTITY_INPUT).fill("40");
       await page.locator(QUANTITY_INPUT).blur();
       assert.equal(await inputValue(QUANTITY_INPUT), "20", "the blur clamps a typed value into range");

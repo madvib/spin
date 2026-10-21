@@ -1,5 +1,13 @@
 import {
+  ariaFlag,
+  ariaHidden,
+  ariaInvalid,
+  ariaLabelledBy,
+  ariaRequired,
   defineComponent,
+  disclosureTrigger,
+  listSurface,
+  optionRow,
   textProp,
   type ComponentDef,
   type PartScope,
@@ -338,12 +346,16 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           type: "button",
           dir: scope.props["dir"],
           role: "combobox",
-          "aria-haspopup": "listbox",
-          "aria-expanded": open,
-          "aria-controls": scope.id("content"),
-          "aria-labelledby": `${scope.id("label")} ${scope.id("valueText")}`,
-          "aria-required": scope.props["required"] || undefined,
-          "aria-invalid": scope.props["invalid"] || undefined,
+          ...disclosureTrigger(scope, {
+            expanded: open,
+            hasPopup: "listbox",
+            controls: { part: "content" },
+          }),
+          ...ariaLabelledBy(scope, {
+            parts: [{ part: "label" }, { part: "valueText" }],
+          }),
+          ...ariaRequired(ariaFlag(scope.props["required"])),
+          ...ariaInvalid(ariaFlag(scope.props["invalid"])),
           disabled: scope.props["disabled"] || scope.props["readOnly"],
           "data-state": open ? "open" : "closed",
           "data-focused": scope.attr(scope.state !== "idle"),
@@ -359,7 +371,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
     },
     triggerIndicator: {
       attrs: (scope) => ({
-        "aria-hidden": true,
+        ...ariaHidden(true),
         "data-state": scope.state === "open" ? "open" : "closed",
         "data-disabled": dataAttr(scope.props["disabled"] === true),
       }),
@@ -421,12 +433,16 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           "data-part": "content",
           dir: scope.props["dir"],
           role: "listbox",
-          "aria-labelledby": scope.id("label"),
-          "aria-activedescendant": activedescendant,
+          ...listSurface(scope, {
+            labelledBy: { part: "label" },
+            activeDescendant: ctx.highlightedValue === null
+              ? undefined
+              : { part: "item", slot: ctx.highlightedValue },
+            multiSelectable: ariaFlag(scope.props["multiple"]),
+            required: ariaFlag(scope.props["required"]),
+            readOnly: ariaFlag(scope.props["readOnly"]),
+          }),
           "data-activedescendant": activedescendant,
-          "aria-multiselectable": scope.props["multiple"] || undefined,
-          "aria-required": scope.props["required"] || undefined,
-          "aria-readonly": scope.props["readOnly"] || undefined,
           hidden: !open,
           tabIndex: 0,
           "data-state": open ? "open" : "closed",
@@ -484,7 +500,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           id: scope.id("hiddenSelect"),
           "data-scope": "select",
           "data-part": "hidden-select",
-          "aria-hidden": true,
+          ...ariaHidden(true),
           tabIndex: -1,
           name: scope.props["name"] || undefined,
           form: scope.props["form"] || undefined,
@@ -524,7 +540,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           "data-scope": "select",
           "data-part": "item",
           role: "option",
-          "aria-selected": state.selected,
+          ...optionRow({ selected: state.selected }),
           "data-state": state.highlighted ? "highlighted" : "idle",
           "data-selected": dataAttr(state.selected),
           "data-highlighted": dataAttr(state.highlighted),
@@ -553,7 +569,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       attrs: (scope: SlotLike<SelectRow>) => {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-state": selected ? "checked" : "unchecked",
         };
       },

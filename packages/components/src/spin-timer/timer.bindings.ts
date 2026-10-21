@@ -1,4 +1,4 @@
-import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaHidden, defineComponent, isRecord, liveRegion, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   formatTime,
   msToTime,
@@ -209,7 +209,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
           "data-part": "area",
           // Zag's translation: the units a screen reader hears.
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
-          "aria-atomic": true,
+          ...liveRegion({ atomic: true }),
           "data-state": scope.state,
         };
       },
@@ -297,7 +297,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
         const unit = separatorAfter(slot);
         const followsHiddenDays = unit === "days" && timeOf(scope.context).days === 0;
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-scope": "timer",
           "data-part": "separator",
           "data-after": unit,

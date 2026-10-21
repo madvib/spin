@@ -1,4 +1,4 @@
-import { defineComponent, focuser, isComposing, type ComponentDef, type PartScope as ScopeLike, type SlotScope } from "@spin/runtime";
+import { ariaPressed, defineComponent, focuser, isComposing, optionRow, type ComponentDef, type PartScope as ScopeLike, type SlotScope } from "@spin/runtime";
 import {
   isInteractive,
   isPressed,
@@ -141,8 +141,8 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvents> = {
           disabled: itemDisabled ? true : undefined,
           tabindex: roving ? (focused ? "0" : "-1") : undefined,
           role: multiple ? undefined : "radio",
-          "aria-checked": multiple ? undefined : pressed ? "true" : "false",
-          "aria-pressed": multiple ? (pressed ? "true" : "false") : undefined,
+          ...optionRow({ checked: multiple ? undefined : pressed ? "true" : "false" }),
+          ...ariaPressed(multiple ? (pressed ? "true" : "false") : undefined),
           "data-disabled": scope.attr(itemDisabled),
           "data-orientation": scope.context.orientation,
           "data-state": pressed ? "on" : "off",

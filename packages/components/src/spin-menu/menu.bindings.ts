@@ -1,5 +1,11 @@
 import {
+  ariaHidden,
+  ariaLabelledBy,
+  ariaOrientation,
   defineComponent,
+  disclosureTrigger,
+  listSurface,
+  optionRow,
   type ComponentDef,
   type PartScope,
   type SlotScope,
@@ -404,9 +410,11 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
           id: scope.id("trigger"),
           "data-scope": "menu",
           "data-part": "trigger",
-          "aria-haspopup": scope.props["composite"] !== false ? "menu" : "dialog",
-          "aria-expanded": open,
-          "aria-controls": scope.id("content"),
+          ...disclosureTrigger(scope, {
+            expanded: open,
+            hasPopup: scope.props["composite"] !== false ? "menu" : "dialog",
+            controls: { part: "content" },
+          }),
           hidden: scope.props["submenu"] === true,
           "data-state": open ? "open" : "closed",
           onClick: (): void => {
@@ -422,7 +430,7 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     },
     triggerIndicator: {
       attrs: (scope: ScopeLike) => ({
-        "aria-hidden": true,
+        ...ariaHidden(true),
         "data-state": scope.state === "open" ? "open" : "closed",
       }),
     },
@@ -467,10 +475,12 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
           // A leaf row's instance has no rows to show: keep it out of the
           // accessibility tree and out of hit-testing entirely.
           hidden: scope.props["submenu"] === true && scope.context.entries.length === 0,
-          "aria-activedescendant": highlightedValue === null
-            ? undefined
-            : scope.id("item", highlightedValue),
-          "aria-labelledby": scope.id("trigger"),
+          ...listSurface(scope, {
+            activeDescendant: highlightedValue === null
+              ? undefined
+              : { part: "item", slot: highlightedValue },
+            labelledBy: { part: "trigger" },
+          }),
           "data-state": scope.state === "open" ? "open" : "closed",
           class: "rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
           onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
@@ -501,7 +511,10 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
           "data-scope": "menu",
           "data-part": "item-group",
           role: "group",
-          "aria-labelledby": block.label === null ? undefined : scope.id("itemGroupLabel", block.id),
+          ...ariaLabelledBy(
+            scope,
+            block.label === null ? undefined : { part: "itemGroupLabel", slot: block.id },
+          ),
         };
       },
     },
@@ -530,15 +543,23 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
           "data-scope": "menu",
           "data-part": "item",
           role: row.checked === undefined ? "menuitem" : "menuitemcheckbox",
-          ...(row.checked === undefined ? {} : { "aria-checked": row.checked }),
-          ...(row.disabled ? { "aria-disabled": true, "data-disabled": "" } : {}),
+          ...optionRow({
+            ...(row.checked === undefined ? {} : { checked: row.checked }),
+            ...(row.disabled ? { disabled: true } : {}),
+          }),
+          ...(row.disabled ? { "data-disabled": "" } : {}),
           ...(highlighted ? { "data-highlighted": "" } : {}),
           ...rowHandlers(scope, row),
         };
         if (hasChildren) {
-          bag["aria-haspopup"] = scope.props["composite"] !== false ? "menu" : "dialog";
-          bag["aria-expanded"] = expanded;
-          bag["aria-controls"] = `${scope.id("submenu", row.value)}:content`;
+          const trigger = disclosureTrigger(scope, {
+            expanded,
+            hasPopup: scope.props["composite"] !== false ? "menu" : "dialog",
+            controls: { id: `${scope.id("submenu", row.value)}:content` },
+          });
+          bag["aria-haspopup"] = trigger["aria-haspopup"];
+          bag["aria-expanded"] = trigger["aria-expanded"];
+          bag["aria-controls"] = trigger["aria-controls"];
           bag["data-state"] = expanded ? "open" : "closed";
           bag["use:hover-intent"] = {
             delay: 200,
@@ -558,7 +579,7 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-state": row.checked === true ? "checked" : "unchecked",
         };
       },
@@ -574,7 +595,7 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           // Self-state, not a group variant: Uno compiles
           // group-data-[state=open] into a selector lightningcss rejects
           // as a dangling combinator.
@@ -587,7 +608,7 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
       indexes: (context) => blocksOf(context.entries),
       attrs: (scope: SlotLike<MenuBlock>) => ({
         role: "separator",
-        "aria-orientation": "horizontal",
+        ...ariaOrientation("horizontal"),
         hidden: !scope.slot.separator,
       }),
     },

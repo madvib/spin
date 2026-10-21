@@ -1,4 +1,4 @@
-import { defineComponent, type ComponentDef, type PartScope } from "@spin/runtime";
+import { ariaControls, ariaLabelledBy, defineComponent, optionRow, type ComponentDef, type PartScope } from "@spin/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import {
   tabs as tabsMachine,
@@ -43,8 +43,8 @@ const def: ComponentDef<TabsContext, TabsEvents> = {
           "data-scope": "tabs",
           "data-part": "trigger",
           "data-state": isSelected ? "active" : "inactive",
-          "aria-selected": isSelected ? "true" : "false",
-          "aria-controls": scope.id("content", row.value),
+          ...optionRow({ selected: isSelected ? "true" : "false" }),
+          ...ariaControls(scope, { part: "content", slot: row.value }),
           tabindex: isSelected ? 0 : -1,
           onKeydown: (event: KeyboardEvent) => {
             if (event.defaultPrevented) return;
@@ -76,7 +76,7 @@ const def: ComponentDef<TabsContext, TabsEvents> = {
           "data-scope": "tabs",
           "data-part": "panel",
           "data-state": isSelected ? "active" : "inactive",
-          "aria-labelledby": scope.id("trigger", row.value),
+          ...ariaLabelledBy(scope, { part: "trigger", slot: row.value }),
           hidden: isSelected ? undefined : true,
         };
       },

@@ -17,6 +17,12 @@ import { type Page } from "npm:playwright-core";
 const READOUT = "#popover-open";
 const TOASTS = "#popover-toasts";
 
+/** The platform's own truth: the native popover's open state. */
+const nativeOpen = (page: Page): Promise<boolean> =>
+  page.evaluate(() =>
+    document.querySelector("spin-popover [popover]")?.matches(":popover-open") ?? false
+  );
+
 Deno.test("spin-popover e2e", () =>
   runComponentSuite({ port: 5224, route: "/popover", ready: "spin-popover button" }, async ({ page }) => {
     await step("the trigger opens the native popover", async () => {
@@ -28,10 +34,7 @@ Deno.test("spin-popover e2e", () =>
         { timeout: 5000 },
       );
       assert.equal(await page.locator(READOUT).textContent(), "true", "the host readout follows the platform");
-      const open = await page.evaluate(() =>
-        document.querySelector("spin-popover [popover]")?.matches(":popover-open") ?? false
-      );
-      assert.equal(open, true, "the native popover is open");
+      assert.equal(await nativeOpen(page), true, "the native popover is open");
     });
 
     await step("Escape dismisses through the platform", async () => {
@@ -57,16 +60,20 @@ Deno.test("spin-popover e2e", () =>
         undefined,
         { timeout: 5000 },
       );
+      // The panel is closed here: hide() on a closed popover changes
+      // nothing, so a wait for the close would be satisfied by the state
+      // it waits for. The step asserts that no-op instead.
+      await page.getByRole("button", { name: "el.hide()" }).click();
+      assert.equal(await nativeOpen(page), false, "hide on a closed popover leaves it closed");
+      assert.equal(
+        await page.locator(READOUT).textContent(),
+        "false",
+        "the host readout reports no close for a closed popover",
+      );
       // A toggle click while open would race light-dismiss (the button's
       // own pointerdown dismisses before the click toggles back open), so
       // the close direction is established with hide() first: toggle from
       // a known closed state opens deterministically.
-      await page.getByRole("button", { name: "el.hide()" }).click();
-      await page.waitForFunction(
-        () => document.querySelector("#popover-open")?.textContent === "false",
-        undefined,
-        { timeout: 5000 },
-      );
       await page.getByRole("button", { name: "el.toggle()" }).click();
       await page.waitForFunction(
         () => document.querySelector("#popover-open")?.textContent === "true",

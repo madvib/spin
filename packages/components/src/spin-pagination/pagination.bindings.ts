@@ -1,4 +1,6 @@
 import {
+  ariaCurrent,
+  ariaHidden,
   dataAttr,
   defineComponent,
   textProp,
@@ -114,7 +116,7 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
         const item = scope.slot;
         // Templates have no conditional: the recipe renders button + span
         // twins and the wrong kind hides itself.
-        if (item.type !== "page") return { "data-hidden": "", "aria-hidden": "true", tabindex: "-1" };
+        if (item.type !== "page") return { "data-hidden": "", ...ariaHidden("true"), tabindex: "-1" };
         const current = item.value === scope.context.page;
         return {
           id: scope.id("item", item.value),
@@ -124,7 +126,7 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
           "data-part": "item",
           "data-index": String(item.value),
           "data-selected": scope.attr(current),
-          "aria-current": current ? "page" : undefined,
+          ...ariaCurrent(current ? "page" : undefined),
           "aria-label": `page ${item.value}`,
           onClick: (e: MouseEvent) => {
             if (e.defaultPrevented) return;
@@ -137,13 +139,13 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
       indexes: (context: PaginationContext) => windowItems(context),
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
-        if (item.type !== "ellipsis") return { "data-hidden": "", "aria-hidden": "true" };
+        if (item.type !== "ellipsis") return { "data-hidden": "", ...ariaHidden("true") };
         return {
           id: scope.id("ellipsis", item.index),
           dir: scope.props["dir"],
           "data-scope": "pagination",
           "data-part": "ellipsis",
-          "aria-hidden": "true",
+          ...ariaHidden("true"),
         };
       },
     },

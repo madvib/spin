@@ -1,4 +1,4 @@
-import { defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaInvalid, defineComponent, isRecord, liveRegion, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   sameTags,
   stringsOf,
@@ -578,7 +578,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
           enterKeyHint: "done",
           disabled: scope.props["disabled"] === true || scope.props["readOnly"] === true,
           maxLength: scope.props["maxLength"],
-          "aria-invalid": invalidOf(scope),
+          ...ariaInvalid(invalidOf(scope)),
           "data-invalid": scope.attr(invalidOf(scope)),
           "data-readonly": scope.attr(scope.props["readOnly"] === true),
           "data-empty": scope.attr(empty),
@@ -725,8 +725,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
         "data-scope": "tags-input",
         "data-part": "live-region",
         role: "status",
-        "aria-live": "assertive",
-        "aria-atomic": true,
+        ...liveRegion({ live: "assertive", atomic: true }),
       }),
     },
   },
@@ -843,7 +842,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
           "data-scope": "tags-input",
           "data-part": "item-delete-trigger",
           "data-disabled": scope.attr(state.disabled),
-          "aria-disabled": state.disabled,
+          ...ariaDisabled(state.disabled),
           "data-highlighted": scope.attr(state.highlighted),
           "aria-label": translationsOf(scope).deleteTagTriggerLabel(row.value),
           tabIndex: -1,

@@ -2,6 +2,7 @@ import {
   coerceJsonArray,
   dataAttr,
   defineComponent,
+  disclosureTrigger,
   resolveTwins,
   type ComponentDef,
   type PartScope,
@@ -106,8 +107,10 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
         return {
           id: scope.id("item", item.value),
           role: "menuitem",
-          "aria-expanded": open,
-          "aria-haspopup": "menu",
+          ...disclosureTrigger(scope, {
+            expanded: open,
+            hasPopup: "menu",
+          }),
           "data-state": open ? "open" : "closed",
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "use:hover-delay": {

@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaBusy, ariaDescription, ariaHidden, ariaRoleDescription, dataAttr, defineComponent, isComposing, isRecord, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   imageCropper as imageCropperMachine,
@@ -212,10 +212,10 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
           id: scope.id(""),
           role: "group",
           dir: scope.props["dir"],
-          "aria-roledescription": "Image cropper",
+          ...ariaRoleDescription("Image cropper"),
           "aria-label": "Image cropper",
-          "aria-description": `Crop positioned at ${rounded.x}px from the left and ${rounded.y}px from the top with a size of ${rounded.width}px by ${rounded.height}px, ${crop.zoom.toFixed(2)}x zoom, ${Math.round(crop.rotation)} degrees rotation.`,
-          "aria-busy": measured ? undefined : "true",
+          ...ariaDescription(`Crop positioned at ${rounded.x}px from the left and ${rounded.y}px from the top with a size of ${rounded.width}px by ${rounded.height}px, ${crop.zoom.toFixed(2)}x zoom, ${Math.round(crop.rotation)} degrees rotation.`),
+          ...ariaBusy(measured ? undefined : "true"),
           "data-shape": crop.cropShape,
           "data-dragging": dataAttr(scope.state === "dragging"),
           "data-panning": dataAttr(scope.state === "panning"),
@@ -303,7 +303,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
           id: scope.id("image"),
           role: "presentation",
           alt: alt.length > 0 ? alt : "",
-          "aria-hidden": "true",
+          ...ariaHidden("true"),
           draggable: "false",
           src: src.length > 0 ? src : undefined,
           "data-ready": dataAttr(measured),
@@ -330,12 +330,14 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
           role: "slider",
           tabindex: "0",
           "aria-label": `Crop selection area (${ctx.cropShape === "circle" ? "circle" : "rectangle"})`,
-          "aria-roledescription": "2d slider",
-          "aria-valuemin": "0",
-          "aria-valuemax": String(maxX),
-          "aria-valuenow": String(crop.x),
-          "aria-valuetext": `Position X ${crop.x}px, Y ${crop.y}px. Size ${crop.width}px by ${crop.height}px.`,
-          "aria-description": "Use arrow keys to move the crop. Hold Alt with arrow keys to resize width or height. Press plus or minus to zoom.",
+          ...ariaRoleDescription("2d slider"),
+          ...sliderThumb({
+            min: "0",
+            max: String(maxX),
+            now: String(crop.x),
+            text: `Position X ${crop.x}px, Y ${crop.y}px. Size ${crop.width}px by ${crop.height}px.`,
+          }),
+          ...ariaDescription("Use arrow keys to move the crop. Hold Alt with arrow keys to resize width or height. Press plus or minus to zoom."),
           "data-disabled": dataAttr(ctx.fixedCropArea),
           "data-shape": ctx.cropShape,
           "data-measured": dataAttr(ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0),
@@ -382,7 +384,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
         return {
           id: scope.id("handle", slots.position),
           role: "presentation",
-          "aria-hidden": "true",
+          ...ariaHidden("true"),
           "data-position": slots.position,
           "data-disabled": dataAttr(fixed),
           // The resize is the handle's own gesture: the press stops there,
@@ -417,7 +419,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = gridOf(arg);
         return {
-          "aria-hidden": "true",
+          ...ariaHidden("true"),
           "data-axis": slots.axis,
           "data-dragging": dataAttr(scope.state === "dragging"),
         };

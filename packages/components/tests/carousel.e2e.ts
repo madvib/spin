@@ -11,6 +11,37 @@ import { type Page } from "npm:playwright-core";
 const indexOf = async (page: Page): Promise<string> =>
   (await page.locator("#carousel-index").textContent()) ?? "";
 
+/**
+ * The rotation overwrites the index on every tick, so waiting for a fixed
+ * index races the clock that writes it — and a wait for the index the
+ * carousel already sits on is satisfied before the rotation has moved at
+ * all. This watches the readout's own text and keeps the value it finds
+ * the moment the rotation writes one. It resolves to the empty string if
+ * the rotation never writes.
+ */
+const watchIndex = (page: Page): Promise<string> =>
+  page.evaluate(() => {
+    const el = document.querySelector("#carousel-index");
+    const { promise, resolve } = Promise.withResolvers<string>();
+    if (el === null) {
+      resolve("");
+      return promise;
+    }
+    const start = el.textContent ?? "";
+    const observer = new MutationObserver(() => {
+      const now = el.textContent ?? "";
+      if (now === start) return;
+      observer.disconnect();
+      resolve(now);
+    });
+    observer.observe(el, { childList: true, characterData: true, subtree: true });
+    window.setTimeout(() => {
+      observer.disconnect();
+      resolve("");
+    }, 8000);
+    return promise;
+  });
+
 Deno.test("spin-carousel e2e", () =>
   runComponentSuite({ port: 5204, route: "/carousel", ready: 'spin-carousel [aria-roledescription="carousel"]' }, async ({ page }) => {
     const region = page.locator('spin-carousel [aria-roledescription="carousel"]');
@@ -19,7 +50,6 @@ Deno.test("spin-carousel e2e", () =>
     const indicators = page.locator('spin-carousel [aria-label="Slides"] > button');
     const prev = page.locator('spin-carousel button[aria-label="Previous slide"]');
     const next = page.locator('spin-carousel button[aria-label="Next slide"]');
-    const autoplayTrigger = page.locator('spin-carousel button[aria-label="Start slide rotation"]');
 
     await step("renders the carousel contract", async () => {
       assert.equal(await region.getAttribute("role"), "region");
@@ -123,17 +153,17 @@ Deno.test("spin-carousel e2e", () =>
     });
 
     await step("autoplay advances and stops on a press", async () => {
+      const before = await indexOf(page);
+      const advanced = watchIndex(page);
       await page.click("#carousel-play");
       assert.equal(
         await page.locator("#carousel-rotation").textContent(),
         "playing",
         "the rotation reports playing",
       );
-      await page.waitForFunction(
-        () => document.querySelector("#carousel-index")?.textContent === "1",
-        undefined,
-        { timeout: 6000 },
-      );
+      const after = await advanced;
+      assert.notEqual(after, "", `the rotation advanced the index (it held at ${before})`);
+      assert.notEqual(after, before, "the rotation moved the carousel off its page");
       await track.click();
       assert.equal(
         await page.locator("#carousel-rotation").textContent(),

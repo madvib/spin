@@ -1,6 +1,15 @@
 import {
+  ariaControls,
+  ariaHidden,
+  ariaInvalid,
+  ariaLabelledBy,
+  ariaState,
+  comboboxInput,
   defineComponent,
+  disclosureTrigger,
   isComposing,
+  listSurface,
+  optionRow,
   textProp,
   type ComponentDef,
   type PartScope,
@@ -601,13 +610,15 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           // The field is controlled: the bag binds the machine's text, and
           // an inline completion rides on top of it.
           value: display,
-          "aria-invalid": scope.props["invalid"],
-          "aria-autocomplete": ctx.inputBehavior === "autocomplete" ? "both" : "list",
-          "aria-controls": scope.id("content"),
-          "aria-expanded": isOpenPhase(scope.state),
-        "aria-activedescendant": ctx.highlightedValue === null
-          ? undefined
-          : scope.id("item", ctx.highlightedValue),
+          ...ariaInvalid(ariaState(scope.props["invalid"])),
+          ...comboboxInput(scope, {
+            autocomplete: ctx.inputBehavior === "autocomplete" ? "both" : "list",
+            controls: { part: "content" },
+            expanded: isOpenPhase(scope.state),
+            activeDescendant: ctx.highlightedValue === null
+              ? undefined
+              : { part: "item", slot: ctx.highlightedValue },
+          }),
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           "data-invalid": scope.attr(scope.props["invalid"] === true),
@@ -645,10 +656,12 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-part": "trigger",
           dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           type: "button",
-          "aria-haspopup": scope.props["composite"] !== false ? "listbox" : "dialog",
+          ...disclosureTrigger(scope, {
+            expanded: open,
+            hasPopup: scope.props["composite"] !== false ? "listbox" : "dialog",
+            controls: open ? { part: "content" } : undefined,
+          }),
           "aria-label": scope.props["triggerLabel"],
-          "aria-expanded": open,
-          "aria-controls": open ? scope.id("content") : undefined,
           disabled: scope.props["disabled"],
           tabIndex: focusable ? undefined : -1,
           "data-state": open ? "open" : "closed",
@@ -690,7 +703,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
     },
     triggerIndicator: {
       attrs: (scope: ScopeLike) => ({
-        "aria-hidden": true,
+        ...ariaHidden(true),
         dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
       }),
@@ -702,7 +715,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-part": "clear-trigger",
         type: "button",
         "aria-label": scope.props["clearTriggerLabel"],
-        "aria-controls": scope.id("input"),
+        ...ariaControls(scope, { part: "input" }),
         disabled: scope.props["disabled"],
         tabIndex: -1,
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
@@ -733,8 +746,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-part": "content",
           role: scope.props["composite"] !== false ? "listbox" : "dialog",
           tabIndex: -1,
-          "aria-labelledby": scope.id("label"),
-          "aria-multiselectable": scope.props["composite"] !== false && ctx.multiple ? true : undefined,
+          ...listSurface(scope, {
+            labelledBy: { part: "label" },
+            multiSelectable: scope.props["composite"] !== false && ctx.multiple ? true : undefined,
+          }),
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           "data-placement": placement,
           "data-side": placement.split("-")[0] ?? placement,
@@ -765,8 +780,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-scope": "combobox",
           "data-part": "list",
           role: composite ? undefined : "listbox",
-          "aria-labelledby": scope.id("label"),
-          "aria-multiselectable": composite ? undefined : ctx.multiple ? true : undefined,
+          ...listSurface(scope, {
+            labelledBy: { part: "label" },
+            multiSelectable: composite ? undefined : ctx.multiple ? true : undefined,
+          }),
           "data-empty": scope.attr(itemsOf(scope.props).length === 0),
         };
       },
@@ -787,8 +804,10 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           tabIndex: -1,
           "data-value": row.value,
           "data-state": state.selected ? "checked" : "unchecked",
-          "aria-selected": state.selected,
-          "aria-disabled": state.disabled ? true : undefined,
+          ...optionRow({
+            selected: state.selected,
+            disabled: state.disabled ? true : undefined,
+          }),
           "data-highlighted": scope.attr(state.highlighted),
           "data-disabled": scope.attr(state.disabled),
           ...rowHandlers(scope, row),
@@ -811,7 +830,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
       attrs: (scope: SlotLike<ComboboxRow>) => {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-state": selected ? "checked" : "unchecked",
           hidden: !selected,
         };
@@ -826,7 +845,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           id: scope.id("itemGroup", block.id),
           dir: (scope.props["dir"] === "rtl" ? "rtl" : "ltr"),
           role: "group",
-          "aria-labelledby": scope.id("itemGroupLabel", block.id),
+          ...ariaLabelledBy(scope, { part: "itemGroupLabel", slot: block.id }),
           "data-empty": scope.attr(rowsOf(scope.props).length === 0),
         };
       },

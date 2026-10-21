@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, focuser, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaRoleDescription, dataAttr, defineComponent, focuser, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   isEmpty,
@@ -128,9 +128,9 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvents> = {
         return {
           id: scope.id("control"),
           role: "application",
-          "aria-roledescription": "signature pad",
+          ...ariaRoleDescription("signature pad"),
           "aria-label": "signature pad",
-          "aria-disabled": disabled ? "true" : undefined,
+          ...ariaDisabled(disabled ? "true" : undefined),
           tabindex: disabled ? undefined : "0",
           "data-scope": "signature-pad",
           "data-part": "control",

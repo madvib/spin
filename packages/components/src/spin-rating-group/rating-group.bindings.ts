@@ -3,6 +3,12 @@ import {
   defaultTwin,
   defineComponent,
   isComposing,
+  ariaDisabled,
+  ariaLabelledBy,
+  ariaOrientation,
+  ariaReadOnly,
+  ariaRoleDescription,
+  optionRow,
 } from "@spin/runtime";
 import {
   isHovering,
@@ -113,9 +119,9 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "radiogroup",
-        "aria-orientation": "horizontal",
-        "aria-labelledby": scope.id("label"),
-        "aria-readonly": scope.props["readOnly"] === true ? "true" : undefined,
+        ...ariaOrientation("horizontal"),
+        ...ariaLabelledBy(scope, { part: "label" }),
+        ...ariaReadOnly(scope.props["readOnly"] === true ? "true" : undefined),
         "data-scope": "rating-group",
         "data-part": "control",
         "data-readonly": scope.attr(scope.props["readOnly"] === true),
@@ -166,19 +172,19 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
             scope.props["readOnly"] === true || scope.props["disabled"] === true
               ? (state.checked ? "0" : undefined)
               : (state.checked ? "0" : "-1"),
-          "aria-roledescription": "rating",
+          ...ariaRoleDescription("rating"),
           "aria-label": `${index} stars`,
-          "aria-disabled": scope.props["disabled"] === true
-            ? "true"
-            : undefined,
+          ...ariaDisabled(scope.props["disabled"] === true ? "true" : undefined),
           "data-scope": "rating-group",
           "data-part": "item",
           "data-disabled": scope.attr(scope.props["disabled"] === true),
           "data-readonly": scope.attr(scope.props["readOnly"] === true),
-          "aria-setsize": String(context.count),
-          "aria-checked": state.checked ? "true" : "false",
+          ...optionRow({
+            setSize: String(context.count),
+            checked: state.checked ? "true" : "false",
+            posInSet: String(index),
+          }),
           "data-checked": scope.attr(state.checked),
-          "aria-posinset": String(index),
           "data-highlighted": scope.attr(state.highlighted),
           "data-half": scope.attr(state.half),
           onPointerdown: (event: PointerEvent) => {

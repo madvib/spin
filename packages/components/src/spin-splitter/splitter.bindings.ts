@@ -1,8 +1,11 @@
 import {
+  ariaControls,
+  ariaOrientation,
   dataAttr,
   defineComponent,
   focuser,
   isComposing,
+  sliderThumb,
   type ComponentDef,
   type PartScope,
   type SlotScope,
@@ -296,12 +299,20 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
     "data-type": "handle",
     "data-id": handle,
     tabindex: scope.props["disabled"] === true ? undefined : "0",
-    "aria-valuenow": String(Math.round(context.size[context.panels.findIndex((p) => p.id === beforeId)] ?? 0)),
-    "aria-valuemin": "0",
-    "aria-valuemax": "100",
+    ...sliderThumb({
+      now: String(Math.round(context.size[context.panels.findIndex((p) => p.id === beforeId)] ?? 0)),
+      min: "0",
+      max: "100",
+    }),
     "data-orientation": context.orientation,
-    "aria-orientation": scope.props["orientation"],
-    "aria-controls": `${scope.id("panel", beforeId)} ${scope.id("panel", afterId)}`,
+    ...ariaOrientation(
+      scope.props["orientation"] === "horizontal" || scope.props["orientation"] === "vertical"
+        ? scope.props["orientation"]
+        : undefined,
+    ),
+    ...ariaControls(scope, {
+      parts: [{ part: "panel", slot: beforeId }, { part: "panel", slot: afterId }],
+    }),
     "data-focus": scope.attr(focused),
     "data-dragging": scope.attr(dragging),
     "data-disabled": scope.attr(scope.props["disabled"] === true),

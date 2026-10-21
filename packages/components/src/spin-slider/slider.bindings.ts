@@ -1,4 +1,4 @@
-import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaOrientation, defineComponent, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
@@ -273,6 +273,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
         const focused = scope.state === "focus" && context.focusedIndex === slotIndex(scope.slot);
         const dragging = scope.state === "dragging" && context.focusedIndex === slotIndex(scope.slot);
         const vertical = scope.props["orientation"] === "vertical";
+        const orientation = scope.props["orientation"];
         return {
           id: scope.id("thumb", slotIndex(scope.slot)),
           dir: scope.props["dir"],
@@ -284,11 +285,17 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
           "data-focus": scope.attr(focused),
           "data-dragging": scope.attr(dragging),
           draggable: "false",
-          "aria-disabled": scope.props["disabled"] === true ? "true" : undefined,
-          "aria-orientation": scope.props["orientation"],
-          "aria-valuemax": String(range.max),
-          "aria-valuemin": String(range.min),
-          "aria-valuenow": String(value),
+          ...ariaDisabled(scope.props["disabled"] === true ? "true" : undefined),
+          ...ariaOrientation(
+            orientation === "horizontal" || orientation === "vertical"
+              ? orientation
+              : undefined,
+          ),
+          ...sliderThumb({
+            max: String(range.max),
+            min: String(range.min),
+            now: String(value),
+          }),
           role: "slider",
           tabindex: scope.props["disabled"] === true ? undefined : "0",
           style: vertical

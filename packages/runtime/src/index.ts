@@ -164,6 +164,49 @@ export type {
 } from "@spin/syntax";
 export { ParseError } from "@spin/syntax";
 
+/**
+ * The ARIA vocabulary: the attribute sets a part states.
+ *
+ * A primitive states the attributes it owns and nothing else, so a part
+ * spreads it beside the attributes it owns itself.
+ */
+export {
+  ariaAutocomplete,
+  ariaBusy,
+  ariaControls,
+  ariaCurrent,
+  ariaDescription,
+  ariaDescribedBy,
+  ariaDisabled,
+  ariaFlag,
+  ariaHidden,
+  ariaInvalid,
+  ariaLabelledBy,
+  ariaOrientation,
+  ariaOwns,
+  ariaPressed,
+  ariaReadOnly,
+  ariaRequired,
+  ariaRoleDescription,
+  ariaState,
+  comboboxInput,
+  disclosureTrigger,
+  listSurface,
+  liveRegion,
+  optionRow,
+  sliderThumb,
+  type AriaAutocomplete,
+  type AriaCurrent,
+  type AriaFragment,
+  type AriaHasPopup,
+  type AriaLive,
+  type AriaOrientation,
+  type AriaPartRef,
+  type AriaState,
+  type AriaTarget,
+  type AriaValue,
+} from "./aria.ts";
+
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
 export { bindActionProps, bindSpread } from "./directives/spread.ts";
 export { machineTick } from "./core/signal.ts";

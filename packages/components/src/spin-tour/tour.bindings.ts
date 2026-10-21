@@ -1,4 +1,5 @@
 import {
+  ariaHidden,
   dataAttr,
   defineComponent,
   type ComponentDef,
@@ -168,7 +169,7 @@ const def: ComponentDef<TourContext, TourEvents> = {
         id: scope.id("backdrop"),
           "data-scope": "tour",
           "data-part": "backdrop",
-        "aria-hidden": true,
+        ...ariaHidden(true),
         "data-state": runningState(scope.state) ? "open" : "closed",
         "data-disabled": dataAttr(scope.props["disabled"] === true),
       }),
@@ -184,7 +185,7 @@ const def: ComponentDef<TourContext, TourEvents> = {
           id: scope.id("spotlight"),
             "data-scope": "tour",
             "data-part": "spotlight",
-          "aria-hidden": true,
+          ...ariaHidden(true),
           "data-state": open ? "open" : "closed",
           hidden: !open,
           // The spotlight's own box: the target's rect, padded. The

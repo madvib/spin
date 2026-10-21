@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, focuser, isComposing, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaLabelledBy, dataAttr, defineComponent, focuser, isComposing, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   angleSlider as angleSliderMachine,
@@ -246,10 +246,12 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
           role: "slider",
           dir: scope.props["dir"],
           "aria-label": ariaLabel.length > 0 ? ariaLabel : undefined,
-          "aria-labelledby": ariaLabel.length > 0 ? undefined : scope.id("label"),
-          "aria-valuemax": "360",
-          "aria-valuemin": "0",
-          "aria-valuenow": String(ctx.value),
+          ...ariaLabelledBy(scope, ariaLabel.length > 0 ? undefined : { part: "label" }),
+          ...sliderThumb({
+            max: "360",
+            min: "0",
+            now: String(ctx.value),
+          }),
           tabindex: scope.props["readOnly"] === true || isInteractive(ctx) ? "0" : undefined,
           "data-scope": "angle-slider",
           "data-part": "thumb",
