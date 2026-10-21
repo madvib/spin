@@ -51,7 +51,7 @@ export const ROUTES = [
   {
     path: "/icons",
     label: "Icons",
-    icon: "i-lucide-grid-2x2",
+    icon: "i-lucide-shapes",
     rail: "concern",
     owns: [["icon"]],
   },
@@ -72,7 +72,7 @@ export const ROUTES = [
   {
     path: "/style",
     label: "Style",
-    icon: "i-lucide-sliders-horizontal",
+    icon: "i-lucide-contrast",
     rail: "concern",
     owns: [["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
       "focus",

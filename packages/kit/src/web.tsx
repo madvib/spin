@@ -27,14 +27,14 @@ const WEB_SMALL =
 export function Web(
   props: { class?: string; title?: string; size?: number },
 ): JSX.Element {
-  return <WebMark path={WEB} stroke={0.7} hub={1} {...props} />;
+  return <WebMark path={WEB} stroke={0.7} hub={1.9} {...props} />;
 }
 
 /** The web, thinned for a favicon. */
 export function WebGlyph(
   props: { class?: string; title?: string },
 ): JSX.Element {
-  return <WebMark path={WEB_SMALL} stroke={1.9} hub={1.5} {...props} />;
+  return <WebMark path={WEB_SMALL} stroke={1.7} hub={1.6} {...props} />;
 }
 
 function WebMark(

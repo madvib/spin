@@ -399,7 +399,7 @@ export default function App() {
                 <Web size={24} class="h-6 w-6 shrink-0" />
               </A>
               <RailTip label={MARK.label} top="top-5" />
-              <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-1">
+              <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-2">
                 <For each={CONCERNS}>
                   {(route) => (
                     <li class="m-0 w-full">
@@ -421,7 +421,7 @@ export default function App() {
                   )}
                 </For>
               </ul>
-              <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2">
+              <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-2 border-t border-border pt-2">
                 <li class="m-0 w-full">
                   <button
                     type="button"
