@@ -17,7 +17,7 @@ import { starterThemes, themeModes } from "@spin/theme/themes";
 import { MontagePage } from "./montage.tsx";
 import { PRIMITIVES } from "./primitives.ts";
 import { MONTAGE_ROUTE } from "./routes.ts";
-import { THEMES } from "./themes.ts";
+import { themeDocument, THEMES } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
@@ -51,8 +51,10 @@ function useTheme() {
   const [theme, setTheme] = createSignal(
     localStorage.getItem("spin-theme") ?? "silk",
   );
-  const doc = () =>
-    (starterThemes as unknown as Record<string, unknown>)[theme()] as never;
+  // The app's own list, not the package's: a theme the project ships is a
+  // theme the app serves, and a lookup that only knew the starters would
+  // hand back nothing for it and then ask a document for its modes.
+  const doc = () => themeDocument(theme()) as never;
   const modes = () => [...themeModes(doc())];
   // The mode the theme actually serves, in preference order: a theme with no
   // dark group has one rendering, so it never reads "dark"; a theme whose
@@ -77,9 +79,7 @@ function useTheme() {
     const stored = t === theme()
       ? localStorage.getItem("spin-mode") ?? "system"
       : "system";
-    const m = [...themeModes(
-      (starterThemes as unknown as Record<string, unknown>)[t] as never,
-    )];
+    const m = [...themeModes(themeDocument(t) as never)];
     if (stored === "dark" && !m.includes("dark")) return "base";
     return stored;
   };

@@ -6,34 +6,71 @@
  * out is a theme nobody can compare, and a theme compared under a name the
  * app does not serve is a theme that does not exist.
  *
- * The list is the starters the theme package ships. A project forks a starter
- * by putting a file of the same name in `spin/`, and the fork REPLACES the
- * starter of that name in the stylesheet — so the names here are the names
- * the page carries either way, and the montage shows whatever the project
- * serves under them.
+ * The list is the starters the theme package ships, FORKED by the project's
+ * own files: a file of the same name in `spin/` replaces the starter of that
+ * name, and a file of a name the package does not ship adds a theme of its
+ * own. The build serves the same set — the plugin reads `spin/*.json` from
+ * the same directory — so the names here are the names the page carries, and
+ * the montage shows whatever the project serves under them.
  */
 
 import { starterThemes, themeModes } from "@spin/theme/themes";
 
+/**
+ * The project's own theme documents, read at build time.
+ *
+ * `import.meta.glob` is the only way to see them: the app is a browser
+ * bundle, and a theme the build cannot see is a theme the page cannot render.
+ *
+ * The files come in as TEXT and are parsed here, so a file that does not
+ * parse is skipped rather than failing the build — the same rule the plugin
+ * follows when it reads the same directory for the stylesheet. A half-written
+ * theme in an editor must not cost the app the rest of its themes.
+ */
+const PROJECT_SOURCES = import.meta.glob<string>(
+  "../spin/*.json",
+  { eager: true, query: "?raw", import: "default" },
+);
+
+/** The project's own themes, by name. */
+const PROJECT_THEMES: Record<string, Record<string, unknown>> = Object
+  .fromEntries(
+    Object.entries(PROJECT_SOURCES).flatMap(([path, text]) => {
+      const name = path.split("/").pop()?.replace(/\.json$/, "") ?? path;
+      try {
+        return [[name, JSON.parse(text) as Record<string, unknown>]];
+      } catch {
+        // Skipped: a file that does not parse is not a theme.
+        return [];
+      }
+    }),
+  );
+
+/**
+ * Every theme the app serves: the shipped starters, and the project's own.
+ *
+ * A project's file wins over the starter of the same name, which is what
+ * "forked" means: the build serves the project's copy, so the app must too.
+ */
+const SERVED: Record<string, Record<string, unknown>> = {
+  ...(starterThemes as unknown as Record<string, Record<string, unknown>>),
+  ...PROJECT_THEMES,
+};
+
 /** The themes the app serves, by name. */
-export const THEMES: readonly string[] = Object.keys(starterThemes);
+export const THEMES: readonly string[] = Object.keys(SERVED);
 
 /**
  * A theme's document, or undefined when the name is not one of ours.
  *
- * The starters are a fixed set, so the lookup is a cast rather than an index
- * signature: the cast is the price of `Object.keys` giving back strings, and
- * the undefined arm is what keeps a name that is not a theme from reading as
- * one.
+ * The lookup is a cast rather than an index signature: the cast is the price
+ * of `Object.keys` giving back strings, and the undefined arm is what keeps a
+ * name that is not a theme from reading as one.
  */
 export function themeDocument(
   name: string,
 ): Record<string, unknown> | undefined {
-  const themes = starterThemes as unknown as Record<
-    string,
-    Record<string, unknown>
-  >;
-  return themes[name];
+  return SERVED[name];
 }
 
 /**

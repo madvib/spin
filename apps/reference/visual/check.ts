@@ -59,6 +59,45 @@ const THEMES = starterThemes as unknown as Record<
 >;
 
 /**
+ * The project's own themes: the files in `spin/`, read from disk.
+ *
+ * The build serves the same set — the plugin reads `spin/*.json` from the
+ * same directory — so the matrix has to carry the same themes the app
+ * renders, or a theme the app can show is a theme nobody checked. A file
+ * that does not parse is skipped rather than thrown on: a half-written theme
+ * in an editor must not cost the run the rest of the matrix.
+ */
+async function projectThemes(): Promise<
+  Record<string, Parameters<typeof themeModes>[0]>
+> {
+  const out: Record<string, Parameters<typeof themeModes>[0]> = {};
+  // The project's themes directory is beside this one, not inside it: the
+  // harness lives in `visual/`, the project lives in the app's root.
+  const directory = `${BASE}../spin`;
+  try {
+    for await (const entry of Deno.readDir(directory)) {
+      if (!entry.isFile || !entry.name.endsWith(".json")) continue;
+      try {
+        out[entry.name.replace(/\.json$/, "")] = JSON.parse(
+          await Deno.readTextFile(`${directory}/${entry.name}`),
+        ) as Parameters<typeof themeModes>[0];
+      } catch {
+        // Skipped: see above.
+      }
+    }
+  } catch {
+    // No project directory: the app serves the starters alone.
+  }
+  return out;
+}
+
+/** Every theme the app renders: the starters, and the project's own. */
+const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
+  ...THEMES,
+  ...(await projectThemes()),
+};
+
+/**
  * The reference's check configuration.
  *
  * It is exported so the diagnostics' CLI can check this app: the checks
@@ -68,10 +107,10 @@ export const config: CheckConfig = {
   baseDir: BASE,
   defaultUrl: "http://localhost:5173",
   routes,
-  themes: Object.keys(THEMES),
+  themes: Object.keys(SERVED),
   modesFor: (theme) => [
     "base",
-    ...themeModes(THEMES[theme]!).filter((mode) => mode === "dark"),
+    ...themeModes(SERVED[theme]!).filter((mode) => mode === "dark"),
   ],
   hoverSelector: "nav button, nav a",
   // The specimen, not the chrome: the rail is the app's navigation, and its
