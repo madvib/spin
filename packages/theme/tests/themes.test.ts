@@ -7,9 +7,8 @@ import {
   generateTypes,
   inkTokens,
   parseTokens,
-  STROBE_FLOOR_MS,
+  themeGates,
   validateTokens,
-  valuesInMode,
 } from "@spin/theme";
 import type {
   ParseResult,
@@ -25,12 +24,19 @@ import {
 } from "@spin/theme/themes";
 
 /**
- * These tests run the whole package against the example theme that ships with
- * it (`src/themes/`). A starter is what a consumer copies and customises, so
- * what matters here is not that its particular hexes are pleasant but that the
- * shape a real theme has survives the pipeline end to end: two files parse, both
- * validate, one stylesheet comes out with a light block and a dark block, and a
- * dark-mode consumer reads different colors and the same spacing.
+ * The battery, run over the themes this package ships — and over a theme a
+ * PROJECT ships, which is the one the skill tells an author to write.
+ *
+ * A starter is what a consumer copies, so what matters here is not that its
+ * particular hexes are pleasant but that the shape a real theme has survives
+ * the pipeline end to end: two files parse, both validate, one stylesheet
+ * comes out with a light block and a dark block, and a dark-mode consumer
+ * reads different colors and the same spacing.
+ *
+ * The battery itself lives in the package (`themeGates`), because it has to
+ * run against ANY document — a starter, a project's own theme, a file an
+ * author is halfway through. A battery that only runs against the shipped
+ * starters cannot answer the question the skill asks: "does MY theme pass?".
  */
 
 // The SHIPPED starter themes, not fixtures: these are the product, and
@@ -71,7 +77,7 @@ function blocks(css: string): CssBlock[] {
 
 function blockWithSelector(css: string, selector: string): CssBlock {
   const found = blocks(css).find((block) => block.selector === selector);
-  if (!found) {
+  if (found === undefined) {
     throw new Error(
       `no block for selector "${selector}"; emitted: ${
         blocks(css).map((b) => b.selector).join(" | ")
@@ -121,14 +127,6 @@ function toNumber(value: string): number {
   return Number(match[1]);
 }
 
-/** A CSS duration as milliseconds, or `undefined` when it is not a duration. */
-function durationMs(value: string): number | undefined {
-  const match = /^(\d*\.?\d+)(ms|s)$/.exec(value.trim());
-  if (match === null) return undefined;
-  const n = Number(match[1]);
-  return match[2] === "s" ? n * 1000 : n;
-}
-
 /** Ordered numbers must already be ascending, naming the offender when not. */
 function assertAscending(values: number[], label: string): void {
   for (let i = 1; i < values.length; i++) {
@@ -137,15 +135,6 @@ function assertAscending(values: number[], label: string): void {
       `${label}: ${values[i - 1]} must be below ${values[i]} (index ${i})`,
     );
   }
-}
-
-/** A shadow's weight: the px lengths it moves, summed. `none` weighs nothing. */
-function shadowWeight(value: string): number {
-  let total = 0;
-  for (const [, length] of value.matchAll(/(-?\d*\.?\d+)px/g)) {
-    total += Math.abs(Number(length));
-  }
-  return total;
 }
 
 /**
@@ -403,35 +392,6 @@ Deno.test("a theme declares the modes it actually has", async () => {
   }
 });
 
-Deno.test("every starter's loop duration holds the strobe floor", async () => {
-  // `motion.duration.slow` is what every endless animation in the system
-  // spends: the skeleton's pulse and the `animate-spin` / `animate-ping` /
-  // `animate-pulse` utilities. A slow step under the floor turns each of
-  // them into a strobe — a defect rather than a character choice — so the
-  // browser check flags the loop and this suite refuses the theme that
-  // minted it.
-  for (const [name, modes] of Object.entries(DECLARED_MODES)) {
-    const tree = treeOf(
-      parseTokens(
-        await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
-      ),
-      `${name}.json`,
-    );
-    for (const mode of modes) {
-      const slow = valuesInMode(tree, mode).get("motion.duration.slow");
-      const ms = typeof slow === "string" ? durationMs(slow) : undefined;
-      assert(
-        ms !== undefined,
-        `${name}: motion.duration.slow must be a duration`,
-      );
-      assert(
-        ms >= STROBE_FLOOR_MS,
-        `${name} (${mode}): a ${ms}ms loop is a strobe; the floor is ${STROBE_FLOOR_MS}ms`,
-      );
-    }
-  }
-});
-
 Deno.test("the example theme's stylesheet is a light block and a dark block", async () => {
   const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
@@ -645,57 +605,6 @@ Deno.test("the example theme's breakpoints and z-index layers are ordered", asyn
   assertEquals(Number(vars["--z-index-base"]), 0);
 });
 
-Deno.test("every starter's elevation ladder ascends in every mode", async () => {
-  // Three steps or none: a theme whose md and lg spell the same shadow
-  // spends one elevation wearing two names, and every surface that asks for
-  // "the step above the page" gets the resting picture back. The step a
-  // component spends is its role — a card rests ON the page, a dialog floats
-  // above it — and how loud each step is stays the theme's to state.
-  //
-  // A theme may also declare a FLAT ladder: two steps that both say `none`.
-  // That is a decision rather than the defect above — this theme separates
-  // with rules, spends no elevation on a card, and cuts only the overlay
-  // out of the sheet — and it is not one shadow under two names. So the
-  // ladder must never step DOWN, and a tie is allowed exactly where the
-  // tied step declares no elevation at all. Two steps that spell the same
-  // real shadow are still a defect, and still fail here.
-  for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
-    const tree = treeOf(
-      parseTokens(await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR))),
-      `${name}.json`,
-    );
-    const css = generateCss(tree);
-    const hasDark = tree.find((node) =>
-      node.path.join(".") === "dark"
-    ) !== undefined;
-    const modes = hasDark ? ["light", "dark"] as const : ["light"] as const;
-
-    for (const mode of modes) {
-      const vars = varsInMode(css, mode);
-      const shadows = ["sm", "md", "lg"].map((step) =>
-        resolve(vars, `--shadow-${step}`)
-      );
-      const weights = shadows.map(shadowWeight);
-      for (let i = 1; i < weights.length; i++) {
-        const previous = weights[i - 1]!;
-        const current = weights[i]!;
-        assert(
-          previous <= current,
-          `${name} ${mode} shadow: ${shadows[i - 1]} must not be louder than ${
-            shadows[i]
-          } (index ${i})`,
-        );
-        assert(
-          previous !== current || shadows[i - 1]!.trim() === "none",
-          `${name} ${mode} shadow: ${shadows[i - 1]} and ${
-            shadows[i]
-          } are one elevation under two names (index ${i})`,
-        );
-      }
-    }
-  }
-});
-
 Deno.test("the example theme's text is legible on its own surfaces in both modes", async () => {
   const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
@@ -824,10 +733,10 @@ Deno.test("the example theme is addressable as the named 'silk' theme", async ()
 
 Deno.test("the checked-in token types are what the baseline generates", async () => {
   // `theme-types.d.ts` is a generated artifact: it says which tokens the
-  // baseline carries, and a component that spends a token the artifact
-  // does not name does not compile. Drift therefore surfaces as a compile
-  // error in someone else's checkout, so the freshness check lives here with
-  // the theme that generates it.
+  // baseline carries, and a component that spends a token the artifact does
+  // not name does not compile. Drift therefore surfaces as a compile error in
+  // someone else's checkout, so the freshness check lives here with the theme
+  // that generates it.
   const tree = treeOf(
     parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
     "silk.json",
@@ -840,4 +749,135 @@ Deno.test("the checked-in token types are what the baseline generates", async ()
     generateTypes(tree),
     "run `deno task types` in packages/theme to regenerate",
   );
+});
+
+/* ------------------------------------------------------------- the battery -- */
+
+/**
+ * The battery, over every starter this package ships.
+ *
+ * The starters are the product, so they are held to the same gates a
+ * project's own theme is: the completeness of the document, the floors in
+ * every mode it serves, the ladders, the loop, and the modes.
+ */
+Deno.test("every starter passes the battery", async () => {
+  for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
+    const text = await Deno.readTextFile(
+      new URL(`${name}.json`, THEMES_DIR),
+    );
+    const report = themeGates(text);
+    assertEquals(
+      report.issues.map((issue) => `${issue.path}: ${issue.message}`),
+      [],
+      `${name} does not pass the battery`,
+    );
+    assert(report.valid);
+  }
+});
+
+/**
+ * A PROJECT's theme: a document written for a product, not for the package.
+ *
+ * It is built from a starter because that is how a project usually starts —
+ * a fork — and then broken in the four ways a theme breaks: an unreadable
+ * badge, a ladder that descends, a loop under the strobe floor, and a dark
+ * mode that restates nothing.
+ */
+function projectTheme(
+  broken: "badge" | "ladder" | "loop" | "mode" | "none",
+): string {
+  const doc = JSON.parse(
+    JSON.stringify(starterThemes.silk),
+  ) as Record<string, unknown>;
+  const color = doc["color"] as Record<string, unknown>;
+  const spacing = doc["spacing"] as Record<string, unknown>;
+  const motion = doc["motion"] as Record<string, unknown>;
+  const duration = motion["duration"] as Record<string, unknown>;
+
+  if (broken === "badge") {
+    // White on a pale amber: the ink nobody chose, on a fill nobody checked.
+    color["on-semantic-warning"] = {
+      $type: "color",
+      $value: "#f7f8fb",
+    };
+  }
+  if (broken === "ladder") {
+    // The fourth step smaller than the second: a scale with no shape.
+    spacing["4"] = { $type: "dimension", $value: "0.125rem" };
+  }
+  if (broken === "loop") {
+    duration["loop"] = { $type: "duration", $value: "120ms" };
+  }
+  if (broken === "mode") {
+    // A theme that serves a dark mode and restates nothing for it: every
+    // override goes, so the dark rendering is the light rendering.
+    stripModes(doc);
+  }
+  return JSON.stringify(doc);
+}
+
+/** Every mode override in a document, removed. */
+function stripModes(node: unknown): void {
+  if (node === null || typeof node !== "object") return;
+  if (Array.isArray(node)) {
+    for (const entry of node) stripModes(entry);
+    return;
+  }
+  const record = node as Record<string, unknown>;
+  delete record["$modes"];
+  for (const value of Object.values(record)) stripModes(value);
+}
+
+Deno.test("the battery catches a project theme's unreadable badge", () => {
+  const report = themeGates(projectTheme("badge"));
+  const legibility = report.gates.find((gate) => gate.gate === "legibility");
+  assert(
+    legibility?.issues.some((issue) =>
+      issue.path === "color.on-semantic-warning" &&
+      issue.message.includes("4.5:1 floor")
+    ),
+    `the unreadable badge is not reported: ${JSON.stringify(report.issues)}`,
+  );
+});
+
+Deno.test("the battery catches a project theme's descending ladder", () => {
+  const report = themeGates(projectTheme("ladder"));
+  const scales = report.gates.find((gate) => gate.gate === "scales");
+  assert(
+    scales?.issues.some((issue) =>
+      issue.path === "spacing.4" && issue.message.includes("descends")
+    ),
+    `the descending ladder is not reported: ${JSON.stringify(report.issues)}`,
+  );
+});
+
+Deno.test("the battery catches a project theme's strobe", () => {
+  const report = themeGates(projectTheme("loop"));
+  const motion = report.gates.find((gate) => gate.gate === "motion");
+  assert(
+    motion?.issues.some((issue) =>
+      issue.path === "motion.duration.loop" && issue.message.includes("strobe")
+    ),
+    `the strobe is not reported: ${JSON.stringify(report.issues)}`,
+  );
+});
+
+Deno.test("the battery catches a project theme's dark mode that restates nothing", () => {
+  const report = themeGates(projectTheme("mode"));
+  const modes = report.gates.find((gate) => gate.gate === "modes");
+  assert(
+    modes?.issues.some((issue) => issue.message.includes("restates nothing")),
+    `the mode that restates nothing is not reported: ${
+      JSON.stringify(report.issues)
+    }`,
+  );
+});
+
+Deno.test("a project theme that breaks nothing passes the battery", () => {
+  const report = themeGates(projectTheme("none"));
+  assertEquals(
+    report.issues.map((issue) => `${issue.path}: ${issue.message}`),
+    [],
+  );
+  assert(report.valid);
 });

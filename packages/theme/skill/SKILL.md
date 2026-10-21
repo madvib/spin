@@ -40,9 +40,10 @@ place, and they are the place the studio shows.
 - **The house skill** is this file: the order of the work, the gates, and the
   standard a theme is held to. It says nothing about what the theme should look
   like.
-- **A style reference** is a direction: a named look with its own rules,
-  installed beside this file, one file per style. It says what to spend the axes
-  on. Read the one that matches the product, and only that one.
+- **A style reference** is a direction: a named look with its own rules, one
+  file per style, installed beside this file in the skill's own directory. It
+  says what to spend the axes on. Read the one that matches the product, and
+  only that one.
 - **The theme** is house plus style plus the product's own decisions. The
   product's decisions are the ones nobody could have guessed: the name of the
   product's primary action, the one colour the brand already owns, the density
@@ -59,7 +60,7 @@ The style references travel with the skill, by file:
 | `dark-tech-cinematic`  | A dark instrument: deep blacks, one luminous accent, and light that comes from the screen. Tools used for hours in a dim room.               |
 | `morphism`             | A material: surfaces pressed into the page or moulded out of it, with light doing the shaping. Consumer products that want to feel physical. |
 
-If the style references are not beside this file, the table above is still
+If the style references did not come with the skill, the table above is still
 enough to start: pick a row, or pick none of them and write the thesis first.
 
 ## The half hour
@@ -69,7 +70,7 @@ enough to start: pick a row, or pick none of them and write the thesis first.
 | 0 to 5   | Write the thesis. One sentence: what the product is, and what it feels like to use. Nothing else until this exists. |
 | 5 to 12  | Decide the axes in one pass: type, shape, depth, ink and surface, motion. One pass. Do not dither.                  |
 | 12 to 22 | Fill the document. The checklist below, group by group, in the order the document reads.                            |
-| 22 to 27 | Run the gates. Completeness, then legibility, then the rendered checks. Fix what they found.                        |
+| 22 to 27 | Run the gates. The battery first, then the rendered checks. Fix what they found.                                    |
 | 27 to 30 | Look at it. Both modes, one real page, and a person.                                                                |
 
 If minute 22 arrives and the theme still looks like a recolour, the thesis was
@@ -130,12 +131,16 @@ four surface steps that separate by lightness rather than by shadow. One primary
 and at most one accent; the neutrals carry the weight and the accent is spent on
 small things, a mark, a link, a focus ring. Status colours quiet enough to sit
 beside the accent without competing. Every fill paired with the ink that goes on
-it, including the fills nothing looks at until something goes wrong.
+it, including the fills nothing looks at until something goes wrong — and the
+pairing is a role, not a habit: `on-semantic-success` belongs to the success
+fill, `on-semantic-warning` to the warning fill, and each of them has a floor
+that says so.
 
 **Lazy.** A primary that is the same value as the text, so every link in the
 prose disappears while the buttons look perfect. Four accent hues fighting over
 the same sentence. Status colours brighter than the brand. A fill with no ink of
-its own, so the label is whatever the browser paints.
+its own, so the label is whatever the browser paints. A white ink on a pale
+amber badge, because the pairing was never measured.
 
 ### spacing
 
@@ -237,15 +242,19 @@ toast fight and the document order decides.
 
 **For.** The timing signature. Motion points; it does not perform.
 
-**Good.** Three durations with names that say what they are for: fast for a
-state change the reader has already decided to expect, base for a transition,
-slow for a panel. Two or three curves: an entrance that eases out, an exit that
-eases in, and a standard that lands a press. The slowest duration the system
-allows still sits well above the floor below which an endless animation reads as
-a strobe.
+**Good.** Four durations with names that say what they are for: fast for a state
+change the reader has already decided to expect, base for a transition, slow for
+a panel, and loop for the endless ones — the skeleton's pulse, the spinner, the
+status dot. Two or three curves: an entrance that eases out, an exit that eases
+in, and a standard that lands a press. The loop is a step of its own, so a theme
+that wants a two-second pulse says so without making every panel's transition
+two seconds long, and it never sits below the floor below which an endless
+animation reads as a strobe.
 
 **Lazy.** A sheet of near-identical durations, or one duration for everything. A
 bounce on a control that should land. A loop faster than a quarter of a second.
+A slow transition carrying the loop, so every page that uses `duration-slow`
+inherits a pulse.
 
 ### button
 
@@ -384,11 +393,14 @@ as something you can put a cursor in.
 **For.** The number that is the point.
 
 **Good.** A size a real step above the body, and a weight that makes the number
-readable at a glance without shouting. The label under it stays in the body
-voice, so the two do not compete.
+readable at a glance without shouting. A face of its own: a figure is a figure,
+so it is set in the mono, where the digits line up and a column of readings can
+be scanned. The label under it stays in the body voice, so the two do not
+compete.
 
 **Lazy.** The body's own size in bold, so the number reads as a bold word rather
-than as a number.
+than as a number. The page's own face, so the value is whatever the page
+happened to set.
 
 ### table
 
@@ -438,8 +450,10 @@ The shape of a token:
   `"{color.neutral.50}"`. Use aliases for anything that means the same thing in
   two places, so the palette can change under them.
 - `modes` at the root of the document says which modes the document serves. A
-  theme that serves dark and restates nothing is a complete theme; a theme that
-  serves dark and restates half of it is half a theme.
+  theme that serves dark and restates nothing for it renders the light mode
+  twice — unless its base is already dark, which is what a terminal palette is,
+  and then there is nothing to restate. A theme that serves dark and restates
+  half of it is half a theme.
 
 Scaffold a new document with `scaffoldTheme()` from `@spin/theme`, or fork a
 starter. A scaffold's values are valid, legible, and obviously unfinished:
@@ -448,8 +462,8 @@ is a decision you still owe.
 
 ## The gates
 
-Run them in this order. Each one is mechanical, and each one fails for a reason
-worth reading.
+Run them in this order. The first three are mechanical and they live in one
+call; the fourth is a browser; the fifth is a person.
 
 ### Gate one: completeness
 
@@ -482,23 +496,86 @@ scaffold decide it?
 
 The floors are the contract's own list: body ink on the page at four and a half
 to one, muted ink on the page at three to one, the ink on a primary fill at four
-and a half to one, the ink on an error fill at four and a half to one, the ink
-on a disabled fill at four and a half to one, the focus ring on the page at
-three to one, the link on the page at four and a half to one, and each status
-colour on the page at three to one.
+and a half to one, the ink on a success, a warning, an error or an info fill at
+four and a half to one, the ink on a disabled fill at four and a half to one,
+the focus ring on the page at three to one, the link on the page at four and a
+half to one, and each status colour on the page at three to one.
 
-The validator measures the resolved colours, with aliases followed, in the mode
-you ask for, so run it in both modes.
+`validateTheme(text, { required, modes, mode })`. The `mode` option is the one
+that measures legibility IN a mode: the document is judged as it reads there, so
+the dark palette's own fills and inks are the ones measured and not the light
+ones. Run it once per mode the theme serves, and once with no `mode` at all for
+the base document.
 
 A failure here is not a preference. A fill without a readable foreground is an
 error: the reader cannot read the button, and nothing else in the theme matters.
 
-### Gate three: the rendered checks
+### Gate three: the battery
+
+`themeGates(text, { required, modes })` — every mechanical gate in one call:
+completeness, the floors in every mode the theme serves, the scale ladders, the
+loop's strobe floor, and the mode coverage. It answers with one result per gate,
+so a failure says which gate it belongs to.
+
+```ts
+import { themeGates } from "@spin/theme";
+
+const report = themeGates(text);
+for (const gate of report.gates) {
+  for (const issue of gate.issues) {
+    console.log(`${gate.gate}: ${issue.path} — ${issue.message}`);
+  }
+}
+```
+
+What the battery adds to the two gates above:
+
+- **scales**: a ladder is a ladder. A spacing step smaller than the one before
+  it, a radius ladder that descends, or two elevation steps that spell one
+  shadow under two names, is a scale with no shape.
+- **motion**: the loop step — `motion.duration.loop`, what every endless
+  animation spends — holds the strobe floor. A loop under a quarter of a second
+  is a flash, and a flash is a defect rather than a character choice.
+- **modes**: every mode the theme serves is a mode it has. A theme that serves
+  dark and restates nothing for it renders the light mode twice, which is a
+  promise nothing keeps.
+
+Run it against the document you just wrote — a project theme, not a starter:
+
+```sh
+deno eval --ext=ts "
+import { themeGates } from '@spin/theme';
+const text = await Deno.readTextFile('spin/<name>.json');
+const report = themeGates(text);
+for (const gate of report.gates) {
+  for (const issue of gate.issues) {
+    console.log(gate.gate + ': ' + issue.path + ' — ' + issue.message);
+  }
+}
+"
+```
+
+### Gate four: the rendered checks
 
 The checks drive a real browser over the app's routes, in every theme and every
-mode the app serves, and measure what the browser painted. The command is
-`spin check <url>`; in this repository the harness is pointed at the reference
-app, and `deno task visual` runs it.
+mode the app serves, and measure what the browser painted. The harness needs the
+app to be running, and it runs the app's own configuration — in this repository,
+the reference app's:
+
+```sh
+deno task serve                                 # the reference app, on http://localhost:5173
+deno task visual -- --url http://localhost:5173 # the check harness, over every route
+```
+
+The `--url` is the app under test, and it is worth naming: the harness measures
+whatever answers there, so a server left running from another session is a theme
+measured against a stale build.
+
+For an app of your own, the same harness with your app's own facts:
+
+```sh
+spin check http://localhost:5173 --config <your app's visual/check.ts>
+```
 
 - **contrast**: the text on that surface does not read. The measured ratio is in
   the report.
@@ -514,7 +591,7 @@ app, and `deno task visual` runs it.
 - **render defect**: the page did not render.
 - **console error**, **failed request**: the theme broke the page.
 
-### Gate four: the look
+### Gate five: the look
 
 A person, on a render. No script decides this, and a script that claimed to
 would be measuring its own author.
@@ -563,6 +640,8 @@ not the theme.
 | One radius and one shadow everywhere         | The defaults were never replaced.                  | Shape and depth are the two groups authors skip.               |
 | Buttons shout in caps and red                | The character tokens were inherited.               | The control's voice is a decision, not a default.              |
 | A dark mode that is the light one, inverted  | The modes were not designed.                       | Re-pick the surfaces, re-pick the accent, re-pick the ink.     |
+| A badge nobody can read                      | The pairing was never measured.                    | The ink on the fill, and the floor that holds it.              |
+| Every transition takes two seconds           | The loop was carried by the slowest transition.    | Give the loop a step of its own.                               |
 | It looks good in swatches and bad in a table | It was judged on specimens.                        | The real page is the yardstick.                                |
 | An illegible button in hover or disabled     | The states were never looked at.                   | The state contrast check. The states are where themes fail.    |
 | Every surface is a card                      | Depth is doing the work that whitespace should do. | Flat surfaces, and let the air and the hairline separate them. |
@@ -582,6 +661,7 @@ decides the material those things are made of.
 - The theme document, at `spin/<name>.json` or in the package's themes
   directory.
 - The decisions behind it, in the document's own descriptions.
-- The gate results: the completeness issues, the measured contrast ratio for
-  each pair, and the state contrast run.
+- The gate results: the battery's report — one entry per gate, each with the
+  issues it found — the measured contrast ratio for each pair, and the state
+  contrast run.
 - A note of every place the brief was bent, and why.

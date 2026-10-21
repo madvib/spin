@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
+import { type Mode, withFallback } from "./shared.ts";
 
 /**
  * Skeleton — the CSS-only loader: a placeholder block that pulses.
@@ -24,7 +24,11 @@ function tokens(ctx: ThemeContext | undefined) {
     textSize: token(ctx, "font.size.sm"),
     // A disc placeholder is a face, so its edge is the avatar ladder's.
     avatar: named(ctx, "avatar", "md"),
-    duration: token(ctx, "motion.duration.slow"),
+    // The LOOP step, not the slowest transition: a loader is watched rather
+    // than reacted to, so its period is a step of its own. A theme that
+    // declares no loop falls back to its slowest transition, which is the
+    // answer the system had before the loop step existed.
+    duration: withFallback(ctx, "motion.duration.loop", "motion.duration.slow"),
     easing: token(ctx, "motion.easing.standard"),
   };
 }
@@ -48,9 +52,9 @@ function block(): Rule {
         ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
         // Both halves of the timing come from the motion scale, so a theme
         // without motion has a skeleton that holds still rather than one
-        // animating at a duration no theme chose. `slow` because a loader
-        // is watched, not reacted to: `fast` is a control's response time
-        // and at 150ms the pulse reads as a flicker.
+        // animating at a duration no theme chose. The period is the LOOP
+        // step: a loader is watched, not reacted to, and at 150ms the pulse
+        // reads as a flicker.
         ...(t.duration !== undefined && t.easing !== undefined
           ? {
             animation: `spin-skeleton-pulse ${t.duration} ${t.easing} infinite`,

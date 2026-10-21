@@ -15,6 +15,7 @@ set; `@spin/theme/skill` is the house skill, assembled from the contract; and
   parse        parseTokens · parseDocument · isTokenType
   resolve      resolveAliases · indexTree · lookupNode · cssVarName · detectCycles · aliasTarget
   validate     validateTokens · validateTheme · validateLegibility · everyTokenTypeIsDecided
+  battery      themeGates · themeGate · GATES
   author       setToken · removeToken · renameToken · treeToJson · scaffoldTheme
   emit         generateCss · generateThemeCss · generateTypes
   contract     BASE_ROLES · ELEMENT_ROLES · requiredPaths · themeSchema · spinThemeJsonSchema
@@ -44,7 +45,8 @@ than throwing; mutations return `{ ok }` unions.
 `skill/SKILL.md` is the module's manual: the order of the work, the gates, and
 what each failure means. It is a product — agents install it and follow it — so
 it lives with the language it describes, and the checklist it carries is emitted
-rather than written down.
+rather than written down. The style references travel with it, in
+`skill/styles/`, so the skill and its directions are one thing to install.
 
 `renderSkill(template)` assembles the file: the groups it walks are the ones the
 contract knows, in the order a theme document reads them, each with the guidance
@@ -101,6 +103,24 @@ The options are the caller's facts, not the module's guesses:
 - `mode` — the mode the document is judged **in**. Absent: the base values. A
   theme is a different document in dark, and the floors are measured where the
   theme is read.
+
+## The battery
+
+`themeGates(text, options?)` is the whole battery: every mechanical gate a
+document is held to, in one call, with one result per gate.
+
+| Gate           | What it holds the document to                                     |
+| -------------- | ----------------------------------------------------------------- |
+| `completeness` | the roles it owes, and values a browser will accept               |
+| `legibility`   | every floor the contract declares, in every mode the theme serves |
+| `scales`       | the ladders: spacing, radius and elevation do not descend         |
+| `motion`       | the loop holds the strobe floor                                   |
+| `modes`        | every mode the theme serves is a mode it has                      |
+
+The battery runs against **any** document — a starter, a project's own theme, a
+file an author is halfway through — because that is the question the house skill
+asks: "does MY theme pass?". `themeGate(gate, text, options?)` answers with one
+gate, for a caller that wants one thing.
 
 ## Development
 

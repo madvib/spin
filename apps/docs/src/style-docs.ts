@@ -4,9 +4,10 @@
  * The skill is the theme module's manual, so it lives with the module: the
  * file in `packages/theme/skill/` is assembled by the module from its own
  * contract, and the bytes read here are the bytes the site serves and the
- * agent installs. The style references are the site's own — they are design
- * directions rather than part of the language — and they are read the same
- * way, through a raw import, so the page and the file are the same thing.
+ * agent installs. The style references travel with it, in the skill's own
+ * directory, so an agent that installs the skill has the directions in the
+ * same place. They are read the same way, through a raw import, so the page
+ * and the file are the same thing.
  *
  * A page that spelled either out by hand would be a second source of truth,
  * and the first group added to the contract would leave the site describing a
@@ -14,12 +15,12 @@
  */
 import { renderSkill } from "@spin/theme/skill";
 import template from "../../../packages/theme/skill/SKILL.md?raw";
-import darkTech from "../public/skill/spin-theme/styles/dark-tech-cinematic.md?raw";
-import editorial from "../public/skill/spin-theme/styles/editorial-minimalism.md?raw";
-import agency from "../public/skill/spin-theme/styles/high-end-agency.md?raw";
-import brutalism from "../public/skill/spin-theme/styles/industrial-brutalism.md?raw";
-import morph from "../public/skill/spin-theme/styles/morphism.md?raw";
-import soft from "../public/skill/spin-theme/styles/warm-soft-saas.md?raw";
+import darkTech from "../../../packages/theme/skill/dark-tech-cinematic.md?raw";
+import editorial from "../../../packages/theme/skill/editorial-minimalism.md?raw";
+import agency from "../../../packages/theme/skill/high-end-agency.md?raw";
+import brutalism from "../../../packages/theme/skill/industrial-brutalism.md?raw";
+import morph from "../../../packages/theme/skill/morphism.md?raw";
+import soft from "../../../packages/theme/skill/warm-soft-saas.md?raw";
 
 /** Where the skill is served from, so an agent can install it. */
 export const SKILL_DIR = "/skill/spin-theme";
@@ -142,7 +143,7 @@ export function styleReferences(): readonly StyleReference[] {
       audience: data["audience"] ?? "",
       anchor: data["anchor"] ?? "",
       body: body.replace(/^#\s+.*\r?\n+/, ""),
-      href: `${SKILL_DIR}/styles/${file}.md`,
+      href: `${SKILL_DIR}/${file}.md`,
     } satisfies StyleReference;
   });
   const known = new Set(order);

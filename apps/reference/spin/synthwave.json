@@ -588,8 +588,12 @@
         "$description": "The default: a colour or a rule moving to its next position, and the longest a panel may take to settle."
       },
       "slow": {
+        "$value": "400ms",
+        "$description": "The longest a transition may take: a panel arriving, a rule settling."
+      },
+      "loop": {
         "$value": "2.4s",
-        "$description": "The loop: the pulse, the shimmer, the one thing on the console that moves without being asked. It is the slowest duration in the theme and the only one that runs on its own — well above the floor below which a loop reads as a strobe."
+        "$description": "The loop: the pulse, the shimmer, the one thing on the console that moves without being asked. It is the only duration that runs on its own, and it is a step of its own so the slowest transition does not have to carry it — well above the floor below which a loop reads as a strobe."
       }
     },
     "easing": {
@@ -813,7 +817,12 @@
     "value-weight": {
       "$type": "fontWeight",
       "$value": "{font.weight.semibold}",
-      "$description": "The weight of the number: enough to be read at a glance, not enough to shout. A figure in this theme is a reading, and a reading is set in the mono by the page that shows it."
+      "$description": "The weight of the number: enough to be read at a glance, not enough to shout. A figure in this theme is a reading, and a reading is set in the mono."
+    },
+    "value-family": {
+      "$type": "fontFamily",
+      "$value": "{font.family.mono}",
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures — the digits line up down a column of readings."
     }
   },
   "table": {

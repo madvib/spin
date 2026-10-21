@@ -21,7 +21,7 @@
  */
 
 import type { TokenTree } from "./pipeline/types.ts";
-import type { TokenLeaf } from "./pipeline/types.ts";
+import type { TokenLeaf, TokenNode } from "./pipeline/types.ts";
 
 /** A raw theme document, as authored. */
 type ThemeDocument = Record<string, unknown>;
@@ -92,4 +92,22 @@ export function valuesInMode(
     out.set(leaf.path.join("."), override ?? leaf.value);
   }
   return out;
+}
+
+/**
+ * The tree as it reads in one mode: every leaf wearing that mode's value.
+ *
+ * A mode is a variant of a token, so the document a reader sees in dark is
+ * this tree with each leaf wearing the value it has there. The variants stay
+ * on the leaves — the modes a theme serves are a claim about the document,
+ * and the check that follows reads it.
+ */
+export function treeInMode(tree: TokenTree, mode: string): TokenTree {
+  const walk = (node: TokenNode): TokenNode => {
+    if (node.kind === "token") {
+      return { ...node, value: node.modes?.[mode] ?? node.value };
+    }
+    return { ...node, children: node.children.map(walk) };
+  };
+  return tree.map(walk);
 }

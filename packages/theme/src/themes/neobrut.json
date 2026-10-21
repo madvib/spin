@@ -88,7 +88,8 @@
         "$value": "#dc2626"
       },
       "info": {
-        "$value": "#0284c7"
+        "$value": "#0369a1",
+        "$description": "The information colour: a step deeper than the sky it was, because this theme wears white on its chromatic fills and a lighter blue cannot carry white at four and a half to one."
       }
     },
     "surface": {
@@ -170,7 +171,7 @@
     },
     "on-semantic-info": {
       "$type": "color",
-      "$value": "#1a1a1a",
+      "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
     },
     "disabled": {
@@ -455,6 +456,10 @@
       },
       "slow": {
         "$value": "250ms"
+      },
+      "loop": {
+        "$value": "600ms",
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. Brash, but never a strobe."
       }
     },
     "easing": {
@@ -670,6 +675,11 @@
       "$type": "fontWeight",
       "$value": "{font.weight.semibold}",
       "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    },
+    "value-family": {
+      "$type": "fontFamily",
+      "$value": "{font.family.mono}",
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures."
     }
   },
   "table": {

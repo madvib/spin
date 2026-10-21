@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { renderSkill } from "./index.ts";
 import { starterGroups } from "../themes/index.ts";
+import { GATES } from "../contract/battery.ts";
 
 /**
  * The skill is the theme module's manual, and the file an agent installs is
@@ -82,5 +83,37 @@ Deno.test("everything outside the checklist is the file's own text", () => {
   assert(
     rendered.includes("One gate, and it is mechanical."),
     "the file's own text is gone",
+  );
+});
+
+Deno.test("the skill's gate list is the battery's gate list", async () => {
+  // The gates an author runs are the battery's gates, and the battery is the
+  // one that answers. A gate the skill does not name is a gate nobody runs,
+  // and a gate the skill names that the battery does not have is a gate that
+  // cannot fail — which is worse, because it reads as a check that passed.
+  const template = await Deno.readTextFile(TEMPLATE);
+  const rendered = renderSkill(template);
+  const gates = rendered.slice(rendered.indexOf("## The gates"));
+  for (const gate of GATES) {
+    assert(
+      gates.includes(gate),
+      `the skill's gates do not name the ${gate} gate`,
+    );
+  }
+  assert(
+    gates.includes("themeGates"),
+    "the skill does not name the battery's entry point",
+  );
+});
+
+Deno.test("the skill names the option that judges a document in a mode", async () => {
+  // `mode` is the option that measures legibility in a mode, and an author
+  // who does not know it runs the validator once and believes the dark mode
+  // is checked.
+  const template = await Deno.readTextFile(TEMPLATE);
+  const rendered = renderSkill(template);
+  assert(
+    rendered.includes("{ required, modes, mode }"),
+    "the skill does not name the `mode` option",
   );
 });

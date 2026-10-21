@@ -295,6 +295,16 @@ export const ELEMENT_ROLES: readonly ElementDeclaration[] = [
     fallback: "font.weight.semibold",
   },
   {
+    group: "stat",
+    element: "stat",
+    path: "stat.value-family",
+    type: "fontFamily",
+    value: "ui-monospace, SFMono-Regular, Menlo, monospace",
+    doc:
+      "The face the number a stat shows is set in: a figure is a figure, and the mono is the face that carries figures.",
+    fallback: "font.family.mono",
+  },
+  {
     group: "table",
     element: "table",
     path: "table.header-weight",

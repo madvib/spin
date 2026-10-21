@@ -37,6 +37,9 @@
         "semantic",
         "on-primary",
         "on-semantic-error",
+        "on-semantic-success",
+        "on-semantic-warning",
+        "on-semantic-info",
         "disabled",
         "on-disabled",
         "focus-ring",
@@ -1072,6 +1075,240 @@
         "on-semantic-error": {
           "additionalProperties": true,
           "description": "Text on an error fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-semantic-success": {
+          "additionalProperties": true,
+          "description": "Text on a success fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-semantic-warning": {
+          "additionalProperties": true,
+          "description": "Text on a warning fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-semantic-info": {
+          "additionalProperties": true,
+          "description": "Text on an info fill.",
           "type": "object",
           "required": [
             "$value"
@@ -3812,6 +4049,84 @@
         "value-weight": {
           "additionalProperties": true,
           "description": "The weight of the number a stat shows.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "value-family": {
+          "additionalProperties": true,
+          "description": "The face the number a stat shows is set in: a figure is a figure, and the mono is the face that carries figures.",
           "type": "object",
           "required": [
             "$value"

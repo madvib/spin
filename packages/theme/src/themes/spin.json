@@ -608,7 +608,11 @@
       },
       "slow": {
         "$value": "280ms",
-        "$description": "The longest the system allows, and still comfortably above the strobe floor."
+        "$description": "The longest a transition may take: a panel arriving, a drawer settling."
+      },
+      "loop": {
+        "$value": "900ms",
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. Slow enough to be watched rather than to be noticed."
       }
     },
     "easing": {
@@ -830,6 +834,11 @@
       "$type": "fontWeight",
       "$value": "{font.weight.semibold}",
       "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    },
+    "value-family": {
+      "$type": "fontFamily",
+      "$value": "{font.family.mono}",
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures."
     }
   },
   "table": {

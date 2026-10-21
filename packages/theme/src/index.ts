@@ -56,6 +56,13 @@ export type {
   ThemeReport,
   ValidateThemeOptions,
 } from "./contract/validate-theme.ts";
+export { GATES, themeGate, themeGates } from "./contract/battery.ts";
+export type {
+  BatteryOptions,
+  BatteryReport,
+  GateName,
+  GateResult,
+} from "./contract/battery.ts";
 export {
   BASE_ROLES,
   inkTokens,
@@ -72,7 +79,11 @@ export {
 } from "./contract/elements.ts";
 export type { ElementDeclaration } from "./contract/elements.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
-export { STROBE_FLOOR_MS } from "./contract/motion.ts";
+export {
+  LOOP_DURATION,
+  LOOP_FALLBACK,
+  STROBE_FLOOR_MS,
+} from "./contract/motion.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 
 // Authoring: changing and creating themes.
@@ -118,5 +129,11 @@ export {
 // Colour authoring — the toolbox for composing new colours.
 export { generateScale, invertColor, mixColors } from "./authoring/color.ts";
 
-export { MODES, supportsDark, themeModes, valuesInMode } from "./modes.ts";
+export {
+  MODES,
+  supportsDark,
+  themeModes,
+  treeInMode,
+  valuesInMode,
+} from "./modes.ts";
 export type { Mode } from "./modes.ts";

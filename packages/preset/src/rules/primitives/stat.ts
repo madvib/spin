@@ -17,6 +17,8 @@ type Tokens = {
   readonly weightSemibold: string | undefined;
   /** The weight of the number, which is the stat's own decision. */
   readonly valueWeight: string | undefined;
+  /** The face the number is set in, which is the stat's own decision. */
+  readonly valueFamily: string | undefined;
   readonly text: string | undefined;
   readonly muted: string | undefined;
   readonly trackingWide: string | undefined;
@@ -41,6 +43,11 @@ function statTokens(ctx: ThemeContext | undefined): Tokens {
     size2xl: withFallback(ctx, "stat.value-size", "font.size.2xl"),
     weightSemibold: token(ctx, "font.weight.semibold"),
     valueWeight: withFallback(ctx, "stat.value-weight", "font.weight.semibold"),
+    // The face the number is set in: the stat's own decision, because a
+    // figure is a figure and the face it is set in belongs to the number
+    // rather than to the page it sits on. The mono is the system's answer —
+    // the face that carries figures, and whose digits line up.
+    valueFamily: withFallback(ctx, "stat.value-family", "font.family.mono"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
     trackingWide: token(ctx, "font.letter-spacing.wide"),
@@ -128,11 +135,14 @@ function statValue(): Rule {
   return [
     /^stat-value$/,
     function* (_m, ctx) {
-      const { size2xl, valueWeight, text } = statTokens(ctx);
+      const { size2xl, valueWeight, valueFamily, text } = statTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => ".stat-value",
         ...(size2xl !== undefined ? { "font-size": size2xl } : {}),
         ...(valueWeight !== undefined ? { "font-weight": valueWeight } : {}),
+        // The face the number is set in, so a value's face is the theme's
+        // decision and not whatever the page happened to set.
+        ...(valueFamily !== undefined ? { "font-family": valueFamily } : {}),
         ...(text !== undefined ? { color: text } : {}),
         // The number is ONE thing. A stat squeezed by a row too narrow for it
         // breaks its figure across two lines, and a figure split in half is

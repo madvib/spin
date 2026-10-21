@@ -82,8 +82,16 @@ const CHECKS: readonly (readonly [string, string])[] = [
     "A floor is a pair of roles and a ratio: the ink, the fill, and the minimum contrast between them. The validator measures the resolved colors and reports the ones that fall short, with the ratio it measured. A fill without a readable foreground is an error, not a preference.",
   ],
   [
+    "The scales",
+    "A scale is a ladder, and the battery says so: a spacing step smaller than the one before it, a radius ladder that descends, or two elevation steps that spell one shadow under two names, is a scale with no shape.",
+  ],
+  [
+    "The loop",
+    "The endless animations — the skeleton's pulse, the spinner, the status dot — spend one step of the motion scale, and that step holds the strobe floor. A loop under a quarter of a second is a flash.",
+  ],
+  [
     "Mode coverage",
-    "A document that declares a dark mode must restate every color and focus leaf for it. The validator holds it to that, because a dark mode that restates some of them ships a theme that is half one mode.",
+    "Every mode a theme serves is a mode it has. A document that declares a dark mode and restates nothing for it renders the light mode twice, and the battery reports it: a promise nothing keeps.",
   ],
   [
     "The visual baseline",
@@ -112,14 +120,14 @@ export default function Authoring(): JSX.Element {
   const checklist = skillChecklist();
   const styles = styleReferences();
   const base = origin();
-  const install = `mkdir -p ~/.claude/skills/spin-theme/styles
+  const install = `mkdir -p ~/.claude/skills/spin-theme
 curl -fsSL "${base}${SKILL_PATH}" \\
   -o ~/.claude/skills/spin-theme/SKILL.md`;
   const installStyles = `for style in ${
     styles.map((style) => style.slug).join(" ")
   }; do
-  curl -fsSL "${base}/skill/spin-theme/styles/$style.md" \\
-    -o ~/.claude/skills/spin-theme/styles/$style.md
+  curl -fsSL "${base}/skill/spin-theme/$style.md" \\
+    -o ~/.claude/skills/spin-theme/$style.md
 done`;
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
@@ -234,10 +242,11 @@ export default {
         </p>
         <Code class="mt-3" code={install} />
         <p class="mt-3">
-          The style references travel with it. They are the directions, and the
-          skill names them, so an agent asked for a theme picks one and spends
-          the axes accordingly. They are optional: the skill carries a line
-          about each, which is enough to start.
+          The style references travel with it, in the skill's own directory, so
+          one install brings the method and the directions together. They are
+          the directions, and the skill names them, so an agent asked for a
+          theme picks one and spends the axes accordingly. They are optional:
+          the skill carries a line about each, which is enough to start.
         </p>
         <Code class="mt-3" code={installStyles} />
         <p class="mt-3">
@@ -362,14 +371,32 @@ export default {
           lets its findings decide the run.
         </p>
         <p class="mt-3">
-          The commands, in this repository:
+          The commands, in this repository. The harness drives a browser over a
+          running app, so the app comes first:
         </p>
         <Code
           class="mt-2"
-          code={`deno task serve      # the reference app, on http://localhost:5173
-deno task visual    # the check harness over every route, theme and mode
+          code={`deno task serve                                 # the reference app, on http://localhost:5173
+deno task visual -- --url http://localhost:5173 # the check harness, over every route
 deno task visual -- --route components/button
 deno task visual -- --state-contrast-strict`}
+        />
+        <p class="mt-3">
+          The mechanical gates are one call, and it runs against any document —
+          a starter, or the theme a project just wrote:
+        </p>
+        <Code
+          class="mt-2"
+          code={`deno eval --ext=ts "
+import { themeGates } from '@spin/theme';
+const text = await Deno.readTextFile('spin/<name>.json');
+const report = themeGates(text);
+for (const gate of report.gates) {
+  for (const issue of gate.issues) {
+    console.log(gate.gate + ': ' + issue.path + ' — ' + issue.message);
+  }
+}
+"`}
         />
       </Section>
 
@@ -492,13 +519,15 @@ deno task visual -- --state-contrast-strict`}
           <p class="m-0 font-semibold text-text">Motion</p>
           <p class="m-0 mt-1 text-sm">
             Precise, and quick. A hover, a press and a focus move fast; the
-            default is longer; and the longest the system allows is still
-            comfortably above the floor below which a loop reads as a strobe.
+            default is longer; a panel may take its time; and the endless ones —
+            the skeleton's pulse, the spinner — have a step of their own, so a
+            slow loop is never paid for by every transition.
           </p>
           <div class="mt-2 flex flex-wrap gap-2">
             <Chip>fast {value("motion.duration.fast")}</Chip>
             <Chip>base {value("motion.duration.base")}</Chip>
             <Chip>slow {value("motion.duration.slow")}</Chip>
+            <Chip>loop {value("motion.duration.loop")}</Chip>
             <Chip>standard {value("motion.easing.standard")}</Chip>
           </div>
         </div>
@@ -511,7 +540,9 @@ deno task visual -- --state-contrast-strict`}
             shadow at rest and a hard two-pixel offset when it is touched, so it
             reads as printed on the page rather than as a photograph of a block.
             Badges are square tags, and the controls are drawn rather than lit,
-            which is one scalar each.
+            which is one scalar each. A stat's number has a face of its own,
+            because a figure is a figure and the face it is set in belongs to
+            the number rather than to the page it sits on.
           </p>
           <div class="mt-2 flex flex-wrap gap-2">
             <Chip>button.weight {value("button.weight")}</Chip>
@@ -520,6 +551,7 @@ deno task visual -- --state-contrast-strict`}
             <Chip>badge.pill {value("badge.pill")}</Chip>
             <Chip>checkbox.depth {value("checkbox.depth")}</Chip>
             <Chip>switch.depth {value("switch.depth")}</Chip>
+            <Chip>stat.value-family {value("stat.value-family")}</Chip>
           </div>
         </div>
 

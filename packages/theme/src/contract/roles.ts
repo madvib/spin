@@ -165,6 +165,49 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     },
   },
   {
+    // The ink on the success fill, and the floor that holds it there.
+    //
+    // The badge spends this pairing: a success badge is a filled pill with a
+    // word on it, and the word is unreadable if the ink is not chosen for the
+    // fill. A theme that pairs the ink loosely ships a badge nobody can read,
+    // and the floor is what says so before the badge is drawn.
+    path: "color.on-semantic-success",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a success fill.",
+    floor: {
+      fg: "color.on-semantic-success",
+      bg: "color.semantic.success",
+      min: 4.5,
+    },
+  },
+  {
+    // The ink on the warning fill. A warning is the one badge whose fill is
+    // usually the palest in the palette, so it is the one whose ink is
+    // usually chosen wrong: white on a pale amber measures under 2:1.
+    path: "color.on-semantic-warning",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a warning fill.",
+    floor: {
+      fg: "color.on-semantic-warning",
+      bg: "color.semantic.warning",
+      min: 4.5,
+    },
+  },
+  {
+    // The ink on the info fill.
+    path: "color.on-semantic-info",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on an info fill.",
+    floor: {
+      fg: "color.on-semantic-info",
+      bg: "color.semantic.info",
+      min: 4.5,
+    },
+  },
+  {
     // The fill a dead control wears, and the ink that reads on it. A
     // disabled control is not a dimmer control: dimming spends opacity on
     // the WHOLE element, so the ink dims with the fill and a white label on

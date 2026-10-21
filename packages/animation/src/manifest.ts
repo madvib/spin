@@ -59,6 +59,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     reads: [
       "motion-distance",
       "motion-duration-base",
+      "motion-duration-loop",
       "motion-duration-slow",
       "motion-easing-decelerate",
       "motion-easing-linear",

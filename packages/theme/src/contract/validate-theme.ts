@@ -16,14 +16,9 @@
  */
 
 import { parseTokens } from "../pipeline/parse.ts";
-import type {
-  TokenLeaf,
-  TokenNode,
-  TokenTree,
-  ValidationIssue,
-} from "../pipeline/types.ts";
+import type { TokenTree, ValidationIssue } from "../pipeline/types.ts";
 import { validateTokens } from "../pipeline/validate.ts";
-import type { Mode } from "../modes.ts";
+import { type Mode, treeInMode } from "../modes.ts";
 import { requiredPaths } from "./roles.ts";
 import { validateLegibility } from "./schema.ts";
 
@@ -116,32 +111,5 @@ export function validateTheme(
     error: undefined,
     issues,
     valid: issues.length === 0,
-  };
-}
-
-/**
- * The tree as it reads in one mode: every leaf worth that mode's value.
- *
- * A token that varies carries its variants beside its base value, so the
- * document a reader sees in dark is this tree with each leaf wearing the
- * value it has there. The overrides stay on the leaves — the modes a theme
- * serves are a claim about the document, and the check that follows reads it.
- */
-function treeInMode(tree: TokenTree, mode: string): TokenTree {
-  return tree.map((node) => nodeInMode(node, mode));
-}
-
-/** One node, wearing the mode's value when it is a token. */
-function nodeInMode(node: TokenNode, mode: string): TokenNode {
-  if (node.kind === "token") {
-    const leaf: TokenLeaf = {
-      ...node,
-      value: node.modes?.[mode] ?? node.value,
-    };
-    return leaf;
-  }
-  return {
-    ...node,
-    children: node.children.map((child) => nodeInMode(child, mode)),
   };
 }
