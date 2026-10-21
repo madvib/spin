@@ -66,12 +66,12 @@ const TREE: TreeNode[] = [
 ];
 
 /**
- * Tree-view on the forked FSM: the hard Zag machine, ported.
+ * Tree-view on the forked FSM: the hard statechart machine, ported.
  *
  * The claim under test: a component with per-node state, ~30 events,
  * keyboard navigation, and lazy loading is *smaller and more legible* as
  * config + pure assigns + a view layer that owns flattening — than as a
- * Zag machine with its collection, refs, and DOM-query helpers.
+ * statechart machine with its collection, refs, and DOM-query helpers.
  */
 export default function TreeViewFsm() {
   const [expanded, setExpanded] = createSignal<string[]>([]);

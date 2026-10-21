@@ -63,7 +63,7 @@ const ITEMS: MenuEntry[] = [
 /**
  * Menu on the forked FSM: two states, one bridge per level.
  *
- * The claim under test: Zag's six states exist to hold timers — hover-intent,
+ * The claim under test: the six states exist to hold timers — hover-intent,
  * long-press, the close delay — so they leave as actions on the trigger, and
  * the submenu hierarchy becomes one flat instance per level wired through the
  * element tree (a parent opens a child by writing the child's `open` prop).

@@ -55,7 +55,7 @@ const TOPPINGS: Item[] = [
 /**
  * Listbox on the forked FSM: a single idle state with guards.
  *
- * The claim under test: Zag's one-state machine ports as one flat state,
+ * The claim under test: the one-state machine ports as one flat state,
  * the CONTENT.FOCUS guard defaults the highlight to the selection when
  * there is one and the first item when there is not, and navigation
  * computes its target in the view while the machine commits it.

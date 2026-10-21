@@ -32,10 +32,10 @@ interface NumberInputCommands {
  * Number input on the forked FSM: the value, its range, and the two gestures —
  * the press-and-hold on the spin controls, and the drag on the scrubber.
  *
- * The claim under test: Zag's `before:spin` and `spinning` states exist only
+ * The claim under test: the `before:spin` and `spinning` states exist only
  * to time the repeat, so here the dwell and the repeat rate are the control's
  * `use:autoplay` reflex while the machine keeps three states. A controlled
- * value keeps Zag's arithmetic (number | string).
+ * value keeps the upstream arithmetic (number | string).
  */
 export default function NumberInputFsm() {
   const [value, setValue] = createSignal("12");

@@ -129,9 +129,9 @@ const CREW_SERVER = createServer(CREW, 6, 90);
 /**
  * Async list on the forked FSM: the load lifecycle a host drives.
  *
- * The claim under test: Zag's three states survive config-first authoring,
- * and everything Zag puts in refs and entry actions — the fetch, the abort
- * controller, the sequence that drops a stale resolution — lives in the
+ * The claim under test: the three states survive config-first authoring,
+ * and everything the upstream puts in refs and entry actions — the fetch, the
+ * abort controller, the sequence that drops a stale resolution — lives in the
  * bridge, so the machine stays pure. The paged instance loads on mount and
  * again whenever its dependency changes; the crew instance is driven by hand
  * through the same api.

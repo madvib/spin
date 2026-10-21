@@ -23,7 +23,7 @@ interface EditableCommands {
  * Editable on the forked FSM: the preview/edit pair, the controlled edit
  * channel, the auto-resize stack and the submit-on-blur reflex.
  *
- * The claim under test: Zag's two-state machine survives config-first
+ * The claim under test: the two-state machine survives config-first
  * authoring with the focus reflexes and the interact-outside tracking moved
  * out to the view, and the four callbacks are reported from the transition
  * the bridge watches rather than from inside the machine.

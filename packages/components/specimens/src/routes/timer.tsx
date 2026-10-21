@@ -44,7 +44,7 @@ const readout = (event: CustomEvent<TimerTickChange>): string => {
  * Timer on the forked FSM: the clock is the state, and the interval is a
  * stdlib action.
  *
- * The claim under test: Zag's four states collapse to the three phases a
+ * The claim under test: the four states collapse to the three phases a
  * host can observe, the tick's arithmetic is pure assigns, and the clock
  * itself never enters the machine — the `autoplay` action owns the interval
  * and reports TICK. A countdown runs its bar from full to empty and

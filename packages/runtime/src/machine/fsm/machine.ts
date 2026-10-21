@@ -160,7 +160,7 @@ export interface Service<TContext extends object, TEventMap extends EventMap> {
    * Replace part of the context, the way a transition's assigns do: the
    * context object is replaced, so subscribers see it. The seed uses
    * this — it lands AFTER the entry actions, so a seed wins over an
-   * entry (Zag seeds the value, the entry clears the highlight).
+   * entry (the seed writes the value, the entry clears the highlight).
    */
   setContext(patch: Partial<TContext>): void;
   /** Start (or restart) at an optional state, running that state's entry

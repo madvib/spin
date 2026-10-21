@@ -64,13 +64,13 @@ const CITIES: Item[] = [
 /**
  * Combobox on the forked FSM: the input-plus-listbox machine with four phases.
  *
- * The claim under test: Zag's `closed.{idle,focused}` and
+ * The claim under test: `closed.{idle,focused}` and
  * `open.{interacting,suggesting}` nest as four flat states, the `open`
  * parent's handlers become the fork's root tier with the two closed states
  * shadowing the entries they do not inherit, and the inline completion is
  * context rather than a DOM write. The collection stays the host's, so the
- * filtering below is a Solid signal — which is exactly the contract Zag's
- * combobox leaves to the application.
+ * filtering below is a Solid signal — which is exactly the contract the
+ * upstream combobox leaves to the application.
  */
 export default function ComboboxFsm() {
   const [value, setValue] = createSignal("svelte");

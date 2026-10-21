@@ -177,7 +177,7 @@ export interface EventDef<W extends readonly unknown[] = readonly unknown[], C e
   /** Which sends fire this event: every move, or commits (release +
    * keyboard commit) only. Default `"move"`. */
   readonly on?: "move" | "commit";
-  /** Event-gated reports (Zag's `invokeOnSelect`): evaluated per send with
+  /** Event-gated reports (the `invokeOnSelect` rule): evaluated per send with
    * the before/after contexts; a null return reports nothing (a guard the
    * machine refused). When present, `watch` still advances the cursor. */
   readonly select?: (

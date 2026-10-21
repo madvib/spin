@@ -170,13 +170,13 @@ export function keyed<K extends object>(
   return bag;
 }
 
-/** Zag's `dataAttr`: the attribute is present when the condition holds and
- * absent otherwise. */
+/** The `dataAttr` helper: the attribute is present when the condition holds
+ * and absent otherwise. */
 export function dataAttr(value: boolean): string | undefined {
   return value ? "" : undefined;
 }
 
-/** Zag's `isComposingEvent`: a composing keystroke is not a navigation. */
+/** The `isComposingEvent` rule: a composing keystroke is not a navigation. */
 export function isComposing(event: KeyboardEvent): boolean {
   return event.isComposing === true || event.keyCode === 229;
 }

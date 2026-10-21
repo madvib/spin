@@ -39,10 +39,10 @@ const TEST_IMAGE =
  * Image-cropper on the forked FSM: idle, dragging the selection, panning
  * the image.
  *
- * The claim under test: Zag's three states port flat with the guards where
- * Zag put them (viewport measured, area not fixed), rects travel as plain
- * data through Zag's pure geometry utils, and measurement stays in the view
- * — the viewport reports its rect, the image its natural size.
+ * The claim under test: the three states port flat with the guards where
+ * the upstream put them (viewport measured, area not fixed), rects travel as
+ * plain data through the pure geometry utils, and measurement stays in the
+ * view — the viewport reports its rect, the image its natural size.
  */
 export default function ImageCropperFsm() {
   const [crop, setCrop] = createSignal("unmeasured");

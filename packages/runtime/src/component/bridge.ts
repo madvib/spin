@@ -329,7 +329,7 @@ export function defineBridge<
         // The legacy path: the seed is the service's STARTING context,
         // not a mutation of it — a transition replaces the context
         // object, so subscribers see it. The seed lands AFTER the entry
-        // actions: Zag seeds the value and the entry clears the
+        // actions: the seed writes the value and the entry clears the
         // highlight, so the seed wins.
         svc.setContext(hooks.seed?.(props, authored) as Partial<C>);
       }

@@ -25,7 +25,7 @@ const SWATCHES = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00fff
  * Color-picker on the forked FSM: closed/unfocused, closed/focused, open
  * driving, open dragging.
  *
- * The claim under test: Zag's nested `open.{idle,dragging}` flattens to two
+ * The claim under test: the nested `open.{idle,dragging}` flattens to two
  * open phases with the open parent's handlers at the root tier, the color
  * travels serialized with parse-mutate-write assigns, and the area/channel
  * drags compute percents in the view while the machine turns them into

@@ -55,7 +55,7 @@ export function defineComponent<
     machineLive: BridgeLive,
   ): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
     // The last event sent, which is what a controlled close reads to tell
-    // a commit from a cancel — Zag's `previousEvent`. Per bridge, advanced
+    // a commit from a cancel — the `previousEvent` value. Per bridge, advanced
     // on every transmitted send (sync writes included).
     let lastEventType = "";
     const noteSent = (type: string): void => {

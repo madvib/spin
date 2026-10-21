@@ -18,7 +18,7 @@ interface SignaturePadCommands {
  *
  * The claim under test: a press starts a stroke and the release commits one
  * path, moves with no active stroke are refused, and clear empties the pad —
- * with the ink drawn by perfect-freehand's pure getStroke plus Zag's own
+ * with the ink drawn by perfect-freehand's pure getStroke plus the upstream
  * SVG outline, both running in the machine, never the DOM.
  */
 export default function SignaturePadFsm() {

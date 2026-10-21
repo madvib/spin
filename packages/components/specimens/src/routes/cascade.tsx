@@ -91,7 +91,7 @@ const labelOf = (...path: string[]): string => {
 /**
  * Cascade-select on the forked FSM: the level stack IS the highlight.
  *
- * The claim under test: Zag's machine walks a TreeCollection to answer
+ * The claim under test: the upstream machine walks a TreeCollection to answer
  * "what is the next enabled sibling" and "is the highlighted node at the root
  * level". Here the view owns that tree walk and the machine holds two value
  * paths, so the config stays data. Keyboard and mouse run the same machine:

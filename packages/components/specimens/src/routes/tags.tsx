@@ -58,7 +58,7 @@ const SEED = ["react", "solid"];
 /**
  * Tags input on the forked FSM.
  *
- * The claim under test: Zag's four states (`idle`, `focused:input`,
+ * The claim under test: the four states (`idle`, `focused:input`,
  * `navigating:tag`, `editing:tag`) are genuine interaction modes rather
  * than timer holders, so they port one-for-one — and the machinery around
  * them (the live region, the form control, the input sync, the focus
