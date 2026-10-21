@@ -10,7 +10,8 @@
  * framework. Specified in `.agents/specs/`.
  */
 
-import { dataAttr, keyed, memo, type BagMemo, type BagReads, type ReadRecorder } from "./bags.ts";
+import { dataAttr } from "./bags.ts";
+import { computed, signal } from "../core/signal.ts";
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
@@ -87,23 +88,6 @@ export function defineComponent<
     };
     const focusPart = focuser(names);
     const measurePart = measurer(names);
-    // What the LAST bag build read: the context fields and the props.
-    // The proxies record every read, so the key that decides the next
-    // rebuild is derived from the reads rather than written by hand.
-    const lastReads: { context: string[]; props: string[] } = { context: [], props: [] };
-    let recording: ReadRecorder | undefined;
-    const record = (kind: "context" | "props", key: string): void => {
-      recording?.(kind, key);
-    };
-    const bagMemos = new Map<string, ReturnType<typeof memo>>();
-    const bagFor = (part: string): ReturnType<typeof memo> => {
-      let found = bagMemos.get(part);
-      if (found === undefined) {
-        found = memo();
-        bagMemos.set(part, found);
-      }
-      return found;
-    };
     const lastWatched = new Map<string, readonly unknown[]>();
     const sameWatch = (a: readonly unknown[], b: readonly unknown[]): boolean =>
       a.length === b.length && a.every((value, index) => value === b[index]);
@@ -291,14 +275,6 @@ export function defineComponent<
           );
         }
         /** The key a bag's reads make: the values of the fields it read. */
-        const readsKey = (reads: BagReads): string => {
-          const ctx = ctxOf(service) as unknown as Record<string, unknown>;
-          const props = readProps();
-          const parts: string[] = [];
-          for (const field of reads.context) parts.push(`c:${field}=${String(ctx[field])}`);
-          for (const prop of reads.props) parts.push(`p:${prop}=${String(props[prop])}`);
-          return parts.join("|");
-        };
         function liveScope(extra: { readonly slot: unknown }): SlotScope<unknown, C>;
         function liveScope(): PartScope<unknown, C>;
         function liveScope(extra?: { readonly slot: unknown }): PartScope<unknown, C> | SlotScope<unknown, C> {
@@ -308,7 +284,6 @@ export function defineComponent<
           // lookup per read; bags build rarely, handlers fire rarely.
           const props = new Proxy({} as Record<string, unknown>, {
             get: (_target, key: string) => {
-              record("props", key);
               return readProps()[key];
             },
             has: (_target, key: string) => key in readProps(),
@@ -325,10 +300,7 @@ export function defineComponent<
           // mirror is the single writer, so a read never writes.
           const context = new Proxy({} as Record<string, unknown>, {
             get: (_target, key: string) => {
-              record("context", key);
-              const value = live()[key];
-              machineLive.sync(key, value);
-              return value;
+              return machineLive.field(key);
             },
             has: (_target, key: string) => key in live(),
           });
@@ -343,50 +315,47 @@ export function defineComponent<
             ...extra,
           };
           Object.defineProperty(scope, "state", {
-            get: () => service.state,
+            get: () => machineLive.state(),
             enumerable: true,
           });
           return scope as unknown as PartScope<unknown, C> | SlotScope<unknown, C>;
         }
         for (const [part, partDef] of Object.entries(def.parts)) {
           const method = `get${part[0]?.toUpperCase() ?? ""}${part.slice(1)}Props`;
+          // The bag is a COMPUTED: the build reads the context's fields
+          // (signals) and the props (signals), so the dependency is
+          // tracked by the read. A part cannot forget to name a field
+          // it depends on, because it never names one.
+          const scope = liveScope({ slot: undefined });
+          // The argument is a signal: a part called with an argument
+          // (a swatch, a row) must re-run the build when it changes.
+          const arg = signal<unknown>(undefined);
+          const bag = computed(() => partDef.attrs(scope, arg()));
           api[method] = (...callArgs: readonly unknown[]) => {
-            const scope = liveScope({ slot: callArgs[0] });
-            // The author's own signature, AND the key derived from the
-            // reads: a part that forgot to name a field can no longer
-            // go stale.
-            const bag = bagFor(part);
-            return bag(
-              (reads) => `${partDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,
-              (rec) => {
-                recording = rec;
-                try {
-                  return partDef.attrs(scope, callArgs[0]);
-                } finally {
-                  recording = undefined;
-                }
-              },
-            );
+            arg(callArgs[0]);
+            return bag();
           };
         }
         for (const [slotName, slotDef] of Object.entries(def.slots ?? {}) as [string, SlotDef<unknown, C>][]) {
           const cap = `${slotName[0]?.toUpperCase() ?? ""}${slotName.slice(1)}`;
-          const slotMemos = new WeakMap<object, BagMemo>();
+          // One computed per row: the row's own scope, and the row's own
+          // dependency set.
+          const slotBags = new WeakMap<object, () => Record<string, unknown>>();
           api[`get${cap}Props`] = (slot: object, ...callArgs: readonly unknown[]) => {
-            const scope = liveScope({ slot });
-            return keyed(
-              slotMemos,
-              slot,
-              (reads) => `${slotDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,
-              (rec) => {
-                recording = rec;
-                try {
-                  return slotDef.attrs(scope, callArgs[0]);
-                } finally {
-                  recording = undefined;
-                }
-              },
-            );
+            let bag = slotBags.get(slot);
+            if (bag === undefined) {
+              const scope = liveScope({ slot });
+              // The argument is a signal, for the same reason: the
+              // row's own argument can change without the row changing.
+              const arg = signal<unknown>(undefined);
+              const computedBag = computed(() => slotDef.attrs(scope, arg()));
+              slotBags.set(slot, () => {
+                arg(callArgs[0]);
+                return computedBag();
+              });
+              bag = slotBags.get(slot)!;
+            }
+            return bag();
           };
           // Stable identities: a fresh identity per read re-stamps rows.
           // Rows/blocks memoize on the collection's identity upstream, so

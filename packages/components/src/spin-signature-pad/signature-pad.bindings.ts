@@ -99,7 +99,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
   },
   parts: {
     root: {
-      sig: (scope) => [scope.props["dir"], `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -109,7 +108,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       }),
     },
     label: {
-      sig: (scope, _arg: unknown) => [`${scope.props["dir"]}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         dir: scope.props["dir"],
         "data-scope": "signature-pad",
@@ -124,10 +122,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       }),
     },
     control: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [scope.state, scope.props["disabled"], ctx.disabled, ctx.readOnly].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const disabled = scope.props["disabled"] === true;
@@ -179,7 +173,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       },
     },
     segment: {
-      sig: (scope: ScopeLike) => [drawingFill(scope.props)].join(" "),
       attrs: (scope: ScopeLike) => {
         const fill = drawingFill(scope.props);
         return {
@@ -198,7 +191,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       },
     },
     segmentPath: {
-      sig: (_scope, arg: unknown) => `${segmentPathOf(arg)}`,
       attrs: (_scope, _arg: unknown) => ({
         "data-scope": "signature-pad",
         "data-part": "segment-path",
@@ -206,7 +198,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
       }),
     },
     guide: {
-      sig: (scope) => [`${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         dir: scope.props["dir"],
         "data-scope": "signature-pad",
@@ -216,10 +207,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
     },
     clearTrigger: {
       id: "clear-trigger",
-      sig: (scope: ScopeLike, arg: unknown) => {
-        const ctx = scope.context;
-        return [`${textOf(arg)}`, scope.state, ctx.paths.length, `${scope.props["disabled"] === true}`].join(" ");
-      },
       attrs: (scope: ScopeLike, arg: unknown) => {
         const label = textOf(arg);
         const ctx = scope.context;
@@ -241,10 +228,6 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope: ScopeLike, arg: unknown) => {
-        const ctx = scope.context;
-        return [`${textOf(arg)}`, ctx.paths.length, `${scope.props["disabled"] === true}`].join(" ");
-      },
       attrs: (scope: ScopeLike, arg: unknown) => {
         const name = textOf(arg);
         const ctx = scope.context;

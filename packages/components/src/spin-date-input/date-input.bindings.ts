@@ -270,22 +270,6 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
   },
   parts: {
     segment: {
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const ctx = scope.context;
-        const index = segmentIndexOf(arg);
-        const granularity = granularityOf(scope.props, ctx.granularity);
-        const hourCycle = hourCycleOf(scope.props, ctx.hourCycle);
-        const field = orderFields(granularity, hourCycle)[index];
-        return [
-          index,
-          field,
-          field === undefined ? "" : ctx.fields[field],
-          scope.state === "focused" && ctx.activeSegment === index,
-          scope.props["disabled"],
-          scope.props["readOnly"],
-          scope.props["invalid"],
-        ].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const ctx = scope.context;
         const index = segmentIndexOf(arg);
@@ -321,7 +305,6 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
       },
     },
     root: {
-      sig: (scope) => [`${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -329,7 +312,6 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
       }),
     },
     label: {
-      sig: (scope) => [`${scope.props["label"]}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
         htmlFor: scope.id("segment", 0),
@@ -337,7 +319,6 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
       }),
     },
     control: {
-      sig: (scope) => [scope.state, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "group",
@@ -348,10 +329,6 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
     },
     hiddenInput: {
       id: "hidden",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [valueAsString(ctx.value), `${scope.props["name"]}`].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {

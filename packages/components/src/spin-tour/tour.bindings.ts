@@ -185,7 +185,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
   },
   parts: {
     root: {
-      sig: (scope) => [`${runningState(scope.state)}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-state": runningState(scope.state) ? "running" : "closed",
@@ -193,7 +192,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       }),
     },
     backdrop: {
-      sig: (scope) => [`${runningState(scope.state)}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("backdrop"),
           "data-scope": "tour",
@@ -204,12 +202,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       }),
     },
     spotlight: {
-      sig: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
-        const ctx = scope.context;
-        const step = ctx.steps[ctx.step] ?? null;
-        return [`${runningState(scope.state)}`, step?.target ?? "", geo.x, geo.y, geo.w, geo.h].join(" ");
-      },
       attrs: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
         const ctx = scope.context;
@@ -235,10 +227,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       },
     },
     positioner: {
-      sig: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
-        return [scope.state, geo.x, geo.y, geo.h].join(" ");
-      },
       attrs: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
         return {
@@ -260,7 +248,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       },
     },
     content: {
-      sig: (scope) => [scope.state, scope.context.step].join(" "),
       attrs: (scope) => {
         const ctx = scope.context;
         const step = ctx.steps[ctx.step] ?? null;
@@ -276,7 +263,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       },
     },
     title: {
-      sig: (scope) => [`${scope.context.step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("title"),
           "data-scope": "tour",
@@ -284,7 +270,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
       }),
     },
     description: {
-      sig: (scope) => [`${scope.context.step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("description"),
           "data-scope": "tour",
@@ -293,10 +278,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
     },
     progressText: {
       id: "progress",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [`${ctx.step}`, `${ctx.steps.length}`].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -309,7 +290,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
     },
     prevTrigger: {
       id: "prev",
-      sig: (scope) => [`${scope.context.step}`, scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("prevTrigger"),
           "data-scope": "tour",
@@ -321,10 +301,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
     },
     nextTrigger: {
       id: "next",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [`${ctx.step}`, `${ctx.steps.length}`, scope.state].join(" ");
-      },
       attrs: (scope) => ({
         id: scope.id("nextTrigger"),
           "data-scope": "tour",
@@ -335,7 +311,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
     },
     dismissTrigger: {
       id: "dismiss",
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("dismissTrigger"),
           "data-scope": "tour",
@@ -346,7 +321,6 @@ const def: ComponentDef<TourContext, TourEvent> = {
     },
     skipTrigger: {
       id: "skip",
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("skipTrigger"),
           "data-scope": "tour",

@@ -262,11 +262,19 @@ export function defineBridge<
      * own value, so a read is never undefined.
      */
     field: (name: string): unknown => {
-      const existing = contextSignals.get(name);
-      if (existing !== undefined) return existing();
-      const value = (ensureService().state.context as unknown as Record<string, unknown>)[name];
-      contextSignals.set(name, signal<unknown>(value));
-      return value;
+      let existing = contextSignals.get(name);
+      if (existing === undefined) {
+        // The signal is created, seeded, and then READ: the read is what
+        // links a computed to it. Returning the raw value instead would
+        // leave the computed unsubscribed, and it would never re-run.
+        const fresh = signal<unknown>(undefined);
+        contextSignals.set(name, fresh);
+        fresh(
+          (ensureService().state.context as unknown as Record<string, unknown>)[name],
+        );
+        existing = fresh;
+      }
+      return existing();
     },
     state: (): string => stateSignal(),
     /** Keeps a field's signal in step with the machine. The mirror
@@ -443,7 +451,12 @@ export function defineBridge<
       // Subscribe to the prop signals and nothing else: the whole body
       // runs untracked, so machine ticks can never re-run it and re-impose
       // the authored prop over the machine's own transition.
-      props();
+      //
+      // Reading every prop IS the subscription: the prop store's values
+      // are live getters over signals, so a read links this effect to
+      // that prop.
+      const read = props();
+      for (const key of Object.keys(read)) void read[key];
       untrack(() => {
       const svc = ensureService();
       // The cursors stay on the pre-write values while the events send.

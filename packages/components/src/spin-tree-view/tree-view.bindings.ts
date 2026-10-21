@@ -402,7 +402,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
   },
   parts: {
     root: {
-      sig: () => "root",
       attrs: (scope) => ({
         id: scope.id(""),
         role: "tree",
@@ -411,29 +410,15 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       }),
     },
     tree: {
-      sig: () => "tree",
       attrs: () => ({ role: "group", "data-orientation": "vertical" }),
     },
     label: {
-      sig: () => "label",
       attrs: () => ({}),
     },
   },
   slots: {
     item: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const state = itemStateOf(scope, scope.slot);
-        return [
-          state.expanded,
-          state.selected,
-          state.focused,
-          state.checked,
-          state.loading,
-          state.renaming,
-          (scope.slot).depth,
-        ].join(" ");
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -453,10 +438,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     branchControl: {
       id: "item",
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const state = itemStateOf(scope, scope.slot);
-        return [state.focused, state.expanded, state.selected, scope.slot.depth].join(" ");
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -484,10 +465,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     branchIndicator: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const state = itemStateOf(scope, scope.slot);
-        return [`${state.branch}`, state.expanded, state.selected].join(" ");
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -503,7 +480,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     itemIcon: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
       // One icon bag per kind, not one for the whole tree.
-      sig: (scope: SlotLike<VisibleRow>) => iconKind(scope, scope.slot),
       attrs: (scope: SlotLike<VisibleRow>) => ({
         "aria-hidden": true,
         "data-kind": iconKind(scope, scope.slot),
@@ -511,7 +487,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     rail: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => `${scope.slot.depth}`,
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         return {
@@ -529,16 +504,11 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     branchText: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: () => "text",
       attrs: () => ({}),
     },
     branchContent: {
       id: "content",
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const row = scope.slot;
-        return `${scope.context.expandedValue.includes(row.node.value)}`;
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         return {
@@ -550,10 +520,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     checkbox: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const state = itemStateOf(scope, scope.slot);
-        return [state.checked, scope.context.selectionMode].join(" ");
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -578,10 +544,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     },
     loading: {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const row = scope.slot;
-        return `${scope.context.loadingStatus[row.node.value] === "loading"}`;
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         return {
@@ -593,10 +555,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
     renameInput: {
       id: "rename",
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
-      sig: (scope: SlotLike<VisibleRow>) => {
-        const row = scope.slot;
-        return `${scope.context.renamingValue === row.node.value}`;
-      },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);

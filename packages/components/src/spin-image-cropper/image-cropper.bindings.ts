@@ -204,18 +204,6 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
   machine: (props, authored) => imageCropperMachine(props as ImageCropperArgs, authored),
   parts: {
     root: {
-      sig: (scope) => {
-        const crop = scope.context;
-        const rounded = roundedCrop(crop);
-        return [
-          scope.state,
-          rounded.x, rounded.y, rounded.width, rounded.height,
-          crop.zoom, crop.rotation, crop.flipHorizontal, crop.flipVertical,
-          crop.offset.x, crop.offset.y,
-          crop.viewportRect.width > 0 && crop.viewportRect.height > 0,
-          crop.cropShape,
-        ].join(" ");
-      },
       attrs: (scope) => {
         const crop = scope.context;
         const rounded = roundedCrop(crop);
@@ -235,11 +223,6 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
       },
     },
     viewport: {
-      sig: (scope) => {
-        const measured = scope.context.viewportRect;
-        const disabled = scope.props["disabled"] === true;
-        return [`${measured.width > 0 && measured.height > 0}`, `${disabled}`, scope.state].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const measured = ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0;
@@ -311,15 +294,6 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
       },
     },
     image: {
-      sig: (scope) => {
-        const crop = scope.context;
-        return [
-          scope.props["src"],
-          crop.viewportRect.width > 0 && crop.viewportRect.height > 0,
-          crop.zoom, crop.rotation, crop.offset.x, crop.offset.y,
-          crop.flipHorizontal, crop.flipVertical,
-        ].join(" ");
-      },
       attrs: (scope: ScopeLike) => {
         const crop = scope.context;
         const src = textOf(scope.props["src"]);
@@ -345,12 +319,6 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
       },
     },
     selection: {
-      sig: (scope) => {
-        const crop = roundedCrop(scope.context);
-        const ctx = scope.context;
-        const measured = ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0;
-        return [crop.x, crop.y, crop.width, crop.height, measured, scope.state, ctx.fixedCropArea, ctx.cropShape].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const crop = roundedCrop(ctx);
@@ -408,10 +376,6 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
       },
     },
     handle: {
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = handleOf(arg);
-        return [slots.position, scope.context.fixedCropArea, scope.state].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = handleOf(arg);
         const fixed = scope.context.fixedCropArea;
@@ -450,10 +414,6 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
       },
     },
     grid: {
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = gridOf(arg);
-        return [slots.axis, scope.state].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = gridOf(arg);
         return {

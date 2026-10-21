@@ -519,7 +519,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       // The overflow is part of the signature: a list that grows past the cap
       // does not change its emptiness, and the root has to learn it went
       // invalid.
-      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.context.value.length === 0, invalidOf(scope), scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-scope": "tags-input",
@@ -538,7 +537,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       }),
     },
     label: {
-      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"], scope.props["required"]].join(""),
       attrs: (scope) => ({
         id: scope.id("label"),
         "data-scope": "tags-input",
@@ -552,7 +550,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       }),
     },
     control: {
-      sig: (scope) => [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state !== "idle"].join(""),
       attrs: (scope) => ({
         id: scope.id("control"),
         "data-scope": "tags-input",
@@ -566,10 +563,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
       }),
     },
     input: {
-      sig: (scope) => {
-        const context = scope.context;
-        return [scope.props["dir"], scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], context.value.length === 0, context.inputValue, scope.props["placeholder"], scope.props["maxLength"]].join("");
-      },
       attrs: (scope) => {
         const context = scope.context;
         const empty = context.value.length === 0;
@@ -677,10 +670,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => {
-        const context = scope.context;
-        return [scope.props["name"], scope.props["form"], scope.props["disabled"], scope.props["readOnly"], scope.props["required"], context.value.join(", ")].join("");
-      },
       attrs: (scope) => {
         const context = scope.context;
         return {
@@ -709,7 +698,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     clearTrigger: {
       id: "clear-btn",
-      sig: (scope: ScopeLike) => [scope.props["disabled"], scope.props["readOnly"], scope.context.value.length === 0, translationsOf(scope).clearTriggerLabel].join(""),
       attrs: (scope) => {
         const empty = scope.context.value.length === 0;
         return {
@@ -732,7 +720,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     },
     liveRegion: {
       id: "live-region",
-      sig: () => "live",
       attrs: (scope) => ({
         id: scope.id("liveRegion"),
         "data-scope": "tags-input",
@@ -746,10 +733,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   slots: {
     item: {
       indexes: (context, props) => rowsOf(context.value).filter(() => true),
-      sig: (scope) => {
-        const context = scope.context;
-        return [context.editedIndex, context.highlightedIndex, scope.props["disabled"]].join("");
-      },
       attrs: (scope: SlotLike<TagsRow>) => {
         const row = scope.slot;
         return {
@@ -764,10 +747,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     itemPreview: {
       id: "preview",
       indexes: (context) => rowsOf(context.value),
-      sig: (scope: SlotLike<TagsRow>) => {
-        const state = stateOf(scope, scope.slot);
-        return [state.editing, state.highlighted, state.disabled].join("");
-      },
       attrs: (scope: SlotLike<TagsRow>) => {
         const row = scope.slot;
         const state = stateOf(scope, row);
@@ -788,10 +767,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     itemText: {
       id: "text",
       indexes: (context) => rowsOf(context.value),
-      sig: (scope: SlotLike<TagsRow>) => {
-        const state = stateOf(scope, scope.slot);
-        return [state.highlighted, state.disabled].join("");
-      },
       attrs: (scope: SlotLike<TagsRow>) => {
         const state = stateOf(scope, scope.slot);
         return {
@@ -806,10 +781,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     itemInput: {
       id: "tag-input",
       indexes: (context) => rowsOf(context.value),
-      sig: (scope: SlotLike<TagsRow>) => {
-        const state = stateOf(scope, scope.slot);
-        return [state.editing, state.disabled, state.index, state.editing ? scope.context.editedValue : ""].join("");
-      },
       attrs: (scope: SlotLike<TagsRow>) => {
         const row = scope.slot;
         const state = stateOf(scope, row);
@@ -861,11 +832,6 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
     itemDeleteTrigger: {
       id: "delete-btn",
       indexes: (context) => rowsOf(context.value),
-      sig: (scope: SlotLike<TagsRow>) => {
-        const state = stateOf(scope, scope.slot);
-        const row = scope.slot;
-        return [state.highlighted, state.disabled, row.value].join("");
-      },
       attrs: (scope: SlotLike<TagsRow>) => {
         const row = scope.slot;
         const state = stateOf(scope, row);

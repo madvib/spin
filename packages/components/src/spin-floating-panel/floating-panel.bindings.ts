@@ -140,7 +140,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   },
   parts: {
     trigger: {
-      sig: (scope) => [`${scope.state === "open"}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => {
         const open = scope.state !== "closed";
         return {
@@ -155,14 +154,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
       },
     },
     positioner: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [
-          scope.state,
-          ctx.position.x, ctx.position.y, ctx.size.w, ctx.size.h,
-          ctx.stage, scope.props["disabled"],
-        ].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const open = scope.state !== "closed";
@@ -185,14 +176,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
       },
     },
     content: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [
-          scope.state,
-          ctx.position.x, ctx.position.y, ctx.size.w, ctx.size.h,
-          ctx.stage, scope.props["disabled"],
-        ].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -238,7 +221,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     },
     dragTrigger: {
       id: "drag",
-      sig: (scope) => [scope.state, scope.context.stage].join(" "),
       attrs: (scope) => {
         const ctx = scope.context;
         const disabled = scope.props["disabled"] === true;
@@ -253,10 +235,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     },
     stageTrigger: {
       id: "stage",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const want = stageOf(arg);
-        return [want, scope.context.stage].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const want = stageOf(arg);
         const staged = scope.context.stage !== "restored";
@@ -277,7 +255,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     },
     closeTrigger: {
       id: "close",
-      sig: (scope) => [scope.state, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("closeTrigger"),
         "aria-label": "Close",
@@ -289,10 +266,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
     // handlers stay stable through the per-bridge drag cache.
     resizeTrigger: {
       id: "resize",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const edge = edgeOf(arg);
-        return [edge, scope.state, scope.context.stage, `${scope.props["disabled"] === true}`].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const edge = edgeOf(arg);
         const ctx = scope.context;

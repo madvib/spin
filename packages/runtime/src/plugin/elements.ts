@@ -252,8 +252,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
             `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge}Live = () => new Proxy({}, { get: (_t, key) => key === "@@authored" ? (name) => typeof authored === "function" && authored(name) : (key in ${bridge}Events ? ${bridge}Events[key] : values[key]), has: (_t, key) => key === "@@authored" || key in ${bridge}Events || key in values, ownKeys: () => [...Object.keys(values), ...Object.keys(${bridge}Events), "@@authored"], getOwnPropertyDescriptor: () => ({ configurable: true, enumerable: true }) });\n` +
             `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
-            `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
+            `    ? ${name}.createBridge(${bridge}Live, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
             `    : { api: ${name}.attach(el), dispose() {} });\n` +
             `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
             // The controller surface for app controllers: the api's reads as

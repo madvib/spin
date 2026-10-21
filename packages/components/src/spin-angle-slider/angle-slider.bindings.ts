@@ -149,10 +149,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   ],
   parts: {
     root: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [ctx.value, scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"]].join(" ");
-      },
       attrs: (scope) => {
         return {
           id: scope.id(""),
@@ -166,7 +162,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       },
     },
     label: {
-      sig: (scope) => [`${scope.props["label"]}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
         dir: scope.props["dir"],
@@ -185,7 +180,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => [`${scope.props["name"]}`, `${scope.context.value}`].join(" "),
       attrs: (scope) => {
         const name = textProp(scope.props["name"]);
         return {
@@ -197,17 +191,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       },
     },
     control: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [
-          scope.props["disabled"],
-          scope.props["invalid"],
-          scope.props["readOnly"],
-          ctx.disabled,
-          ctx.readOnly,
-          scope.state,
-        ].join(" ");
-      },
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "presentation",
@@ -253,11 +236,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       }),
     },
     thumb: {
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const ctx = scope.context;
-        const slot = thumbSlot(arg);
-        return [ctx.value, scope.props["disabled"], scope.props["readOnly"], scope.props["invalid"], scope.state, slot.radius ?? 40, slot.needle === true].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const ctx = scope.context;
         const shown = displayAngle(ctx.value, ctx.dir);
@@ -327,7 +305,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
     },
     valueText: {
       id: "value-text",
-      sig: () => "text",
       attrs: (scope, arg) => {
         void arg;
         return {
@@ -340,7 +317,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
     },
     markerGroup: {
       id: "marker-group",
-      sig: (scope) => [`${scope.props["dir"]}`].join(" "),
       attrs: (scope) => ({
         dir: scope.props["dir"],
         "data-scope": "angle-slider",
@@ -351,10 +327,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   slots: {
     marker: {
       indexes: () => MARKERS,
-      sig: (scope: SlotLike<{ readonly value: number }>) => {
-        const slot = markerSlot(scope.slot);
-        return [slot.value, slot.radius ?? 46, slot.diameter === true, scope.context.value].join(" ");
-      },
       attrs: (scope: SlotLike<{ readonly value: number }>) => {
         const slot = markerSlot(scope.slot);
         const context = scope.context;

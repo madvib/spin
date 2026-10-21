@@ -65,7 +65,6 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   start: "idle",
   parts: {
     root: {
-      sig: (scope) => [scope.context.orientation, scope.props["dir"], scope.context.disabled, scope.context.focusedId].join("|"),
       attrs: (scope) => {
         const context = scope.context;
         return {
@@ -114,16 +113,6 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   slots: {
     item: {
       indexes: (context, _props) => context.items,
-      sig: (scope: SlotLike<ToggleGroupItem>) => {
-        const row: ToggleGroupItem = (scope.context.items).find(
-          (candidate) => candidate.value === scope.slot.value,
-        ) ?? { value: scope.slot.value, label: scope.slot.value };
-        const context = scope.context;
-        const pressed = isPressed(context, row.value);
-        const focused = context.focusedId === scope.id("item", row.value);
-        const itemDisabled = row.disabled === true || scope.context.disabled === true;
-        return [pressed, focused, itemDisabled, scope.context.orientation, scope.props["dir"], scope.state].join("|");
-      },
       attrs: (scope: SlotLike<ToggleGroupItem>) => {
         const row: ToggleGroupItem = (scope.context.items).find(
           (candidate) => candidate.value === scope.slot.value,

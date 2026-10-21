@@ -346,7 +346,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
   },
   parts: {
     root: {
-      sig: (scope) => [scope.state, scope.props["disabled"], scope.props["dir"]].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -354,7 +353,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       }),
     },
     label: {
-      sig: (scope) => [scope.props["disabled"], scope.props["dir"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
         dir: scope.props["dir"],
@@ -362,17 +360,12 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       }),
     },
     control: {
-      sig: (scope) => [`${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
         "data-disabled": dataAttr(scope.props["disabled"] === true),
       }),
     },
     trigger: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [scope.state, ctx.value, scope.props["disabled"], scope.props["readOnly"]].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const value = valueAsString(ctx);
@@ -403,14 +396,12 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     positioner: {
       // data-state drives the recipe's closed utilities: `hidden` alone
       // loses to the content's own `display` utility.
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("positioner"),
         "data-state": openOf(scope) ? "open" : "closed",
       }),
     },
     content: {
-      sig: (scope) => [scope.state, scope.context.value].join(" "),
       attrs: (scope) => {
         const open = openOf(scope);
         return {
@@ -436,7 +427,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     valueText: {
       id: "value-text",
-      sig: (scope) => [scope.context.value].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
         dir: scope.props["dir"],
@@ -444,10 +434,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       }),
     },
     area: {
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const { x, y } = areaChannels(arg);
-        return [scope.context.value, x, y, scope.props["disabled"], scope.props["readOnly"], scope.state].join(" ");
-      },
       attrs: (scope, arg) => {
         const slots = arg === undefined ? undefined : areaPropsOf(arg);
         const { x, y } = areaChannels(slots);
@@ -484,10 +470,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     areaBackground: {
       id: "area-background",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const { x, y } = areaChannels(arg);
-        return [scope.context.value, x, y].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const { x, y } = areaChannels(arg);
         return {
@@ -504,10 +486,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     areaThumb: {
       id: "area-thumb",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const { x, y } = areaChannels(arg);
-        return [scope.context.value, x, y, scope.props["dir"], scope.props["disabled"]].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const { x, y } = areaChannels(arg);
         const ctx = scope.context;
@@ -573,16 +551,10 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     transparencyGrid: {
       id: "transparency-grid",
-      sig: () => "grid",
       attrs: () => ({ "--picker-grid": "12px" }),
     },
     channelSlider: {
       id: "channel-slider",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = channelOf(arg);
-        const orientation = slots.orientation ?? "horizontal";
-        return [scope.props["disabled"], scope.props["readOnly"], orientation, scope.state].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
@@ -619,13 +591,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderTrack: {
       id: "track",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = channelOf(arg);
-        const orientation = slots.orientation ?? "horizontal";
-        // The channel is part of the signature: the bag carries the channel's
-        // id, and one bag per tree would give both sliders the first one's id.
-        return [slots.channel, scope.context.value, orientation, scope.props["dir"]].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
@@ -645,11 +610,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderThumb: {
       id: "thumb",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = channelOf(arg);
-        const orientation = slots.orientation ?? "horizontal";
-        return [slots.channel, scope.context.value, orientation, scope.props["dir"], scope.props["disabled"]].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
@@ -707,10 +667,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderLabel: {
       id: "channel-slider-label",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = channelOf(arg);
-        return [slots.channel, `${scope.props["dir"]}`].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         return { "data-channel": slots.channel, dir: scope.props["dir"] };
@@ -718,10 +674,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelSliderValueText: {
       id: "channel-slider-value-text",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = channelOf(arg);
-        return [slots.channel, scope.context.value].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         return { "data-channel": slots.channel };
@@ -729,11 +681,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     channelInput: {
       id: "channel-input",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = hexSlotOf(arg);
-        const ctx = scope.context;
-        return [slots.channel, channelValueOf(scope.context, scope.props, slots.channel), scope.props["disabled"], scope.props["readOnly"]].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = hexSlotOf(arg);
         const isText = slots.channel === "hex";
@@ -769,7 +716,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => [scope.context.value, `${scope.props["name"]}`].join(" "),
       attrs: (scope: ScopeLike) => {
         const name = propText(scope.props["name"]);
         return {
@@ -784,10 +730,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     eyeDropperTrigger: {
       id: "eyedropper",
-      sig: (scope) => {
-        const supported = eyeDropperSupported();
-        return [`${scope.props["disabled"] === true}`, `${supported}`].join(" ");
-      },
       attrs: (scope) => {
         const supported = eyeDropperSupported();
         return {
@@ -806,7 +748,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     formatSelect: {
       id: "format-select",
-      sig: (scope) => [scope.context.format, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("formatSelect"),
         dir: scope.props["dir"],
@@ -821,16 +762,10 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     swatchGroup: {
       id: "swatch-group",
-      sig: () => "group",
       attrs: (scope) => ({ id: scope.id("swatchGroup"), role: "group" }),
     },
     swatchTrigger: {
       id: "swatch",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = swatchOf(arg);
-        const state = swatchState(scope, slots);
-        return [state.checked, state.disabled, scope.context.format].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = swatchOf(arg);
         const state = swatchState(scope, slots);
@@ -854,10 +789,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     swatchIndicator: {
       id: "swatch-indicator",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = swatchOf(arg);
-        return [`${swatchState(scope, slots).checked}`].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = swatchOf(arg);
         const checked = swatchState(scope, slots).checked;
@@ -870,10 +801,6 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     },
     swatch: {
       id: "swatch",
-      sig: (scope: ScopeLike, arg?: unknown) => {
-        const slots = swatchOf(arg);
-        return [`${swatchState(scope, slots).checked}`].join(" ");
-      },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = swatchOf(arg);
         const checked = swatchState(scope, slots).checked;
