@@ -100,7 +100,15 @@ export interface GateSchema {
 
 /** What a rule says about itself. */
 export interface GateMeta {
-  type: "problem";
+  /**
+   * What the rule is: a problem, or a suggestion.
+   *
+   * The same words ESLint uses, and the same distinction: a problem is
+   * something that is wrong, and a suggestion is another way of doing it.
+   * The lint's stance is a stance about this: an override of a decision the
+   * system made is wrong, and the wrong element is merely another way.
+   */
+  type: "problem" | "suggestion";
   /**
    * Whether the rule offers edits.
    *
@@ -528,9 +536,14 @@ const noRedundantClass: GateRule = {
  *
  * The element owns the decision — the theme's own answer for how it looks —
  * and the class says a different one. That is a second opinion about a
- * decision the theme owns: it belongs in the theme, or nowhere. There is no
- * edit for it: what the author meant is a question only the author can
- * answer.
+ * decision the system owns, and a one-off override is banned: the theme is
+ * where decisions recur, so a class that fights it is a decision that will
+ * not. There is no edit for it: what the author meant is a question only
+ * the author can answer.
+ *
+ * The message says who owns the decision and what to write instead — the
+ * theme's value, or the variant the element declares. It does not hedge: a
+ * second opinion is not a question.
  */
 const preferThemeValue: GateRule = {
   meta: {
@@ -541,8 +554,7 @@ const preferThemeValue: GateRule = {
     },
     schema: SEMANTIC_SCHEMA,
     messages: {
-      override:
-        "`<{{tag}}>` takes its {{decision}} from {{source}}; `{{cls}}` overrides it. If that is intended, it belongs in the theme.",
+      override: "{{claim}}; `{{cls}}` fights it. {{remedy}}",
     },
   },
   create(context) {
@@ -571,10 +583,15 @@ const preferThemeValue: GateRule = {
  * The theme gave the size to the heading and the fill to the button; a
  * class that carries that decision on an element the theme does not type is
  * the markup asking for something the theme already answered elsewhere.
+ *
+ * This one is ADVISORY: the wrong element cannot be banned, because a span
+ * inside a heading may be deliberate. So the rule says what the theme gave
+ * the size to and which element carries it, and leaves the choice to the
+ * author.
  */
 const preferElement: GateRule = {
   meta: {
-    type: "problem",
+    type: "suggestion",
     docs: {
       description:
         "Disallow a class that reaches for a decision the theme gave another element.",

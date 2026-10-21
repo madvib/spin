@@ -87,7 +87,7 @@ Deno.test("the dials are the rule's own", async () => {
     const balanced = findingsOf(directory, ["--strictness", "balanced"]);
     assertEquals(strict.map((finding) => finding.message), [
       "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
-      "`<button>` takes its size from the theme's ladder; `text-sm` overrides it. If that is intended, it belongs in the theme.",
+      "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
     ]);
     assertEquals(balanced.map((finding) => finding.message), [
       "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
@@ -213,6 +213,55 @@ Deno.test("a file that does not parse is reported, not swallowed", async () => {
     );
     assertEquals(code, 2);
     assertEquals(warnings, [`Could not read "${directory}/broken.tsx".`]);
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
+});
+
+Deno.test("an advisory is reported and does not fail the run", async () => {
+  // The wrong element cannot be banned: a span carrying the size the theme
+  // gives the heading may be deliberate. So the rule is a suggestion, the
+  // finding is a warning, and the run still passes.
+  const directory = await Deno.makeTempDir();
+  try {
+    const file = `${directory}/app.tsx`;
+    await Deno.writeTextFile(
+      file,
+      `export const App = () => <span className="text-3xl" />;\n`,
+    );
+    const findings = findingsOf(directory);
+    assertEquals(
+      findings.map((finding) => [finding.ruleId, finding.severity]),
+      [
+        ["spin/prefer-element", "warning"],
+      ],
+    );
+    const lines: string[] = [];
+    assertEquals(run([file], (line) => lines.push(line)), 0);
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
+});
+
+Deno.test("an error fails the run", async () => {
+  // The other way round: an override of a decision the system made is
+  // banned, and a banned thing fails the run.
+  const directory = await Deno.makeTempDir();
+  try {
+    const file = `${directory}/app.tsx`;
+    await Deno.writeTextFile(
+      file,
+      `export const App = () => <h3 className="text-sm" />;\n`,
+    );
+    const findings = findingsOf(directory);
+    assertEquals(
+      findings.map((finding) => [finding.ruleId, finding.severity]),
+      [
+        ["spin/prefer-theme-value", "error"],
+      ],
+    );
+    const lines: string[] = [];
+    assertEquals(run([file], (line) => lines.push(line)), 1);
   } finally {
     await Deno.remove(directory, { recursive: true });
   }

@@ -58,6 +58,7 @@ function scopesOf(): ScopeFact[] {
         tag: paint.tag,
         where: paint.where,
         owns: paint.owns,
+        variants: contract.variants,
       });
     }
   }

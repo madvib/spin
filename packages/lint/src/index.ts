@@ -31,7 +31,13 @@ export {
   type ShortcutDeclaration,
 } from "./shortcuts.ts";
 export { decisionOf, type Tier, TIER_BY_GROUP, tierInPlace } from "./tiers.ts";
-export { type Decision, isSpacing, sameValue } from "./properties.ts";
+export {
+  type Decision,
+  isSpacing,
+  isTypography,
+  sameValue,
+  TYPOGRAPHY,
+} from "./properties.ts";
 export { type Surfaces, surfacesFor } from "./surface.ts";
 export {
   type GateContext,

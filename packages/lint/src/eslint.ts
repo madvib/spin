@@ -37,7 +37,14 @@ import {
  */
 export interface EslintRule {
   readonly meta: {
-    readonly type: "problem";
+    /**
+     * What the rule is: a problem, or a suggestion.
+     *
+     * ESLint's own words, and the lint's own distinction: an override of a
+     * decision the system made is a problem, and the wrong element is a
+     * suggestion.
+     */
+    readonly type: "problem" | "suggestion";
     /** Whether the rule offers edits. ESLint refuses them without it. */
     readonly fixable?: "code";
     readonly docs: { readonly description: string };
@@ -86,8 +93,9 @@ export const ruleNames = RULE_NAMES;
  * The plugin.
  *
  * `configs.recommended` is the preset: the rules, as errors, over the files
- * the rules can read. A configuration that wants a different set writes the
- * rules out by name instead.
+ * the rules can read — except the advisory one, which is a warning: the
+ * wrong element cannot be banned, so it does not fail a run. A configuration
+ * that wants a different set writes the rules out by name instead.
  */
 export const plugin: EslintPlugin = {
   meta: { name: "spin", version: "0.1.0" },
@@ -103,7 +111,7 @@ plugin.configs.recommended = [
     rules: {
       "spin/no-redundant-class": "error",
       "spin/prefer-theme-value": "error",
-      "spin/prefer-element": "error",
+      "spin/prefer-element": "warn",
       "spin/closed-vocabulary": "error",
       "spin/no-handwritten-tokens": "error",
       "spin/no-unpaired-ink": "error",

@@ -5,7 +5,7 @@
   ],
   "rules": {
     "spin/no-redundant-class": "error",
-    "spin/prefer-theme-value": "warn",
+    "spin/prefer-theme-value": "error",
     "spin/prefer-element": "warn",
     "spin/closed-vocabulary": "error",
     "spin/no-handwritten-tokens": "error",

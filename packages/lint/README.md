@@ -81,13 +81,18 @@ export default [
 ];
 ```
 
-Or the preset, which turns the rules on:
+Or the preset, which turns the rules on — as errors, except `prefer-element`,
+which is a warning:
 
 ```js
 import spin from "@spin/lint/eslint";
 
 export default [...spin.configs.recommended];
 ```
+
+The severity is the configuration's to decide, in both linters: the preset above
+is the stance the plugin ships with, and a project that writes the rules out by
+name writes its own.
 
 The plugin reads its options the ESLint way, from `context.options`, so the dial
 below is written exactly as it is for oxlint. ESLint's own parser cannot read
@@ -117,6 +122,11 @@ Options:
   --rule <name>            run only this rule (repeatable)
   --fix                    apply the edits the findings carry
   -h, --help               this text
+
+Exit codes:
+  0  nothing to report, or only warnings
+  1  an error to report
+  2  the CLI could not read what it was asked to read
 ```
 
 Paths may be files or directories; the files read are the JavaScript and
@@ -151,7 +161,10 @@ src/routes/buttons.tsx
 ```
 
 The exit code is what a script reads: `0` when there is nothing to report, `1`
-when there is, `2` when the CLI could not read what it was asked to read.
+when there is an error, `2` when the CLI could not read what it was asked to
+read. A warning is reported and does not fail the run: the CLI has no
+configuration, so the rule's own stance is what decides — `prefer-theme-value`
+is an error, and `prefer-element` is a warning.
 
 `--fix` applies the edits the findings carry: a class that says what the element
 already says, and a class the theme cannot produce, are both dropped. The files
@@ -186,13 +199,38 @@ speaks:
 - **`no-redundant-class`** — the class sets a property the element sets too, and
   it sets it to the value the element already has. It changes nothing, so it is
   dead weight: the rule reports it and drops it.
-- **`prefer-theme-value`** — the class sets a property the element owns, to a
-  different value. That is a second opinion about a decision the theme owns:
-  `<h2>` takes its size from the theme's ladder, and `text-xl` overrides it. If
-  that is intended, it belongs in the theme.
+- **`prefer-theme-value`** — the class sets a property the system owns, to a
+  different value. That is a second opinion about a decision the system made,
+  and **a one-off override is banned**: the theme is where decisions recur, so a
+  class that fights it is a decision that will not. The rule reports it as an
+  error and names the way out — the theme's value, or the variant the element
+  declares.
 - **`prefer-element`** — the class carries a decision the theme gave to another
   element: a `<span>` carrying the size the theme gives `h1`. The element that
-  carries it is named.
+  carries it is named. This one is **advisory**: the wrong element cannot be
+  banned, because a span inside a heading may be deliberate.
+
+The override message says who owns the decision, and what to write instead. It
+does not hedge, and it does not send the author to the theme — a one-off
+override in the theme is worse than one in the markup, because the theme is
+where decisions recur. The three families read:
+
+```
+the theme sets the size of `<h3>`; `text-sm` fights it. Use the theme's value.
+`<button>` sets its own fill; `bg-surface` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.
+the theme owns the space between blocks; `mt-6` fights it. Use the theme's value.
+```
+
+- **typography** — the text's own shape: the scale, the weight, the family, the
+  capitalisation, the tracking. The theme states it for the elements it types.
+- **skin** — the painted appearance: colour, background, border, radius, shadow.
+  A primitive states it for the element it paints, and the variant is how that
+  element is told to change.
+- **spacing** — the space between blocks, wherever the theme types the element
+  and states its rhythm.
+
+What stays free: **layout** — where a box sits, how big it is, how things line
+up — and any property on an element the system does not decide.
 
 The catalog's own grouping says what a class does, so the tiers are read rather
 than listed:

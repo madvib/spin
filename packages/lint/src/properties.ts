@@ -36,6 +36,31 @@ export type Decision =
   | "opacity";
 
 /**
+ * The decisions that are the text's own shape.
+ *
+ * A type scale, a weight, a family, a capitalisation and a tracking are
+ * decisions about how the text is read. The rest — colour, background,
+ * border, radius, shadow, opacity — are decisions about the box around it.
+ *
+ * The split is the lint's stance: an element the theme types has its text
+ * set by the theme, and a one-off override of that text is a second opinion
+ * about the scale. The painted look is the element's own, and a one-off
+ * override of that is a second opinion about the fill.
+ */
+export const TYPOGRAPHY: ReadonlySet<Decision> = new Set([
+  "size",
+  "weight",
+  "face",
+  "tracking",
+  "case",
+]);
+
+/** Whether a decision is about the text rather than about the painted box. */
+export function isTypography(decision: Decision): boolean {
+  return TYPOGRAPHY.has(decision);
+}
+
+/**
  * The properties that hold a block's spacing.
  *
  * Margin and padding are where a box sits — layout, and the author's — with

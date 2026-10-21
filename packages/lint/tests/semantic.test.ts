@@ -11,6 +11,7 @@ import {
 } from "../src/core.ts";
 import { factsFor } from "../src/facts.ts";
 import plugin from "../src/index.ts";
+import { renderMessage, RULES } from "../src/rules.ts";
 
 /**
  * What a class does to an element decides what is reported about it.
@@ -31,6 +32,9 @@ import plugin from "../src/index.ts";
  */
 
 const facts: Facts = factsFor(Object.values(starterThemes));
+
+/** The override rule's own words, as a message is rendered. */
+const OVERRIDE = RULES["prefer-theme-value"].meta;
 
 /** The classes of an element, as the core reads them. */
 function element(
@@ -129,10 +133,61 @@ Deno.test("a class that says something else overrides the theme", () => {
   assertEquals(finding?.data, {
     tag: "h3",
     cls: "text-sm",
-    decision: "size",
-    source: "the theme's ladder",
+    family: "typography",
+    claim: "the theme sets the size of `<h3>`",
+    remedy: "Use the theme's value.",
   });
   assertEquals(finding?.fix, undefined);
+});
+
+Deno.test("the typography family says the theme sets the text", () => {
+  // The theme states the scale, so the heading's size is the theme's — and
+  // the message says so, and says what to write instead. No hedging: a
+  // second opinion about the ladder is not a question.
+  const [finding] = override("h3", "text-sm");
+  assertEquals(
+    renderMessage(OVERRIDE, finding!),
+    "the theme sets the size of `<h3>`; `text-sm` fights it. Use the theme's value.",
+  );
+});
+
+Deno.test("the skin family says the element sets its own look", () => {
+  // The button paints itself, so its fill is its own; the way out is the
+  // variant the button declares — the icon slot is a class on a child, so
+  // it is not one of them.
+  const [finding] = override("button", "bg-surface");
+  assertEquals(
+    renderMessage(OVERRIDE, finding!),
+    "`<button>` sets its own fill; `bg-surface` fights it. " +
+      "Use a variant (`bare`, `contrast`, …) or the theme's value.",
+  );
+});
+
+Deno.test("the spacing family says the theme owns the rhythm", () => {
+  // The space between blocks is the theme's wherever the theme types the
+  // element, and the class fights it.
+  const [finding] = override("p", "mt-6");
+  assertEquals(
+    renderMessage(OVERRIDE, finding!),
+    "the theme owns the space between blocks; `mt-6` fights it. " +
+      "Use the theme's value.",
+  );
+});
+
+Deno.test("a painted descendant is offered the theme's value, not a variant", () => {
+  // The card's variants belong to the card; the title the card paints is
+  // not the card, so there is no variant to offer it.
+  const [finding] = override("card-title", "text-text-muted");
+  assertEquals(finding?.data["family"], "skin");
+  assertEquals(finding?.data["remedy"], "Use the theme's value.");
+});
+
+Deno.test("an override is an error and the wrong element is advisory", () => {
+  // The stance: a one-off override of a decision the system made is banned,
+  // and the wrong element cannot be banned — a span inside a heading may be
+  // deliberate.
+  assertEquals(plugin.rules["prefer-theme-value"].meta.type, "problem");
+  assertEquals(plugin.rules["prefer-element"].meta.type, "suggestion");
 });
 
 Deno.test("a class that changes nothing is not an override", () => {
@@ -187,7 +242,12 @@ Deno.test("a spacing class that differs from the theme's is an override", () => 
   // The theme's rhythm under a paragraph is one step; `mb-4` is another.
   const [finding] = override("p", "mb-4");
   assertEquals(finding?.messageId, "override");
-  assertEquals(finding?.data["decision"], "spacing");
+  assertEquals(finding?.data["family"], "spacing");
+  assertEquals(
+    finding?.data["claim"],
+    "the theme owns the space between blocks",
+  );
+  assertEquals(finding?.data["remedy"], "Use the theme's value.");
 });
 
 Deno.test("the spacing on an element the theme does not type is free", () => {

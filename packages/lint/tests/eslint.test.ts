@@ -73,11 +73,11 @@ Deno.test("the dial reaches the rule through the linter's options", () => {
     "app.jsx",
   );
   assertEquals(strict.map((message) => message.message), [
-    "`<button>` takes its size from the theme's ladder; `text-sm` overrides it. If that is intended, it belongs in the theme.",
-    "`<button>` takes its fill from the theme; `bg-surface-raised` overrides it. If that is intended, it belongs in the theme.",
+    "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
+    "`<button>` sets its own fill; `bg-surface-raised` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
   assertEquals(balanced.map((message) => message.message), [
-    "`<button>` takes its fill from the theme; `bg-surface-raised` overrides it. If that is intended, it belongs in the theme.",
+    "`<button>` sets its own fill; `bg-surface-raised` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
 });
 
@@ -112,4 +112,13 @@ Deno.test("the recommended preset is a flat configuration", () => {
   assertEquals(messages.map((message) => message.ruleId), [
     "spin/closed-vocabulary",
   ]);
+});
+
+Deno.test("the preset bans the override and only advises the wrong element", () => {
+  // The stance, as a configuration reads it: a one-off override of a
+  // decision the system made is an error, and the wrong element is a
+  // warning — it cannot be banned.
+  const rules = plugin.configs.recommended[0]?.rules;
+  assertEquals(rules?.["spin/prefer-theme-value"], "error");
+  assertEquals(rules?.["spin/prefer-element"], "warn");
 });

@@ -111,6 +111,16 @@ export interface Surfaces {
   ): ReadonlyMap<string, string>;
   /** The declarations a class sets. */
   utility(cls: string): ReadonlyMap<string, string>;
+  /**
+   * The classes among these that paint the element.
+   *
+   * A primitive's variants are classes an author types on its own element —
+   * and some of the classes a primitive declares are not: the icon slot is a
+   * class on a CHILD, so it is a class the vocabulary knows and not a
+   * variant of the element. The rules are asked which is which: a variant
+   * paints the element because its selector names the element.
+   */
+  variants(tag: string, classes: readonly string[]): readonly string[];
 }
 
 /* ------------------------------------------------------------- the runner -- */
@@ -448,6 +458,7 @@ export function surfacesFor(
   });
   const elements = new Map<string, readonly Painted[]>();
   const utilities = new Map<string, ReadonlyMap<string, string>>();
+  const variants = new Map<string, readonly string[]>();
 
   const paintedFor = (tag: string): readonly Painted[] => {
     const cached = elements.get(tag);
@@ -482,7 +493,39 @@ export function surfacesFor(
       utilities.set(cls, declarations);
       return declarations;
     },
+    variants(tag, classes) {
+      const key = tag + " " + classes.join(" ");
+      const cached = variants.get(key);
+      if (cached !== undefined) return cached;
+      const out: string[] = [];
+      for (const cls of classes) {
+        const painted = paint(rules, contextFor(cls), cls);
+        // A class that paints no element paints no element: the slot on a
+        // child says nothing about the element the class sits on.
+        if (painted.some((item) => namesElement(item.selector, tag))) {
+          out.push(cls);
+        }
+      }
+      variants.set(key, out);
+      return out;
+    },
   };
+}
+
+/**
+ * Whether a selector names the element.
+ *
+ * The subject of the selector is what says it: a variant rule's selector
+ * names the element it paints, and a slot's selector names a class on a
+ * child — which is no element at all.
+ */
+function namesElement(selector: string, tag: string): boolean {
+  for (const compound of compounds(selector)) {
+    for (const name of subjects(compound.text)) {
+      if (name.tag === tag) return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -531,6 +574,7 @@ function empty(): Surfaces {
   return {
     element: () => new Map(),
     utility: () => new Map(),
+    variants: () => [],
   };
 }
 

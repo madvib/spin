@@ -66,8 +66,13 @@ export interface CliFinding {
   readonly messageId: string;
   /** The sentence the message id stands for. */
   readonly message: string;
-  /** The severity. Every rule here is a problem. */
-  readonly severity: "error";
+  /**
+   * The severity.
+   *
+   * The rule's own: a problem is an error, and a suggestion is a warning.
+   * An advisory does not fail a run — the wrong element cannot be banned.
+   */
+  readonly severity: "error" | "warning";
   /** The edit that settles the finding, when it has one. */
   readonly fix?: CliFix;
 }
@@ -104,8 +109,8 @@ Paths may be files or directories. The files read are the JavaScript and
 TypeScript ones: .js, .jsx, .mjs, .cjs, .ts, .tsx.
 
 Exit codes:
-  0  nothing to report
-  1  findings
+  0  nothing to report, or only warnings
+  1  an error to report
   2  the CLI could not read what it was asked to read`;
 
 /**
@@ -337,7 +342,7 @@ export function lintTree(
               column: descriptor.node.loc?.start.column ?? 0,
             },
           }),
-          severity: "error",
+          severity: rule.meta.type === "problem" ? "error" : "warning",
           ...(fix === undefined ? {} : { fix }),
         });
       },
@@ -458,8 +463,9 @@ export function formatJson(findings: readonly CliFinding[]): string {
  * Run the CLI.
  *
  * The exit code is what a script reads: 0 when there is nothing to report,
- * 1 when there is, 2 when the CLI could not read what it was asked to
- * read.
+ * 1 when there is an error, 2 when the CLI could not read what it was asked
+ * to read. A warning is reported and does not fail the run: an advisory is
+ * another way of doing it, not a mistake.
  */
 export function run(
   argv: readonly string[],
@@ -496,7 +502,7 @@ export function run(
     options.format === "json" ? formatJson(remaining) : formatText(remaining),
   );
   if (unreadable.length > 0) return 2;
-  return remaining.length > 0 ? 1 : 0;
+  return remaining.some((finding) => finding.severity === "error") ? 1 : 0;
 }
 
 /**

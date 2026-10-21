@@ -21,7 +21,7 @@
 import { isNativeElement } from "./html.ts";
 import { type Tier, tierInPlace } from "./tiers.ts";
 import type { Decision } from "./properties.ts";
-import { sameValue } from "./properties.ts";
+import { isTypography, sameValue } from "./properties.ts";
 import type { Surfaces } from "./surface.ts";
 
 /** Where a finding sits: the start of the node that caused it. */
@@ -161,6 +161,15 @@ export interface ScopeFact {
   readonly where: Placement;
   /** The decisions the primitive owns for it. */
   readonly owns: readonly string[];
+  /**
+   * The variants the primitive declares.
+   *
+   * A variant is a class the author types on the primitive's OWN element —
+   * the card's variants belong to the card, not to the title the card
+   * paints — so the rule that names a variant asks whether the painted
+   * element IS the primitive before it names one.
+   */
+  readonly variants: readonly string[];
 }
 
 /**
@@ -414,11 +423,29 @@ export function checkNoRedundantClass(
 }
 
 /**
+ * The families a one-off override falls into.
+ *
+ * - **typography** — the text's own shape: the scale it is read in, the
+ *   weight, the family, the capitalisation, the tracking. The theme states
+ *   it for the elements it types.
+ * - **skin** — the painted appearance: colour, background, border, radius,
+ *   shadow. A primitive states it for the element it paints.
+ * - **spacing** — the space between blocks, where the theme types the
+ *   element and states its rhythm.
+ */
+export type Family = "typography" | "skin" | "spacing";
+
+/**
  * A class that says something else where the theme has already said.
  *
  * The element owns the decision — the theme's own answer for how it looks —
  * and the class says a different one. That is a second opinion about a
- * decision the theme owns: it belongs in the theme, or nowhere.
+ * decision the system owns, and a one-off override is BANNED: the theme is
+ * where decisions recur, so a single class that fights it is a decision
+ * that will not recur, and it cannot be one the system stands behind.
+ *
+ * So the finding is an error, and it names the way out: the theme's value,
+ * or — for the painted look — the variant the element declares.
  */
 export function checkPreferThemeValue(
   facts: Facts,
@@ -433,23 +460,116 @@ export function checkPreferThemeValue(
     if (!isReported(reading.tier, options.strictness)) continue;
     if (reading.dead) continue;
     const decision = reading.decision;
-    const owns = decision !== undefined &&
-      owners.some((owner) => owner.owns.includes(decision));
+    const holder = holderOf(owners, decision);
     const spacing = reading.tier === "spacing";
-    if (!owns && !spacing) continue;
-    const noun = owns && decision !== undefined ? nounOf(decision) : "spacing";
+    if (holder === undefined && !spacing) continue;
+    const family = familyOf(reading, decision);
     out.push({
       messageId: "override",
       data: {
         tag,
         cls: reading.cls,
-        decision: noun,
-        source: sourceOf(decision, spacing),
+        family,
+        claim: claimOf(family, tag, decision),
+        remedy: remedyOf(
+          family,
+          variantsOf(facts, holder, tag),
+        ),
       },
       position: node.position,
     });
   }
   return out;
+}
+
+/**
+ * The primitive that owns a decision for this element, when one does.
+ *
+ * The scope is what says the element is painted and what the painting
+ * decides; the owner is the one whose claim carries the decision.
+ */
+function holderOf(
+  owners: readonly ScopeFact[],
+  decision: Decision | undefined,
+): ScopeFact | undefined {
+  if (decision === undefined) return undefined;
+  return owners.find((owner) => owner.owns.includes(decision));
+}
+
+/**
+ * The family an override falls into.
+ *
+ * The spacing tier is the theme's rhythm wherever the theme types the
+ * element; a decision about the text's own shape is typography; everything
+ * else the element owns is its skin.
+ */
+function familyOf(reading: Reading, decision: Decision | undefined): Family {
+  if (reading.tier === "spacing") return "spacing";
+  if (decision !== undefined && isTypography(decision)) return "typography";
+  return "skin";
+}
+
+/**
+ * The claim: who owns the decision the class overrides.
+ *
+ * The theme states the type scale, so a typed element's text is the
+ * theme's; a primitive paints its own element, so its fill is the
+ * element's; and the space between blocks is the theme's rhythm wherever
+ * the theme types the element.
+ */
+function claimOf(
+  family: Family,
+  tag: string,
+  decision: Decision | undefined,
+): string {
+  if (family === "spacing") return "the theme owns the space between blocks";
+  const noun = nounOf(decision);
+  if (family === "skin") return "`<" + tag + ">` sets its own " + noun;
+  return "the theme sets the " + noun + " of `<" + tag + ">`";
+}
+
+/**
+ * The remedy: what to write instead of the override.
+ *
+ * A variant is how a primitive is told to change its own look, so the skin
+ * family's way out is a variant — named, when the element declares any —
+ * and the theme's value is the way out of the rest.
+ */
+function remedyOf(family: Family, variants: readonly string[]): string {
+  if (family === "skin" && variants.length > 0) {
+    return "Use a variant (" + namesOf(variants) + ") or the theme's value.";
+  }
+  return "Use the theme's value.";
+}
+
+/**
+ * The variants the element may be told to wear.
+ *
+ * A variant is a class on the primitive's OWN element: the card's variants
+ * belong to the card, not to the title the card paints. So the variants are
+ * named only where the painted element IS the primitive — and only those
+ * that paint it, because a primitive declares classes that are not variants
+ * of its element (the icon slot is a class on a child).
+ */
+function variantsOf(
+  facts: Facts,
+  holder: ScopeFact | undefined,
+  tag: string,
+): readonly string[] {
+  if (holder === undefined) return [];
+  if (holder.tag !== holder.self) return [];
+  return facts.surfaces.variants(tag, holder.variants);
+}
+
+/**
+ * The variant names, as a message names them.
+ *
+ * Two of them are enough to say what a variant is, and the rest are there
+ * for the author to look up.
+ */
+function namesOf(variants: readonly string[]): string {
+  const named = variants.slice(0, 2).map((name) => "`" + name + "`").join(", ");
+  return variants.length > 2 ? named + ", …" : named;
 }
 
 /**
@@ -529,29 +649,18 @@ function ownerOf(
  *
  * The fill is the system's word for the painted appearance of an element —
  * the theme's surfaces, inks, borders and accents — so a decision about the
- * fill is one word whether it is the background, the ink or the edge.
+ * fill is one word whether it is the background, the ink or the edge. The
+ * text's own decisions are named by what they are: the scale, the weight,
+ * the typeface, the tracking, the letter case.
  */
-function nounOf(decision: Decision): string {
+function nounOf(decision: Decision | undefined): string {
   if (decision === "size") return "size";
-  if (
-    decision === "face" || decision === "weight" ||
-    decision === "tracking" || decision === "case" ||
-    decision === "decoration"
-  ) {
-    return decision;
-  }
+  if (decision === "weight") return "weight";
+  if (decision === "face") return "typeface";
+  if (decision === "tracking") return "tracking";
+  if (decision === "case") return "letter case";
+  if (decision === "decoration") return "decoration";
   return "fill";
-}
-
-/**
- * Where the element's value comes from.
- *
- * The type scale is a ladder, and a ladder is what a theme climbs; the rest
- * of an element's look is the theme's own.
- */
-function sourceOf(decision: Decision | undefined, spacing: boolean): string {
-  if (spacing) return "the theme";
-  return decision === "size" ? "the theme's ladder" : "the theme";
 }
 
 /**
