@@ -10,6 +10,7 @@
     "@spin/preset": "../../packages/preset/src/index.ts",
     "@spin/preset/rules/primitives/examples-index.ts": "../../packages/preset/src/rules/primitives/examples-index.ts",
     "@spin/theme": "../../packages/theme/src/index.ts",
+    "@spin/theme/skill": "../../packages/theme/src/skill/index.ts",
     "@spin/theme/themes": "../../packages/theme/src/themes/index.ts",
     "solid-js": "npm:solid-js@^1.9.3"
   },

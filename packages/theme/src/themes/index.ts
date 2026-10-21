@@ -22,6 +22,7 @@ import console_ from "./console.json" with { type: "json" };
 import neobrut from "./neobrut.json" with { type: "json" };
 import silk from "./silk.json" with { type: "json" };
 import spin from "./spin.json" with { type: "json" };
+import { themeGroups } from "../contract/groups.ts";
 import type { ThemeDocument } from "../index.ts";
 
 /**
@@ -57,6 +58,19 @@ export const starterThemes = {
 } as const;
 
 export type StarterThemeName = keyof typeof starterThemes;
+
+/**
+ * The groups the shipped starters declare, in the order a document reads them.
+ *
+ * The starters are the product, so their groups are the system's vocabulary:
+ * the scales a theme spends, the machinery it states, and the per-element
+ * groups where one element is styled on its own. The list is emitted rather
+ * than written down, so the house skill's checklist and the schema page
+ * cannot disagree about what a theme contains.
+ */
+export function starterGroups(): readonly string[] {
+  return themeGroups(Object.values(starterThemes));
+}
 
 /**
  * The MODES a theme renders in.

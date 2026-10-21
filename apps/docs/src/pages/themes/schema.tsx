@@ -9,9 +9,9 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
+import { starterGroups } from "@spin/theme/themes";
 import { Chip, Code, Section } from "../../bits.tsx";
 import {
-  declaredGroups,
   elementGroups,
   elementTokens,
   groupTypes,
@@ -125,7 +125,7 @@ const TYPE_ABOUT: Record<string, readonly [string, string]> = {
 
 export default function Schema(): JSX.Element {
   const facts = schemaFacts();
-  const groups = declaredGroups();
+  const groups = starterGroups();
   const elements = elementGroups();
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">

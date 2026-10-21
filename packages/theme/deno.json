@@ -6,6 +6,7 @@
     "./tokens": "./src/index.ts",
     "./base": "./src/base/index.ts",
     "./themes": "./src/themes/index.ts",
+    "./skill": "./src/skill/index.ts",
     "./theme-types": "./src/theme-types.d.ts"
   },
   "imports": {
@@ -22,7 +23,8 @@
     "lint": "deno lint",
     "fmt": "deno fmt",
     "schema": "deno eval --ext=ts \"const { spinThemeJsonSchema } = await import('./src/contract/schema.ts');await Deno.writeTextFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n');console.log('wrote schema.json');\"",
-    "types": "deno eval --ext=ts \"const { parseTokens, generateTypes } = await import('./src/index.ts');const { silkTheme } = await import('./src/themes/index.ts');const parsed = parseTokens(silkTheme);if (!parsed.ok) throw new Error(parsed.error);await Deno.writeTextFile('src/theme-types.d.ts', generateTypes(parsed.tree));console.log('wrote src/theme-types.d.ts');\""
+    "types": "deno eval --ext=ts \"const { parseTokens, generateTypes } = await import('./src/index.ts');const { silkTheme } = await import('./src/themes/index.ts');const parsed = parseTokens(silkTheme);if (!parsed.ok) throw new Error(parsed.error);await Deno.writeTextFile('src/theme-types.d.ts', generateTypes(parsed.tree));console.log('wrote src/theme-types.d.ts');\"",
+    "skill": "deno eval --ext=ts \"const { renderSkill } = await import('./src/skill/index.ts');const template = await Deno.readTextFile('./skill/SKILL.md');console.log(renderSkill(template));\""
   },
   "compilerOptions": {
     "strict": true,

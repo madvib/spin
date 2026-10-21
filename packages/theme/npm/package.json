@@ -26,6 +26,10 @@
       "types": "./dist/themes/index.d.ts",
       "default": "./dist/themes/index.js"
     },
+    "./skill": {
+      "types": "./dist/skill/index.d.ts",
+      "default": "./dist/skill/index.js"
+    },
     "./theme-types": {
       "types": "./dist/theme-types.d.ts"
     }

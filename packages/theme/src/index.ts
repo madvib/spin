@@ -63,6 +63,7 @@ export {
   requiredPaths,
   themeSchema,
 } from "./contract/roles.ts";
+export { contractGroups, themeGroups } from "./contract/groups.ts";
 export {
   ELEMENT_ROLES,
   elementFallback,

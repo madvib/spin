@@ -72,6 +72,9 @@ export default function Themes(): JSX.Element {
         <A href="/themes/authoring" class="text-link hover:underline">
           authoring a theme
         </A>
+        <A href="/themes/styles" class="text-link hover:underline">
+          the style references
+        </A>
         <A href="/themes/schema" class="text-link hover:underline">
           the schema
         </A>

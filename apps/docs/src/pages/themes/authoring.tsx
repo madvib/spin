@@ -18,6 +18,12 @@ import {
   statedValue,
   thesisOf,
 } from "../../theme-docs.ts";
+import {
+  SKILL_PATH,
+  skillChecklist,
+  skillSections,
+  styleReferences,
+} from "../../style-docs.ts";
 
 const BRIEF: readonly (readonly [string, string])[] = [
   [
@@ -85,6 +91,16 @@ const CHECKS: readonly (readonly [string, string])[] = [
   ],
 ];
 
+/**
+ * The origin the site is served from.
+ *
+ * The install command carries it, so the command a reader copies is the one
+ * that works on the site they are reading it on.
+ */
+function origin(): string {
+  return globalThis.location?.origin ?? "";
+}
+
 export default function Authoring(): JSX.Element {
   const spin = starterDocument("spin") ?? {};
   const value = (path: string): string =>
@@ -92,6 +108,19 @@ export default function Authoring(): JSX.Element {
   const mode = (path: string): string =>
     statedMode(spin, path, "dark") ?? "not restated";
   const spacing = groupSteps(spin, "spacing");
+  const sections = skillSections();
+  const checklist = skillChecklist();
+  const styles = styleReferences();
+  const base = origin();
+  const install = `mkdir -p ~/.claude/skills/spin-theme/styles
+curl -fsSL "${base}${SKILL_PATH}" \\
+  -o ~/.claude/skills/spin-theme/SKILL.md`;
+  const installStyles = `for style in ${
+    styles.map((style) => style.slug).join(" ")
+  }; do
+  curl -fsSL "${base}/skill/spin-theme/styles/$style.md" \\
+    -o ~/.claude/skills/spin-theme/styles/$style.md
+done`;
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
       <h1 class="text-2xl tracking-tight">Authoring a theme</h1>
@@ -99,7 +128,8 @@ export default function Authoring(): JSX.Element {
         A theme is written, not generated. The scaffold gives you the roles and
         the studio gives you the editors, and neither of them can decide what
         the product should look like. This page is the method: the shape of the
-        brief, the fast path through it, what the checks can prove, and what
+        brief, the fast path through it, the skill that carries it, the
+        directions it can be pointed in, what the checks can prove, and what
         they cannot.
       </p>
 
@@ -127,7 +157,8 @@ export default function Authoring(): JSX.Element {
         <p>
           Half an hour gets you a theme that is coherent, complete and legal. It
           does not get you a theme that is good, and the last row is the one
-          that decides that.
+          that decides that. The skill below is this path, written to be
+          followed rather than read.
         </p>
         <div class="mt-4 overflow-x-auto">
           <table class="w-full border-collapse text-sm">
@@ -176,6 +207,101 @@ export default {
           doing the editing are the same screen. The studio edits a copy in
           memory until you save it, and the unsaved badge tells you when the two
           have drifted.
+        </p>
+      </Section>
+
+      <Section id="skill" title="The house skill">
+        <p>
+          The method on this page is written for a person. The same method,
+          written for an agent to follow, ships as a skill: one file that
+          carries the order of the work, the checklist of the theme's own
+          groups, the gates and what each failure means, and the judgement at
+          the end. The agent is handed the file, a product, and half an hour.
+        </p>
+        <p class="mt-3">
+          The file belongs to the theme module, which is the language it
+          describes, and the site serves it from there. Its checklist is that
+          module's own group list, emitted rather than written down: a group
+          added to the contract is in the file without anyone editing prose, and
+          the page below reads the same bytes the file carries.
+        </p>
+        <p class="mt-3">
+          It is served from this site as a file, and installing it is a copy
+          into the directory your agent reads skills from. The path below is the
+          one Claude Code reads; any agent that reads a{" "}
+          <code class="font-mono">SKILL.md</code>{" "}
+          takes the same file in its own directory.
+        </p>
+        <Code class="mt-3" code={install} />
+        <p class="mt-3">
+          The style references travel with it. They are the directions, and the
+          skill names them, so an agent asked for a theme picks one and spends
+          the axes accordingly. They are optional: the skill carries a line
+          about each, which is enough to start.
+        </p>
+        <Code class="mt-3" code={installStyles} />
+        <p class="mt-3">
+          What the file carries, read from the file rather than listed here:
+        </p>
+        <div class="mt-3 overflow-x-auto">
+          <table class="w-full border-collapse text-sm">
+            <thead>
+              <tr class="border-b border-border text-left">
+                <th class="py-2 pr-4 font-semibold text-text">section</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={sections}>
+                {(section) => (
+                  <tr class="border-b border-border">
+                    <td class="py-2 pr-4 text-text">{section.title}</td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-5">
+          The checklist inside it is the theme's own groups, and for each one
+          the skill says what the group is for, what a good answer looks like,
+          and what a lazy one looks like. The groups it walks are these, in the
+          order a theme document reads them:
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <For each={checklist}>
+            {(group) => <Chip>{group.title}</Chip>}
+          </For>
+        </div>
+      </Section>
+
+      <Section id="styles" title="The style references">
+        <p>
+          The house skill is the method and it does not vary. A style reference
+          is the direction: a named look, what to spend the axes on, the
+          decisions that make it recognisable, and what would pull it back
+          towards the house style. A theme is the house, one style, and the
+          decisions only the product's owner can make.
+        </p>
+        <div class="mt-4 grid gap-3 md:grid-cols-2">
+          <For each={styles}>
+            {(style) => (
+              <div class="border border-border bg-surface-raised rounded-md p-4">
+                <p class="m-0 font-semibold text-text">{style.name}</p>
+                <p class="m-0 mt-2 text-sm">{style.mood}</p>
+                <p class="m-0 mt-2 text-xs text-text-muted">
+                  {style.audience}
+                </p>
+              </div>
+            )}
+          </For>
+        </div>
+        <p class="mt-4">
+          Each one is a file of its own, and the page that presents them renders
+          those files rather than describing them:{" "}
+          <A href="/themes/styles" class="text-link hover:underline">
+            the style references
+          </A>
+          .
         </p>
       </Section>
 

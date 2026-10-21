@@ -227,29 +227,9 @@ export function thesisOf(doc: Record<string, unknown>): string | undefined {
   return typeof description === "string" ? description : undefined;
 }
 
-/** The document keys that are metadata rather than token groups. */
-const METADATA = new Set(["modes", "$extensions", "$description", "$schema"]);
-
 /**
- * The top-level groups the shipped documents declare.
- *
- * A group is a decision a theme owns, so the list is the honest answer to
- * "what does a theme contain". `dark` is not among them: a mode is a variant
- * of a token, not a group beside one.
+ * The types a group's tokens use, read from the documents.
  */
-export function declaredGroups(): readonly string[] {
-  const groups = new Set<string>();
-  for (const doc of Object.values(starterThemes)) {
-    for (const key of Object.keys(doc as Record<string, unknown>)) {
-      if (METADATA.has(key) || key.startsWith("$")) continue;
-      if (key.toLowerCase() === "dark") continue;
-      groups.add(key);
-    }
-  }
-  return [...groups].sort();
-}
-
-/** The types a group's tokens use, read from the documents. */
 export function groupTypes(group: string): readonly string[] {
   const types = new Set<string>();
   for (const doc of Object.values(starterThemes)) {

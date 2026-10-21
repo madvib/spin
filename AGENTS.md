@@ -36,7 +36,11 @@ to build from, and oracles that mechanically verify the result.
 - **No agent-authored `*.md` in the repo.** No `docs/`, `specs/`, `DESIGN.md`,
   or hand-written prose files. Operational docs that would go stale go in
   `.agents/specs/` (git-ignored). Code, tests, and `README.md` per package are
-  the only authored files.
+  the only authored files. The one exception is `packages/theme/skill/`: the
+  house skill is the theme module's manual and a product that ships — agents
+  install it and follow it — so it is written prose, and it lives beside the
+  language it describes because a manual that lives with the documentation
+  drifts from the contract it documents.
 
 ## Packages
 
@@ -85,9 +89,10 @@ Supporting trees:
 - A package that is not `@spin/project` MUST NOT read or write a project's
   files. The project owns where its themes and its configuration live; ask it.
 - `@spin/diagnostics` MUST NOT re-implement theme resolution; it asks the theme.
-  Dependencies point downward: diagnostics → preset → theme; diagnostics →
-  animation → theme; project → preset → theme; api → project → preset → theme;
-  api → preset → theme; mcp → api.
+  Dependencies point downward: diagnostics → project → preset → theme;
+  diagnostics → preset → theme; diagnostics → animation → theme; project →
+  preset → theme; api → project → preset → theme; api → preset → theme; mcp →
+  api.
 - Every package owns its `deno.json`, exports only from `src/index.ts`, and has
   its own `test` / `lint` / `fmt` tasks.
 

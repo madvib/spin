@@ -7,7 +7,8 @@ runtime dependencies.
 
 `@spin/theme` is the value layer; `@spin/theme/base` is the document a theme
 makes before any component exists; `@spin/theme/themes` is the shipped starter
-set; `@spin/theme/theme-types` the generated token types.
+set; `@spin/theme/skill` is the house skill, assembled from the contract; and
+`@spin/theme/theme-types` the generated token types.
 
 ```
 @spin/theme
@@ -17,6 +18,7 @@ set; `@spin/theme/theme-types` the generated token types.
   author       setToken · removeToken · renameToken · treeToJson · scaffoldTheme
   emit         generateCss · generateThemeCss · generateTypes
   contract     BASE_ROLES · ELEMENT_ROLES · requiredPaths · themeSchema · spinThemeJsonSchema
+  groups       contractGroups · documentGroups · themeGroups
   colour       parseColor · formatHex · isColor · mixColors · generateScale · invertColor · contrastRatio · relativeLuminance · CSS_WIDE_COLORS
   uno          themeRef · themeKey
   procedures   themeContract · themeRouter
@@ -25,7 +27,10 @@ set; `@spin/theme/theme-types` the generated token types.
   basePreflights · PreflightProvider · documentDefaults · readFonts · fontFaces
 
 @spin/theme/themes
-  silkTheme · neobrutTheme · consoleTheme · spinTheme · starterThemes · themeModes · supportsDark
+  silkTheme · neobrutTheme · consoleTheme · spinTheme · starterThemes · themeModes · supportsDark · starterGroups
+
+@spin/theme/skill
+  renderSkill
 
 @spin/theme/theme-types
   ThemeTokens · ThemeTokenPath · ThemeCssVar
@@ -33,6 +38,21 @@ set; `@spin/theme/theme-types` the generated token types.
 
 Every entry point is total. `parseTokens` returns `{ ok: false, error }` rather
 than throwing; mutations return `{ ok }` unions.
+
+## The house skill
+
+`skill/SKILL.md` is the module's manual: the order of the work, the gates, and
+what each failure means. It is a product — agents install it and follow it — so
+it lives with the language it describes, and the checklist it carries is emitted
+rather than written down.
+
+`renderSkill(template)` assembles the file: the groups it walks are the ones the
+contract knows, in the order a theme document reads them, each with the guidance
+the file carries for it. A group added to the contract is in the file without
+anyone editing prose, and the site that serves the file reads the same bytes.
+
+The order of the sections on disk is not the order that ships — the module emits
+it — so moving a section there does not move it in the file an agent installs.
 
 ## Contract
 
@@ -87,4 +107,5 @@ The options are the caller's facts, not the module's guesses:
 ```
 deno task test     # the token pipeline's own suite
 deno task schema   # regenerate schema.json from the role declarations
+deno task skill    # print the house skill, assembled from the contract
 ```
