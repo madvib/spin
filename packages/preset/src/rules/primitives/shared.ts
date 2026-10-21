@@ -24,7 +24,7 @@ export function claim(mode: Mode, tag: string): string {
 }
 
 /**
- * Spend a component's component tokens, reading each from the theme.
+ * Spend a component's own tokens, reading each from the theme.
  *
  * A token the theme does not declare is omitted rather than emitted as an
  * invalid `var()` — the declaration falls through to the cascade either way,

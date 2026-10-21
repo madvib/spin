@@ -23,7 +23,7 @@
  * Theming:
  *   spent bindings  `--motion-duration-*` and `--motion-easing-*`. No token is
  *                   minted: a theme moves every animation by moving the scale.
- *   character       None. Motion is not a decision a theme gets to author per
+ *   component       None. Motion is not a decision a theme gets to author per
  *                   component — it is one feel, expressed once.
  *
  * States: none. These run, they do not respond.

@@ -30,7 +30,7 @@ export interface PrimitiveContract {
    * A theme that enables the component is required to declare these; a theme
    * that spends shared scales declares none.
    */
-  character: readonly string[];
+  component: readonly string[];
 }
 
 /** The contract per component, keyed by file stem. */
@@ -64,6 +64,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "motion-easing-linear",
       "motion-easing-standard",
     ],
-    character: [],
+    component: [],
   },
 };
