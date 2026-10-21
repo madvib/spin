@@ -1,4 +1,4 @@
-import { ariaHidden, ariaInvalid, defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaHidden, ariaInvalid, defineComponent, factAttrs, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   pinInput as pinInputMachine,
   pinView,
@@ -279,6 +279,14 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
   return made;
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+  required: (scope: ScopeLike) => scope.props["required"] === true,
+};
+
 const def: ComponentDef<PinInputContext, PinInputEvents> = {
   name: "pin-input",
   machine: (props, authored) => pinInputMachine(props as PinInputArgs, authored),
@@ -333,10 +341,8 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
             "data-scope": "pin-input",
             "data-part": "root",
           dir: scope.props["dir"],
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "invalid", "disabled", "readonly"),
           "data-complete": scope.attr(pinView(ctx.value, ctx.count).complete),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
         };
       },
     },
@@ -347,11 +353,8 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
           "data-part": "label",
         dir: scope.props["dir"],
         for: scope.id("hidden"),
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "invalid", "disabled", "readonly", "required"),
         "data-complete": scope.attr(pinView(scope.context.value, scope.context.count).complete),
-        "data-required": scope.attr(scope.props["required"] === true),
-        "data-readonly": scope.attr(scope.props["readOnly"] === true),
         onClick: (event: MouseEvent) => {
           // The label's control is the hidden input, which cannot take
           // focus; the first cell can.

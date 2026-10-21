@@ -1,4 +1,4 @@
-import { ariaControls, ariaDisabled, ariaInvalid, ariaReadOnly, defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaControls, ariaDisabled, ariaInvalid, ariaReadOnly, defineComponent, factAttrs, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   editable as editableMachine,
   type EditableArgs,
@@ -71,6 +71,15 @@ const callHandler = (scope: ScopeLike, name: string, event: InteractOutsideEvent
   if (isOutsideHandler(fn)) fn(event);
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+  autoresize: (scope: ScopeLike) => scope.props["autoResize"] === true,
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  required: (scope: ScopeLike) => scope.props["required"] === true,
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+};
+
 const def: ComponentDef<EditableContext, EditableEvents> = {
   name: "editable",
   machine: (props, authored) => editableMachine(props as EditableArgs, authored),
@@ -124,11 +133,10 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           dir: scope.props["dir"],
           "data-state": focused ? "edit" : "preview",
           "data-focus": scope.attr(focused),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled", "autoresize"),
           "data-placeholder-shown": scope.attr(placeholderShown),
           // Zag renders the auto-resize stack with an inline style; ours keys
           // a static utility on the same fact.
-          "data-autoresize": scope.attr(scope.props["autoResize"] === true),
         };
       },
     },
@@ -143,9 +151,7 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           for: scope.id("input"),
           "data-state": focused ? "edit" : "preview",
           "data-focus": scope.attr(focused),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-required": scope.attr(scope.props["required"] === true),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled", "invalid", "required"),
           onClick: (): void => {
             if (editingOf(scope)) return;
             // Focus management recorded as a gap: label-click focus on the
@@ -184,10 +190,7 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           "aria-label": TRANSLATIONS.input,
           ...ariaInvalid(scope.props["invalid"] === true ? true : undefined),
           "data-state": focused ? "edit" : "preview",
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-autoresize": scope.attr(scope.props["autoResize"] === true),
+          ...factAttrs(scope, facts, "disabled", "autoresize", "invalid", "readonly"),
           "data-placeholder-shown": scope.attr(placeholderShown),
           "data-hidden": scope.attr(removed),
           ...ariaControls(scope, { part: "control" }),
@@ -266,10 +269,7 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           dir: scope.props["dir"],
           "data-state": focused ? "edit" : "preview",
           "data-placeholder-shown": scope.attr(placeholderShown),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-autoresize": scope.attr(scope.props["autoResize"] === true),
+          ...factAttrs(scope, facts, "disabled", "autoresize", "invalid", "readonly"),
           "data-hidden": scope.attr(removed),
           ...ariaReadOnly(scope.props["readOnly"] === true ? true : undefined),
           ...ariaDisabled(scope.props["disabled"] === true ? true : undefined),
@@ -314,7 +314,7 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           dir: scope.props["dir"],
           type: "button",
           "data-state": focused ? "edit" : "preview",
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled"),
           "aria-label": TRANSLATIONS.edit,
           ...ariaControls(scope, { part: "control" }),
           disabled: scope.props["disabled"],
@@ -340,7 +340,7 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           dir: scope.props["dir"],
           type: "button",
           "data-state": focused ? "edit" : "preview",
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled"),
           "aria-label": TRANSLATIONS.submit,
           ...ariaControls(scope, { part: "control" }),
           disabled: scope.props["disabled"],
@@ -363,7 +363,7 @@ const def: ComponentDef<EditableContext, EditableEvents> = {
           dir: scope.props["dir"],
           type: "button",
           "data-state": focused ? "edit" : "preview",
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled"),
           "aria-label": TRANSLATIONS.cancel,
           ...ariaControls(scope, { part: "control" }),
           disabled: scope.props["disabled"],

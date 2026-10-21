@@ -1,4 +1,4 @@
-import { ariaDisabled, ariaInvalid, defineComponent, isRecord, liveRegion, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaInvalid, defineComponent, factAttrs, isRecord, liveRegion, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   sameTags,
   stringsOf,
@@ -450,6 +450,14 @@ const blurBehaviorOf = (
   return { addOnBlur: value === "add", clearOnBlur: value === "clear" };
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  invalid: (scope: ScopeLike) => invalidOf(scope),
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+  focus: (scope: ScopeLike) => scope.state !== "idle",
+  required: (scope: ScopeLike) => scope.props["required"] === true,
+};
+
 const def: ComponentDef<TagsContext, TagsEvents> = {
   name: "tags-input",
   machine: (props, authored) => tagsMachine(props as TagsArgs, authored),
@@ -524,10 +532,8 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
         "data-scope": "tags-input",
         "data-part": "root",
         dir: scope.props["dir"],
-        "data-invalid": scope.attr(invalidOf(scope)),
-        "data-readonly": scope.attr(scope.props["readOnly"] === true),
+        ...factAttrs(scope, facts, "invalid", "readonly", "focus"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-focus": scope.attr(scope.state !== "idle"),
         "data-empty": scope.attr(scope.context.value.length === 0),
         onPointerDown: () => {
           const context = scope.context;
@@ -544,9 +550,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
         dir: scope.props["dir"],
         for: scope.id("input"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-invalid": scope.attr(invalidOf(scope)),
-        "data-readonly": scope.attr(scope.props["readOnly"] === true),
-        "data-required": scope.attr(scope.props["required"] === true),
+        ...factAttrs(scope, facts, "invalid", "readonly", "required"),
       }),
     },
     control: {
@@ -557,9 +561,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
         dir: scope.props["dir"],
         tabIndex: scope.props["readOnly"] === true ? 0 : undefined,
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-readonly": scope.attr(scope.props["readOnly"] === true),
-        "data-invalid": scope.attr(invalidOf(scope)),
-        "data-focus": scope.attr(scope.state !== "idle"),
+        ...factAttrs(scope, facts, "invalid", "readonly", "focus"),
       }),
     },
     input: {
@@ -579,8 +581,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
           disabled: scope.props["disabled"] === true || scope.props["readOnly"] === true,
           maxLength: scope.props["maxLength"],
           ...ariaInvalid(invalidOf(scope)),
-          "data-invalid": scope.attr(invalidOf(scope)),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "invalid", "readonly"),
           "data-empty": scope.attr(empty),
           placeholder: empty ? textOf(scope.props["placeholder"]) : undefined,
           value: context.inputValue,
@@ -706,7 +707,7 @@ const def: ComponentDef<TagsContext, TagsEvents> = {
         "data-part": "clear-trigger",
           type: "button",
           dir: scope.props["dir"],
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly"),
           disabled: scope.props["disabled"],
           "aria-label": translationsOf(scope).clearTriggerLabel,
           hidden: empty,

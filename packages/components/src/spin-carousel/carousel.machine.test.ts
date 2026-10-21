@@ -217,6 +217,26 @@ Deno.test("Given autoplay / When the pointer presses / Then the rotation stops",
   assertEquals(svc.state.value, "idle");
 });
 
+Deno.test("Given a part takes the focus / Then the context names it", () => {
+  const svc = carousel(5);
+  svc.send({ type: "PART.FOCUS", id: "carousel-indicator-2" });
+  assertEquals(contextOf(svc).focusedId, "carousel-indicator-2");
+});
+
+Deno.test("Given a part holds the focus / When it blurs / Then the focus is gone", () => {
+  const svc = carousel(5);
+  svc.send({ type: "PART.FOCUS", id: "carousel-indicator-2" });
+  svc.send({ type: "PART.BLUR", id: "carousel-indicator-2" });
+  assertEquals(contextOf(svc).focusedId, null);
+});
+
+Deno.test("Given a part holds the focus / When another part blurs / Then the focus stays", () => {
+  const svc = carousel(5);
+  svc.send({ type: "PART.FOCUS", id: "carousel-indicator-2" });
+  svc.send({ type: "PART.BLUR", id: "carousel-prev-trigger" });
+  assertEquals(contextOf(svc).focusedId, "carousel-indicator-2");
+});
+
 Deno.test("Given autoplay / When the viewport takes focus / Then the rotation stops", () => {
   const svc = carousel(5);
   svc.send({ type: "AUTOPLAY.START" });

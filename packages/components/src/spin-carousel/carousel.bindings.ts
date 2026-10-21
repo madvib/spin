@@ -6,6 +6,7 @@ import {
   ariaRoleDescription,
   authoredProps,
   defineComponent,
+  factAttrs,
   isRecord,
   liveRegion,
   machineTick,
@@ -340,6 +341,13 @@ const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   event.preventDefault();
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike) => scope.props["orientation"],
+  draggable: (scope: ScopeLike) => scope.props["allowMouseDrag"] === true,
+  slides: (scope: ScopeLike) => String(scope.context.slideParams.slidesPerPage),
+};
+
 const def: ComponentDef<CarouselContext, CarouselEvents> = {
   name: "carousel",
   machine: (props, authored) => carouselMachine(props as CarouselArgs, authored),
@@ -404,7 +412,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-part": "root",
         role: "region",
         ...ariaRoleDescription("carousel"),
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
         "data-state": scope.state === "autoplay" ? "playing" : "idle",
         dir: scope.props["dir"],
         onPointerdown: (): void => scope.send({ type: "POINTER.DOWN" }),
@@ -419,7 +427,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
       attrs: (scope) => ({
         role: "group",
         "aria-label": "Carousel controls",
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
       }),
     },
     itemGroup: {
@@ -432,12 +440,11 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           id: scope.id("itemGroup"),
         "data-scope": "carousel",
         "data-part": "item-group",
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation", "draggable", "slides"),
           // The one place a state is a utility switch: with snap mandatory
           // the platform would fight the pointer, so the drag turns it off
           // and the class turns it back on. Nobody writes a style.
           ...(ctx.dragStatus === "dragging" ? { "data-dragging": "" } : {}),
-          ...(scope.props["allowMouseDrag"] === true ? { "data-draggable": "" } : {}),
           ...liveRegion({ live: playing ? "off" : "polite" }),
           tabindex: hasTabbable(scope) ? -1 : 0,
           onFocusin: (): void => scope.send({ type: "VIEWPORT.FOCUS" }),
@@ -490,9 +497,12 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           type: "button",
           "aria-label": "Previous slide",
           ...ariaControls(scope, { part: "itemGroup" }),
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
           "data-disabled": can ? undefined : "",
+          "data-focus": scope.context.focusedId === scope.id("prevTrigger") ? "" : undefined,
           disabled: !can,
+          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("prevTrigger") }),
+          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("prevTrigger") }),
           onClick: (): void => scope.send({ type: "PREV" }),
         };
       },
@@ -509,9 +519,12 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           type: "button",
           "aria-label": "Next slide",
           ...ariaControls(scope, { part: "itemGroup" }),
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
           "data-disabled": can ? undefined : "",
+          "data-focus": scope.context.focusedId === scope.id("nextTrigger") ? "" : undefined,
           disabled: !can,
+          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("nextTrigger") }),
+          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("nextTrigger") }),
           onClick: (): void => scope.send({ type: "NEXT" }),
         };
       },
@@ -527,8 +540,11 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           type: "button",
           "aria-label": playing ? "Stop slide rotation" : "Start slide rotation",
           ...ariaPressed(playing),
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
           "data-playing": playing ? "" : undefined,
+          "data-focus": scope.context.focusedId === scope.id("autoplayTrigger") ? "" : undefined,
+          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("autoplayTrigger") }),
+          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("autoplayTrigger") }),
           onClick: (): void => scope.send({ type: playing ? "AUTOPLAY.STOP" : "AUTOPLAY.START" }),
         };
       },
@@ -541,7 +557,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         "data-part": "indicator-group",
         role: "group",
         "aria-label": "Slides",
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
         onKeydown: (event: KeyboardEvent): void => onTrackKeydown(scope, event),
       }),
     },
@@ -551,7 +567,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         id: scope.id("progressText"),
         "data-scope": "carousel",
         "data-part": "progress-text",
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
       }),
     },
@@ -561,7 +577,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
         id: scope.id("autoplayProgress"),
         "data-scope": "carousel",
         "data-part": "autoplay-progress",
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
         ...ariaHidden(true),
       }),
@@ -569,7 +585,7 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
     autoplayProgressFill: {
       id: "autoplay-progress-fill",
       attrs: (scope) => ({
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
         "data-state": scope.state === "autoplay" ? "playing" : "paused",
       }),
     },
@@ -622,6 +638,9 @@ const def: ComponentDef<CarouselContext, CarouselEvents> = {
           ...ariaCurrent(current),
           "aria-label": `${item.index + 1} of ${slidesOf(scope.props["items"]).length} — ${item.label}`,
           "data-readonly": readOnly ? "" : undefined,
+          "data-focus": scope.context.focusedId === scope.id("indicator", item.index) ? "" : undefined,
+          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("indicator", item.index) }),
+          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("indicator", item.index) }),
           onClick: (): void => {
             if (readOnly) return;
             scope.send({ type: "GO_TO", index: item.index });

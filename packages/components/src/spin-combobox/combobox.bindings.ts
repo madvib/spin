@@ -7,6 +7,7 @@ import {
   comboboxInput,
   defineComponent,
   disclosureTrigger,
+  factAttrs,
   isComposing,
   listSurface,
   optionRow,
@@ -466,6 +467,15 @@ const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => (
   selected: scope.context.value.includes(row.value),
 });
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  phase: (scope: ScopeLike) => scope.state,
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  required: (scope: ScopeLike) => scope.props["required"] === true,
+  focused: (scope: ScopeLike) => scope.state !== "idle",
+};
+
 const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
   name: "combobox",
   machine: (props, authored) => comboboxMachine(props as ComboboxArgs, authored),
@@ -522,11 +532,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-scope": "combobox",
           "data-part": "root",
           "data-state": open ? "open" : "closed",
-          "data-phase": scope.state,
+          ...factAttrs(scope, facts, "phase", "readonly", "invalid", "required"),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-required": scope.attr(scope.props["required"] === true),
           "use:dismissable": {
             onEscape: (): void => {
               if (!isOpenPhase(scope.state)) return;
@@ -547,10 +554,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
         htmlFor: scope.id("input"),
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-readonly": scope.attr(scope.props["readOnly"] === true),
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
-        "data-required": scope.attr(scope.props["required"] === true),
-        "data-focused": scope.attr(scope.state !== "idle"),
+        ...factAttrs(scope, facts, "readonly", "invalid", "required", "focused"),
         onClick: (): void => {
           // The label's click is the input's: native focus follows the
           // label activation.
@@ -563,9 +567,8 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-scope": "combobox",
           "data-part": "control",
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
-        "data-focused": scope.attr(scope.state !== "idle"),
+        ...factAttrs(scope, facts, "invalid", "focused"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
       }),
     },
     positioner: {
@@ -577,7 +580,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-scope": "combobox",
           "data-part": "positioner",
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
-          "data-phase": scope.state,
+          ...factAttrs(scope, facts, "phase"),
           // Zag measures a floating placement and reports it; the recipe
           // anchors the panel with utilities, so the authored placement and
           // the side it implies are what the theme keys on.
@@ -621,8 +624,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           }),
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly", "invalid"),
           onFocus: (): void => {
             if (scope.props["disabled"] === true) return;
             scope.send({ type: "INPUT.FOCUS" });
@@ -667,8 +669,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           "data-state": open ? "open" : "closed",
           "data-focusable": scope.attr(focusable),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly", "invalid"),
           onFocus: (): void => {
             if (!focusable) return;
             scope.send({ type: "INPUT.FOCUS" });
@@ -719,7 +720,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
         disabled: scope.props["disabled"],
         tabIndex: -1,
         "data-state": isOpenPhase(scope.state) ? "open" : "closed",
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
+        ...factAttrs(scope, facts, "invalid"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
         hidden: scope.context.value.length === 0,
         onPointerDown: (event: PointerEvent): void => {
@@ -809,6 +810,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
             disabled: state.disabled ? true : undefined,
           }),
           "data-highlighted": scope.attr(state.highlighted),
+          "data-selected": scope.attr(state.selected),
           "data-disabled": scope.attr(state.disabled),
           ...rowHandlers(scope, row),
         };

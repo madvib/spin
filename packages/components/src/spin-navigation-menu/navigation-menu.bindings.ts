@@ -3,6 +3,7 @@ import {
   dataAttr,
   defineComponent,
   disclosureTrigger,
+  factAttrs,
   resolveTwins,
   type ComponentDef,
   type PartScope,
@@ -75,6 +76,12 @@ interface SlotLike<R> extends SlotScope<R, NavigationMenuContext> {}
 const itemsOf = (parsed: Record<string, unknown>): readonly NavItemRecord[] =>
   parseItems(parsed["items"]);
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike) => scope.props["orientation"],
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+};
+
 const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
   name: "navigation-menu",
   machine: (props, authored) => navigationMenuMachine(props as NavigationMenuArgs, authored),
@@ -84,16 +91,15 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
     root: {
       attrs: (scope) => ({
         id: scope.id(""),
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation", "disabled"),
         "data-state": scope.state === "open" ? "open" : "closed",
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
       }),
     },
     list: {
       attrs: (scope) => ({
         id: scope.id("list"),
         role: "menubar",
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
       }),
     },
   },
@@ -112,7 +118,7 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
             hasPopup: "menu",
           }),
           "data-state": open ? "open" : "closed",
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled"),
           "use:hover-delay": {
             openDelay: ctx.openDelay,
             closeDelay: ctx.closeDelay,
@@ -140,7 +146,7 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
           id: scope.id("link", item.value),
           href: `#${item.value}`,
           "data-state": open ? "open" : "closed",
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled"),
         };
       },
     },

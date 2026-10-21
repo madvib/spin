@@ -1,4 +1,4 @@
-import { ariaControls, ariaHidden, dataAttr, defineComponent, disclosureTrigger, isRecord, optionRow, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaControls, ariaHidden, dataAttr, defineComponent, disclosureTrigger, factAttrs, isRecord, optionRow, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   nodesOf,
   treeView as treeViewMachine,
@@ -385,6 +385,11 @@ const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void =>
   if (branch && !wasExpanded) ensureChildren(scope, row.node.value);
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike) => "vertical",
+};
+
 const def: ComponentDef<TreeContext, TreeEvents> = {
   name: "tree",
   machine: (props, authored) => treeViewMachine(props as TreeArgs, authored),
@@ -406,7 +411,7 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
         id: scope.id(""),
         role: "tree",
         tabindex: -1,
-        "data-orientation": "vertical",
+        ...factAttrs(scope, facts, "orientation"),
       }),
     },
     tree: {

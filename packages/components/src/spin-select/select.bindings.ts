@@ -6,6 +6,7 @@ import {
   ariaRequired,
   defineComponent,
   disclosureTrigger,
+  factAttrs,
   listSurface,
   optionRow,
   textProp,
@@ -276,6 +277,18 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  focused: (scope: ScopeLike) => scope.state !== "idle",
+  focus: (scope: ScopeLike) => scope.state === "focused",
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  multiple: (scope: ScopeLike) => scope.props["multiple"] === true,
+  controls: (scope: ScopeLike) => scope.id("content"),
+  ownedby: (scope: ScopeLike) => scope.id("list"),
+  placement: (scope: ScopeLike) => scope.props["placement"],
+};
+
 const def: ComponentDef<SelectContext, SelectEvents> = {
   name: "select",
   machine: (props, authored) => selectMachine(props as SelectArgs, authored),
@@ -305,11 +318,8 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           "data-scope": "select",
           "data-part": "root",
           "data-state": open ? "open" : "closed",
-          "data-focused": scope.attr(scope.state !== "idle"),
+          ...factAttrs(scope, facts, "focused", "readonly", "invalid", "multiple"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
-          "data-invalid": dataAttr(scope.props["invalid"] === true),
-          "data-multiple": dataAttr(scope.props["multiple"] === true),
           "data-placeholder": dataAttr(scope.context.value.length === 0),
         };
       },
@@ -358,10 +368,8 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           ...ariaInvalid(ariaFlag(scope.props["invalid"])),
           disabled: scope.props["disabled"] || scope.props["readOnly"],
           "data-state": open ? "open" : "closed",
-          "data-focused": scope.attr(scope.state !== "idle"),
+          ...factAttrs(scope, facts, "focus", "focused", "controls", "ownedby"),
           "data-placeholder": dataAttr(ctx.value.length === 0),
-          "data-controls": scope.id("content"),
-          "data-ownedby": scope.id("list"),
           onFocus: (): void => scope.send({ type: "TRIGGER.FOCUS" }),
           onBlur: (): void => scope.send({ type: "TRIGGER.BLUR" }),
           onClick: (): void => scope.send({ type: "TRIGGER.CLICK" }),
@@ -414,7 +422,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           dir: scope.props["dir"],
           "data-state": open ? "open" : "closed",
           hidden: !open,
-          "data-placement": scope.props["placement"],
+          ...factAttrs(scope, facts, "placement"),
         };
       },
     },
@@ -545,7 +553,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
           "data-selected": dataAttr(state.selected),
           "data-highlighted": dataAttr(state.highlighted),
           "data-disabled": dataAttr(state.disabled),
-          "data-ownedby": scope.id("list"),
+          ...factAttrs(scope, facts, "ownedby"),
           ...rowHandlers(scope, row),
         };
       },

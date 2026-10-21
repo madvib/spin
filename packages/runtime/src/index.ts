@@ -27,6 +27,7 @@ export {
   type PropCoerceType,
 } from "./props.ts";
 export { defineComponent } from "./component/synthesize.ts";
+export { factAttrs, type FactScope } from "./component/facts.ts";
 export {
   type CommandDef,
   type ComponentDef,

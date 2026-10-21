@@ -1,4 +1,4 @@
-import { ariaDisabled, ariaInvalid, ariaLabelledBy, ariaReadOnly, dataAttr, defineComponent, isRecord, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaInvalid, ariaLabelledBy, ariaReadOnly, dataAttr, defineComponent, factAttrs, isRecord, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   clampValue,
   dateInput as dateInputMachine,
@@ -257,6 +257,11 @@ const holdersOf = (id: IdFn): Map<number, { text: string; placeholder: boolean }
   return holders;
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+};
+
 const def: ComponentDef<DateInputContext, DateInputEvents> = {
   name: "date-input",
   machine: (props, authored) => dateInputMachine(props as DateInputArgs, authored),
@@ -298,7 +303,7 @@ const def: ComponentDef<DateInputContext, DateInputEvents> = {
           inputMode: field === "dayPeriod" ? undefined : "numeric",
           "data-type": field,
           "data-placeholder-shown": dataAttr(value === null),
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
+          ...factAttrs(scope, facts, "disabled"),
           "data-focus": dataAttr(scope.state === "focused" && ctx.activeSegment === index),
           contentEditable: editable ? "true" : undefined,
           spellcheck: editable ? "false" : undefined,
@@ -310,14 +315,14 @@ const def: ComponentDef<DateInputContext, DateInputEvents> = {
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "disabled"),
       }),
     },
     label: {
       attrs: (scope) => ({
         id: scope.id("label"),
         htmlFor: scope.id("segment", 0),
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "disabled"),
       }),
     },
     control: {
@@ -326,7 +331,7 @@ const def: ComponentDef<DateInputContext, DateInputEvents> = {
         role: "group",
         ...ariaLabelledBy(scope, { part: "label" }),
         "data-focus": dataAttr(scope.state === "focused"),
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "disabled"),
       }),
     },
     hiddenInput: {

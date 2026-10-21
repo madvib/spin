@@ -2,6 +2,7 @@ import {
   ariaHidden,
   ariaLabelledBy,
   defineComponent,
+  factAttrs,
   isComposing,
   listSurface,
   optionRow,
@@ -396,6 +397,11 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     }
   }
 };
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike) => scope.props["orientation"],
+};
+
 const def: ComponentDef<ListboxContext, ListboxEvents> = {
   name: "listbox",
   machine: (props, authored) => listboxMachine(props as ListboxArgs, authored),
@@ -415,7 +421,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           "data-scope": "listbox",
           "data-part": "root",
         dir: scope.props["dir"],
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
         "data-disabled": scope.attr(scope.props["disabled"] === true),
       }),
     },
@@ -449,7 +455,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           role: "listbox",
           tabindex: "0",
           dir: scope.props["dir"],
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
           ...listSurface(scope, {
             activeDescendant: active === undefined ? undefined : { id: active },
             multiSelectable: ctx.multiple ? "true" : undefined,
@@ -495,7 +501,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           }),
           "data-selected": scope.attr(state.selected),
           "data-state": state.selected ? "checked" : "unchecked",
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
           "data-highlighted": scope.attr(state.highlighted),
           "data-disabled": scope.attr(state.disabled),
           onPointermove: rowHandlers(scope, row).onPointerMove,
@@ -539,7 +545,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
           dir: scope.props["dir"],
           ...ariaLabelledBy(scope, { part: "itemGroupLabel", slot: block.id }),
           "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
           "data-empty": scope.attr(rowsOf(scope.props).length === 0),
         };
       },

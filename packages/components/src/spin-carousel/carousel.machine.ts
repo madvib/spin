@@ -74,6 +74,9 @@ export interface CarouselContext {
   pageCount: number;
   slidesInView: number[];
   focused: boolean;
+  /** The focused part's id: the control that holds the focus. The
+   * viewport's focus says the carousel has it; this says which button. */
+  focusedId: string | null;
   dragStatus: CarouselDragStatus;
   loop: boolean;
   perMove: number;
@@ -98,6 +101,8 @@ export interface CarouselEvents {
   "POINTER.DOWN": {};
   "VIEWPORT.FOCUS": {};
   "VIEWPORT.BLUR": {};
+  "PART.FOCUS": { id: string };
+  "PART.BLUR": { id: string };
   "AUTOPLAY.START": {};
   "AUTOPLAY.STOP": {};
   "AUTOPLAY.TICK": {};
@@ -187,6 +192,13 @@ const config: Omit<MachineSpec<CarouselContext, CarouselEvents>, "context"> = {
       focused: false,
       ...(midGesture(ctx.dragStatus) ? {} : { dragStatus: "idle" }),
     }); } },
+    // The focus is a part's: the viewport says the carousel has it, this
+    // says which control. A blur from another part leaves the focus where
+    // it is.
+    "PART.FOCUS": { assign: (_ctx, event) => { return ({ focusedId: event.id }); } },
+    "PART.BLUR": { assign: (ctx, event) => { return ctx.focusedId === event.id
+      ? { focusedId: null }
+      : {}; } },
     "AUTOPLAY.START": { target: "autoplay" },
     "AUTOPLAY.STOP": { target: "idle" },
   },
@@ -255,6 +267,7 @@ export function initial(args: CarouselArgs, authored: (name: string) => boolean)
     pageCount,
     slidesInView: [],
     focused: false,
+    focusedId: null,
     dragStatus: "idle",
     loop: written("loop") ? args.loop === true : false,
     perMove,

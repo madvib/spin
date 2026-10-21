@@ -1,14 +1,16 @@
 import {
-  type ComponentDef,
-  defaultTwin,
-  defineComponent,
-  isComposing,
   ariaDisabled,
   ariaLabelledBy,
   ariaOrientation,
   ariaReadOnly,
   ariaRoleDescription,
+  defaultTwin,
+  defineComponent,
+  factAttrs,
+  isComposing,
   optionRow,
+  type ComponentDef,
+  type PartScope,
 } from "@spin/runtime";
 import {
   isHovering,
@@ -86,6 +88,13 @@ const valueOf = (raw: unknown): number => {
   return Number.isFinite(n) ? n : -1;
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  disabled: (scope: PartScope<unknown, RatingGroupContext>) => scope.props["disabled"] === true,
+  required: (scope: PartScope<unknown, RatingGroupContext>) => scope.props["required"] === true,
+  readonly: (scope: PartScope<unknown, RatingGroupContext>) => scope.props["readOnly"] === true,
+};
+
 const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
   name: "rating-group",
   machine: (props, authored) => ratingGroupMachine(props as RatingGroupArgs, authored),
@@ -105,8 +114,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
         dir: scope.props["dir"],
         "data-scope": "rating-group",
         "data-part": "label",
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-required": scope.attr(scope.props["required"] === true),
+        ...factAttrs(scope, facts, "disabled", "required"),
         for: scope.id("hiddenInput"),
         onClick: (event: MouseEvent) => {
           if (event.defaultPrevented) return;
@@ -124,8 +132,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
         ...ariaReadOnly(scope.props["readOnly"] === true ? "true" : undefined),
         "data-scope": "rating-group",
         "data-part": "control",
-        "data-readonly": scope.attr(scope.props["readOnly"] === true),
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "disabled", "readonly"),
         onPointermove: (event: PointerEvent) => {
           if (!isInteractive(scope.context)) return;
           if (event.pointerType === "touch") return;
@@ -177,8 +184,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
           ...ariaDisabled(scope.props["disabled"] === true ? "true" : undefined),
           "data-scope": "rating-group",
           "data-part": "item",
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-readonly": scope.attr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "disabled", "readonly"),
           ...optionRow({
             setSize: String(context.count),
             checked: state.checked ? "true" : "false",

@@ -6,6 +6,7 @@ import {
   coerceJsonArray,
   defineComponent,
   disclosureTrigger,
+  factAttrs,
   isRecord,
   listSurface,
   optionRow,
@@ -758,6 +759,16 @@ const scrollParam = (
   };
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  placement: (scope: ScopeLike) => placementOf(scope.props),
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  focus: (scope: ScopeLike) => scope.state === "focused",
+  side: (scope: ScopeLike) => placementSide(scope.props),
+  "placeholder-shown": (scope: ScopeLike) => scope.context.value.length === 0,
+};
+
 const def: ComponentDef<CascadeContext, CascadeEvents> = {
   name: "cascade",
   machine: (props, authored) => cascadeMachine(props as CascadeArgs, authored),
@@ -789,11 +800,9 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         // owner-scoped lookups never collide with a part name.
         id: scope.id(""),
         dir: dirOf(scope.props),
-        "data-placement": placementOf(scope.props),
+        ...factAttrs(scope, facts, "placement", "readonly", "invalid"),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
       }),
     },
     label: {
@@ -809,19 +818,16 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         },
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
+        ...factAttrs(scope, facts, "readonly", "invalid"),
       }),
     },
     control: {
       attrs: (scope) => ({
         id: scope.id("control"),
         dir: dirOf(scope.props),
-        "data-focus": scope.state === "focused" ? "" : undefined,
+        ...factAttrs(scope, facts, "readonly", "invalid", "focus"),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
       }),
     },
     trigger: {
@@ -836,10 +842,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           controls: { part: "content" },
         }),
         ...ariaLabelledBy(scope, { part: "label" }),
-        "data-placement": placementOf(scope.props),
-        "data-side": placementSide(scope.props),
-        "data-placeholder-shown": scope.context.value.length === 0 ? "" : undefined,
-        "data-focus": scope.state === "focused" ? "" : undefined,
+        ...factAttrs(scope, facts, "placement", "readonly", "invalid", "focus", "side", "placeholder-shown"),
         disabled: disabledOf(scope),
         onClick: (event: MouseEvent): void => {
           if (event.defaultPrevented || !isInteractive(scope)) return;
@@ -850,8 +853,6 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         onKeydown: (event: KeyboardEvent): void => onTriggerKeydown(scope, event),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
       }),
     },
     indicator: {
@@ -861,8 +862,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         ...ariaHidden(true),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
+        ...factAttrs(scope, facts, "readonly", "invalid"),
       }),
     },
     valueText: {
@@ -870,11 +870,9 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
       attrs: (scope) => ({
         id: scope.id("valueText"),
         dir: dirOf(scope.props),
-        "data-focus": scope.state === "focused" ? "" : undefined,
+        ...factAttrs(scope, facts, "readonly", "invalid", "focus"),
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
       }),
     },
     clearTrigger: {
@@ -892,8 +890,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         },
         "data-state": scope.state === "open" ? "open" : "closed",
         ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-        ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-        ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
+        ...factAttrs(scope, facts, "readonly", "invalid"),
       }),
     },
     // Not memoized: the geometry is a measurement, so the bag is rebuilt
@@ -905,8 +902,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
         return {
           id: scope.id("positioner"),
           dir: dirOf(scope.props),
-          "data-placement": placementOf(scope.props),
-          "data-side": placementSide(scope.props),
+          ...factAttrs(scope, facts, "placement", "readonly", "invalid", "side"),
           // The panel is as wide as the trigger: the measurement rides the
           // bag's style object, and the markup names no property.
           style: {
@@ -914,8 +910,6 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           },
           "data-state": scope.state === "open" ? "open" : "closed",
           ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-          ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-          ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
         };
       },
     },
@@ -955,8 +949,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           "use:scroll-into-view": scrollParam(scope),
           "data-state": scope.state === "open" ? "open" : "closed",
           ...(disabledOf(scope) ? { "data-disabled": "" } : {}),
-          ...(scope.props["readOnly"] === true ? { "data-readonly": "" } : {}),
-          ...(scope.props["invalid"] === true ? { "data-invalid": "" } : {}),
+          ...factAttrs(scope, facts, "readonly", "invalid"),
         };
       },
     },

@@ -6,6 +6,7 @@ import {
   ariaOrientation,
   ariaOwns,
   defineComponent,
+  factAttrs,
   optionRow,
   sliderThumb,
   type ComponentDef,
@@ -118,6 +119,11 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike) => scope.props["orientation"],
+};
+
 const def: ComponentDef<StepsContext, StepsEvents> = {
   name: "steps",
   machine: (props, authored) => stepsMachine(props as StepsArgs, authored),
@@ -138,7 +144,7 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         "data-scope": "steps",
         "data-part": "root",
-        "data-orientation": scope.props["orientation"],
+        ...factAttrs(scope, facts, "orientation"),
       }),
     },
     list: {
@@ -159,7 +165,7 @@ const def: ComponentDef<StepsContext, StepsEvents> = {
           ),
           "data-scope": "steps",
           "data-part": "list",
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "orientation"),
         };
       },
     },

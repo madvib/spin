@@ -118,6 +118,43 @@ function readersOf(path: string, source: string): void {
 
 const problems: string[] = [];
 
+/** The attributes a component writes: the facts it declares and the
+ * attributes its parts spell. */
+function writtenHooks(dir: string): Set<string> {
+  const hooks = new Set<string>();
+  for (const entry of Deno.readDirSync(dir)) {
+    if (!entry.isFile) continue;
+    if (!/\.(bindings|controller-def)\.ts$/.test(entry.name)) continue;
+    const source = Deno.readTextFileSync(`${dir}/${entry.name}`);
+    // the facts the component declares
+    const facts = /export const facts = \{([\s\S]*?)\n\};/.exec(source);
+    if (facts) {
+      for (const match of (facts[1] ?? "").matchAll(/^ {2}(?:"([^"]+)"|([a-zA-Z_$][\w$]*)):/gm)) {
+        hooks.add(`data-${match[1] ?? match[2] ?? ""}`);
+      }
+    }
+    // the attributes the parts spell, in either form: a bag entry
+    // (`"data-x": value`) or an assignment (`attrs["data-x"] = value`)
+    for (const match of source.matchAll(/"(data-[a-z-]+)"\s*[:\]]/g)) hooks.add(match[1] ?? "");
+  }
+  return hooks;
+}
+
+/** The class hooks: a `data-[name]` variant names an attribute the
+ * component writes. A name it does not write is a dead rule — the style
+ * never applies, and nothing says so. */
+function hooksOf(path: string, source: string): void {
+  const dir = path.slice(0, path.indexOf("/examples/"));
+  const hooks = writtenHooks(dir);
+  if (hooks.size === 0) return;
+  for (const match of source.matchAll(/data-\[([a-z][a-z0-9-]*)(?:=[a-z0-9-]+)?\]/g)) {
+    const name = `data-${match[1] ?? ""}`;
+    if (!hooks.has(name)) {
+      problems.push(`${path}: \`${name}\` — the component never writes it`);
+    }
+  }
+}
+
 /** Every element's literal class list and attribute text, per recipe. */
 function elementsOf(path: string, source: string): void {
   // Form depth: a `<form>` ancestor is the only place a button's type
@@ -178,6 +215,7 @@ for await (const entry of walk(ROOT, { exts: [".html"] })) {
   const source = await Deno.readTextFile(entry.path);
   elementsOf(entry.path, source);
   readersOf(entry.path, source);
+  hooksOf(entry.path, source);
 }
 
 // The bindings' shape: no channels apparatus, no global DOM lookups, no

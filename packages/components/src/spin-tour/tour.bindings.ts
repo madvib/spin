@@ -2,6 +2,7 @@ import {
   ariaHidden,
   dataAttr,
   defineComponent,
+  factAttrs,
   type ComponentDef,
   type PartScope,
   type SlotScope,
@@ -135,6 +136,11 @@ const resolveAndScroll = (
   attempt();
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+};
+
 const def: ComponentDef<TourContext, TourEvents> = {
   name: "tour",
   machine: (props, authored) => tourMachine(props as TourArgs, authored),
@@ -161,7 +167,7 @@ const def: ComponentDef<TourContext, TourEvents> = {
       attrs: (scope) => ({
         id: scope.id(""),
         "data-state": runningState(scope.state) ? "running" : "closed",
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "disabled"),
       }),
     },
     backdrop: {
@@ -171,7 +177,7 @@ const def: ComponentDef<TourContext, TourEvents> = {
           "data-part": "backdrop",
         ...ariaHidden(true),
         "data-state": runningState(scope.state) ? "open" : "closed",
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
+        ...factAttrs(scope, facts, "disabled"),
       }),
     },
     spotlight: {

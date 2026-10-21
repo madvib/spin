@@ -1,4 +1,4 @@
-import { ariaPressed, defineComponent, focuser, isComposing, optionRow, type ComponentDef, type PartScope as ScopeLike, type SlotScope } from "@spin/runtime";
+import { ariaPressed, defineComponent, factAttrs, focuser, isComposing, optionRow, type ComponentDef, type PartScope as ScopeLike, type SlotScope } from "@spin/runtime";
 import {
   isInteractive,
   isPressed,
@@ -59,6 +59,12 @@ const neighbor = (scope: ScopeLike<unknown, ToggleGroupContext> | SlotLike<Toggl
   return enabled[next]?.value ?? null;
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike<unknown, ToggleGroupContext>) => scope.context.orientation,
+  ownedby: (scope: ScopeLike<unknown, ToggleGroupContext>) => scope.id("root"),
+};
+
 const def: ComponentDef<ToggleGroupContext, ToggleGroupEvents> = {
   name: "toggle-group",
   machine: (props, authored) => toggleGroupMachine(props as ToggleGroupArgs, authored),
@@ -76,7 +82,7 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvents> = {
           "data-scope": "toggle-group",
           "data-part": "root",
           "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-orientation": scope.context.orientation,
+          ...factAttrs(scope, facts, "orientation"),
           "data-focus": scope.attr(context.focusedId !== null),
           style: { outline: "none" },
           onMousedown: () => {
@@ -134,7 +140,7 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvents> = {
           id: scope.id("item", row.value),
           type: "button",
           dir: scope.props["dir"],
-          "data-ownedby": scope.id("root"),
+          ...factAttrs(scope, facts, "orientation", "ownedby"),
           "data-scope": "toggle-group",
           "data-part": "item",
           "data-focus": scope.attr(focused),
@@ -144,7 +150,6 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvents> = {
           ...optionRow({ checked: multiple ? undefined : pressed ? "true" : "false" }),
           ...ariaPressed(multiple ? (pressed ? "true" : "false") : undefined),
           "data-disabled": scope.attr(itemDisabled),
-          "data-orientation": scope.context.orientation,
           "data-state": pressed ? "on" : "off",
           onFocus: () => {
             if (itemDisabled) return;

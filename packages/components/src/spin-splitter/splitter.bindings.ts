@@ -3,6 +3,7 @@ import {
   ariaOrientation,
   dataAttr,
   defineComponent,
+  factAttrs,
   focuser,
   isComposing,
   sliderThumb,
@@ -355,6 +356,12 @@ const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Reco
   };
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  orientation: (scope: ScopeLike) => scope.context.orientation,
+  dragging: (scope: ScopeLike) => scope.state === "dragging",
+};
+
 const def: ComponentDef<SplitterContext, SplitterEvents> = {
   name: "splitter",
   machine: (props, authored) => splitterMachine(props as SplitterArgs, authored),
@@ -390,8 +397,7 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
         "data-scope": "splitter",
         "data-part": "root",
-        "data-orientation": scope.context.orientation,
-        "data-dragging": scope.attr(scope.state === "dragging"),
+        ...factAttrs(scope, facts, "orientation", "dragging"),
         style: {
           display: "flex",
           flexDirection: scope.context.orientation === "horizontal" ? "row" : "column",

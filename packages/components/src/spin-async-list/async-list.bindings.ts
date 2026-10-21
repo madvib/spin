@@ -1,4 +1,4 @@
-import { ariaBusy, ariaHidden, ariaPressed, dataAttr, defineComponent, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaBusy, ariaHidden, ariaPressed, dataAttr, defineComponent, factAttrs, isRecord, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   asyncList as asyncListMachine,
   isSortDescriptor,
@@ -257,6 +257,11 @@ const startSort = (
   );
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  loading: (scope: ScopeLike) => scope.state === "loading" || scope.state === "sorting",
+};
+
 const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
   name: "async-list",
   machine: (props, authored) => asyncListMachine(props as AsyncListArgs, authored),
@@ -319,7 +324,7 @@ const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
       attrs: (scope) => ({
         id: scope.id(""),
         "data-state": scope.state,
-        "data-loading": dataAttr(scope.state === "loading" || scope.state === "sorting"),
+        ...factAttrs(scope, facts, "loading"),
       }),
     },
     progress: {

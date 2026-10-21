@@ -1,4 +1,4 @@
-import { ariaHidden, defineComponent, isRecord, liveRegion, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaHidden, defineComponent, factAttrs, isRecord, liveRegion, machineTick, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   formatTime,
   msToTime,
@@ -165,6 +165,11 @@ const VALID_ACTIONS: Readonly<Record<string, true>> = {
   restart: true,
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  state: (scope: ScopeLike) => scope.state,
+};
+
 const def: ComponentDef<TimerContext, TimerEvents> = {
   name: "timer",
   machine: (props, authored) => timerMachine(props as TimerArgs, authored),
@@ -185,7 +190,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
         id: scope.id(""),
         "data-scope": "timer",
         "data-part": "root",
-        "data-state": scope.state,
+        ...factAttrs(scope, facts, "state"),
         "use:autoplay": {
           interval: scope.context.interval,
           enabled: scope.state === "running",
@@ -210,7 +215,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
           // Zag's translation: the units a screen reader hears.
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
           ...liveRegion({ atomic: true }),
-          "data-state": scope.state,
+          ...factAttrs(scope, facts, "state"),
         };
       },
     },
@@ -223,7 +228,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
         id: scope.id("progress"),
         "data-scope": "timer",
         "data-part": "progress",
-        "data-state": scope.state,
+        ...factAttrs(scope, facts, "state"),
         style: { width: `${(progressOf(scope.context) * 100).toFixed(3)}%` },
       }),
     },
@@ -232,7 +237,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
         id: scope.id("control"),
         "data-scope": "timer",
         "data-part": "control",
-        "data-state": scope.state,
+        ...factAttrs(scope, facts, "state"),
       }),
     },
   },
@@ -248,7 +253,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
           "data-scope": "timer",
           "data-part": "item",
           "data-type": unit,
-          "data-state": scope.state,
+          ...factAttrs(scope, facts, "state"),
           // The raw unit is data, not a style: a recipe that wants it
           // reads the attribute.
           "data-value": value,
@@ -269,7 +274,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
           "data-scope": "timer",
           "data-part": "item-value",
           "data-type": unit,
-          "data-state": scope.state,
+          ...factAttrs(scope, facts, "state"),
         };
       },
     },
@@ -284,7 +289,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
           "data-scope": "timer",
           "data-part": "item-label",
           "data-type": unit,
-          "data-state": scope.state,
+          ...factAttrs(scope, facts, "state"),
         };
       },
     },
@@ -338,7 +343,7 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
           "data-scope": "timer",
           "data-part": "action-trigger",
           "data-action": action,
-          "data-state": scope.state,
+          ...factAttrs(scope, facts, "state"),
           hidden,
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;

@@ -1,4 +1,4 @@
-import { ariaDisabled, ariaRoleDescription, dataAttr, defineComponent, focuser, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaRoleDescription, dataAttr, defineComponent, factAttrs, focuser, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   isEmpty,
@@ -82,6 +82,11 @@ const drawingFill = (props: Record<string, unknown>): string => {
   return typeof fill === "string" && fill.length > 0 ? fill : "currentColor";
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  drawing: (scope: ScopeLike) => scope.state === "drawing",
+};
+
 const def: ComponentDef<SignaturePadContext, SignaturePadEvents> = {
   name: "signature-pad",
   machine: (props, authored) => signaturePadMachine(props as SignaturePadArgs, authored),
@@ -135,7 +140,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvents> = {
           "data-scope": "signature-pad",
           "data-part": "control",
           "data-disabled": dataAttr(disabled),
-          "data-drawing": dataAttr(scope.state === "drawing"),
+          ...factAttrs(scope, facts, "drawing"),
           style: { position: "relative", touchAction: "none", userSelect: "none" },
           // The stroke gesture lives in the runtime: the press arms it, the
           // pointer is captured for the gesture's life, and the machine

@@ -1,4 +1,4 @@
-import { ariaDisabled, ariaOrientation, defineComponent, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaOrientation, defineComponent, factAttrs, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
@@ -113,6 +113,15 @@ const thumbIndexes = (length: number): readonly number[] => {
   return made;
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+  orientation: (scope: ScopeLike) => scope.props["orientation"],
+  dragging: (scope: ScopeLike) => scope.state === "dragging",
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  focus: (scope: ScopeLike) => scope.state === "focus",
+};
+
 const def: ComponentDef<SliderContext, SliderEvents> = {
   name: "slider",
   machine: (props, authored) => sliderMachine(props as SliderArgs, authored),
@@ -125,11 +134,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
         dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "root",
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-orientation": scope.props["orientation"],
-        "data-dragging": scope.attr(scope.state === "dragging"),
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
-        "data-focus": scope.attr(scope.state === "focus"),
+        ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
       }),
     },
     label: {
@@ -138,11 +143,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
         dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "label",
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-orientation": scope.props["orientation"],
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
-        "data-dragging": scope.attr(scope.state === "dragging"),
-        "data-focus": scope.attr(scope.state === "focus"),
+        ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
         for: scope.id("input", 0),
         style: { userSelect: "none" },
         onClick: (event: MouseEvent) => {
@@ -159,10 +160,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
         dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "value-text",
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-orientation": scope.props["orientation"],
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
-        "data-focus": scope.attr(scope.state === "focus"),
+        ...factAttrs(scope, facts, "disabled", "orientation", "invalid", "focus"),
       }),
     },
     control: {
@@ -173,11 +171,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
           dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "control",
-          "data-dragging": scope.attr(scope.state === "dragging"),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-orientation": scope.props["orientation"],
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-focus": scope.attr(scope.state === "focus"),
+          ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
           style: { position: "relative", touchAction: "none" },
           // The track's gesture: the runtime's drag action owns the press,
           // the capture and the moves. A release off the track still ends
@@ -218,11 +212,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
         dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "track",
-        "data-disabled": scope.attr(scope.props["disabled"] === true),
-        "data-invalid": scope.attr(scope.props["invalid"] === true),
-        "data-dragging": scope.attr(scope.state === "dragging"),
-        "data-orientation": scope.props["orientation"],
-        "data-focus": scope.attr(scope.state === "focus"),
+        ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
         style: { position: "relative" },
       }),
     },
@@ -242,11 +232,7 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
           dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "range",
-          "data-dragging": scope.attr(scope.state === "dragging"),
-          "data-focus": scope.attr(scope.state === "focus"),
-          "data-invalid": scope.attr(scope.props["invalid"] === true),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-orientation": scope.props["orientation"],
+          ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
           style: vertical
             ? { bottom: `${low}%`, height: `calc(${high}% - ${low}%)` }
             : { left: `${low}%`, width: `calc(${high}% - ${low}%)` },

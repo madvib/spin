@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertNotStrictEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { cascade } from "./cascade.bindings.ts";
@@ -930,6 +930,15 @@ Deno.test("Given a disabled select / When the parts are read / Then every part r
   assertEquals(h.api.getHiddenInputProps()["disabled"], true, "the hidden input is disabled too");
   handler<(event: MouseEvent) => void>(h.api.getTriggerProps(), "onClick")(click());
   assertEquals(h.state(), "closed", "a disabled trigger opens nothing");
+});
+
+Deno.test("Given a valid field / When the host marks it invalid / Then the parts report it", () => {
+  const h = mount();
+  const before = h.api.getRootProps();
+  h.write("invalid", true);
+  const after = h.api.getRootProps();
+  assertEquals(after["data-invalid"], "", "the root reports invalid");
+  assertNotStrictEquals(after, before, "the bag was rebuilt");
 });
 
 Deno.test("Given a disabled fieldset / When the select is read / Then it reports disabled", () => {

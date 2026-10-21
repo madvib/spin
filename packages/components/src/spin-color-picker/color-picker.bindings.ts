@@ -8,6 +8,7 @@ import {
   dataAttr,
   defineComponent,
   disclosureTrigger,
+  factAttrs,
   isComposing,
   isRecord,
   sliderThumb,
@@ -333,6 +334,11 @@ const channelValueOf = (
   }
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+};
+
 const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
   name: "color-picker",
   machine: (props, authored) => colorPickerMachine(props as ColorPickerArgs, authored),
@@ -390,7 +396,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
           ...ariaLabelledBy(scope, { part: "label" }),
           "data-state": open ? "open" : "closed",
           "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly"),
           onClick: (): void => {
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
             scope.send({ type: "TRIGGER.CLICK" });
@@ -450,7 +456,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
           id: scope.id("area"),
           role: "group",
           "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly"),
           "data-channel-x": x,
           "data-channel-y": y,
           // The gesture lives in the runtime: the press arms the drag, the
@@ -484,7 +490,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
         return {
           id: scope.id("areaBackground"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly"),
           // The color is the machine's own value: the bag carries it as a
           // concrete background, and the markup names no var.
           style: {
@@ -704,7 +710,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
           "data-channel": slots.channel,
           "aria-label": slots.channel,
           "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "readonly"),
           value: current,
           onFocus: (event: FocusEvent): void => {
             if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;

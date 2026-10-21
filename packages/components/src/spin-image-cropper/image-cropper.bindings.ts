@@ -1,4 +1,4 @@
-import { ariaBusy, ariaDescription, ariaHidden, ariaRoleDescription, dataAttr, defineComponent, isComposing, isRecord, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaBusy, ariaDescription, ariaHidden, ariaRoleDescription, dataAttr, defineComponent, factAttrs, isComposing, isRecord, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   imageCropper as imageCropperMachine,
@@ -199,6 +199,12 @@ const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  dragging: (scope: ScopeLike) => scope.state === "dragging",
+  panning: (scope: ScopeLike) => scope.state === "panning",
+};
+
 const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
   name: "image-cropper",
   machine: (props, authored) => imageCropperMachine(props as ImageCropperArgs, authored),
@@ -217,8 +223,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
           ...ariaDescription(`Crop positioned at ${rounded.x}px from the left and ${rounded.y}px from the top with a size of ${rounded.width}px by ${rounded.height}px, ${crop.zoom.toFixed(2)}x zoom, ${Math.round(crop.rotation)} degrees rotation.`),
           ...ariaBusy(measured ? undefined : "true"),
           "data-shape": crop.cropShape,
-          "data-dragging": dataAttr(scope.state === "dragging"),
-          "data-panning": dataAttr(scope.state === "panning"),
+          ...factAttrs(scope, facts, "dragging", "panning"),
         };
       },
     },
@@ -341,7 +346,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
           "data-disabled": dataAttr(ctx.fixedCropArea),
           "data-shape": ctx.cropShape,
           "data-measured": dataAttr(ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0),
-          "data-dragging": dataAttr(scope.state === "dragging"),
+          ...factAttrs(scope, facts, "dragging"),
           style: {
             // The crop rect is the machine's own geometry: the bag carries
             // it as concrete properties, and the markup names no var.
@@ -421,7 +426,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
         return {
           ...ariaHidden("true"),
           "data-axis": slots.axis,
-          "data-dragging": dataAttr(scope.state === "dragging"),
+          ...factAttrs(scope, facts, "dragging"),
         };
       },
     },

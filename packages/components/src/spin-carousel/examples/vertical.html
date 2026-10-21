@@ -3,12 +3,12 @@
 <div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
   {...carousel.getRootProps()}>
   <div
-    class="flex gap-2 py-1 snap-x snap-mandatory max-h-60 data-[snap-type=proximity]:snap-proximity data-[orientation=vertical]:flex-col data-[orientation=vertical]:snap-y data-[orientation=horizontal]:overflow-x-auto data-[orientation=vertical]:overflow-y-auto data-[orientation=horizontal]:max-h-full scroll-smooth data-[draggable]:cursor-grab data-[draggable]:select-none data-[dragging]:cursor-grabbing data-[dragging]:snap-none data-[dragging]:scroll-auto"
+    class="flex gap-2 py-1 snap-x snap-mandatory max-h-60 data-[snap=proximity]:snap-proximity data-[orientation=vertical]:flex-col data-[orientation=vertical]:snap-y data-[orientation=horizontal]:overflow-x-auto data-[orientation=vertical]:overflow-y-auto data-[orientation=horizontal]:max-h-full scroll-smooth data-[draggable]:cursor-grab data-[draggable]:select-none data-[dragging]:cursor-grabbing data-[dragging]:snap-none data-[dragging]:scroll-auto"
     {...carousel.getItemGroupProps()}
   >
     <template for={items} as={row} key={row.value}>
       <div
-        class="w-full shrink-0 min-w-0 snap-start data-[snap=center]:snap-center data-[snap=end]:snap-end data-[slides-2]:w-[calc((100%-0.5rem)/2)] data-[slides-3]:w-[calc((100%-1rem)/3)] data-[slides-4]:w-[calc((100%-1.5rem)/4)] data-[slides-5]:w-[calc((100%-2rem)/5)] data-[slides-6]:w-[calc((100%-2.5rem)/6)] data-[auto-size]:w-fit transition-opacity duration-base ease-standard opacity-50 data-[inview]:opacity-100"
+        class="w-full shrink-0 min-w-0 snap-start data-[snap=center]:snap-center data-[snap=end]:snap-end data-[slides=2]:w-[calc((100%-0.5rem)/2)] data-[slides=3]:w-[calc((100%-1rem)/3)] data-[slides=4]:w-[calc((100%-1.5rem)/4)] data-[slides=5]:w-[calc((100%-2rem)/5)] data-[slides=6]:w-[calc((100%-2.5rem)/6)] data-[auto-size]:w-fit transition-opacity duration-base ease-standard opacity-50 data-[inview]:opacity-100"
         {...carousel.getItemProps({ index: i })}
       >
         <div

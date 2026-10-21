@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, disclosureTrigger, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { dataAttr, defineComponent, disclosureTrigger, factAttrs, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta } from "@spin/runtime/actions";
 import {
   floatingPanel as floatingPanelMachine,
@@ -111,6 +111,12 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
   return made;
 };
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  dragging: (scope: ScopeLike) => scope.state === "dragging",
+  resizing: (scope: ScopeLike) => scope.state === "resizing",
+};
+
 const def: ComponentDef<FloatingPanelContext, FloatingPanelEvents> = {
   name: "floating-panel",
   machine: (props, authored) => floatingPanelMachine(props as FloatingPanelArgs, authored),
@@ -165,8 +171,7 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvents> = {
           "aria-label": scope.props["label"],
           "data-state": open ? "open" : "closed",
           "data-stage": ctx.stage,
-          "data-dragging": dataAttr(scope.state === "dragging"),
-          "data-resizing": dataAttr(scope.state === "resizing"),
+          ...factAttrs(scope, facts, "dragging", "resizing"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           // The panel is the dismissable surface itself: an outside press
           // closes it, and the escape hatch reaches the machine.

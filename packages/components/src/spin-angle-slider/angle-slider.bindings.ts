@@ -1,4 +1,4 @@
-import { ariaLabelledBy, dataAttr, defineComponent, focuser, isComposing, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaLabelledBy, dataAttr, defineComponent, factAttrs, focuser, isComposing, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   angleSlider as angleSliderMachine,
@@ -136,6 +136,13 @@ const overThumb = (scope: ScopeLike, target: EventTarget | null): boolean => {
 /** Focus lives in the view: a press or a keyboard move hands focus to the
  * thumb. */
 
+/** The component's public state: the names the markup may key on. */
+export const facts = {
+  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
+  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
+  readonly: (scope: ScopeLike) => scope.props["readOnly"] === true,
+};
+
 const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
   name: "angle-slider",
   machine: (props, authored) => angleSliderMachine(props as AngleSliderArgs, authored),
@@ -155,9 +162,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
           dir: scope.props["dir"],
           "data-scope": "angle-slider",
           "data-part": "root",
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-invalid": dataAttr(scope.props["invalid"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "disabled", "invalid", "readonly"),
         };
       },
     },
@@ -167,9 +172,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
         dir: scope.props["dir"],
         "data-scope": "angle-slider",
         "data-part": "label",
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
-        "data-invalid": dataAttr(scope.props["invalid"] === true),
-        "data-readonly": dataAttr(scope.props["readOnly"] === true),
+        ...factAttrs(scope, facts, "disabled", "invalid", "readonly"),
         for: scope.id("hiddenInput"),
         onClick: (event: MouseEvent): void => {
           if (!isInteractive(scope.context)) return;
@@ -197,9 +200,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
         dir: scope.props["dir"],
         "data-scope": "angle-slider",
         "data-part": "control",
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
-        "data-invalid": dataAttr(scope.props["invalid"] === true),
-        "data-readonly": dataAttr(scope.props["readOnly"] === true),
+        ...factAttrs(scope, facts, "disabled", "invalid", "readonly"),
         style: { position: "relative", touchAction: "none", userSelect: "none" },
         // The dial's gesture is the runtime's: the press arms it, the moves
         // report where the pointer is on the dial, the release commits.
@@ -255,9 +256,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
           tabindex: scope.props["readOnly"] === true || isInteractive(ctx) ? "0" : undefined,
           "data-scope": "angle-slider",
           "data-part": "thumb",
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
-          "data-invalid": dataAttr(scope.props["invalid"] === true),
-          "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          ...factAttrs(scope, facts, "disabled", "invalid", "readonly"),
           // Dot mode positions a rim point for markup to center on; needle
           // mode rotates the markup's own centered line instead.
           style: slot.needle === true ? {
