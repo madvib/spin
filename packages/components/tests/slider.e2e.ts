@@ -27,6 +27,24 @@ Deno.test("spin-slider e2e", () =>
   runComponentSuite({ port: 5252, route: "/slider", ready: CONTROL }, async ({ page }) => {
     const readout = page.locator("text=/volume: [\\d, ]+/").first();
 
+    await step("the declared default seeds the machine", async () => {
+      // The blind spot this suite had: a scope's DECLARED default never
+      // reached the machine, and every assertion here was about a gesture.
+      const range0 = page.locator(at("range", "thumb:0"));
+      const range1 = page.locator(at("range", "thumb:1"));
+      await range0.waitFor({ state: "attached", timeout: 5000 });
+      assert.equal(
+        await range0.getAttribute("aria-valuenow"),
+        "20",
+        "the first thumb starts at the declared default",
+      );
+      assert.equal(
+        await range1.getAttribute("aria-valuenow"),
+        "80",
+        "the second thumb starts at the declared default",
+      );
+    });
+
     await step("a track press jumps the thumb", async () => {
       const box = await page.locator(CONTROL).boundingBox();
       assert.ok(box !== null, "the control has a box");

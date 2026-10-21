@@ -18,6 +18,9 @@ import { chromium, type Browser, type Page } from "npm:playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
+/** The reference app: the library's EXAMPLES, each its own element. The
+ * specimens app is Solid's routes; this is the product's own markup. */
+const REFERENCE = "apps/reference";
 
 /** Runs a named step, rethrowing any failure prefixed with the step name. */
 export async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -30,10 +33,10 @@ export async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
 /** A sleep for steps and settle hooks that wait on time, not state. */
 export { delay };
 
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
+/** Builds an app from a clean checkout. */
+async function buildDemo(app: string): Promise<void> {
   const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
+    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", app],
     cwd: ROOT,
     stdout: "piped",
     stderr: "piped",
@@ -43,12 +46,16 @@ async function buildDemo(): Promise<void> {
 }
 
 /** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(port: number, route: string): Promise<Deno.ChildProcess> {
+async function startServer(
+  port: number,
+  route: string,
+  app: string,
+): Promise<Deno.ChildProcess> {
   const cmd = new Deno.Command("node", {
     args: [
       join(ROOT, "node_modules/vite/bin/vite.js"),
       "preview",
-      SPECIMENS,
+      app,
       "--port",
       String(port),
       "--strictPort",
@@ -84,6 +91,9 @@ export interface SuiteOptions {
   readonly port: number;
   readonly route: string;
   readonly ready: string;
+  /** The app to build and serve. The default is the specimens app
+   * (Solid's routes); the reference app is the library's EXAMPLES. */
+  readonly app?: string;
   /** Ready-selector timeout: the default 5s covers warm serves; the
    * floating panel's half-megabyte bundle on a cold cache has been
    * observed past it. */
@@ -101,8 +111,9 @@ export async function runComponentSuite(
   options: SuiteOptions,
   steps: (ctx: SuiteContext) => Promise<void>,
 ): Promise<void> {
-  await step("build", buildDemo);
-  const server = await step("serve", () => startServer(options.port, options.route));
+  const app = options.app ?? SPECIMENS;
+  await step("build", () => buildDemo(app));
+  const server = await step("serve", () => startServer(options.port, options.route, app));
   const pageErrors: string[] = [];
   let browser: Browser | undefined;
 

@@ -65,20 +65,15 @@ export function resolveTwins(
   for (const key of Object.keys(props)) {
     if (!key.startsWith("default")) continue;
     const twin = key.charAt(7).toLowerCase() + key.slice(8);
-    if (authored !== undefined) {
-      // The host wrote the live prop: it owns the value, and the twin is
-      // only a fallback. The host did not: the twin seeds it — but only
-      // when the host WROTE the twin. The element's DECLARED default is
-      // the element's business, and must not reach the machine: the
-      // machine's own default stands.
-      // The twin seeds the live prop — whether the host WROTE the twin
-      // or the element merely DECLARED it as the channel's default.
-      if (authored(twin)) continue;
-      if (authored !== undefined && authored(twin)) continue;
-      out[twin] = props[key];
-      continue;
-    }
-    if (out[twin] === undefined || out[twin] === null) out[twin] = props[key];
+    // The live prop wins when the HOST wrote it: a host that writes
+    // `value` owns the value. Otherwise the twin seeds it — whether the
+    // host wrote the twin or the element merely DECLARED it as the
+    // channel's default. A scope decl that says
+    // `defaultValue: string = "[50]"` IS the channel's default; the
+    // machine's own default stands only when the element declares no
+    // twin at all.
+    if (authored !== undefined && authored(twin)) continue;
+    out[twin] = props[key];
   }
   return out;
 }

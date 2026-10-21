@@ -19,6 +19,12 @@ Deno.test("a host that wrote only the twin seeds the live prop", () => {
   assertEquals(resolved["value"], "5");
 });
 
+Deno.test("a declared twin seeds the live prop", () => {
+  // The element DECLARED the twin: it is the channel's default.
+  const resolved = resolveTwins({ value: "", defaultValue: "5" }, () => false);
+  assertEquals(resolved["value"], "5");
+});
+
 Deno.test("a host that wrote both keeps the live prop", () => {
   const resolved = resolveTwins(
     { value: "3", defaultValue: "5" },
@@ -27,14 +33,7 @@ Deno.test("a host that wrote both keeps the live prop", () => {
   assertEquals(resolved["value"], "3");
 });
 
-Deno.test("the element's declared twin seeds the live prop", () => {
-  // The scope declares a twin for every prop it means as a channel's
-  // default. A declared twin IS the element's default for that channel,
-  // so it seeds it — the machine's own default stands only when the
-  // element declares no twin at all.
-  const resolved = resolveTwins({ value: "", defaultValue: "5" }, () => false);
-  assertEquals(resolved["value"], "5");
-});
+
 
 Deno.test("the twin does not override a prop the host wrote", () => {
   const resolved = resolveTwins(
