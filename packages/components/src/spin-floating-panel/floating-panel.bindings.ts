@@ -111,16 +111,6 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
   return made;
 };
 
-const geometryStyle = (scope: ScopeLike): Record<string, string> => {
-  const at = scope.context;
-  return {
-    "--panel-x": `${at.position.x}px`,
-    "--panel-y": `${at.position.y}px`,
-    "--panel-w": `${at.size.w}px`,
-    "--panel-h": `${at.size.h}px`,
-  };
-};
-
 const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   name: "floating-panel",
   machine: (props, authored) => floatingPanelMachine(props as FloatingPanelArgs, authored),
@@ -185,7 +175,6 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
           "data-dragging": dataAttr(scope.state === "dragging"),
           "data-resizing": dataAttr(scope.state === "resizing"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
-          style: geometryStyle(scope),
           // The panel is the dismissable surface itself: an outside press
           // closes it, and the escape hatch reaches the machine.
           "use:dismissable": {
@@ -204,14 +193,48 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
           ctx.stage, scope.props["disabled"],
         ].join(" ");
       },
-      attrs: (scope) => ({
-        id: scope.id("content"),
-        // The closed-state utilities (invisible, scale, opacity) live on
-        // this element's class list, so the state they key on must live
-        // here too — the positioner carries its own copy for its own list.
-        "data-state": scope.state === "closed" ? "closed" : "open",
-        "data-stage": scope.context.stage,
-      }),
+      attrs: (scope) => {
+        const ctx = scope.context;
+        return {
+          id: scope.id("content"),
+          // The closed-state utilities (invisible, scale, opacity) live on
+          // this element's class list, so the state they key on must live
+          // here too — the positioner carries its own copy for its own list.
+          "data-state": scope.state === "closed" ? "closed" : "open",
+          "data-stage": ctx.stage,
+          // The panel's own box: where it sits in the stage and how big
+          // it is. The recipe names no var — the bag carries the geometry.
+          //
+          // The size is the RESTORED size: a stage that draws its own
+          // box (the minimized header, the maximized fill) is the
+          // recipe's, and the machine's restored size must not fight it
+          // with an inline height. So the geometry is the position
+          // always, and the size only where the machine owns the box.
+          style: {
+            left: `${ctx.position.x}px`,
+            top: `${ctx.position.y}px`,
+            // The restored box is the machine's. A stage that draws its
+            // own box (the maximized fill) is the recipe's, so the width
+            // and the height are not set there: the recipe's utilities
+            // win without needing an important.
+            // The restored box is the machine's, and the minimized stage
+            // keeps the machine's WIDTH (the header bar is the panel's
+            // height, the recipe's). The maximized stage fills the stage
+            // box — the recipe's — so the machine sets neither
+            // dimension there, and the recipe's utilities win without an
+            // important.
+            // The box is the machine's, at every stage: the machine sizes
+            // the panel (the restored size, the minimized header, the
+            // maximized boundary).
+            //
+            // The HEIGHT at the minimized stage is the header's, and the
+            // recipe's `h-12` says so — so the machine sets the width
+            // there and the recipe owns the height.
+            width: `${ctx.size.w}px`,
+            ...(ctx.stage === "minimized" ? {} : { height: `${ctx.size.h}px` }),
+          },
+        };
+      },
     },
     dragTrigger: {
       id: "drag",

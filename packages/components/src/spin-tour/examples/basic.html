@@ -8,9 +8,9 @@
 <div class="contents" {...tour.getRootProps()}>
   <div class="pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate data-[state=closed]:opacity-0" {...tour.getBackdropProps()}></div>
 
-  <div class="pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate [left:var(--tour-x,0px)] [top:var(--tour-y,0px)] [width:var(--tour-w,0px)] [height:var(--tour-h,0px)] data-[state=closed]:opacity-0" {...tour.getSpotlightProps()}></div>
+  <div class="pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate data-[state=closed]:opacity-0" {...tour.getSpotlightProps()}></div>
 
-  <div class="fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:opacity-0 [left:var(--tour-x,0px)] [top:calc(var(--tour-y,0px)+var(--tour-h,0px)+0.5rem)]" {...tour.getPositionerProps()}>
+  <div class="fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:opacity-0" {...tour.getPositionerProps()}>
     <div class="flex flex-col gap-2" {...tour.getContentProps()}>
       <template for={tour.getTextRows()} as={row} key={row.key}>
         <div class="flex items-center justify-between gap-2">

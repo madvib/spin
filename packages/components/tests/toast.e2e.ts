@@ -104,10 +104,10 @@ Deno.test("spin-toast e2e", () =>
       );
       // The geometry channel: the front row is on top and at the origin.
       const front = await page.locator(row("toast-3")).getAttribute("style");
-      assert.match(front ?? "", /--toast-y:0px/, "the front row sits at the origin");
-      assert.match(front ?? "", /--toast-z:3/, "the front row paints last");
+      assert.match(front ?? "", /transform:translateY\(0px\)/, "the front row sits at the origin");
+      assert.match(front ?? "", /z-index:3/, "the front row paints last");
       const behind = await page.locator(row("toast-1")).getAttribute("style");
-      assert.match(behind ?? "", /--toast-z:1/, "the oldest row paints first");
+      assert.match(behind ?? "", /z-index:1/, "the oldest row paints first");
     });
 
     await step("the action trigger reports to the host and dismisses", async () => {
@@ -180,7 +180,7 @@ Deno.test("spin-toast e2e", () =>
         "and is not stacked",
       );
       const style = await page.locator(row("toast-4")).getAttribute("style");
-      assert.match(style ?? "", /--toast-scale:1/, "a lone toast is full size");
+      assert.match(style ?? "", /scale:1/, "a lone toast is full size");
     });
 
     await step("the placement moves the region", async () => {
@@ -190,8 +190,8 @@ Deno.test("spin-toast e2e", () =>
       assert.equal(await page.locator(REGION).getAttribute("data-side"), "top", "the side moved to the top");
       assert.equal(await page.locator(REGION).getAttribute("data-align"), "center", "with the alignment it carries");
       const geometry = await page.locator(REGION).getAttribute("style");
-      assert.match(geometry ?? "", /--toast-gap:16px/, "the gap rides the geometry channel");
-      assert.match(geometry ?? "", /--toast-offset:1rem/, "and so does the offset");
+      assert.match(geometry ?? "", /gap:16px/, "the gap rides the style channel");
+      assert.match(geometry ?? "", /top:1rem/, "and so does the offset");
     });
 
     await step("the host command dismisses everything", async () => {

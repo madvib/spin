@@ -14,7 +14,7 @@ import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
  * opens: a tooltip that opens on tap steals the tap the trigger wanted.
  *
  * The panel positions against the trigger through the `anchor` action,
- * which reports geometry the bag carries as custom properties. Placement
+ * which reports geometry the bag carries as style properties. Placement
  * is a suggestion the viewport can veto; the flip reports alongside the
  * geometry so the origin utility can follow.
  */
@@ -106,6 +106,14 @@ export function attachTooltip(el: Element): TooltipApi {
       popover: "",
       role: "tooltip",
       "data-placement": geometry().placement,
+      // The measured geometry rides the bag's style object: the anchor
+      // action measures, the bag carries the position, and the markup
+      // names no property.
+      style: {
+        left: `${geometry().x}px`,
+        top: `${geometry().y}px`,
+        minWidth: `${geometry().w}px`,
+      },
       // positioning owned by use:anchor (direct writes)
       "use:anchor": {
         placement,

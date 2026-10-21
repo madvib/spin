@@ -4,7 +4,7 @@
   <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...floatingPanel.getTriggerProps()}>{label}</button>
 
   <div class="relative" {...floatingPanel.getPositionerProps()}>
-    <div class="absolute left-0 top-0 flex [width:var(--panel-w,22.5rem)] flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg transition-all duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden data-[dragging]:cursor-grabbing [left:var(--panel-x,0px)] [top:var(--panel-y,0px)] [height:var(--panel-h,15rem)]" {...floatingPanel.getContentProps()}>
+    <div class="absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg transition-all duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[stage=minimized]:h-12 data-[stage=minimized]:overflow-hidden data-[dragging]:cursor-grabbing" {...floatingPanel.getContentProps()}>
 
       <div class="flex items-center justify-between gap-2 border-b border-border p-3 data-[disabled]:cursor-not-allowed" {...floatingPanel.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">

@@ -193,27 +193,15 @@ const def: ComponentDef<TourContext, TourEvent> = {
       }),
     },
     backdrop: {
-      sig: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
-        return [`${runningState(scope.state)}`, `${scope.props["disabled"] === true}`, geo.x, geo.y, geo.w, geo.h].join(" ");
-      },
-      attrs: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
-        return {
-          id: scope.id("backdrop"),
-            "data-scope": "tour",
-            "data-part": "backdrop",
-          "aria-hidden": true,
-          "data-state": runningState(scope.state) ? "open" : "closed",
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
-          style: {
-            "--tour-x": `${geo.x}px`,
-            "--tour-y": `${geo.y}px`,
-            "--tour-w": `${geo.w}px`,
-            "--tour-h": `${geo.h}px`,
-          },
-        };
-      },
+      sig: (scope) => [`${runningState(scope.state)}`, `${scope.props["disabled"] === true}`].join(" "),
+      attrs: (scope) => ({
+        id: scope.id("backdrop"),
+          "data-scope": "tour",
+          "data-part": "backdrop",
+        "aria-hidden": true,
+        "data-state": runningState(scope.state) ? "open" : "closed",
+        "data-disabled": dataAttr(scope.props["disabled"] === true),
+      }),
     },
     spotlight: {
       sig: (scope) => {
@@ -235,11 +223,13 @@ const def: ComponentDef<TourContext, TourEvent> = {
           "aria-hidden": true,
           "data-state": open ? "open" : "closed",
           hidden: !open,
+          // The spotlight's own box: the target's rect, padded. The
+          // recipe names no var — the bag carries the geometry.
           style: {
-            "--tour-x": `${geo.x}px`,
-            "--tour-y": `${geo.y}px`,
-            "--tour-w": `${geo.w}px`,
-            "--tour-h": `${geo.h}px`,
+            left: `${geo.x}px`,
+            top: `${geo.y}px`,
+            width: `${geo.w}px`,
+            height: `${geo.h}px`,
           },
         };
       },
@@ -247,7 +237,7 @@ const def: ComponentDef<TourContext, TourEvent> = {
     positioner: {
       sig: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
-        return [scope.state, geo.x, geo.y].join(" ");
+        return [scope.state, geo.x, geo.y, geo.h].join(" ");
       },
       attrs: (scope) => {
         const geo = viewOf(scope.root()).spotlight;
@@ -256,11 +246,11 @@ const def: ComponentDef<TourContext, TourEvent> = {
             "data-scope": "tour",
             "data-part": "positioner",
           "data-state": scope.state === "active" ? "active" : runningState(scope.state) ? "running" : "closed",
+          // The card's own box: it stands under the spotlight it frames.
+          // The recipe names no var — the bag carries the geometry.
           style: {
-            "--tour-x": `${geo.x}px`,
-            "--tour-y": `${geo.y}px`,
-            "--tour-w": `${geo.w}px`,
-            "--tour-h": `${geo.h}px`,
+            left: `${geo.x}px`,
+            top: `calc(${geo.y}px + ${geo.h}px + 0.5rem)`,
           },
           "use:dismissable": {
             onOutside: (): void => scope.send({ type: "DISMISS" }),

@@ -217,9 +217,11 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
       },
     },
     // The bar's fill: the progress is the machine's geometry, so it rides
-    // the bag's style object — the markup names no property.
+    // the bag's style object — the markup names no property. The state is
+    // in the sig because the bag carries it: a part that reads a field
+    // the sig does not name goes stale.
     progress: {
-      sig: (scope) => [progressOf(scope.context).toFixed(3)].join("|"),
+      sig: (scope) => [scope.state, progressOf(scope.context).toFixed(3)].join("|"),
       attrs: (scope) => ({
         id: scope.id("progress"),
         "data-scope": "timer",

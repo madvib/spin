@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
-import { drag, type DragDelta } from "./drag.ts";
+import { drag, type DragDelta, type DragPress } from "./drag.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
@@ -120,4 +120,57 @@ Deno.test("Given an armed handle / When it unmounts mid-gesture / Then the liste
   result?.destroy?.();
   fireDoc("pointermove", 40, 40);
   assertEquals(moves.length, 0, "destroy detaches the document listeners");
+});
+
+Deno.test("Given an armed handle / When the pointer moves / Then the report carries the place and the box", () => {
+  const node = document.createElement("button");
+  document.body.appendChild(node);
+  node.getBoundingClientRect = () =>
+    ({ left: 5, top: 6, width: 20, height: 30 }) as DOMRect;
+  const presses: DragPress[] = [];
+  const moves: DragDelta[] = [];
+  const result = drag(node, {
+    onStart: (press) => presses.push(press),
+    onMove: (delta) => moves.push(delta),
+  });
+  node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10, { pointerId: 7 }) as unknown as Event);
+  fireDoc("pointermove", 30, 40, { pointerId: 7 });
+  assertEquals(presses[0]?.x, 10, "the press reports its point");
+  assertEquals(presses[0]?.y, 10, "the press reports its point");
+  assertEquals(presses[0]?.pointerId, 7, "the press reports its pointer");
+  assertEquals(presses[0]?.rect?.width, 20, "the press reports the handle's box");
+  assertEquals(moves[0]?.x, 30, "the move reports where the pointer is");
+  assertEquals(moves[0]?.y, 40, "the move reports where the pointer is");
+  assertEquals(moves[0]?.dx, 20, "the delta still counts from the press");
+  result?.destroy?.();
+});
+
+Deno.test("Given a handle that can capture / When the gesture starts / Then the pointer is captured and released", () => {
+  const node = document.createElement("button");
+  document.body.appendChild(node);
+  const captured: number[] = [];
+  const released: number[] = [];
+  (node as unknown as { setPointerCapture: (id: number) => void }).setPointerCapture = (id) => {
+    captured.push(id);
+  };
+  (node as unknown as { releasePointerCapture: (id: number) => void }).releasePointerCapture = (id) => {
+    released.push(id);
+  };
+  const result = drag(node, {});
+  node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10, { pointerId: 3 }) as unknown as Event);
+  assertEquals(captured, [3], "the handle takes the pointer");
+  fireDoc("pointerup", 10, 10, { pointerId: 3 });
+  assertEquals(released, [3], "the release hands it back");
+  result?.destroy?.();
+});
+
+Deno.test("Given a handle that goes disabled / When the param updates / Then the next press does not arm", () => {
+  const node = document.createElement("button");
+  document.body.appendChild(node);
+  let starts = 0;
+  const result = drag(node, { enabled: true, onStart: () => starts++ });
+  result?.update?.({ enabled: false, onStart: () => starts++ });
+  node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10) as unknown as Event);
+  assertEquals(starts, 0, "the live param keeps the handle from arming");
+  result?.destroy?.();
 });

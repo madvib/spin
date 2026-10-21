@@ -47,67 +47,6 @@ function listen(
 }
 
 // ---------------------------------------------------------------------------
-// focusTrap — cycle Tab within the node; Escape emits `onEscape`.
-// ---------------------------------------------------------------------------
-
-export interface FocusTrapParam {
-  onEscape?: () => void;
-  /** Re-focus the last outside element on destroy (default: true). */
-  restore?: boolean;
-}
-
-const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
-
-export const focusTrap: ElementAction<FocusTrapParam | undefined> = createAction((node, param) => {
-  const restore = param?.restore !== false;
-  const outside = document.activeElement;
-  let stops: Array<() => void> = [];
-
-  const cycle = (event: KeyboardEvent): void => {
-    if (event.key !== "Tab") return;
-    const items = [...node.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.offsetParent !== null);
-    if (items.length === 0) return;
-    const first = items[0]!;
-    const last = items[items.length - 1]!;
-    const active = document.activeElement;
-    if (event.shiftKey && (active === first || !node.contains(active))) {
-      last.focus();
-      event.preventDefault();
-    } else if (!event.shiftKey && active === last) {
-      first.focus();
-      event.preventDefault();
-    }
-  };
-
-  const escape = (event: KeyboardEvent): void => {
-    if (event.key !== "Escape") return;
-    param?.onEscape?.();
-  };
-
-  const autoFocusItem = node.querySelector<HTMLElement>("[data-autofocus], " + FOCUSABLE);
-  autoFocusItem?.focus();
-
-  stops = [
-    listen(node, "keydown", cycle as (e: Event) => void),
-    listen(document, "keydown", escape as (e: Event) => void),
-  ];
-
-  return {
-    update: (next) => {
-      // Param changes only re-bind the escape callback; focus behavior is
-      // structural. Re-attach with the fresh param.
-      for (const stop of stops) stop();
-      param = next;
-      stops = [listen(node, "keydown", cycle as (e: Event) => void), listen(document, "keydown", escape as (e: Event) => void)];
-    },
-    destroy: () => {
-      for (const stop of stops) stop();
-      if (restore && outside instanceof HTMLElement) outside.focus();
-    },
-  };
-});
-
-// ---------------------------------------------------------------------------
 // dismissable — emit onEscape + outside pointerdown, through `onOutside`.
 // ---------------------------------------------------------------------------
 
@@ -346,40 +285,6 @@ export const dragScroll: ElementAction<DragScrollParam | undefined> = createActi
 });
 
 // ---------------------------------------------------------------------------
-// scrollLock — prevent the document from scrolling while a modal surface is
-// open. Element-scoped in EFFECT (the host's own scroll) and released on
-// destroy; wrote as a data attribute the styling engine consumes, never as
-// an inline overflow style.
-// ---------------------------------------------------------------------------
-
-export interface ScrollLockParam {
-  enabled: boolean;
-}
-
-export const scrollLock: ElementAction<ScrollLockParam | undefined> = createAction((_node, param) => {
-  // The lock is on the document, but the SWITCH is an attribute on the node
-  // — the machine's state, read by utilities. The action's own job is the
-  // one thing utilities cannot do: compensating for the scrollbar so the
-  // layout does not jump.
-  const apply = (enabled: boolean): void => {
-    const root = document.documentElement;
-    if (!enabled) {
-      root.removeAttribute("data-scroll-locked");
-      root.style.removeProperty("--scrollbar-width");
-      return;
-    }
-    const gap = globalThis.innerWidth - root.clientWidth;
-    root.setAttribute("data-scroll-locked", "");
-    if (gap > 0) root.style.setProperty("--scrollbar-width", `${gap}px`);
-  };
-  apply(param?.enabled === true);
-  return {
-    update: (next) => apply(next?.enabled === true),
-    destroy: () => apply(false),
-  };
-});
-
-// ---------------------------------------------------------------------------
 // intersect / resizeObserver — report visibility and size; the machine
 // decides what they mean.
 // ---------------------------------------------------------------------------
@@ -417,7 +322,6 @@ export const resizeObserver: ElementAction<ResizeObserverParam | undefined> = cr
  * actions BY NAME from this table; nothing else resolves.
  */
 export const ACTIONS = {
-  "focus-trap": focusTrap,
   anchor,
   drag,
   "hover-delay": hoverDelay,
@@ -428,7 +332,6 @@ export const ACTIONS = {
   "drag-scroll": dragScroll,
   intersect,
   "resize-observer": resizeObserver,
-  "scroll-lock": scrollLock,
   "form-control": formControl,
   observe,
   "scroll-into-view": scrollIntoView,

@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { imageCropper } from "./image-cropper.bindings.ts";
 const createImageCropperBridge = imageCropper.createBridge;
 import type {
@@ -33,10 +34,10 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 }
 
 /**
- * linkedom ships no PointerEvent constructors, so the events the handlers
- * need are synthesized here — one place, with the minimal field set each
- * handler reads. Geometry is faked at the node: the handlers read the
- * CURRENT target's rect, so the rect travels on the event's own node.
+ * linkedom ships no PointerEvent constructors, so the gestures the runtime's
+ * drag action reports are synthesized here — one place, with the minimal
+ * field set each callback reads. Geometry is faked at the node: the press
+ * carries the handle's box and the node it landed on.
  */
 const VIEWPORT = { left: 0, top: 0, width: 400, height: 300 };
 
@@ -46,29 +47,34 @@ function viewportNode(): Element {
   } as unknown as Element;
 }
 
-const press = (x: number, y: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    button: 0,
-    ctrlKey: false,
-    metaKey: false,
-    altKey: false,
-    clientX: x,
-    clientY: y,
-    currentTarget: viewportNode(),
-    target: viewportNode(),
-    preventDefault: (): void => {},
-    stopPropagation: (): void => {},
-  }) as unknown as PointerEvent;
+/** The drag action's param, read out of a bag. */
+const dragParam = (bag: Record<string, unknown>): {
+  onStart?: (press: DragPress) => void;
+  onMove?: (delta: DragDelta) => void;
+  onEnd?: (end: { readonly cancelled: boolean }) => void;
+} => (bag["use:drag"] ?? {}) as never;
 
-const move = (x: number, y: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    clientX: x,
-    clientY: y,
-    currentTarget: viewportNode(),
-    preventDefault: (): void => {},
-  }) as unknown as PointerEvent;
+/** A press, as the drag action reports it. */
+const dragPress = (x: number, y: number): DragPress => ({
+  altKey: false,
+  shiftKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  x,
+  y,
+  pointerId: 1,
+  pressure: 0.5,
+  target: viewportNode(),
+  rect: viewportNode().getBoundingClientRect(),
+});
+
+/** A move, as the drag action reports it: the absolute point and the delta
+ * from the press. */
+const dragMove = (x: number, y: number, fromX: number, fromY: number): DragDelta => ({
+  ...dragPress(x, y),
+  dx: x - fromX,
+  dy: y - fromY,
+});
 
 function keydown(key: string, shift = false): KeyboardEvent {
   const made: Record<string, unknown> = {
@@ -160,14 +166,52 @@ Deno.test("viewport press measures and pans", () => {
   // The viewport's own press measures first: guards refuse everything
   // without a rect, so measurement is the gesture that unlocks the rest.
   const viewport = h.api.getViewportProps() as Record<string, unknown>;
-  handler<(e: PointerEvent) => void>(viewport, "onPointerdown")(press(50, 50));
+  const pan = dragParam(viewport);
+  pan.onStart?.(dragPress(50, 50));
   assertEquals(h.api.measured, true);
   assertEquals(h.api.panning, true);
   assertEquals(h.api.crop.width > 0, true);
-  handler<(e: PointerEvent) => void>(viewport, "onPointermove")(move(60, 60));
-  handler<() => void>(viewport, "onPointerup")();
+  pan.onMove?.(dragMove(60, 60, 50, 50));
+  pan.onEnd?.({ cancelled: false });
   assertEquals(h.api.panning, false);
   assertEquals(h.events.cropChange.length > 0, true);
+});
+
+Deno.test("the selection drags the crop and the handle resizes it", () => {
+  const h = mount();
+  handler<(e: Event) => void>(h.api.getImageProps(), "onLoad")({
+    currentTarget: { naturalWidth: 800, naturalHeight: 600 },
+  } as unknown as Event);
+  // The pan opens and closes first: the crop drag is a gesture of its own,
+  // and the machine is in one state at a time.
+  const pan = dragParam(h.api.getViewportProps() as Record<string, unknown>);
+  pan.onStart?.(dragPress(50, 50));
+  pan.onEnd?.({ cancelled: false });
+  assertEquals(h.api.panning, false);
+  // The default crop is 80% of the viewport, centred.
+  assertEquals(h.api.crop.x, 40);
+  assertEquals(h.api.crop.y, 30);
+
+  // The selection's gesture drags the crop.
+  const selection = dragParam(h.api.getSelectionProps() as Record<string, unknown>);
+  selection.onStart?.(dragPress(50, 50));
+  assertEquals(h.api.dragging, true);
+  selection.onMove?.(dragMove(70, 60, 50, 50));
+  assertEquals(h.api.crop.x, 60);
+  assertEquals(h.api.crop.y, 40);
+  selection.onEnd?.({ cancelled: false });
+  assertEquals(h.api.dragging, false);
+
+  // The handle's gesture resizes the crop: the handle stops the press, so
+  // the selection's gesture never arms behind it — and the moves the
+  // resize needs are the handle's own.
+  const handle = dragParam(h.api.getHandleProps({ position: "se" }) as Record<string, unknown>);
+  handle.onStart?.(dragPress(350, 250));
+  assertEquals(h.api.dragging, true);
+  handle.onMove?.(dragMove(370, 260, 350, 250));
+  assertEquals(h.api.crop.width, 340);
+  handle.onEnd?.({ cancelled: false });
+  assertEquals(h.api.dragging, false);
 });
 
 Deno.test("zoom clamps to the floor and ceiling", () => {
@@ -210,8 +254,9 @@ Deno.test("reset restores the defaults", () => {
   // Reset centers in the viewport: unmeasured, there is nothing to center
   // in, so measure first the way the view would have.
   const viewport = h.api.getViewportProps() as Record<string, unknown>;
-  handler<(e: PointerEvent) => void>(viewport, "onPointerdown")(press(50, 50));
-  handler<() => void>(viewport, "onPointerup")();
+  const pan = dragParam(viewport);
+  pan.onStart?.(dragPress(50, 50));
+  pan.onEnd?.({ cancelled: false });
   h.api.reset();
   assertEquals(h.api.zoom, 1);
   assertEquals(h.api.rotation, 0);

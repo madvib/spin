@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { parsePanels } from "./splitter.machine.ts";
 import { splitter } from "./splitter.bindings.ts";
 const createSplitterBridge = splitter.createBridge;
@@ -30,10 +31,8 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 const PANELS = '[{"id":"a"},{"id":"b"}]';
 
 /**
- * linkedom ships no PointerEvent constructors, so the events the handlers
- * need are synthesized here — one place, with the minimal field set each
- * handler reads. The root rect is faked on the event's own node: a 400px
- * group starting at x=10, so clientX maps linearly to 0..100%.
+ * The root rect is faked on the node the reports name: a 400px group
+ * starting at x=10, so the client x maps linearly to 0..100%.
  */
 function rootNode(): Element {
   return {
@@ -41,31 +40,33 @@ function rootNode(): Element {
   } as unknown as Element;
 }
 
-const press = (clientX: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    button: 0,
-    pointerId: 1,
-    clientX,
-    clientY: 100,
-    currentTarget: {
-      focus: (_options?: FocusOptions): void => {},
-      setPointerCapture: (_id: number): void => {},
-    },
-    target: rootNode(),
-    preventDefault: (): void => {},
-    stopPropagation: (): void => {},
-  }) as unknown as PointerEvent;
+/** The press the drag action reports: the point, the pointer, and the
+ * handle's box as the action read it. */
+const press = (clientX: number): DragPress => ({
+  altKey: false,
+  shiftKey: false,
+  x: clientX,
+  y: 100,
+  pointerId: 1,
+  pressure: 0.5,
+  target: rootNode(),
+  rect: rootNode().getBoundingClientRect(),
+});
 
-const drag = (clientX: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    pointerId: 1,
-    clientX,
-    clientY: 100,
-    currentTarget: rootNode(),
-    preventDefault: (): void => {},
-  }) as unknown as PointerEvent;
+/** The move the drag action reports: the point, plus the delta from the
+ * press point. */
+const delta = (clientX: number, from = 210): DragDelta => ({
+  ...press(clientX),
+  dx: clientX - from,
+  dy: 0,
+});
+
+/** The drag action's param, read out of the handle's bag. */
+const dragParam = (bag: Record<string, unknown>): {
+  onStart?: (press: DragPress) => void;
+  onMove?: (delta: DragDelta) => void;
+  onEnd?: (end: { readonly cancelled: boolean }) => void;
+} => (bag["use:drag"] ?? {}) as never;
 
 function keydown(key: string, shift = false): KeyboardEvent {
   const made: Record<string, unknown> = {
@@ -151,17 +152,16 @@ Deno.test("panels parse from JSON and split the group evenly", () => {
 
 Deno.test("a handle drag redistributes the percents", () => {
   const { api, events } = mount();
-  handler<(e: PointerEvent) => void>(handle(api), "onPointerdown")(press(210));
+  const drag = dragParam(handle(api));
+  drag.onStart?.(press(210));
   // x=210 on a 10..410 group: grab at 50%.
   assert(api.dragging);
-  handler<(e: PointerEvent) => void>(handle(api), "onPointermove")(drag(250));
+  drag.onMove?.(delta(250));
   // +10% moves a->b: [60, 40]. The grab itself moves nothing, so the move
   // is the only resize.
   assertEquals(api.getSizes(), [60, 40]);
   assertEquals(events.resize.length, 1);
-  handler<(e: PointerEvent) => void>(handle(api), "onPointerup")(
-    { ...drag(250), currentTarget: rootNode() } as unknown as PointerEvent,
-  );
+  drag.onEnd?.({ cancelled: false });
   assert(!api.dragging);
   assertEquals(events.resizeEnd.length, 1);
   assertEquals(events.resizeEnd[0]?.size, [60, 40]);
@@ -220,8 +220,9 @@ Deno.test("minSize clamps a drag", () => {
   const { api } = mount({
     panels: '[{"id":"a","minSize":40},{"id":"b"}]',
   });
-  handler<(e: PointerEvent) => void>(handle(api), "onPointerdown")(press(210));
-  handler<(e: PointerEvent) => void>(handle(api), "onPointermove")(drag(10));
+  const drag = dragParam(handle(api));
+  drag.onStart?.(press(210));
+  drag.onMove?.(delta(10));
   // a cannot shrink below 40.
   assertEquals(api.getSizes(), [40, 60]);
 });

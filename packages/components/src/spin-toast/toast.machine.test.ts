@@ -169,9 +169,11 @@ Deno.test("Given a fresh toast region / When nothing is authored / Then stack is
   assertEquals(h.api.getGroupProps()["data-align"], "center", "the alignment is on the region");
   assertEquals(h.api.getGroupProps()["data-empty"], "", "an empty region says so");
   assertEquals(h.api.getGroupProps()["style"], {
-    "--toast-gap": "16px",
-    "--toast-offset": "1rem",
-  }, "the gap and the offset ride the geometry channel");
+    gap: "16px",
+    bottom: "1rem",
+    left: "50%",
+    right: "50%",
+  }, "the region's own box rides the style channel");
 });
 
 Deno.test("Given toasts on the items prop / When the region mounts / Then the queue holds them newest first", () => {
@@ -200,10 +202,10 @@ Deno.test("Given a row / When the entry beat has not run / Then the row waits be
   assertEquals(bag["aria-labelledby"], "toast:toast:toast:one:title", "the title names the toast");
   assertEquals(bag["aria-describedby"], "toast:toast:toast:one:description", "the description describes it");
   assertEquals(bag["style"], {
-    "--toast-y": "-16px",
-    "--toast-opacity": "0",
-    "--toast-scale": "0.96",
-    "--toast-z": "1",
+    transform: "translateY(-16px)",
+    scale: "0.96",
+    opacity: "0",
+    zIndex: "1",
   }, "an unmounted row waits at its offset, clear and slightly small");
 });
 
@@ -214,9 +216,9 @@ Deno.test("Given a row / When the entry beat reports / Then the row opens and an
   assertEquals(bag["data-state"], "open", "the row is open");
   assertEquals(bag["data-mounted"], "", "the frame is reported");
   const style = bag["style"] as Record<string, string>;
-  assertEquals(style["--toast-opacity"], "1", "the row is opaque");
-  assertEquals(style["--toast-scale"], "1", "and full size");
-  assertEquals(style["--toast-y"], "0px", "the front row sits at the origin");
+  assertEquals(style["opacity"], "1", "the row is opaque");
+  assertEquals(style["scale"], "1", "and full size");
+  assertEquals(style["transform"], "translateY(0px)", "the front row sits at the origin");
   assertEquals(h.statuses.at(-1), { id: "one", status: "visible", src: "" }, "the arrival already reported");
 });
 
@@ -502,10 +504,10 @@ Deno.test("Given stacked rows with measured heights / Then each row's offset is 
   (actionParams(h.bag("two"), "toast-row")["onHeight"] as (height: number) => void)(32);
   const front = h.bag("two")["style"] as Record<string, string>;
   const behind = h.bag("one")["style"] as Record<string, string>;
-  assertEquals(front["--toast-y"], "0px", "the front row sits at the origin");
-  assertEquals(behind["--toast-y"], "-48px", "the front row's 32px plus a 16px gap");
-  assertEquals(front["--toast-z"], "2", "the front row is on top");
-  assertEquals(behind["--toast-z"], "1", "the row behind is beneath it");
+  assertEquals(front["transform"], "translateY(0px)", "the front row sits at the origin");
+  assertEquals(behind["transform"], "translateY(-48px)", "the front row's 32px plus a 16px gap");
+  assertEquals(front["zIndex"], "2", "the front row is on top");
+  assertEquals(behind["zIndex"], "1", "the row behind is beneath it");
   assertEquals(h.bag("two")["data-first"], "", "the front row marks itself");
   assertEquals(h.bag("one")["data-sibling"], "", "the row behind marks itself as a sibling");
 });
@@ -517,7 +519,7 @@ Deno.test("Given a top placement / Then the offsets grow the other way", () => {
   const measured = actionParams(h.bag("one"), "toast-row");
   (measured["onHeight"] as (height: number) => void)(40);
   (actionParams(h.bag("two"), "toast-row")["onHeight"] as (height: number) => void)(32);
-  assertEquals((h.bag("one")["style"] as Record<string, string>)["--toast-y"], "48px", "the row below sits under the front");
+  assertEquals((h.bag("one")["style"] as Record<string, string>)["transform"], "translateY(48px)", "the row below sits under the front");
   assertEquals(h.bag("one")["data-side"], "top", "the side is on the row");
   assertEquals(h.bag("one")["data-align"], "end", "the alignment is on the row");
   assertEquals(h.api.placement, "top-end", "the api reports the placement");
@@ -538,12 +540,12 @@ Deno.test("Given an overlapping region with three rows / Then the front scales a
   const front = h.bag("three")["style"] as Record<string, string>;
   const second = h.bag("two")["style"] as Record<string, string>;
   const third = h.bag("one")["style"] as Record<string, string>;
-  assertEquals(front["--toast-scale"], "1", "the front row is full size");
-  assertEquals(front["--toast-y"], "0px", "the front row sits at the origin");
-  assertEquals(second["--toast-y"], "-16px", "the second row peeks by the gap");
-  assertEquals(second["--toast-scale"], "0.95", "and shrinks a step");
-  assertEquals(third["--toast-y"], "-32px", "the third row peeks by two gaps");
-  assertEquals(third["--toast-scale"], "0.9", "and shrinks two steps");
+  assertEquals(front["scale"], "1", "the front row is full size");
+  assertEquals(front["transform"], "translateY(0px)", "the front row sits at the origin");
+  assertEquals(second["transform"], "translateY(-16px)", "the second row peeks by the gap");
+  assertEquals(second["scale"], "0.95", "and shrinks a step");
+  assertEquals(third["transform"], "translateY(-32px)", "the third row peeks by two gaps");
+  assertEquals(third["scale"], "0.9", "and shrinks two steps");
 });
 
 Deno.test("Given an overlapping region emptied by dismissals / Then the region collapses back", () => {

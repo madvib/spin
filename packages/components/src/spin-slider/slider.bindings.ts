@@ -1,5 +1,6 @@
 import { defineComponent, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   isInteractive,
   percentOf,
@@ -112,16 +113,6 @@ const thumbIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-type Capturable = Element & { setPointerCapture?: (id: number) => void };
-const isCapturable = (value: unknown): value is Capturable => {
-  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
-  const fn: unknown = value.setPointerCapture;
-  return typeof fn === "function";
-};
-const capturePointer = (target: EventTarget | null, pointerId: number): void => {
-  if (isCapturable(target)) target.setPointerCapture?.(pointerId);
-};
-
 const def: ComponentDef<SliderContext, SliderEvent> = {
   name: "slider",
   machine: (props, authored) => sliderMachine(props as SliderArgs, authored),
@@ -178,7 +169,18 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       }),
     },
     control: {
-      sig: (scope: ScopeLike) => [scope.props["disabled"], scope.props["orientation"], scope.props["invalid"], scope.state].join("|"),
+      sig: (scope: ScopeLike) => {
+        const context = scope.context;
+        return [
+          scope.props["disabled"],
+          scope.props["readOnly"],
+          scope.props["orientation"],
+          scope.props["invalid"],
+          context.disabled,
+          context.readOnly,
+          scope.state,
+        ].join("|");
+      },
       attrs: (scope: ScopeLike) => {
         const trackId = scope.id("track");
         return {
@@ -192,29 +194,35 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
           "data-invalid": scope.attr(scope.props["invalid"] === true),
           "data-focus": scope.attr(scope.state === "focus"),
           style: { position: "relative", touchAction: "none" },
-          onPointerdown: (event: PointerEvent) => {
-            const context = scope.context;
-            if (!isInteractive(context)) return;
-            if (event.pointerType === "mouse" && event.button !== 0) return;
-            if (event.metaKey || event.ctrlKey || event.altKey) return;
-            const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), context, event.clientX, event.clientY);
-            if (value === null) return;
-            event.preventDefault();
-            event.stopPropagation();
-            // Capture the pointer: a release off the track must still end
-            // the drag, or the phase strands in dragging.
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "POINTER_DOWN", pointValue: value });
-          },
-          onPointermove: (event: PointerEvent) => {
-            if (scope.state !== "dragging") return;
-            const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), scope.context, event.clientX, event.clientY);
-            if (value === null) return;
-            scope.send({ type: "POINTER_MOVE", pointValue: value });
-          },
-          onPointerup: () => {
-            if (scope.state !== "dragging") return;
-            scope.send({ type: "POINTER_UP" });
+          // The track's gesture: the runtime's drag action owns the press,
+          // the capture and the moves. A release off the track still ends
+          // the drag, or the phase would strand in dragging.
+          "use:drag": {
+            // A disabled or read-only slider never arms.
+            enabled: isInteractive(scope.context),
+            // The press cancels its default.
+            preventDefault: true,
+            // The press does not reach the control's ancestors.
+            stopPropagation: true,
+            // Escape has no path here: it does nothing.
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              const context = scope.context;
+              if (press.metaKey || press.ctrlKey || press.altKey) return;
+              const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), context, press.x, press.y);
+              if (value === null) return;
+              scope.send({ type: "POINTER_DOWN", pointValue: value });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "dragging") return;
+              const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), scope.context, delta.x, delta.y);
+              if (value === null) return;
+              scope.send({ type: "POINTER_MOVE", pointValue: value });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "dragging") return;
+              scope.send({ type: "POINTER_UP" });
+            },
           },
         };
       },
@@ -278,7 +286,17 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
       sig: (scope: SlotLike<{ readonly index: number }>) => {
         const context = scope.context;
         const value = context.value[slotIndex(scope.slot)] ?? context.min;
-        return [value, context.focusedIndex, scope.state, scope.props["disabled"], scope.props["orientation"], scope.props["dir"]].join("|");
+        return [
+          value,
+          context.focusedIndex,
+          scope.state,
+          scope.props["disabled"],
+          scope.props["readOnly"],
+          context.disabled,
+          context.readOnly,
+          scope.props["orientation"],
+          scope.props["dir"],
+        ].join("|");
       },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const context = scope.context;
@@ -309,33 +327,44 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
           style: vertical
             ? { bottom: `${percent}%` }
             : { [(scope.props["dir"] === "rtl") ? "right" : "left"]: `${percent}%` },
-          onPointerdown: (event: PointerEvent) => {
-            if (!isInteractive(scope.context)) return;
-            if (event.pointerType === "mouse" && event.button !== 0) return;
-            const target = event.currentTarget instanceof Element ? event.currentTarget : null;
-            const rect = target?.getBoundingClientRect?.();
-            const midpoint = rect !== undefined
-              ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-              : null;
-            event.stopPropagation();
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({
-              type: "THUMB_POINTER_DOWN",
-              index: slotIndex(scope.slot),
-              offset: midpoint === null
-                ? undefined
-                : (vertical ? event.clientY - midpoint.y : event.clientX - midpoint.x),
-            });
-          },
-          onPointermove: (event: PointerEvent) => {
-            if (scope.state !== "dragging") return;
-            const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), scope.context, event.clientX, event.clientY);
-            if (value === null) return;
-            scope.send({ type: "POINTER_MOVE", pointValue: value });
-          },
-          onPointerup: () => {
-            if (scope.state !== "dragging") return;
-            scope.send({ type: "POINTER_UP" });
+          // The thumb's own gesture: its press stops there, so the
+          // control's gesture never arms behind it.
+          "use:drag": {
+            // A disabled or read-only slider never arms.
+            enabled: isInteractive(scope.context),
+            // The press keeps its default: the browser still focuses the
+            // thumb.
+            preventDefault: false,
+            // The press does not reach the control, so the control's
+            // gesture never sees it.
+            stopPropagation: true,
+            // Escape has no path here: it does nothing.
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              // The grab offset is measured against the thumb's midpoint,
+              // so the thumb does not jump under the pointer.
+              const rect = press.rect;
+              const midpoint = rect === null
+                ? null
+                : { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+              scope.send({
+                type: "THUMB_POINTER_DOWN",
+                index: slotIndex(scope.slot),
+                offset: midpoint === null
+                  ? undefined
+                  : (vertical ? press.y - midpoint.y : press.x - midpoint.x),
+              });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "dragging") return;
+              const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), scope.context, delta.x, delta.y);
+              if (value === null) return;
+              scope.send({ type: "POINTER_MOVE", pointValue: value });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "dragging") return;
+              scope.send({ type: "POINTER_UP" });
+            },
           },
           onBlur: () => {
             if (!isInteractive(scope.context)) return;

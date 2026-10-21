@@ -12,7 +12,7 @@
   <div class="flex items-center justify-center py-12" {...hoverCard.getRootProps()}>
     <span {...hoverCard.getTriggerProps()} class="cursor-pointer rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 text-sm text-text transition-colors hover:bg-surface">{label}</span>
 
-    <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+    <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
       <div class="space-y-3">
         <h4 class="m-0 text-sm font-semibold text-text">Controlled Hover Card</h4>
         <p class="m-0 text-sm text-muted">This hover card's open state is controlled externally via the buttons above.</p>

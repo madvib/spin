@@ -1,4 +1,5 @@
 import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   imageCropper as imageCropperMachine,
   isGesturing,
@@ -25,9 +26,9 @@ import {
  * wheel zoom.
  *
  * The crop geometry is CONTINUOUS — a drag lands between utilities — so
- * the root bag carries it as CSS custom properties only (`--crop-x`,
- * `--zoom`...). Concrete properties stay banned: the recipe's utility
- * classes decide what each var feeds.
+ * the bags project it into their own style objects as concrete properties
+ * (`left`, `top`, `width`, `height`, `transform`); the markup names no
+ * var and no custom property carries the geometry.
  */
 
 export interface HandleSlotProps {
@@ -108,16 +109,6 @@ const viewportPoint = (scope: ScopeLike, clientX: number, clientY: number): Crop
   const rect = scope.measure("viewport");
   if (rect === null) return null;
   return { x: clientX - rect.left, y: clientY - rect.top };
-};
-
-const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
-  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
-  const fn: unknown = value.setPointerCapture;
-  return typeof fn === "function";
-};
-
-const capturePointer = (target: EventTarget | null, pointerId: number): void => {
-  if (isCapturable(target)) target.setPointerCapture(pointerId);
 };
 
 /** A press inside the selection belongs to the drag, not the pan: the
@@ -240,23 +231,14 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
           "data-shape": crop.cropShape,
           "data-dragging": dataAttr(scope.state === "dragging"),
           "data-panning": dataAttr(scope.state === "panning"),
-          style: {
-            "--crop-x": `${crop.crop.x}px`,
-            "--crop-y": `${crop.crop.y}px`,
-            "--crop-width": `${crop.crop.width}px`,
-            "--crop-height": `${crop.crop.height}px`,
-            "--image-zoom": String(crop.zoom),
-            "--image-rotation": `${crop.rotation}deg`,
-            "--image-offset-x": `${crop.offset.x}px`,
-            "--image-offset-y": `${crop.offset.y}px`,
-          },
         };
       },
     },
     viewport: {
       sig: (scope) => {
         const measured = scope.context.viewportRect;
-        return [`${measured.width > 0 && measured.height > 0}`].join(" ");
+        const disabled = scope.props["disabled"] === true;
+        return [`${measured.width > 0 && measured.height > 0}`, `${disabled}`, scope.state].join(" ");
       },
       attrs: (scope) => {
         const ctx = scope.context;
@@ -283,32 +265,40 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
               scope.send({ type: "SET_DEFAULT_CROP", viewport: { x: 0, y: 0, width: size.width, height: size.height } });
             },
           },
-          onPointerdown: (event: PointerEvent): void => {
-            if (disabled) return;
-            if (event.pointerType === "mouse" && event.button !== 0) return;
-            if (insideSelection(scope, event.target)) return;
-            const point = viewportPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            const rect = scope.measure("viewport");
-            if (rect !== null && rect.width !== 0 && rect.height !== 0) {
-              const current = scope.context.viewportRect;
-              if (!(current.width === rect.width && current.height === rect.height && current.x === 0 && current.y === 0)) {
-                scope.send({ type: "SET_VIEWPORT", viewport: { x: 0, y: 0, width: rect.width, height: rect.height } });
-                scope.send({ type: "SET_DEFAULT_CROP", viewport: { x: 0, y: 0, width: rect.width, height: rect.height } });
+          // The pan is the viewport's own gesture: the runtime's drag
+          // action owns the press, the capture and the moves, and the
+          // machine keeps the geometry.
+          "use:drag": {
+            enabled: !disabled,
+            preventDefault: false,
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              // A press inside the selection belongs to the crop drag, not
+              // to the pan. The selection's gesture normally swallows it;
+              // this guard covers the presses it refuses.
+              if (insideSelection(scope, press.target)) return;
+              const point = viewportPoint(scope, press.x, press.y);
+              if (point === null) return;
+              const rect = scope.measure("viewport");
+              if (rect !== null && rect.width !== 0 && rect.height !== 0) {
+                const current = scope.context.viewportRect;
+                if (!(current.width === rect.width && current.height === rect.height && current.x === 0 && current.y === 0)) {
+                  scope.send({ type: "SET_VIEWPORT", viewport: { x: 0, y: 0, width: rect.width, height: rect.height } });
+                  scope.send({ type: "SET_DEFAULT_CROP", viewport: { x: 0, y: 0, width: rect.width, height: rect.height } });
+                }
               }
-            }
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "PAN_POINTER_DOWN", point });
-          },
-          onPointermove: (event: PointerEvent): void => {
-            if (scope.state !== "panning") return;
-            const point = viewportPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            scope.send({ type: "POINTER_MOVE", point });
-          },
-          onPointerup: (): void => {
-            if (scope.state !== "panning") return;
-            scope.send({ type: "POINTER_UP" });
+              scope.send({ type: "PAN_POINTER_DOWN", point });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "panning") return;
+              const point = viewportPoint(scope, delta.x, delta.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_MOVE", point });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "panning") return;
+              scope.send({ type: "POINTER_UP" });
+            },
           },
           onWheel: (event: WheelEvent): void => {
             if (disabled) return;
@@ -383,36 +373,35 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
           "data-measured": dataAttr(ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0),
           "data-dragging": dataAttr(scope.state === "dragging"),
           style: {
-            "--crop-x": `${ctx.crop.x}px`,
-            "--crop-y": `${ctx.crop.y}px`,
-            "--crop-width": `${ctx.crop.width}px`,
-            "--crop-height": `${ctx.crop.height}px`,
-            left: "var(--crop-x, 0px)",
-            top: "var(--crop-y, 0px)",
-            width: "var(--crop-width, 0px)",
-            height: "var(--crop-height, 0px)",
+            // The crop rect is the machine's own geometry: the bag carries
+            // it as concrete properties, and the markup names no var.
+            left: `${ctx.crop.x}px`,
+            top: `${ctx.crop.y}px`,
+            width: `${ctx.crop.width}px`,
+            height: `${ctx.crop.height}px`,
           },
-          onPointerdown: (event: PointerEvent): void => {
-            if (ctx.fixedCropArea) {
-              event.preventDefault();
-              return;
-            }
-            if (event.pointerType === "mouse" && event.button !== 0) return;
-            const point = viewportPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            event.stopPropagation();
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "POINTER_DOWN", point });
-          },
-          onPointermove: (event: PointerEvent): void => {
-            if (scope.state !== "dragging") return;
-            const point = viewportPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            scope.send({ type: "POINTER_MOVE", point });
-          },
-          onPointerup: (): void => {
-            if (scope.state !== "dragging") return;
-            scope.send({ type: "POINTER_UP" });
+          // The crop drag is the selection's own gesture: the press stops
+          // there, so the viewport's pan never arms behind it.
+          "use:drag": {
+            enabled: !ctx.fixedCropArea,
+            preventDefault: false,
+            stopPropagation: true,
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              const point = viewportPoint(scope, press.x, press.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_DOWN", point });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "dragging") return;
+              const point = viewportPoint(scope, delta.x, delta.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_MOVE", point });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "dragging") return;
+              scope.send({ type: "POINTER_UP" });
+            },
           },
           onKeydown: (event: KeyboardEvent): void => onSelectionKeydown(scope, event),
         };
@@ -421,7 +410,7 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
     handle: {
       sig: (scope: ScopeLike, arg?: unknown) => {
         const slots = handleOf(arg);
-        return [slots.position, scope.context.fixedCropArea].join(" ");
+        return [slots.position, scope.context.fixedCropArea, scope.state].join(" ");
       },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = handleOf(arg);
@@ -432,17 +421,30 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
           "aria-hidden": "true",
           "data-position": slots.position,
           "data-disabled": dataAttr(fixed),
-          onPointerdown: (event: PointerEvent): void => {
-            if (fixed) {
-              event.preventDefault();
-              return;
-            }
-            if (event.pointerType === "mouse" && event.button !== 0) return;
-            const point = viewportPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            event.stopPropagation();
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "POINTER_DOWN", point, handlePosition: slots.position });
+          // The resize is the handle's own gesture: the press stops there,
+          // so the selection's drag never arms behind it — and the moves
+          // the resize needs come from this gesture, not from the
+          // selection's.
+          "use:drag": {
+            enabled: !fixed,
+            preventDefault: false,
+            stopPropagation: true,
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              const point = viewportPoint(scope, press.x, press.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_DOWN", point, handlePosition: slots.position });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "dragging") return;
+              const point = viewportPoint(scope, delta.x, delta.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_MOVE", point });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "dragging") return;
+              scope.send({ type: "POINTER_UP" });
+            },
           },
         };
       },

@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { signaturePad } from "./signature-pad.bindings.ts";
 const createSignaturePadBridge = signaturePad.createBridge;
 import type { SignaturePadApi } from "./signature-pad.bindings.ts";
@@ -27,46 +28,59 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 }
 
 /**
- * linkedom ships no PointerEvent constructors, so the events the handlers
- * need are synthesized here — one place, with the minimal field set each
- * handler reads. The control rect is faked on the event's own node, because
- * the handler reads `document.getElementById`, which linkedom cannot serve:
- * the test mounts the control id holder directly.
+ * linkedom ships no PointerEvent constructors, so the gesture the handlers
+ * need is synthesized here — one place, with the minimal field set each
+ * handler reads. The node a press lands on carries the control's box, and
+ * the handler measures the control through the scope's own measurer.
  */
 function controlNode(): Element {
   return {
     getBoundingClientRect: () => ({ left: 10, top: 20, width: 400, height: 200 }),
-    setPointerCapture: (_id: number): void => {},
   } as unknown as Element;
 }
 
-const press = (x: number, y: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    button: 0,
-    pointerId: 1,
-    ctrlKey: false,
-    metaKey: false,
-    altKey: false,
-    clientX: x,
-    clientY: y,
-    pressure: 0.5,
-    currentTarget: controlNode(),
-    target: controlNode(),
-    preventDefault: (): void => {},
-    stopPropagation: (): void => {},
-  }) as unknown as PointerEvent;
+/** The control's box: the drag action reports the handle's box. */
+const controlBox = (): DOMRect =>
+  ({ left: 10, top: 20, width: 400, height: 200 }) as DOMRect;
 
-const drag = (x: number, y: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    pointerId: 1,
-    clientX: x,
-    clientY: y,
-    pressure: 0.5,
-    currentTarget: controlNode(),
-    preventDefault: (): void => {},
-  }) as unknown as PointerEvent;
+/** The gesture's press: the point, the pointer, and what it landed on. */
+const press = (x: number, y: number): DragPress => ({
+  altKey: false,
+  shiftKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  x,
+  y,
+  pointerId: 1,
+  pressure: 0.5,
+  target: controlNode(),
+  rect: controlBox(),
+});
+
+/** The gesture's move: where the pointer is, and the delta from the press. */
+const move = (x: number, y: number, fromX: number, fromY: number): DragDelta => ({
+  ...press(x, y),
+  dx: x - fromX,
+  dy: y - fromY,
+});
+
+/**
+ * The drag param the control's bag carries. The runtime arms the gesture
+ * only while the param is enabled, so the press helper honors that.
+ */
+const dragParam = (bag: Record<string, unknown>): {
+  enabled?: boolean;
+  onStart?: (press: DragPress) => void;
+  onMove?: (delta: DragDelta) => void;
+  onEnd?: (end: { readonly cancelled: boolean }) => void;
+} => (bag["use:drag"] ?? {}) as never;
+
+/** A press on the control: the gesture arms only while it is enabled. */
+const pressControl = (bag: Record<string, unknown>, at: DragPress): void => {
+  const param = dragParam(bag);
+  if (param.enabled === false) return;
+  param.onStart?.(at);
+};
 
 interface Harness {
   readonly api: SignaturePadApi;
@@ -120,13 +134,11 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function stroke(api: SignaturePadApi): void {
-  const down = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown");
-  const moveHandler = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove");
-  const up = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerup");
-  down(press(20, 30));
-  moveHandler(drag(40, 50));
-  moveHandler(drag(60, 70));
-  up(drag(60, 70));
+  const control = api.getControlProps();
+  pressControl(control, press(20, 30));
+  dragParam(control).onMove?.(move(40, 50, 20, 30));
+  dragParam(control).onMove?.(move(60, 70, 20, 30));
+  dragParam(control).onEnd?.({ cancelled: false });
 }
 
 Deno.test("a press starts a stroke and the release commits one path", () => {
@@ -143,24 +155,25 @@ Deno.test("a press starts a stroke and the release commits one path", () => {
 
 Deno.test("moves with no active stroke are refused", () => {
   const { api, events } = mount();
-  const moveHandler = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove");
-  moveHandler(drag(40, 50));
+  dragParam(api.getControlProps()).onMove?.(move(40, 50, 20, 30));
   assert(api.empty);
   assertEquals(events.draw.length, 0);
 });
 
 Deno.test("a disabled pad refuses the press", () => {
   const { api, events } = mount({ disabled: true });
-  const down = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown");
-  down(press(20, 30));
+  const control = api.getControlProps();
+  assertEquals(dragParam(control).enabled, false, "the gesture never arms");
+  pressControl(control, press(20, 30));
   assert(api.empty);
   assertEquals(events.draw.length, 0);
 });
 
 Deno.test("a read-only pad refuses the press", () => {
   const { api, events } = mount({ readOnly: true });
-  const down = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown");
-  down(press(20, 30));
+  const control = api.getControlProps();
+  assertEquals(dragParam(control).enabled, false, "the gesture never arms");
+  pressControl(control, press(20, 30));
   assert(api.empty);
   assertEquals(events.draw.length, 0);
 });
@@ -192,12 +205,11 @@ Deno.test("defaultPaths seed an uncontrolled pad", () => {
 
 Deno.test("the in-progress stroke is visible while drawing", () => {
   const { api } = mount();
-  const down = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown");
-  down(press(20, 30));
+  const control = api.getControlProps();
+  pressControl(control, press(20, 30));
   assert(api.drawing);
   assertEquals(api.paths.length, 0);
-  const up = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerup");
-  up(drag(20, 30));
+  dragParam(control).onEnd?.({ cancelled: false });
   assert(!api.drawing);
   assertEquals(api.paths.length, 1);
 });
@@ -213,12 +225,11 @@ Deno.test("a press on the clear trigger never starts a stroke", () => {
   const trigger = {
     closest: (selector: string): unknown => selector === "[data-part=clear-trigger]" ? {} : null,
   };
-  const down = handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown");
   const nested = {
     ...press(390, 12),
     target: trigger,
-  } as unknown as PointerEvent;
-  down(nested);
+  } as unknown as DragPress;
+  pressControl(api.getControlProps(), nested);
   assertEquals(events.draw.length, count);
   click();
   assert(api.empty);

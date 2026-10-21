@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { angleSlider } from "./angle-slider.bindings.ts";
 const createAngleSliderBridge = angleSlider.createBridge;
 import type { AngleSliderValueChangeEnd } from "./angle-slider.bindings.ts";
@@ -32,10 +33,9 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 }
 
 /**
- * linkedom ships no PointerEvent constructors, so the events the handlers
- * need are synthesized here — one place, with the minimal field set each
- * handler reads. The control is a 200px dial starting at (10,10): center
- * (110,110), so clientX/clientY map to dial angles around it.
+ * The control is a 200px dial starting at (10,10): center (110,110), so
+ * clientX/clientY map to dial angles around it. The stub is what a press
+ * lands on — the dial itself, not the thumb.
  */
 function controlNode(): Element {
   return {
@@ -43,31 +43,42 @@ function controlNode(): Element {
   } as unknown as Element;
 }
 
-const press = (clientX: number, clientY: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    button: 0,
-    pointerId: 1,
-    clientX,
-    clientY,
-    currentTarget: {
-      focus: (_options?: FocusOptions): void => {},
-      setPointerCapture: (_id: number): void => {},
-    },
-    target: controlNode(),
-    preventDefault: (): void => {},
-    stopPropagation: (): void => {},
-  }) as unknown as PointerEvent;
+/** The gesture's press: the point, the pointer, and what it landed on. */
+const press = (clientX: number, clientY: number): DragPress => ({
+  altKey: false,
+  shiftKey: false,
+  x: clientX,
+  y: clientY,
+  pointerId: 1,
+  pressure: 0.5,
+  target: controlNode(),
+  rect: null,
+});
 
-const drag = (clientX: number, clientY: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    pointerId: 1,
-    clientX,
-    clientY,
-    currentTarget: controlNode(),
-    preventDefault: (): void => {},
-  }) as unknown as PointerEvent;
+/** The gesture's move: where the pointer is, and the delta from the press. */
+const move = (clientX: number, clientY: number, fromX: number, fromY: number): DragDelta => ({
+  ...press(clientX, clientY),
+  dx: clientX - fromX,
+  dy: clientY - fromY,
+});
+
+/**
+ * The drag param the control's bag carries. The runtime arms the gesture
+ * only while the param is enabled, so the press helper honors that.
+ */
+const dragParam = (bag: Record<string, unknown>): {
+  enabled?: boolean;
+  onStart?: (p: DragPress) => void;
+  onMove?: (d: DragDelta) => void;
+  onEnd?: (e: { readonly cancelled: boolean }) => void;
+} => (bag["use:drag"] ?? {}) as never;
+
+/** A press on the control: the gesture arms only while it is enabled. */
+const pressControl = (bag: Record<string, unknown>, at: DragPress): void => {
+  const param = dragParam(bag);
+  if (param.enabled === false) return;
+  param.onStart?.(at);
+};
 
 function keydown(key: string, shift = false): KeyboardEvent {
   const made: Record<string, unknown> = {
@@ -146,13 +157,13 @@ Deno.test("a dial press jumps the value and the release commits", () => {
   const { api, events } = mount();
   assertEquals(api.value, 0);
   // Right of center: ~90 degrees.
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown")(press(210, 110));
+  pressControl(api.getControlProps(), press(210, 110));
   assertEquals(api.value, 90);
   assert(api.dragging);
   // Bottom of center: ~180.
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(drag(110, 210));
+  dragParam(api.getControlProps()).onMove?.(move(110, 210, 210, 110));
   assertEquals(api.value, 180);
-  handler<() => void>(api.getControlProps(), "onPointerup")();
+  dragParam(api.getControlProps()).onEnd?.({ cancelled: false });
   assert(!api.dragging);
   assertEquals(events.valueChangeEnd.length, 1);
   assertEquals(events.valueChangeEnd[0]?.value, 180);
@@ -178,7 +189,8 @@ Deno.test("arrows refuse without focus", () => {
 
 Deno.test("a disabled dial refuses presses and keys", () => {
   const { api, events } = mount({ disabled: true });
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown")(press(210, 110));
+  assertEquals(dragParam(api.getControlProps()).enabled, false);
+  pressControl(api.getControlProps(), press(210, 110));
   assertEquals(api.value, 0);
   handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(keydown("ArrowRight"));
   assertEquals(api.value, 0);

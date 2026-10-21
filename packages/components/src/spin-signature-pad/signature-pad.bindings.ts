@@ -1,4 +1,5 @@
 import { dataAttr, defineComponent, focuser, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   isEmpty,
   isInteractive,
@@ -50,17 +51,6 @@ const controlPoint = (
   if (rect === null) return null;
   return { x: clientX - rect.left, y: clientY - rect.top, pressure: 0.5 };
 };
-
-const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
-  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
-  const fn: unknown = value.setPointerCapture;
-  return typeof fn === "function";
-};
-
-const capturePointer = (target: EventTarget | null, pointerId: number): void => {
-  if (isCapturable(target)) target.setPointerCapture(pointerId);
-};
-
 
 const isClosestable = (value: unknown): value is { closest(selector: string): unknown } => {
   if (typeof value !== "object" || value === null || !("closest" in value)) return false;
@@ -153,30 +143,37 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
           "data-disabled": dataAttr(disabled),
           "data-drawing": dataAttr(scope.state === "drawing"),
           style: { position: "relative", touchAction: "none", userSelect: "none" },
-          onPointerdown: (event: PointerEvent): void => {
-            // The clear trigger sits inside the control: its click must
-            // not start a stroke. Any node advertising the trigger part
-            // refuses the stroke.
-            if (insideClearTrigger(event.target)) return;
-            if (event.pointerType === "mouse" && event.button !== 0) return;
-            if (event.metaKey || event.ctrlKey || event.altKey) return;
-            if (!isInteractive(ctx)) return;
-            const point = controlPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "POINTER_DOWN", point, pressure: event.pressure });
-          },
-          onPointermove: (event: PointerEvent): void => {
-            if (scope.state !== "drawing") return;
-            const point = controlPoint(scope, event.clientX, event.clientY);
-            if (point === null) return;
-            scope.send({ type: "POINTER_MOVE", point, pressure: event.pressure });
-          },
-          onPointerup: (event: PointerEvent): void => {
-            if (!isInteractive(scope.context)) return;
-            capturePointer(event.currentTarget, event.pointerId);
-            if (scope.state !== "drawing") return;
-            scope.send({ type: "POINTER_UP" });
+          // The stroke gesture lives in the runtime: the press arms it, the
+          // pointer is captured for the gesture's life, and the machine
+          // keeps the geometry.
+          "use:drag": {
+            // A disabled or read-only pad never arms.
+            enabled: isInteractive(ctx),
+            // The press keeps its default: the control is a plain surface.
+            preventDefault: false,
+            // No escape path here: Escape does nothing.
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              // The clear trigger sits inside the control: its click must
+              // not start a stroke. Any node advertising the trigger part
+              // refuses the stroke.
+              if (insideClearTrigger(press.target)) return;
+              if (press.metaKey === true || press.ctrlKey === true || press.altKey) return;
+              const point = controlPoint(scope, press.x, press.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_DOWN", point, pressure: press.pressure });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "drawing") return;
+              const point = controlPoint(scope, delta.x, delta.y);
+              if (point === null) return;
+              scope.send({ type: "POINTER_MOVE", point, pressure: delta.pressure });
+            },
+            onEnd: (): void => {
+              if (!isInteractive(scope.context)) return;
+              if (scope.state !== "drawing") return;
+              scope.send({ type: "POINTER_UP" });
+            },
           },
         };
       },

@@ -2,7 +2,7 @@
 
 <button {...tooltip.getTriggerProps()} class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">{label}</button>
 
-<div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+<div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
   <span aria-hidden="true" class="absolute -top-1 left-1/2 h-2 w-2 rotate-45 border-l border-t border-solid border-border bg-surface-raised"></span>
   {tip}
 </div>

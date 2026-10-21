@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { slider } from "./slider.bindings.ts";
 const createSliderBridge = slider.createBridge;
 import type { SliderApi } from "./slider.bindings.ts";
@@ -31,10 +32,8 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 }
 
 /**
- * linkedom ships no PointerEvent constructors, so the events the handlers
- * need are synthesized here — one place, with the minimal field set each
- * handler reads. The track rect is faked on the event's own node: a 400px
- * track starting at x=10, so clientX maps linearly to 0..100.
+ * The track rect is faked on the node a press lands on: a 400px track
+ * starting at x=10, so clientX maps linearly to 0..100.
  */
 function trackNode(): Element {
   return {
@@ -42,31 +41,49 @@ function trackNode(): Element {
   } as unknown as Element;
 }
 
-const press = (clientX: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    button: 0,
-    pointerId: 1,
-    ctrlKey: false,
-    metaKey: false,
-    altKey: false,
-    clientX,
-    clientY: 10,
-    currentTarget: trackNode(),
-    target: trackNode(),
-    preventDefault: (): void => {},
-    stopPropagation: (): void => {},
-  }) as unknown as PointerEvent;
+/** The thumb's own box: the drag action reports the handle's box, and the
+ * grab offset is measured against the thumb's midpoint. */
+const thumbBox = (): DOMRect =>
+  ({ left: 100, right: 120, width: 20, top: 0, bottom: 20, height: 20 }) as DOMRect;
 
-const drag = (clientX: number): PointerEvent =>
-  ({
-    pointerType: "mouse",
-    pointerId: 1,
-    clientX,
-    clientY: 10,
-    currentTarget: trackNode(),
-    preventDefault: (): void => {},
-  }) as unknown as PointerEvent;
+/** The gesture's press: the point, the pointer, and what it landed on. */
+const press = (clientX: number, clientY = 10): DragPress => ({
+  altKey: false,
+  shiftKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  x: clientX,
+  y: clientY,
+  pointerId: 1,
+  pressure: 0.5,
+  target: trackNode(),
+  rect: null,
+});
+
+/** The gesture's move: where the pointer is, and the delta from the press. */
+const move = (clientX: number, clientY: number, fromX: number, fromY: number): DragDelta => ({
+  ...press(clientX, clientY),
+  dx: clientX - fromX,
+  dy: clientY - fromY,
+});
+
+/**
+ * The drag param a handle's bag carries. The runtime arms the gesture only
+ * while the param is enabled, so the press helper honors that.
+ */
+const dragParam = (bag: Record<string, unknown>): {
+  enabled?: boolean;
+  onStart?: (press: DragPress) => void;
+  onMove?: (delta: DragDelta) => void;
+  onEnd?: (end: { readonly cancelled: boolean }) => void;
+} => (bag["use:drag"] ?? {}) as never;
+
+/** A press on a handle: the gesture arms only while it is enabled. */
+const pressHandle = (bag: Record<string, unknown>, at: DragPress): void => {
+  const param = dragParam(bag);
+  if (param.enabled === false) return;
+  param.onStart?.(at);
+};
 
 function keydown(key: string, shift = false): KeyboardEvent {
   const made: Record<string, unknown> = {
@@ -145,13 +162,30 @@ function thumb(api: SliderApi, index: number): Record<string, unknown> {
 Deno.test("a track press jumps the thumb and the release commits", () => {
   const { api, events } = mount();
   assertEquals(api.value, [0]);
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown")(press(210));
+  const control = api.getControlProps();
+  pressHandle(control, press(210));
   // x=210 on a 10..410 track: 50% -> 50.
   assertEquals(api.value, [50]);
   assert(api.dragging);
-  handler<(e: PointerEvent) => void>(thumb(api, 0), "onPointermove")(drag(310));
+  dragParam(control).onMove?.(move(310, 10, 210, 10));
   assertEquals(api.value, [75]);
-  handler<() => void>(thumb(api, 0), "onPointerup")();
+  dragParam(control).onEnd?.({ cancelled: false });
+  assert(!api.dragging);
+  assert(api.focused);
+  assertEquals(events.valueChangeEnd.length, 1);
+  assertEquals(events.valueChangeEnd[0]?.value, [75]);
+});
+
+Deno.test("a thumb press drags that thumb by its own box", () => {
+  const { api, events } = mount({ defaultValue: "[50]" });
+  const bag = thumb(api, 0);
+  // The thumb's own box: the grab offset is measured against its midpoint.
+  pressHandle(bag, { ...press(110), rect: thumbBox() });
+  assert(api.dragging);
+  assertEquals(api.value, [50], "the press itself does not move the value");
+  dragParam(bag).onMove?.(move(310, 10, 110, 10));
+  assertEquals(api.value, [75]);
+  dragParam(bag).onEnd?.({ cancelled: false });
   assert(!api.dragging);
   assert(api.focused);
   assertEquals(events.valueChangeEnd.length, 1);
@@ -178,7 +212,9 @@ Deno.test("arrows refuse without focus", () => {
 
 Deno.test("a disabled slider refuses presses and keys", () => {
   const { api, events } = mount({ disabled: true });
-  handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointerdown")(press(210));
+  const control = api.getControlProps();
+  assertEquals(dragParam(control).enabled, false);
+  pressHandle(control, press(210));
   assertEquals(api.value, [0]);
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("ArrowRight"));
   assertEquals(api.value, [0]);

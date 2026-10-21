@@ -1,5 +1,14 @@
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
-import { dataAttr, defineComponent, isComposing, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import {
+  dataAttr,
+  defineComponent,
+  isComposing,
+  isRecord,
+  type ComponentDef,
+  type PartScope,
+  type SlotScope,
+} from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   colorPicker as colorPickerMachine,
   isOpenPhase,
@@ -15,13 +24,14 @@ import {
  * Color-picker definition: the DOM contract as data.
  *
  * Everything that needs a node lives here — the area and channel drags
- * (which compute their percent against the node the pointer is over and
- * send events carrying it), the keyboard maps, the channel inputs, and the
- * dismissal reflex.
+ * (the gesture itself is the runtime's `drag` action; the bags only report
+ * the percent and send the events carrying it), the keyboard maps, the
+ * channel inputs, and the dismissal reflex.
  *
  * Thumb positions and gradient stops are CONTINUOUS values — a drag lands
- * between utilities — so the bags carry them as CSS custom properties only
- * (`--picker-x`, `--picker-alpha`...); concrete properties stay banned.
+ * between utilities — so the bags project them into their own style object
+ * as concrete properties (`left`, `top`, `background`); the markup names
+ * nothing and no custom property carries the geometry.
  *
  * The color object is reconstructed per read: the context holds the
  * serialized string.
@@ -210,27 +220,8 @@ const trackPercent = (
   return dir === "rtl" ? 1 - raw : raw;
 };
 
-const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
-  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
-  const fn: unknown = value.setPointerCapture;
-  return typeof fn === "function";
-};
-
-const capturePointer = (target: EventTarget | null, pointerId: number): void => {
-  if (isCapturable(target)) target.setPointerCapture(pointerId);
-};
-
 const dirOf = (props: Record<string, unknown>): "ltr" | "rtl" =>
   props["dir"] === "rtl" ? "rtl" : "ltr";
-
-/** The event target's own rect — never a document lookup. */
-const rectOf = (target: EventTarget | null): Pick<DOMRect, "left" | "top" | "width" | "height"> | null => {
-  if (!(target instanceof Element)) return null;
-  if (typeof target.getBoundingClientRect !== "function") return null;
-  const rect: DOMRect = target.getBoundingClientRect();
-  if (typeof rect.width !== "number" || typeof rect.height !== "number") return null;
-  return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
-};
 
 /** The arrow step: shift multiplies by ten, like a native range input. */
 const arrowStep = (event: KeyboardEvent): number => (event.shiftKey ? 10 : 1);
@@ -455,12 +446,11 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
     area: {
       sig: (scope: ScopeLike, arg?: unknown) => {
         const { x, y } = areaChannels(arg);
-        return [scope.context.value, x, y, scope.props["disabled"], scope.props["readOnly"]].join(" ");
+        return [scope.context.value, x, y, scope.props["disabled"], scope.props["readOnly"], scope.state].join(" ");
       },
       attrs: (scope, arg) => {
         const slots = arg === undefined ? undefined : areaPropsOf(arg);
         const { x, y } = areaChannels(slots);
-        const color = colorOf(scope);
         return {
           id: scope.id("area"),
           role: "group",
@@ -468,23 +458,26 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
           "data-channel-x": x,
           "data-channel-y": y,
-          style: { "--picker-area": color.toString("css") },
-          onPointerdown: (event: PointerEvent): void => {
-            if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
-            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
-            const at = pointPercent(scope.measure("area"), event.clientX, event.clientY);
-            event.preventDefault();
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "AREA.POINTER_DOWN", x: at.x, y: at.y });
-          },
-          onPointermove: (event: PointerEvent): void => {
-            if (scope.state !== "dragging") return;
-            const at = pointPercent(scope.measure("area"), event.clientX, event.clientY);
-            scope.send({ type: "AREA.POINTER_MOVE", x: at.x, y: at.y });
-          },
-          onPointerup: (): void => {
-            if (scope.state !== "dragging") return;
-            scope.send({ type: "AREA.POINTER_UP" });
+          // The gesture lives in the runtime: the press arms the drag, the
+          // machine still owns the geometry — the percent comes from the
+          // area's own measured box.
+          "use:drag": {
+            enabled: scope.props["disabled"] !== true && scope.props["readOnly"] !== true,
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              if (press.ctrlKey === true || press.metaKey === true || press.altKey === true) return;
+              const at = pointPercent(scope.measure("area"), press.x, press.y);
+              scope.send({ type: "AREA.POINTER_DOWN", x: at.x, y: at.y });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "dragging") return;
+              const at = pointPercent(scope.measure("area"), delta.x, delta.y);
+              scope.send({ type: "AREA.POINTER_MOVE", x: at.x, y: at.y });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "dragging") return;
+              scope.send({ type: "AREA.POINTER_UP" });
+            },
           },
         };
       },
@@ -501,9 +494,10 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           id: scope.id("areaBackground"),
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
+          // The color is the machine's own value: the bag carries it as a
+          // concrete background, and the markup names no var.
           style: {
-            "--picker-area": colorOf(scope).toString("css"),
-            backgroundColor: "var(--picker-area)",
+            backgroundColor: colorOf(scope).toString("css"),
           },
         };
       },
@@ -565,13 +559,12 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           "aria-disabled": scope.props["disabled"] === true ? "true" : undefined,
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           style: {
-            "--picker-x": `${xp * 100}%`,
-            "--picker-y": `${yp * 100}%`,
-            "--picker-color": color.toString("css"),
-            left: "var(--picker-x, 50%)",
-            top: "var(--picker-y, 50%)",
+            // The thumb rides the area: the percent is the machine's own
+            // geometry, so the bag carries it directly.
+            left: `${xp * 100}%`,
+            top: `${yp * 100}%`,
             transform: "translate(-50%, -50%)",
-            background: "var(--picker-color)",
+            background: color.toString("css"),
           },
           onFocus: (): void => scope.send({ type: "AREA.ACTIVATE" }),
           onKeydown: (event: KeyboardEvent): void => onAreaKeydown(scope, event),
@@ -588,7 +581,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
       sig: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
-        return [scope.props["disabled"], scope.props["readOnly"], orientation].join(" ");
+        return [scope.props["disabled"], scope.props["readOnly"], orientation, scope.state].join(" ");
       },
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = channelOf(arg);
@@ -597,26 +590,29 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           role: "presentation",
           "data-channel": slots.channel,
           "data-orientation": orientation,
-          onPointerdown: (event: PointerEvent): void => {
-            if (scope.props["disabled"] === true || scope.props["readOnly"] === true) return;
-            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
-            const rect = rectOf(event.currentTarget);
-            if (rect === null) return;
-            const percent = trackPercent(rect, orientation, event.clientX, event.clientY, dirOf(scope.props));
-            event.preventDefault();
-            capturePointer(event.currentTarget, event.pointerId);
-            scope.send({ type: "CHANNEL_SLIDER.POINTER_DOWN", channel: slots.channel, percent });
-          },
-          onPointermove: (event: PointerEvent): void => {
-            if (scope.state !== "dragging") return;
-            const rect = rectOf(event.currentTarget);
-            if (rect === null) return;
-            const percent = trackPercent(rect, orientation, event.clientX, event.clientY, dirOf(scope.props));
-            scope.send({ type: "CHANNEL_SLIDER.POINTER_MOVE", channel: slots.channel, percent });
-          },
-          onPointerup: (): void => {
-            if (scope.state !== "dragging") return;
-            scope.send({ type: "CHANNEL_SLIDER.POINTER_UP" });
+          // The gesture lives in the runtime; the percent comes from the
+          // handle's OWN box, the one the drag action reports.
+          "use:drag": {
+            enabled: scope.props["disabled"] !== true && scope.props["readOnly"] !== true,
+            cancelOnEscape: false,
+            onStart: (press: DragPress): void => {
+              if (press.ctrlKey === true || press.metaKey === true || press.altKey === true) return;
+              const rect = press.rect;
+              if (rect === null) return;
+              const percent = trackPercent(rect, orientation, press.x, press.y, dirOf(scope.props));
+              scope.send({ type: "CHANNEL_SLIDER.POINTER_DOWN", channel: slots.channel, percent });
+            },
+            onMove: (delta: DragDelta): void => {
+              if (scope.state !== "dragging") return;
+              const rect = delta.rect;
+              if (rect === null) return;
+              const percent = trackPercent(rect, orientation, delta.x, delta.y, dirOf(scope.props));
+              scope.send({ type: "CHANNEL_SLIDER.POINTER_MOVE", channel: slots.channel, percent });
+            },
+            onEnd: (): void => {
+              if (scope.state !== "dragging") return;
+              scope.send({ type: "CHANNEL_SLIDER.POINTER_UP" });
+            },
           },
         };
       },
@@ -640,8 +636,9 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           "data-channel": slots.channel,
           "data-orientation": orientation,
           style: {
-            "--picker-track": color.toString("css"),
-            background: "var(--picker-track)",
+            // The track is the current color: the bag paints it, and the
+            // markup names no var.
+            background: color.toString("css"),
           },
         };
       },
@@ -696,12 +693,12 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "data-orientation": orientation,
           style: {
-            "--picker-offset": `${offset * 100}%`,
-            "--picker-color": color.toString("css"),
-            left: "var(--picker-offset, 0%)",
+            // The thumb's place on the track is the machine's own number:
+            // the bag carries it directly.
+            left: `${offset * 100}%`,
             top: "50%",
             transform: "translate(-50%, -50%)",
-            background: "var(--picker-color)",
+            background: color.toString("css"),
           },
           onFocus: (): void => scope.send({ type: "CHANNEL_SLIDER.ACTIVATE", channel: slots.channel }),
           onKeydown: (event: KeyboardEvent): void => onChannelKeydown(scope, event, slots.channel),
@@ -845,6 +842,8 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
           "data-state": state.checked ? "checked" : "unchecked",
           "data-value": slots.value,
           "data-disabled": dataAttr(state.disabled),
+          // The swatch's color is a published value: the theme paints the
+          // chip with it, so it stays a custom property.
           style: { "--picker-swatch": slots.value },
           onClick: (): void => {
             if (state.disabled || scope.props["readOnly"] === true) return;

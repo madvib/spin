@@ -58,8 +58,8 @@ Deno.test("spin-tour e2e", () =>
       // the live target, not hardcoded, so demo layout can move.
       const spot = await page.evaluate(() => {
         const style = document.querySelector("#tour [id$=':spotlight']")?.getAttribute("style") ?? "";
-        const x = style.match(/--tour-x:\s*([\d.]+)px/);
-        const w = style.match(/--tour-w:\s*([\d.]+)px/);
+        const x = style.match(/left:\s*([\d.]+)px/);
+        const w = style.match(/width:\s*([\d.]+)px/);
         const target = document.querySelector("#tour-one")?.getBoundingClientRect();
         return {
           x: x === null ? null : Number(x[1]),
@@ -86,7 +86,7 @@ Deno.test("spin-tour e2e", () =>
       );
       const spot = await page.evaluate(() => {
         const style = document.querySelector("#tour [id$=':spotlight']")?.getAttribute("style") ?? "";
-        const x = style.match(/--tour-x:\s*([\d.]+)px/);
+        const x = style.match(/left:\s*([\d.]+)px/);
         const target = document.querySelector("#tour-two")?.getBoundingClientRect();
         return {
           x: x === null ? null : Number(x[1]),

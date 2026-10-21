@@ -85,7 +85,7 @@ const isToastType = (raw: unknown): raw is ToastType =>
 
 /** The toast's own record test: it accepts an array, which the
  * framework's record test rejects. */
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+const isRecordOrArray = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 const asType = (raw: unknown): ToastType => isToastType(raw) ? raw : "info";
@@ -330,6 +330,8 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
         const placementRaw: unknown = scope.props["placement"];
         const placement = typeof placementRaw === "string" && placementRaw.length > 0 ? placementRaw : "bottom";
         const { side, align } = posture(placement);
+        const offsetRaw: unknown = scope.props["offsets"];
+        const offset = typeof offsetRaw === "string" && offsetRaw.length > 0 ? offsetRaw : "1rem";
         const count = ctx.toasts.length;
         const overlapped = scope.state === "overlap";
         const hotkey = typeof scope.props["hotkey"] === "string" ? scope.props["hotkey"] : "";
@@ -352,11 +354,17 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
           "data-empty": dataAttr(count === 0),
           "data-overlap": dataAttr(overlapped),
           "data-stack": dataAttr(!overlapped),
-          // The region's own inset and gaps are data; where they land is
-          // the recipe's decision.
+          // The region's own box: the gap it stacks with, and the inset
+          // its placement asks for. The recipe names no var — the bag
+          // carries the geometry.
           style: {
-            "--toast-gap": `${asCount(scope.props["gap"], 16)}px`,
-            "--toast-offset": (() => { const v = scope.props["offsets"]; return typeof v === "string" && v.length > 0 ? v : "1rem"; })(),
+            gap: `${asCount(scope.props["gap"], 16)}px`,
+            ...(side === "top" ? { top: offset } : { bottom: offset }),
+            ...(align === "start"
+              ? { left: offset }
+              : align === "end"
+              ? { right: offset }
+              : { left: "50%", right: "50%" }),
           },
           "use:toast-region": {
             hotkey: hotkey.split(",").map((key) => key.trim()).filter((key) => key.length > 0),
@@ -428,11 +436,14 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
           "data-sibling": dataAttr(!frontmost),
           "data-stack": dataAttr(!overlapped),
           "data-overlap": dataAttr(overlapped),
+          // The row's own box: where it sits in the stack, how it reads
+          // while it settles, and its place in the paint order. The
+          // recipe names no var — the bag carries the geometry.
           style: {
-            "--toast-y": offsetY(scope, at),
-            "--toast-opacity": opacityOf(current),
-            "--toast-scale": scaleOf(current, at, overlapped),
-            "--toast-z": String(ctx.toasts.length - at),
+            transform: `translateY(${offsetY(scope, at)})`,
+            scale: scaleOf(current, at, overlapped),
+            opacity: opacityOf(current),
+            zIndex: String(ctx.toasts.length - at),
           },
           onKeydown: (event: KeyboardEvent): void => {
             if (event.defaultPrevented) return;
@@ -537,7 +548,7 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
       event: (args: readonly unknown[]) => {
         const item: unknown = args[0];
         if (typeof item !== "object" || item === null) throw new Error("[toast] create requires an item object");
-        if (!isRecord(item)) throw new Error("[toast] create requires an object item");
+        if (!isRecordOrArray(item)) throw new Error("[toast] create requires an object item");
         const field = (name: string): unknown => item[name];
         const id = field("id");
         if (typeof id !== "string" || id.length === 0) throw new Error("[toast] create requires a string id");
@@ -560,7 +571,7 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
         const id = args[0];
         const item: unknown = args[1];
         if (typeof id !== "string") throw new Error("[toast] update requires a string id");
-        if (!isRecord(item)) throw new Error("[toast] update requires a partial item object");
+        if (!isRecordOrArray(item)) throw new Error("[toast] update requires a partial item object");
         const field = (name: string): unknown => item[name];
         const textOr = (name: string, fallback: string): string => {
           const v = field(name);

@@ -70,7 +70,9 @@ const openPicker = (
   root: () => Element,
 ): void => {
   if (typeof document === "undefined") return;
-  const node = root().querySelector(`#${id("hiddenInput")}`);
+  // The id carries a colon, so it is not a CSS selector: the node is
+  // found by the attribute.
+  const node = root().querySelector(`[id="${id("hiddenInput")}"]`);
   if (!(node instanceof HTMLInputElement)) return;
   const request = typeof requestAnimationFrame === "function"
     ? requestAnimationFrame

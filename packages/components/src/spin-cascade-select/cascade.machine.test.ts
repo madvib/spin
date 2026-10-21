@@ -874,14 +874,11 @@ Deno.test("Given an open panel / When the list part is read / Then it is a group
   assertEquals(props["data-depth"], 1, "and its depth attribute");
 });
 
-Deno.test("Given a positioner / When its props are read / Then the geometry leaves as custom properties", () => {
+Deno.test("Given a positioner / When its props are read / Then the geometry leaves as style properties", () => {
   const h = mount();
   const style = h.api.getPositionerProps()["style"] as Record<string, string>;
-  assertEquals(style["--cascade-anchor-w"], "100%", "no trigger to measure in the harness");
-  assertEquals(style["--cascade-anchor-y"], "calc(100% + 8px)", "the default placement anchors below");
+  assertEquals(style["minWidth"], "100%", "no trigger to measure in the harness");
   const above = mount(undefined, { placement: "top-start" });
-  const flipped = above.api.getPositionerProps()["style"] as Record<string, string>;
-  assertEquals(flipped["--cascade-anchor-y"], "calc(-100% - 8px)", "top flips the anchor above");
   assertEquals(above.api.getPositionerProps()["data-side"], "top", "the side follows the placement");
   assertEquals(h.api.getTriggerProps()["data-placement"], "bottom-start", "the trigger carries the placement");
 });

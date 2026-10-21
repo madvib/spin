@@ -1,4 +1,5 @@
 import { dataAttr, defineComponent, focuser, isComposing, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   angleSlider as angleSliderMachine,
   displayAngle,
@@ -14,8 +15,9 @@ import {
  * Angle-slider definition: the DOM contract as data.
  *
  * Everything that needs a node lives here — the pointer-to-angle
- * measurement, pointer capture (an off-dial release still ends the drag),
- * the thumb-over test for relative drags, and the thumb focus after a press.
+ * measurement, the thumb-over test for relative drags, and the thumb focus
+ * after a press. The gesture itself (the arming, the pointer capture, the
+ * release) is the runtime's `drag` action.
  */
 
 export interface AngleSliderMarkerSlotProps {
@@ -78,16 +80,6 @@ const rimPlacement = (angle: number, radius: number): { left: string; top: strin
   const left = 50 + radius * Math.cos(radians);
   const top = 50 + radius * Math.sin(radians);
   return { left: `${left}%`, top: `${top}%` };
-};
-
-const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
-  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
-  const fn: unknown = value.setPointerCapture;
-  return typeof fn === "function";
-};
-
-const capturePointer = (target: EventTarget | null, pointerId: number): void => {
-  if (isCapturable(target)) target.setPointerCapture(pointerId);
 };
 
 const textProp = (raw: unknown): string => typeof raw === "string" ? raw : "";
@@ -162,8 +154,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
         return [ctx.value, scope.props["disabled"], scope.props["invalid"], scope.props["readOnly"]].join(" ");
       },
       attrs: (scope) => {
-        const ctx = scope.context;
-        const shown = displayAngle(ctx.value, ctx.dir);
         return {
           id: scope.id(""),
           dir: scope.props["dir"],
@@ -172,7 +162,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           "data-invalid": dataAttr(scope.props["invalid"] === true),
           "data-readonly": dataAttr(scope.props["readOnly"] === true),
-          style: { "--angle-value": String(ctx.value), "--angle": `${shown}deg` },
         };
       },
     },
@@ -208,12 +197,17 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
       },
     },
     control: {
-      sig: (scope) => [
-        scope.props["disabled"],
-        scope.props["invalid"],
-        scope.props["readOnly"],
-        scope.state,
-      ].join(" "),
+      sig: (scope) => {
+        const ctx = scope.context;
+        return [
+          scope.props["disabled"],
+          scope.props["invalid"],
+          scope.props["readOnly"],
+          ctx.disabled,
+          ctx.readOnly,
+          scope.state,
+        ].join(" ");
+      },
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "presentation",
@@ -224,29 +218,37 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
         "data-invalid": dataAttr(scope.props["invalid"] === true),
         "data-readonly": dataAttr(scope.props["readOnly"] === true),
         style: { position: "relative", touchAction: "none", userSelect: "none" },
-        onPointerdown: (event: PointerEvent): void => {
-          const ctx = scope.context;
-          if (!isInteractive(ctx)) return;
-          if (event.pointerType === "mouse" && event.button !== 0) return;
-          const angle = rawAngle(scope, event.clientX, event.clientY);
-          if (angle === null) return;
-          // A press on the thumb drags relative (grab offset); elsewhere the
-          // dial jumps to the pointer.
-          const angularOffset = overThumb(scope, event.target) ? angle - ctx.value : null;
-          event.stopPropagation();
-          capturePointer(event.currentTarget, event.pointerId);
-          scope.send({ type: "CONTROL.POINTER_DOWN", rawAngle: angle, angularOffset });
-          focuser(scope.id)("thumb");
-        },
-        onPointermove: (event: PointerEvent): void => {
-          if (scope.state !== "dragging") return;
-          const angle = rawAngle(scope, event.clientX, event.clientY);
-          if (angle === null) return;
-          scope.send({ type: "DOC.POINTER_MOVE", rawAngle: angle });
-        },
-        onPointerup: (): void => {
-          if (scope.state !== "dragging") return;
-          scope.send({ type: "DOC.POINTER_UP" });
+        // The dial's gesture is the runtime's: the press arms it, the moves
+        // report where the pointer is on the dial, the release commits.
+        "use:drag": {
+          // A disabled or read-only dial never arms.
+          enabled: isInteractive(scope.context),
+          // The press keeps its default: the dial is a plain surface.
+          preventDefault: false,
+          // The press does not reach the dial's ancestors.
+          stopPropagation: true,
+          // No escape path here: Escape does nothing.
+          cancelOnEscape: false,
+          onStart: (press: DragPress): void => {
+            const ctx = scope.context;
+            const angle = rawAngle(scope, press.x, press.y);
+            if (angle === null) return;
+            // A press on the thumb drags relative (grab offset); elsewhere
+            // the dial jumps to the pointer.
+            const angularOffset = overThumb(scope, press.target) ? angle - ctx.value : null;
+            scope.send({ type: "CONTROL.POINTER_DOWN", rawAngle: angle, angularOffset });
+            focuser(scope.id)("thumb");
+          },
+          onMove: (delta: DragDelta): void => {
+            if (scope.state !== "dragging") return;
+            const angle = rawAngle(scope, delta.x, delta.y);
+            if (angle === null) return;
+            scope.send({ type: "DOC.POINTER_MOVE", rawAngle: angle });
+          },
+          onEnd: (): void => {
+            if (scope.state !== "dragging") return;
+            scope.send({ type: "DOC.POINTER_UP" });
+          },
         },
       }),
     },
@@ -279,10 +281,8 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           // Dot mode positions a rim point for markup to center on; needle
           // mode rotates the markup's own centered line instead.
           style: slot.needle === true ? {
-            "--thumb-angle": `${shown}deg`,
             rotate: `${shown}deg`,
           } : {
-            "--thumb-angle": `${shown}deg`,
             ...rimPlacement(shown, slot.radius ?? 40),
           },
           onFocus: (): void => {
@@ -374,7 +374,6 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           "data-state": state,
           "data-disabled": dataAttr(scope.props["disabled"] === true),
           style: {
-            "--marker-angle": `${shown}deg`,
             // Diameter markup centers itself; the bag keeps rotation only.
             ...(slot.diameter === true ? {
               rotate: `${shown}deg`,

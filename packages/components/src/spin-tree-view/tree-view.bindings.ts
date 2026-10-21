@@ -446,15 +446,6 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           "data-path": row.indexPath.join("-"),
           // The row carries the mode; the utility on the span selects on it.
           "data-checkable": state.checked || ctx.selectionMode === "multiple" ? "" : undefined,
-          // The rail sits one column left of this row's indent: the parent's
-          // chevron column, where its children's rails belong. The row
-          // indents by margin, so its width must shrink by the same amount
-          // (0.875rem == 14px).
-          style: {
-            "--tree-indent": `${row.depth * 0.875}rem`,
-            "--tree-rail": `${Math.max(0, row.depth - 1) * 0.875}rem`,
-            "--tree-w": `calc(100% - ${row.depth * 14}px)`,
-          },
           ...stateAttrs(state),
         };
       },
@@ -464,7 +455,7 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
       indexes: (context: TreeContext, props: Record<string, unknown>) => rowsOf(nodesOf(props["nodes"]), context.expandedValue),
       sig: (scope: SlotLike<VisibleRow>) => {
         const state = itemStateOf(scope, scope.slot);
-        return [state.focused, state.expanded, state.selected].join(" ");
+        return [state.focused, state.expanded, state.selected, scope.slot.depth].join(" ");
       },
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
@@ -474,6 +465,13 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           type: "button",
           tabindex: state.focused ? 0 : -1,
           "aria-controls": state.branch ? scope.id("content", row.node.value) : undefined,
+          // The control's own box: the row's indent, and the width that
+          // goes with it (0.875rem == 14px). The recipe names no var —
+          // the bag carries the geometry.
+          style: {
+            width: `calc(100% - ${row.depth * 14}px)`,
+            marginInlineStart: `${row.depth * 0.875}rem`,
+          },
           ...stateAttrs(state),
           onClick: (event: MouseEvent): void => rowClick(scope, row, event),
           onDblclick: (): void => {
@@ -521,6 +519,11 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
           // chevron column. Depth 0 has no parent to draw a rail for.
           "aria-hidden": true,
           hidden: row.depth === 0,
+          // The rail's own box, one column left of the row's indent. The
+          // recipe names no var — the bag carries the geometry.
+          style: {
+            left: `${Math.max(0, row.depth - 1) * 0.875}rem`,
+          },
         };
       },
     },

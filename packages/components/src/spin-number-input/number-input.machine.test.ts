@@ -1011,13 +1011,13 @@ Deno.test("Given the input in the document / When the scrubber is grabbed / Then
   assertEquals(h.state(), "scrubbing", "and the gesture is live");
 });
 
-Deno.test("Given the cursor part / When its bag is read / Then only custom properties ride the channel", () => {
+Deno.test("Given the cursor part / When its bag is read / Then the coordinates ride the style object", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100, clientY: 40 });
   const style = h.bag("cursor")["style"] as Record<string, string>;
   const keys = Object.keys(style);
   assertEquals(keys.length, 2, "the channel carries the two coordinates");
-  assertEquals(keys.every((key) => key.startsWith("--number-input-")), true, "and nothing but custom properties");
+  assertEquals(keys.every((key) => key === "left" || key === "top"), true, "and they are plain style properties");
   assertEquals(h.bag("cursor")["aria-hidden"], true, "the cursor is decorative");
   assertEquals(h.bag("cursor")["id"], "number-input:number-input:cursor", "with a namespaced id");
 });

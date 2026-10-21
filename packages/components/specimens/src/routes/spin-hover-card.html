@@ -3,7 +3,7 @@
 <div {...hoverCard.getRootProps()} class="inline-block">
   <button {...hoverCard.getTriggerProps()} class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">{label}</button>
 
-  <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)] [min-width:var(--anchor-w,auto)] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+  <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
     <p class="m-0 text-sm font-medium text-text">{heading}</p>
     <p class="m-0 mt-1 text-sm text-muted">{body}</p>
   </div>

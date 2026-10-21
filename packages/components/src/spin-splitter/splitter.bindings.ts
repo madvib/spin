@@ -1,11 +1,13 @@
 import {
   dataAttr,
   defineComponent,
+  focuser,
   isComposing,
   type ComponentDef,
   type PartScope,
   type SlotScope,
 } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   defaultSizes,
   handleId,
@@ -115,29 +117,34 @@ const groupPercent = (scope: ScopeLike, clientX: number, clientY: number): numbe
   return (along / span) * 100;
 };
 
-const isCapturable = (value: unknown): value is Element & { setPointerCapture(id: number): void } => {
-  if (!(value instanceof Element) || !("setPointerCapture" in value)) return false;
-  const fn: unknown = value.setPointerCapture;
-  return typeof fn === "function";
-};
-
-const capturePointer = (target: EventTarget | null, pointerId: number): void => {
-  if (isCapturable(target) && target.setPointerCapture !== undefined) target.setPointerCapture(pointerId);
+/** Whether the handle holds the focus: the press focused it, so a drag ends
+ * focused and the keyboard keeps working on the handle it moved. */
+const handleFocused = (scope: ScopeLike, handle: string): boolean => {
+  const owner = scope.root().ownerDocument;
+  return owner?.activeElement?.id === scope.id("handle", handle);
 };
 
 /** Handle handlers, cached per bridge by handle id: the scope reads live
  * through proxies, so a cached closure never goes stale. */
 interface HandleHandlers {
-  readonly onPointerdown: (event: PointerEvent) => void;
   readonly onPointermove: (event: PointerEvent) => void;
   readonly onPointerleave: () => void;
-  readonly onPointerup: (event: PointerEvent) => void;
   readonly onBlur: () => void;
   readonly onFocus: () => void;
   readonly onKeydown: (event: KeyboardEvent) => void;
 }
+
+/** The gesture the runtime's drag action drives, cached per bridge by handle
+ * id like the DOM handlers: the scope reads live through proxies, so a
+ * cached closure never goes stale. */
+interface HandleDrag {
+  readonly onStart: (press: DragPress) => void;
+  readonly onMove: (delta: DragDelta) => void;
+  readonly onEnd: (end: { readonly cancelled: boolean }) => void;
+}
 type IdFn = (part: string, slot?: unknown) => string;
 const handleHandlersByBridge = new WeakMap<IdFn, Map<string, HandleHandlers>>();
+const handleDragByBridge = new WeakMap<IdFn, Map<string, HandleDrag>>();
 const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
   let byId = handleHandlersByBridge.get(scope.id);
   if (byId === undefined) {
@@ -147,39 +154,16 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
   const hit = byId.get(handle);
   if (hit !== undefined) return hit;
   const made: HandleHandlers = {
-    onPointerdown: (event: PointerEvent): void => {
-      const ctx = scope.context;
-      if (!isInteractive(ctx)) return;
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      event.preventDefault();
-      event.stopPropagation();
-      // Safari never focuses a separator on press: do it explicitly so
-      // keyboard resizing works after a click.
-      if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus({ preventScroll: true });
-      const percent = groupPercent(scope, event.clientX, event.clientY);
-      if (percent === null) return;
-      capturePointer(event.currentTarget, event.pointerId);
-      scope.send({ type: "POINTER_DOWN", id: handle, startPercent: percent });
-    },
+    // The hover reflex stays a DOM reflex: the gesture itself belongs to
+    // the drag action below.
     onPointermove: (event: PointerEvent): void => {
       if (scope.state === "idle") {
         if (event.pointerType !== "touch") scope.send({ type: "POINTER_OVER", id: handle });
         return;
       }
-      if (scope.state !== "dragging") return;
-      const percent = groupPercent(scope, event.clientX, event.clientY);
-      if (percent === null) return;
-      scope.send({ type: "POINTER_MOVE", percent });
     },
     onPointerleave: (): void => {
       if (scope.state === "hover") scope.send({ type: "POINTER_LEAVE" });
-    },
-    onPointerup: (event: PointerEvent): void => {
-      if (scope.state !== "dragging") return;
-      // The press focused the handle, so the drag ends focused: the
-      // keyboard keeps working on the handle the pointer just moved.
-      const focused = event.currentTarget === document.activeElement;
-      scope.send({ type: "POINTER_UP", handleFocused: focused });
     },
     onBlur: (): void => {
       scope.send({ type: "BLUR" });
@@ -232,6 +216,44 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
   return made;
 };
 
+/** The handle's gesture, driven by the runtime's drag action: the press
+ * arms it, the moves report the pointer's place in the group, the release
+ * commits. Cached per bridge by handle id, like the DOM handlers. */
+const dragFor = (scope: ScopeLike, handle: string): HandleDrag => {
+  let byId = handleDragByBridge.get(scope.id);
+  if (byId === undefined) {
+    byId = new Map();
+    handleDragByBridge.set(scope.id, byId);
+  }
+  const hit = byId.get(handle);
+  if (hit !== undefined) return hit;
+  const focusHandle = focuser(scope.id);
+  const made: HandleDrag = {
+    onStart: (press: DragPress): void => {
+      // Safari never focuses a separator on press: do it explicitly so
+      // keyboard resizing works after a click.
+      focusHandle("handle", handle);
+      const percent = groupPercent(scope, press.x, press.y);
+      if (percent === null) return;
+      scope.send({ type: "POINTER_DOWN", id: handle, startPercent: percent });
+    },
+    onMove: (delta: DragDelta): void => {
+      if (scope.state !== "dragging") return;
+      const percent = groupPercent(scope, delta.x, delta.y);
+      if (percent === null) return;
+      scope.send({ type: "POINTER_MOVE", percent });
+    },
+    onEnd: (): void => {
+      if (scope.state !== "dragging") return;
+      // The press focused the handle, so the drag ends focused: the
+      // keyboard keeps working on the handle the pointer just moved.
+      scope.send({ type: "POINTER_UP", handleFocused: handleFocused(scope, handle) });
+    },
+  };
+  byId.set(handle, made);
+  return made;
+};
+
 const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
   const context = scope.context;
   const index = context.panels.findIndex((panel) => panel.id === id);
@@ -248,7 +270,8 @@ const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
     "data-id": id,
     "data-collapsed": scope.attr(collapsed),
     style: {
-      "--splitter-size": `${size}%`,
+      // The panel's share is the machine's own number: the bag carries it
+      // as the flex grow factor, and the markup names no var.
       flexGrow: context.panels.length === 1 ? "1" : size.toPrecision(3),
       flexShrink: "1",
       flexBasis: "0",
@@ -298,6 +321,18 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
       ...(horizontal ? { minHeight: "0" } : { minWidth: "0" }),
     },
     ...handlersFor(scope, handle),
+    // The gesture is the runtime's: the press arms it, the moves report
+    // the pointer's place in the group, the release commits. The hover
+    // reflex above stays a DOM reflex: it is not part of the gesture.
+    "use:drag": {
+      // A disabled splitter never arms.
+      enabled: isInteractive(context),
+      // The press does not reach the handle's ancestors.
+      stopPropagation: true,
+      // No escape path here: Escape does nothing.
+      cancelOnEscape: false,
+      ...dragFor(scope, handle),
+    },
   };
 };
 
@@ -306,7 +341,14 @@ const handleSig = (scope: ScopeLike, beforeId: string, afterId: string): string 
   const context = scope.context;
   const focused = context.focusedHandle === handle;
   const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
-  return [focused, dragging, scope.state, scope.props["orientation"], scope.props["dir"]].join(" ");
+  return [
+    focused,
+    dragging,
+    scope.state,
+    scope.props["orientation"],
+    scope.props["dir"],
+    context.disabled,
+  ].join(" ");
 };
 
 const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {

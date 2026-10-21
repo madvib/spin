@@ -674,9 +674,6 @@ const placementOf = (props: Record<string, unknown>): string => {
 const placementSide = (props: Record<string, unknown>): string =>
   placementOf(props).split("-")[0] ?? "bottom";
 
-const placementTop = (props: Record<string, unknown>): boolean =>
-  placementOf(props).startsWith("top");
-
 const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
 const levelOf = (arg: unknown): CascadeLevel => {
@@ -891,7 +888,7 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
       }),
     },
     // Not memoized: the geometry is a measurement, so the bag is rebuilt
-    // per read and the recipe's bracketed utilities re-apply the var as the
+    // per read and the style object re-applies the trigger's width as the
     // trigger moves.
     positioner: {
       sig: () => `${Date.now()}`,
@@ -902,11 +899,10 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
           dir: dirOf(scope.props),
           "data-placement": placementOf(scope.props),
           "data-side": placementSide(scope.props),
+          // The panel is as wide as the trigger: the measurement rides the
+          // bag's style object, and the markup names no property.
           style: {
-            "--cascade-anchor-w": rect === null ? "100%" : `${rect.width}px`,
-            "--cascade-anchor-y": placementTop(scope.props)
-              ? "calc(-100% - 8px)"
-              : "calc(100% + 8px)",
+            minWidth: rect === null ? "100%" : `${rect.width}px`,
           },
           "data-state": scope.state === "open" ? "open" : "closed",
           ...(disabledOf(scope) ? { "data-disabled": "" } : {}),

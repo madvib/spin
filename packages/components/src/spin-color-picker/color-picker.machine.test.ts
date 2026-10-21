@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
+import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { colorPicker } from "./color-picker.bindings.ts";
 const createColorPickerBridge = colorPicker.createBridge;
 import type {
@@ -32,9 +33,9 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 }
 
 /**
- * linkedom ships no KeyboardEvent/PointerEvent constructors, so the events the
- * handlers need are synthesized here — one place, with the minimal field set
- * each handler reads.
+ * linkedom ships no KeyboardEvent constructor, so the event the handlers need
+ * is synthesized here — one place, with the minimal field set each handler
+ * reads.
  */
 function keydown(key: string, shift = false): KeyboardEvent {
   const made: Record<string, unknown> = {
@@ -48,21 +49,41 @@ function keydown(key: string, shift = false): KeyboardEvent {
   return made as unknown as KeyboardEvent;
 }
 
-const pointerAt = (x: number, y: number): PointerEvent =>
-  ({
-    button: 0,
-    ctrlKey: false,
-    metaKey: false,
-    altKey: false,
-    clientX: x,
-    clientY: y,
-    pointerId: 1,
-    currentTarget: {
-      getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 200 }),
-      setPointerCapture: (_id: number): void => {},
-    },
-    preventDefault: (): void => {},
-  }) as unknown as PointerEvent;
+/** The handle's box, as the drag action reports it. */
+const handleRect = { left: 0, top: 0, width: 200, height: 200 } as DOMRect;
+
+/** The node the press landed on: the handle itself. */
+const handleNode = {
+  getBoundingClientRect: () => handleRect,
+} as unknown as EventTarget;
+
+/** The press the drag action reports: the point, the modifiers, the handle. */
+const pressAt = (x: number, y: number): DragPress => ({
+  altKey: false,
+  shiftKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  x,
+  y,
+  pointerId: 1,
+  pressure: 0.5,
+  target: handleNode,
+  rect: handleRect,
+});
+
+/** The move the drag action reports: the point, plus the delta. */
+const deltaAt = (x: number, y: number): DragDelta => ({
+  ...pressAt(x, y),
+  dx: x,
+  dy: y,
+});
+
+/** The drag param a handle's bag carries, with its three handlers. */
+const dragParam = (bag: Record<string, unknown>): {
+  onStart?: (p: DragPress) => void;
+  onMove?: (d: DragDelta) => void;
+  onEnd?: (e: { readonly cancelled: boolean }) => void;
+} => (bag["use:drag"] ?? {}) as never;
 
 interface Harness {
   readonly api: ColorPickerApi;
@@ -162,11 +183,25 @@ Deno.test("area drag moves the color and ends", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const before = h.api.value;
-  handler<(e: PointerEvent) => void>(h.api.getAreaProps(), "onPointerdown")(pointerAt(100, 100));
+  const drag = dragParam(h.api.getAreaProps() as Record<string, unknown>);
+  drag.onStart?.(pressAt(100, 100));
   const moved = h.api.value;
   assertEquals(moved === before, false);
-  handler<(e: PointerEvent) => void>(h.api.getAreaProps(), "onPointermove")(pointerAt(150, 50));
-  handler<() => void>(h.api.getAreaProps(), "onPointerup")();
+  drag.onMove?.(deltaAt(150, 50));
+  drag.onEnd?.({ cancelled: false });
+  assertEquals(h.events.valueChangeEnd.length, 1);
+});
+
+Deno.test("channel slider drag moves the channel and ends", () => {
+  const h = mount({ defaultValue: "#ff0000" });
+  handler<() => void>(h.api.getTriggerProps(), "onClick")();
+  const drag = dragParam(h.api.getChannelSliderProps({ channel: "red" }) as Record<string, unknown>);
+  // The handle's own box carries the percent: half way along a 200 wide box.
+  drag.onStart?.(pressAt(100, 100));
+  assertEquals(h.api.value, "#800000");
+  drag.onMove?.(deltaAt(150, 100));
+  assertEquals(h.api.value, "#BF0000");
+  drag.onEnd?.({ cancelled: false });
   assertEquals(h.events.valueChangeEnd.length, 1);
 });
 
