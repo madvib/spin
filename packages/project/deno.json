@@ -2,7 +2,8 @@
   "name": "@spin/project",
   "version": "0.1.0",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./sync": "./src/sync.ts"
   },
   "imports": {
     "@spin/project": "./src/index.ts",

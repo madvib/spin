@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import { shortcutsIn } from "@spin/project";
 import { starterThemes } from "@spin/theme/themes";
 import {
   checkClosedVocabulary,
@@ -7,11 +8,7 @@ import {
 } from "../src/core.ts";
 import { factsFor } from "../src/facts.ts";
 import { factsForFile } from "../src/provider.ts";
-import {
-  noShortcuts,
-  readProjectShortcuts,
-  shortcutsIn,
-} from "../src/shortcuts.ts";
+import { noShortcuts, readProjectShortcuts } from "../src/shortcuts.ts";
 
 /**
  * A project's own shortcuts are vocabulary.
@@ -21,6 +18,9 @@ import {
  * project declares them — the build configuration. A class the project
  * declared is a class the project produces, so the closed-vocabulary rule
  * must not call it unknown.
+ *
+ * The declaration itself is read by the project, which owns the file it is
+ * written in; what is held to here is the lint's own answer to it.
  */
 
 /** The classes of an element, as the core reads them. */
@@ -53,44 +53,6 @@ export default {
   ],
 };
 `;
-
-Deno.test("a project's configuration declares its shortcuts", () => {
-  const declared = shortcutsIn(CONFIG);
-  assertEquals(declared.unreadable, false);
-  assertEquals(
-    [...declared.shortcuts.keys()].sort(),
-    ["panel", "stack"],
-  );
-  assertEquals(declared.shortcuts.get("stack"), [
-    "flex",
-    "flex-col",
-    "gap-4",
-  ]);
-});
-
-Deno.test("a declaration the lint cannot read stands the vocabulary down", () => {
-  // The shortcuts are in a table from another module: the names are
-  // unknowable here, and a vocabulary the lint cannot see is one it must not
-  // enforce.
-  const declared = shortcutsIn(
-    `spin.vite({ shortcuts: studioShortcuts })`,
-  );
-  assertEquals(declared.unreadable, true);
-  assertEquals(declared.shortcuts.size, 0);
-});
-
-Deno.test("a table the configuration keeps in a constant is read", () => {
-  // The ordinary way to write one: a table of a dozen lines, named, and
-  // handed to the plugin by name.
-  const declared = shortcutsIn(`
-    const studioShortcuts = {
-      stack: "flex flex-col gap-4",
-    };
-    spin.vite({ shortcuts: studioShortcuts });
-  `);
-  assertEquals(declared.unreadable, false);
-  assertEquals(declared.shortcuts.get("stack"), ["flex", "flex-col", "gap-4"]);
-});
 
 Deno.test("a class the project declares is not reported", () => {
   const facts = factsFor(
@@ -145,6 +107,25 @@ Deno.test("the lint learns the shortcuts of the project a file belongs to", asyn
   }
 });
 
+Deno.test("a table the configuration keeps in a constant is read", async () => {
+  // The ordinary way to write one: a table of a dozen lines, named, and
+  // handed to the plugin by name.
+  const root = await Deno.makeTempDir();
+  try {
+    await Deno.mkdir(`${root}/src`);
+    await Deno.writeTextFile(
+      `${root}/vite.config.ts`,
+      `const studioShortcuts = { stack: "flex flex-col gap-4" };
+spin.vite({ shortcuts: studioShortcuts });`,
+    );
+    const facts = factsForFile(`${root}/src/page.tsx`);
+    assertEquals(reported(facts, "stack"), []);
+    assertEquals(reported(facts, "stack-sm"), ["stack-sm"]);
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});
+
 Deno.test("a project that declares no shortcuts composes nothing", async () => {
   const root = await Deno.makeTempDir();
   try {
@@ -153,7 +134,7 @@ Deno.test("a project that declares no shortcuts composes nothing", async () => {
       `${root}/vite.config.ts`,
       `export default { plugins: [] };`,
     );
-    assertEquals(readProjectShortcuts(root).shortcuts.size, 0);
+    assertEquals(Object.keys(readProjectShortcuts(root).shortcuts).length, 0);
     const facts = factsForFile(`${root}/src/page.tsx`);
     assertEquals(reported(facts, "stack"), ["stack"]);
   } finally {
@@ -162,6 +143,9 @@ Deno.test("a project that declares no shortcuts composes nothing", async () => {
 });
 
 Deno.test("a project with no configuration at all declares nothing", () => {
-  assertEquals(readProjectShortcuts(undefined).shortcuts.size, 0);
+  assertEquals(
+    Object.keys(readProjectShortcuts(undefined).shortcuts).length,
+    0,
+  );
   assertEquals(noShortcuts().unreadable, false);
 });

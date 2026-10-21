@@ -132,6 +132,7 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     presetIndex: pkg("./index.ts"),
     procedures: pkg("./primitives-procedures.ts"),
     apiIndex: pkg("../../api/src/index.ts"),
+    projectIndex: pkg("../../project/src/index.ts"),
   };
   const unoCore = join(
     await spinWorkspaceRoot(),
@@ -177,6 +178,14 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       find: "@spin/api",
       replacement: source.apiIndex,
       targets: [source.apiIndex],
+    },
+    {
+      // The project: where a project's files are. The daemon's procedures
+      // read them, and a client that wants to know what a project holds
+      // asks the package that owns them.
+      find: "@spin/project",
+      replacement: source.projectIndex,
+      targets: [source.projectIndex],
     },
     {
       find: "@spin/kit",

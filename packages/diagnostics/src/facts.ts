@@ -189,7 +189,9 @@ export function factsFor(
     // A declaration the lint could not read leaves the vocabulary
     // incomplete: the rule that asks "can this be produced?" stands down,
     // and the rest of the facts still stand.
-    shortcuts: shortcuts.unreadable ? null : shortcuts.shortcuts,
+    shortcuts: shortcuts.unreadable
+      ? null
+      : new Map(Object.entries(shortcuts.shortcuts)),
   };
 }
 

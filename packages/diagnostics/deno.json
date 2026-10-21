@@ -11,6 +11,8 @@
     "@spin/diagnostics/eslint": "./src/eslint.ts",
     "@spin/diagnostics/cli": "./src/cli.ts",
     "@spin/preset": "../preset/src/index.ts",
+    "@spin/project": "../project/src/index.ts",
+    "@spin/project/sync": "../project/src/sync.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@spin/theme/themes": "../theme/src/themes/index.ts",
     "@spin/animation": "../animation/src/index.ts",

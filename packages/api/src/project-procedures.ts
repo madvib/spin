@@ -13,7 +13,7 @@
  */
 
 import { implement } from "@orpc/server";
-import { projectService } from "../../project/src/index.ts";
+import { projectService } from "@spin/project";
 import { projectContract } from "./project-contract.ts";
 
 let projectRoot: string | undefined;

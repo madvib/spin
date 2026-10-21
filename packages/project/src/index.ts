@@ -11,12 +11,22 @@
  * Every operation takes the root it is about. Nothing here reads a global:
  * one process can serve many projects, and a project is a place on disk that
  * the caller names.
+ *
+ * The synchronous half of these operations — the ones a linter asks, while it
+ * walks a file — lives behind its own entry, `./sync.ts`: a `node:` import
+ * at the top of this module would follow it into the browser bundle the
+ * daemon's client is built into, and that bundle must never touch a disk.
  */
 
-export { CONFIG_FILENAME, initFiles, isWired, PROJECT_DIR } from "./facts.ts";
+export {
+  CONFIG_FILENAME,
+  CONFIG_FILES,
+  initFiles,
+  isWired,
+  PROJECT_DIR,
+} from "./facts.ts";
 
 export {
-  CONFIG_FILES,
   copyTheme,
   currentProject,
   detectProject,

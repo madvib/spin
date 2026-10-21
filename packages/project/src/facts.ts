@@ -30,6 +30,27 @@ export const PROJECT_DIR = "spin";
 export const CONFIG_FILENAME = "uno.config.ts";
 
 /**
+ * The build configurations a project may keep.
+ *
+ * The uno configs come first: they are where the preset is wired, and the
+ * report asks about them. A project that builds with vite keeps the same
+ * declaration in `vite.config.ts`, and a project that keeps its build in its
+ * own module says so in `spin.config.ts`. All of them carry the same
+ * declaration, so all of them are read.
+ */
+export const CONFIG_FILES: readonly string[] = [
+  "uno.config.ts",
+  "uno.config.js",
+  "uno.config.mjs",
+  "vite.config.ts",
+  "vite.config.js",
+  "vite.config.mjs",
+  "spin.config.ts",
+  "spin.config.js",
+  "spin.config.mjs",
+];
+
+/**
  * Whether a text is an uno config that applies spin.
  *
  * Two entry points wire spin, and both count: the encapsulated form
