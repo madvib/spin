@@ -47,6 +47,26 @@ import { machineTick } from "../../core/signal.ts";
 /** Any event object: a discriminant type plus any payload. */
 export type EventObject = { type: string } & Record<string, unknown>;
 
+/**
+ * The machine's events, as a MAP: one entry per event name, carrying that
+ * event's payload.
+ *
+ * The map is the contract with the outside, so the author writes it by hand
+ * — and the spec's `on` map is typed over it, so a transition's KEY
+ * narrows the event it receives.
+ */
+export type EventMap = object;
+
+/** The event a key names: its discriminant, plus the payload the map gives. */
+export type EventOf<TMap extends EventMap, TKey extends keyof TMap> = {
+  readonly type: TKey;
+} & TMap[TKey & keyof TMap];
+
+/** Every event of a map, as the union a service sends. */
+export type EventUnion<TMap extends EventMap> = {
+  [TKey in keyof TMap]: EventOf<TMap, TKey>;
+}[keyof TMap];
+
 /** The state a service holds: a value, the context, and the actions to run. */
 export interface State<TContext extends object> {
   readonly value: string;

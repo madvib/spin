@@ -11,7 +11,7 @@
  * The framework synthesizes the bridge and the connect from this; no
  * hand-written `getXProps()` exists for any component. */
 
-import type { Config, Implementations, Machine } from "@spin/runtime/fsm";
+import type { Machine } from "@spin/runtime/fsm";
 
 export interface ParseHost {
   /** The element root: behavioral host props (sanitize, validate,
@@ -192,8 +192,6 @@ export interface EventDef<W extends readonly unknown[] = readonly unknown[], C e
 }
 export interface ComponentDef<C extends object, E extends { type: string }> {
   readonly name: string;
-  readonly config?: Config<C, E>;
-  readonly implementations?: Implementations<C, E>;
   /** The start state, or its computation from parsed props (an authored
    * `open` starts the panel up). Absent, the machine's own initial. */
   readonly start?: string | ((

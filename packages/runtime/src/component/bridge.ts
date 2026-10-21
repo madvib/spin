@@ -20,10 +20,7 @@
 import { computed, effect, machineTick, scope, signal, untrack, type Signal } from "@spin/runtime";
 import { resolveTwins } from "../props.ts";
 import {
-  createMachine,
   interpret,
-  type Config,
-  type Implementations,
   type Service,
   type Machine,
 } from "@spin/runtime/fsm";
@@ -45,9 +42,6 @@ export interface BridgeShared<C extends object, E extends { type: string }> {
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Machine<C, E>;
-  /** The legacy shape: the config and the implementations apart. */
-  readonly config?: Config<C, E>;
-  readonly implementations?: Implementations<C, E>;
   /** The start state. Undefined starts at the machine's own initial. */
   readonly startState?: string;
 }
@@ -291,8 +285,7 @@ export function defineBridge<
     live.setState(state);
   };
   const hooks = spec.hooks(id, root, live);
-  // The machine: the component's factory, or the legacy config plus
-  // implementations. One object either way.
+  // The machine: the component's factory.
   //
   // The factory receives the props with the twins resolved: the live
   // prop `value` wins, and `defaultValue` is its fallback. So the
@@ -304,27 +297,12 @@ export function defineBridge<
   let machine: Machine<C, E> | undefined;
   const machineOf = (): Machine<C, E> => {
     if (machine !== undefined) return machine;
-    machine = spec.machine !== undefined
-      ? spec.machine(resolveTwins(props(), authored), authored)
-      : legacyMachine(spec);
+    if (spec.machine === undefined) {
+      throw new Error("[spin] the bridge has no machine");
+    }
+    machine = spec.machine(resolveTwins(props(), authored), authored);
     return machine;
   };
-  const legacyMachine = (spec: BridgeShared<C, E>): Machine<C, E> =>
-    createMachine<C, E>({
-      ...(spec.config ?? {}),
-      context: { ...(spec.config?.context ?? {}) } as C,
-      initial: spec.config?.initial ?? "idle",
-      states: spec.config?.states ?? {},
-      ...(spec.implementations?.assigns === undefined
-        ? {}
-        : { assigns: spec.implementations.assigns as never }),
-      ...(spec.implementations?.conds === undefined
-        ? {}
-        : { conds: spec.implementations.conds as never }),
-      ...(spec.implementations?.actions === undefined
-        ? {}
-        : { actions: spec.implementations.actions }),
-    });
 
   let service: Service<C, E> | undefined;
 

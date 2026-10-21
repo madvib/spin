@@ -14,7 +14,7 @@ import { dataAttr, keyed, memo, type BagMemo, type BagReads, type ReadRecorder }
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
-import type { Config, Implementations } from "@spin/runtime/fsm";
+import type { Machine } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
 
@@ -413,7 +413,7 @@ export function defineComponent<
     root: () => Element,
     id: string,
   ): { readonly api: Api; dispose(): void } => {
-    if (def.machine === undefined && def.config === undefined) {
+    if (def.machine === undefined) {
       throw new Error(`[spin] ${def.name} has no machine`);
     }
     const startState = typeof def.start === "function"
@@ -421,14 +421,7 @@ export function defineComponent<
       : def.start;
     const bridged = defineBridge(
       {
-        // The machine: the component's own spec, or the legacy config
-        // plus implementations.
-        ...(def.machine === undefined
-          ? {
-            config: def.config as Config<C, E>,
-            implementations: (def.implementations ?? {}) as Implementations<C, E>,
-          }
-          : { machine: def.machine }),
+        machine: def.machine,
         ...(startState === undefined ? {} : { startState }),
         hooks,
       },
