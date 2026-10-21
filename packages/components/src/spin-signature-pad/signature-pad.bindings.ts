@@ -9,7 +9,7 @@ import {
   type SignaturePadArgs,
   type SignaturePadContext,
   type SignaturePadDrawDetails,
-  type SignaturePadEvent,
+  type SignaturePadEvents,
   type SignaturePoint,
 } from "./signature-pad.machine.ts";
 
@@ -82,7 +82,7 @@ const drawingFill = (props: Record<string, unknown>): string => {
   return typeof fill === "string" && fill.length > 0 ? fill : "currentColor";
 };
 
-const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
+const def: ComponentDef<SignaturePadContext, SignaturePadEvents> = {
   name: "signature-pad",
   machine: (props, authored) => signaturePadMachine(props as SignaturePadArgs, authored),
   reconcile: ({ context, parsed, send }) => {
@@ -311,4 +311,4 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
   },
 };
 
-export const signaturePad = defineComponent<SignaturePadContext, SignaturePadEvent, SignaturePadApi>(def);
+export const signaturePad = defineComponent<SignaturePadContext, SignaturePadEvents, SignaturePadApi>(def);

@@ -3,7 +3,18 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const clearClickFocus = () : Partial<ToggleGroupContext> => { return ({ clickFocus: false }); };
+
+const setTabbingBackward = () : Partial<ToggleGroupContext> => { return ({ tabbingBackward: true }); };
+
+const setFocusedId = (ctx: ToggleGroupContext, event: EventUnion<ToggleGroupEvents>) : Partial<ToggleGroupContext> => {
+      if (event.type !== "TOGGLE.FOCUS") return {};
+      void ctx;
+      return { focusedId: event.id };
+    };
+
+
 
 export interface ToggleGroupItem {
   readonly value: string;
@@ -27,20 +38,23 @@ export interface ToggleGroupContext {
   tabbingBackward: boolean;
 }
 
-export type ToggleGroupEvent =
-  // The host may write the value as a JSON text or a list.
-  | { type: "VALUE.SET"; value: string | readonly string[] }
-  | { type: "TOGGLE.CLICK"; id: string; value: string }
-  | { type: "ROOT.MOUSE_DOWN" }
-  | { type: "ROOT.FOCUS" }
-  | { type: "ROOT.BLUR" }
-  | { type: "TOGGLE.FOCUS"; id: string }
-  | { type: "TOGGLE.FOCUS_NEXT"; id: string }
-  | { type: "TOGGLE.FOCUS_PREV"; id: string }
-  | { type: "TOGGLE.FOCUS_FIRST"; id: string }
-  | { type: "TOGGLE.FOCUS_LAST"; id: string }
-  | { type: "TOGGLE.SHIFT_TAB"; isShiftTab: boolean; firstId: string }
-  | { type: "SET_DISABLED"; disabled: boolean };
+export interface ToggleGroupEvents {
+  "VALUE.SET": { value: string | readonly string[] };
+  "TOGGLE.CLICK": { id: string; value: string };
+  "ROOT.MOUSE_DOWN": {};
+  "ROOT.FOCUS": {};
+  "ROOT.BLUR": {};
+  "TOGGLE.FOCUS": { id: string };
+  "TOGGLE.FOCUS_NEXT": { id: string };
+  "TOGGLE.FOCUS_PREV": { id: string };
+  "TOGGLE.FOCUS_FIRST": { id: string };
+  "TOGGLE.FOCUS_LAST": { id: string };
+  "TOGGLE.SHIFT_TAB": { isShiftTab: boolean; firstId: string };
+  "SET_DISABLED": { disabled: boolean };
+}
+
+export type ToggleGroupEvent = EventUnion<ToggleGroupEvents>;
+
 
 export type ToggleGroupValueChange = {
   readonly value: string[];
@@ -139,7 +153,7 @@ export function initial(args: ToggleGroupArgs, authored: (name: string) => boole
   };
 }
 
-const config = {
+const config: MachineSpec<ToggleGroupContext, ToggleGroupEvents> = {
   id: "toggle-group",
   initial: "idle",
   context: {
@@ -156,68 +170,11 @@ const config = {
     tabbingBackward: false,
   },
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "TOGGLE.CLICK": { actions: [{ assign: "toggleValue" }] },
-    "ROOT.MOUSE_DOWN": { actions: [{ assign: "setClickFocus" }] },
-    SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-  },
-  states: {
-    idle: {
-      on: {
-        "ROOT.FOCUS": [
-          {
-            cond: "shouldStealFocus",
-            target: "focused",
-            actions: [{ assign: "clearClickFocus" }],
-          },
-        ],
-        "TOGGLE.FOCUS": { target: "focused", actions: [{ assign: "setFocusedId" }] },
-      },
-    },
-    focused: {
-      on: {
-        "ROOT.BLUR": {
-          target: "idle",
-          actions: [
-            { assign: "clearTabbingBackward" },
-            { assign: "clearFocusedId" },
-            { assign: "clearClickFocus" },
-          ],
-        },
-        "TOGGLE.FOCUS": { actions: [{ assign: "setFocusedId" }] },
-        "TOGGLE.FOCUS_NEXT": { actions: [{ assign: "focusNext" }] },
-        "TOGGLE.FOCUS_PREV": { actions: [{ assign: "focusPrev" }] },
-        "TOGGLE.FOCUS_FIRST": { actions: [{ assign: "focusFirst" }] },
-        "TOGGLE.FOCUS_LAST": { actions: [{ assign: "focusLast" }] },
-        "TOGGLE.SHIFT_TAB": [
-          {
-            cond: "isNotFirstFocused",
-            target: "idle",
-            actions: [{ assign: "setTabbingBackward" }],
-          },
-          { actions: [{ assign: "setTabbingBackward" }] },
-        ],
-      },
-    },
-  },
-};
-
-const implementations = {
-  conds: {
-    shouldStealFocus: (ctx: ToggleGroupContext): boolean => !ctx.clickFocus && !ctx.tabbingBackward,
-    isNotFirstFocused: (ctx: ToggleGroupContext, event: ToggleGroupEvent): boolean => {
-      if (event.type !== "TOGGLE.SHIFT_TAB") return false;
-      return ctx.focusedId !== event.firstId;
-    },
-  },
-  assigns: {
-    setValue: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "VALUE.SET") return {};
+    "VALUE.SET": { assign: (ctx, event) => {
       void ctx;
       return { value: parseValues(event.value) ?? [] };
-    },
-    toggleValue: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "TOGGLE.CLICK") return {};
+    } },
+    "TOGGLE.CLICK": { assign: (ctx, event) => {
       if (ctx.multiple) {
         return {
           value: ctx.value.includes(event.value)
@@ -227,53 +184,72 @@ const implementations = {
       }
       const selected = ctx.value.length === 1 && ctx.value[0] === event.value;
       return { value: selected && ctx.deselectable ? [] : [event.value] };
-    },
-    setClickFocus: (): Partial<ToggleGroupContext> => ({ clickFocus: true }),
-    clearClickFocus: (): Partial<ToggleGroupContext> => ({ clickFocus: false }),
-    setTabbingBackward: (): Partial<ToggleGroupContext> => ({ tabbingBackward: true }),
-    clearTabbingBackward: (): Partial<ToggleGroupContext> => ({ tabbingBackward: false }),
-    setFocusedId: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "TOGGLE.FOCUS") return {};
-      void ctx;
-      return { focusedId: event.id };
-    },
-    clearFocusedId: (): Partial<ToggleGroupContext> => ({ focusedId: null }),
-    // Roving moves write the focused id; the view focuses the node as a
-    // reflex. The order lives on the events: the bridge resolves the
-    // neighbor and attaches it, since functions cannot cross the scope channel.
-    focusNext: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "TOGGLE.FOCUS_NEXT") return {};
-      void ctx;
-      return { focusedId: event.id };
-    },
-    focusPrev: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "TOGGLE.FOCUS_PREV") return {};
-      void ctx;
-      return { focusedId: event.id };
-    },
-    focusFirst: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "TOGGLE.FOCUS_FIRST") return {};
-      void ctx;
-      return { focusedId: event.id };
-    },
-    focusLast: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "TOGGLE.FOCUS_LAST") return {};
-      void ctx;
-      return { focusedId: event.id };
-    },
-    setDisabled: (ctx: ToggleGroupContext, event: ToggleGroupEvent): Partial<ToggleGroupContext> => {
-      if (event.type !== "SET_DISABLED") return {};
+    } },
+    "ROOT.MOUSE_DOWN": { assign: () => { return ({ clickFocus: true }); } },
+    SET_DISABLED: { assign: (ctx, event) => {
       void ctx;
       return { disabled: event.disabled };
+    } },
+  },
+  states: {
+    idle: {
+      on: {
+        "ROOT.FOCUS": [
+          {
+            cond: (ctx) => { return !ctx.clickFocus && !ctx.tabbingBackward; },
+            target: "focused",
+            assign: clearClickFocus,
+          },
+        ],
+        "TOGGLE.FOCUS": { target: "focused", assign: setFocusedId },
+      },
+    },
+    focused: {
+      on: {
+        "ROOT.BLUR": {
+          target: "idle",
+          assign: [() => { return ({ tabbingBackward: false }); }, () => { return ({ focusedId: null }); }, clearClickFocus],
+        },
+        "TOGGLE.FOCUS": { assign: setFocusedId },
+        "TOGGLE.FOCUS_NEXT": { assign: (ctx, event) => {
+      void ctx;
+      return { focusedId: event.id };
+    } },
+        "TOGGLE.FOCUS_PREV": { assign: (ctx, event) => {
+      void ctx;
+      return { focusedId: event.id };
+    } },
+        "TOGGLE.FOCUS_FIRST": { assign: (ctx, event) => {
+      void ctx;
+      return { focusedId: event.id };
+    } },
+        "TOGGLE.FOCUS_LAST": { assign: (ctx, event) => {
+      void ctx;
+      return { focusedId: event.id };
+    } },
+        "TOGGLE.SHIFT_TAB": [
+          {
+            cond: (ctx, event) => {
+      if (event.type !== "TOGGLE.SHIFT_TAB") return false;
+      return ctx.focusedId !== event.firstId;
+    },
+            target: "idle",
+            assign: setTabbingBackward,
+          },
+          { assign: setTabbingBackward },
+        ],
+      },
     },
   },
 };
 
+const implementations = {};
+
 export function toggleGroup(
   args: ToggleGroupArgs = {},
   authored: (name: string) => boolean,
-): Machine<ToggleGroupContext, ToggleGroupEvent> {
-  return createMachine<ToggleGroupContext, ToggleGroupEvent>({
+): Machine<ToggleGroupContext, ToggleGroupEvents> {
+  return createMachine<ToggleGroupContext, ToggleGroupEvents>({
     ...config,
     context: initial(args, authored),
     /**
@@ -290,7 +266,5 @@ export function toggleGroup(
       orientation: {},
       disabled: {},
     },
-    assigns: implementations.assigns,
-    conds: implementations.conds,
   });
 }

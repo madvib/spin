@@ -5,7 +5,7 @@ import {
   itemsOf,
   type AsyncListArgs,
   type AsyncListContext,
-  type AsyncListEvent,
+  type AsyncListEvents,
   type SortDescriptor,
 } from "./async-list.machine.ts";
 
@@ -257,7 +257,7 @@ const startSort = (
   );
 };
 
-const def: ComponentDef<AsyncListContext, AsyncListEvent> = {
+const def: ComponentDef<AsyncListContext, AsyncListEvents> = {
   name: "async-list",
   machine: (props, authored) => asyncListMachine(props as AsyncListArgs, authored),
   // `autoReload` loads once at mount; the reconcile watcher answers every
@@ -581,4 +581,4 @@ const rowsFor = (items: readonly unknown[]): readonly AsyncListRow[] => {
   return rows;
 };
 
-export const asyncList = defineComponent<AsyncListContext, AsyncListEvent, AsyncListApi>(def);
+export const asyncList = defineComponent<AsyncListContext, AsyncListEvents, AsyncListApi>(def);

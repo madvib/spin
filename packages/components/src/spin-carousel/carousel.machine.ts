@@ -9,7 +9,14 @@
  */
 
 import { defaultTwin, isRecord } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const next = (ctx: CarouselContext) : Partial<CarouselContext> => { return ({
+      index: ctx.loop
+        ? (ctx.index + 1) % cycle(ctx.pageCount)
+        : Math.min(ctx.index + 1, lastPage(ctx.pageCount)),
+    }); };
+
+
 
 /** One slide: the record the host wrote. */
 export interface CarouselSlide {
@@ -79,27 +86,25 @@ export interface CarouselContext {
   };
 }
 
-export type CarouselEvent =
-  | { type: "NEXT" }
-  | { type: "PREV" }
-  | { type: "GO_TO"; index: number }
-  | { type: "PAGES.SET"; count: number }
-  | { type: "SLIDE.VIEW"; index: number; inView: boolean }
-  | { type: "DRAG.START" }
-  | { type: "DRAG.END" }
-  /**
-   * The platform's own settle notification, carrying the page the view
-   * MEASURED: the machine must never walk the DOM. The intersection report
-   * is the engine-independent fallback, which is why it may only move the
-   * page mid-gesture.
-   */
-  | { type: "SCROLL.SETTLE"; index: number }
-  | { type: "POINTER.DOWN" }
-  | { type: "VIEWPORT.FOCUS" }
-  | { type: "VIEWPORT.BLUR" }
-  | { type: "AUTOPLAY.START" }
-  | { type: "AUTOPLAY.STOP" }
-  | { type: "AUTOPLAY.TICK" };
+export interface CarouselEvents {
+  "NEXT": {};
+  "PREV": {};
+  "GO_TO": { index: number };
+  "PAGES.SET": { count: number };
+  "SLIDE.VIEW": { index: number; inView: boolean };
+  "DRAG.START": {};
+  "DRAG.END": {};
+  "SCROLL.SETTLE": { index: number };
+  "POINTER.DOWN": {};
+  "VIEWPORT.FOCUS": {};
+  "VIEWPORT.BLUR": {};
+  "AUTOPLAY.START": {};
+  "AUTOPLAY.STOP": {};
+  "AUTOPLAY.TICK": {};
+}
+
+export type CarouselEvent = EventUnion<CarouselEvents>;
+
 
 const lastPage = (pageCount: number): number => Math.max(0, pageCount - 1);
 const cycle = (pageCount: number): number => Math.max(1, pageCount);
@@ -116,75 +121,30 @@ const rest = (ctx: CarouselContext): CarouselDragStatus =>
 const midGesture = (status: CarouselDragStatus): boolean =>
   status === "dragging" || status === "settling";
 
-const config = {
+const config: Omit<MachineSpec<CarouselContext, CarouselEvents>, "context"> = {
   id: "carousel",
   initial: "idle",
   // Root tier: the programmatic commands and the reflexes that answer in
   // every state. `AUTOPLAY.TICK` is the one event this does NOT carry —
   // an interval that fires while stopped is a bug, not a fallback.
   on: {
-    "NEXT": { target: "idle", actions: [{ assign: "next" }] },
-    "PREV": { target: "idle", actions: [{ assign: "prev" }] },
-    "GO_TO": { target: "idle", actions: [{ assign: "goTo" }] },
-    "PAGES.SET": { actions: [{ assign: "setPageCount" }] },
-    "SLIDE.VIEW": { actions: [{ assign: "slideView" }] },
-    "DRAG.START": { target: "idle", actions: [{ assign: "dragStart" }] },
-    "DRAG.END": { actions: [{ assign: "dragEnd" }] },
-    "SCROLL.SETTLE": { actions: [{ assign: "settle" }] },
-    // A press inside the carousel stops the rotation, as Zag's own trigger
-    // events do: every PAGE.* event there targets `idle`.
-    "POINTER.DOWN": { target: "idle" },
-    "VIEWPORT.FOCUS": {
-      target: "idle",
-      actions: [{ assign: "viewportFocus" }],
-    },
-    "VIEWPORT.BLUR": { actions: [{ assign: "viewportBlur" }] },
-    "AUTOPLAY.START": { target: "autoplay" },
-    "AUTOPLAY.STOP": { target: "idle" },
-  },
-  states: {
-    idle: {},
-    autoplay: {
-      on: {
-        "AUTOPLAY.TICK": { target: "autoplay", actions: [{ assign: "next" }] },
-      },
-    },
-  },
-};
-
-/**
- * Pure transforms. `next` is shared by the trigger, the keyboard and the
- * autoplay tick: advancing a page is advancing a page.
- */
-const implementations = {
-  assigns: {
-    next: (ctx: CarouselContext): Partial<CarouselContext> => ({
-      index: ctx.loop
-        ? (ctx.index + 1) % cycle(ctx.pageCount)
-        : Math.min(ctx.index + 1, lastPage(ctx.pageCount)),
-    }),
-    prev: (ctx: CarouselContext): Partial<CarouselContext> => ({
+    "NEXT": { target: "idle", assign: next },
+    "PREV": { target: "idle", assign: (ctx) => { return ({
       index: ctx.loop
         ? (ctx.index - 1 + cycle(ctx.pageCount)) % cycle(ctx.pageCount)
         : Math.max(0, ctx.index - 1),
-    }),
-    goTo: (ctx: CarouselContext, e: CarouselEvent): Partial<CarouselContext> => {
+    }); } },
+    "GO_TO": { target: "idle", assign: (ctx, e) => {
       if (e.type !== "GO_TO") return {};
       if (typeof e.index !== "number" || !Number.isFinite(e.index)) return {};
       return { index: clampIndex(e.index, ctx.pageCount) };
-    },
-    setPageCount: (
-      ctx: CarouselContext,
-      e: CarouselEvent,
-    ): Partial<CarouselContext> => {
+    } },
+    "PAGES.SET": { assign: (ctx, e) => {
       if (e.type !== "PAGES.SET") return {};
       const pageCount = Math.max(0, Math.trunc(e.count));
       return { pageCount, index: clampIndex(ctx.index, pageCount) };
-    },
-    slideView: (
-      ctx: CarouselContext,
-      e: CarouselEvent,
-    ): Partial<CarouselContext> => {
+    } },
+    "SLIDE.VIEW": { assign: (ctx, e) => {
       if (e.type !== "SLIDE.VIEW") return {};
       const inView = e.inView === true;
       const slides = inView
@@ -204,29 +164,47 @@ const implementations = {
         index: pageOf(ctx, e.index),
         dragStatus: rest(ctx),
       };
-    },
-    dragStart: (): Partial<CarouselContext> => ({ dragStatus: "dragging" }),
-    dragEnd: (): Partial<CarouselContext> => ({ dragStatus: "settling" }),
-    settle: (
-      ctx: CarouselContext,
-      e: CarouselEvent,
-    ): Partial<CarouselContext> =>
-      e.type === "SCROLL.SETTLE"
+    } },
+    "DRAG.START": { target: "idle", assign: () => { return ({ dragStatus: "dragging" }); } },
+    "DRAG.END": { assign: () => { return ({ dragStatus: "settling" }); } },
+    "SCROLL.SETTLE": { assign: (ctx, e) => { return e.type === "SCROLL.SETTLE"
         ? {
           index: clampIndex(e.index, ctx.pageCount),
           ...(ctx.dragStatus === "settling" ? { dragStatus: rest(ctx) } : {}),
         }
-        : {},
-    viewportFocus: (ctx: CarouselContext): Partial<CarouselContext> => ({
+        : {}; } },
+    // A press inside the carousel stops the rotation, as Zag's own trigger
+    // events do: every PAGE.* event there targets `idle`.
+    "POINTER.DOWN": { target: "idle" },
+    "VIEWPORT.FOCUS": {
+      target: "idle",
+      assign: (ctx) => { return ({
       focused: true,
       ...(midGesture(ctx.dragStatus) ? {} : { dragStatus: "focus" }),
-    }),
-    viewportBlur: (ctx: CarouselContext): Partial<CarouselContext> => ({
+    }); },
+    },
+    "VIEWPORT.BLUR": { assign: (ctx) => { return ({
       focused: false,
       ...(midGesture(ctx.dragStatus) ? {} : { dragStatus: "idle" }),
-    }),
+    }); } },
+    "AUTOPLAY.START": { target: "autoplay" },
+    "AUTOPLAY.STOP": { target: "idle" },
+  },
+  states: {
+    idle: {},
+    autoplay: {
+      on: {
+        "AUTOPLAY.TICK": { target: "autoplay", assign: next },
+      },
+    },
   },
 };
+
+/**
+ * Pure transforms. `next` is shared by the trigger, the keyboard and the
+ * autoplay tick: advancing a page is advancing a page.
+ */
+const implementations = {};
 
 const asInt = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
@@ -306,11 +284,10 @@ export function pageCountFor(
 export function carousel(
   args: CarouselArgs = {},
   authored: (name: string) => boolean,
-): Machine<CarouselContext, CarouselEvent> {
-  return createMachine<CarouselContext, CarouselEvent>({
+): Machine<CarouselContext, CarouselEvents> {
+  return createMachine<CarouselContext, CarouselEvents>({
     ...config,
     context: initial(args, authored),
-    ...implementations,
     fields: {
       index: { event: "GO_TO" },
       loop: {},

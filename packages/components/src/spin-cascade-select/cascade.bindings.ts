@@ -6,7 +6,7 @@ import {
   startOpen,
   type CascadeArgs,
   type CascadeContext,
-  type CascadeEvent,
+  type CascadeEvents,
 } from "./cascade.machine.ts";
 
 /**
@@ -744,7 +744,7 @@ const scrollParam = (
   };
 };
 
-const def: ComponentDef<CascadeContext, CascadeEvent> = {
+const def: ComponentDef<CascadeContext, CascadeEvents> = {
   name: "cascade",
   machine: (props, authored) => cascadeMachine(props as CascadeArgs, authored),
   settled: ({ event, before, after, focus }) => {
@@ -1198,4 +1198,4 @@ const def: ComponentDef<CascadeContext, CascadeEvent> = {
   },
 };
 
-export const cascade = defineComponent<CascadeContext, CascadeEvent, CascadeApi>(def);
+export const cascade = defineComponent<CascadeContext, CascadeEvents, CascadeApi>(def);

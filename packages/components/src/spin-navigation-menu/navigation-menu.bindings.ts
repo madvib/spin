@@ -12,7 +12,7 @@ import {
   startState,
   type NavigationMenuArgs,
   type NavigationMenuContext,
-  type NavigationMenuEvent,
+  type NavigationMenuEvents,
   type NavigationMenuValueChange,
   type NavItemRecord,
 } from "./navigation-menu.machine.ts";
@@ -74,7 +74,7 @@ interface SlotLike<R> extends SlotScope<R, NavigationMenuContext> {}
 const itemsOf = (parsed: Record<string, unknown>): readonly NavItemRecord[] =>
   parseItems(parsed["items"]);
 
-const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
+const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
   name: "navigation-menu",
   machine: (props, authored) => navigationMenuMachine(props as NavigationMenuArgs, authored),
   start: (props, authored) =>
@@ -204,4 +204,4 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvent> = {
   },
 };
 
-export const navigationMenu = defineComponent<NavigationMenuContext, NavigationMenuEvent, NavigationMenuApi>(def);
+export const navigationMenu = defineComponent<NavigationMenuContext, NavigationMenuEvents, NavigationMenuApi>(def);

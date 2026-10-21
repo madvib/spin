@@ -5,7 +5,27 @@
  * a move, and the halfway hover flag arrives measured in POINTER_OVER.
  */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
+const clearHoveredValue = () : Partial<RatingGroupContext> => { return ({
+        hoveredValue: -1,
+      }); };
+
+const setValue = (ctx: RatingGroupContext, event: EventUnion<RatingGroupEvents>) : Partial<RatingGroupContext> => {
+        if (event.type !== "CLICK" && event.type !== "SPACE") return {};
+        return {
+          value: ctx.hoveredValue === -1 ? event.value : ctx.hoveredValue,
+        };
+      };
+
+const setHoveredValue = (ctx: RatingGroupContext, event: EventUnion<RatingGroupEvents>) : Partial<RatingGroupContext> => {
+        if (event.type !== "POINTER_OVER") return {};
+        return {
+          hoveredValue: event.index -
+            (ctx.allowHalf && event.isMidway ? 0.5 : 0),
+        };
+      };
+
+
 
 const ratingValue = (raw: unknown): number => {
   const n = typeof raw === "number" ? raw : Number(raw);
@@ -21,24 +41,28 @@ export interface RatingGroupContext {
   readOnly: boolean;
 }
 
-export type RatingGroupEvent =
-  | { type: "SET_VALUE"; value: number }
-  | { type: "CLEAR_VALUE" }
-  | { type: "GROUP_POINTER_OVER" }
-  | { type: "GROUP_POINTER_LEAVE"; radioFocused: boolean }
-  | { type: "POINTER_OVER"; index: number; isMidway: boolean }
-  | { type: "FOCUS" }
-  | { type: "BLUR" }
-  | { type: "SPACE"; value: number }
-  | { type: "CLICK"; value: number }
-  | { type: "ARROW_LEFT" }
-  | { type: "ARROW_RIGHT" }
-  | { type: "HOME" }
-  | { type: "END" }
-  | { type: "SET_COUNT"; count: number }
-  | { type: "SET_ALLOW_HALF"; allowHalf: boolean }
-  | { type: "SET_DISABLED"; disabled: boolean }
-  | { type: "SET_READ_ONLY"; readOnly: boolean };
+export interface RatingGroupEvents {
+  "SET_VALUE": { value: number };
+  "CLEAR_VALUE": {};
+  "GROUP_POINTER_OVER": {};
+  "GROUP_POINTER_LEAVE": { radioFocused: boolean };
+  "POINTER_OVER": { index: number; isMidway: boolean };
+  "FOCUS": {};
+  "BLUR": {};
+  "SPACE": { value: number };
+  "CLICK": { value: number };
+  "ARROW_LEFT": {};
+  "ARROW_RIGHT": {};
+  "HOME": {};
+  "END": {};
+  "SET_COUNT": { count: number };
+  "SET_ALLOW_HALF": { allowHalf: boolean };
+  "SET_DISABLED": { disabled: boolean };
+  "SET_READ_ONLY": { readOnly: boolean };
+}
+
+export type RatingGroupEvent = EventUnion<RatingGroupEvents>;
+
 
 export type RatingGroupValueChange = {
   readonly value: number;
@@ -88,8 +112,8 @@ export interface RatingGroupArgs {
 export function ratingGroup(
   args: RatingGroupArgs = {},
   authored: (name: string) => boolean,
-): Machine<RatingGroupContext, RatingGroupEvent> {
-  return createMachine<RatingGroupContext, RatingGroupEvent>({
+): Machine<RatingGroupContext, RatingGroupEvents> {
+  return createMachine<RatingGroupContext, RatingGroupEvents>({
     id: "rating-group",
     initial: "idle",
     fields: {
@@ -108,135 +132,70 @@ export function ratingGroup(
       readOnly: args.readOnly === true,
     },
     on: {
-      SET_VALUE: { actions: [{ assign: "setValueTo" }] },
-      CLEAR_VALUE: { actions: [{ assign: "clearValue" }] },
-      SET_COUNT: { actions: [{ assign: "setCount" }] },
-      SET_ALLOW_HALF: { actions: [{ assign: "setAllowHalf" }] },
-      SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-      SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
+      SET_VALUE: { assign: (ctx, event) => {
+        return { value: ratingValue(event.value) };
+      } },
+      CLEAR_VALUE: { assign: () => { return ({ value: -1 }); } },
+      SET_COUNT: { assign: (ctx, event) => {
+        return { count: Math.max(1, Math.floor(event.count)) };
+      } },
+      SET_ALLOW_HALF: { assign: (ctx, event) => {
+        return { allowHalf: event.allowHalf };
+      } },
+      SET_DISABLED: { assign: (ctx, event) => {
+        return { disabled: event.disabled };
+      } },
+      SET_READ_ONLY: { assign: (ctx, event) => {
+        return { readOnly: event.readOnly };
+      } },
     },
     states: {
       idle: {
-        entry: [{ assign: "clearHoveredValue" }],
+        entry: [{ assign: clearHoveredValue }],
         on: {
           GROUP_POINTER_OVER: { target: "hover" },
           FOCUS: { target: "focus" },
-          CLICK: { actions: [{ assign: "setValue" }] },
+          CLICK: { assign: setValue },
         },
       },
       focus: {
         on: {
-          POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
-          GROUP_POINTER_LEAVE: { actions: [{ assign: "clearHoveredValue" }] },
+          POINTER_OVER: { assign: setHoveredValue },
+          GROUP_POINTER_LEAVE: { assign: clearHoveredValue },
           BLUR: { target: "idle" },
-          SPACE: [{ cond: "isValueEmpty", actions: [{ assign: "setValue" }] }],
-          CLICK: { actions: [{ assign: "setValue" }] },
-          ARROW_LEFT: { actions: [{ assign: "setPrevValue" }] },
-          ARROW_RIGHT: { actions: [{ assign: "setNextValue" }] },
-          HOME: { actions: [{ assign: "setValueToMin" }] },
-          END: { actions: [{ assign: "setValueToMax" }] },
-        },
-      },
-      hover: {
-        on: {
-          POINTER_OVER: { actions: [{ assign: "setHoveredValue" }] },
-          // A focus is a focus: the keyboard lives in the focus state.
-          FOCUS: { target: "focus" },
-          GROUP_POINTER_LEAVE: [
-            {
-              cond: "radioFocused",
-              target: "focus",
-              actions: [{ assign: "clearHoveredValue" }],
-            },
-            { target: "idle", actions: [{ assign: "clearHoveredValue" }] },
-          ],
-          CLICK: { actions: [{ assign: "setValue" }] },
-        },
-      },
-    },
-    assigns: {
-      setValueTo: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "SET_VALUE") return {};
-        return { value: ratingValue(event.value) };
-      },
-      clearValue: (): Partial<RatingGroupContext> => ({ value: -1 }),
-      setCount: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "SET_COUNT") return {};
-        return { count: Math.max(1, Math.floor(event.count)) };
-      },
-      setAllowHalf: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "SET_ALLOW_HALF") return {};
-        return { allowHalf: event.allowHalf };
-      },
-      setDisabled: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "SET_DISABLED") return {};
-        return { disabled: event.disabled };
-      },
-      setReadOnly: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "SET_READ_ONLY") return {};
-        return { readOnly: event.readOnly };
-      },
-      clearHoveredValue: (): Partial<RatingGroupContext> => ({
-        hoveredValue: -1,
-      }),
-      // A live hover preview wins over the item's own value, as in Zag.
-      setValue: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "CLICK" && event.type !== "SPACE") return {};
-        return {
-          value: ctx.hoveredValue === -1 ? event.value : ctx.hoveredValue,
-        };
-      },
-      setHoveredValue: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): Partial<RatingGroupContext> => {
-        if (event.type !== "POINTER_OVER") return {};
-        return {
-          hoveredValue: event.index -
-            (ctx.allowHalf && event.isMidway ? 0.5 : 0),
-        };
-      },
-      setPrevValue: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({
+          SPACE: [{ cond: (ctx) => { return ctx.value <= 0; }, assign: setValue }],
+          CLICK: { assign: setValue },
+          ARROW_LEFT: { assign: (ctx) => { return ({
         value: Math.max(0, ctx.value - step(ctx)),
-      }),
-      setNextValue: (ctx: RatingGroupContext): Partial<RatingGroupContext> => ({
+      }); } },
+          ARROW_RIGHT: { assign: (ctx) => { return ({
         value: Math.min(
           ctx.count,
           (ctx.value === -1 ? 0 : ctx.value) + step(ctx),
         ),
-      }),
-      setValueToMin: (): Partial<RatingGroupContext> => ({ value: 1 }),
-      setValueToMax: (
-        ctx: RatingGroupContext,
-      ): Partial<RatingGroupContext> => ({ value: ctx.count }),
-    },
-    conds: {
-      isValueEmpty: (ctx: RatingGroupContext): boolean => ctx.value <= 0,
-      radioFocused: (
-        ctx: RatingGroupContext,
-        event: RatingGroupEvent,
-      ): boolean => {
+      }); } },
+          HOME: { assign: () => { return ({ value: 1 }); } },
+          END: { assign: (ctx) => { return ({ value: ctx.count }); } },
+        },
+      },
+      hover: {
+        on: {
+          POINTER_OVER: { assign: setHoveredValue },
+          // A focus is a focus: the keyboard lives in the focus state.
+          FOCUS: { target: "focus" },
+          GROUP_POINTER_LEAVE: [
+            {
+              cond: (ctx, event) => {
         if (event.type !== "GROUP_POINTER_LEAVE") return false;
         return event.radioFocused;
       },
-    },
-  });
+              target: "focus",
+              assign: clearHoveredValue,
+            },
+            { target: "idle", assign: clearHoveredValue },
+          ],
+          CLICK: { assign: setValue },
+        },
+      },
+    },});
 }

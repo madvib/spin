@@ -13,7 +13,33 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const clearItems = () : Partial<AsyncListContext> => { return ({ items: [] }); };
+
+const setItems = (ctx: AsyncListContext, e: AsyncListEvent) : Partial<AsyncListContext> => {
+      if (e.type !== "SUCCESS") return {};
+      // A load-more appends; every other result replaces. The bridge
+      // normalizes a host's resolution, so the items it forwards are already
+      // an array.
+      const loaded = [...e.items];
+      return { items: e.append ? [...ctx.items, ...loaded] : loaded };
+    };
+
+const setCursor = (_ctx: AsyncListContext, e: AsyncListEvent) : Partial<AsyncListContext> => { return e.type === "SUCCESS" ? { cursor: e.cursor ?? null } : {}; };
+
+const setError = (_ctx: AsyncListContext, e: AsyncListEvent) : Partial<AsyncListContext> => { return e.type === "ERROR" ? { error: e.error } : {}; };
+
+const clearError = () : Partial<AsyncListContext> => { return ({ error: undefined }); };
+
+const setFilterText = (_ctx: AsyncListContext, e: AsyncListEvent) : Partial<AsyncListContext> => { return e.type === "FILTER" ? { filterText: e.filterText } : {}; };
+
+const setSortDescriptor = (_ctx: AsyncListContext, e: AsyncListEvent) : Partial<AsyncListContext> => { return e.type === "SORT" ? { sortDescriptor: e.sortDescriptor } : {}; };
+
+const clearCursor = () : Partial<AsyncListContext> => { return ({ cursor: null }); };
+
+const hasSortFn = (ctx: AsyncListContext) : boolean => { return ctx.hasSortFn; };
+
+
 
 export interface SortDescriptor {
   readonly column: string;
@@ -82,57 +108,61 @@ export interface AsyncListContext {
   dependenciesHash: string | undefined;
 }
 
-export type AsyncListEvent =
-  | { type: "RELOAD" }
-  | { type: "LOAD_MORE" }
-  | { type: "SORT"; sortDescriptor: SortDescriptor }
-  | { type: "FILTER"; filterText: string }
-  | { type: "SUCCESS"; items: readonly unknown[]; cursor: unknown; append: boolean }
-  | { type: "ERROR"; error: unknown }
-  | { type: "ABORT" };
+export interface AsyncListEvents {
+  "RELOAD": {};
+  "LOAD_MORE": {};
+  "SORT": { sortDescriptor: SortDescriptor };
+  "FILTER": { filterText: string };
+  "SUCCESS": { items: readonly unknown[]; cursor: unknown; append: boolean };
+  "ERROR": { error: unknown };
+  "ABORT": {};
+}
 
-const config = {
+export type AsyncListEvent = EventUnion<AsyncListEvents>;
+
+
+const config: Omit<MachineSpec<AsyncListContext, AsyncListEvents>, "context"> = {
   id: "async-list",
   initial: "idle",
   // A reload is valid from anywhere; `sorting` shadows the root's to cancel
   // the in-flight sort on the way out.
   on: {
-    RELOAD: { target: "loading", actions: [{ assign: "clearItems" }] },
+    RELOAD: { target: "loading", assign: clearItems },
   },
   states: {
     idle: {
       on: {
-        LOAD_MORE: [{ cond: "hasCursor", target: "loading" }],
+        LOAD_MORE: [{ cond: (ctx) => { return ctx.cursor != null; }, target: "loading" }],
         SORT: [
           {
-            cond: "hasSortFn",
+            cond: hasSortFn,
             target: "sorting",
-            actions: [{ assign: "setSortDescriptor" }, { assign: "clearCursor" }],
+            assign: [setSortDescriptor, clearCursor],
           },
-          { target: "loading", actions: [{ assign: "setSortDescriptor" }, { assign: "clearCursor" }] },
+          { target: "loading", assign: [setSortDescriptor, clearCursor] },
         ],
         FILTER: {
           target: "loading",
-          actions: [{ assign: "setFilterText" }, { assign: "clearCursor" }],
+          assign: [setFilterText, clearCursor],
         },
       },
     },
     loading: {
       // A fetch in flight holds no stale error.
-      entry: [{ assign: "clearError" }],
+      entry: [{ assign: clearError }],
       on: {
         SUCCESS: {
           target: "idle",
-          actions: [{ assign: "setItems" }, { assign: "setCursor" }, { assign: "clearError" }],
+          assign: [setItems, setCursor, clearError],
         },
-        ERROR: { target: "idle", actions: [{ assign: "setError" }] },
+        ERROR: { target: "idle", assign: setError },
         ABORT: { target: "idle" },
         // A filter change mid-flight re-enters `loading`: the fork runs exit
         // and entry for an explicit target (Zag's `reenter: true`), so the
         // bridge aborts the superseded fetch before the new one starts.
         FILTER: {
           target: "loading",
-          actions: [{ assign: "setFilterText" }, { assign: "clearCursor" }],
+          assign: [setFilterText, clearCursor],
         },
       },
     },
@@ -140,64 +170,37 @@ const config = {
       on: {
         SUCCESS: {
           target: "idle",
-          actions: [{ assign: "setItems" }, { assign: "setCursor" }, { assign: "clearError" }],
+          assign: [setItems, setCursor, clearError],
         },
-        ERROR: { target: "idle", actions: [{ assign: "setError" }] },
+        ERROR: { target: "idle", assign: setError },
         ABORT: { target: "idle" },
         FILTER: {
           target: "loading",
-          actions: [{ assign: "setFilterText" }, { assign: "clearCursor" }],
+          assign: [setFilterText, clearCursor],
         },
-        RELOAD: { target: "loading", actions: [{ assign: "clearItems" }] },
+        RELOAD: { target: "loading", assign: clearItems },
         SORT: [
           {
-            cond: "hasSortFn",
+            cond: hasSortFn,
             target: "sorting",
-            actions: [{ assign: "setSortDescriptor" }, { assign: "clearCursor" }],
+            assign: [setSortDescriptor, clearCursor],
           },
-          { target: "loading", actions: [{ assign: "setSortDescriptor" }, { assign: "clearCursor" }] },
+          { target: "loading", assign: [setSortDescriptor, clearCursor] },
         ],
       },
     },
   },
 };
 
-const implementations = {
-  conds: {
-    hasCursor: (ctx: AsyncListContext): boolean => ctx.cursor != null,
-    hasSortFn: (ctx: AsyncListContext): boolean => ctx.hasSortFn,
-  },
-  assigns: {
-    clearItems: (): Partial<AsyncListContext> => ({ items: [] }),
-    setItems: (ctx: AsyncListContext, e: AsyncListEvent): Partial<AsyncListContext> => {
-      if (e.type !== "SUCCESS") return {};
-      // A load-more appends; every other result replaces. The bridge
-      // normalizes a host's resolution, so the items it forwards are already
-      // an array.
-      const loaded = [...e.items];
-      return { items: e.append ? [...ctx.items, ...loaded] : loaded };
-    },
-    setCursor: (_ctx: AsyncListContext, e: AsyncListEvent): Partial<AsyncListContext> =>
-      e.type === "SUCCESS" ? { cursor: e.cursor ?? null } : {},
-    setError: (_ctx: AsyncListContext, e: AsyncListEvent): Partial<AsyncListContext> =>
-      e.type === "ERROR" ? { error: e.error } : {},
-    clearError: (): Partial<AsyncListContext> => ({ error: undefined }),
-    setFilterText: (_ctx: AsyncListContext, e: AsyncListEvent): Partial<AsyncListContext> =>
-      e.type === "FILTER" ? { filterText: e.filterText } : {},
-    setSortDescriptor: (_ctx: AsyncListContext, e: AsyncListEvent): Partial<AsyncListContext> =>
-      e.type === "SORT" ? { sortDescriptor: e.sortDescriptor } : {},
-    clearCursor: (): Partial<AsyncListContext> => ({ cursor: null }),
-  },
-};
+const implementations = {};
 
 export function asyncList(
   args: AsyncListArgs = {},
   authored: (name: string) => boolean,
-): Machine<AsyncListContext, AsyncListEvent> {
-  return createMachine<AsyncListContext, AsyncListEvent>({
+): Machine<AsyncListContext, AsyncListEvents> {
+  return createMachine<AsyncListContext, AsyncListEvents>({
     ...config,
     context: initial(args, authored),
-    ...implementations,
     fields: {
       hasSortFn: {},
     },

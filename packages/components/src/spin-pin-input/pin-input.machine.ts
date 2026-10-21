@@ -4,7 +4,37 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
+const clearFocusedValue = (ctx: PinInputContext) : Partial<PinInputContext> => {
+        if (ctx.focusedIndex === -1) return {};
+        const value = [...viewOf(ctx).chars];
+        value.splice(ctx.focusedIndex, 1);
+        value.push("");
+        return { value };
+      };
+
+const setFocusedIndex = (ctx: PinInputContext, event: EventUnion<PinInputEvents>) : Partial<PinInputContext> => {
+        if (event.type !== "INPUT.FOCUS") return {};
+        // A cell beyond what the value has filled is not reachable by focus:
+        // the browser is moved back to the first empty cell instead.
+        const view = viewOf(ctx);
+        const maxIndex = Math.min(view.filled, view.length - 1);
+        return { focusedIndex: Math.min(event.index, maxIndex) };
+      };
+
+const setFocusIndexToFirst = () : Partial<PinInputContext> => { return ({ focusedIndex: 0 }); };
+
+const advanceFocusedIndex = (ctx: PinInputContext) : Partial<PinInputContext> => { return ({
+        focusedIndex: Math.min(ctx.focusedIndex + 1, viewOf(ctx).length - 1),
+      }); };
+
+const setPrevFocusedIndex = (ctx: PinInputContext) : Partial<PinInputContext> => { return ({
+        focusedIndex: Math.max(ctx.focusedIndex - 1, 0),
+      }); };
+
+const hasValue = (ctx: PinInputContext) : boolean => { return (viewOf(ctx).chars[ctx.focusedIndex] ?? "") !== ""; };
+
+
 
 export interface PinInputContext {
   /** One character per cell, filled to `count` by every assign. */
@@ -77,28 +107,31 @@ export interface PinInputValueInvalid {
   readonly index: number;
 }
 
-export type PinInputEvent =
-  | { type: "VALUE.SET"; value: readonly string[]; index?: undefined }
-  | { type: "VALUE.SET"; value: string; index: number }
-  | { type: "VALUE.CLEAR" }
-  | { type: "INPUT.FOCUS"; index: number }
-  | { type: "INPUT.BLUR"; index: number }
-  | { type: "INPUT.CHANGE"; index: number; value: string }
-  | { type: "INPUT.PASTE"; value: string }
-  | { type: "INPUT.ADVANCE" }
-  | { type: "INPUT.BACKSPACE" }
-  | { type: "INPUT.DELETE" }
-  | { type: "INPUT.ARROW_LEFT" }
-  | { type: "INPUT.ARROW_RIGHT" }
-  | { type: "INPUT.HOME" }
-  | { type: "INPUT.END" }
-  | { type: "VALUE.INVALID"; value: string };
+export interface PinInputEvents {
+  "VALUE.SET": { value: readonly string[]; index?: undefined } | { value: string; index: number };
+  "VALUE.CLEAR": {};
+  "INPUT.FOCUS": { index: number };
+  "INPUT.BLUR": { index: number };
+  "INPUT.CHANGE": { index: number; value: string };
+  "INPUT.PASTE": { value: string };
+  "INPUT.ADVANCE": {};
+  "INPUT.BACKSPACE": {};
+  "INPUT.DELETE": {};
+  "INPUT.ARROW_LEFT": {};
+  "INPUT.ARROW_RIGHT": {};
+  "INPUT.HOME": {};
+  "INPUT.END": {};
+  "VALUE.INVALID": { value: string };
+}
+
+export type PinInputEvent = EventUnion<PinInputEvents>;
+
 
 export function pinInput(
   args: PinInputArgs = {},
   authored: (name: string) => boolean,
-): Machine<PinInputContext, PinInputEvent> {
-  return createMachine<PinInputContext, PinInputEvent>({
+): Machine<PinInputContext, PinInputEvents> {
+  return createMachine<PinInputContext, PinInputEvents>({
     id: "pin-input",
     initial: "idle",
     /**
@@ -117,55 +150,7 @@ export function pinInput(
     // holds focus.
     on: {
       "VALUE.SET": [
-        { cond: "hasIndex", actions: [{ assign: "setValueAtIndex" }] },
-        { actions: [{ assign: "setValue" }] },
-      ],
-      // Zag's VALUE.CLEAR also parks the index on the first cell: the value is
-      // empty, so the next keystroke belongs there.
-      "VALUE.CLEAR": { actions: [{ assign: "clearValue" }, { assign: "setFocusIndexToFirst" }] },
-    },
-    states: {
-      idle: {
-        on: {
-          "INPUT.FOCUS": { target: "focused", actions: [{ assign: "setFocusedIndex" }] },
-        },
-      },
-      focused: {
-        on: {
-          "INPUT.CHANGE": { actions: [{ assign: "setFocusedValue" }, { assign: "advanceFocusedIndex" }] },
-          "INPUT.ADVANCE": { actions: [{ assign: "advanceFocusedIndex" }] },
-          "INPUT.PASTE": { actions: [{ assign: "setPastedValue" }, { assign: "setLastValueFocusIndex" }] },
-          "INPUT.FOCUS": { actions: [{ assign: "setFocusedIndex" }] },
-          "INPUT.BLUR": { target: "idle", actions: [{ assign: "clearFocusedIndex" }] },
-          "INPUT.DELETE": [
-            { cond: "hasValue", actions: [{ assign: "clearFocusedValue" }] },
-          ],
-          "INPUT.ARROW_LEFT": { actions: [{ assign: "setPrevFocusedIndex" }] },
-          "INPUT.ARROW_RIGHT": { actions: [{ assign: "setNextFocusedIndex" }] },
-          "INPUT.HOME": { actions: [{ assign: "setFocusIndexToFirst" }] },
-          "INPUT.END": { actions: [{ assign: "setFocusIndexToLast" }] },
-          // Backspace on a filled cell clears it and steps back; on an empty
-          // cell it only steps back.
-          "INPUT.BACKSPACE": [
-            { cond: "hasValue", actions: [{ assign: "clearFocusedValue" }, { assign: "setPrevFocusedIndex" }] },
-            { actions: [{ assign: "setPrevFocusedIndex" }, { assign: "clearFocusedValue" }] },
-          ],
-        },
-      },
-    },
-    conds: {
-      hasValue: (ctx: PinInputContext): boolean => (viewOf(ctx).chars[ctx.focusedIndex] ?? "") !== "",
-      isValueComplete: (ctx: PinInputContext): boolean => viewOf(ctx).complete,
-      hasIndex: (_ctx: PinInputContext, event: PinInputEvent): boolean =>
-        event.type === "VALUE.SET" && event.index !== undefined,
-    },
-    assigns: {
-      setValue: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> =>
-        event.type === "VALUE.SET" && event.index === undefined
-          // The value arrives the way the host wrote it; the machine shapes it.
-          ? { value: fill(parseChars(event.value), ctx.count) }
-          : {},
-      setValueAtIndex: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> => {
+        { cond: (_ctx, event) => { return event.type === "VALUE.SET" && event.index !== undefined; }, assign: (ctx, event) => {
         if (event.type !== "VALUE.SET" || event.index === undefined) return {};
         const chars = viewOf(ctx).chars;
         const write = getNextValue(chars[ctx.focusedIndex] ?? "", event.value);
@@ -173,17 +158,34 @@ export function pinInput(
         const value = [...chars];
         value[event.index] = write;
         return { value };
+      } },
+        { assign: (ctx, event) => { return event.type === "VALUE.SET" && event.index === undefined
+          // The value arrives the way the host wrote it; the machine shapes it.
+          ? { value: fill(parseChars(event.value), ctx.count) }
+          : {}; } },
+      ],
+      // Zag's VALUE.CLEAR also parks the index on the first cell: the value is
+      // empty, so the next keystroke belongs there.
+      "VALUE.CLEAR": { assign: [(ctx) => { return ({ value: fill([], ctx.count) }); }, setFocusIndexToFirst] },
+    },
+    states: {
+      idle: {
+        on: {
+          "INPUT.FOCUS": { target: "focused", assign: setFocusedIndex },
+        },
       },
-      setFocusedValue: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> => {
+      focused: {
+        on: {
+          "INPUT.CHANGE": { assign: [(ctx, event) => {
         if (event.type !== "INPUT.CHANGE" || ctx.focusedIndex === -1) return {};
         const chars = viewOf(ctx).chars;
         const write = getNextValue(chars[ctx.focusedIndex] ?? "", event.value);
         const value = [...chars];
         value[ctx.focusedIndex] = write;
         return { value };
-      },
-      setPastedValue: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> => {
-        if (event.type !== "INPUT.PASTE") return {};
+      }, advanceFocusedIndex] },
+          "INPUT.ADVANCE": { assign: advanceFocusedIndex },
+          "INPUT.PASTE": { assign: [(ctx, event) => {
         const view = viewOf(ctx);
         // A paste lands at the first cell the value has not filled yet, never
         // behind it — the tail the value already holds stays put.
@@ -191,43 +193,32 @@ export function pinInput(
         const left = startIndex > 0 ? view.asString.substring(0, ctx.focusedIndex) : "";
         const right = event.value.substring(0, view.length - startIndex);
         return { value: fill(`${left}${right}`.split(""), view.length) };
-      },
-      clearValue: (ctx: PinInputContext): Partial<PinInputContext> => ({ value: fill([], ctx.count) }),
-      clearFocusedValue: (ctx: PinInputContext): Partial<PinInputContext> => {
-        if (ctx.focusedIndex === -1) return {};
-        const value = [...viewOf(ctx).chars];
-        value.splice(ctx.focusedIndex, 1);
-        value.push("");
-        return { value };
-      },
-      setFocusedIndex: (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> => {
-        if (event.type !== "INPUT.FOCUS") return {};
-        // A cell beyond what the value has filled is not reachable by focus:
-        // the browser is moved back to the first empty cell instead.
-        const view = viewOf(ctx);
-        const maxIndex = Math.min(view.filled, view.length - 1);
-        return { focusedIndex: Math.min(event.index, maxIndex) };
-      },
-      setFocusIndexToFirst: (): Partial<PinInputContext> => ({ focusedIndex: 0 }),
-      setFocusIndexToLast: (ctx: PinInputContext): Partial<PinInputContext> => ({
-        focusedIndex: Math.max(viewOf(ctx).filled - 1, 0),
-      }),
-      setLastValueFocusIndex: (ctx: PinInputContext): Partial<PinInputContext> => ({
+      }, (ctx) => { return ({
         focusedIndex: Math.min(viewOf(ctx).filled, viewOf(ctx).length - 1),
-      }),
-      advanceFocusedIndex: (ctx: PinInputContext): Partial<PinInputContext> => ({
-        focusedIndex: Math.min(ctx.focusedIndex + 1, viewOf(ctx).length - 1),
-      }),
-      setNextFocusedIndex: (ctx: PinInputContext): Partial<PinInputContext> => {
+      }); }] },
+          "INPUT.FOCUS": { assign: setFocusedIndex },
+          "INPUT.BLUR": { target: "idle", assign: () => { return ({ focusedIndex: -1 }); } },
+          "INPUT.DELETE": [
+            { cond: hasValue, assign: clearFocusedValue },
+          ],
+          "INPUT.ARROW_LEFT": { assign: setPrevFocusedIndex },
+          "INPUT.ARROW_RIGHT": { assign: (ctx) => {
         const view = viewOf(ctx);
         return { focusedIndex: Math.min(ctx.focusedIndex + 1, Math.min(view.filled, view.length - 1)) };
+      } },
+          "INPUT.HOME": { assign: setFocusIndexToFirst },
+          "INPUT.END": { assign: (ctx) => { return ({
+        focusedIndex: Math.max(viewOf(ctx).filled - 1, 0),
+      }); } },
+          // Backspace on a filled cell clears it and steps back; on an empty
+          // cell it only steps back.
+          "INPUT.BACKSPACE": [
+            { cond: hasValue, assign: [clearFocusedValue, setPrevFocusedIndex] },
+            { assign: [setPrevFocusedIndex, clearFocusedValue] },
+          ],
+        },
       },
-      setPrevFocusedIndex: (ctx: PinInputContext): Partial<PinInputContext> => ({
-        focusedIndex: Math.max(ctx.focusedIndex - 1, 0),
-      }),
-      clearFocusedIndex: (): Partial<PinInputContext> => ({ focusedIndex: -1 }),
-    },
-  });
+    },});
 }
 
 /**

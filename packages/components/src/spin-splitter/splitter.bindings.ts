@@ -18,7 +18,7 @@ import {
   validateSizes,
   type SplitterArgs,
   type SplitterContext,
-  type SplitterEvent,
+  type SplitterEvents,
   type SplitterPanel,
   type SplitterResizeDetails,
 } from "./splitter.machine.ts";
@@ -375,7 +375,7 @@ const indicatorSig = (scope: ScopeLike, beforeId: string, afterId: string): stri
   return [focused, dragging, scope.props["orientation"]].join(" ");
 };
 
-const def: ComponentDef<SplitterContext, SplitterEvent> = {
+const def: ComponentDef<SplitterContext, SplitterEvents> = {
   name: "splitter",
   machine: (props, authored) => splitterMachine(props as SplitterArgs, authored),
   // The sizes follow the tree, so the machine never sees a tree it cannot
@@ -597,4 +597,4 @@ const def: ComponentDef<SplitterContext, SplitterEvent> = {
   },
 };
 
-export const splitter = defineComponent<SplitterContext, SplitterEvent, SplitterApi>(def);
+export const splitter = defineComponent<SplitterContext, SplitterEvents, SplitterApi>(def);

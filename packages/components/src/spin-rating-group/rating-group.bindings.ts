@@ -11,7 +11,7 @@ import {
   ratingGroup as ratingGroupMachine,
   type RatingGroupArgs,
   type RatingGroupContext,
-  type RatingGroupEvent,
+  type RatingGroupEvents,
   type RatingGroupValueChange,
   type RatingItemState,
 } from "./rating-group.machine.ts";
@@ -80,7 +80,7 @@ const valueOf = (raw: unknown): number => {
   return Number.isFinite(n) ? n : -1;
 };
 
-const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
+const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
   name: "rating-group",
   machine: (props, authored) => ratingGroupMachine(props as RatingGroupArgs, authored),
   start: "idle",
@@ -338,6 +338,6 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvent> = {
 
 export const ratingGroup = defineComponent<
   RatingGroupContext,
-  RatingGroupEvent,
+  RatingGroupEvents,
   RatingGroupApi
 >(def);

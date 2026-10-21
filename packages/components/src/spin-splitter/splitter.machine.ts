@@ -1,6 +1,33 @@
 /** Splitter machine: idle/hover/focus/dragging over Zag's states. */
 import { coerceJsonArray, defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
+const setFocusedHandle = (ctx: SplitterContext, event: EventUnion<SplitterEvents>) : Partial<SplitterContext> => {
+        if (event.type !== "POINTER_OVER" && event.type !== "FOCUS") return {};
+        void ctx;
+        return { focusedHandle: event.id };
+      };
+
+const startDrag = (ctx: SplitterContext, event: EventUnion<SplitterEvents>) : Partial<SplitterContext> => {
+        if (event.type !== "POINTER_DOWN") return {};
+        const [beforeId, afterId] = splitHandle(event.id);
+        const before = ctx.panels.findIndex((panel) => panel.id === beforeId);
+        const after = ctx.panels.findIndex((panel) => panel.id === afterId);
+        if (before < 0 || after < 0) return {};
+        return {
+          focusedHandle: event.id,
+          drag: {
+            handleId: event.id,
+            beforeId,
+            afterId,
+            startPercent: event.startPercent,
+            startSizes: [...ctx.size],
+          },
+        };
+      };
+
+const endDrag = () : Partial<SplitterContext> => { return ({ drag: null }); };
+
+
 
 export interface SplitterPanel {
   readonly id: string;
@@ -32,23 +59,27 @@ export interface SplitterContext {
   beforeCollapse: Record<string, number>;
 }
 
-export type SplitterEvent =
-  | { type: "SET_SIZE"; size: readonly number[] }
-  | { type: "RESET_SIZE" }
-  | { type: "COLLAPSE_PANEL"; id: string }
-  | { type: "EXPAND_PANEL"; id: string; minSize?: number }
-  | { type: "RESIZE_PANEL"; id: string; size: number }
-  | { type: "POINTER_OVER"; id: string }
-  | { type: "POINTER_LEAVE" }
-  | { type: "FOCUS"; id: string }
-  | { type: "BLUR" }
-  | { type: "POINTER_DOWN"; id: string; startPercent: number }
-  | { type: "POINTER_MOVE"; percent: number }
-  | { type: "POINTER_UP"; handleFocused: boolean }
-  | { type: "KEYBOARD_MOVE"; id: string; delta: number }
-  | { type: "ENTER"; id: string }
-  | { type: "SET_PANELS"; panels: SplitterPanel[] }
-  | { type: "SET_DISABLED"; disabled: boolean };
+export interface SplitterEvents {
+  "SET_SIZE": { size: readonly number[] };
+  "RESET_SIZE": {};
+  "COLLAPSE_PANEL": { id: string };
+  "EXPAND_PANEL": { id: string; minSize?: number };
+  "RESIZE_PANEL": { id: string; size: number };
+  "POINTER_OVER": { id: string };
+  "POINTER_LEAVE": {};
+  "FOCUS": { id: string };
+  "BLUR": {};
+  "POINTER_DOWN": { id: string; startPercent: number };
+  "POINTER_MOVE": { percent: number };
+  "POINTER_UP": { handleFocused: boolean };
+  "KEYBOARD_MOVE": { id: string; delta: number };
+  "ENTER": { id: string };
+  "SET_PANELS": { panels: SplitterPanel[] };
+  "SET_DISABLED": { disabled: boolean };
+}
+
+export type SplitterEvent = EventUnion<SplitterEvents>;
+
 
 export type SplitterResizeDetails = {
   readonly size: number[];
@@ -370,8 +401,8 @@ export function initial(args: SplitterArgs = {}, authored: (name: string) => boo
 export function splitter(
   args: SplitterArgs = {},
   authored: (name: string) => boolean,
-): Machine<SplitterContext, SplitterEvent> {
-  return createMachine<SplitterContext, SplitterEvent>({
+): Machine<SplitterContext, SplitterEvents> {
+  return createMachine<SplitterContext, SplitterEvents>({
     id: "splitter",
     initial: "idle",
     context: initial(args, authored),
@@ -388,55 +419,7 @@ export function splitter(
       disabled: {},
     },
     on: {
-      SET_SIZE: { actions: [{ assign: "setSize" }] },
-      RESET_SIZE: { actions: [{ assign: "resetSize" }] },
-      COLLAPSE_PANEL: { actions: [{ assign: "collapsePanel" }] },
-      EXPAND_PANEL: { actions: [{ assign: "expandPanel" }] },
-      RESIZE_PANEL: { actions: [{ assign: "resizePanel" }] },
-      SET_PANELS: { actions: [{ assign: "setPanels" }] },
-      SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-    },
-    states: {
-      idle: {
-        entry: [{ assign: "clearDrag" }, { assign: "clearFocusedHandle" }],
-        on: {
-          POINTER_OVER: { target: "hover", actions: [{ assign: "setFocusedHandle" }] },
-          FOCUS: { target: "focused", actions: [{ assign: "setFocusedHandle" }] },
-          POINTER_DOWN: { target: "dragging", actions: [{ assign: "startDrag" }] },
-        },
-      },
-      hover: {
-        on: {
-          FOCUS: { target: "focused", actions: [{ assign: "setFocusedHandle" }] },
-          POINTER_DOWN: { target: "dragging", actions: [{ assign: "startDrag" }] },
-          POINTER_LEAVE: { target: "idle" },
-        },
-      },
-      focused: {
-        on: {
-          BLUR: { target: "idle" },
-          ENTER: { actions: [{ assign: "collapseOrExpand" }] },
-          POINTER_DOWN: { target: "dragging", actions: [{ assign: "startDrag" }] },
-          KEYBOARD_MOVE: { actions: [{ assign: "keyboardResize" }] },
-        },
-      },
-      dragging: {
-        on: {
-          POINTER_MOVE: { actions: [{ assign: "dragResize" }] },
-          POINTER_UP: [
-            { cond: "handleFocused", target: "focused", actions: [{ assign: "endDrag" }] },
-            { target: "idle", actions: [{ assign: "endDrag" }] },
-          ],
-        },
-      },
-    },
-    conds: {
-      handleFocused: (_ctx: SplitterContext, event: SplitterEvent): boolean =>
-        event.type === "POINTER_UP" ? event.handleFocused : false,
-    },
-    assigns: {
-      setSize: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "SET_SIZE") return {};
+      SET_SIZE: { assign: (ctx, event) => {
         // The sizes arrive the way the host wrote them; the machine
         // shapes them.
         const written = sizesOf(event.size);
@@ -447,77 +430,80 @@ export function splitter(
         } catch {
           return {};
         }
-      },
-      resetSize: (ctx: SplitterContext): Partial<SplitterContext> => {
+      } },
+      RESET_SIZE: { assign: (ctx) => {
         const safe = validateSizes(ctx.panels, defaultSizes(ctx.panels.length, []));
         return { size: safe };
-      },
-      setPanels: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "SET_PANELS") return {};
+      } },
+      COLLAPSE_PANEL: { assign: (ctx, event) => {
+        const index = ctx.panels.findIndex((panel) => panel.id === event.id);
+        const panel = ctx.panels[index];
+        if (panel?.collapsible !== true) return {};
+        const current = ctx.size[index] ?? 0;
+        const collapsedSize = panel.collapsedSize ?? 0;
+        if (fuzzyEqual(current, collapsedSize)) return {};
+        const pivots = pivotOf(ctx.panels, index);
+        const last = index === ctx.panels.length - 1;
+        const delta = last ? current - collapsedSize : collapsedSize - current;
+        const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "imperative-api");
+        if (fuzzySizeEqual(ctx.size, next)) return {};
+        return { size: next, beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current } };
+      } },
+      EXPAND_PANEL: { assign: (ctx, event) => {
+        const index = ctx.panels.findIndex((panel) => panel.id === event.id);
+        const panel = ctx.panels[index];
+        if (panel?.collapsible !== true) return {};
+        const current = ctx.size[index] ?? 0;
+        const collapsedSize = panel.collapsedSize ?? 0;
+        if (!fuzzyEqual(current, collapsedSize)) return {};
+        const minSize = event.minSize ?? panel.minSize ?? 0;
+        const remembered = ctx.beforeCollapse[panel.id];
+        const base = remembered !== undefined && remembered >= minSize ? remembered : minSize;
+        const last = index === ctx.panels.length - 1;
+        const delta = last ? current - base : base - current;
+        const pivots = pivotOf(ctx.panels, index);
+        const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "imperative-api");
+        return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
+      } },
+      RESIZE_PANEL: { assign: (ctx, event) => {
+        const index = ctx.panels.findIndex((panel) => panel.id === event.id);
+        if (ctx.panels[index] === undefined) return {};
+        const current = ctx.size[index] ?? 0;
+        const last = index === ctx.panels.length - 1;
+        const delta = last ? current - event.size : event.size - current;
+        const next = resizeByDelta(ctx.panels, delta, ctx.size, pivotOf(ctx.panels, index), ctx.size, "imperative-api");
+        return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
+      } },
+      SET_PANELS: { assign: (ctx, event) => {
         void ctx;
         // The tree arrives the way the host wrote it; the machine shapes it.
         return { panels: parsePanels(event.panels) };
-      },
-      setDisabled: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "SET_DISABLED") return {};
+      } },
+      SET_DISABLED: { assign: (ctx, event) => {
         void ctx;
         return { disabled: event.disabled === true };
+      } },
+    },
+    states: {
+      idle: {
+        entry: [{ assign: () => { return ({ drag: null }); } }, { assign: () => { return ({ focusedHandle: null }); } }],
+        on: {
+          POINTER_OVER: { target: "hover", assign: setFocusedHandle },
+          FOCUS: { target: "focused", assign: setFocusedHandle },
+          POINTER_DOWN: { target: "dragging", assign: startDrag },
+        },
       },
-      clearDrag: (): Partial<SplitterContext> => ({ drag: null }),
-      clearFocusedHandle: (): Partial<SplitterContext> => ({ focusedHandle: null }),
-      setFocusedHandle: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "POINTER_OVER" && event.type !== "FOCUS") return {};
-        void ctx;
-        return { focusedHandle: event.id };
+      hover: {
+        on: {
+          FOCUS: { target: "focused", assign: setFocusedHandle },
+          POINTER_DOWN: { target: "dragging", assign: startDrag },
+          POINTER_LEAVE: { target: "idle" },
+        },
       },
-      startDrag: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "POINTER_DOWN") return {};
-        const [beforeId, afterId] = splitHandle(event.id);
-        const before = ctx.panels.findIndex((panel) => panel.id === beforeId);
-        const after = ctx.panels.findIndex((panel) => panel.id === afterId);
-        if (before < 0 || after < 0) return {};
-        return {
-          focusedHandle: event.id,
-          drag: {
-            handleId: event.id,
-            beforeId,
-            afterId,
-            startPercent: event.startPercent,
-            startSizes: [...ctx.size],
-          },
-        };
-      },
-      endDrag: (): Partial<SplitterContext> => ({ drag: null }),
-      // The pointer path: delta from the grab point, resolved against the
-      // drag-start snapshot, so the pivots compare to where the panels were
-      // grabbed.
-      dragResize: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "POINTER_MOVE" || ctx.drag === null) return {};
-        const before = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.beforeId);
-        const after = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.afterId);
-        if (before < 0 || after < 0) return {};
-        const delta = event.percent - (ctx.drag?.startPercent ?? 0);
-        const next = resizeByDelta(
-          ctx.panels,
-          delta,
-          ctx.drag?.startSizes ?? ctx.size,
-          [before, after],
-          ctx.size,
-          "mouse-or-touch",
-        );
-        return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
-      },
-      keyboardResize: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "KEYBOARD_MOVE") return {};
-        const [beforeId, afterId] = splitHandle(event.id);
-        const before = ctx.panels.findIndex((panel) => panel.id === beforeId);
-        const after = ctx.panels.findIndex((panel) => panel.id === afterId);
-        if (before < 0 || after < 0) return {};
-        const next = resizeByDelta(ctx.panels, event.delta, ctx.size, [before, after], ctx.size, "keyboard");
-        return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
-      },
-      collapseOrExpand: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "ENTER") return {};
+      focused: {
+        on: {
+          BLUR: { target: "idle" },
+          ENTER: { assign: (ctx, event) => {
         const [beforeId] = splitHandle(event.id);
         const index = ctx.panels.findIndex((panel) => panel.id === beforeId);
         const panel = ctx.panels[index];
@@ -545,49 +531,41 @@ export function splitter(
         );
         if (fuzzySizeEqual(ctx.size, next)) return {};
         return { size: next, beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current } };
-      },
-      collapsePanel: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "COLLAPSE_PANEL") return {};
-        const index = ctx.panels.findIndex((panel) => panel.id === event.id);
-        const panel = ctx.panels[index];
-        if (panel?.collapsible !== true) return {};
-        const current = ctx.size[index] ?? 0;
-        const collapsedSize = panel.collapsedSize ?? 0;
-        if (fuzzyEqual(current, collapsedSize)) return {};
-        const pivots = pivotOf(ctx.panels, index);
-        const last = index === ctx.panels.length - 1;
-        const delta = last ? current - collapsedSize : collapsedSize - current;
-        const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "imperative-api");
-        if (fuzzySizeEqual(ctx.size, next)) return {};
-        return { size: next, beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current } };
-      },
-      expandPanel: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "EXPAND_PANEL") return {};
-        const index = ctx.panels.findIndex((panel) => panel.id === event.id);
-        const panel = ctx.panels[index];
-        if (panel?.collapsible !== true) return {};
-        const current = ctx.size[index] ?? 0;
-        const collapsedSize = panel.collapsedSize ?? 0;
-        if (!fuzzyEqual(current, collapsedSize)) return {};
-        const minSize = event.minSize ?? panel.minSize ?? 0;
-        const remembered = ctx.beforeCollapse[panel.id];
-        const base = remembered !== undefined && remembered >= minSize ? remembered : minSize;
-        const last = index === ctx.panels.length - 1;
-        const delta = last ? current - base : base - current;
-        const pivots = pivotOf(ctx.panels, index);
-        const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "imperative-api");
+      } },
+          POINTER_DOWN: { target: "dragging", assign: startDrag },
+          KEYBOARD_MOVE: { assign: (ctx, event) => {
+        const [beforeId, afterId] = splitHandle(event.id);
+        const before = ctx.panels.findIndex((panel) => panel.id === beforeId);
+        const after = ctx.panels.findIndex((panel) => panel.id === afterId);
+        if (before < 0 || after < 0) return {};
+        const next = resizeByDelta(ctx.panels, event.delta, ctx.size, [before, after], ctx.size, "keyboard");
         return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
+      } },
+        },
       },
-      resizePanel: (ctx: SplitterContext, event: SplitterEvent): Partial<SplitterContext> => {
-        if (event.type !== "RESIZE_PANEL") return {};
-        const index = ctx.panels.findIndex((panel) => panel.id === event.id);
-        if (ctx.panels[index] === undefined) return {};
-        const current = ctx.size[index] ?? 0;
-        const last = index === ctx.panels.length - 1;
-        const delta = last ? current - event.size : event.size - current;
-        const next = resizeByDelta(ctx.panels, delta, ctx.size, pivotOf(ctx.panels, index), ctx.size, "imperative-api");
+      dragging: {
+        on: {
+          POINTER_MOVE: { assign: (ctx, event) => {
+        if (event.type !== "POINTER_MOVE" || ctx.drag === null) return {};
+        const before = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.beforeId);
+        const after = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.afterId);
+        if (before < 0 || after < 0) return {};
+        const delta = event.percent - (ctx.drag?.startPercent ?? 0);
+        const next = resizeByDelta(
+          ctx.panels,
+          delta,
+          ctx.drag?.startSizes ?? ctx.size,
+          [before, after],
+          ctx.size,
+          "mouse-or-touch",
+        );
         return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
+      } },
+          POINTER_UP: [
+            { cond: (_ctx, event) => { return event.type === "POINTER_UP" ? event.handleFocused : false; }, target: "focused", assign: endDrag },
+            { target: "idle", assign: endDrag },
+          ],
+        },
       },
-    },
-  });
+    },});
 }

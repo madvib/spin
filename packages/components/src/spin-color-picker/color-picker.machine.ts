@@ -16,7 +16,65 @@
 
 import { parseColor, type ColorChannel } from "@zag-js/color-utils";
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setValueFromSwatch = (ctx: ColorPickerContext, event: EventUnion<ColorPickerEvents>) : Partial<ColorPickerContext> => {
+      if (event.type !== "SWATCH_TRIGGER.CLICK") return {};
+      const { color } = parse(event.value, ctx.value);
+      return { value: serialize(color, ctx.format) };
+    };
+
+const setActiveChannel = (ctx: ColorPickerContext, event: EventUnion<ColorPickerEvents>) : Partial<ColorPickerContext> => {
+      if (event.type !== "CHANNEL_INPUT.FOCUS") return {};
+      void ctx;
+      return { activeChannel: event.channel };
+    };
+
+const setChannelFromInput = (ctx: ColorPickerContext, event: EventUnion<ColorPickerEvents>) : Partial<ColorPickerContext> => {
+      if (event.type !== "CHANNEL_INPUT.BLUR" && event.type !== "CHANNEL_INPUT.CHANGE") return {};
+      const { color } = parse(ctx.value, "#000000");
+      if (event.channel === "alpha") {
+        const n = parseFloat(event.value);
+        if (Number.isNaN(n)) return {};
+        return { value: serialize(color.withChannelValue("alpha", n), ctx.format) };
+      }
+      if (event.channel === "hex") {
+        const { color: next } = parse(event.value.startsWith("#") ? event.value : `#${event.value}`, ctx.value);
+        const alpha = color.getChannelValue("alpha");
+        return { value: serialize(next.withChannelValue("alpha", alpha), ctx.format) };
+      }
+      const n = parseFloat(event.value);
+      if (Number.isNaN(n)) return {};
+      const inFormat = color;
+      return { value: serialize(inFormat.withChannelValue(event.channel, n), ctx.format) };
+    };
+
+const setAreaFromPoint = (ctx: ColorPickerContext, event: EventUnion<ColorPickerEvents>) : Partial<ColorPickerContext> => {
+      if (event.type !== "AREA.POINTER_DOWN" && event.type !== "AREA.POINTER_MOVE") return {};
+      const { color } = parse(ctx.value, "#000000");
+      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+      const v = color.toFormat(areaFormat);
+      const next = v
+        .withChannelValue(ctx.areaX, v.getChannelPercentValue(ctx.areaX, event.x))
+        .withChannelValue(ctx.areaY, v.getChannelPercentValue(ctx.areaY, 1 - event.y));
+      return { value: serialize(next, ctx.format) };
+    };
+
+const setChannelFromPoint = (ctx: ColorPickerContext, event: EventUnion<ColorPickerEvents>) : Partial<ColorPickerContext> => {
+      if (
+        event.type !== "CHANNEL_SLIDER.POINTER_DOWN" &&
+        event.type !== "CHANNEL_SLIDER.POINTER_MOVE"
+      ) return {};
+      const { color } = parse(ctx.value, "#000000");
+      const next = color.withChannelValue(
+        event.channel,
+        color.getChannelPercentValue(event.channel, event.percent),
+      );
+      return { value: serialize(next, ctx.format) };
+    };
+
+const isOpenControlled = (ctx: ColorPickerContext) : boolean => { return ctx.inline; };
+
+
 
 export type ColorFormat = "hex" | "hexa" | "rgb" | "rgba" | "hsl" | "hsla" | "hsb" | "hsba";
 
@@ -32,35 +90,39 @@ export interface ColorPickerContext {
   inline: boolean;
 }
 
-export type ColorPickerEvent =
-  | { type: "VALUE.SET"; value: string }
-  | { type: "FORMAT.SET"; format: ColorFormat | string }
-  | { type: "OPEN" }
-  | { type: "CLOSE" }
-  | { type: "CONTROLLED.OPEN" }
-  | { type: "CONTROLLED.CLOSE" }
-  | { type: "TRIGGER.CLICK" }
-  | { type: "TRIGGER.BLUR" }
-  | { type: "LAYER.INTERACT_OUTSIDE" }
-  | { type: "CHANNEL_INPUT.FOCUS"; channel: ColorChannel }
-  | { type: "CHANNEL_INPUT.BLUR"; channel: ColorChannel | "hex"; value: string }
-  | { type: "CHANNEL_INPUT.CHANGE"; channel: ColorChannel | "hex"; value: string }
-  | { type: "AREA.POINTER_DOWN"; x: number; y: number }
-  | { type: "AREA.ACTIVATE" }
-  | { type: "AREA.POINTER_MOVE"; x: number; y: number }
-  | { type: "AREA.POINTER_UP" }
-  | { type: "AREA.ARROW"; channel: "x" | "y"; delta: number }
-  | { type: "AREA.HOME_END"; channel: "x" | "y"; toMax: boolean }
-  | { type: "CHANNEL_SLIDER.POINTER_DOWN"; channel: ColorChannel; percent: number }
-  | { type: "CHANNEL_SLIDER.ACTIVATE"; channel: ColorChannel }
-  | { type: "CHANNEL_SLIDER.POINTER_MOVE"; channel: ColorChannel; percent: number }
-  | { type: "CHANNEL_SLIDER.POINTER_UP" }
-  | { type: "CHANNEL_SLIDER.ARROW"; channel: ColorChannel; delta: number }
-  | { type: "CHANNEL_SLIDER.HOME_END"; channel: ColorChannel; toMax: boolean }
-  | { type: "SWATCH_TRIGGER.CLICK"; value: string }
-  | { type: "EYEDROPPER.CLICK" };
+export interface ColorPickerEvents {
+  "VALUE.SET": { value: string };
+  "FORMAT.SET": { format: ColorFormat | string };
+  "OPEN": {};
+  "CLOSE": {};
+  "CONTROLLED.OPEN": {};
+  "CONTROLLED.CLOSE": {};
+  "TRIGGER.CLICK": {};
+  "TRIGGER.BLUR": {};
+  "LAYER.INTERACT_OUTSIDE": {};
+  "CHANNEL_INPUT.FOCUS": { channel: ColorChannel };
+  "CHANNEL_INPUT.BLUR": { channel: ColorChannel | "hex"; value: string };
+  "CHANNEL_INPUT.CHANGE": { channel: ColorChannel | "hex"; value: string };
+  "AREA.POINTER_DOWN": { x: number; y: number };
+  "AREA.ACTIVATE": {};
+  "AREA.POINTER_MOVE": { x: number; y: number };
+  "AREA.POINTER_UP": {};
+  "AREA.ARROW": { channel: "x" | "y"; delta: number };
+  "AREA.HOME_END": { channel: "x" | "y"; toMax: boolean };
+  "CHANNEL_SLIDER.POINTER_DOWN": { channel: ColorChannel; percent: number };
+  "CHANNEL_SLIDER.ACTIVATE": { channel: ColorChannel };
+  "CHANNEL_SLIDER.POINTER_MOVE": { channel: ColorChannel; percent: number };
+  "CHANNEL_SLIDER.POINTER_UP": {};
+  "CHANNEL_SLIDER.ARROW": { channel: ColorChannel; delta: number };
+  "CHANNEL_SLIDER.HOME_END": { channel: ColorChannel; toMax: boolean };
+  "SWATCH_TRIGGER.CLICK": { value: string };
+  "EYEDROPPER.CLICK": {};
+}
 
-const config = {
+export type ColorPickerEvent = EventUnion<ColorPickerEvents>;
+
+
+const config: MachineSpec<ColorPickerContext, ColorPickerEvents> = {
   id: "color-picker",
   initial: "idle",
   context: {
@@ -75,84 +137,142 @@ const config = {
     inline: false,
   },
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "FORMAT.SET": { actions: [{ assign: "setFormat" }] },
-    "CHANNEL_INPUT.CHANGE": { actions: [{ assign: "setChannelFromInput" }] },
+    "VALUE.SET": { assign: (ctx, event) => {
+      const { color } = parse(event.value, ctx.value);
+      return { value: serialize(color, ctx.format) };
+    } },
+    "FORMAT.SET": { assign: (ctx, event) => {
+      if (!isFormat(event.format)) return {};
+      const { color } = parse(ctx.value, "#000000");
+      return { format: event.format, value: serialize(color, event.format) };
+    } },
+    "CHANNEL_INPUT.CHANGE": { assign: setChannelFromInput },
   },
   states: {
     idle: {
       on: {
         "CONTROLLED.OPEN": { target: "active" },
         OPEN: [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "active" },
         ],
         "TRIGGER.CLICK": [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "active" },
         ],
-        "CHANNEL_INPUT.FOCUS": { target: "focused", actions: [{ assign: "setActiveChannel" }] },
+        "CHANNEL_INPUT.FOCUS": { target: "focused", assign: setActiveChannel },
       },
     },
     focused: {
       on: {
         "CONTROLLED.OPEN": { target: "active" },
         OPEN: [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "active" },
         ],
         "TRIGGER.CLICK": [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "active" },
         ],
-        "CHANNEL_INPUT.FOCUS": { actions: [{ assign: "setActiveChannel" }] },
-        "CHANNEL_INPUT.BLUR": { target: "idle", actions: [{ assign: "setChannelFromInput" }] },
+        "CHANNEL_INPUT.FOCUS": { assign: setActiveChannel },
+        "CHANNEL_INPUT.BLUR": { target: "idle", assign: setChannelFromInput },
         "TRIGGER.BLUR": { target: "idle" },
-        "SWATCH_TRIGGER.CLICK": { actions: [{ assign: "setValueFromSwatch" }] },
+        "SWATCH_TRIGGER.CLICK": { assign: setValueFromSwatch },
       },
     },
     active: {
       on: {
         "CONTROLLED.CLOSE": { target: "idle" },
         CLOSE: [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "idle" },
         ],
         "LAYER.INTERACT_OUTSIDE": [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "idle" },
         ],
         "TRIGGER.CLICK": [
-          { cond: "isOpenControlled", actions: [] },
+          { cond: isOpenControlled },
           { target: "focused" },
         ],
-        "AREA.POINTER_DOWN": { target: "dragging", actions: [{ assign: "setAreaFromPoint" }] },
-        "AREA.ACTIVATE": { actions: [{ assign: "setAreaActive" }] },
+        "AREA.POINTER_DOWN": { target: "dragging", assign: setAreaFromPoint },
+        "AREA.ACTIVATE": { assign: (ctx) => {
+      void ctx;
+      return { activeChannel: null };
+    } },
         "CHANNEL_SLIDER.POINTER_DOWN": {
           target: "dragging",
-          actions: [{ assign: "setChannelFromPoint" }],
+          assign: setChannelFromPoint,
         },
-        "CHANNEL_SLIDER.ACTIVATE": { actions: [{ assign: "setChannelActive" }] },
-        "AREA.ARROW": { actions: [{ assign: "stepArea" }] },
-        "AREA.HOME_END": { actions: [{ assign: "edgeArea" }] },
-        "CHANNEL_SLIDER.ARROW": { actions: [{ assign: "stepChannel" }] },
-        "CHANNEL_SLIDER.HOME_END": { actions: [{ assign: "edgeChannel" }] },
-        "CHANNEL_INPUT.BLUR": { actions: [{ assign: "setChannelFromInput" }] },
+        "CHANNEL_SLIDER.ACTIVATE": { assign: (ctx, event) => {
+      void ctx;
+      return { activeChannel: event.channel };
+    } },
+        "AREA.ARROW": { assign: (ctx, event) => {
+      // The area's channels live in the area format (hsla/hsba): an rgb color
+      // has no saturation channel, so stepping it throws. Convert first, step,
+      // serialize back — Zag's `areaValue`.
+      const { color } = parse(ctx.value, "#000000");
+      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+      const v = color.toFormat(areaFormat);
+      const channel = event.channel === "x" ? ctx.areaX : ctx.areaY;
+      const stepped = event.delta > 0
+        ? v.incrementChannel(channel, event.delta)
+        : v.decrementChannel(channel, -event.delta);
+      return { value: serialize(stepped, ctx.format) };
+    } },
+        "AREA.HOME_END": { assign: (ctx, event) => {
+      const { color } = parse(ctx.value, "#000000");
+      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+      const v = color.toFormat(areaFormat);
+      const channel = event.channel === "x" ? ctx.areaX : ctx.areaY;
+      const range = v.getChannelRange(channel);
+      if (range === undefined) return {};
+      return {
+        value: serialize(v.withChannelValue(channel, event.toMax ? range.maxValue : range.minValue), ctx.format),
+      };
+    } },
+        "CHANNEL_SLIDER.ARROW": { assign: (ctx, event) => {
+      // Hue/saturation/brightness are not rgb channels: without a format the
+      // slider computes against the area value (hsla/hsba), Zag's
+      // `normalizedValue` fallback. Alpha converts to itself.
+      const { color } = parse(ctx.value, "#000000");
+      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+      const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
+      const stepped = event.delta > 0
+        ? v.incrementChannel(event.channel, event.delta)
+        : v.decrementChannel(event.channel, -event.delta);
+      return { value: serialize(stepped, ctx.format) };
+    } },
+        "CHANNEL_SLIDER.HOME_END": { assign: (ctx, event) => {
+      const { color } = parse(ctx.value, "#000000");
+      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+      const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
+      const range = v.getChannelRange(event.channel);
+      if (range === undefined) return {};
+      return {
+        value: serialize(
+          v.withChannelValue(event.channel, event.toMax ? range.maxValue : range.minValue),
+          ctx.format,
+        ),
+      };
+    } },
+        "CHANNEL_INPUT.BLUR": { assign: setChannelFromInput },
         "SWATCH_TRIGGER.CLICK": [
           {
-            cond: "closeOnSelect",
+            cond: (ctx) => { return ctx.closeOnSelect; },
             target: "focused",
-            actions: [{ assign: "setValueFromSwatch" }],
+            assign: setValueFromSwatch,
           },
-          { actions: [{ assign: "setValueFromSwatch" }] },
+          { assign: setValueFromSwatch },
         ],
       },
     },
     dragging: {
       on: {
-        "AREA.POINTER_MOVE": { actions: [{ assign: "setAreaFromPoint" }] },
+        "AREA.POINTER_MOVE": { assign: setAreaFromPoint },
         "AREA.POINTER_UP": { target: "active" },
-        "CHANNEL_SLIDER.POINTER_MOVE": { actions: [{ assign: "setChannelFromPoint" }] },
+        "CHANNEL_SLIDER.POINTER_MOVE": { assign: setChannelFromPoint },
         "CHANNEL_SLIDER.POINTER_UP": { target: "active" },
       },
     },
@@ -177,138 +297,7 @@ const serialize = (color: ReturnType<typeof parseColor>, format: ColorFormat): s
 
 type AreaFormat = "hsla" | "hsba";
 
-const implementations = {
-  conds: {
-    // Inline means controlled: the host owns the visibility.
-    isOpenControlled: (ctx: ColorPickerContext): boolean => ctx.inline,
-    closeOnSelect: (ctx: ColorPickerContext): boolean => ctx.closeOnSelect,
-  },
-  assigns: {
-    setValue: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "VALUE.SET") return {};
-      const { color } = parse(event.value, ctx.value);
-      return { value: serialize(color, ctx.format) };
-    },
-    setValueFromSwatch: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "SWATCH_TRIGGER.CLICK") return {};
-      const { color } = parse(event.value, ctx.value);
-      return { value: serialize(color, ctx.format) };
-    },
-    setFormat: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "FORMAT.SET") return {};
-      if (!isFormat(event.format)) return {};
-      const { color } = parse(ctx.value, "#000000");
-      return { format: event.format, value: serialize(color, event.format) };
-    },
-    setActiveChannel: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "CHANNEL_INPUT.FOCUS") return {};
-      void ctx;
-      return { activeChannel: event.channel };
-    },
-    setAreaActive: (ctx: ColorPickerContext): Partial<ColorPickerContext> => {
-      void ctx;
-      return { activeChannel: null };
-    },
-    setChannelActive: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "CHANNEL_SLIDER.ACTIVATE") return {};
-      void ctx;
-      return { activeChannel: event.channel };
-    },
-    setChannelFromInput: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "CHANNEL_INPUT.BLUR" && event.type !== "CHANNEL_INPUT.CHANGE") return {};
-      const { color } = parse(ctx.value, "#000000");
-      if (event.channel === "alpha") {
-        const n = parseFloat(event.value);
-        if (Number.isNaN(n)) return {};
-        return { value: serialize(color.withChannelValue("alpha", n), ctx.format) };
-      }
-      if (event.channel === "hex") {
-        const { color: next } = parse(event.value.startsWith("#") ? event.value : `#${event.value}`, ctx.value);
-        const alpha = color.getChannelValue("alpha");
-        return { value: serialize(next.withChannelValue("alpha", alpha), ctx.format) };
-      }
-      const n = parseFloat(event.value);
-      if (Number.isNaN(n)) return {};
-      const inFormat = color;
-      return { value: serialize(inFormat.withChannelValue(event.channel, n), ctx.format) };
-    },
-    setAreaFromPoint: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "AREA.POINTER_DOWN" && event.type !== "AREA.POINTER_MOVE") return {};
-      const { color } = parse(ctx.value, "#000000");
-      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-      const v = color.toFormat(areaFormat);
-      const next = v
-        .withChannelValue(ctx.areaX, v.getChannelPercentValue(ctx.areaX, event.x))
-        .withChannelValue(ctx.areaY, v.getChannelPercentValue(ctx.areaY, 1 - event.y));
-      return { value: serialize(next, ctx.format) };
-    },
-    setChannelFromPoint: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (
-        event.type !== "CHANNEL_SLIDER.POINTER_DOWN" &&
-        event.type !== "CHANNEL_SLIDER.POINTER_MOVE"
-      ) return {};
-      const { color } = parse(ctx.value, "#000000");
-      const next = color.withChannelValue(
-        event.channel,
-        color.getChannelPercentValue(event.channel, event.percent),
-      );
-      return { value: serialize(next, ctx.format) };
-    },
-    stepArea: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "AREA.ARROW") return {};
-      // The area's channels live in the area format (hsla/hsba): an rgb color
-      // has no saturation channel, so stepping it throws. Convert first, step,
-      // serialize back — Zag's `areaValue`.
-      const { color } = parse(ctx.value, "#000000");
-      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-      const v = color.toFormat(areaFormat);
-      const channel = event.channel === "x" ? ctx.areaX : ctx.areaY;
-      const stepped = event.delta > 0
-        ? v.incrementChannel(channel, event.delta)
-        : v.decrementChannel(channel, -event.delta);
-      return { value: serialize(stepped, ctx.format) };
-    },
-    edgeArea: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "AREA.HOME_END") return {};
-      const { color } = parse(ctx.value, "#000000");
-      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-      const v = color.toFormat(areaFormat);
-      const channel = event.channel === "x" ? ctx.areaX : ctx.areaY;
-      const range = v.getChannelRange(channel);
-      if (range === undefined) return {};
-      return {
-        value: serialize(v.withChannelValue(channel, event.toMax ? range.maxValue : range.minValue), ctx.format),
-      };
-    },
-    stepChannel: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "CHANNEL_SLIDER.ARROW") return {};
-      // Hue/saturation/brightness are not rgb channels: without a format the
-      // slider computes against the area value (hsla/hsba), Zag's
-      // `normalizedValue` fallback. Alpha converts to itself.
-      const { color } = parse(ctx.value, "#000000");
-      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-      const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
-      const stepped = event.delta > 0
-        ? v.incrementChannel(event.channel, event.delta)
-        : v.decrementChannel(event.channel, -event.delta);
-      return { value: serialize(stepped, ctx.format) };
-    },
-    edgeChannel: (ctx: ColorPickerContext, event: ColorPickerEvent): Partial<ColorPickerContext> => {
-      if (event.type !== "CHANNEL_SLIDER.HOME_END") return {};
-      const { color } = parse(ctx.value, "#000000");
-      const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-      const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
-      const range = v.getChannelRange(event.channel);
-      if (range === undefined) return {};
-      return {
-        value: serialize(
-          v.withChannelValue(event.channel, event.toMax ? range.maxValue : range.minValue),
-          ctx.format,
-        ),
-      };
-    },
-  },
-};
+const implementations = {};
 
 /** The color-picker's arguments: the values the host may set. */
 export interface ColorPickerArgs {
@@ -377,10 +366,9 @@ export const valueAsString = (ctx: ColorPickerContext): string => ctx.value;
 export function colorPicker(
   args: ColorPickerArgs = {},
   authored: (name: string) => boolean,
-): Machine<ColorPickerContext, ColorPickerEvent> {
-  return createMachine<ColorPickerContext, ColorPickerEvent>({
+): Machine<ColorPickerContext, ColorPickerEvents> {
+  return createMachine<ColorPickerContext, ColorPickerEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     fields: {
       value: { event: "VALUE.SET" },

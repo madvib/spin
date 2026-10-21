@@ -1,8 +1,37 @@
 /** Number-input machine: the value, its range, and the spin/scrub gesture. */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const increment = (ctx: NumberInputContext, event: EventUnion<NumberInputEvents>) : Partial<NumberInputContext> => { return moved(ctx, event, incrementValue); };
 
+const decrement = (ctx: NumberInputContext, event: EventUnion<NumberInputEvents>) : Partial<NumberInputContext> => { return moved(ctx, event, decrementValue); };
+
+const setFormattedValue = (ctx: NumberInputContext) : Partial<NumberInputContext> => { return ({
+      value: formatValue(parseValue(ctx.value)),
+    }); };
+
+const beginSpin = (_ctx: NumberInputContext, event: EventUnion<NumberInputEvents>) : Partial<NumberInputContext> => { return ({
+      hint: event.type === "TRIGGER.PRESS_DOWN" ? event.hint : null,
+      spin: "hold",
+    }); };
+
+const endSpin = () : Partial<NumberInputContext> => { return ({ hint: null, spin: null }); };
+
+const clearHint = () : Partial<NumberInputContext> => { return ({ hint: null }); };
+
+const setCursorPoint = (_ctx: NumberInputContext, event: EventUnion<NumberInputEvents>) : Partial<NumberInputContext> => {
+      const point = "point" in event ? event.point : undefined;
+      return point === undefined ? {} : { cursorPoint: point };
+    };
+
+const isIncrementHint = (ctx: NumberInputContext, event: EventUnion<NumberInputEvents>) : boolean => { return ("hint" in event ? event.hint : ctx.hint) === "increment"; };
+
+const isDecrementHint = (ctx: NumberInputContext, event: EventUnion<NumberInputEvents>) : boolean => { return ("hint" in event ? event.hint : ctx.hint) === "decrement"; };
+
+
+
+const outOfRange = (ctx: NumberInputContext): boolean =>
+  !isValueWithinRange(parseValue(ctx.value), ctx.min, ctx.max);
 export type NumberInputHint = "increment" | "decrement";
 
 /** A viewport point, in client coordinates. */
@@ -29,27 +58,31 @@ export interface NumberInputContext {
   spin: "hold" | "repeat" | null;
 }
 
-export type NumberInputEvent =
-  | { type: "VALUE.SET"; value: number | string }
-  | { type: "VALUE.CLEAR" }
-  | { type: "VALUE.INCREMENT" }
-  | { type: "VALUE.DECREMENT" }
-  | { type: "TRIGGER.PRESS_DOWN"; hint: NumberInputHint }
-  | { type: "TRIGGER.PRESS_UP" }
-  | { type: "CHANGE_DELAY" }
-  | { type: "SPIN" }
-  | { type: "SCRUBBER.PRESS_DOWN"; point: NumberInputPoint }
-  | { type: "SCRUBBER.POINTER_MOVE"; hint: NumberInputHint; point: NumberInputPoint }
-  | { type: "SCRUBBER.POINTER_UP" }
-  | { type: "INPUT.FOCUS" }
-  | { type: "INPUT.BLUR" }
-  | { type: "INPUT.CHANGE"; value: string }
-  | { type: "INPUT.ARROW_UP"; step: number }
-  | { type: "INPUT.ARROW_DOWN"; step: number }
-  | { type: "INPUT.HOME" }
-  | { type: "INPUT.END" }
-  | { type: "INPUT.ENTER" }
-  | { type: "FIELDSET.DISABLED"; value: boolean };
+export interface NumberInputEvents {
+  "VALUE.SET": { value: number | string };
+  "VALUE.CLEAR": {};
+  "VALUE.INCREMENT": {};
+  "VALUE.DECREMENT": {};
+  "TRIGGER.PRESS_DOWN": { hint: NumberInputHint };
+  "TRIGGER.PRESS_UP": {};
+  "CHANGE_DELAY": {};
+  "SPIN": {};
+  "SCRUBBER.PRESS_DOWN": { point: NumberInputPoint };
+  "SCRUBBER.POINTER_MOVE": { hint: NumberInputHint; point: NumberInputPoint };
+  "SCRUBBER.POINTER_UP": {};
+  "INPUT.FOCUS": {};
+  "INPUT.BLUR": {};
+  "INPUT.CHANGE": { value: string };
+  "INPUT.ARROW_UP": { step: number };
+  "INPUT.ARROW_DOWN": { step: number };
+  "INPUT.HOME": {};
+  "INPUT.END": {};
+  "INPUT.ENTER": {};
+  "FIELDSET.DISABLED": { value: boolean };
+}
+
+export type NumberInputEvent = EventUnion<NumberInputEvents>;
+
 
 /**
  * The number-input's arguments: the values the host may set.
@@ -164,13 +197,13 @@ export function initial(
  * DOM focus.
  */
 const pressDown = [
-  { target: "focused", cond: "isDecrementHint", actions: [{ assign: "beginSpin" }, { assign: "decrement" }] },
-  { target: "focused", cond: "isIncrementHint", actions: [{ assign: "beginSpin" }, { assign: "increment" }] },
+  { target: "focused", cond: isDecrementHint, assign: [beginSpin, decrement] },
+  { target: "focused", cond: isIncrementHint, assign: [beginSpin, increment] },
 ];
 
-const scrubDown = { target: "scrubbing", actions: [{ assign: "setCursorPoint" }] };
+const scrubDown = { target: "scrubbing", assign: setCursorPoint };
 
-const config = {
+const config: MachineSpec<NumberInputContext, NumberInputEvents> = {
   id: "number-input",
   initial: "idle",
   context: {
@@ -191,22 +224,25 @@ const config = {
   // The value events are valid in every state: "setValue works whether or
   // not the input holds focus".
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
-    "VALUE.INCREMENT": { actions: [{ assign: "increment" }] },
-    "VALUE.DECREMENT": { actions: [{ assign: "decrement" }] },
-    "FIELDSET.DISABLED": { actions: [{ assign: "setFieldsetDisabled" }] },
+    "VALUE.SET": { assign: (ctx, event) => {
+      const raw = typeof event.value === "number" ? event.value : parseValue(event.value);
+      return { value: formatValue(ctx.allowOverflow ? raw : clampValue(raw, ctx.min, ctx.max)) };
+    } },
+    "VALUE.CLEAR": { assign: () => { return ({ value: "" }); } },
+    "VALUE.INCREMENT": { assign: increment },
+    "VALUE.DECREMENT": { assign: decrement },
+    "FIELDSET.DISABLED": { assign: (_ctx, event) => { return event.type === "FIELDSET.DISABLED" ? { fieldsetDisabled: event.value } : {}; } },
     // The auto-repeat clock's two ticks, one per phase, valid from wherever
     // the gesture is live.
     "CHANGE_DELAY": [
-      { cond: "canRepeat", actions: [{ assign: "startRepeat" }] },
+      { cond: (ctx) => { return ctx.spinOnPress && !outOfRange(ctx); }, assign: () => { return ({ spin: "repeat" }); } },
       // A dwell that cannot earn a repeat ends the gesture: Zag leaves the
       // machine waiting for the press-up, with the repeat never armed.
-      { actions: [{ assign: "endSpin" }] },
+      { assign: endSpin },
     ],
     "SPIN": [
-      { cond: "isIncrementHint", actions: [{ assign: "increment" }] },
-      { cond: "isDecrementHint", actions: [{ assign: "decrement" }] },
+      { cond: isIncrementHint, assign: increment },
+      { cond: isDecrementHint, assign: decrement },
     ],
   },
   states: {
@@ -221,41 +257,43 @@ const config = {
       on: {
         "TRIGGER.PRESS_DOWN": pressDown,
         "SCRUBBER.PRESS_DOWN": scrubDown,
-        "TRIGGER.PRESS_UP": { actions: [{ assign: "endSpin" }] },
+        "TRIGGER.PRESS_UP": { assign: endSpin },
         // The arrow keys step by the step the view derived from the
         // modifier keys; everything else steps by `step`.
-        "INPUT.ARROW_UP": { actions: [{ assign: "increment" }] },
-        "INPUT.ARROW_DOWN": { actions: [{ assign: "decrement" }] },
-        "INPUT.HOME": { actions: [{ assign: "setToMin" }] },
-        "INPUT.END": { actions: [{ assign: "setToMax" }] },
+        "INPUT.ARROW_UP": { assign: increment },
+        "INPUT.ARROW_DOWN": { assign: decrement },
+        "INPUT.HOME": { assign: (ctx) => { return ({ value: formatValue(ctx.min) }); } },
+        "INPUT.END": { assign: (ctx) => { return ({ value: formatValue(ctx.max) }); } },
         // A typed value is stored verbatim: the input shows exactly what the
         // host wrote until a blur or Enter reformats it.
-        "INPUT.CHANGE": { actions: [{ assign: "setInputValue" }] },
+        "INPUT.CHANGE": { assign: (_ctx, event) => { return event.type === "INPUT.CHANGE" ? { value: event.value } : {}; } },
         "INPUT.BLUR": [
           {
             target: "idle",
-            cond: "clampsOnBlur",
-            actions: [{ assign: "setClampedValue" }, { assign: "clearHint" }],
+            cond: (ctx) => { return ctx.clampValueOnBlur && ctx.value !== "" && outOfRange(ctx); },
+            assign: [(ctx) => { return ({
+      value: formatValue(clampValue(parseValue(ctx.value), ctx.min, ctx.max)),
+    }); }, clearHint],
           },
           {
             target: "idle",
-            cond: "isOutOfRange",
-            actions: [{ assign: "setFormattedValue" }, { assign: "clearHint" }],
+            cond: outOfRange,
+            assign: [setFormattedValue, clearHint],
           },
           {
             target: "idle",
-            actions: [{ assign: "setFormattedValue" }, { assign: "clearHint" }],
+            assign: [setFormattedValue, clearHint],
           },
         ],
-        "INPUT.ENTER": { actions: [{ assign: "setFormattedValue" }, { assign: "clearHint" }] },
+        "INPUT.ENTER": { assign: [setFormattedValue, clearHint] },
       },
     },
     scrubbing: {
       on: {
-        "SCRUBBER.POINTER_UP": { target: "focused", actions: [{ assign: "clearCursorPoint" }] },
+        "SCRUBBER.POINTER_UP": { target: "focused", assign: () => { return ({ cursorPoint: null }); } },
         "SCRUBBER.POINTER_MOVE": [
-          { cond: "isIncrementHint", actions: [{ assign: "increment" }, { assign: "setCursorPoint" }] },
-          { cond: "isDecrementHint", actions: [{ assign: "decrement" }, { assign: "setCursorPoint" }] },
+          { cond: isIncrementHint, assign: [increment, setCursorPoint] },
+          { cond: isDecrementHint, assign: [decrement, setCursorPoint] },
         ],
       },
     },
@@ -300,8 +338,7 @@ const decrementValue = (value: number, step: number): number =>
 const clampValue = (value: number, min: number, max: number): number =>
   Math.min(Math.max(Number.isNaN(value) ? 0 : value, min), max);
 
-const outOfRange = (ctx: NumberInputContext): boolean =>
-  !isValueWithinRange(parseValue(ctx.value), ctx.min, ctx.max);
+
 
 function moved(
   ctx: NumberInputContext,
@@ -314,66 +351,14 @@ function moved(
   return { value: formatValue(bounded) };
 }
 
-const implementations = {
-  conds: {
-    isIncrementHint: (ctx: NumberInputContext, event: NumberInputEvent): boolean =>
-      ("hint" in event ? event.hint : ctx.hint) === "increment",
-    isDecrementHint: (ctx: NumberInputContext, event: NumberInputEvent): boolean =>
-      ("hint" in event ? event.hint : ctx.hint) === "decrement",
-    // The dwell only earns a repeat while the value is in range: a press on
-    // an out-of-range value steps once, and clamping decides the rest.
-    canRepeat: (ctx: NumberInputContext): boolean => ctx.spinOnPress && !outOfRange(ctx),
-    isOutOfRange: outOfRange,
-    // Zag's blur guard: `clampValueOnBlur` and a value that is neither empty
-    // nor in range. An empty value is never clamped — it stays empty.
-    clampsOnBlur: (ctx: NumberInputContext): boolean =>
-      ctx.clampValueOnBlur && ctx.value !== "" && outOfRange(ctx),
-  },
-  assigns: {
-    setValue: (ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> => {
-      if (event.type !== "VALUE.SET") return {};
-      const raw = typeof event.value === "number" ? event.value : parseValue(event.value);
-      return { value: formatValue(ctx.allowOverflow ? raw : clampValue(raw, ctx.min, ctx.max)) };
-    },
-    clearValue: (): Partial<NumberInputContext> => ({ value: "" }),
-    increment: (ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> =>
-      moved(ctx, event, incrementValue),
-    decrement: (ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> =>
-      moved(ctx, event, decrementValue),
-    setClampedValue: (ctx: NumberInputContext): Partial<NumberInputContext> => ({
-      value: formatValue(clampValue(parseValue(ctx.value), ctx.min, ctx.max)),
-    }),
-    setFormattedValue: (ctx: NumberInputContext): Partial<NumberInputContext> => ({
-      value: formatValue(parseValue(ctx.value)),
-    }),
-    setToMin: (ctx: NumberInputContext): Partial<NumberInputContext> => ({ value: formatValue(ctx.min) }),
-    setToMax: (ctx: NumberInputContext): Partial<NumberInputContext> => ({ value: formatValue(ctx.max) }),
-    setInputValue: (_ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> =>
-      event.type === "INPUT.CHANGE" ? { value: event.value } : {},
-    beginSpin: (_ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> => ({
-      hint: event.type === "TRIGGER.PRESS_DOWN" ? event.hint : null,
-      spin: "hold",
-    }),
-    endSpin: (): Partial<NumberInputContext> => ({ hint: null, spin: null }),
-    clearHint: (): Partial<NumberInputContext> => ({ hint: null }),
-    startRepeat: (): Partial<NumberInputContext> => ({ spin: "repeat" }),
-    setCursorPoint: (_ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> => {
-      const point = "point" in event ? event.point : undefined;
-      return point === undefined ? {} : { cursorPoint: point };
-    },
-    clearCursorPoint: (): Partial<NumberInputContext> => ({ cursorPoint: null }),
-    setFieldsetDisabled: (_ctx: NumberInputContext, event: NumberInputEvent): Partial<NumberInputContext> =>
-      event.type === "FIELDSET.DISABLED" ? { fieldsetDisabled: event.value } : {},
-  },
-};
+const implementations = {};
 
 export function numberInput(
   args: NumberInputArgs = {},
   authored: (name: string) => boolean = () => true,
-): Machine<NumberInputContext, NumberInputEvent> {
-  return createMachine<NumberInputContext, NumberInputEvent>({
+): Machine<NumberInputContext, NumberInputEvents> {
+  return createMachine<NumberInputContext, NumberInputEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host may

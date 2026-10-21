@@ -11,7 +11,7 @@ import {
   type TourArgs,
   type TourContext,
   type TourDismissChange,
-  type TourEvent,
+  type TourEvents,
   type TourStepChange,
   type TourStepRecord,
 } from "./tour.machine.ts";
@@ -161,7 +161,7 @@ const measure = (root: Element, el: HTMLElement, padding: number): void => {
   };
 };
 
-const def: ComponentDef<TourContext, TourEvent> = {
+const def: ComponentDef<TourContext, TourEvents> = {
   name: "tour",
   machine: (props, authored) => tourMachine(props as TourArgs, authored),
   // Every command that enters the resolving phase drives the lookup and
@@ -457,4 +457,4 @@ const def: ComponentDef<TourContext, TourEvent> = {
   },
 };
 
-export const tour = defineComponent<TourContext, TourEvent, TourApi>(def);
+export const tour = defineComponent<TourContext, TourEvents, TourApi>(def);

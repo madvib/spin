@@ -4,7 +4,7 @@ import {
   pinView,
   type PinInputArgs,
   type PinInputContext,
-  type PinInputEvent,
+  type PinInputEvents,
   type PinInputValueChange,
   type PinInputValueComplete,
   type PinInputValueInvalid,
@@ -279,7 +279,7 @@ const cellHandlers = (scope: ScopeLike, index: number): CellHandlerSet => {
   return made;
 };
 
-const def: ComponentDef<PinInputContext, PinInputEvent> = {
+const def: ComponentDef<PinInputContext, PinInputEvents> = {
   name: "pin-input",
   machine: (props, authored) => pinInputMachine(props as PinInputArgs, authored),
   mounted: ({ props, focus }) => {
@@ -527,4 +527,4 @@ const def: ComponentDef<PinInputContext, PinInputEvent> = {
   },
 };
 
-export const pinInput = defineComponent<PinInputContext, PinInputEvent, PinInputApi>(def);
+export const pinInput = defineComponent<PinInputContext, PinInputEvents, PinInputApi>(def);

@@ -13,7 +13,64 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
+const setHighlighted = (ctx: SelectContext, event: EventUnion<SelectEvents>) : Partial<SelectContext> => {
+        // The highlight arrives the way the host wrote it — a value, or
+        // nothing at all.
+        if (event.type === "HIGHLIGHTED_VALUE.SET") {
+          return { highlightedValue: event.highlightedValue };
+        }
+        if (event.type === "ITEM.POINTER_MOVE") {
+          return { highlightedValue: event.value };
+        }
+        return { highlightedValue: ctx.highlightedValue };
+      };
+
+const clearHighlighted = () : Partial<SelectContext> => { return ({
+        highlightedValue: null,
+      }); };
+
+const clearValue = () : Partial<SelectContext> => { return ({ value: [] }); };
+
+const selectClicked = (ctx: SelectContext, event: EventUnion<SelectEvents>) : Partial<SelectContext> => {
+        if (event.type !== "ITEM.CLICK") return {};
+        if (ctx.multiple) {
+          return {
+            value: ctx.value.includes(event.value)
+              ? ctx.value.filter((value) => value !== event.value)
+              : [...ctx.value, event.value],
+          };
+        }
+        return { value: [event.value] };
+      };
+
+const highlightFirstOrSelected = (ctx: SelectContext) : Partial<SelectContext> => {
+        const selected = ctx.value.find((value) => ctx.order.includes(value));
+        if (selected !== undefined) return { highlightedValue: selected };
+        return { highlightedValue: ctx.order[0] ?? null };
+      };
+
+const highlightFirst = (ctx: SelectContext) : Partial<SelectContext> => { return ({
+        highlightedValue: ctx.order[0] ?? null,
+      }); };
+
+const highlightLast = (ctx: SelectContext) : Partial<SelectContext> => { return ({
+        highlightedValue: ctx.order[ctx.order.length - 1] ?? null,
+      }); };
+
+const single = (ctx: SelectContext) : boolean => { return !ctx.multiple; };
+
+const restoreFocus = (_ctx: SelectContext, event: EventUnion<SelectEvents>) : boolean => {
+        if (
+          event.type === "CONTROLLED.CLOSE" ||
+          event.type === "LAYER.INTERACT_OUTSIDE"
+        ) {
+          return event.restoreFocus !== false;
+        }
+        return true;
+      };
+
+
 
 export interface SelectContext {
   value: string[];
@@ -29,41 +86,45 @@ export interface SelectContext {
   loopFocus: boolean;
 }
 
-export type SelectEvent =
-  | { type: "SELECTED_ITEMS.SYNC" }
-  | { type: "HIGHLIGHTED_VALUE.SET"; highlightedValue: string | null }
-  | { type: "HIGHLIGHTED_VALUE.CLEAR" }
-  | { type: "ITEM.SELECT"; value: string }
-  | { type: "ITEM.CLEAR"; value: string }
-  | { type: "VALUE.SET"; value: readonly string[] }
-  | { type: "VALUE.CLEAR" }
-  | { type: "CLEAR.CLICK" }
-  | { type: "OPEN" }
-  | { type: "CLOSE" }
-  | { type: "TOGGLE" }
-  | { type: "CONTROLLED.OPEN" }
-  | { type: "CONTROLLED.CLOSE"; restoreFocus?: boolean }
-  | { type: "TRIGGER.CLICK" }
-  | { type: "TRIGGER.FOCUS" }
-  | { type: "TRIGGER.BLUR" }
-  | { type: "TRIGGER.ENTER" }
-  | { type: "TRIGGER.ARROW_UP" }
-  | { type: "TRIGGER.ARROW_DOWN" }
-  | { type: "TRIGGER.ARROW_LEFT" }
-  | { type: "TRIGGER.ARROW_RIGHT" }
-  | { type: "TRIGGER.HOME" }
-  | { type: "TRIGGER.END" }
-  | { type: "TRIGGER.TYPEAHEAD"; value: string }
-  | { type: "ITEM.CLICK"; value: string }
-  | { type: "ITEM.POINTER_MOVE"; value: string }
-  | { type: "ITEM.POINTER_LEAVE" }
-  | { type: "CONTENT.HOME" }
-  | { type: "CONTENT.END" }
-  | { type: "CONTENT.ARROW_UP" }
-  | { type: "CONTENT.ARROW_DOWN" }
-  | { type: "CONTENT.TYPEAHEAD"; value: string }
-  | { type: "LAYER.ESCAPE" }
-  | { type: "LAYER.INTERACT_OUTSIDE"; restoreFocus?: boolean };
+export interface SelectEvents {
+  "SELECTED_ITEMS.SYNC": {};
+  "HIGHLIGHTED_VALUE.SET": { highlightedValue: string | null };
+  "HIGHLIGHTED_VALUE.CLEAR": {};
+  "ITEM.SELECT": { value: string };
+  "ITEM.CLEAR": { value: string };
+  "VALUE.SET": { value: readonly string[] };
+  "VALUE.CLEAR": {};
+  "CLEAR.CLICK": {};
+  "OPEN": {};
+  "CLOSE": {};
+  "TOGGLE": {};
+  "CONTROLLED.OPEN": {};
+  "CONTROLLED.CLOSE": { restoreFocus?: boolean };
+  "TRIGGER.CLICK": {};
+  "TRIGGER.FOCUS": {};
+  "TRIGGER.BLUR": {};
+  "TRIGGER.ENTER": {};
+  "TRIGGER.ARROW_UP": {};
+  "TRIGGER.ARROW_DOWN": {};
+  "TRIGGER.ARROW_LEFT": {};
+  "TRIGGER.ARROW_RIGHT": {};
+  "TRIGGER.HOME": {};
+  "TRIGGER.END": {};
+  "TRIGGER.TYPEAHEAD": { value: string };
+  "ITEM.CLICK": { value: string };
+  "ITEM.POINTER_MOVE": { value: string };
+  "ITEM.POINTER_LEAVE": {};
+  "CONTENT.HOME": {};
+  "CONTENT.END": {};
+  "CONTENT.ARROW_UP": {};
+  "CONTENT.ARROW_DOWN": {};
+  "CONTENT.TYPEAHEAD": { value: string };
+  "LAYER.ESCAPE": {};
+  "LAYER.INTERACT_OUTSIDE": { restoreFocus?: boolean };
+}
+
+export type SelectEvent = EventUnion<SelectEvents>;
+
 
 export const selectLabel = (ctx: SelectContext): string => {
   if (ctx.value.length === 0) return "";
@@ -179,8 +240,8 @@ const inCollection = (
 export function select(
   args: SelectArgs = {},
   authored: (name: string) => boolean,
-): Machine<SelectContext, SelectEvent> {
-  return createMachine<SelectContext, SelectEvent>({
+): Machine<SelectContext, SelectEvents> {
+  return createMachine<SelectContext, SelectEvents>({
     id: "select",
     initial: "idle",
     /**
@@ -198,14 +259,37 @@ export function select(
     // write or a programmatic select lands the same whatever the panel is
     // doing.
     on: {
-      "SELECTED_ITEMS.SYNC": { actions: [{ assign: "dropVanishedSelection" }] },
-      "HIGHLIGHTED_VALUE.SET": { actions: [{ assign: "setHighlighted" }] },
-      "HIGHLIGHTED_VALUE.CLEAR": { actions: [{ assign: "clearHighlighted" }] },
-      "ITEM.SELECT": { actions: [{ assign: "selectValue" }] },
-      "ITEM.CLEAR": { actions: [{ assign: "clearValue" }] },
-      "VALUE.SET": { actions: [{ assign: "setValue" }] },
-      "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
-      "CLEAR.CLICK": { actions: [{ assign: "clearSelectionAndHighlight" }] },
+      "SELECTED_ITEMS.SYNC": { assign: (ctx) => {
+        const value = ctx.value.filter((candidate) =>
+          ctx.order.includes(candidate)
+        );
+        const highlighted = inCollection(ctx, ctx.highlightedValue)
+          ? ctx.highlightedValue
+          : (value[0] ?? null);
+        const sameSelection = value.length === ctx.value.length;
+        const sameHighlight = highlighted === ctx.highlightedValue;
+        if (sameSelection && sameHighlight) return {};
+        return { value, highlightedValue: highlighted };
+      } },
+      "HIGHLIGHTED_VALUE.SET": { assign: setHighlighted },
+      "HIGHLIGHTED_VALUE.CLEAR": { assign: clearHighlighted },
+      "ITEM.SELECT": { assign: (ctx, event) => {
+        if (ctx.multiple) {
+          return {
+            value: ctx.value.includes(event.value)
+              ? ctx.value.filter((value) => value !== event.value)
+              : [...ctx.value, event.value],
+          };
+        }
+        return { value: [event.value] };
+      } },
+      "ITEM.CLEAR": { assign: clearValue },
+      "VALUE.SET": { assign: (_ctx, event) => { return event.type === "VALUE.SET" ? { value: [...event.value] } : {}; } },
+      "VALUE.CLEAR": { assign: clearValue },
+      "CLEAR.CLICK": { assign: () => { return ({
+        value: [],
+        highlightedValue: null,
+      }); } },
     },
     states: {
       idle: {
@@ -215,19 +299,19 @@ export function select(
           // pre-places as a gesture open does.
           TOGGLE: {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           "TRIGGER.CLICK": {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           OPEN: {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           "CONTROLLED.OPEN": {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
         },
       },
@@ -236,47 +320,70 @@ export function select(
           "TRIGGER.BLUR": { target: "idle" },
           "TRIGGER.CLICK": {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           TOGGLE: {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           OPEN: {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           "CONTROLLED.OPEN": {
             target: "open",
-            actions: [{ assign: "highlightFirstOrSelected" }],
+            assign: highlightFirstOrSelected,
           },
           // The trigger's own open gestures: Enter and the arrows open with
           // the highlight pre-placed (first for Enter/Down, last for Up).
           "TRIGGER.ARROW_DOWN": [
-            { target: "open", actions: [{ assign: "highlightFirst" }] },
+            { target: "open", assign: highlightFirst },
           ],
           "TRIGGER.ARROW_UP": [
-            { target: "open", actions: [{ assign: "highlightLast" }] },
+            { target: "open", assign: highlightLast },
           ],
           "TRIGGER.ENTER": [
-            { target: "open", actions: [{ assign: "highlightFirst" }] },
+            { target: "open", assign: highlightFirst },
           ],
           // The closed-mode selection moves: single-select cycles the
           // selection itself while closed.
           "TRIGGER.ARROW_RIGHT": [
-            { cond: "single", actions: [{ assign: "selectNextInOrder" }] },
+            { cond: single, assign: (ctx) => {
+        const at = ctx.value.length === 0 ? -1 : ctx.order.indexOf(ctx.value[0]!);
+        const next = ctx.order[at + 1];
+        return next === undefined ? {} : { value: [next] };
+      } },
           ],
           "TRIGGER.ARROW_LEFT": [
-            { cond: "single", actions: [{ assign: "selectPreviousInOrder" }] },
+            { cond: single, assign: (ctx) => {
+        const at = ctx.value.length === 0
+          ? ctx.order.length
+          : ctx.order.indexOf(ctx.value[0]!);
+        const previous = ctx.order[at - 1];
+        return previous === undefined ? {} : { value: [previous] };
+      } },
           ],
           "TRIGGER.HOME": [
-            { cond: "single", actions: [{ assign: "selectFirstInOrder" }] },
+            { cond: single, assign: (ctx) => { return ({
+        value: ctx.order.length === 0 ? ctx.value : [ctx.order[0]!],
+      }); } },
           ],
           "TRIGGER.END": [
-            { cond: "single", actions: [{ assign: "selectLastInOrder" }] },
+            { cond: single, assign: (ctx) => { return ({
+        value: ctx.order.length === 0
+          ? ctx.value
+          : [ctx.order[ctx.order.length - 1]!],
+      }); } },
           ],
           "TRIGGER.TYPEAHEAD": [
-            { cond: "single", actions: [{ assign: "selectMatchingInOrder" }] },
+            { cond: single, assign: (ctx, event) => {
+        const value = ctx.order.find((candidate) =>
+          (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
+            event.value.toLowerCase(),
+          )
+        );
+        return value === undefined ? {} : { value: [value] };
+      } },
           ],
         },
       },
@@ -284,144 +391,40 @@ export function select(
         on: {
           "TRIGGER.CLICK": {
             target: "focused",
-            actions: [{ assign: "clearHighlighted" }],
+            assign: clearHighlighted,
           },
           "ITEM.CLICK": [
             {
-              cond: "closeOnSelect",
+              cond: (ctx) => { return ctx.closeOnSelect; },
               target: "focused",
-              actions: [{ assign: "selectClicked" }, {
-                assign: "clearHighlighted",
-              }],
+              assign: [selectClicked, clearHighlighted],
             },
-            { actions: [{ assign: "selectClicked" }] },
+            { assign: selectClicked },
           ],
-          CLOSE: [{ target: "idle", actions: [{ assign: "clearHighlighted" }] }],
-          TOGGLE: [{ target: "idle", actions: [{ assign: "clearHighlighted" }] }],
+          CLOSE: [{ target: "idle", assign: clearHighlighted }],
+          TOGGLE: [{ target: "idle", assign: clearHighlighted }],
           "CONTROLLED.CLOSE": [
             {
-              cond: "restoreFocus",
+              cond: restoreFocus,
               target: "focused",
-              actions: [{ assign: "clearHighlighted" }],
+              assign: clearHighlighted,
             },
-            { target: "idle", actions: [{ assign: "clearHighlighted" }] },
+            { target: "idle", assign: clearHighlighted },
           ],
           "LAYER.ESCAPE": [
-            { target: "focused", actions: [{ assign: "clearHighlighted" }] },
+            { target: "focused", assign: clearHighlighted },
           ],
           "LAYER.INTERACT_OUTSIDE": [
             {
-              cond: "restoreFocus",
+              cond: restoreFocus,
               target: "focused",
-              actions: [{ assign: "clearHighlighted" }],
+              assign: clearHighlighted,
             },
-            { target: "idle", actions: [{ assign: "clearHighlighted" }] },
+            { target: "idle", assign: clearHighlighted },
           ],
-          "CONTENT.HOME": { actions: [{ assign: "highlightFirst" }] },
-          "CONTENT.END": { actions: [{ assign: "highlightLast" }] },
-          "CONTENT.ARROW_DOWN": { actions: [{ assign: "highlightNext" }] },
-          "CONTENT.ARROW_UP": { actions: [{ assign: "highlightPrevious" }] },
-          "CONTENT.TYPEAHEAD": { actions: [{ assign: "highlightMatching" }] },
-          "ITEM.POINTER_MOVE": { actions: [{ assign: "setHighlighted" }] },
-          "ITEM.POINTER_LEAVE": { actions: [{ assign: "clearHighlighted" }] },
-        },
-      },
-    },
-    conds: {
-      single: (ctx: SelectContext): boolean => !ctx.multiple,
-      closeOnSelect: (ctx: SelectContext): boolean => ctx.closeOnSelect,
-      restoreFocus: (_ctx: SelectContext, event: SelectEvent): boolean => {
-        if (
-          event.type === "CONTROLLED.CLOSE" ||
-          event.type === "LAYER.INTERACT_OUTSIDE"
-        ) {
-          return event.restoreFocus !== false;
-        }
-        return true;
-      },
-    },
-    assigns: {
-      setHighlighted: (
-        ctx: SelectContext,
-        event: SelectEvent,
-      ): Partial<SelectContext> => {
-        // The highlight arrives the way the host wrote it — a value, or
-        // nothing at all.
-        if (event.type === "HIGHLIGHTED_VALUE.SET") {
-          return { highlightedValue: event.highlightedValue };
-        }
-        if (event.type === "ITEM.POINTER_MOVE") {
-          return { highlightedValue: event.value };
-        }
-        return { highlightedValue: ctx.highlightedValue };
-      },
-      clearHighlighted: (): Partial<SelectContext> => ({
-        highlightedValue: null,
-      }),
-      setValue: (
-        _ctx: SelectContext,
-        event: SelectEvent,
-      ): Partial<SelectContext> =>
-        event.type === "VALUE.SET" ? { value: [...event.value] } : {},
-      clearValue: (): Partial<SelectContext> => ({ value: [] }),
-      clearSelectionAndHighlight: (): Partial<SelectContext> => ({
-        value: [],
-        highlightedValue: null,
-      }),
-      // ITEM.SELECT adds (single) or toggles (multiple).
-      selectValue: (
-        ctx: SelectContext,
-        event: SelectEvent,
-      ): Partial<SelectContext> => {
-        if (event.type !== "ITEM.SELECT") return {};
-        if (ctx.multiple) {
-          return {
-            value: ctx.value.includes(event.value)
-              ? ctx.value.filter((value) => value !== event.value)
-              : [...ctx.value, event.value],
-          };
-        }
-        return { value: [event.value] };
-      },
-      // The click carries the row it landed on: a click without a preceding
-      // pointer-move must still select the row under the cursor.
-      selectClicked: (
-        ctx: SelectContext,
-        event: SelectEvent,
-      ): Partial<SelectContext> => {
-        if (event.type !== "ITEM.CLICK") return {};
-        if (ctx.multiple) {
-          return {
-            value: ctx.value.includes(event.value)
-              ? ctx.value.filter((value) => value !== event.value)
-              : [...ctx.value, event.value],
-          };
-        }
-        return { value: [event.value] };
-      },
-      selectHighlighted: (ctx: SelectContext): Partial<SelectContext> => {
-        if (!inCollection(ctx, ctx.highlightedValue)) return {};
-        if (ctx.multiple) {
-          return {
-            value: ctx.value.includes(ctx.highlightedValue)
-              ? ctx.value.filter((value) => value !== ctx.highlightedValue)
-              : [...ctx.value, ctx.highlightedValue],
-          };
-        }
-        return { value: [ctx.highlightedValue] };
-      },
-      highlightFirstOrSelected: (ctx: SelectContext): Partial<SelectContext> => {
-        const selected = ctx.value.find((value) => ctx.order.includes(value));
-        if (selected !== undefined) return { highlightedValue: selected };
-        return { highlightedValue: ctx.order[0] ?? null };
-      },
-      highlightFirst: (ctx: SelectContext): Partial<SelectContext> => ({
-        highlightedValue: ctx.order[0] ?? null,
-      }),
-      highlightLast: (ctx: SelectContext): Partial<SelectContext> => ({
-        highlightedValue: ctx.order[ctx.order.length - 1] ?? null,
-      }),
-      highlightNext: (ctx: SelectContext): Partial<SelectContext> => {
+          "CONTENT.HOME": { assign: highlightFirst },
+          "CONTENT.END": { assign: highlightLast },
+          "CONTENT.ARROW_DOWN": { assign: (ctx) => {
         const at = inCollection(ctx, ctx.highlightedValue)
           ? ctx.order.indexOf(ctx.highlightedValue)
           : -1;
@@ -431,8 +434,8 @@ export function select(
           return ctx.loopFocus ? { highlightedValue: ctx.order[0] ?? null } : {};
         }
         return { highlightedValue: next };
-      },
-      highlightPrevious: (ctx: SelectContext): Partial<SelectContext> => {
+      } },
+          "CONTENT.ARROW_UP": { assign: (ctx) => {
         const at = inCollection(ctx, ctx.highlightedValue)
           ? ctx.order.indexOf(ctx.highlightedValue)
           : -1;
@@ -446,67 +449,18 @@ export function select(
             : {};
         }
         return { highlightedValue: previous };
-      },
-      highlightMatching: (
-        ctx: SelectContext,
-        event: SelectEvent,
-      ): Partial<SelectContext> => {
-        if (event.type !== "CONTENT.TYPEAHEAD") return {};
+      } },
+          "CONTENT.TYPEAHEAD": { assign: (ctx, event) => {
         const value = ctx.order.find((candidate) =>
           (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
             event.value.toLowerCase(),
           )
         );
         return value === undefined ? {} : { highlightedValue: value };
+      } },
+          "ITEM.POINTER_MOVE": { assign: setHighlighted },
+          "ITEM.POINTER_LEAVE": { assign: clearHighlighted },
+        },
       },
-      // The closed-mode selection moves: the trigger changes the selection
-      // without opening.
-      selectFirstInOrder: (ctx: SelectContext): Partial<SelectContext> => ({
-        value: ctx.order.length === 0 ? ctx.value : [ctx.order[0]!],
-      }),
-      selectLastInOrder: (ctx: SelectContext): Partial<SelectContext> => ({
-        value: ctx.order.length === 0
-          ? ctx.value
-          : [ctx.order[ctx.order.length - 1]!],
-      }),
-      selectNextInOrder: (ctx: SelectContext): Partial<SelectContext> => {
-        const at = ctx.value.length === 0 ? -1 : ctx.order.indexOf(ctx.value[0]!);
-        const next = ctx.order[at + 1];
-        return next === undefined ? {} : { value: [next] };
-      },
-      selectPreviousInOrder: (ctx: SelectContext): Partial<SelectContext> => {
-        const at = ctx.value.length === 0
-          ? ctx.order.length
-          : ctx.order.indexOf(ctx.value[0]!);
-        const previous = ctx.order[at - 1];
-        return previous === undefined ? {} : { value: [previous] };
-      },
-      selectMatchingInOrder: (
-        ctx: SelectContext,
-        event: SelectEvent,
-      ): Partial<SelectContext> => {
-        if (event.type !== "TRIGGER.TYPEAHEAD") return {};
-        const value = ctx.order.find((candidate) =>
-          (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
-            event.value.toLowerCase(),
-          )
-        );
-        return value === undefined ? {} : { value: [value] };
-      },
-      // A collection change can strand the selection and the highlight.
-      // The strand resolves to the first surviving value.
-      dropVanishedSelection: (ctx: SelectContext): Partial<SelectContext> => {
-        const value = ctx.value.filter((candidate) =>
-          ctx.order.includes(candidate)
-        );
-        const highlighted = inCollection(ctx, ctx.highlightedValue)
-          ? ctx.highlightedValue
-          : (value[0] ?? null);
-        const sameSelection = value.length === ctx.value.length;
-        const sameHighlight = highlighted === ctx.highlightedValue;
-        if (sameSelection && sameHighlight) return {};
-        return { value, highlightedValue: highlighted };
-      },
-    },
-  });
+    },});
 }

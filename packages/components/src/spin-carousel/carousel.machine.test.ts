@@ -3,7 +3,7 @@ import {
   carousel as carouselMachine,
   pageCountFor,
   type CarouselContext,
-  type CarouselEvent,
+  type CarouselEvents,
 } from "./carousel.machine.ts";
 import { interpret, type Service } from "@spin/runtime/fsm";
 
@@ -19,7 +19,7 @@ import { interpret, type Service } from "@spin/runtime/fsm";
 function carousel(
   slideCount: number,
   loop = false,
-): Service<CarouselContext, CarouselEvent> {
+): Service<CarouselContext, CarouselEvents> {
   const svc = interpret(carouselMachine({ loop }, () => true));
   svc.start("idle");
   svc.send({ type: "PAGES.SET", count: slideCount });
@@ -27,7 +27,7 @@ function carousel(
 }
 
 const contextOf = (
-  svc: Service<CarouselContext, CarouselEvent>,
+  svc: Service<CarouselContext, CarouselEvents>,
 ): CarouselContext => svc.state.context;
 
 Deno.test("Given a five-slide carousel / When it starts / Then it is idle on page 0 of 5", () => {

@@ -5,7 +5,7 @@ import {
   type TreeArgs,
   type TreeCheckedChange,
   type TreeContext,
-  type TreeEvent,
+  type TreeEvents,
   type TreeExpandedChange,
   type TreeFocusChange,
   type TreeLoadComplete,
@@ -385,7 +385,7 @@ const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void =>
   if (branch && !wasExpanded) ensureChildren(scope, row.node.value);
 };
 
-const def: ComponentDef<TreeContext, TreeEvent> = {
+const def: ComponentDef<TreeContext, TreeEvents> = {
   name: "tree",
   machine: (props, authored) => treeViewMachine(props as TreeArgs, authored),
   // Focus follows the machine: every focus move lands the DOM focus on
@@ -707,4 +707,4 @@ const def: ComponentDef<TreeContext, TreeEvent> = {
   },
 };
 
-export const treeView = defineComponent<TreeContext, TreeEvent, TreeApi>(def);
+export const treeView = defineComponent<TreeContext, TreeEvents, TreeApi>(def);

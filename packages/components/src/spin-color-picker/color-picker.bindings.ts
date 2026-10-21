@@ -17,7 +17,7 @@ import {
   type ColorFormat,
   type ColorPickerArgs,
   type ColorPickerContext,
-  type ColorPickerEvent,
+  type ColorPickerEvents,
 } from "./color-picker.machine.ts";
 
 /**
@@ -326,7 +326,7 @@ const channelValueOf = (
   }
 };
 
-const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
+const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
   name: "color-picker",
   machine: (props, authored) => colorPickerMachine(props as ColorPickerArgs, authored),
   start: (raw) => (startOpen(raw) ? "active" : "idle"),
@@ -962,4 +962,4 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvent> = {
   },
 };
 
-export const colorPicker = defineComponent<ColorPickerContext, ColorPickerEvent, ColorPickerApi>(def);
+export const colorPicker = defineComponent<ColorPickerContext, ColorPickerEvents, ColorPickerApi>(def);

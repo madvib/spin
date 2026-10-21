@@ -22,7 +22,7 @@ import { defaultTwin, isRecord } from "@spin/runtime";
  * statement about the crop, not about nodes.
  */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
 import {
   clampPoint,
   centerRect,
@@ -34,6 +34,19 @@ import {
   isVisibleRect,
   resolveCropAspectRatio,
 } from "./crop-geometry.ts";
+const setPointerStart = (ctx: ImageCropperContext, event: EventUnion<ImageCropperEvents>) : Partial<ImageCropperContext> => {
+      if (event.type !== "POINTER_DOWN" && event.type !== "PAN_POINTER_DOWN") return {};
+      void ctx;
+      return { pointerStart: { ...event.point } };
+    };
+
+const clearPointerStart = () : Partial<ImageCropperContext> => { return ({ pointerStart: null }); };
+
+const clearOffsetStart = () : Partial<ImageCropperContext> => { return ({ offsetStart: null }); };
+
+const hasViewport = (ctx: ImageCropperContext) : boolean => { return isVisibleRect(ctx.viewportRect); };
+
+
 
 export interface ImageCropperArgs {
   cropShape?: string;
@@ -150,32 +163,31 @@ export interface ImageCropperContext {
   fixedCropArea: boolean;
 }
 
-export type ImageCropperEvent =
-  | { type: "SET_NATURAL_SIZE"; size: CropSize }
-  | { type: "SET_DEFAULT_CROP"; viewport: CropRect }
-  | { type: "SET_VIEWPORT"; viewport: CropRect }
-  | { type: "POINTER_DOWN"; point: CropPoint; handlePosition?: CropHandle | undefined }
-  | { type: "PAN_POINTER_DOWN"; point: CropPoint }
-  | { type: "POINTER_MOVE"; point: CropPoint; shiftKey?: boolean; altKey?: boolean }
-  | { type: "POINTER_UP" }
-  | { type: "ZOOM"; delta: number; point?: CropPoint | undefined }
-  | { type: "SET_ZOOM"; zoom: number }
-  | { type: "SET_ROTATION"; rotation: number }
-  | {
-    type: "SET_FLIP";
-    horizontal?: boolean;
-    vertical?: boolean;
-    flip?: { readonly horizontal?: boolean; readonly vertical?: boolean };
-  }
-  | { type: "NUDGE_RESIZE"; handlePosition: CropHandle; large?: boolean }
-  | { type: "NUDGE_MOVE"; dx: number; dy: number }
-  | { type: "NUDGE_PAN"; dx: number; dy: number }
-  | { type: "RESIZE_CROP"; handlePosition: CropHandle; delta: CropPoint }
-  | { type: "RESET" };
+export interface ImageCropperEvents {
+  "SET_NATURAL_SIZE": { size: CropSize };
+  "SET_DEFAULT_CROP": { viewport: CropRect };
+  "SET_VIEWPORT": { viewport: CropRect };
+  "POINTER_DOWN": { point: CropPoint; handlePosition?: CropHandle | undefined };
+  "PAN_POINTER_DOWN": { point: CropPoint };
+  "POINTER_MOVE": { point: CropPoint; shiftKey?: boolean; altKey?: boolean };
+  "POINTER_UP": {};
+  "ZOOM": { delta: number; point?: CropPoint | undefined };
+  "SET_ZOOM": { zoom: number };
+  "SET_ROTATION": { rotation: number };
+  "SET_FLIP": { horizontal?: boolean; vertical?: boolean; flip?: { readonly horizontal?: boolean; readonly vertical?: boolean } };
+  "NUDGE_RESIZE": { handlePosition: CropHandle; large?: boolean };
+  "NUDGE_MOVE": { dx: number; dy: number };
+  "NUDGE_PAN": { dx: number; dy: number };
+  "RESIZE_CROP": { handlePosition: CropHandle; delta: CropPoint };
+  "RESET": {};
+}
+
+export type ImageCropperEvent = EventUnion<ImageCropperEvents>;
+
 
 const ZERO: CropRect = { x: 0, y: 0, width: 0, height: 0 };
 
-const config = {
+const config: MachineSpec<ImageCropperContext, ImageCropperEvents> = {
   id: "image-cropper",
   initial: "idle",
   context: {
@@ -200,58 +212,178 @@ const config = {
     fixedCropArea: false,
   },
   on: {
-    SET_NATURAL_SIZE: { actions: [{ assign: "setNaturalSize" }] },
-    SET_VIEWPORT: { actions: [{ assign: "setViewport" }] },
-    SET_DEFAULT_CROP: { actions: [{ assign: "setDefaultCrop" }] },
-    SET_ZOOM: { actions: [{ assign: "setZoom" }] },
-    SET_ROTATION: { actions: [{ assign: "setRotation" }] },
-    SET_FLIP: { actions: [{ assign: "setFlip" }] },
-    RESET: { actions: [{ assign: "resetCrop" }] },
+    SET_NATURAL_SIZE: { assign: (ctx, event) => {
+      // The crop's default is derived from the viewport and the image's
+      // aspect. Whichever arrives last wins, so a natural size that lands
+      // after the viewport recomputes the crop.
+      const next = { ...ctx, naturalSize: { ...event.size } };
+      return { naturalSize: { ...event.size }, ...defaultCropPatch(next, ctx.viewportRect) };
+    } },
+    SET_VIEWPORT: { assign: (ctx, event) => {
+      void ctx;
+      return { viewportRect: { ...event.viewport } };
+    } },
+    SET_DEFAULT_CROP: { assign: (ctx, event) => {
+      const viewportRect = { ...event.viewport };
+      return { viewportRect, ...defaultCropPatch(ctx, viewportRect) };
+    } },
+    SET_ZOOM: { assign: (ctx, event) => {
+      void ctx;
+      const zoom = zoomOf(event.zoom);
+      if (zoom === null) return {};
+      return { zoom };
+    } },
+    SET_ROTATION: { assign: (ctx, event) => {
+      void ctx;
+      const rotation = rotationOf(event.rotation);
+      if (rotation === null) return {};
+      return { rotation };
+    } },
+    SET_FLIP: { assign: (ctx, event) => {
+      const host = event.flip === undefined ? null : flipOf(event.flip);
+      return {
+        flipHorizontal: host !== null ? host.horizontal : event.horizontal ?? ctx.flipHorizontal,
+        flipVertical: host !== null ? host.vertical : event.vertical ?? ctx.flipVertical,
+      };
+    } },
+    RESET: { assign: (ctx) => {
+      if (!isVisibleRect(ctx.viewportRect)) return {};
+      const aspectRatio = ratioOf(ctx);
+      const { minSize, maxSize } = limitsOf(ctx, ctx.viewportRect);
+      const defaultSize = computeDefaultCropDimensions(ctx.viewportRect, aspectRatio, ctx.fixedCropArea);
+      const clamped = computeResizeCrop({
+        cropStart: { x: 0, y: 0, width: defaultSize.width, height: defaultSize.height },
+        handlePosition: "se",
+        delta: { x: 0, y: 0 },
+        viewportRect: ctx.viewportRect,
+        minSize,
+        maxSize,
+        aspectRatio,
+      });
+      const at = centerRect({ width: clamped.width, height: clamped.height }, ctx.viewportRect);
+      return {
+        crop: { x: at.x, y: at.y, width: clamped.width, height: clamped.height },
+        offset: { x: 0, y: 0 },
+        zoom: 1,
+        rotation: 0,
+        flipHorizontal: false,
+        flipVertical: false,
+      };
+    } },
   },
   states: {
     idle: {
       on: {
         POINTER_DOWN: [
           {
-            cond: "canDragSelection",
+            cond: (ctx) => { return isVisibleRect(ctx.viewportRect) && !ctx.fixedCropArea; },
             target: "dragging",
-            actions: [{ assign: "setPointerStart" }, { assign: "setCropStart" }, { assign: "setHandlePosition" }],
+            assign: [setPointerStart, (ctx) => { return ({ cropStart: { ...ctx.crop } }); }, (ctx, event) => {
+      void ctx;
+      return { handlePosition: event.handlePosition ?? null };
+    }],
           },
         ],
         PAN_POINTER_DOWN: [
           {
-            cond: "canPan",
+            cond: (ctx) => { return isVisibleRect(ctx.naturalSize) && isVisibleRect(ctx.viewportRect); },
             target: "panning",
-            actions: [{ assign: "setPointerStart" }, { assign: "setOffsetStart" }],
+            assign: [setPointerStart, (ctx) => { return ({
+      offsetStart: { ...ctx.offset },
+    }); }],
           },
         ],
-        ZOOM: { cond: "hasViewport", actions: [{ assign: "updateZoom" }] },
-        NUDGE_RESIZE: { cond: "hasViewport", actions: [{ assign: "nudgeResize" }] },
-        NUDGE_MOVE: { cond: "hasViewport", actions: [{ assign: "nudgeMove" }] },
-        NUDGE_PAN: { cond: "hasViewport", actions: [{ assign: "nudgePan" }] },
-        RESIZE_CROP: { cond: "canResize", actions: [{ assign: "resizeCrop" }] },
+        ZOOM: { cond: hasViewport, assign: (ctx, event) => {
+      const next = Math.min(8, Math.max(0.1, ctx.zoom + event.delta));
+      return { zoom: next };
+    } },
+        NUDGE_RESIZE: { cond: hasViewport, assign: (ctx, event) => {
+      const step = event.large === true ? 10 : 1;
+      const { minSize, maxSize } = limitsOf(ctx, ctx.viewportRect);
+      const next = computeResizeCrop({
+        cropStart: { ...ctx.crop },
+        handlePosition: event.handlePosition,
+        delta: { x: step, y: step },
+        viewportRect: ctx.viewportRect,
+        minSize,
+        maxSize,
+        aspectRatio: ratioOf(ctx),
+      });
+      return { crop: { ...next } };
+    } },
+        NUDGE_MOVE: { cond: hasViewport, assign: (ctx, event) => {
+      const moved = computeMoveCrop({ ...ctx.crop }, { x: event.dx, y: event.dy }, ctx.viewportRect);
+      return { crop: { ...moved } };
+    } },
+        NUDGE_PAN: { cond: hasViewport, assign: (ctx, event) => {
+      void ctx;
+      return {
+        offset: { x: ctx.offset.x + event.dx, y: ctx.offset.y + event.dy },
+      };
+    } },
+        RESIZE_CROP: { cond: (ctx) => { return isVisibleRect(ctx.viewportRect) && !ctx.fixedCropArea; }, assign: (ctx, event) => {
+      const { minSize, maxSize } = limitsOf(ctx, ctx.viewportRect);
+      const next = computeResizeCrop({
+        cropStart: { ...ctx.crop },
+        handlePosition: event.handlePosition,
+        delta: { ...event.delta },
+        viewportRect: ctx.viewportRect,
+        minSize,
+        maxSize,
+        aspectRatio: ratioOf(ctx),
+      });
+      return { crop: { ...next } };
+    } },
       },
     },
     dragging: {
       on: {
-        POINTER_MOVE: { actions: [{ assign: "updateCrop" }] },
+        POINTER_MOVE: { assign: (ctx, event) => {
+      const { pointerStart, cropStart, viewportRect, handlePosition } = ctx;
+      if (pointerStart === null || cropStart === null) return {};
+      const aspectRatio = ratioOf(ctx);
+      const { minSize, maxSize } = limitsOf(ctx, viewportRect);
+      const delta = {
+        x: (event.altKey === true ? 2 : 1) * (event.point.x - pointerStart.x),
+        y: (event.altKey === true ? 2 : 1) * (event.point.y - pointerStart.y),
+      };
+      if (handlePosition === null) {
+        const moved = computeMoveCrop({ ...cropStart }, delta, viewportRect);
+        return { crop: { ...moved } };
+      }
+      const next = computeResizeCrop({
+        cropStart: { ...cropStart },
+        handlePosition,
+        delta,
+        viewportRect,
+        minSize,
+        maxSize,
+        aspectRatio,
+      });
+      return { crop: { ...next } };
+    } },
         POINTER_UP: {
           target: "idle",
-          actions: [
-            { assign: "clearPointerStart" },
-            { assign: "clearCropStart" },
-            { assign: "clearHandlePosition" },
-            { assign: "clearOffsetStart" },
-          ],
+          assign: [clearPointerStart, () => { return ({ cropStart: null }); }, () => { return ({ handlePosition: null }); }, clearOffsetStart],
         },
       },
     },
     panning: {
       on: {
-        POINTER_MOVE: { actions: [{ assign: "updatePan" }] },
+        POINTER_MOVE: { assign: (ctx, event) => {
+      const { pointerStart, offsetStart } = ctx;
+      if (pointerStart === null || offsetStart === null) return {};
+      void ctx;
+      return {
+        offset: {
+          x: offsetStart.x + (event.point.x - pointerStart.x),
+          y: offsetStart.y + (event.point.y - pointerStart.y),
+        },
+      };
+    } },
         POINTER_UP: {
           target: "idle",
-          actions: [{ assign: "clearPointerStart" }, { assign: "clearOffsetStart" }],
+          assign: [clearPointerStart, clearOffsetStart],
         },
       },
     },
@@ -301,187 +433,7 @@ const defaultCropPatch = (
   return { crop: { x: at.x, y: at.y, width: clamped.width, height: clamped.height } };
 };
 
-const implementations = {
-  conds: {
-    hasViewport: (ctx: ImageCropperContext): boolean => isVisibleRect(ctx.viewportRect),
-    /** A fixed area refuses programmatic resizes: the view blocked them
-     * before, and the def's commands always send — so the guard lives
-     * here now, where every path meets it. */
-    canResize: (ctx: ImageCropperContext): boolean =>
-      isVisibleRect(ctx.viewportRect) && !ctx.fixedCropArea,
-    canDragSelection: (ctx: ImageCropperContext): boolean =>
-      isVisibleRect(ctx.viewportRect) && !ctx.fixedCropArea,
-    canPan: (ctx: ImageCropperContext): boolean =>
-      isVisibleRect(ctx.naturalSize) && isVisibleRect(ctx.viewportRect),
-  },
-  assigns: {
-    setNaturalSize: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "SET_NATURAL_SIZE") return {};
-      // The crop's default is derived from the viewport and the image's
-      // aspect. Whichever arrives last wins, so a natural size that lands
-      // after the viewport recomputes the crop.
-      const next = { ...ctx, naturalSize: { ...event.size } };
-      return { naturalSize: { ...event.size }, ...defaultCropPatch(next, ctx.viewportRect) };
-    },
-    setViewport: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "SET_VIEWPORT") return {};
-      void ctx;
-      return { viewportRect: { ...event.viewport } };
-    },
-    setDefaultCrop: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "SET_DEFAULT_CROP") return {};
-      const viewportRect = { ...event.viewport };
-      return { viewportRect, ...defaultCropPatch(ctx, viewportRect) };
-    },
-    setPointerStart: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "POINTER_DOWN" && event.type !== "PAN_POINTER_DOWN") return {};
-      void ctx;
-      return { pointerStart: { ...event.point } };
-    },
-    setCropStart: (ctx: ImageCropperContext): Partial<ImageCropperContext> => ({ cropStart: { ...ctx.crop } }),
-    setOffsetStart: (ctx: ImageCropperContext): Partial<ImageCropperContext> => ({
-      offsetStart: { ...ctx.offset },
-    }),
-    setHandlePosition: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "POINTER_DOWN") return {};
-      void ctx;
-      return { handlePosition: event.handlePosition ?? null };
-    },
-    updateCrop: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "POINTER_MOVE") return {};
-      const { pointerStart, cropStart, viewportRect, handlePosition } = ctx;
-      if (pointerStart === null || cropStart === null) return {};
-      const aspectRatio = ratioOf(ctx);
-      const { minSize, maxSize } = limitsOf(ctx, viewportRect);
-      const delta = {
-        x: (event.altKey === true ? 2 : 1) * (event.point.x - pointerStart.x),
-        y: (event.altKey === true ? 2 : 1) * (event.point.y - pointerStart.y),
-      };
-      if (handlePosition === null) {
-        const moved = computeMoveCrop({ ...cropStart }, delta, viewportRect);
-        return { crop: { ...moved } };
-      }
-      const next = computeResizeCrop({
-        cropStart: { ...cropStart },
-        handlePosition,
-        delta,
-        viewportRect,
-        minSize,
-        maxSize,
-        aspectRatio,
-      });
-      return { crop: { ...next } };
-    },
-    updatePan: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "POINTER_MOVE") return {};
-      const { pointerStart, offsetStart } = ctx;
-      if (pointerStart === null || offsetStart === null) return {};
-      void ctx;
-      return {
-        offset: {
-          x: offsetStart.x + (event.point.x - pointerStart.x),
-          y: offsetStart.y + (event.point.y - pointerStart.y),
-        },
-      };
-    },
-    updateZoom: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "ZOOM") return {};
-      const next = Math.min(8, Math.max(0.1, ctx.zoom + event.delta));
-      return { zoom: next };
-    },
-    setZoom: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "SET_ZOOM") return {};
-      void ctx;
-      const zoom = zoomOf(event.zoom);
-      if (zoom === null) return {};
-      return { zoom };
-    },
-    setRotation: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "SET_ROTATION") return {};
-      void ctx;
-      const rotation = rotationOf(event.rotation);
-      if (rotation === null) return {};
-      return { rotation };
-    },
-    setFlip: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "SET_FLIP") return {};
-      const host = event.flip === undefined ? null : flipOf(event.flip);
-      return {
-        flipHorizontal: host !== null ? host.horizontal : event.horizontal ?? ctx.flipHorizontal,
-        flipVertical: host !== null ? host.vertical : event.vertical ?? ctx.flipVertical,
-      };
-    },
-    nudgeResize: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "NUDGE_RESIZE") return {};
-      const step = event.large === true ? 10 : 1;
-      const { minSize, maxSize } = limitsOf(ctx, ctx.viewportRect);
-      const next = computeResizeCrop({
-        cropStart: { ...ctx.crop },
-        handlePosition: event.handlePosition,
-        delta: { x: step, y: step },
-        viewportRect: ctx.viewportRect,
-        minSize,
-        maxSize,
-        aspectRatio: ratioOf(ctx),
-      });
-      return { crop: { ...next } };
-    },
-    nudgeMove: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "NUDGE_MOVE") return {};
-      const moved = computeMoveCrop({ ...ctx.crop }, { x: event.dx, y: event.dy }, ctx.viewportRect);
-      return { crop: { ...moved } };
-    },
-    nudgePan: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "NUDGE_PAN") return {};
-      void ctx;
-      return {
-        offset: { x: ctx.offset.x + event.dx, y: ctx.offset.y + event.dy },
-      };
-    },
-    resizeCrop: (ctx: ImageCropperContext, event: ImageCropperEvent): Partial<ImageCropperContext> => {
-      if (event.type !== "RESIZE_CROP") return {};
-      const { minSize, maxSize } = limitsOf(ctx, ctx.viewportRect);
-      const next = computeResizeCrop({
-        cropStart: { ...ctx.crop },
-        handlePosition: event.handlePosition,
-        delta: { ...event.delta },
-        viewportRect: ctx.viewportRect,
-        minSize,
-        maxSize,
-        aspectRatio: ratioOf(ctx),
-      });
-      return { crop: { ...next } };
-    },
-    resetCrop: (ctx: ImageCropperContext): Partial<ImageCropperContext> => {
-      if (!isVisibleRect(ctx.viewportRect)) return {};
-      const aspectRatio = ratioOf(ctx);
-      const { minSize, maxSize } = limitsOf(ctx, ctx.viewportRect);
-      const defaultSize = computeDefaultCropDimensions(ctx.viewportRect, aspectRatio, ctx.fixedCropArea);
-      const clamped = computeResizeCrop({
-        cropStart: { x: 0, y: 0, width: defaultSize.width, height: defaultSize.height },
-        handlePosition: "se",
-        delta: { x: 0, y: 0 },
-        viewportRect: ctx.viewportRect,
-        minSize,
-        maxSize,
-        aspectRatio,
-      });
-      const at = centerRect({ width: clamped.width, height: clamped.height }, ctx.viewportRect);
-      return {
-        crop: { x: at.x, y: at.y, width: clamped.width, height: clamped.height },
-        offset: { x: 0, y: 0 },
-        zoom: 1,
-        rotation: 0,
-        flipHorizontal: false,
-        flipVertical: false,
-      };
-    },
-    clearPointerStart: (): Partial<ImageCropperContext> => ({ pointerStart: null }),
-    clearCropStart: (): Partial<ImageCropperContext> => ({ cropStart: null }),
-    clearHandlePosition: (): Partial<ImageCropperContext> => ({ handlePosition: null }),
-    clearOffsetStart: (): Partial<ImageCropperContext> => ({ offsetStart: null }),
-  },
-};
+const implementations = {};
 
 export { clampPoint, getMaxBounds };
 
@@ -498,12 +450,10 @@ export const roundedCrop = (ctx: ImageCropperContext): CropRect => ({
 export function imageCropper(
   args: ImageCropperArgs = {},
   authored: (name: string) => boolean,
-): Machine<ImageCropperContext, ImageCropperEvent> {
-  return createMachine<ImageCropperContext, ImageCropperEvent>({
+): Machine<ImageCropperContext, ImageCropperEvents> {
+  return createMachine<ImageCropperContext, ImageCropperEvents>({
     ...config,
     context: initial(args, authored),
-    assigns: implementations.assigns,
-    conds: implementations.conds,
     /**
      * The machine's contract with its hosts: the context fields a host
      * may write, and the event each write carries.

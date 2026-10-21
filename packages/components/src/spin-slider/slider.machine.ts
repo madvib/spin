@@ -10,7 +10,82 @@ import {
   snapValueToStep,
 } from "../../../../node_modules/@zag-js/utils/dist/number.mjs";
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
+const incrementThumb = (ctx: SliderContext, event: EventUnion<SliderEvents>) : Partial<SliderContext> => {
+        if (event.type !== "INCREMENT" && event.type !== "ARROW_INC") return {};
+        const index = event.type === "INCREMENT" && event.index !== undefined ? event.index : ctx.focusedIndex;
+        if (index < 0 || index >= ctx.value.length) return {};
+        const range = rangeAt(ctx, index);
+        const next = getNextStepValue(index, {
+          ...range,
+          step: event.step ?? ctx.step,
+          values: [...ctx.value],
+        }) as number[];
+        next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max) as number;
+        return { value: next };
+      };
+
+const decrementThumb = (ctx: SliderContext, event: EventUnion<SliderEvents>) : Partial<SliderContext> => {
+        if (event.type !== "DECREMENT" && event.type !== "ARROW_DEC") return {};
+        const index = event.type === "DECREMENT" && event.index !== undefined ? event.index : ctx.focusedIndex;
+        if (index < 0 || index >= ctx.value.length) return {};
+        const range = rangeAt(ctx, index);
+        const next = getPreviousStepValue(index, {
+          ...range,
+          step: event.step ?? ctx.step,
+          values: [...ctx.value],
+        }) as number[];
+        next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max) as number;
+        return { value: next };
+      };
+
+const setClosestThumb = (ctx: SliderContext, event: EventUnion<SliderEvents>) : Partial<SliderContext> => {
+        if (event.type !== "POINTER_DOWN") return {};
+        return {
+          focusedIndex: movableIndex(ctx.value, closestIndex(ctx.value, event.pointValue), ctx.max),
+        };
+      };
+
+const setFocusedIndex = (ctx: SliderContext, event: EventUnion<SliderEvents>) : Partial<SliderContext> => {
+        if (event.type !== "FOCUS" && event.type !== "THUMB_POINTER_DOWN") return {};
+        const asked = event.type === "FOCUS" && event.index !== undefined ? event.index : 0;
+        const index = event.type === "THUMB_POINTER_DOWN" ? event.index : asked;
+        void ctx;
+        return { focusedIndex: index };
+      };
+
+const clearFocusedIndex = () : Partial<SliderContext> => { return ({ focusedIndex: -1 }); };
+
+const setDragOffset = (ctx: SliderContext, event: EventUnion<SliderEvents>) : Partial<SliderContext> => {
+        if (event.type !== "THUMB_POINTER_DOWN") return {};
+        void ctx;
+        return { dragOffset: event.offset ?? null };
+      };
+
+const snapshotDragStart = (ctx: SliderContext) : Partial<SliderContext> => { return ({
+        dragStartValue: [...ctx.value],
+      }); };
+
+const clearDragRefs = () : Partial<SliderContext> => { return ({ dragOffset: null, dragStartValue: null }); };
+
+const setPointerValue = (ctx: SliderContext, event: EventUnion<SliderEvents>) : Partial<SliderContext> => {
+        if (event.type !== "POINTER_DOWN" && event.type !== "POINTER_MOVE") return {};
+        if (ctx.thumbCollisionBehavior === "push") {
+          const gap = ctx.step * ctx.minStepsBetweenThumbs;
+          const pushed = handlePush(ctx.focusedIndex, event.pointValue, ctx.value, ctx.min, ctx.max, gap);
+          return { value: pushed.values, focusedIndex: pushed.index };
+        }
+        const resolved = resolveNone(
+          ctx.focusedIndex,
+          event.pointValue,
+          ctx.value,
+          ctx.min,
+          ctx.max,
+        );
+        return { value: resolved.values };
+      };
+
+
 
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
 
@@ -37,26 +112,30 @@ export interface SliderContext {
   markers: number[];
 }
 
-export type SliderEvent =
-  | { type: "SET_VALUE"; value: readonly number[]; index?: number }
-  | { type: "INCREMENT"; index?: number; step?: number }
-  | { type: "DECREMENT"; index?: number; step?: number }
-  | { type: "POINTER_DOWN"; pointValue: number }
-  | { type: "THUMB_POINTER_DOWN"; index: number; offset?: number }
-  | { type: "POINTER_MOVE"; pointValue: number }
-  | { type: "POINTER_UP" }
-  | { type: "POINTER_CANCEL" }
-  | { type: "FOCUS"; index?: number }
-  | { type: "BLUR" }
-  | { type: "ARROW_INC"; step?: number }
-  | { type: "ARROW_DEC"; step?: number }
-  | { type: "HOME" }
-  | { type: "END" }
-  | { type: "SET_MIN"; min: number }
-  | { type: "SET_MAX"; max: number }
-  | { type: "SET_STEP"; step: number }
-  | { type: "SET_DISABLED"; disabled: boolean }
-  | { type: "SET_READ_ONLY"; readOnly: boolean };
+export interface SliderEvents {
+  "SET_VALUE": { value: readonly number[]; index?: number };
+  "INCREMENT": { index?: number; step?: number };
+  "DECREMENT": { index?: number; step?: number };
+  "POINTER_DOWN": { pointValue: number };
+  "THUMB_POINTER_DOWN": { index: number; offset?: number };
+  "POINTER_MOVE": { pointValue: number };
+  "POINTER_UP": {};
+  "POINTER_CANCEL": {};
+  "FOCUS": { index?: number };
+  "BLUR": {};
+  "ARROW_INC": { step?: number };
+  "ARROW_DEC": { step?: number };
+  "HOME": {};
+  "END": {};
+  "SET_MIN": { min: number };
+  "SET_MAX": { max: number };
+  "SET_STEP": { step: number };
+  "SET_DISABLED": { disabled: boolean };
+  "SET_READ_ONLY": { readOnly: boolean };
+}
+
+export type SliderEvent = EventUnion<SliderEvents>;
+
 export type SliderValueChange = {
   readonly value: number[];
 };
@@ -279,8 +358,8 @@ export function initial(args: SliderArgs = {}, authored: (name: string) => boole
 export function slider(
   args: SliderArgs = {},
   authored: (name: string) => boolean,
-): Machine<SliderContext, SliderEvent> {
-  return createMachine<SliderContext, SliderEvent>({
+): Machine<SliderContext, SliderEvents> {
+  return createMachine<SliderContext, SliderEvents>({
     id: "slider",
     initial: "idle",
     context: initial(args, authored),
@@ -306,92 +385,7 @@ export function slider(
     },
     on: {
       SET_VALUE: [
-        { cond: "hasIndex", actions: [{ assign: "setValueAtIndex" }] },
-        { actions: [{ assign: "setValue" }] },
-      ],
-      INCREMENT: { actions: [{ assign: "incrementThumb" }] },
-      DECREMENT: { actions: [{ assign: "decrementThumb" }] },
-      SET_MIN: { actions: [{ assign: "setMin" }] },
-      SET_MAX: { actions: [{ assign: "setMax" }] },
-      SET_STEP: { actions: [{ assign: "setStep" }] },
-      SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-      SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
-    },
-    states: {
-      idle: {
-        on: {
-          POINTER_DOWN: {
-            target: "dragging",
-            actions: [
-              { assign: "setClosestThumb" },
-              { assign: "snapshotDragStart" },
-              { assign: "setPointerValue" },
-            ],
-          },
-          FOCUS: {
-            target: "focus",
-            cond: "interactive",
-            actions: [{ assign: "setFocusedIndex" }],
-          },
-          THUMB_POINTER_DOWN: {
-            target: "dragging",
-            actions: [
-              { assign: "setFocusedIndex" },
-              { assign: "setDragOffset" },
-              { assign: "snapshotDragStart" },
-            ],
-          },
-        },
-      },
-      focus: {
-        on: {
-          POINTER_DOWN: {
-            target: "dragging",
-            actions: [
-              { assign: "setClosestThumb" },
-              { assign: "snapshotDragStart" },
-              { assign: "setPointerValue" },
-            ],
-          },
-          THUMB_POINTER_DOWN: {
-            target: "dragging",
-            actions: [
-              { assign: "setFocusedIndex" },
-              { assign: "setDragOffset" },
-              { assign: "snapshotDragStart" },
-            ],
-          },
-          ARROW_DEC: { actions: [{ assign: "decrementThumb" }] },
-          ARROW_INC: { actions: [{ assign: "incrementThumb" }] },
-          HOME: { actions: [{ assign: "setFocusedThumbToMin" }] },
-          END: { actions: [{ assign: "setFocusedThumbToMax" }] },
-          BLUR: { target: "idle", actions: [{ assign: "clearFocusedIndex" }] },
-        },
-      },
-      dragging: {
-        on: {
-          POINTER_UP: {
-            target: "focus",
-            actions: [{ assign: "clearDragRefs" }],
-          },
-          POINTER_MOVE: { actions: [{ assign: "setPointerValue" }] },
-          POINTER_CANCEL: {
-            target: "idle",
-            actions: [{ assign: "clearFocusedIndex" }, { assign: "clearDragRefs" }],
-          },
-        },
-      },
-    },
-    assigns: {
-      setValue: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "SET_VALUE") return {};
-        // The values arrive the way the host wrote them; the machine
-        // shapes them.
-        const values = valuesProp(event.value);
-        if (values === null) return {};
-        return { value: normalizeAll(ctx, values) };
-      },
-      setValueAtIndex: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
+        { cond: (_ctx, event) => { return event.type === "SET_VALUE" && event.index !== undefined && event.index !== null; }, assign: (ctx, event) => {
         if (event.type !== "SET_VALUE" || event.index === undefined || event.index === null) return {};
         const values = valuesProp(event.value);
         if (values === null) return {};
@@ -399,120 +393,98 @@ export function slider(
         const next = [...ctx.value];
         next[event.index] = constrained;
         return { value: next };
+      } },
+        { assign: (ctx, event) => {
+        // The values arrive the way the host wrote them; the machine
+        // shapes them.
+        const values = valuesProp(event.value);
+        if (values === null) return {};
+        return { value: normalizeAll(ctx, values) };
+      } },
+      ],
+      INCREMENT: { assign: incrementThumb },
+      DECREMENT: { assign: decrementThumb },
+      SET_MIN: { assign: (ctx, event) => {
+        const min = numProp(event.min);
+        if (min === null) return {};
+        return { min };
+      } },
+      SET_MAX: { assign: (ctx, event) => {
+        const max = numProp(event.max);
+        if (max === null) return {};
+        return { max };
+      } },
+      SET_STEP: { assign: (ctx, event) => {
+        const step = numProp(event.step);
+        if (step === null) return {};
+        return { step };
+      } },
+      SET_DISABLED: { assign: (ctx, event) => {
+        void ctx;
+        return { disabled: event.disabled === true };
+      } },
+      SET_READ_ONLY: { assign: (ctx, event) => {
+        void ctx;
+        return { readOnly: event.readOnly === true };
+      } },
+    },
+    states: {
+      idle: {
+        on: {
+          POINTER_DOWN: {
+            target: "dragging",
+            assign: [setClosestThumb, snapshotDragStart, setPointerValue],
+          },
+          FOCUS: {
+            target: "focus",
+            cond: (ctx) => { return isInteractive(ctx); },
+            assign: setFocusedIndex,
+          },
+          THUMB_POINTER_DOWN: {
+            target: "dragging",
+            assign: [setFocusedIndex, setDragOffset, snapshotDragStart],
+          },
+        },
       },
-      incrementThumb: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "INCREMENT" && event.type !== "ARROW_INC") return {};
-        const index = event.type === "INCREMENT" && event.index !== undefined ? event.index : ctx.focusedIndex;
-        if (index < 0 || index >= ctx.value.length) return {};
-        const range = rangeAt(ctx, index);
-        const next = getNextStepValue(index, {
-          ...range,
-          step: event.step ?? ctx.step,
-          values: [...ctx.value],
-        }) as number[];
-        next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max) as number;
-        return { value: next };
-      },
-      decrementThumb: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "DECREMENT" && event.type !== "ARROW_DEC") return {};
-        const index = event.type === "DECREMENT" && event.index !== undefined ? event.index : ctx.focusedIndex;
-        if (index < 0 || index >= ctx.value.length) return {};
-        const range = rangeAt(ctx, index);
-        const next = getPreviousStepValue(index, {
-          ...range,
-          step: event.step ?? ctx.step,
-          values: [...ctx.value],
-        }) as number[];
-        next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max) as number;
-        return { value: next };
-      },
-      setFocusedThumbToMin: (ctx: SliderContext): Partial<SliderContext> => {
+      focus: {
+        on: {
+          POINTER_DOWN: {
+            target: "dragging",
+            assign: [setClosestThumb, snapshotDragStart, setPointerValue],
+          },
+          THUMB_POINTER_DOWN: {
+            target: "dragging",
+            assign: [setFocusedIndex, setDragOffset, snapshotDragStart],
+          },
+          ARROW_DEC: { assign: decrementThumb },
+          ARROW_INC: { assign: incrementThumb },
+          HOME: { assign: (ctx) => {
         if (ctx.focusedIndex < 0) return {};
         const next = [...ctx.value];
         next[ctx.focusedIndex] = rangeAt(ctx, ctx.focusedIndex).min;
         return { value: next };
-      },
-      setFocusedThumbToMax: (ctx: SliderContext): Partial<SliderContext> => {
+      } },
+          END: { assign: (ctx) => {
         if (ctx.focusedIndex < 0) return {};
         const next = [...ctx.value];
         next[ctx.focusedIndex] = rangeAt(ctx, ctx.focusedIndex).max;
         return { value: next };
+      } },
+          BLUR: { target: "idle", assign: clearFocusedIndex },
+        },
       },
-      setClosestThumb: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "POINTER_DOWN") return {};
-        return {
-          focusedIndex: movableIndex(ctx.value, closestIndex(ctx.value, event.pointValue), ctx.max),
-        };
+      dragging: {
+        on: {
+          POINTER_UP: {
+            target: "focus",
+            assign: clearDragRefs,
+          },
+          POINTER_MOVE: { assign: setPointerValue },
+          POINTER_CANCEL: {
+            target: "idle",
+            assign: [clearFocusedIndex, clearDragRefs],
+          },
+        },
       },
-      setFocusedIndex: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "FOCUS" && event.type !== "THUMB_POINTER_DOWN") return {};
-        const asked = event.type === "FOCUS" && event.index !== undefined ? event.index : 0;
-        const index = event.type === "THUMB_POINTER_DOWN" ? event.index : asked;
-        void ctx;
-        return { focusedIndex: index };
-      },
-      clearFocusedIndex: (): Partial<SliderContext> => ({ focusedIndex: -1 }),
-      setDragOffset: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "THUMB_POINTER_DOWN") return {};
-        void ctx;
-        return { dragOffset: event.offset ?? null };
-      },
-      snapshotDragStart: (ctx: SliderContext): Partial<SliderContext> => ({
-        dragStartValue: [...ctx.value],
-      }),
-      clearDragRefs: (): Partial<SliderContext> => ({ dragOffset: null, dragStartValue: null }),
-      // The pointer path: closest thumb already chosen, collision resolved
-      // against the drag-start snapshot, so a swap compares to where the
-      // thumbs were grabbed.
-      setPointerValue: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "POINTER_DOWN" && event.type !== "POINTER_MOVE") return {};
-        if (ctx.thumbCollisionBehavior === "push") {
-          const gap = ctx.step * ctx.minStepsBetweenThumbs;
-          const pushed = handlePush(ctx.focusedIndex, event.pointValue, ctx.value, ctx.min, ctx.max, gap);
-          return { value: pushed.values, focusedIndex: pushed.index };
-        }
-        const resolved = resolveNone(
-          ctx.focusedIndex,
-          event.pointValue,
-          ctx.value,
-          ctx.min,
-          ctx.max,
-        );
-        return { value: resolved.values };
-      },
-      setMin: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "SET_MIN") return {};
-        const min = numProp(event.min);
-        if (min === null) return {};
-        return { min };
-      },
-      setMax: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "SET_MAX") return {};
-        const max = numProp(event.max);
-        if (max === null) return {};
-        return { max };
-      },
-      setStep: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "SET_STEP") return {};
-        const step = numProp(event.step);
-        if (step === null) return {};
-        return { step };
-      },
-      setDisabled: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "SET_DISABLED") return {};
-        void ctx;
-        return { disabled: event.disabled === true };
-      },
-      setReadOnly: (ctx: SliderContext, event: SliderEvent): Partial<SliderContext> => {
-        if (event.type !== "SET_READ_ONLY") return {};
-        void ctx;
-        return { readOnly: event.readOnly === true };
-      },
-    },
-    conds: {
-      interactive: (ctx: SliderContext): boolean => isInteractive(ctx),
-      hasIndex: (_ctx: SliderContext, event: SliderEvent): boolean =>
-        event.type === "SET_VALUE" && event.index !== undefined && event.index !== null,
-    },
-  });
+    },});
 }

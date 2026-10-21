@@ -5,7 +5,7 @@ import {
   type FileRejection,
   type FileUploadArgs,
   type FileUploadContext,
-  type FileUploadEvent,
+  type FileUploadEvents,
   type FileUploadValueChange,
 } from "./file-upload.machine.ts";
 
@@ -131,7 +131,7 @@ const deleteHandlerFor = (scope: ScopeLike, row: FileRow): { readonly onClick: (
   return made;
 };
 
-const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
+const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
   name: "file-upload",
   machine: (props, authored) => fileUploadMachine(props as FileUploadArgs, authored),
   parts: {
@@ -329,4 +329,4 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   },
 };
 
-export const fileUpload = defineComponent<FileUploadContext, FileUploadEvent, FileUploadApi>(def);
+export const fileUpload = defineComponent<FileUploadContext, FileUploadEvents, FileUploadApi>(def);

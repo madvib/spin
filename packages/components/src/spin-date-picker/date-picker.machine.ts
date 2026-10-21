@@ -16,7 +16,78 @@
  */
 
 import { defaultTwin, isRecord } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const resetView = (ctx: DatePickerContext) : Partial<DatePickerContext> => {
+      const anchored = ctx.value.length > 0 ? clampDay(ctx.value[0] ?? ctx.focusedValue, ctx.min, ctx.max) : null;
+      return {
+        view: "day",
+        focusedValue: anchored ?? (inBounds(ctx.focusedValue, ctx.min, ctx.max)
+          ? ctx.focusedValue
+          : clampDay(ctx.focusedValue, ctx.min, ctx.max)),
+      };
+    };
+
+const drillIntoView = (ctx: DatePickerContext, e: DatePickerEvent) : Partial<DatePickerContext> => {
+      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
+      const value = clampDay(e.value, ctx.min, ctx.max);
+      const view: DatePickerView = ctx.view === "year" ? "month" : "day";
+      return { focusedValue: value, view };
+    };
+
+const selectSingleDay = (ctx: DatePickerContext, e: DatePickerEvent) : Partial<DatePickerContext> => {
+      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
+      const value = clampDay(e.value, ctx.min, ctx.max);
+      return {
+        value: [value],
+        startValue: null,
+        activeIndex: 0,
+        focusedValue: value,
+        hoveredValue: null,
+      };
+    };
+
+const toggleMultiDay = (ctx: DatePickerContext, e: DatePickerEvent) : Partial<DatePickerContext> => {
+      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
+      const value = clampDay(e.value, ctx.min, ctx.max);
+      const hit = ctx.value.findIndex((day) => sameDay(day, value));
+      const value_ = hit === -1
+        ? [...ctx.value, value]
+        : ctx.value.filter((_day, at) => at !== hit);
+      return {
+        value: normalizeDays(value_, ctx.min, ctx.max),
+        startValue: null,
+        activeIndex: 0,
+        focusedValue: value,
+        hoveredValue: null,
+      };
+    };
+
+const selectRangeDay = (ctx: DatePickerContext, e: DatePickerEvent) : Partial<DatePickerContext> => {
+      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
+      const value = clampDay(e.value, ctx.min, ctx.max);
+      if (ctx.startValue === null) {
+        return { startValue: value, focusedValue: value };
+      }
+      const first = clampDay(ctx.startValue, ctx.min, ctx.max);
+      const [lo, hi] = sortKey(first) <= sortKey(value) ? [first, value] : [value, first];
+      return {
+        value: [lo, hi],
+        startValue: null,
+        activeIndex: 0,
+        focusedValue: value,
+        hoveredValue: null,
+      };
+    };
+
+const isAboveDayView = (ctx: DatePickerContext) : boolean => { return ctx.view !== "day"; };
+
+const isRangePicker = (ctx: DatePickerContext) : boolean => { return ctx.selectionMode === "range"; };
+
+const isMultiPicker = (ctx: DatePickerContext) : boolean => { return ctx.selectionMode === "multiple"; };
+
+const isSelfClosingSelection = (ctx: DatePickerContext) : boolean => { return ctx.closeOnSelect; };
+
+
 
 export type DatePickerView = "day" | "month" | "year";
 export type DatePickerSelectionMode = "single" | "multiple" | "range";
@@ -56,21 +127,23 @@ export interface DatePickerViewChange {
   readonly view: DatePickerView;
 }
 
-export type DatePickerEvent =
-  | { type: "OPEN" }
-  | { type: "CLOSE" }
-  | { type: "CLOSE.OUTSIDE" }
-  /** The selection: the days themselves, or the ISO text a host wrote. */
-  | { type: "VALUE.SET"; value: readonly DatePickerValue[] | string }
-  | { type: "VALUE.CLEAR" }
-  /** The focused day: the day itself, or the ISO text a host wrote. */
-  | { type: "FOCUS.SET"; focusedValue: DatePickerValue | string }
-  | { type: "VIEW.SET"; view: DatePickerView }
-  | { type: "CELL.CLICK"; value: DatePickerValue }
-  | { type: "CELL.POINTER_MOVE"; value: DatePickerValue }
-  | { type: "TABLE.POINTER_LEAVE" }
-  | { type: "TABLE.ENTER"; value: DatePickerValue }
-  | { type: "TABLE.ESCAPE" };
+export interface DatePickerEvents {
+  "OPEN": {};
+  "CLOSE": {};
+  "CLOSE.OUTSIDE": {};
+  "VALUE.SET": { value: readonly DatePickerValue[] | string };
+  "VALUE.CLEAR": {};
+  "FOCUS.SET": { focusedValue: DatePickerValue | string };
+  "VIEW.SET": { view: DatePickerView };
+  "CELL.CLICK": { value: DatePickerValue };
+  "CELL.POINTER_MOVE": { value: DatePickerValue };
+  "TABLE.POINTER_LEAVE": {};
+  "TABLE.ENTER": { value: DatePickerValue };
+  "TABLE.ESCAPE": {};
+}
+
+export type DatePickerEvent = EventUnion<DatePickerEvents>;
+
 
 const MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as const;
 
@@ -254,7 +327,7 @@ const inBounds = (value: DatePickerValue, min: string | null, max: string | null
   return (floor === null || time >= floor) && (ceiling === null || time <= ceiling);
 };
 
-const config = {
+const config: MachineSpec<DatePickerContext, DatePickerEvents> = {
   id: "date-picker",
   initial: "idle",
   context: {
@@ -273,63 +346,7 @@ const config = {
   // Root tier: the value moves work from every state, so the host's
   // commands write the selection without knowing whether the panel is open.
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
-    "FOCUS.SET": [
-      { cond: "isDayView", actions: [{ assign: "setFocusedValue" }] },
-      { actions: [{ assign: "moveFocusedValue" }] },
-    ],
-    "VIEW.SET": [{ actions: [{ assign: "setView" }] }],
-  },
-  states: {
-    idle: {
-      on: {
-        "OPEN": [{ target: "open", actions: [{ assign: "resetView" }] }],
-      },
-    },
-    focused: {
-      on: {
-        "OPEN": [{ target: "open", actions: [{ assign: "resetView" }] }],
-      },
-    },
-    open: {
-      on: {
-        "CLOSE": [{ target: "focused" }],
-        "CLOSE.OUTSIDE": [{ target: "idle" }],
-        "CELL.CLICK": [
-          { cond: "isAboveDayView", actions: [{ assign: "drillIntoView" }] },
-          { cond: "isRangePicker", actions: [{ assign: "selectRangeDay" }] },
-          { cond: "isMultiPicker", actions: [{ assign: "toggleMultiDay" }] },
-          { cond: "isSelfClosingSelection", target: "focused", actions: [{ assign: "selectSingleDay" }] },
-          { actions: [{ assign: "selectSingleDay" }] },
-        ],
-        "CELL.POINTER_MOVE": [
-          { cond: "isRangePicker", actions: [{ assign: "setHoveredValue" }] },
-        ],
-        "TABLE.POINTER_LEAVE": [{ actions: [{ assign: "clearHoveredValue" }] }],
-        "TABLE.ENTER": [
-          { cond: "isAboveDayView", actions: [{ assign: "drillIntoView" }] },
-          { cond: "isRangePicker", actions: [{ assign: "selectRangeDay" }] },
-          { cond: "isMultiPicker", actions: [{ assign: "toggleMultiDay" }] },
-          { cond: "isSelfClosingSelection", target: "focused", actions: [{ assign: "selectSingleDay" }] },
-          { actions: [{ assign: "selectSingleDay" }] },
-        ],
-        "TABLE.ESCAPE": [{ target: "focused" }],
-      },
-    },
-  },
-};
-
-const implementations = {
-  conds: {
-    isDayView: (ctx: DatePickerContext): boolean => ctx.view === "day",
-    isAboveDayView: (ctx: DatePickerContext): boolean => ctx.view !== "day",
-    isRangePicker: (ctx: DatePickerContext): boolean => ctx.selectionMode === "range",
-    isMultiPicker: (ctx: DatePickerContext): boolean => ctx.selectionMode === "multiple",
-    isSelfClosingSelection: (ctx: DatePickerContext): boolean => ctx.closeOnSelect,
-  },
-  assigns: {
-    setValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
+    "VALUE.SET": { assign: (ctx, e) => {
       if (e.type !== "VALUE.SET") return {};
       const value = normalizeDays(daysOf(e.value), ctx.min, ctx.max);
       return {
@@ -338,9 +355,10 @@ const implementations = {
         activeIndex: 0,
         focusedValue: value.length > 0 ? value[0] ?? ctx.focusedValue : ctx.focusedValue,
       };
-    },
-    clearValue: (): Partial<DatePickerContext> => ({ value: [], startValue: null, activeIndex: 0 }),
-    setFocusedValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
+    } },
+    "VALUE.CLEAR": { assign: () => { return ({ value: [], startValue: null, activeIndex: 0 }); } },
+    "FOCUS.SET": [
+      { cond: (ctx) => { return ctx.view === "day"; }, assign: (ctx, e) => {
       if (e.type !== "FOCUS.SET") return {};
       const day = dayRecord(e.focusedValue);
       if (day === null) return {};
@@ -348,9 +366,8 @@ const implementations = {
       // Entering a month whose length would truncate the day re-clamps the
       // focus; the value it belongs to stays untouched.
       return { focusedValue: value };
-    },
-    /** Outside the day view, focus moves jump pages, not days. */
-    moveFocusedValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
+    } },
+      { assign: (ctx, e) => {
       if (e.type !== "FOCUS.SET") return {};
       const day = dayRecord(e.focusedValue);
       if (day === null) return {};
@@ -359,80 +376,57 @@ const implementations = {
         ? "year"
         : value.month !== ctx.focusedValue.month ? "month" : "day";
       return { focusedValue: value, view };
-    },
-    setView: (_ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
+    } },
+    ],
+    "VIEW.SET": [{ assign: (_ctx, e) => {
       if (e.type !== "VIEW.SET") return {};
       return { view: viewOf(e.view) };
+    } }],
+  },
+  states: {
+    idle: {
+      on: {
+        "OPEN": [{ target: "open", assign: resetView }],
+      },
     },
-    resetView: (ctx: DatePickerContext): Partial<DatePickerContext> => {
-      const anchored = ctx.value.length > 0 ? clampDay(ctx.value[0] ?? ctx.focusedValue, ctx.min, ctx.max) : null;
-      return {
-        view: "day",
-        focusedValue: anchored ?? (inBounds(ctx.focusedValue, ctx.min, ctx.max)
-          ? ctx.focusedValue
-          : clampDay(ctx.focusedValue, ctx.min, ctx.max)),
-      };
+    focused: {
+      on: {
+        "OPEN": [{ target: "open", assign: resetView }],
+      },
     },
-    drillIntoView: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
-      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
-      const value = clampDay(e.value, ctx.min, ctx.max);
-      const view: DatePickerView = ctx.view === "year" ? "month" : "day";
-      return { focusedValue: value, view };
-    },
-    selectSingleDay: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
-      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
-      const value = clampDay(e.value, ctx.min, ctx.max);
-      return {
-        value: [value],
-        startValue: null,
-        activeIndex: 0,
-        focusedValue: value,
-        hoveredValue: null,
-      };
-    },
-    toggleMultiDay: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
-      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
-      const value = clampDay(e.value, ctx.min, ctx.max);
-      const hit = ctx.value.findIndex((day) => sameDay(day, value));
-      const value_ = hit === -1
-        ? [...ctx.value, value]
-        : ctx.value.filter((_day, at) => at !== hit);
-      return {
-        value: normalizeDays(value_, ctx.min, ctx.max),
-        startValue: null,
-        activeIndex: 0,
-        focusedValue: value,
-        hoveredValue: null,
-      };
-    },
-    /**
-     * Range mode: the first click names the start, the second the end —
-     * including backwards, where the earlier day wins (Zag's sortDates).
-     */
-    selectRangeDay: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
-      if (e.type !== "CELL.CLICK" && e.type !== "TABLE.ENTER") return {};
-      const value = clampDay(e.value, ctx.min, ctx.max);
-      if (ctx.startValue === null) {
-        return { startValue: value, focusedValue: value };
-      }
-      const first = clampDay(ctx.startValue, ctx.min, ctx.max);
-      const [lo, hi] = sortKey(first) <= sortKey(value) ? [first, value] : [value, first];
-      return {
-        value: [lo, hi],
-        startValue: null,
-        activeIndex: 0,
-        focusedValue: value,
-        hoveredValue: null,
-      };
-    },
-    setHoveredValue: (ctx: DatePickerContext, e: DatePickerEvent): Partial<DatePickerContext> => {
+    open: {
+      on: {
+        "CLOSE": [{ target: "focused" }],
+        "CLOSE.OUTSIDE": [{ target: "idle" }],
+        "CELL.CLICK": [
+          { cond: isAboveDayView, assign: drillIntoView },
+          { cond: isRangePicker, assign: selectRangeDay },
+          { cond: isMultiPicker, assign: toggleMultiDay },
+          { cond: isSelfClosingSelection, target: "focused", assign: selectSingleDay },
+          { assign: selectSingleDay },
+        ],
+        "CELL.POINTER_MOVE": [
+          { cond: isRangePicker, assign: (ctx, e) => {
       if (e.type !== "CELL.POINTER_MOVE") return {};
       if (ctx.startValue === null) return {};
       return { hoveredValue: clampDay(e.value, ctx.min, ctx.max) };
+    } },
+        ],
+        "TABLE.POINTER_LEAVE": [{ assign: () => { return ({ hoveredValue: null }); } }],
+        "TABLE.ENTER": [
+          { cond: isAboveDayView, assign: drillIntoView },
+          { cond: isRangePicker, assign: selectRangeDay },
+          { cond: isMultiPicker, assign: toggleMultiDay },
+          { cond: isSelfClosingSelection, target: "focused", assign: selectSingleDay },
+          { assign: selectSingleDay },
+        ],
+        "TABLE.ESCAPE": [{ target: "focused" }],
+      },
     },
-    clearHoveredValue: (): Partial<DatePickerContext> => ({ hoveredValue: null }),
   },
 };
+
+const implementations = {};
 
 function normalizeDays(
   days: readonly DatePickerValue[],
@@ -454,10 +448,9 @@ function normalizeDays(
 export function datePicker(
   args: DatePickerArgs = {},
   authored: (name: string) => boolean,
-): Machine<DatePickerContext, DatePickerEvent> {
-  return createMachine<DatePickerContext, DatePickerEvent>({
+): Machine<DatePickerContext, DatePickerEvents> {
+  return createMachine<DatePickerContext, DatePickerEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host

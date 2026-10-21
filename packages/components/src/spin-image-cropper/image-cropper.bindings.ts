@@ -9,7 +9,7 @@ import {
   type CropRect,
   type ImageCropperArgs,
   type ImageCropperContext,
-  type ImageCropperEvent,
+  type ImageCropperEvents,
 } from "./image-cropper.machine.ts";
 
 /**
@@ -199,7 +199,7 @@ const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
-const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
+const def: ComponentDef<ImageCropperContext, ImageCropperEvents> = {
   name: "image-cropper",
   machine: (props, authored) => imageCropperMachine(props as ImageCropperArgs, authored),
   parts: {
@@ -574,4 +574,4 @@ const def: ComponentDef<ImageCropperContext, ImageCropperEvent> = {
   },
 };
 
-export const imageCropper = defineComponent<ImageCropperContext, ImageCropperEvent, ImageCropperApi>(def);
+export const imageCropper = defineComponent<ImageCropperContext, ImageCropperEvents, ImageCropperApi>(def);

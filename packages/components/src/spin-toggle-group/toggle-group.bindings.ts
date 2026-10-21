@@ -5,7 +5,7 @@ import {
   toggleGroup as toggleGroupMachine,
   type ToggleGroupArgs,
   type ToggleGroupContext,
-  type ToggleGroupEvent,
+  type ToggleGroupEvents,
   type ToggleGroupItem,
   type ToggleGroupValueChange,
 } from "./toggle-group.machine.ts";
@@ -59,7 +59,7 @@ const neighbor = (scope: ScopeLike<unknown, ToggleGroupContext> | SlotLike<Toggl
   return enabled[next]?.value ?? null;
 };
 
-const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
+const def: ComponentDef<ToggleGroupContext, ToggleGroupEvents> = {
   name: "toggle-group",
   machine: (props, authored) => toggleGroupMachine(props as ToggleGroupArgs, authored),
   start: "idle",
@@ -271,4 +271,4 @@ const def: ComponentDef<ToggleGroupContext, ToggleGroupEvent> = {
   },
 };
 
-export const toggleGroup = defineComponent<ToggleGroupContext, ToggleGroupEvent, ToggleGroupApi>(def);
+export const toggleGroup = defineComponent<ToggleGroupContext, ToggleGroupEvents, ToggleGroupApi>(def);

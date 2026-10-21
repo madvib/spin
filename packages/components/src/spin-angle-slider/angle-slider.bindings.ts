@@ -7,7 +7,7 @@ import {
   valueAsDegree,
   type AngleSliderArgs,
   type AngleSliderContext,
-  type AngleSliderEvent,
+  type AngleSliderEvents,
   type AngleSliderValueChange,
 } from "./angle-slider.machine.ts";
 
@@ -136,7 +136,7 @@ const overThumb = (scope: ScopeLike, target: EventTarget | null): boolean => {
 /** Focus lives in the view: a press or a keyboard move hands focus to the
  * thumb. */
 
-const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
+const def: ComponentDef<AngleSliderContext, AngleSliderEvents> = {
   name: "angle-slider",
   machine: (props, authored) => angleSliderMachine(props as AngleSliderArgs, authored),
   commitEvents: [
@@ -436,4 +436,4 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   },
 };
 
-export const angleSlider = defineComponent<AngleSliderContext, AngleSliderEvent, AngleSliderApi>(def);
+export const angleSlider = defineComponent<AngleSliderContext, AngleSliderEvents, AngleSliderApi>(def);

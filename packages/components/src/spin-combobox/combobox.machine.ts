@@ -26,7 +26,80 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setHighlightedValue = (ctx: ComboboxContext, e: ComboboxEvent) : Partial<ComboboxContext> => {
+      // ITEM.POINTER_MOVE carries the row's value directly (the pointer is
+      // already there); HIGHLIGHTED_VALUE.SET carries it with a keypress
+      // flag for inline completion.
+      if (e.type === "ITEM.POINTER_MOVE") {
+        return { highlightedValue: e.value, autofill: completion(ctx, e.value, false) };
+      }
+      if (e.type !== "HIGHLIGHTED_VALUE.SET" || e.value === null) return {};
+      return {
+        highlightedValue: e.value,
+        autofill: completion(ctx, e.value, e.keypress === true),
+      };
+    };
+
+const clearHighlightedValue = () : Partial<ComboboxContext> => { return ({
+      highlightedValue: null,
+      autofill: null,
+    }); };
+
+const moveHighlight = (ctx: ComboboxContext, e: ComboboxEvent) : Partial<ComboboxContext> => {
+      if (!isMove(e) || e.value === undefined) return {};
+      return {
+        highlightedValue: e.value,
+        autofill: completion(ctx, e.value, e.keypress === true),
+      };
+    };
+
+const highlightFirstItem = (ctx: ComboboxContext) : Partial<ComboboxContext> => { return ctx.order.length === 0 ? {} : { highlightedValue: at(ctx.order, 0), autofill: null }; };
+
+const highlightFirstOrSelectedItem = (ctx: ComboboxContext) : Partial<ComboboxContext> => {
+      const selected = ctx.order.filter((value) => ctx.value.includes(value));
+      const value = selected.length > 0 ? at(selected, 0) : at(ctx.order, 0);
+      if (value === null) return {};
+      return { highlightedValue: value, autofill: null };
+    };
+
+const selectItem = (ctx: ComboboxContext, e: ComboboxEvent) : Partial<ComboboxContext> => {
+      if (e.type !== "ITEM.SELECT" && e.type !== "ITEM.CLICK") return {};
+      return applySelection(ctx, pickValue(ctx, e.value));
+    };
+
+const selectHighlightedItem = (ctx: ComboboxContext, e: ComboboxEvent) : Partial<ComboboxContext> => {
+      if (e.type !== "INPUT.ENTER") return {};
+      // A highlight the collection cannot resolve selects nothing.
+      if (ctx.highlightedValue === null || !ctx.order.includes(ctx.highlightedValue)) return {};
+      return applySelection(ctx, pickValue(ctx, ctx.highlightedValue));
+    };
+
+const clearValue = (ctx: ComboboxContext) : Partial<ComboboxContext> => { return applySelection(ctx, []); };
+
+const clearInputValue = () : Partial<ComboboxContext> => { return ({ inputValue: "", autofill: null }); };
+
+const setInputValue = (_ctx: ComboboxContext, e: ComboboxEvent) : Partial<ComboboxContext> => {
+      if (e.type !== "INPUT.CHANGE" && e.type !== "INPUT_VALUE.SET") return {};
+      return { inputValue: e.value, autofill: null };
+    };
+
+const revertInputValue = (ctx: ComboboxContext) : Partial<ComboboxContext> => {
+      if (ctx.selectionBehavior === "preserve") return {};
+      if (ctx.selectionBehavior === "clear") return { inputValue: "", autofill: null };
+      return {
+        inputValue: ctx.value.length > 0 ? stringifyValues(ctx, ctx.value) : "",
+        autofill: null,
+      };
+    };
+
+const inlineAutocomplete = (ctx: ComboboxContext) : boolean => { return inlineSingle(ctx); };
+
+const closeOnSelect = (ctx: ComboboxContext) : boolean => { return ctx.closeOnSelect; };
+
+const revertsToValue = (ctx: ComboboxContext) : boolean => { return isCustomValue(ctx) && !ctx.allowCustomValue && ctx.highlightedValue === null; };
+
+
 
 export interface ComboboxContext {
   value: string[];
@@ -49,34 +122,38 @@ export interface ComboboxContext {
   openOnChange: boolean;
 }
 
-export type ComboboxEvent =
-  | { type: "SELECTED_ITEMS.SYNC" }
-  | { type: "HIGHLIGHTED_VALUE.SET"; value: string | null; keypress?: boolean }
-  | { type: "HIGHLIGHTED_VALUE.CLEAR" }
-  | { type: "ITEM.SELECT"; value: string }
-  | { type: "ITEM.CLEAR"; value: string }
-  | { type: "VALUE.SET"; value: readonly string[] }
-  | { type: "VALUE.CLEAR" }
-  | { type: "INPUT_VALUE.SET"; value: string }
-  | { type: "OPEN" }
-  | { type: "CLOSE" }
-  | { type: "INPUT.FOCUS" }
-  | { type: "INPUT.BLUR" }
-  | { type: "INPUT.CLICK" }
-  | { type: "INPUT.CHANGE"; value: string }
-  | { type: "INPUT.ESCAPE" }
-  | { type: "INPUT.ENTER" }
-  | { type: "INPUT.ARROW_DOWN"; value?: string; keypress?: boolean }
-  | { type: "INPUT.ARROW_UP"; value?: string; keypress?: boolean }
-  | { type: "INPUT.HOME"; value?: string; keypress?: boolean }
-  | { type: "INPUT.END"; value?: string; keypress?: boolean }
-  | { type: "TRIGGER.CLICK" }
-  | { type: "ITEM.CLICK"; value: string }
-  | { type: "ITEM.POINTER_MOVE"; value: string }
-  | { type: "ITEM.POINTER_LEAVE" }
-  | { type: "LAYER.ESCAPE" }
-  | { type: "LAYER.INTERACT_OUTSIDE" }
-  | { type: "CHILDREN_CHANGE" };
+export interface ComboboxEvents {
+  "SELECTED_ITEMS.SYNC": {};
+  "HIGHLIGHTED_VALUE.SET": { value: string | null; keypress?: boolean };
+  "HIGHLIGHTED_VALUE.CLEAR": {};
+  "ITEM.SELECT": { value: string };
+  "ITEM.CLEAR": { value: string };
+  "VALUE.SET": { value: readonly string[] };
+  "VALUE.CLEAR": {};
+  "INPUT_VALUE.SET": { value: string };
+  "OPEN": {};
+  "CLOSE": {};
+  "INPUT.FOCUS": {};
+  "INPUT.BLUR": {};
+  "INPUT.CLICK": {};
+  "INPUT.CHANGE": { value: string };
+  "INPUT.ESCAPE": {};
+  "INPUT.ENTER": {};
+  "INPUT.ARROW_DOWN": { value?: string; keypress?: boolean };
+  "INPUT.ARROW_UP": { value?: string; keypress?: boolean };
+  "INPUT.HOME": { value?: string; keypress?: boolean };
+  "INPUT.END": { value?: string; keypress?: boolean };
+  "TRIGGER.CLICK": {};
+  "ITEM.CLICK": { value: string };
+  "ITEM.POINTER_MOVE": { value: string };
+  "ITEM.POINTER_LEAVE": {};
+  "LAYER.ESCAPE": {};
+  "LAYER.INTERACT_OUTSIDE": {};
+  "CHILDREN_CHANGE": {};
+}
+
+export type ComboboxEvent = EventUnion<ComboboxEvents>;
+
 
 export interface ComboboxRow {
   readonly value?: string;
@@ -165,7 +242,7 @@ export function initial(args: ComboboxArgs, authored: (name: string) => boolean)
   return { ...seedCtx, inputValue };
 }
 
-const config = {
+const config: MachineSpec<ComboboxContext, ComboboxEvents> = {
   id: "combobox",
   initial: "idle",
   context: {
@@ -183,117 +260,130 @@ const config = {
     openOnChange: true,
   },
   on: {
-    "SELECTED_ITEMS.SYNC": { actions: [{ assign: "syncSelectedItems" }] },
-    "HIGHLIGHTED_VALUE.SET": { actions: [{ assign: "setHighlightedValue" }] },
-    "HIGHLIGHTED_VALUE.CLEAR": { actions: [{ assign: "clearHighlightedValue" }] },
-    "ITEM.SELECT": { actions: [{ assign: "selectItem" }] },
-    "ITEM.CLEAR": { actions: [{ assign: "clearItem" }] },
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "INPUT_VALUE.SET": { actions: [{ assign: "setInputValue" }] },
+    "SELECTED_ITEMS.SYNC": { assign: (ctx) => { return ({
+      inputValue: inputValueFor(ctx, ctx.value),
+      autofill: null,
+    }); } },
+    "HIGHLIGHTED_VALUE.SET": { assign: setHighlightedValue },
+    "HIGHLIGHTED_VALUE.CLEAR": { assign: clearHighlightedValue },
+    "ITEM.SELECT": { assign: selectItem },
+    "ITEM.CLEAR": { assign: (ctx, e) => {
+      if (e.type !== "ITEM.CLEAR") return {};
+      return applySelection(
+        ctx,
+        ctx.value.filter((value) => value !== e.value),
+      );
+    } },
+    "VALUE.SET": { assign: (ctx, e) => { return e.type === "VALUE.SET" ? applySelection(ctx, e.value) : {}; } },
+    "INPUT_VALUE.SET": { assign: setInputValue },
     OPEN: { target: "interacting" },
     CLOSE: { target: "focused" },
-    "VALUE.CLEAR": { target: "focused", actions: [{ assign: "clearInputValue" }, { assign: "clearValue" }] },
+    "VALUE.CLEAR": { target: "focused", assign: [clearInputValue, clearValue] },
     // Zag's `open` parent. The root INPUT.ESCAPE (guard: custom value the
     // machine refuses) must land in every state — a typed query in
     // `suggesting` reverts the same way a typed query in `focused` does —
     // so the closed states shadow it only where they must.
     "INPUT.ESCAPE": [
       {
-        cond: "revertsToValue",
-        actions: [{ assign: "revertInputValue" }],
+        cond: revertsToValue,
+        assign: revertInputValue,
       },
     ],
     "INPUT.ENTER": [
       {
-        cond: "revertsToValue",
+        cond: revertsToValue,
         target: "focused",
-        actions: [{ assign: "revertInputValue" }],
+        assign: revertInputValue,
       },
       {
-        cond: "closeOnSelect",
+        cond: closeOnSelect,
         target: "focused",
-        actions: [{ assign: "selectHighlightedItem" }],
+        assign: selectHighlightedItem,
       },
-      { actions: [{ assign: "selectHighlightedItem" }] },
+      { assign: selectHighlightedItem },
     ],
     "ITEM.CLICK": [
       {
-        cond: "closeOnSelect",
+        cond: closeOnSelect,
         target: "focused",
-        actions: [{ assign: "selectItem" }],
+        assign: selectItem,
       },
-      { actions: [{ assign: "selectItem" }] },
+      { assign: selectItem },
     ],
     "TRIGGER.CLICK": { target: "focused" },
     "LAYER.INTERACT_OUTSIDE": [
       {
-        cond: "revertsOnOutside",
+        cond: (ctx) => { return isCustomValue(ctx) && !ctx.allowCustomValue; },
         target: "idle",
-        actions: [{ assign: "revertInputValue" }],
+        assign: revertInputValue,
       },
       { target: "idle" },
     ],
   },
   states: {
     idle: {
-      entry: [{ assign: "clearHighlightedValue" }],
+      entry: [{ assign: clearHighlightedValue }],
       on: {
         "INPUT.FOCUS": { target: "focused" },
         "TRIGGER.CLICK": {
           target: "interacting",
-          actions: [{ assign: "highlightFirstOrSelectedItem" }],
+          assign: highlightFirstOrSelectedItem,
         },
         "INPUT.CLICK": {
           target: "interacting",
-          actions: [{ assign: "highlightFirstOrSelectedItem" }],
+          assign: highlightFirstOrSelectedItem,
         },
         // Zag's `open` parent owns Enter and item clicks; a closed combobox
         // has no panel to act on.
-        "INPUT.ENTER": { actions: [] },
-        "ITEM.CLICK": { actions: [] },
+        "INPUT.ENTER": { },
+        "ITEM.CLICK": { },
       },
     },
     focused: {
-      entry: [{ assign: "clearHighlightedValue" }],
+      entry: [{ assign: clearHighlightedValue }],
       on: {
         "INPUT.BLUR": { target: "idle" },
         "INPUT.CHANGE": [
           {
-            cond: "openOnChange",
+            cond: (ctx) => { return ctx.openOnChange; },
             target: "suggesting",
-            actions: [
-              { assign: "setInputValue" },
-              { assign: "highlightFirstItemIfAuto" },
-            ],
+            assign: [setInputValue, (ctx) => { return ctx.inputBehavior !== "autohighlight" || ctx.order.length === 0
+        ? {}
+        : { highlightedValue: at(ctx.order, 0), autofill: null }; }],
           },
-          { actions: [{ assign: "setInputValue" }] },
+          { assign: setInputValue },
         ],
         "INPUT.ESCAPE": [
-          { cond: "revertsToValue", actions: [{ assign: "revertInputValue" }] },
+          { cond: revertsToValue, assign: revertInputValue },
         ],
         "INPUT.CLICK": {
           target: "interacting",
-          actions: [{ assign: "highlightFirstOrSelectedItem" }],
+          assign: highlightFirstOrSelectedItem,
         },
         "TRIGGER.CLICK": {
           target: "interacting",
-          actions: [{ assign: "highlightFirstOrSelectedItem" }],
+          assign: highlightFirstOrSelectedItem,
         },
         // With an inline completion the arrow opens the panel and leaves the
         // highlight alone; without one it opens and adopts the first (or the
         // first selected) value.
         "INPUT.ARROW_DOWN": [
-          { cond: "inlineAutocomplete", target: "interacting" },
+          { cond: inlineAutocomplete, target: "interacting" },
           {
             target: "interacting",
-            actions: [{ assign: "highlightFirstOrSelectedItem" }],
+            assign: highlightFirstOrSelectedItem,
           },
         ],
         "INPUT.ARROW_UP": [
-          { cond: "inlineAutocomplete", target: "interacting" },
+          { cond: inlineAutocomplete, target: "interacting" },
           {
             target: "interacting",
-            actions: [{ assign: "highlightLastOrSelectedItem" }],
+            assign: (ctx) => {
+      const selected = ctx.order.filter((value) => ctx.value.includes(value));
+      const value = selected.length > 0 ? at(selected, 0) : at(ctx.order, -1);
+      if (value === null) return {};
+      return { highlightedValue: value, autofill: null };
+    },
           },
         ],
         // Zag's closed.focused dismisses with no revert: the text the user
@@ -303,48 +393,50 @@ const config = {
         "LAYER.ESCAPE": { target: "idle" },
         // The clear word keeps the highlight here: an internal transition
         // runs no entry action, which is Zag's closed.focused exactly.
-        "VALUE.CLEAR": { actions: [{ assign: "clearInputValue" }, { assign: "clearValue" }] },
-        "INPUT.ENTER": { actions: [] },
-        "ITEM.CLICK": { actions: [] },
+        "VALUE.CLEAR": { assign: [clearInputValue, clearValue] },
+        "INPUT.ENTER": { },
+        "ITEM.CLICK": { },
       },
     },
     interacting: {
       on: {
         "CHILDREN_CHANGE": {
-          actions: [{ assign: "dropRemovedHighlight" }],
+          assign: (ctx) => { return ctx.highlightedValue !== null && !ctx.order.includes(ctx.highlightedValue)
+        ? { highlightedValue: null, autofill: null }
+        : {}; },
         },
-        "INPUT.HOME": { actions: [{ assign: "moveHighlight" }] },
-        "INPUT.END": { actions: [{ assign: "moveHighlight" }] },
+        "INPUT.HOME": { assign: moveHighlight },
+        "INPUT.END": { assign: moveHighlight },
         // An inline completion walks to the ends and then gives the text
         // back, so the last item is not a dead end.
         "INPUT.ARROW_DOWN": [
-          { cond: "completionAtEnd", actions: [{ assign: "clearHighlightedValue" }] },
-          { actions: [{ assign: "moveHighlight" }] },
+          { cond: (ctx) => { return inlineSingle(ctx) && ctx.highlightedValue === at(ctx.order, -1); }, assign: clearHighlightedValue },
+          { assign: moveHighlight },
         ],
         "INPUT.ARROW_UP": [
-          { cond: "completionAtStart", actions: [{ assign: "clearHighlightedValue" }] },
-          { actions: [{ assign: "moveHighlight" }] },
+          { cond: (ctx) => { return inlineSingle(ctx) && ctx.highlightedValue === at(ctx.order, 0); }, assign: clearHighlightedValue },
+          { assign: moveHighlight },
         ],
         "INPUT.CHANGE": [
           {
-            cond: "inlineAutocomplete",
+            cond: inlineAutocomplete,
             target: "suggesting",
-            actions: [{ assign: "setInputValue" }],
+            assign: setInputValue,
           },
           {
             target: "suggesting",
-            actions: [{ assign: "setInputValue" }, { assign: "clearHighlightedValue" }],
+            assign: [setInputValue, clearHighlightedValue],
           },
         ],
-        "ITEM.POINTER_MOVE": { actions: [{ assign: "setHighlightedValue" }] },
-        "ITEM.POINTER_LEAVE": { actions: [{ assign: "clearHighlightedValue" }] },
+        "ITEM.POINTER_MOVE": { assign: setHighlightedValue },
+        "ITEM.POINTER_LEAVE": { assign: clearHighlightedValue },
         // Escape out of a suggestion: the completion is dropped and the
         // input's own binding shows `inputValue` again — what Zag's
         // DOM-writing `syncInputValue` achieves against an uncontrolled
         // field. With autoComplete the completion is kept until the panel
         // closes, so only the highlight goes.
         "LAYER.ESCAPE": [
-          { cond: "inlineAutocomplete", actions: [{ assign: "clearHighlightedValue" }] },
+          { cond: inlineAutocomplete, assign: clearHighlightedValue },
           { target: "focused" },
         ],
       },
@@ -353,34 +445,37 @@ const config = {
       on: {
         "CHILDREN_CHANGE": [
           {
-            cond: "autoHighlightAfterRemoval",
-            actions: [{ assign: "clearHighlightedValue" }, { assign: "highlightFirstItem" }],
+            cond: (ctx) => { return ctx.inputBehavior === "autohighlight" &&
+      ctx.highlightedValue !== null &&
+      !ctx.order.includes(ctx.highlightedValue) &&
+      ctx.order.length > 0; },
+            assign: [clearHighlightedValue, highlightFirstItem],
           },
-          { cond: "highlightRemoved", actions: [{ assign: "clearHighlightedValue" }] },
-          { cond: "autoHighlight", actions: [{ assign: "highlightFirstItem" }] },
+          { cond: (ctx) => { return ctx.highlightedValue !== null && !ctx.order.includes(ctx.highlightedValue); }, assign: clearHighlightedValue },
+          { cond: (ctx) => { return ctx.inputBehavior === "autohighlight"; }, assign: highlightFirstItem },
         ],
         "INPUT.ARROW_DOWN": {
           target: "interacting",
-          actions: [{ assign: "moveHighlight" }],
+          assign: moveHighlight,
         },
         "INPUT.ARROW_UP": {
           target: "interacting",
-          actions: [{ assign: "moveHighlight" }],
+          assign: moveHighlight,
         },
         "INPUT.HOME": {
           target: "interacting",
-          actions: [{ assign: "moveHighlight" }],
+          assign: moveHighlight,
         },
         "INPUT.END": {
           target: "interacting",
-          actions: [{ assign: "moveHighlight" }],
+          assign: moveHighlight,
         },
-        "INPUT.CHANGE": { actions: [{ assign: "setInputValue" }] },
+        "INPUT.CHANGE": { assign: setInputValue },
         "ITEM.POINTER_MOVE": {
           target: "interacting",
-          actions: [{ assign: "setHighlightedValue" }],
+          assign: setHighlightedValue,
         },
-        "ITEM.POINTER_LEAVE": { actions: [{ assign: "clearHighlightedValue" }] },
+        "ITEM.POINTER_LEAVE": { assign: clearHighlightedValue },
         "LAYER.ESCAPE": { target: "focused" },
       },
     },
@@ -466,146 +561,14 @@ const isMove = (
   event.type === "INPUT.HOME" ||
   event.type === "INPUT.END";
 
-const implementations = {
-  conds: {
-    /** The inline completion AND a single-mode selection. */
-    inlineAutocomplete: (ctx: ComboboxContext): boolean => inlineSingle(ctx),
-    autoHighlight: (ctx: ComboboxContext): boolean => ctx.inputBehavior === "autohighlight",
-    closeOnSelect: (ctx: ComboboxContext): boolean => ctx.closeOnSelect,
-
-    openOnChange: (ctx: ComboboxContext): boolean => ctx.openOnChange,
-    hasSelectedItems: (ctx: ComboboxContext): boolean => ctx.value.length > 0,
-    /** Enter with text the collection does not explain, no custom value
-     * allowed and nothing highlighted: the text goes back to the selection.
-     * The outside press asks the same question without the highlight test. */
-    revertsToValue: (ctx: ComboboxContext): boolean =>
-      isCustomValue(ctx) && !ctx.allowCustomValue && ctx.highlightedValue === null,
-    revertsOnOutside: (ctx: ComboboxContext): boolean =>
-      isCustomValue(ctx) && !ctx.allowCustomValue,
-    /** The removal an auto-highlight repairs: the highlight is gone from
-     * the collection. */
-    autoHighlightAfterRemoval: (ctx: ComboboxContext): boolean =>
-      ctx.inputBehavior === "autohighlight" &&
-      ctx.highlightedValue !== null &&
-      !ctx.order.includes(ctx.highlightedValue) &&
-      ctx.order.length > 0,
-    highlightRemoved: (ctx: ComboboxContext): boolean =>
-      ctx.highlightedValue !== null && !ctx.order.includes(ctx.highlightedValue),
-    /** The completion is sitting on the collection's last (or first) value,
-     * so the next arrow in that direction has nowhere to go. */
-    completionAtEnd: (ctx: ComboboxContext): boolean =>
-      inlineSingle(ctx) && ctx.highlightedValue === at(ctx.order, -1),
-    completionAtStart: (ctx: ComboboxContext): boolean =>
-      inlineSingle(ctx) && ctx.highlightedValue === at(ctx.order, 0),
-  },
-  assigns: {
-    /** Zag's `setHighlightedValue`: a null writes nothing. */
-    setHighlightedValue: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
-      // ITEM.POINTER_MOVE carries the row's value directly (the pointer is
-      // already there); HIGHLIGHTED_VALUE.SET carries it with a keypress
-      // flag for inline completion.
-      if (e.type === "ITEM.POINTER_MOVE") {
-        return { highlightedValue: e.value, autofill: completion(ctx, e.value, false) };
-      }
-      if (e.type !== "HIGHLIGHTED_VALUE.SET" || e.value === null) return {};
-      return {
-        highlightedValue: e.value,
-        autofill: completion(ctx, e.value, e.keypress === true),
-      };
-    },
-    clearHighlightedValue: (): Partial<ComboboxContext> => ({
-      highlightedValue: null,
-      autofill: null,
-    }),
-    /** The arrows' and Home/End's target, which the view resolved. A closed
-     * panel sends the event without one — its own assign decides what the
-     * opening highlight is. */
-    moveHighlight: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
-      if (!isMove(e) || e.value === undefined) return {};
-      return {
-        highlightedValue: e.value,
-        autofill: completion(ctx, e.value, e.keypress === true),
-      };
-    },
-    highlightFirstItem: (ctx: ComboboxContext): Partial<ComboboxContext> =>
-      ctx.order.length === 0 ? {} : { highlightedValue: at(ctx.order, 0), autofill: null },
-    /** Zag's `highlightFirstItemIfNeeded`: a suggestion adopts its first row
-     * only when the host asked for the auto highlight. */
-    highlightFirstItemIfAuto: (ctx: ComboboxContext): Partial<ComboboxContext> =>
-      ctx.inputBehavior !== "autohighlight" || ctx.order.length === 0
-        ? {}
-        : { highlightedValue: at(ctx.order, 0), autofill: null },
-    highlightLastItem: (ctx: ComboboxContext): Partial<ComboboxContext> =>
-      ctx.order.length === 0 ? {} : { highlightedValue: at(ctx.order, -1), autofill: null },
-    highlightFirstOrSelectedItem: (ctx: ComboboxContext): Partial<ComboboxContext> => {
-      const selected = ctx.order.filter((value) => ctx.value.includes(value));
-      const value = selected.length > 0 ? at(selected, 0) : at(ctx.order, 0);
-      if (value === null) return {};
-      return { highlightedValue: value, autofill: null };
-    },
-    /** Zag's `highlightLastOrSelectedItem` names the last item but reads the
-     * FIRST selected one when there is a selection — verbatim, quirk and all,
-     * because the trigger's opening highlight is the anchor a user reads. */
-    highlightLastOrSelectedItem: (ctx: ComboboxContext): Partial<ComboboxContext> => {
-      const selected = ctx.order.filter((value) => ctx.value.includes(value));
-      const value = selected.length > 0 ? at(selected, 0) : at(ctx.order, -1);
-      if (value === null) return {};
-      return { highlightedValue: value, autofill: null };
-    },
-    dropRemovedHighlight: (ctx: ComboboxContext): Partial<ComboboxContext> =>
-      ctx.highlightedValue !== null && !ctx.order.includes(ctx.highlightedValue)
-        ? { highlightedValue: null, autofill: null }
-        : {},
-    selectItem: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
-      if (e.type !== "ITEM.SELECT" && e.type !== "ITEM.CLICK") return {};
-      return applySelection(ctx, pickValue(ctx, e.value));
-    },
-    selectHighlightedItem: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
-      if (e.type !== "INPUT.ENTER") return {};
-      // A highlight the collection cannot resolve selects nothing.
-      if (ctx.highlightedValue === null || !ctx.order.includes(ctx.highlightedValue)) return {};
-      return applySelection(ctx, pickValue(ctx, ctx.highlightedValue));
-    },
-    clearItem: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
-      if (e.type !== "ITEM.CLEAR") return {};
-      return applySelection(
-        ctx,
-        ctx.value.filter((value) => value !== e.value),
-      );
-    },
-    setValue: (ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> =>
-      e.type === "VALUE.SET" ? applySelection(ctx, e.value) : {},
-    clearValue: (ctx: ComboboxContext): Partial<ComboboxContext> => applySelection(ctx, []),
-    clearInputValue: (): Partial<ComboboxContext> => ({ inputValue: "", autofill: null }),
-    setInputValue: (_ctx: ComboboxContext, e: ComboboxEvent): Partial<ComboboxContext> => {
-      if (e.type !== "INPUT.CHANGE" && e.type !== "INPUT_VALUE.SET") return {};
-      return { inputValue: e.value, autofill: null };
-    },
-    /** The watch on `value`: the input is recomputed from the selection. */
-    syncSelectedItems: (ctx: ComboboxContext): Partial<ComboboxContext> => ({
-      inputValue: inputValueFor(ctx, ctx.value),
-      autofill: null,
-    }),
-    /** Escape with an inline completion, and an outside press with text the
-     * collection does not explain, both put the authored value back. */
-    revertInputValue: (ctx: ComboboxContext): Partial<ComboboxContext> => {
-      if (ctx.selectionBehavior === "preserve") return {};
-      if (ctx.selectionBehavior === "clear") return { inputValue: "", autofill: null };
-      return {
-        inputValue: ctx.value.length > 0 ? stringifyValues(ctx, ctx.value) : "",
-        autofill: null,
-      };
-    },
-  },
-};
+const implementations = {};
 
 export function combobox(
   args: ComboboxArgs = {},
   authored: (name: string) => boolean,
-): Machine<ComboboxContext, ComboboxEvent> {
-  return createMachine<ComboboxContext, ComboboxEvent>({
+): Machine<ComboboxContext, ComboboxEvents> {
+  return createMachine<ComboboxContext, ComboboxEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The selection, the field's text and the highlight are the machine's

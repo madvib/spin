@@ -10,7 +10,19 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setActiveSegment = (_ctx: DateInputContext, e: DateInputEvent) : Partial<DateInputContext> => {
+      if (e.type !== "SEGMENT.FOCUS") return {};
+      return { activeSegment: e.index };
+    };
+
+const clearEnteredKeys = () : Partial<DateInputContext> => { return ({ enteredKeys: "" }); };
+
+const setPrevSegment = (ctx: DateInputContext) : Partial<DateInputContext> => { return ({
+      activeSegment: Math.max(0, ctx.activeSegment - 1),
+    }); };
+
+
 
 export type DateInputField = "year" | "month" | "day" | "hour" | "minute" | "second" | "dayPeriod";
 
@@ -114,22 +126,26 @@ export interface DateInputValueChange {
   readonly valueAsString: string;
 }
 
-export type DateInputEvent =
-  | { type: "VALUE.SET"; value: DateValue | null | string }
-  | { type: "VALUE.CLEAR" }
-  | { type: "HOUR_CYCLE.SET"; hourCycle: 12 | 24 }
-  | { type: "SEGMENT.FOCUS"; index: number }
-  | { type: "SEGMENT.BLUR" }
-  | { type: "SEGMENT.INPUT"; index: number; input: string }
-  | { type: "SEGMENT.ADJUST"; index: number; amount: number }
-  | { type: "SEGMENT.ARROW_LEFT" }
-  | { type: "SEGMENT.ARROW_RIGHT" }
-  | { type: "SEGMENT.BACKSPACE" }
-  | { type: "SEGMENT.HOME" }
-  | { type: "SEGMENT.END" }
-  | { type: "SEGMENT.PASTE"; value: string };
+export interface DateInputEvents {
+  "VALUE.SET": { value: DateValue | null | string };
+  "VALUE.CLEAR": {};
+  "HOUR_CYCLE.SET": { hourCycle: 12 | 24 };
+  "SEGMENT.FOCUS": { index: number };
+  "SEGMENT.BLUR": {};
+  "SEGMENT.INPUT": { index: number; input: string };
+  "SEGMENT.ADJUST": { index: number; amount: number };
+  "SEGMENT.ARROW_LEFT": {};
+  "SEGMENT.ARROW_RIGHT": {};
+  "SEGMENT.BACKSPACE": {};
+  "SEGMENT.HOME": {};
+  "SEGMENT.END": {};
+  "SEGMENT.PASTE": { value: string };
+}
 
-const config = {
+export type DateInputEvent = EventUnion<DateInputEvents>;
+
+
+const config: MachineSpec<DateInputContext, DateInputEvents> = {
   id: "date-input",
   initial: "idle",
   context: {
@@ -145,14 +161,27 @@ const config = {
   // The root tier, exactly as Zag: the value events work from every state,
   // so a host's command writes the value whether or not a segment holds focus.
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
-    "HOUR_CYCLE.SET": { actions: [{ assign: "setHourCycle" }] },
+    "VALUE.SET": { assign: (ctx, e) => {
+      if (e.type !== "VALUE.SET") return {};
+      // A host's text that names the value the machine already holds is no
+      // write at all: the segments keep what the user is typing.
+      const named = typeof e.value === "string" ? parseValue(e.value) : e.value;
+      if (typeof e.value === "string" && valueAsString(ctx.value) === valueAsString(named)) {
+        return {};
+      }
+      const value = clampValue(named, ctx.min, ctx.max);
+      return { value, fields: dateToFields(value, ctx.hourCycle), enteredKeys: "" };
+    } },
+    "VALUE.CLEAR": { assign: () => { return ({ value: null, fields: emptyFields(), enteredKeys: "" }); } },
+    "HOUR_CYCLE.SET": { assign: (ctx, e) => {
+      if (e.type !== "HOUR_CYCLE.SET") return {};
+      return { hourCycle: e.hourCycle, fields: dateToFields(ctx.value, e.hourCycle) };
+    } },
   },
   states: {
     idle: {
       on: {
-        "SEGMENT.FOCUS": { target: "focused", actions: [{ assign: "setActiveSegment" }] },
+        "SEGMENT.FOCUS": { target: "focused", assign: setActiveSegment },
       },
     },
     focused: {
@@ -160,21 +189,99 @@ const config = {
         // DOM focus catching up to an auto-advance must not discard keys
         // already typed into it — Zag's `isActiveSegmentFocus` guard.
         "SEGMENT.FOCUS": [
-          { cond: "isActiveSegment", actions: [{ assign: "setActiveSegment" }] },
-          { actions: [{ assign: "setActiveSegment" }, { assign: "clearEnteredKeys" }] },
+          { cond: (ctx, e) => { return e.type === "SEGMENT.FOCUS" && e.index === ctx.activeSegment; }, assign: setActiveSegment },
+          { assign: [setActiveSegment, clearEnteredKeys] },
         ],
-        "SEGMENT.BLUR": { target: "idle", actions: [{ assign: "clearActiveSegment" }, { assign: "clearEnteredKeys" }, { assign: "confirmValue" }] },
-        "SEGMENT.INPUT": { actions: [{ assign: "setSegmentValue" }] },
-        "SEGMENT.ADJUST": { actions: [{ assign: "adjustSegmentValue" }, { assign: "clearEnteredKeys" }] },
-        "SEGMENT.ARROW_LEFT": { actions: [{ assign: "setPrevSegment" }, { assign: "clearEnteredKeys" }] },
-        "SEGMENT.ARROW_RIGHT": { actions: [{ assign: "setNextSegment" }, { assign: "clearEnteredKeys" }] },
+        "SEGMENT.BLUR": { target: "idle", assign: [() => { return ({ activeSegment: -1 }); }, clearEnteredKeys, (ctx) => {
+      const value = clampValue(fieldsToDate(ctx.fields, ctx.hourCycle), ctx.min, ctx.max);
+      if (value === null) return {};
+      return { value, fields: dateToFields(value, ctx.hourCycle) };
+    }] },
+        "SEGMENT.INPUT": { assign: (ctx, e) => {
+      if (e.type !== "SEGMENT.INPUT") return {};
+      const fields = segmentFields(ctx.granularity);
+      const field = fields[e.index];
+      if (field === undefined) return {};
+      if (field === "dayPeriod") {
+        const period = periodOf(e.input);
+        if (period === null) return {};
+        return advance({ ...ctx.fields, dayPeriod: period }, ctx, e.index, fields);
+      }
+      if (!/^[0-9]$/.test(e.input)) return {};
+      const width = fieldWidth(field);
+      const keys = `${ctx.enteredKeys}${e.input}`.slice(-width);
+      const numeric = Number.parseInt(keys, 10);
+      if (Number.isNaN(numeric)) return {};
+      const next = { ...ctx.fields, [field]: clampField(field, numeric, ctx.fields.year, ctx.fields.month) };
+      if (keys.length < width) return { fields: next, enteredKeys: keys };
+      // A leading zero never fills: "0" starts the number, it is not one.
+      if (keys.length === width && keys.startsWith("0") && field !== "year") {
+        const short = Number.parseInt(keys.slice(1), 10);
+        if (!Number.isNaN(short)) return { fields: { ...next, [field]: short }, enteredKeys: keys };
+      }
+      return advance(next, ctx, e.index, fields);
+    } },
+        "SEGMENT.ADJUST": { assign: [(ctx, e) => {
+      if (e.type !== "SEGMENT.ADJUST") return {};
+      const fields = segmentFields(ctx.granularity);
+      const field = fields[e.index];
+      if (field === undefined) return {};
+      const current = ctx.fields[field];
+      const limits = FIELD_LIMITS[field];
+      const at = current ?? (e.amount > 0 ? limits.max : limits.min);
+      const span = limits.max - limits.min + 1;
+      const cycled = limits.min + (((at - limits.min + e.amount) % span + span) % span);
+      const next = { ...ctx.fields, [field]: clampField(field, cycled, ctx.fields.year, ctx.fields.month) };
+      return commit(next, ctx);
+    }, clearEnteredKeys] },
+        "SEGMENT.ARROW_LEFT": { assign: [setPrevSegment, clearEnteredKeys] },
+        "SEGMENT.ARROW_RIGHT": { assign: [(ctx) => { return ({
+      activeSegment: Math.min(segmentFields(ctx.granularity).length - 1, ctx.activeSegment + 1),
+    }); }, clearEnteredKeys] },
         "SEGMENT.BACKSPACE": [
-          { cond: "isActiveSegmentEmpty", actions: [{ assign: "setPrevSegment" }, { assign: "clearEnteredKeys" }] },
-          { actions: [{ assign: "clearSegmentValue" }] },
+          { cond: (ctx) => {
+      if (ctx.enteredKeys !== "") return false;
+      const fields = segmentFields(ctx.granularity);
+      const field = fields[ctx.activeSegment];
+      return field === undefined || ctx.fields[field] === null;
+    }, assign: [setPrevSegment, clearEnteredKeys] },
+          { assign: (ctx) => {
+      const fields = segmentFields(ctx.granularity);
+      const field = fields[ctx.activeSegment];
+      if (field === undefined) return {};
+      return commit({ ...ctx.fields, [field]: null }, ctx);
+    } },
         ],
-        "SEGMENT.HOME": { actions: [{ assign: "setSegmentToLowest" }, { assign: "clearEnteredKeys" }] },
-        "SEGMENT.END": { actions: [{ assign: "setSegmentToHighest" }, { assign: "clearEnteredKeys" }] },
-        "SEGMENT.PASTE": { actions: [{ assign: "setPastedValue" }, { assign: "clearEnteredKeys" }] },
+        "SEGMENT.HOME": { assign: [(ctx) => {
+      const fields = segmentFields(ctx.granularity);
+      const field = fields[ctx.activeSegment];
+      if (field === undefined) return {};
+      const value = field === "day" ? 1 : FIELD_LIMITS[field].min;
+      return commit({ ...ctx.fields, [field]: clampField(field, value, ctx.fields.year, ctx.fields.month) }, ctx);
+    }, clearEnteredKeys] },
+        "SEGMENT.END": { assign: [(ctx) => {
+      const fields = segmentFields(ctx.granularity);
+      const field = fields[ctx.activeSegment];
+      if (field === undefined) return {};
+      const value = field === "day" ? daysInMonth(ctx.fields.year, ctx.fields.month) : FIELD_LIMITS[field].max;
+      return commit({ ...ctx.fields, [field]: clampField(field, value, ctx.fields.year, ctx.fields.month) }, ctx);
+    }, clearEnteredKeys] },
+        "SEGMENT.PASTE": { assign: [(ctx, e) => {
+      if (e.type !== "SEGMENT.PASTE") return {};
+      const time = Date.parse(e.value);
+      if (Number.isNaN(time)) return {};
+      const at = new Date(time);
+      const value: DateValue = {
+        year: at.getUTCFullYear(),
+        month: at.getUTCMonth() + 1,
+        day: at.getUTCDate(),
+        hour: 0,
+        minute: 0,
+        second: 0,
+      };
+      const clamped = clampValue(value, ctx.min, ctx.max);
+      return { value: clamped, fields: dateToFields(clamped, ctx.hourCycle), enteredKeys: "" };
+    }, clearEnteredKeys] },
       },
     },
   },
@@ -320,127 +427,7 @@ function periodOf(input: string): number | null {
   return null;
 }
 
-const implementations = {
-  conds: {
-    isActiveSegment: (ctx: DateInputContext, e: DateInputEvent): boolean =>
-      e.type === "SEGMENT.FOCUS" && e.index === ctx.activeSegment,
-    isActiveSegmentEmpty: (ctx: DateInputContext): boolean => {
-      if (ctx.enteredKeys !== "") return false;
-      const fields = segmentFields(ctx.granularity);
-      const field = fields[ctx.activeSegment];
-      return field === undefined || ctx.fields[field] === null;
-    },
-  },
-  assigns: {
-    setValue: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
-      if (e.type !== "VALUE.SET") return {};
-      // A host's text that names the value the machine already holds is no
-      // write at all: the segments keep what the user is typing.
-      const named = typeof e.value === "string" ? parseValue(e.value) : e.value;
-      if (typeof e.value === "string" && valueAsString(ctx.value) === valueAsString(named)) {
-        return {};
-      }
-      const value = clampValue(named, ctx.min, ctx.max);
-      return { value, fields: dateToFields(value, ctx.hourCycle), enteredKeys: "" };
-    },
-    setHourCycle: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
-      if (e.type !== "HOUR_CYCLE.SET") return {};
-      return { hourCycle: e.hourCycle, fields: dateToFields(ctx.value, e.hourCycle) };
-    },
-    clearValue: (): Partial<DateInputContext> => ({ value: null, fields: emptyFields(), enteredKeys: "" }),
-    setActiveSegment: (_ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
-      if (e.type !== "SEGMENT.FOCUS") return {};
-      return { activeSegment: e.index };
-    },
-    clearActiveSegment: (): Partial<DateInputContext> => ({ activeSegment: -1 }),
-    clearEnteredKeys: (): Partial<DateInputContext> => ({ enteredKeys: "" }),
-    setSegmentValue: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
-      if (e.type !== "SEGMENT.INPUT") return {};
-      const fields = segmentFields(ctx.granularity);
-      const field = fields[e.index];
-      if (field === undefined) return {};
-      if (field === "dayPeriod") {
-        const period = periodOf(e.input);
-        if (period === null) return {};
-        return advance({ ...ctx.fields, dayPeriod: period }, ctx, e.index, fields);
-      }
-      if (!/^[0-9]$/.test(e.input)) return {};
-      const width = fieldWidth(field);
-      const keys = `${ctx.enteredKeys}${e.input}`.slice(-width);
-      const numeric = Number.parseInt(keys, 10);
-      if (Number.isNaN(numeric)) return {};
-      const next = { ...ctx.fields, [field]: clampField(field, numeric, ctx.fields.year, ctx.fields.month) };
-      if (keys.length < width) return { fields: next, enteredKeys: keys };
-      // A leading zero never fills: "0" starts the number, it is not one.
-      if (keys.length === width && keys.startsWith("0") && field !== "year") {
-        const short = Number.parseInt(keys.slice(1), 10);
-        if (!Number.isNaN(short)) return { fields: { ...next, [field]: short }, enteredKeys: keys };
-      }
-      return advance(next, ctx, e.index, fields);
-    },
-    /** Arrows cycle the field within its limits; the day follows its month. */
-    adjustSegmentValue: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
-      if (e.type !== "SEGMENT.ADJUST") return {};
-      const fields = segmentFields(ctx.granularity);
-      const field = fields[e.index];
-      if (field === undefined) return {};
-      const current = ctx.fields[field];
-      const limits = FIELD_LIMITS[field];
-      const at = current ?? (e.amount > 0 ? limits.max : limits.min);
-      const span = limits.max - limits.min + 1;
-      const cycled = limits.min + (((at - limits.min + e.amount) % span + span) % span);
-      const next = { ...ctx.fields, [field]: clampField(field, cycled, ctx.fields.year, ctx.fields.month) };
-      return commit(next, ctx);
-    },
-    setPrevSegment: (ctx: DateInputContext): Partial<DateInputContext> => ({
-      activeSegment: Math.max(0, ctx.activeSegment - 1),
-    }),
-    setNextSegment: (ctx: DateInputContext): Partial<DateInputContext> => ({
-      activeSegment: Math.min(segmentFields(ctx.granularity).length - 1, ctx.activeSegment + 1),
-    }),
-    clearSegmentValue: (ctx: DateInputContext): Partial<DateInputContext> => {
-      const fields = segmentFields(ctx.granularity);
-      const field = fields[ctx.activeSegment];
-      if (field === undefined) return {};
-      return commit({ ...ctx.fields, [field]: null }, ctx);
-    },
-    setSegmentToLowest: (ctx: DateInputContext): Partial<DateInputContext> => {
-      const fields = segmentFields(ctx.granularity);
-      const field = fields[ctx.activeSegment];
-      if (field === undefined) return {};
-      const value = field === "day" ? 1 : FIELD_LIMITS[field].min;
-      return commit({ ...ctx.fields, [field]: clampField(field, value, ctx.fields.year, ctx.fields.month) }, ctx);
-    },
-    setSegmentToHighest: (ctx: DateInputContext): Partial<DateInputContext> => {
-      const fields = segmentFields(ctx.granularity);
-      const field = fields[ctx.activeSegment];
-      if (field === undefined) return {};
-      const value = field === "day" ? daysInMonth(ctx.fields.year, ctx.fields.month) : FIELD_LIMITS[field].max;
-      return commit({ ...ctx.fields, [field]: clampField(field, value, ctx.fields.year, ctx.fields.month) }, ctx);
-    },
-    setPastedValue: (ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
-      if (e.type !== "SEGMENT.PASTE") return {};
-      const time = Date.parse(e.value);
-      if (Number.isNaN(time)) return {};
-      const at = new Date(time);
-      const value: DateValue = {
-        year: at.getUTCFullYear(),
-        month: at.getUTCMonth() + 1,
-        day: at.getUTCDate(),
-        hour: 0,
-        minute: 0,
-        second: 0,
-      };
-      const clamped = clampValue(value, ctx.min, ctx.max);
-      return { value: clamped, fields: dateToFields(clamped, ctx.hourCycle), enteredKeys: "" };
-    },
-    confirmValue: (ctx: DateInputContext): Partial<DateInputContext> => {
-      const value = clampValue(fieldsToDate(ctx.fields, ctx.hourCycle), ctx.min, ctx.max);
-      if (value === null) return {};
-      return { value, fields: dateToFields(value, ctx.hourCycle) };
-    },
-  },
-};
+const implementations = {};
 
 function commit(next: DateFields, ctx: DateInputContext): Partial<DateInputContext> {
   const value = clampValue(fieldsToDate(next, ctx.hourCycle), ctx.min, ctx.max);
@@ -462,10 +449,9 @@ function advance(
 export function dateInput(
   args: DateInputArgs = {},
   authored: (name: string) => boolean,
-): Machine<DateInputContext, DateInputEvent> {
-  return createMachine<DateInputContext, DateInputEvent>({
+): Machine<DateInputContext, DateInputEvents> {
+  return createMachine<DateInputContext, DateInputEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     fields: {
       value: { event: "VALUE.SET" },

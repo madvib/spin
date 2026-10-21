@@ -11,7 +11,17 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const clearHighlightedValue = () : Partial<ListboxContext> => { return ({ highlightedValue: null }); };
+
+const setFocused = () : Partial<ListboxContext> => { return ({ focused: true }); };
+
+const setHighlightedItem = (ctx: ListboxContext, event: EventUnion<ListboxEvents>) : Partial<ListboxContext> => {
+      if (event.type !== "ITEM.CLICK" && event.type !== "NAVIGATE") return {};
+      return ctx.order.includes(event.value) ? { highlightedValue: event.value } : {};
+    };
+
+
 
 export interface ListboxContext {
   value: string[];
@@ -26,27 +36,27 @@ export interface ListboxContext {
   selectionBehavior: "replace" | "preserve" | "clear";
 }
 
-export type ListboxEvent =
-  | { type: "SELECTED_ITEMS.SYNC" }
-  | {
-    type: "HIGHLIGHTED_VALUE.SET";
-    value?: string | null;
-    highlightedValue?: string | null;
-  }
-  | { type: "HIGHLIGHTED_VALUE.CLEAR" }
-  | { type: "ITEM.SELECT"; value: string }
-  | { type: "ITEM.CLEAR"; value: string }
-  | { type: "VALUE.SET"; value: readonly string[] }
-  | { type: "VALUE.CLEAR" }
-  | { type: "ITEM.CLICK"; value: string; shiftKey?: boolean; anchorValue?: string; metaKey?: boolean }
-  | { type: "CONTENT.FOCUS" }
-  | { type: "CONTENT.BLUR" }
-  | { type: "CONTENT.TYPEAHEAD"; key: string }
-  | { type: "ITEM.POINTER_MOVE"; value: string }
-  | { type: "ITEM.POINTER_LEAVE" }
-  | { type: "NAVIGATE"; value: string; shiftKey?: boolean; anchorValue?: string; metaKey?: boolean };
+export interface ListboxEvents {
+  "SELECTED_ITEMS.SYNC": {};
+  "HIGHLIGHTED_VALUE.SET": { value?: string | null; highlightedValue?: string | null };
+  "HIGHLIGHTED_VALUE.CLEAR": {};
+  "ITEM.SELECT": { value: string };
+  "ITEM.CLEAR": { value: string };
+  "VALUE.SET": { value: readonly string[] };
+  "VALUE.CLEAR": {};
+  "ITEM.CLICK": { value: string; shiftKey?: boolean; anchorValue?: string; metaKey?: boolean };
+  "CONTENT.FOCUS": {};
+  "CONTENT.BLUR": {};
+  "CONTENT.TYPEAHEAD": { key: string };
+  "ITEM.POINTER_MOVE": { value: string };
+  "ITEM.POINTER_LEAVE": {};
+  "NAVIGATE": { value: string; shiftKey?: boolean; anchorValue?: string; metaKey?: boolean };
+}
 
-const config = {
+export type ListboxEvent = EventUnion<ListboxEvents>;
+
+
+const config: MachineSpec<ListboxContext, ListboxEvents> = {
   id: "listbox",
   initial: "idle",
   context: {
@@ -62,32 +72,74 @@ const config = {
     selectionBehavior: "replace" as "replace" | "preserve" | "clear",
   },
   on: {
-    "SELECTED_ITEMS.SYNC": { actions: [{ assign: "syncSelectedItems" }] },
-    "HIGHLIGHTED_VALUE.SET": { actions: [{ assign: "setHighlightedValue" }] },
-    "HIGHLIGHTED_VALUE.CLEAR": { actions: [{ assign: "clearHighlightedValue" }] },
-    "ITEM.SELECT": { actions: [{ assign: "selectItem" }] },
-    "ITEM.CLEAR": { actions: [{ assign: "clearItem" }] },
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    "VALUE.CLEAR": { actions: [{ assign: "clearValue" }] },
+    "SELECTED_ITEMS.SYNC": { assign: (ctx) => { return ({
+      value: ctx.value.filter((v) => ctx.order.includes(v)),
+      highlightedValue:
+        ctx.highlightedValue !== null && ctx.order.includes(ctx.highlightedValue)
+          ? ctx.highlightedValue
+          : null,
+    }); } },
+    "HIGHLIGHTED_VALUE.SET": { assign: (ctx, event) => {
+      // The highlight arrives the way the host wrote it: the command names
+      // the value, the host write names the field.
+      const raw = event.highlightedValue !== undefined
+        ? event.highlightedValue
+        : event.value;
+      const value = typeof raw === "string" ? raw : null;
+      if (value === null || !ctx.order.includes(value)) return {};
+      return { highlightedValue: value };
+    } },
+    "HIGHLIGHTED_VALUE.CLEAR": { assign: clearHighlightedValue },
+    "ITEM.SELECT": { assign: (ctx, event) => {
+      return { value: select(ctx, event.value, false) };
+    } },
+    "ITEM.CLEAR": { assign: (ctx, event) => {
+      return { value: ctx.value.filter((v) => v !== event.value) };
+    } },
+    "VALUE.SET": { assign: (ctx, event) => {
+      return { value: event.value.filter((v) => ctx.order.includes(v)) };
+    } },
+    "VALUE.CLEAR": { assign: () => { return ({ value: [] }); } },
   },
   states: {
     idle: {
       on: {
         "CONTENT.FOCUS": [
           {
-            cond: "hasSelectedOrHighlighted",
-            actions: [{ assign: "setFocused" }],
+            cond: (ctx) => { return ctx.value.length > 0 || ctx.highlightedValue !== null; },
+            assign: setFocused,
           },
           {
-            actions: [{ assign: "setFocused" }, { assign: "setDefaultHighlightedValue" }],
+            assign: [setFocused, (ctx) => { return ({
+      highlightedValue: ctx.order[0] ?? null,
+    }); }],
           },
         ],
-        "CONTENT.BLUR": { actions: [{ assign: "clearFocused" }] },
-        "ITEM.CLICK": { actions: [{ assign: "setHighlightedItem" }, { assign: "selectHighlightedItem" }] },
-        "CONTENT.TYPEAHEAD": { actions: [{ assign: "setFocused" }, { assign: "highlightMatchingItem" }] },
-        "ITEM.POINTER_MOVE": { actions: [{ assign: "highlightItem" }] },
-        "ITEM.POINTER_LEAVE": { actions: [{ assign: "clearHighlightedValue" }] },
-        NAVIGATE: { actions: [{ assign: "setFocused" }, { assign: "setHighlightedItem" }, { assign: "selectWithKeyboard" }] },
+        "CONTENT.BLUR": { assign: () => { return ({ focused: false }); } },
+        "ITEM.CLICK": { assign: [setHighlightedItem, (ctx, event) => {
+      const value = event.value ?? ctx.highlightedValue;
+      if (value === null || value === undefined || !ctx.order.includes(value)) return {};
+      if (event.shiftKey === true && ctx.multiple && event.anchorValue !== undefined) {
+        return { value: extendSelection(ctx, event.anchorValue, value) };
+      }
+      return { value: select(ctx, value, event.metaKey === true) };
+    }] },
+        "CONTENT.TYPEAHEAD": { assign: [setFocused, (ctx, event) => {
+      const found = search(ctx, event.key);
+      return found === null ? {} : { highlightedValue: found };
+    }] },
+        "ITEM.POINTER_MOVE": { assign: (ctx, event) => {
+      return ctx.order.includes(event.value) ? { highlightedValue: event.value } : {};
+    } },
+        "ITEM.POINTER_LEAVE": { assign: clearHighlightedValue },
+        NAVIGATE: { assign: [setFocused, setHighlightedItem, (ctx, event) => {
+      if (!ctx.order.includes(event.value)) return {};
+      if (event.shiftKey === true && ctx.multiple && event.anchorValue !== undefined) {
+        return { value: extendSelection(ctx, event.anchorValue, event.value) };
+      }
+      if (ctx.selectOnHighlight) return { value: [event.value] };
+      return {};
+    }] },
       },
     },
   },
@@ -137,82 +189,7 @@ const search = (ctx: ListboxContext, key: string): string | null => {
   return null;
 };
 
-const implementations = {
-  conds: {
-    hasSelectedOrHighlighted: (ctx: ListboxContext): boolean =>
-      ctx.value.length > 0 || ctx.highlightedValue !== null,
-  },
-  assigns: {
-    syncSelectedItems: (ctx: ListboxContext): Partial<ListboxContext> => ({
-      value: ctx.value.filter((v) => ctx.order.includes(v)),
-      highlightedValue:
-        ctx.highlightedValue !== null && ctx.order.includes(ctx.highlightedValue)
-          ? ctx.highlightedValue
-          : null,
-    }),
-    setHighlightedValue: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "HIGHLIGHTED_VALUE.SET") return {};
-      // The highlight arrives the way the host wrote it: the command names
-      // the value, the host write names the field.
-      const raw = event.highlightedValue !== undefined
-        ? event.highlightedValue
-        : event.value;
-      const value = typeof raw === "string" ? raw : null;
-      if (value === null || !ctx.order.includes(value)) return {};
-      return { highlightedValue: value };
-    },
-    clearHighlightedValue: (): Partial<ListboxContext> => ({ highlightedValue: null }),
-    selectItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "ITEM.SELECT") return {};
-      return { value: select(ctx, event.value, false) };
-    },
-    clearItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "ITEM.CLEAR") return {};
-      return { value: ctx.value.filter((v) => v !== event.value) };
-    },
-    setValue: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "VALUE.SET") return {};
-      return { value: event.value.filter((v) => ctx.order.includes(v)) };
-    },
-    clearValue: (): Partial<ListboxContext> => ({ value: [] }),
-    setFocused: (): Partial<ListboxContext> => ({ focused: true }),
-    clearFocused: (): Partial<ListboxContext> => ({ focused: false }),
-    setDefaultHighlightedValue: (ctx: ListboxContext): Partial<ListboxContext> => ({
-      highlightedValue: ctx.order[0] ?? null,
-    }),
-    setHighlightedItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "ITEM.CLICK" && event.type !== "NAVIGATE") return {};
-      return ctx.order.includes(event.value) ? { highlightedValue: event.value } : {};
-    },
-    selectHighlightedItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "ITEM.CLICK") return {};
-      const value = event.value ?? ctx.highlightedValue;
-      if (value === null || value === undefined || !ctx.order.includes(value)) return {};
-      if (event.shiftKey === true && ctx.multiple && event.anchorValue !== undefined) {
-        return { value: extendSelection(ctx, event.anchorValue, value) };
-      }
-      return { value: select(ctx, value, event.metaKey === true) };
-    },
-    selectWithKeyboard: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "NAVIGATE") return {};
-      if (!ctx.order.includes(event.value)) return {};
-      if (event.shiftKey === true && ctx.multiple && event.anchorValue !== undefined) {
-        return { value: extendSelection(ctx, event.anchorValue, event.value) };
-      }
-      if (ctx.selectOnHighlight) return { value: [event.value] };
-      return {};
-    },
-    highlightItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "ITEM.POINTER_MOVE") return {};
-      return ctx.order.includes(event.value) ? { highlightedValue: event.value } : {};
-    },
-    highlightMatchingItem: (ctx: ListboxContext, event: ListboxEvent): Partial<ListboxContext> => {
-      if (event.type !== "CONTENT.TYPEAHEAD") return {};
-      const found = search(ctx, event.key);
-      return found === null ? {} : { highlightedValue: found };
-    },
-  },
-};
+const implementations = {};
 
 export const hasValue = (ctx: ListboxContext): boolean => ctx.value.length > 0;
 
@@ -319,12 +296,10 @@ export function initial(args: ListboxArgs = {}, authored: (name: string) => bool
 export function listbox(
   args: ListboxArgs = {},
   authored: (name: string) => boolean,
-): Machine<ListboxContext, ListboxEvent> {
-  return createMachine<ListboxContext, ListboxEvent>({
+): Machine<ListboxContext, ListboxEvents> {
+  return createMachine<ListboxContext, ListboxEvents>({
     ...config,
     context: initial(args, authored),
-    assigns: implementations.assigns,
-    conds: implementations.conds,
     /**
      * The machine's contract with its hosts: a field with an event is
      * REPORTED (the host's write becomes an event, the machine decides,

@@ -1,7 +1,76 @@
 /** Toast machine: the queue, each toast's lifecycle, and the stacking mode. */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec, type Transitions } from "@spin/runtime/fsm";
+const createToast = (ctx: ToastContext, e: ToastEvent) : Partial<ToastContext> => {
+      if (e.type !== "TOAST.CREATE") return {};
+      // A known id updates in place, as Zag's store does.
+      if (ctx.toasts.some((entry) => entry.id === e.id)) {
+        return updateToast(ctx, e);
+      }
+      const entry = makeEntry(e);
+      if (ctx.toasts.length >= ctx.max) return { queued: [...ctx.queued, entry] };
+      return { toasts: [entry, ...ctx.toasts] };
+    };
+
+const updateToast = (ctx: ToastContext, e: ToastEvent) : Partial<ToastContext> => {
+      if (e.type !== "TOAST.CREATE" && e.type !== "TOAST.UPDATE") return {};
+      const merge = (entry: ToastEntry): ToastEntry => ({
+        ...entry,
+        title: e.title,
+        description: e.description,
+        type: e.toastType,
+        action: e.action,
+        priority: priorityFor(e.toastType, e.priority, e.action.length > 0),
+        // Zag's `resetCloseTimer`: the update starts a new clock.
+        remaining: durationFor(e.toastType, e.duration),
+      });
+      const toasts = amend(ctx.toasts, e.id, merge);
+      if (toasts !== undefined) return { toasts };
+      const queued = amend(ctx.queued, e.id, merge);
+      return queued === undefined ? {} : { queued };
+    };
+
+const removeToast = (ctx: ToastContext, e: ToastEvent) : Partial<ToastContext> => {
+      if (e.type !== "TOAST.REMOVE" && e.type !== "TIMER.REMOVED") return {};
+      const gone = (entry: ToastEntry): boolean => entry.id !== e.id;
+      if (!ctx.toasts.some((entry) => entry.id === e.id)) {
+        return ctx.queued.some((entry) => entry.id === e.id)
+          ? { queued: ctx.queued.filter(gone) }
+          : {};
+      }
+      return promote({ ...ctx, toasts: ctx.toasts.filter(gone), queued: ctx.queued.filter(gone) });
+    };
+
+const dismissToast = (ctx: ToastContext, e: ToastEvent) : Partial<ToastContext> => {
+      if (e.type !== "TOAST.DISMISS" && e.type !== "TIMER.ELAPSED") return {};
+      const toasts = amend(ctx.toasts, e.id, (entry) =>
+        entry.status === "dismissing" ? entry : { ...entry, status: "dismissing" },
+      );
+      return toasts === undefined ? {} : { toasts };
+    };
+
+const pauseToasts = (ctx: ToastContext) : Partial<ToastContext> => { return ({
+      toasts: ctx.toasts.map((entry) =>
+        entry.status === "visible" ? { ...entry, status: "persist" } : entry,
+      ),
+    }); };
+
+const resumeToasts = (ctx: ToastContext) : Partial<ToastContext> => { return ({
+      toasts: ctx.toasts.map(resumeEntry),
+    }); };
+
+const enterPointer = () : Partial<ToastContext> => { return ({ pointerWithin: true }); };
+
+const leavePointer = () : Partial<ToastContext> => { return ({ pointerWithin: false }); };
+
+const enterFocus = () : Partial<ToastContext> => { return ({ focusWithin: true }); };
+
+const leaveFocus = () : Partial<ToastContext> => { return ({ focusWithin: false }); };
+
+const shouldCollapse = (ctx: ToastContext, e: ToastEvent) : boolean => { return ctx.overlap && projectedCount(ctx, e) <= 1; };
+
+
 
 export type ToastType = "info" | "success" | "warning" | "error" | "loading";
 
@@ -38,44 +107,30 @@ export interface ToastContext {
   pageIdle: boolean;
 }
 
-export type ToastEvent =
-  | {
-      type: "TOAST.CREATE";
-      id: string;
-      title: string;
-      description: string;
-      toastType: ToastType;
-      duration: number;
-      priority: number;
-      action: string;
-    }
-  | {
-      type: "TOAST.UPDATE";
-      id: string;
-      title: string;
-      description: string;
-      toastType: ToastType;
-      duration: number;
-      priority: number;
-      action: string;
-    }
-  | { type: "TOAST.REMOVE"; id: string }
-  | { type: "TOAST.DISMISS"; id: string; src: string }
-  | { type: "DISMISS.ALL" }
-  | { type: "TOAST.PAUSE"; id: string; remaining: number }
-  | { type: "TOAST.RESUME"; id: string }
-  | { type: "TOAST.MOUNTED"; id: string }
-  | { type: "TIMER.ELAPSED"; id: string }
-  | { type: "TIMER.REMOVED"; id: string }
-  | { type: "HEIGHT.SET"; id: string; height: number }
-  | { type: "REGION.POINTER_ENTER" }
-  | { type: "REGION.POINTER_LEAVE" }
-  | { type: "REGION.FOCUS" }
-  | { type: "REGION.BLUR" }
-  | { type: "REGION.OVERLAP" }
-  | { type: "REGION.STACK" }
-  | { type: "PAGE.IDLE" }
-  | { type: "PAGE.ACTIVE" };
+export interface ToastEvents {
+  "TOAST.CREATE": { id: string; title: string; description: string; toastType: ToastType; duration: number; priority: number; action: string };
+  "TOAST.UPDATE": { id: string; title: string; description: string; toastType: ToastType; duration: number; priority: number; action: string };
+  "TOAST.REMOVE": { id: string };
+  "TOAST.DISMISS": { id: string; src: string };
+  "DISMISS.ALL": {};
+  "TOAST.PAUSE": { id: string; remaining: number };
+  "TOAST.RESUME": { id: string };
+  "TOAST.MOUNTED": { id: string };
+  "TIMER.ELAPSED": { id: string };
+  "TIMER.REMOVED": { id: string };
+  "HEIGHT.SET": { id: string; height: number };
+  "REGION.POINTER_ENTER": {};
+  "REGION.POINTER_LEAVE": {};
+  "REGION.FOCUS": {};
+  "REGION.BLUR": {};
+  "REGION.OVERLAP": {};
+  "REGION.STACK": {};
+  "PAGE.IDLE": {};
+  "PAGE.ACTIVE": {};
+}
+
+export type ToastEvent = EventUnion<ToastEvents>;
+
 
 /** Zag's `defaultTimeouts`. */
 const DURATIONS: Readonly<Record<ToastType, number>> = {
@@ -159,27 +214,41 @@ const resumeEntry = (entry: ToastEntry): ToastEntry =>
  * `state.on[*]`, `config.on[type]`, `config.on[*]`, so a root-level collapse
  * rule would swallow the very event it guards.
  */
-const QUEUE_EVENTS = {
+const QUEUE_EVENTS: Transitions<ToastContext, ToastEvents> = {
   "TOAST.CREATE": [
-    { target: "overlap", cond: "shouldCollapse", actions: [{ assign: "createToast" }] },
-    { actions: [{ assign: "createToast" }] },
+    { target: "overlap", cond: shouldCollapse, assign: createToast },
+    { assign: createToast },
   ],
   "TOAST.REMOVE": [
-    { target: "overlap", cond: "shouldCollapse", actions: [{ assign: "removeToast" }] },
-    { actions: [{ assign: "removeToast" }] },
+    { target: "overlap", cond: shouldCollapse, assign: removeToast },
+    { assign: removeToast },
   ],
   "TIMER.REMOVED": [
-    { target: "overlap", cond: "shouldCollapse", actions: [{ assign: "removeToast" }] },
-    { actions: [{ assign: "removeToast" }] },
+    { target: "overlap", cond: shouldCollapse, assign: removeToast },
+    { assign: removeToast },
   ],
-  "TOAST.UPDATE": { actions: [{ assign: "updateToast" }] },
-  "TOAST.DISMISS": { actions: [{ assign: "dismissToast" }] },
+  "TOAST.UPDATE": { assign: updateToast },
+  "TOAST.DISMISS": { assign: dismissToast },
   /** One command, one event: the def's commands send one event each, so a
    * whole-queue exit is one event the assign loops over. */
-  "DISMISS.ALL": { actions: [{ assign: "dismissAll" }] },
-  "TIMER.ELAPSED": { actions: [{ assign: "dismissToast" }] },
-  "TOAST.MOUNTED": { actions: [{ assign: "mountToast" }] },
-  "HEIGHT.SET": { actions: [{ assign: "setHeight" }] },
+  "DISMISS.ALL": { assign: (ctx) => { return ({
+      toasts: ctx.toasts.map((entry) =>
+        entry.status === "dismissing" ? entry : { ...entry, status: "dismissing" }),
+    }); } },
+  "TIMER.ELAPSED": { assign: dismissToast },
+  "TOAST.MOUNTED": { assign: (ctx, e) => {
+      if (e.type !== "TOAST.MOUNTED") return {};
+      const toasts = amend(ctx.toasts, e.id, (entry) => ({ ...entry, mounted: true }));
+      return toasts === undefined ? {} : { toasts };
+    } },
+  "HEIGHT.SET": { assign: (ctx, e) => {
+      if (e.type !== "HEIGHT.SET") return {};
+      if (e.height < 0) return {};
+      const toasts = amend(ctx.toasts, e.id, (entry) =>
+        entry.height === e.height ? entry : { ...entry, height: e.height },
+      );
+      return toasts === undefined ? {} : { toasts };
+    } },
 } as const;
 
 /**
@@ -216,7 +285,7 @@ export function initial(args: ToastArgs, authored: (name: string) => boolean): T
   };
 }
 
-const config = {
+const config: MachineSpec<ToastContext, ToastEvents> = {
   id: "toast",
   initial: "stack",
   context: {
@@ -232,16 +301,28 @@ const config = {
   // Zag's REGION.BLUR is the one gesture with three outcomes: collapse,
   // return to stack, or forget the focus.
   on: {
-    "TOAST.PAUSE": { actions: [{ assign: "pauseToast" }] },
-    "TOAST.RESUME": { actions: [{ assign: "resumeToast" }] },
-    "PAGE.IDLE": { actions: [{ assign: "idlePage" }, { assign: "pauseToasts" }] },
-    "PAGE.ACTIVE": { actions: [{ assign: "activePage" }, { assign: "resumeToasts" }] },
+    "TOAST.PAUSE": { assign: (ctx, e) => {
+      if (e.type !== "TOAST.PAUSE") return {};
+      const toasts = amend(ctx.toasts, e.id, (entry) => ({
+        ...entry,
+        status: "persist",
+        remaining: e.remaining,
+      }));
+      return toasts === undefined ? {} : { toasts };
+    } },
+    "TOAST.RESUME": { assign: (ctx, e) => {
+      if (e.type !== "TOAST.RESUME") return {};
+      const toasts = amend(ctx.toasts, e.id, resumeEntry);
+      return toasts === undefined ? {} : { toasts };
+    } },
+    "PAGE.IDLE": { assign: [() => { return ({ pageIdle: true }); }, pauseToasts] },
+    "PAGE.ACTIVE": { assign: [() => { return ({ pageIdle: false }); }, resumeToasts] },
     // The leaving branches also drop the focus the region borrowed: a
     // region that no longer holds focus is not pausing anything.
     "REGION.BLUR": [
-      { target: "overlap", cond: "collapsesOnBlur", actions: [{ assign: "resumeToasts" }, { assign: "leaveFocus" }] },
-      { target: "stack", cond: "isPointerOut", actions: [{ assign: "resumeToasts" }, { assign: "leaveFocus" }] },
-      { actions: [{ assign: "leaveFocus" }] },
+      { target: "overlap", cond: (ctx) => { return ctx.overlap && !ctx.pointerWithin; }, assign: [resumeToasts, leaveFocus] },
+      { target: "stack", cond: (ctx) => { return !ctx.pointerWithin; }, assign: [resumeToasts, leaveFocus] },
+      { assign: leaveFocus },
     ],
   },
   states: {
@@ -250,141 +331,39 @@ const config = {
       on: {
         ...QUEUE_EVENTS,
         "REGION.POINTER_LEAVE": [
-          { target: "overlap", cond: "isOverlapping", actions: [{ assign: "leavePointer" }, { assign: "resumeToasts" }] },
-          { actions: [{ assign: "leavePointer" }, { assign: "resumeToasts" }] },
+          { target: "overlap", cond: (ctx) => { return ctx.overlap; }, assign: [leavePointer, resumeToasts] },
+          { assign: [leavePointer, resumeToasts] },
         ],
         "REGION.OVERLAP": { target: "overlap" },
-        "REGION.FOCUS": { actions: [{ assign: "enterFocus" }, { assign: "pauseToasts" }] },
-        "REGION.POINTER_ENTER": { actions: [{ assign: "enterPointer" }, { assign: "pauseToasts" }] },
+        "REGION.FOCUS": { assign: [enterFocus, pauseToasts] },
+        "REGION.POINTER_ENTER": { assign: [enterPointer, pauseToasts] },
       },
     },
     // The front toast is the row, the rest peek behind.
     overlap: {
       on: {
         ...QUEUE_EVENTS,
-        "REGION.STACK": { target: "stack", actions: [{ assign: "resumeToasts" }] },
+        "REGION.STACK": { target: "stack", assign: resumeToasts },
         "REGION.POINTER_ENTER": {
           target: "stack",
-          actions: [{ assign: "enterPointer" }, { assign: "pauseToasts" }],
+          assign: [enterPointer, pauseToasts],
         },
         "REGION.FOCUS": {
           target: "stack",
-          actions: [{ assign: "enterFocus" }, { assign: "pauseToasts" }],
+          assign: [enterFocus, pauseToasts],
         },
       },
     },
   },
 };
 
-const implementations = {
-  conds: {
-    /** Zag's `collapsedIfEmpty`: an overlapping region collapses once it
-     * holds one toast or fewer. */
-    shouldCollapse: (ctx: ToastContext, e: ToastEvent): boolean =>
-      ctx.overlap && projectedCount(ctx, e) <= 1,
-    isOverlapping: (ctx: ToastContext): boolean => ctx.overlap,
-    isPointerOut: (ctx: ToastContext): boolean => !ctx.pointerWithin,
-    collapsesOnBlur: (ctx: ToastContext): boolean => ctx.overlap && !ctx.pointerWithin,
-  },
-  assigns: {
-    createToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.CREATE") return {};
-      // A known id updates in place, as Zag's store does.
-      if (ctx.toasts.some((entry) => entry.id === e.id)) {
-        return implementations.assigns.updateToast(ctx, e);
-      }
-      const entry = makeEntry(e);
-      if (ctx.toasts.length >= ctx.max) return { queued: [...ctx.queued, entry] };
-      return { toasts: [entry, ...ctx.toasts] };
-    },
-    updateToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.CREATE" && e.type !== "TOAST.UPDATE") return {};
-      const merge = (entry: ToastEntry): ToastEntry => ({
-        ...entry,
-        title: e.title,
-        description: e.description,
-        type: e.toastType,
-        action: e.action,
-        priority: priorityFor(e.toastType, e.priority, e.action.length > 0),
-        // Zag's `resetCloseTimer`: the update starts a new clock.
-        remaining: durationFor(e.toastType, e.duration),
-      });
-      const toasts = amend(ctx.toasts, e.id, merge);
-      if (toasts !== undefined) return { toasts };
-      const queued = amend(ctx.queued, e.id, merge);
-      return queued === undefined ? {} : { queued };
-    },
-    removeToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.REMOVE" && e.type !== "TIMER.REMOVED") return {};
-      const gone = (entry: ToastEntry): boolean => entry.id !== e.id;
-      if (!ctx.toasts.some((entry) => entry.id === e.id)) {
-        return ctx.queued.some((entry) => entry.id === e.id)
-          ? { queued: ctx.queued.filter(gone) }
-          : {};
-      }
-      return promote({ ...ctx, toasts: ctx.toasts.filter(gone), queued: ctx.queued.filter(gone) });
-    },
-    dismissAll: (ctx: ToastContext): Partial<ToastContext> => ({
-      toasts: ctx.toasts.map((entry) =>
-        entry.status === "dismissing" ? entry : { ...entry, status: "dismissing" }),
-    }),
-    dismissToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.DISMISS" && e.type !== "TIMER.ELAPSED") return {};
-      const toasts = amend(ctx.toasts, e.id, (entry) =>
-        entry.status === "dismissing" ? entry : { ...entry, status: "dismissing" },
-      );
-      return toasts === undefined ? {} : { toasts };
-    },
-    /** The clock's reported remainder is truth when it stops. */
-    pauseToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.PAUSE") return {};
-      const toasts = amend(ctx.toasts, e.id, (entry) => ({
-        ...entry,
-        status: "persist",
-        remaining: e.remaining,
-      }));
-      return toasts === undefined ? {} : { toasts };
-    },
-    resumeToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.RESUME") return {};
-      const toasts = amend(ctx.toasts, e.id, resumeEntry);
-      return toasts === undefined ? {} : { toasts };
-    },
-    mountToast: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "TOAST.MOUNTED") return {};
-      const toasts = amend(ctx.toasts, e.id, (entry) => ({ ...entry, mounted: true }));
-      return toasts === undefined ? {} : { toasts };
-    },
-    setHeight: (ctx: ToastContext, e: ToastEvent): Partial<ToastContext> => {
-      if (e.type !== "HEIGHT.SET") return {};
-      if (e.height < 0) return {};
-      const toasts = amend(ctx.toasts, e.id, (entry) =>
-        entry.height === e.height ? entry : { ...entry, height: e.height },
-      );
-      return toasts === undefined ? {} : { toasts };
-    },
-    pauseToasts: (ctx: ToastContext): Partial<ToastContext> => ({
-      toasts: ctx.toasts.map((entry) =>
-        entry.status === "visible" ? { ...entry, status: "persist" } : entry,
-      ),
-    }),
-    resumeToasts: (ctx: ToastContext): Partial<ToastContext> => ({
-      toasts: ctx.toasts.map(resumeEntry),
-    }),
-    enterPointer: (): Partial<ToastContext> => ({ pointerWithin: true }),
-    leavePointer: (): Partial<ToastContext> => ({ pointerWithin: false }),
-    enterFocus: (): Partial<ToastContext> => ({ focusWithin: true }),
-    leaveFocus: (): Partial<ToastContext> => ({ focusWithin: false }),
-    idlePage: (): Partial<ToastContext> => ({ pageIdle: true }),
-    activePage: (): Partial<ToastContext> => ({ pageIdle: false }),
-  },
-};
+const implementations = {};
 
 export function toast(
   args: ToastArgs = {},
   authored: (name: string) => boolean,
-): Machine<ToastContext, ToastEvent> {
-  return createMachine<ToastContext, ToastEvent>({
+): Machine<ToastContext, ToastEvents> {
+  return createMachine<ToastContext, ToastEvents>({
     ...config,
     context: initial(args, authored),
     /**
@@ -396,7 +375,5 @@ export function toast(
       max: {},
       removeDelay: {},
     },
-    assigns: implementations.assigns,
-    conds: implementations.conds,
   });
 }

@@ -9,7 +9,13 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setSrc = (ctx: AvatarContext, event: EventUnion<AvatarEvents>) : Partial<AvatarContext> => {
+      if (event.type !== "SRC.CHANGE" && event.type !== "SET_SRC") return {};
+      return { src: typeof event.src === "string" ? event.src : ctx.src };
+    };
+
+
 
 export interface AvatarContext {
   src: string;
@@ -36,12 +42,16 @@ export function initial(args: AvatarArgs, authored: (name: string) => boolean): 
   };
 }
 
-export type AvatarEvent =
-  | { type: "IMG.LOADED" }
-  | { type: "IMG.ERROR" }
-  | { type: "IMG.UNMOUNT" }
-  | { type: "SRC.CHANGE"; src: string }
-  | { type: "SET_SRC"; src: string };
+export interface AvatarEvents {
+  "IMG.LOADED": {};
+  "IMG.ERROR": {};
+  "IMG.UNMOUNT": {};
+  "SRC.CHANGE": { src: string };
+  "SET_SRC": { src: string };
+}
+
+export type AvatarEvent = EventUnion<AvatarEvents>;
+
 
 export type AvatarStatus = "loading" | "error" | "loaded";
 
@@ -49,13 +59,13 @@ export type AvatarStatusChange = {
   readonly status: AvatarStatus;
 };
 
-const config = {
+const config: Omit<MachineSpec<AvatarContext, AvatarEvents>, "context"> = {
   id: "avatar",
   initial: "loading",
   on: {
-    "SRC.CHANGE": { target: "loading", actions: [{ assign: "setSrc" }] },
+    "SRC.CHANGE": { target: "loading", assign: setSrc },
     "IMG.UNMOUNT": { target: "error" },
-    "SET_SRC": { target: "loading", actions: [{ assign: "setSrc" }] },
+    "SET_SRC": { target: "loading", assign: setSrc },
   },
   states: {
     loading: {
@@ -77,24 +87,15 @@ const config = {
   },
 };
 
-const implementations = {
-  conds: {},
-  assigns: {
-    setSrc: (ctx: AvatarContext, event: AvatarEvent): Partial<AvatarContext> => {
-      if (event.type !== "SRC.CHANGE" && event.type !== "SET_SRC") return {};
-      return { src: typeof event.src === "string" ? event.src : ctx.src };
-    },
-  },
-};
+const implementations = {};
 
 export function avatar(
   args: AvatarArgs = {},
   authored: (name: string) => boolean,
-): Machine<AvatarContext, AvatarEvent> {
-  return createMachine<AvatarContext, AvatarEvent>({
+): Machine<AvatarContext, AvatarEvents> {
+  return createMachine<AvatarContext, AvatarEvents>({
     ...config,
     context: initial(args, authored),
-    ...implementations,
     fields: {
       src: { event: "SRC.CHANGE" },
     },

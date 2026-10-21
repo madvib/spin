@@ -10,7 +10,51 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine, type Service } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type Service, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const clearValue = () : Partial<CascadeContext> => { return ({ value: [] }); };
+
+const clearHighlightedValue = (ctx: CascadeContext) : Partial<CascadeContext> => { return ctx.highlightedValue.length === 0 ? {} : { highlightedValue: [] }; };
+
+const highlightSelected = (ctx: CascadeContext) : Partial<CascadeContext> => {
+      const last = ctx.value[ctx.value.length - 1];
+      if (last === undefined || samePath(ctx.highlightedValue, last)) return {};
+      return { highlightedValue: clonePath(last) };
+    };
+
+const openWithHighlight = (_ctx: CascadeContext, e: CascadeEvent) : Partial<CascadeContext> => { return e.type === "TRIGGER_OPEN" ? { highlightedValue: clonePath(e.highlight) } : {}; };
+
+const selectItem = (ctx: CascadeContext, e: CascadeEvent) : Partial<CascadeContext> => {
+      if (e.type !== "ITEM_CLICK" && e.type !== "ITEM_SELECT") return {};
+      const path = e.value;
+      if (ctx.allowParentSelection) {
+        // A selected branch also takes the highlight: the level stack
+        // follows the pick either way.
+        return {
+          value: [...withoutRelated(ctx.value, path), clonePath(path)],
+          ...(e.hasChildren ? { highlightedValue: clonePath(path) } : {}),
+        };
+      }
+      if (e.hasChildren) {
+        return {
+          value: ctx.multiple && ctx.value.length > 0
+            ? [...ctx.value.slice(0, -1).map((p) => [...p]), clonePath(path)]
+            : [clonePath(path)],
+          highlightedValue: clonePath(path),
+        };
+      }
+      if (ctx.multiple) {
+        return {
+          value: ctx.value.some((candidate) => samePath(candidate, path))
+            ? ctx.value.filter((candidate) => !samePath(candidate, path)).map((candidate) => [...candidate])
+            : [...ctx.value.map((candidate) => [...candidate]), clonePath(path)],
+        };
+      }
+      return { value: [clonePath(path)] };
+    };
+
+const restoresFocus = (_ctx: CascadeContext, event: EventUnion<CascadeEvents>) : boolean => { return "restoreFocus" in event ? event.restoreFocus !== false : true; };
+
+
 
 /**
  * The cascade-select's arguments: the values the host may set.
@@ -120,35 +164,32 @@ export interface CascadeContext {
   highlightTrigger: "click" | "hover";
 }
 
-export type CascadeEvent =
-  | { type: "OPEN" }
-  /** A dismissal or a programmatic close; `restoreFocus: false` puts focus on
-   *  the outside element instead of the trigger, so the machine lands idle. */
-  | { type: "CLOSE"; restoreFocus?: boolean }
-  | { type: "CONTROLLED_OPEN" }
-  | { type: "CONTROLLED_CLOSE" }
-  | { type: "TRIGGER_CLICK" }
-  | { type: "TRIGGER_FOCUS" }
-  | { type: "TRIGGER_BLUR" }
-  /** The trigger's open intents; the connect has already computed the target. */
-  | { type: "TRIGGER_OPEN"; highlight: string[] }
-  | { type: "ITEM_CLICK"; value: string[]; hasChildren: boolean }
-  | { type: "ITEM_POINTER_ENTER"; value: string[]; hasChildren: boolean }
-  | { type: "VALUE_SET"; value: string[][] | string }
-  | { type: "VALUE_CLEAR" }
-  | {
-      type: "HIGHLIGHTED_VALUE_SET";
-      /** The command's payload: the path the host named. */
-      value: string[];
-      /** The host write's payload: the prop's own name. */
-      highlightedValue?: string | string[];
-    }
-  | { type: "HIGHLIGHTED_VALUE_CLEAR" }
-  | { type: "ITEM_SELECT"; value: string[]; hasChildren: boolean }
-  | { type: "ITEM_CLEAR"; value: string[] }
-  | { type: "CLEAR_TRIGGER_CLICK" };
+export interface CascadeEvents {
+  "OPEN": {};
+  "CLOSE": { restoreFocus?: boolean };
+  "CONTROLLED_OPEN": {};
+  "CONTROLLED_CLOSE": {};
+  "TRIGGER_CLICK": {};
+  "TRIGGER_FOCUS": {};
+  "TRIGGER_BLUR": {};
+  "TRIGGER_OPEN": { highlight: string[] };
+  "ITEM_CLICK": { value: string[]; hasChildren: boolean };
+  "ITEM_POINTER_ENTER": { value: string[]; hasChildren: boolean };
+  "VALUE_SET": { value: string[][] | string };
+  "VALUE_CLEAR": {};
+  "HIGHLIGHTED_VALUE_SET": { /** The command's payload: the path the host named. */
+      value: string[]; /** The host write's payload: the prop's own name. */
+      highlightedValue?: string | string[] };
+  "HIGHLIGHTED_VALUE_CLEAR": {};
+  "ITEM_SELECT": { value: string[]; hasChildren: boolean };
+  "ITEM_CLEAR": { value: string[] };
+  "CLEAR_TRIGGER_CLICK": {};
+}
 
-const config = {
+export type CascadeEvent = EventUnion<CascadeEvents>;
+
+
+const config: MachineSpec<CascadeContext, CascadeEvents> = {
   id: "cascade-select",
   initial: "idle",
   context: {
@@ -163,21 +204,32 @@ const config = {
   // Root tier: valid from every state, so a host's `setValue` works while
   // closed.
   on: {
-    "VALUE_SET": { actions: [{ assign: "setValue" }] },
-    "VALUE_CLEAR": { actions: [{ assign: "clearValue" }] },
-    "HIGHLIGHTED_VALUE_SET": { actions: [{ assign: "setHighlightedValue" }] },
-    "HIGHLIGHTED_VALUE_CLEAR": { actions: [{ assign: "clearHighlightedValue" }] },
-    "ITEM_SELECT": { actions: [{ assign: "selectItem" }] },
-    "ITEM_CLEAR": { actions: [{ assign: "clearItem" }] },
-    "CLEAR_TRIGGER_CLICK": { actions: [{ assign: "clearValue" }] },
+    "VALUE_SET": { assign: (ctx, e) => {
+      if (e.type !== "VALUE_SET") return {};
+      const paths = parsePaths(e.value);
+      return samePaths(ctx.value, paths) ? {} : { value: clonePaths(paths) };
+    } },
+    "VALUE_CLEAR": { assign: clearValue },
+    "HIGHLIGHTED_VALUE_SET": { assign: (ctx, e) => {
+      if (e.type !== "HIGHLIGHTED_VALUE_SET") return {};
+      const raw = e.highlightedValue !== undefined ? e.highlightedValue : e.value;
+      const path = parsePath(raw);
+      return samePath(ctx.highlightedValue, path) ? {} : { highlightedValue: clonePath(path) };
+    } },
+    "HIGHLIGHTED_VALUE_CLEAR": { assign: clearHighlightedValue },
+    "ITEM_SELECT": { assign: selectItem },
+    "ITEM_CLEAR": { assign: (ctx, e) => { return e.type === "ITEM_CLEAR" && ctx.value.some((path) => samePath(path, e.value))
+        ? { value: ctx.value.filter((path) => !samePath(path, e.value)).map((path) => [...path]) }
+        : {}; } },
+    "CLEAR_TRIGGER_CLICK": { assign: clearValue },
   },
   states: {
     idle: {
       on: {
         OPEN: { target: "open" },
         CONTROLLED_OPEN: { target: "open" },
-        TRIGGER_CLICK: { target: "open", actions: [{ assign: "highlightSelected" }] },
-        TRIGGER_OPEN: { target: "open", actions: [{ assign: "openWithHighlight" }] },
+        TRIGGER_CLICK: { target: "open", assign: highlightSelected },
+        TRIGGER_OPEN: { target: "open", assign: openWithHighlight },
         TRIGGER_FOCUS: { target: "focused" },
       },
     },
@@ -185,8 +237,8 @@ const config = {
       on: {
         OPEN: { target: "open" },
         CONTROLLED_OPEN: { target: "open" },
-        TRIGGER_CLICK: { target: "open", actions: [{ assign: "highlightSelected" }] },
-        TRIGGER_OPEN: { target: "open", actions: [{ assign: "openWithHighlight" }] },
+        TRIGGER_CLICK: { target: "open", assign: highlightSelected },
+        TRIGGER_OPEN: { target: "open", assign: openWithHighlight },
         TRIGGER_BLUR: { target: "idle" },
       },
     },
@@ -197,34 +249,38 @@ const config = {
         // than focused.
         CONTROLLED_CLOSE: [
           {
-            cond: "restoresFocus",
+            cond: restoresFocus,
             target: "focused",
-            actions: [{ assign: "clearHighlightedValue" }],
+            assign: clearHighlightedValue,
           },
-          { target: "idle", actions: [{ assign: "clearHighlightedValue" }] },
+          { target: "idle", assign: clearHighlightedValue },
         ],
         CLOSE: [
           {
-            cond: "restoresFocus",
+            cond: restoresFocus,
             target: "focused",
-            actions: [{ assign: "clearHighlightedValue" }],
+            assign: clearHighlightedValue,
           },
-          { target: "idle", actions: [{ assign: "clearHighlightedValue" }] },
+          { target: "idle", assign: clearHighlightedValue },
         ],
         // A press on the trigger while open is a toggle, and Zag's dismiss
         // layer reports the close with focus back on the trigger.
-        TRIGGER_CLICK: { target: "focused", actions: [{ assign: "clearHighlightedValue" }] },
+        TRIGGER_CLICK: { target: "focused", assign: clearHighlightedValue },
         ITEM_CLICK: [
-          { cond: "closesOnSelect", target: "focused", actions: [{ assign: "selectItem" }, { assign: "clearHighlightedValue" }] },
-          { cond: "selectable", actions: [{ assign: "selectItem" }] },
+          { cond: (ctx, event) => { return event.type === "ITEM_CLICK"
+        ? ctx.closeOnSelect && !event.hasChildren && !ctx.multiple
+        : false; }, target: "focused", assign: [selectItem, clearHighlightedValue] },
+          { cond: (ctx, event) => { return event.type === "ITEM_CLICK" ? ctx.allowParentSelection || !event.hasChildren : false; }, assign: selectItem },
           // A branch that may not be selected still takes the highlight, so
           // the level stack follows the click.
-          { actions: [{ assign: "highlightItem" }] },
+          { assign: (_ctx, e) => { return e.type === "ITEM_CLICK" ? { highlightedValue: clonePath(e.value) } : {}; } },
         ],
         // The connect reports every pointer move; the highlight-follows-hover
         // behaviour stays opt-in, as Zag's isHoverHighlight guard does.
         ITEM_POINTER_ENTER: [
-          { cond: "hoverHighlight", actions: [{ assign: "highlightHovered" }] },
+          { cond: (ctx) => { return ctx.highlightTrigger === "hover"; }, assign: (_ctx, e) => { return e.type === "ITEM_POINTER_ENTER"
+        ? { highlightedValue: e.hasChildren ? clonePath(e.value) : e.value.slice(0, -1) }
+        : {}; } },
         ],
       },
     },
@@ -233,80 +289,7 @@ const config = {
 
 const clonePaths = (paths: readonly string[][]): string[][] => paths.map((path) => [...path]);
 
-const implementations = {
-  conds: {
-    restoresFocus: (_ctx: CascadeContext, event: CascadeEvent): boolean =>
-      "restoreFocus" in event ? event.restoreFocus !== false : true,
-    hoverHighlight: (ctx: CascadeContext): boolean => ctx.highlightTrigger === "hover",
-    selectable: (ctx: CascadeContext, event: CascadeEvent): boolean =>
-      event.type === "ITEM_CLICK" ? ctx.allowParentSelection || !event.hasChildren : false,
-    closesOnSelect: (ctx: CascadeContext, event: CascadeEvent): boolean =>
-      event.type === "ITEM_CLICK"
-        ? ctx.closeOnSelect && !event.hasChildren && !ctx.multiple
-        : false,
-  },
-  assigns: {
-    setValue: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> => {
-      if (e.type !== "VALUE_SET") return {};
-      const paths = parsePaths(e.value);
-      return samePaths(ctx.value, paths) ? {} : { value: clonePaths(paths) };
-    },
-    clearValue: (): Partial<CascadeContext> => ({ value: [] }),
-    setHighlightedValue: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> => {
-      if (e.type !== "HIGHLIGHTED_VALUE_SET") return {};
-      const raw = e.highlightedValue !== undefined ? e.highlightedValue : e.value;
-      const path = parsePath(raw);
-      return samePath(ctx.highlightedValue, path) ? {} : { highlightedValue: clonePath(path) };
-    },
-    clearHighlightedValue: (ctx: CascadeContext): Partial<CascadeContext> =>
-      ctx.highlightedValue.length === 0 ? {} : { highlightedValue: [] },
-    clearItem: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
-      e.type === "ITEM_CLEAR" && ctx.value.some((path) => samePath(path, e.value))
-        ? { value: ctx.value.filter((path) => !samePath(path, e.value)).map((path) => [...path]) }
-        : {},
-    highlightSelected: (ctx: CascadeContext): Partial<CascadeContext> => {
-      const last = ctx.value[ctx.value.length - 1];
-      if (last === undefined || samePath(ctx.highlightedValue, last)) return {};
-      return { highlightedValue: clonePath(last) };
-    },
-    openWithHighlight: (_ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
-      e.type === "TRIGGER_OPEN" ? { highlightedValue: clonePath(e.highlight) } : {},
-    highlightItem: (_ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
-      e.type === "ITEM_CLICK" ? { highlightedValue: clonePath(e.value) } : {},
-    highlightHovered: (_ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> =>
-      e.type === "ITEM_POINTER_ENTER"
-        ? { highlightedValue: e.hasChildren ? clonePath(e.value) : e.value.slice(0, -1) }
-        : {},
-    selectItem: (ctx: CascadeContext, e: CascadeEvent): Partial<CascadeContext> => {
-      if (e.type !== "ITEM_CLICK" && e.type !== "ITEM_SELECT") return {};
-      const path = e.value;
-      if (ctx.allowParentSelection) {
-        // A selected branch also takes the highlight: the level stack
-        // follows the pick either way.
-        return {
-          value: [...withoutRelated(ctx.value, path), clonePath(path)],
-          ...(e.hasChildren ? { highlightedValue: clonePath(path) } : {}),
-        };
-      }
-      if (e.hasChildren) {
-        return {
-          value: ctx.multiple && ctx.value.length > 0
-            ? [...ctx.value.slice(0, -1).map((p) => [...p]), clonePath(path)]
-            : [clonePath(path)],
-          highlightedValue: clonePath(path),
-        };
-      }
-      if (ctx.multiple) {
-        return {
-          value: ctx.value.some((candidate) => samePath(candidate, path))
-            ? ctx.value.filter((candidate) => !samePath(candidate, path)).map((candidate) => [...candidate])
-            : [...ctx.value.map((candidate) => [...candidate]), clonePath(path)],
-        };
-      }
-      return { value: [clonePath(path)] };
-    },
-  },
-  // No `actions` table: every transition is a pure context transform. The
+const implementations = {// No `actions` table: every transition is a pure context transform. The
   // out-side callbacks fire from the bridge after each send, guarded by a
   // change snapshot, so a no-op event means no event anywhere.
 };
@@ -316,10 +299,9 @@ export type CascadeService = Service<CascadeContext, CascadeEvent>;
 export function cascade(
   args: CascadeArgs = {},
   authored: (name: string) => boolean,
-): Machine<CascadeContext, CascadeEvent> {
-  return createMachine<CascadeContext, CascadeEvent>({
+): Machine<CascadeContext, CascadeEvents> {
+  return createMachine<CascadeContext, CascadeEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     fields: {
       value: { event: "VALUE_SET" },

@@ -3,7 +3,48 @@
  */
 
 import { coerceJsonArray, defaultTwin, isRecord } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const toggleBranch = (ctx: TreeContext, e: TreeEvent) : Partial<TreeContext> => {
+      const value = "value" in e ? (e.value as string) : "";
+      return {
+        expandedValue: ctx.expandedValue.includes(value)
+          ? ctx.expandedValue.filter((v) => v !== value)
+          : [...ctx.expandedValue, value],
+      };
+    };
+
+const selectNode = (_ctx: TreeContext, e: TreeEvent) => {
+      const value = (e as { value: string }).value;
+      return _ctx.selectionMode === "multiple"
+        ? { selectedValue: [value] }
+        : { selectedValue: [value] };
+    };
+
+const toggleNodeSelection = (ctx: TreeContext, e: TreeEvent) => {
+      const value = (e as { value: string }).value;
+      return {
+        selectedValue: ctx.selectedValue.includes(value)
+          ? ctx.selectedValue.filter((v) => v !== value)
+          : [...ctx.selectedValue, value],
+      };
+    };
+
+const extendSelectionToNode = (ctx: TreeContext, e: TreeEvent) => {
+      const value = (e as { value: string }).value;
+      if (ctx.selectedValue.includes(value)) return {};
+      return { selectedValue: [...ctx.selectedValue, value] };
+    };
+
+const isMultiToggle = (ctx: TreeContext, event: EventUnion<TreeEvents>) => { return event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
+        ? Boolean(event.ctrlKey) && ctx.selectionMode === "multiple"
+        : false; };
+
+const isRangeExtend = (ctx: TreeContext, event: EventUnion<TreeEvents>) => { return event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
+        ? Boolean(event.shiftKey) && ctx.selectionMode === "multiple" &&
+          ctx.selectedValue.length > 0
+        : false; };
+
+
 export interface TreeExpandedChange {
   readonly expandedValue: readonly string[];
 }
@@ -139,54 +180,41 @@ export interface TreeCallbacks {
   onLoadComplete: ((details: TreeLoadComplete) => void) | undefined;
 }
 
-export type TreeEvent =
-  | {
-    type: "EXPANDED.SET";
-    value?: string[];
-    expandedValue?: string[];
-  }
-  | { type: "EXPANDED.CLEAR" }
-  | { type: "BRANCH.EXPAND"; value: string[] }
-  | { type: "BRANCH.COLLAPSE"; value: string[] }
-  | { type: "BRANCH.TOGGLE"; value: string }
-  | {
-    type: "SELECTED.SET";
-    value?: string[];
-    selectedValue?: string[];
-  }
-  | { type: "SELECTED.CLEAR" }
-  | { type: "NODE.SELECT"; value: string }
-  | { type: "NODE.DESELECT"; value: string }
-  | { type: "CHECKED.TOGGLE"; value: string }
-  | {
-    type: "CHECKED.SET";
-    value?: string[];
-    checkedValue?: string[];
-  }
-  | { type: "CHECKED.CLEAR" }
-  | { type: "NODE.FOCUS"; value: string | null }
-  | { type: "NODE.ARROW_DOWN" }
-  | { type: "NODE.ARROW_UP" }
-  | { type: "NODE.ARROW_LEFT"; value: string }
-  | { type: "BRANCH_NODE.ARROW_LEFT"; value: string }
-  | { type: "BRANCH_NODE.ARROW_RIGHT"; value: string }
-  | { type: "NODE.HOME" }
-  | { type: "NODE.END" }
-  | { type: "NODE.CLICK"; value: string; shiftKey?: boolean; ctrlKey?: boolean }
-  | {
-    type: "BRANCH_NODE.CLICK";
-    value: string;
-    shiftKey?: boolean;
-    ctrlKey?: boolean;
-  }
-  | { type: "TREE.TYPEAHEAD"; key: string }
-  | { type: "NODE.RENAME"; value: string }
-  | { type: "RENAME.SUBMIT"; value: string; label: string }
-  | { type: "RENAME.CANCEL" }
-  | { type: "NODE.LOAD_START"; value: string }
-  | { type: "NODE.LOAD_DONE"; value: string };
+export interface TreeEvents {
+  "EXPANDED.SET": { value?: string[]; expandedValue?: string[] };
+  "EXPANDED.CLEAR": {};
+  "BRANCH.EXPAND": { value: string[] };
+  "BRANCH.COLLAPSE": { value: string[] };
+  "BRANCH.TOGGLE": { value: string };
+  "SELECTED.SET": { value?: string[]; selectedValue?: string[] };
+  "SELECTED.CLEAR": {};
+  "NODE.SELECT": { value: string };
+  "NODE.DESELECT": { value: string };
+  "CHECKED.TOGGLE": { value: string };
+  "CHECKED.SET": { value?: string[]; checkedValue?: string[] };
+  "CHECKED.CLEAR": {};
+  "NODE.FOCUS": { value: string | null };
+  "NODE.ARROW_DOWN": {};
+  "NODE.ARROW_UP": {};
+  "NODE.ARROW_LEFT": { value: string };
+  "BRANCH_NODE.ARROW_LEFT": { value: string };
+  "BRANCH_NODE.ARROW_RIGHT": { value: string };
+  "NODE.HOME": {};
+  "NODE.END": {};
+  "NODE.CLICK": { value: string; shiftKey?: boolean; ctrlKey?: boolean };
+  "BRANCH_NODE.CLICK": { value: string; shiftKey?: boolean; ctrlKey?: boolean };
+  "TREE.TYPEAHEAD": { key: string };
+  "NODE.RENAME": { value: string };
+  "RENAME.SUBMIT": { value: string; label: string };
+  "RENAME.CANCEL": {};
+  "NODE.LOAD_START": { value: string };
+  "NODE.LOAD_DONE": { value: string };
+}
 
-const config = {
+export type TreeEvent = EventUnion<TreeEvents>;
+
+
+const config: MachineSpec<TreeContext, TreeEvents> = {
   id: "tree-view",
   initial: "idle",
   context: {
@@ -203,54 +231,108 @@ const config = {
   },
   // Root-level handlers: valid in every state, including `renaming`.
   on: {
-    "EXPANDED.SET": { actions: [{ assign: "setExpanded" }] },
-    "EXPANDED.CLEAR": { actions: [{ assign: "clearExpanded" }] },
-    "SELECTED.SET": { actions: [{ assign: "setSelected" }] },
-    "SELECTED.CLEAR": { actions: [{ assign: "clearSelected" }] },
-    "CHECKED.SET": { actions: [{ assign: "setChecked" }] },
-    "CHECKED.CLEAR": { actions: [{ assign: "clearChecked" }] },
-    "CHECKED.TOGGLE": { actions: [{ assign: "toggleChecked" }] },
-    "NODE.FOCUS": { actions: [{ assign: "setFocused" }] },
-    "BRANCH.TOGGLE": { actions: [{ assign: "toggleBranch" }] },
-    "BRANCH.EXPAND": { actions: [{ assign: "expandBranches" }] },
-    "BRANCH.COLLAPSE": { actions: [{ assign: "collapseBranches" }] },
-    "NODE.LOAD_START": { actions: [{ assign: "loadStart" }] },
-    "NODE.LOAD_DONE": { actions: [{ assign: "loadDone" }] },
+    "EXPANDED.SET": { assign: (ctx, e) => {
+      if (e.type !== "EXPANDED.SET") return {};
+      // A host write names the field, a command names the set; the field wins.
+      const raw = e.expandedValue !== undefined ? e.expandedValue : e.value;
+      if (raw === undefined) return {};
+      const next = keysOf(raw);
+      return sameSet(ctx.expandedValue, next) ? {} : { expandedValue: next };
+    } },
+    "EXPANDED.CLEAR": { assign: (_ctx) => { return ({ expandedValue: [] }); } },
+    "SELECTED.SET": { assign: (ctx, e) => {
+      if (e.type !== "SELECTED.SET") return {};
+      const raw = e.selectedValue !== undefined ? e.selectedValue : e.value;
+      if (raw === undefined) return {};
+      const next = keysOf(raw);
+      return sameSet(ctx.selectedValue, next) ? {} : { selectedValue: next };
+    } },
+    "SELECTED.CLEAR": { assign: () => { return ({ selectedValue: [] }); } },
+    "CHECKED.SET": { assign: (_ctx, e) => {
+      if (e.type !== "CHECKED.SET") return {};
+      const raw = e.checkedValue !== undefined ? e.checkedValue : e.value;
+      if (raw === undefined) return {};
+      return { checkedValue: keysOf(raw) };
+    } },
+    "CHECKED.CLEAR": { assign: () => { return ({ checkedValue: [] }); } },
+    "CHECKED.TOGGLE": { assign: (ctx, e) => { return e.type === "CHECKED.TOGGLE"
+        ? {
+          checkedValue: ctx.checkedValue.includes(e.value)
+            ? ctx.checkedValue.filter((v) => v !== e.value)
+            : [...ctx.checkedValue, e.value],
+        }
+        : {}; } },
+    "NODE.FOCUS": { assign: (ctx, e) => { return e.type === "NODE.FOCUS" && e.value !== ctx.focusedValue
+        ? { focusedValue: e.value, typeahead: "" }
+        : {}; } },
+    "BRANCH.TOGGLE": { assign: toggleBranch },
+    "BRANCH.EXPAND": { assign: (ctx, e) => {
+      if (e.type !== "BRANCH.EXPAND") return {};
+      const next = [...ctx.expandedValue];
+      for (const value of e.value) if (!next.includes(value)) next.push(value);
+      return { expandedValue: next };
+    } },
+    "BRANCH.COLLAPSE": { assign: (ctx, e) => {
+      if (e.type !== "BRANCH.COLLAPSE") return {};
+      const drop = new Set(e.value);
+      return { expandedValue: ctx.expandedValue.filter((v) => !drop.has(v)) };
+    } },
+    "NODE.LOAD_START": { assign: (ctx, e) => {
+      if (e.type !== "NODE.LOAD_START") return {};
+      const next: Record<string, "loading" | "loaded" | "error"> = {
+        ...ctx.loadingStatus,
+        [e.value]: "loading",
+      };
+      return { loadingStatus: next };
+    } },
+    "NODE.LOAD_DONE": { assign: (ctx, e) => {
+      if (e.type !== "NODE.LOAD_DONE") return {};
+      const next: Record<string, "loading" | "loaded" | "error"> = {
+        ...ctx.loadingStatus,
+        [e.value]: "loaded",
+      };
+      return { loadingStatus: next };
+    } },
   },
   states: {
     idle: {
       on: {
-        "NODE.SELECT": { actions: [{ assign: "selectNode" }] },
-        "NODE.DESELECT": { actions: [{ assign: "deselectNode" }] },
+        "NODE.SELECT": { assign: selectNode },
+        "NODE.DESELECT": { assign: (ctx, e) => {
+      const value = (e as { value: string }).value;
+      return { selectedValue: ctx.selectedValue.filter((v) => v !== value) };
+    } },
         "NODE.CLICK": [
           {
-            cond: "isMultiToggle",
-            actions: [{ assign: "toggleNodeSelection" }],
+            cond: isMultiToggle,
+            assign: toggleNodeSelection,
           },
           {
-            cond: "isRangeExtend",
-            actions: [{ assign: "extendSelectionToNode" }],
+            cond: isRangeExtend,
+            assign: extendSelectionToNode,
           },
-          { actions: [{ assign: "selectNode" }] },
+          { assign: selectNode },
         ],
         "BRANCH_NODE.CLICK": [
           {
-            cond: "isMultiToggle",
-            actions: [{ assign: "toggleNodeSelection" }],
+            cond: isMultiToggle,
+            assign: toggleNodeSelection,
           },
           {
-            cond: "isRangeExtend",
-            actions: [{ assign: "extendSelectionToNode" }],
+            cond: isRangeExtend,
+            assign: extendSelectionToNode,
           },
           {
-            cond: "expandOnClick",
-            actions: [{ assign: "selectNode" }, { assign: "toggleBranch" }],
+            cond: (ctx) => { return ctx.expandOnClick; },
+            assign: [selectNode, toggleBranch],
           },
-          { actions: [{ assign: "selectNode" }] },
+          { assign: selectNode },
         ],
         "NODE.RENAME": {
           target: "renaming",
-          actions: [{ assign: "setRenaming" }],
+          assign: (_ctx, e) => { return e.type === "NODE.RENAME"
+        ? { renamingValue: e.value, focusedValue: e.value }
+        : {}; },
         },
       },
     },
@@ -258,11 +340,11 @@ const config = {
       on: {
         "RENAME.SUBMIT": {
           target: "idle",
-          actions: [{ assign: "submitRename" }],
+          assign: (_ctx) => { return ({ renamingValue: null }); },
         },
         "RENAME.CANCEL": {
           target: "idle",
-          actions: [{ assign: "cancelRename" }],
+          assign: () => { return ({ renamingValue: null }); },
         },
       },
     },
@@ -274,132 +356,14 @@ const config = {
  * visible-node list, a view concern. The guards and assigns below are pure
  * transforms of state only.
  */
-const implementations = {
-  conds: {
-    isMultiToggle: (ctx: TreeContext, event: TreeEvent) =>
-      event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
-        ? Boolean(event.ctrlKey) && ctx.selectionMode === "multiple"
-        : false,
-    isRangeExtend: (ctx: TreeContext, event: TreeEvent) =>
-      event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
-        ? Boolean(event.shiftKey) && ctx.selectionMode === "multiple" &&
-          ctx.selectedValue.length > 0
-        : false,
-    expandOnClick: (ctx: TreeContext) => ctx.expandOnClick,
-  },
-  assigns: {
-    setExpanded: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
-      if (e.type !== "EXPANDED.SET") return {};
-      // A host write names the field, a command names the set; the field wins.
-      const raw = e.expandedValue !== undefined ? e.expandedValue : e.value;
-      if (raw === undefined) return {};
-      const next = keysOf(raw);
-      return sameSet(ctx.expandedValue, next) ? {} : { expandedValue: next };
-    },
-    clearExpanded: (_ctx: TreeContext) => ({ expandedValue: [] }),
-    setSelected: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
-      if (e.type !== "SELECTED.SET") return {};
-      const raw = e.selectedValue !== undefined ? e.selectedValue : e.value;
-      if (raw === undefined) return {};
-      const next = keysOf(raw);
-      return sameSet(ctx.selectedValue, next) ? {} : { selectedValue: next };
-    },
-    clearSelected: () => ({ selectedValue: [] }),
-    toggleChecked: (ctx: TreeContext, e: TreeEvent) =>
-      e.type === "CHECKED.TOGGLE"
-        ? {
-          checkedValue: ctx.checkedValue.includes(e.value)
-            ? ctx.checkedValue.filter((v) => v !== e.value)
-            : [...ctx.checkedValue, e.value],
-        }
-        : {},
-    setChecked: (_ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
-      if (e.type !== "CHECKED.SET") return {};
-      const raw = e.checkedValue !== undefined ? e.checkedValue : e.value;
-      if (raw === undefined) return {};
-      return { checkedValue: keysOf(raw) };
-    },
-    clearChecked: () => ({ checkedValue: [] }),
-    setFocused: (ctx: TreeContext, e: TreeEvent) =>
-      e.type === "NODE.FOCUS" && e.value !== ctx.focusedValue
-        ? { focusedValue: e.value, typeahead: "" }
-        : {},
-    // No event-type guard: composed into BRANCH.TOGGLE and BRANCH_NODE.CLICK.
-    // An assign that must know which event fired it is a modeling error.
-    toggleBranch: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
-      const value = "value" in e ? (e.value as string) : "";
-      return {
-        expandedValue: ctx.expandedValue.includes(value)
-          ? ctx.expandedValue.filter((v) => v !== value)
-          : [...ctx.expandedValue, value],
-      };
-    },
-    expandBranches: (ctx: TreeContext, e: TreeEvent) => {
-      if (e.type !== "BRANCH.EXPAND") return {};
-      const next = [...ctx.expandedValue];
-      for (const value of e.value) if (!next.includes(value)) next.push(value);
-      return { expandedValue: next };
-    },
-    collapseBranches: (ctx: TreeContext, e: TreeEvent) => {
-      if (e.type !== "BRANCH.COLLAPSE") return {};
-      const drop = new Set(e.value);
-      return { expandedValue: ctx.expandedValue.filter((v) => !drop.has(v)) };
-    },
-    selectNode: (_ctx: TreeContext, e: TreeEvent) => {
-      const value = (e as { value: string }).value;
-      return _ctx.selectionMode === "multiple"
-        ? { selectedValue: [value] }
-        : { selectedValue: [value] };
-    },
-    deselectNode: (ctx: TreeContext, e: TreeEvent) => {
-      const value = (e as { value: string }).value;
-      return { selectedValue: ctx.selectedValue.filter((v) => v !== value) };
-    },
-    toggleNodeSelection: (ctx: TreeContext, e: TreeEvent) => {
-      const value = (e as { value: string }).value;
-      return {
-        selectedValue: ctx.selectedValue.includes(value)
-          ? ctx.selectedValue.filter((v) => v !== value)
-          : [...ctx.selectedValue, value],
-      };
-    },
-    extendSelectionToNode: (ctx: TreeContext, e: TreeEvent) => {
-      const value = (e as { value: string }).value;
-      if (ctx.selectedValue.includes(value)) return {};
-      return { selectedValue: [...ctx.selectedValue, value] };
-    },
-    setRenaming: (_ctx: TreeContext, e: TreeEvent) =>
-      e.type === "NODE.RENAME"
-        ? { renamingValue: e.value, focusedValue: e.value }
-        : {},
-    submitRename: (_ctx: TreeContext) => ({ renamingValue: null }),
-    cancelRename: () => ({ renamingValue: null }),
-    loadStart: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
-      if (e.type !== "NODE.LOAD_START") return {};
-      const next: Record<string, "loading" | "loaded" | "error"> = {
-        ...ctx.loadingStatus,
-        [e.value]: "loading",
-      };
-      return { loadingStatus: next };
-    },
-    loadDone: (ctx: TreeContext, e: TreeEvent): Partial<TreeContext> => {
-      if (e.type !== "NODE.LOAD_DONE") return {};
-      const next: Record<string, "loading" | "loaded" | "error"> = {
-        ...ctx.loadingStatus,
-        [e.value]: "loaded",
-      };
-      return { loadingStatus: next };
-    },
-  },
-};
+const implementations = {};
 
 export function treeView(
   args: TreeArgs = {},
   authored: (name: string) => boolean = () => true,
-): Machine<TreeContext, TreeEvent> {
-  return createMachine<TreeContext, TreeEvent>({
+): Machine<TreeContext, TreeEvents> {
+  return createMachine<TreeContext, TreeEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts. A field with an event is

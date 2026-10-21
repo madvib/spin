@@ -15,7 +15,7 @@ import {
   totalPages,
   type PaginationArgs,
   type PaginationContext,
-  type PaginationEvent,
+  type PaginationEvents,
   type PaginationPageChange,
   type PaginationPageItem,
 } from "./pagination.machine.ts";
@@ -72,7 +72,7 @@ const windowItems = (context: PaginationContext): readonly PaginationPageItem[] 
   return made;
 };
 
-const def: ComponentDef<PaginationContext, PaginationEvent> = {
+const def: ComponentDef<PaginationContext, PaginationEvents> = {
   name: "pagination",
   machine: (props, authored) => paginationMachine(props as PaginationArgs, authored),
   start: "idle",
@@ -244,4 +244,4 @@ const triggerBag = (
   },
 });
 
-export const pagination = defineComponent<PaginationContext, PaginationEvent, PaginationApi>(def);
+export const pagination = defineComponent<PaginationContext, PaginationEvents, PaginationApi>(def);

@@ -16,7 +16,19 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const toggleOpen = (ctx: NavigationMenuContext, e: NavigationMenuEvent) : Partial<NavigationMenuContext> => {
+      if (e.type !== "ITEM.TOGGLE") return {};
+      if (e.value === ctx.value) return { previousValue: ctx.value, value: "" };
+      return { previousValue: ctx.value, value: e.value };
+    };
+
+const closeAll = (ctx: NavigationMenuContext) : Partial<NavigationMenuContext> => { return ({
+      previousValue: ctx.value,
+      value: "",
+    }); };
+
+
 
 export type NavValue = string;
 
@@ -74,13 +86,17 @@ export function startState(args: NavigationMenuArgs = {}): string {
   return (asText(args.value) ?? "").length > 0 ? "open" : "idle";
 }
 
-export type NavigationMenuEvent =
-  | { type: "ITEM.ENTER"; value: NavValue }
-  | { type: "ITEM.TOGGLE"; value: NavValue }
-  | { type: "CLOSE" }
-  | { type: "VALUE.SET"; value: NavValue };
+export interface NavigationMenuEvents {
+  "ITEM.ENTER": { value: NavValue };
+  "ITEM.TOGGLE": { value: NavValue };
+  "CLOSE": {};
+  "VALUE.SET": { value: NavValue };
+}
 
-const config = {
+export type NavigationMenuEvent = EventUnion<NavigationMenuEvents>;
+
+
+const config: MachineSpec<NavigationMenuContext, NavigationMenuEvents> = {
   id: "navigation-menu",
   initial: "idle",
   context: {
@@ -92,16 +108,26 @@ const config = {
     disabled: false,
   },
   on: {
-    "VALUE.SET": [{ actions: [{ assign: "setValue" }] }],
-    "CLOSE": [{ actions: [{ assign: "closeAll" }] }],
+    "VALUE.SET": [{ assign: (_ctx, e) => {
+      if (e.type !== "VALUE.SET") return {};
+      // A write that names the value the machine already holds is not a
+      // move: it leaves the previous value alone.
+      const value = asText(e.value);
+      if (value === null || value === _ctx.value) return {};
+      return { previousValue: _ctx.value, value };
+    } }],
+    "CLOSE": [{ assign: closeAll }],
   },
   states: {
     idle: {
       on: {
         // An enter opens after the action's open delay; a toggle opens at
         // once (a click has no dwell).
-        "ITEM.ENTER": [{ target: "open", actions: [{ assign: "openFrom" }] }],
-        "ITEM.TOGGLE": [{ target: "open", actions: [{ assign: "toggleOpen" }] }],
+        "ITEM.ENTER": [{ target: "open", assign: (ctx, e) => {
+      if (e.type !== "ITEM.ENTER") return {};
+      return { previousValue: ctx.value, value: e.value };
+    } }],
+        "ITEM.TOGGLE": [{ target: "open", assign: toggleOpen }],
       },
     },
     open: {
@@ -109,57 +135,29 @@ const config = {
         // An enter on another item swaps at once (the dwell is skipped
         // while open). The panel's own enter cancels the pending close at
         // the action, so it needs no event here.
-        "ITEM.ENTER": [{ actions: [{ assign: "swapFrom" }] }],
-        "ITEM.TOGGLE": [{ target: "idle", actions: [{ assign: "toggleOpen" }] }],
-        "CLOSE": [{ target: "idle", actions: [{ assign: "closeAll" }] }],
-      },
-    },
-  },
-};
-
-const implementations = {
-  conds: {},
-  assigns: {
-    setValue: (_ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
-      if (e.type !== "VALUE.SET") return {};
-      // A write that names the value the machine already holds is not a
-      // move: it leaves the previous value alone.
-      const value = asText(e.value);
-      if (value === null || value === _ctx.value) return {};
-      return { previousValue: _ctx.value, value };
-    },
-    openFrom: (ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
-      if (e.type !== "ITEM.ENTER") return {};
-      return { previousValue: ctx.value, value: e.value };
-    },
-    swapFrom: (ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
+        "ITEM.ENTER": [{ assign: (ctx, e) => {
       if (e.type !== "ITEM.ENTER") return {};
       // A swap keeps the previous for the slide; re-entering the open item
       // is a no-op.
       if (e.value === ctx.value) return {};
       return { previousValue: ctx.value, value: e.value };
+    } }],
+        "ITEM.TOGGLE": [{ target: "idle", assign: toggleOpen }],
+        "CLOSE": [{ target: "idle", assign: closeAll }],
+      },
     },
-    toggleOpen: (ctx: NavigationMenuContext, e: NavigationMenuEvent): Partial<NavigationMenuContext> => {
-      if (e.type !== "ITEM.TOGGLE") return {};
-      if (e.value === ctx.value) return { previousValue: ctx.value, value: "" };
-      return { previousValue: ctx.value, value: e.value };
-    },
-    closeAll: (ctx: NavigationMenuContext): Partial<NavigationMenuContext> => ({
-      previousValue: ctx.value,
-      value: "",
-    }),
   },
 };
+
+const implementations = {};
 
 export function navigationMenu(
   args: NavigationMenuArgs = {},
   authored: (name: string) => boolean,
-): Machine<NavigationMenuContext, NavigationMenuEvent> {
-  return createMachine<NavigationMenuContext, NavigationMenuEvent>({
+): Machine<NavigationMenuContext, NavigationMenuEvents> {
+  return createMachine<NavigationMenuContext, NavigationMenuEvents>({
     ...config,
     context: initial(args, authored),
-    assigns: implementations.assigns,
-    conds: implementations.conds,
     /**
      * A field with an event is REPORTED: the host's write is an event,
      * the machine decides, and the change reaches the host. A field

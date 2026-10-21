@@ -1,7 +1,7 @@
 /** Pagination machine: one idle state with guarded transitions. */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
 
 export interface PaginationContext {
   page: number;
@@ -11,14 +11,18 @@ export interface PaginationContext {
   boundaryCount: number;
 }
 
-export type PaginationEvent =
-  | { type: "SET_PAGE"; page: number }
-  | { type: "SET_PAGE_SIZE"; pageSize: number }
-  | { type: "FIRST_PAGE" }
-  | { type: "LAST_PAGE" }
-  | { type: "PREVIOUS_PAGE" }
-  | { type: "NEXT_PAGE" }
-  | { type: "SET_COUNT"; count: number };
+export interface PaginationEvents {
+  "SET_PAGE": { page: number };
+  "SET_PAGE_SIZE": { pageSize: number };
+  "FIRST_PAGE": {};
+  "LAST_PAGE": {};
+  "PREVIOUS_PAGE": {};
+  "NEXT_PAGE": {};
+  "SET_COUNT": { count: number };
+}
+
+export type PaginationEvent = EventUnion<PaginationEvents>;
+
 
 export type PaginationPageChange = {
   readonly page: number;
@@ -174,8 +178,8 @@ const clampPage = (page: number, total: number): number => Math.min(Math.max(pag
 export function pagination(
   args: PaginationArgs = {},
   authored: (name: string) => boolean,
-): Machine<PaginationContext, PaginationEvent> {
-  return createMachine<PaginationContext, PaginationEvent>({
+): Machine<PaginationContext, PaginationEvents> {
+  return createMachine<PaginationContext, PaginationEvents>({
     id: "pagination",
     initial: "idle",
     /**
@@ -193,60 +197,39 @@ export function pagination(
     },
     context: initial(args, authored),
     on: {
-      SET_COUNT: { actions: [{ assign: "setCount" }] },
+      SET_COUNT: { assign: (ctx, event) => {
+        void ctx;
+        return { count: Math.max(0, Math.floor(event.count)) };
+      } },
     },
     states: {
       idle: {
         on: {
-          SET_PAGE: [{ cond: "isValidPage", actions: [{ assign: "setPage" }] }],
-          SET_PAGE_SIZE: { actions: [{ assign: "setPageSize" }, { assign: "resetPageIfNeeded" }] },
-          FIRST_PAGE: { actions: [{ assign: "goToFirst" }] },
-          LAST_PAGE: { actions: [{ assign: "goToLast" }] },
-          PREVIOUS_PAGE: [{ cond: "canGoPrev", actions: [{ assign: "goToPrev" }] }],
-          NEXT_PAGE: [{ cond: "canGoNext", actions: [{ assign: "goToNext" }] }],
-        },
-      },
-    },
-    conds: {
-      isValidPage: (ctx: PaginationContext, event: PaginationEvent): boolean => {
+          SET_PAGE: [{ cond: (ctx, event) => {
         if (event.type !== "SET_PAGE") return false;
         return event.page >= 1 && event.page <= totalPages(ctx);
-      },
-      canGoPrev: (ctx: PaginationContext): boolean => ctx.page > 1,
-      canGoNext: (ctx: PaginationContext): boolean => ctx.page < totalPages(ctx),
-    },
-    assigns: {
-      setPage: (ctx: PaginationContext, event: PaginationEvent): Partial<PaginationContext> => {
-        if (event.type !== "SET_PAGE") return {};
+      }, assign: (ctx, event) => {
         // The page arrives the way the host wrote it; the machine shapes it.
         const page = clampPage(asCount(event.page) ?? 1, totalPages(ctx));
         return page === ctx.page ? {} : { page };
-      },
-      setPageSize: (ctx: PaginationContext, event: PaginationEvent): Partial<PaginationContext> => {
-        if (event.type !== "SET_PAGE_SIZE") return {};
+      } }],
+          SET_PAGE_SIZE: { assign: [(ctx, event) => {
         const size = asCount(event.pageSize);
         if (size === null) return {};
         return { pageSize: Math.max(1, Math.floor(size)) };
-      },
-      resetPageIfNeeded: (ctx: PaginationContext): Partial<PaginationContext> =>
-        ctx.page > totalPages(ctx) ? { page: 1 } : {},
-      goToFirst: (ctx: PaginationContext): Partial<PaginationContext> =>
-        ctx.page === 1 ? {} : { page: 1 },
-      goToLast: (ctx: PaginationContext): Partial<PaginationContext> => {
+      }, (ctx) => { return ctx.page > totalPages(ctx) ? { page: 1 } : {}; }] },
+          FIRST_PAGE: { assign: (ctx) => { return ctx.page === 1 ? {} : { page: 1 }; } },
+          LAST_PAGE: { assign: (ctx) => {
         const last = totalPages(ctx);
         return ctx.page === last ? {} : { page: last };
-      },
-      goToPrev: (ctx: PaginationContext): Partial<PaginationContext> => ({
+      } },
+          PREVIOUS_PAGE: [{ cond: (ctx) => { return ctx.page > 1; }, assign: (ctx) => { return ({
         page: clampPage(ctx.page - 1, totalPages(ctx)),
-      }),
-      goToNext: (ctx: PaginationContext): Partial<PaginationContext> => ({
+      }); } }],
+          NEXT_PAGE: [{ cond: (ctx) => { return ctx.page < totalPages(ctx); }, assign: (ctx) => { return ({
         page: clampPage(ctx.page + 1, totalPages(ctx)),
-      }),
-      setCount: (ctx: PaginationContext, event: PaginationEvent): Partial<PaginationContext> => {
-        if (event.type !== "SET_COUNT") return {};
-        void ctx;
-        return { count: Math.max(0, Math.floor(event.count)) };
+      }); } }],
+        },
       },
-    },
-  });
+    },});
 }

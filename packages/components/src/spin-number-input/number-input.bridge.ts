@@ -1,5 +1,5 @@
 import { computed, effect, machineTick, scope, signal, untrack } from "@spin/runtime";
-import { interpret, type Service } from "@spin/runtime/fsm";
+import { interpret, type Service, type EventUnion } from "@spin/runtime/fsm";
 import {
   connectRobotNumberInput,
   type NumberInputApi,
@@ -14,7 +14,7 @@ import {
   valueOf,
   type NumberInputArgs,
   type NumberInputContext,
-  type NumberInputEvent,
+  type NumberInputEvents,
   type NumberInputScalarKey,
 } from "./number-input.machine.ts";
 
@@ -111,7 +111,7 @@ export function createNumberInputBridge(
 ): { readonly api: NumberInputApi; dispose(): void } {
   const owner = scope();
   const tick = signal(0);
-  let service: Service<NumberInputContext, NumberInputEvent> | undefined;
+  let service: Service<NumberInputContext, NumberInputEvents> | undefined;
   /** What a form reset restores: the seed, captured with the service. */
   let initialValue = "";
 
@@ -201,7 +201,7 @@ function readArgs(): NumberInputArgs {
     };
   };
 
-  function ensureService(): Service<NumberInputContext, NumberInputEvent> {
+  function ensureService(): Service<NumberInputContext, NumberInputEvents> {
     if (service) return service;
     // The machine is a factory over the arguments: it builds its own
     // context from them, so every instance of the element seeds — and then
@@ -303,7 +303,7 @@ function readArgs(): NumberInputArgs {
     }),
   );
 
-  function send(event: NumberInputEvent): void {
+  function send(event: EventUnion<NumberInputEvents>): void {
     const svc = ensureService();
     Object.assign(svc.state.context, readContextProps());
     svc.send(event);

@@ -11,7 +11,7 @@ import {
   selectLabel,
   type SelectArgs,
   type SelectContext,
-  type SelectEvent,
+  type SelectEvents,
   type SelectRow,
 } from "./select.machine.ts";
 
@@ -268,7 +268,7 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
-const def: ComponentDef<SelectContext, SelectEvent> = {
+const def: ComponentDef<SelectContext, SelectEvents> = {
   name: "select",
   machine: (props, authored) => selectMachine(props as SelectArgs, authored),
   start: (props, authored) => {
@@ -725,5 +725,5 @@ const def: ComponentDef<SelectContext, SelectEvent> = {
   },
 };
 
-export const select = defineComponent<SelectContext, SelectEvent, SelectApi>(def);
+export const select = defineComponent<SelectContext, SelectEvents, SelectApi>(def);
 export type { SelectRow } from "./select.machine.ts";

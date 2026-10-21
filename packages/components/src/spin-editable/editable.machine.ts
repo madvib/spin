@@ -16,7 +16,20 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setPreviousValue = (ctx: EditableContext) : Partial<EditableContext> => { return ({
+      previousValue: ctx.value,
+    }); };
+
+const setLastEvent = (_ctx: EditableContext, e: EditableEvent) : Partial<EditableContext> => { return ({
+      lastEvent: e.type,
+    }); };
+
+const revertValue = (ctx: EditableContext) : Partial<EditableContext> => { return ctx.previousValue === "" ? {} : { value: ctx.previousValue }; };
+
+const isEditControlled = (ctx: EditableContext) : boolean => { return ctx.editControlled; };
+
+
 
 export interface EditableContext {
   value: string;
@@ -26,15 +39,17 @@ export interface EditableContext {
   lastEvent: string;
 }
 
-export type EditableEvent =
-  | { type: "VALUE.SET"; value: string }
-  | { type: "EDIT" }
-  | { type: "SUBMIT"; focusable?: boolean }
-  | { type: "CANCEL"; focusable?: boolean }
-  | { type: "CONTROLLED.EDIT" }
-  /** `previousEvent` is the type of the last event sent: a controlled close
-   * right after a submit commits, anything else reverts. */
-  | { type: "CONTROLLED.PREVIEW"; previousEvent: string };
+export interface EditableEvents {
+  "VALUE.SET": { value: string };
+  "EDIT": {};
+  "SUBMIT": { focusable?: boolean };
+  "CANCEL": { focusable?: boolean };
+  "CONTROLLED.EDIT": {};
+  "CONTROLLED.PREVIEW": { previousEvent: string };
+}
+
+export type EditableEvent = EventUnion<EditableEvents>;
+
 
 /**
  * The editable's arguments: the values the host may set. The names are
@@ -72,7 +87,7 @@ export function initial(args: EditableArgs = {}, authored: (name: string) => boo
   };
 }
 
-const config = {
+const config: MachineSpec<EditableContext, EditableEvents> = {
   id: "editable",
   initial: "preview",
   context: {
@@ -85,74 +100,54 @@ const config = {
   // Root tier: the value is set wherever the machine is, so a host's
   // imperative `setValue` reaches a previewing field.
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
+    "VALUE.SET": { assign: (ctx, e) => {
+      if (e.type !== "VALUE.SET") return {};
+      const raw = typeof e.value === "string" ? e.value : "";
+      const max = ctx.maxLength;
+      const value = max === null || max <= 0 ? raw : raw.slice(0, max);
+      return value === ctx.value ? {} : { value };
+    } },
   },
   states: {
     preview: {
       on: {
-        "CONTROLLED.EDIT": { target: "edit", actions: [{ assign: "setPreviousValue" }] },
+        "CONTROLLED.EDIT": { target: "edit", assign: setPreviousValue },
         EDIT: [
           // Controlled: the host owns the state, so the machine only reports
           // that an edit was asked for. The host's own write brings it back
           // as CONTROLLED.EDIT.
-          { cond: "isEditControlled" },
-          { target: "edit", actions: [{ assign: "setPreviousValue" }] },
+          { cond: isEditControlled },
+          { target: "edit", assign: setPreviousValue },
         ],
       },
     },
     edit: {
       on: {
         "CONTROLLED.PREVIEW": [
-          { cond: "isSubmitEvent", target: "preview", actions: [{ assign: "setPreviousValue" }] },
-          { target: "preview", actions: [{ assign: "revertValue" }] },
+          { cond: (_ctx, e) => { return e.type === "CONTROLLED.PREVIEW" && e.previousEvent === "SUBMIT"; }, target: "preview", assign: setPreviousValue },
+          { target: "preview", assign: revertValue },
         ],
         CANCEL: [
-          { cond: "isEditControlled", actions: [{ assign: "setLastEvent" }] },
-          { target: "preview", actions: [{ assign: "revertValue" }, { assign: "setLastEvent" }] },
+          { cond: isEditControlled, assign: setLastEvent },
+          { target: "preview", assign: [revertValue, setLastEvent] },
         ],
         SUBMIT: [
-          { cond: "isEditControlled", actions: [{ assign: "setLastEvent" }] },
-          { target: "preview", actions: [{ assign: "setPreviousValue" }, { assign: "setLastEvent" }] },
+          { cond: isEditControlled, assign: setLastEvent },
+          { target: "preview", assign: [setPreviousValue, setLastEvent] },
         ],
       },
     },
   },
 };
 
-const implementations = {
-  conds: {
-    isEditControlled: (ctx: EditableContext): boolean => ctx.editControlled,
-    isSubmitEvent: (_ctx: EditableContext, e: EditableEvent): boolean =>
-      e.type === "CONTROLLED.PREVIEW" && e.previousEvent === "SUBMIT",
-  },
-  assigns: {
-    setValue: (ctx: EditableContext, e: EditableEvent): Partial<EditableContext> => {
-      if (e.type !== "VALUE.SET") return {};
-      const raw = typeof e.value === "string" ? e.value : "";
-      const max = ctx.maxLength;
-      const value = max === null || max <= 0 ? raw : raw.slice(0, max);
-      return value === ctx.value ? {} : { value };
-    },
-    setPreviousValue: (ctx: EditableContext): Partial<EditableContext> => ({
-      previousValue: ctx.value,
-    }),
-    setLastEvent: (_ctx: EditableContext, e: EditableEvent): Partial<EditableContext> => ({
-      lastEvent: e.type,
-    }),
-    /** Zag's revert: a field that started empty is never reverted to empty,
-     * so a cancel on a blank field keeps what was typed. */
-    revertValue: (ctx: EditableContext): Partial<EditableContext> =>
-      ctx.previousValue === "" ? {} : { value: ctx.previousValue },
-  },
-};
+const implementations = {};
 
 export function editable(
   args: EditableArgs = {},
   authored: (name: string) => boolean,
-): Machine<EditableContext, EditableEvent> {
-  return createMachine<EditableContext, EditableEvent>({
+): Machine<EditableContext, EditableEvents> {
+  return createMachine<EditableContext, EditableEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host

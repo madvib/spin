@@ -15,7 +15,32 @@
  */
 
 import { coerceJsonArray, defaultTwin, isRecord } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setFiles = (ctx: FileUploadContext, e: FileUploadEvent) : Partial<FileUploadContext> => {
+      if (e.type !== "INPUT.CHANGE") return {};
+      const split = splitFiles(e.files, ctx);
+      return {
+        acceptedFiles: ctx.multiple ? [...split.accepted] : split.accepted.slice(0, 1),
+        rejectedFiles: [...split.rejected],
+      };
+    };
+
+const addFiles = (ctx: FileUploadContext, e: FileUploadEvent) : Partial<FileUploadContext> => {
+      if (e.type !== "DROP") return {};
+      const split = splitFiles(e.files, ctx, ctx.acceptedFiles.length);
+      if (!ctx.multiple) {
+        return {
+          acceptedFiles: split.accepted.slice(0, 1),
+          rejectedFiles: [...split.rejected],
+        };
+      }
+      return {
+        acceptedFiles: [...ctx.acceptedFiles, ...split.accepted],
+        rejectedFiles: [...ctx.rejectedFiles, ...split.rejected],
+      };
+    };
+
+
 
 export interface FileRecord {
   readonly name: string;
@@ -105,18 +130,22 @@ export function initial(args: FileUploadArgs = {}, authored: (name: string) => b
   };
 }
 
-export type FileUploadEvent =
-  | { type: "INPUT.CHANGE"; files: readonly FileRecord[] }
-  | { type: "DROP"; files: readonly FileRecord[] }
-  | { type: "DROPZONE.FOCUS" }
-  | { type: "DROPZONE.BLUR" }
-  | { type: "DROPZONE.DRAG_OVER" }
-  | { type: "DROPZONE.DRAG_LEAVE" }
-  | { type: "FILE.REMOVE"; name: string }
-  | { type: "VALUE.SET"; value: readonly FileRecord[] | string }
-  | { type: "VALUE.CLEAR" };
+export interface FileUploadEvents {
+  "INPUT.CHANGE": { files: readonly FileRecord[] };
+  "DROP": { files: readonly FileRecord[] };
+  "DROPZONE.FOCUS": {};
+  "DROPZONE.BLUR": {};
+  "DROPZONE.DRAG_OVER": {};
+  "DROPZONE.DRAG_LEAVE": {};
+  "FILE.REMOVE": { name: string };
+  "VALUE.SET": { value: readonly FileRecord[] | string };
+  "VALUE.CLEAR": {};
+}
 
-const config = {
+export type FileUploadEvent = EventUnion<FileUploadEvents>;
+
+
+const config: MachineSpec<FileUploadContext, FileUploadEvents> = {
   id: "file-upload",
   initial: "idle",
   context: {
@@ -134,15 +163,23 @@ const config = {
   // the host's commands and the controlled channel write the selection
   // without knowing whether the dropzone holds focus.
   on: {
-    "VALUE.SET": [{ actions: [{ assign: "setValue" }] }],
-    "VALUE.CLEAR": [{ actions: [{ assign: "clearValue" }] }],
-    "FILE.REMOVE": [{ actions: [{ assign: "removeFile" }] }],
+    "VALUE.SET": [{ assign: (_ctx, e) => {
+      if (e.type !== "VALUE.SET") return {};
+      return { acceptedFiles: filesOf(e.value), rejectedFiles: [] };
+    } }],
+    "VALUE.CLEAR": [{ assign: () => { return ({ acceptedFiles: [], rejectedFiles: [] }); } }],
+    "FILE.REMOVE": [{ assign: (ctx, e) => {
+      if (e.type !== "FILE.REMOVE") return {};
+      return {
+        acceptedFiles: ctx.acceptedFiles.filter((file) => file.name !== e.name),
+      };
+    } }],
   },
   states: {
     idle: {
       on: {
-        "INPUT.CHANGE": [{ actions: [{ assign: "setFiles" }] }],
-        "DROP": [{ target: "idle", actions: [{ assign: "addFiles" }] }],
+        "INPUT.CHANGE": [{ assign: setFiles }],
+        "DROP": [{ target: "idle", assign: addFiles }],
         "DROPZONE.FOCUS": [{ target: "focused" }],
         "DROPZONE.DRAG_OVER": [{ target: "dragging" }],
       },
@@ -150,14 +187,14 @@ const config = {
     focused: {
       on: {
         "DROPZONE.BLUR": [{ target: "idle" }],
-        "INPUT.CHANGE": [{ actions: [{ assign: "setFiles" }] }],
-        "DROP": [{ target: "idle", actions: [{ assign: "addFiles" }] }],
+        "INPUT.CHANGE": [{ assign: setFiles }],
+        "DROP": [{ target: "idle", assign: addFiles }],
         "DROPZONE.DRAG_OVER": [{ target: "dragging" }],
       },
     },
     dragging: {
       on: {
-        "DROP": [{ target: "idle", actions: [{ assign: "addFiles" }] }],
+        "DROP": [{ target: "idle", assign: addFiles }],
         "DROPZONE.DRAG_LEAVE": [{ target: "idle" }],
       },
     },
@@ -222,52 +259,14 @@ export function splitFiles(
   return { accepted, rejected };
 }
 
-const implementations = {
-  conds: {},
-  assigns: {
-    setFiles: (ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
-      if (e.type !== "INPUT.CHANGE") return {};
-      const split = splitFiles(e.files, ctx);
-      return {
-        acceptedFiles: ctx.multiple ? [...split.accepted] : split.accepted.slice(0, 1),
-        rejectedFiles: [...split.rejected],
-      };
-    },
-    addFiles: (ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
-      if (e.type !== "DROP") return {};
-      const split = splitFiles(e.files, ctx, ctx.acceptedFiles.length);
-      if (!ctx.multiple) {
-        return {
-          acceptedFiles: split.accepted.slice(0, 1),
-          rejectedFiles: [...split.rejected],
-        };
-      }
-      return {
-        acceptedFiles: [...ctx.acceptedFiles, ...split.accepted],
-        rejectedFiles: [...ctx.rejectedFiles, ...split.rejected],
-      };
-    },
-    removeFile: (ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
-      if (e.type !== "FILE.REMOVE") return {};
-      return {
-        acceptedFiles: ctx.acceptedFiles.filter((file) => file.name !== e.name),
-      };
-    },
-    setValue: (_ctx: FileUploadContext, e: FileUploadEvent): Partial<FileUploadContext> => {
-      if (e.type !== "VALUE.SET") return {};
-      return { acceptedFiles: filesOf(e.value), rejectedFiles: [] };
-    },
-    clearValue: (): Partial<FileUploadContext> => ({ acceptedFiles: [], rejectedFiles: [] }),
-  },
-};
+const implementations = {};
 
 export function fileUpload(
   args: FileUploadArgs = {},
   authored: (name: string) => boolean,
-): Machine<FileUploadContext, FileUploadEvent> {
-  return createMachine<FileUploadContext, FileUploadEvent>({
+): Machine<FileUploadContext, FileUploadEvents> {
+  return createMachine<FileUploadContext, FileUploadEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The machine's contract with its hosts: the context fields a host

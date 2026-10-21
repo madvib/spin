@@ -6,7 +6,7 @@ import {
   type SanitizeValue,
   type TagsArgs,
   type TagsContext,
-  type TagsEvent,
+  type TagsEvents,
   type TagsLog,
   type TagsValueChange,
   type TagsValueInvalid,
@@ -450,7 +450,7 @@ const blurBehaviorOf = (
   return { addOnBlur: value === "add", clearOnBlur: value === "clear" };
 };
 
-const def: ComponentDef<TagsContext, TagsEvent> = {
+const def: ComponentDef<TagsContext, TagsEvents> = {
   name: "tags-input",
   machine: (props, authored) => tagsMachine(props as TagsArgs, authored),
   start: (raw) => (raw["autoFocus"] === true ? "focused:input" : "idle"),
@@ -1035,4 +1035,4 @@ const def: ComponentDef<TagsContext, TagsEvent> = {
   },
 };
 
-export const tags = defineComponent<TagsContext, TagsEvent, TagsApi>(def);
+export const tags = defineComponent<TagsContext, TagsEvents, TagsApi>(def);

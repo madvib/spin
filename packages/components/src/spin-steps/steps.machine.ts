@@ -1,7 +1,7 @@
 /** Steps machine: one idle state with guarded transitions. */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
 
 export interface StepsContext {
   step: number;
@@ -13,12 +13,16 @@ export interface StepsContext {
   lastInvalid: { readonly action: "next" | "set"; readonly targetStep: number } | null;
 }
 
-export type StepsEvent =
-  | { type: "STEP.SET"; value: number }
-  | { type: "STEP.NEXT" }
-  | { type: "STEP.PREV" }
-  | { type: "STEP.RESET" }
-  | { type: "SET_COUNT"; count: number };
+export interface StepsEvents {
+  "STEP.SET": { value: number; skippable?: unknown; valid?: unknown; };
+  "STEP.NEXT": { skippable?: unknown; valid?: unknown; };
+  "STEP.PREV": {};
+  "STEP.RESET": {};
+  "SET_COUNT": { count: number };
+}
+
+export type StepsEvent = EventUnion<StepsEvents>;
+
 
 export type StepsStepChange = {
   readonly step: number;
@@ -113,8 +117,8 @@ export function initial(args: StepsArgs = {}, authored: (name: string) => boolea
 export function steps(
   args: StepsArgs = {},
   authored: (name: string) => boolean,
-): Machine<StepsContext, StepsEvent> {
-  return createMachine<StepsContext, StepsEvent>({
+): Machine<StepsContext, StepsEvents> {
+  return createMachine<StepsContext, StepsEvents>({
     id: "steps",
     initial: "idle",
     context: initial(args, authored),
@@ -131,30 +135,17 @@ export function steps(
       count: {},
     },
     on: {
-      SET_COUNT: { actions: [{ assign: "setCount" }] },
+      SET_COUNT: { assign: (ctx, event) => {
+        void ctx;
+        const count = Math.max(1, Math.floor(event.count));
+        return { count };
+      } },
     },
     states: {
       idle: {
         on: {
           "STEP.SET": [
-            { cond: "canNavigate", actions: [{ assign: "setStep" }] },
-            { actions: [{ assign: "reportInvalidSet" }] },
-          ],
-          "STEP.NEXT": [
-            { cond: "canAdvance", actions: [{ assign: "goToNext" }] },
-            { actions: [{ assign: "reportInvalidNext" }] },
-          ],
-          "STEP.PREV": { actions: [{ assign: "goToPrev" }] },
-          "STEP.RESET": { actions: [{ assign: "resetStep" }] },
-        },
-      },
-    },
-    conds: {
-      // Backward motion is always legal; forward motion validates the
-      // current step unless it is skippable. The validators ride the event:
-      // functions cannot cross the scope channel, so the bridge attaches
-      // them to each navigation event it sends.
-      canNavigate: (_ctx: StepsContext, event: StepsEvent & Record<string, unknown>): boolean => {
+            { cond: (_ctx, event) => {
         if (event.type !== "STEP.SET") return false;
         const current = _ctx.step;
         if ((event["value"] as number) <= current) return true;
@@ -163,8 +154,20 @@ export function steps(
         }
         const valid = event["valid"] as ((index: number) => boolean) | undefined;
         return valid === undefined ? true : valid(current);
-      },
-      canAdvance: (_ctx: StepsContext, event: StepsEvent & Record<string, unknown>): boolean => {
+      }, assign: (ctx, event) => {
+        const clamped = Math.min(ctx.count, Math.max(0, event.value));
+        return clamped === ctx.step ? {} : { step: clamped };
+      } },
+            { assign: (ctx, event) => { return ({
+        invalidAttempts: ctx.invalidAttempts + 1,
+        lastInvalid: {
+          action: "set",
+          targetStep: event.type === "STEP.SET" ? event.value : ctx.step,
+        },
+      }); } },
+          ],
+          "STEP.NEXT": [
+            { cond: (_ctx, event) => {
         if (event.type !== "STEP.NEXT") return false;
         const current = _ctx.step;
         if ((event["skippable"] as ((index: number) => boolean) | undefined)?.(current) === true) {
@@ -172,43 +175,22 @@ export function steps(
         }
         const valid = event["valid"] as ((index: number) => boolean) | undefined;
         return valid === undefined ? true : valid(current);
-      },
-    },
-    assigns: {
-      setStep: (ctx: StepsContext, event: StepsEvent): Partial<StepsContext> => {
-        if (event.type !== "STEP.SET") return {};
-        const clamped = Math.min(ctx.count, Math.max(0, event.value));
-        return clamped === ctx.step ? {} : { step: clamped };
-      },
-      goToNext: (ctx: StepsContext): Partial<StepsContext> => ({
+      }, assign: (ctx) => { return ({
         step: Math.min(ctx.step + 1, ctx.count),
-      }),
-      goToPrev: (ctx: StepsContext): Partial<StepsContext> => ({
-        step: Math.max(ctx.step - 1, 0),
-      }),
-      resetStep: (): Partial<StepsContext> => ({ step: 0 }),
-      setCount: (ctx: StepsContext, event: StepsEvent): Partial<StepsContext> => {
-        if (event.type !== "SET_COUNT") return {};
-        void ctx;
-        const count = Math.max(1, Math.floor(event.count));
-        return { count };
-      },
-      // Invalid attempts report through the invalid channel: the bridge
-      // reads the pending report after the send and notifies once.
-      reportInvalidNext: (ctx: StepsContext, event: StepsEvent): Partial<StepsContext> => ({
+      }); } },
+            { assign: (ctx, event) => { return ({
         invalidAttempts: ctx.invalidAttempts + 1,
         lastInvalid: {
           action: "next",
           targetStep: event.type === "STEP.NEXT" ? Math.min(ctx.step + 1, ctx.count) : ctx.step,
         },
-      }),
-      reportInvalidSet: (ctx: StepsContext, event: StepsEvent): Partial<StepsContext> => ({
-        invalidAttempts: ctx.invalidAttempts + 1,
-        lastInvalid: {
-          action: "set",
-          targetStep: event.type === "STEP.SET" ? event.value : ctx.step,
+      }); } },
+          ],
+          "STEP.PREV": { assign: (ctx) => { return ({
+        step: Math.max(ctx.step - 1, 0),
+      }); } },
+          "STEP.RESET": { assign: () => { return ({ step: 0 }); } },
         },
-      }),
-    },
-  });
+      },
+    },});
 }

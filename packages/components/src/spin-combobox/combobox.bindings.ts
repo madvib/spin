@@ -13,7 +13,7 @@ import {
   stringifyValues,
   type ComboboxArgs,
   type ComboboxContext,
-  type ComboboxEvent,
+  type ComboboxEvents,
 } from "./combobox.machine.ts";
 /**
  * Combobox definition: the DOM contract as data. The collection parses
@@ -457,7 +457,7 @@ const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => (
   selected: scope.context.value.includes(row.value),
 });
 
-const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
+const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
   name: "combobox",
   machine: (props, authored) => comboboxMachine(props as ComboboxArgs, authored),
   start: (props) => (props["open"] === true || props["defaultOpen"] === true ? "suggesting" : "idle"),
@@ -1017,4 +1017,4 @@ const def: ComponentDef<ComboboxContext, ComboboxEvent> = {
   },
 };
 
-export const combobox = defineComponent<ComboboxContext, ComboboxEvent, ComboboxApi>(def);
+export const combobox = defineComponent<ComboboxContext, ComboboxEvents, ComboboxApi>(def);

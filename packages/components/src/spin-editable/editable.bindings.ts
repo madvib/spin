@@ -3,7 +3,7 @@ import {
   editable as editableMachine,
   type EditableArgs,
   type EditableContext,
-  type EditableEvent,
+  type EditableEvents,
 } from "./editable.machine.ts";
 import type { InteractOutsideEvent } from "./actions/interact-outside.action.ts";
 
@@ -71,7 +71,7 @@ const callHandler = (scope: ScopeLike, name: string, event: InteractOutsideEvent
   if (isOutsideHandler(fn)) fn(event);
 };
 
-const def: ComponentDef<EditableContext, EditableEvent> = {
+const def: ComponentDef<EditableContext, EditableEvents> = {
   name: "editable",
   machine: (props, authored) => editableMachine(props as EditableArgs, authored),
   start: (props) => (props["editing"] === true || props["defaultEdit"] === true ? "edit" : "preview"),
@@ -482,4 +482,4 @@ const reportOutside = (scope: ScopeLike, event: InteractOutsideEvent): void => {
   });
 };
 
-export const editable = defineComponent<EditableContext, EditableEvent, EditableApi>(def);
+export const editable = defineComponent<EditableContext, EditableEvents, EditableApi>(def);

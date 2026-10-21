@@ -7,7 +7,7 @@ import {
   avatar as avatarMachine,
   type AvatarArgs,
   type AvatarContext,
-  type AvatarEvent,
+  type AvatarEvents,
   type AvatarStatus,
   type AvatarStatusChange,
 } from "./avatar.machine.ts";
@@ -42,7 +42,7 @@ const fallbackOf = (props: Record<string, unknown>): string => {
 
 interface ScopeLike extends PartScope<unknown, AvatarContext> {}
 
-const def: ComponentDef<AvatarContext, AvatarEvent> = {
+const def: ComponentDef<AvatarContext, AvatarEvents> = {
   name: "avatar",
   machine: (props, authored) => avatarMachine(props as AvatarArgs, authored),
   start: "loading",
@@ -129,4 +129,4 @@ const def: ComponentDef<AvatarContext, AvatarEvent> = {
   },
 };
 
-export const avatar = defineComponent<AvatarContext, AvatarEvent, AvatarApi>(def);
+export const avatar = defineComponent<AvatarContext, AvatarEvents, AvatarApi>(def);

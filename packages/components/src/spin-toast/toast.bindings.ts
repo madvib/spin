@@ -11,7 +11,7 @@ import {
   type ToastArgs,
   type ToastContext,
   type ToastEntry,
-  type ToastEvent,
+  type ToastEvents,
   type ToastStatus,
   type ToastType,
 } from "./toast.machine.ts";
@@ -243,7 +243,7 @@ const scaleOf = (entry: ToastEntry, index: number, overlapped: boolean): string 
   return String(Math.max(0.6, 1 - index * 0.05));
 };
 
-const def: ComponentDef<ToastContext, ToastEvent> = {
+const def: ComponentDef<ToastContext, ToastEvents> = {
   name: "toast",
   machine: (props, authored) => toastMachine(props as ToastArgs, authored),
   establish: (props) =>
@@ -689,4 +689,4 @@ const def: ComponentDef<ToastContext, ToastEvent> = {
   },
 };
 
-export const toast = defineComponent<ToastContext, ToastEvent, ToastApi>(def);
+export const toast = defineComponent<ToastContext, ToastEvents, ToastApi>(def);

@@ -12,7 +12,7 @@ import {
   type MenuBlock,
   type MenuContext,
   type MenuEntry,
-  type MenuEvent,
+  type MenuEvents,
   type MenuHighlightChange,
   type MenuOpenChange,
   type MenuRow,
@@ -372,7 +372,7 @@ const onSubmenuClose = (scope: ScopeLike, event: Event): void => {
   scope.send({ type: "SUBMENU_CLOSE" });
 };
 
-const def: ComponentDef<MenuContext, MenuEvent> = {
+const def: ComponentDef<MenuContext, MenuEvents> = {
   name: "menu",
   machine: (props, authored) => menuMachine(props as MenuArgs, authored),
   start: (props, authored) => {
@@ -702,4 +702,4 @@ const def: ComponentDef<MenuContext, MenuEvent> = {
   },
 };
 
-export const menu = defineComponent<MenuContext, MenuEvent, MenuApi>(def);
+export const menu = defineComponent<MenuContext, MenuEvents, MenuApi>(def);

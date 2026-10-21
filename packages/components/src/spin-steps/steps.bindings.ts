@@ -13,7 +13,7 @@ import {
   steps as stepsMachine,
   type StepsArgs,
   type StepsContext,
-  type StepsEvent,
+  type StepsEvents,
   type StepsInvalid,
   type StepsItemState,
   type StepsStepChange,
@@ -110,7 +110,7 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
-const def: ComponentDef<StepsContext, StepsEvent> = {
+const def: ComponentDef<StepsContext, StepsEvents> = {
   name: "steps",
   machine: (props, authored) => stepsMachine(props as StepsArgs, authored),
   start: "idle",
@@ -386,4 +386,4 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
   },
 };
 
-export const steps = defineComponent<StepsContext, StepsEvent, StepsApi>(def);
+export const steps = defineComponent<StepsContext, StepsEvents, StepsApi>(def);

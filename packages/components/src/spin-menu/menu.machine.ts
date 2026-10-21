@@ -1,9 +1,10 @@
-import {
-  createMachine,
-  type Machine,
-  type Service,
-} from "@spin/runtime/fsm";
+import { createMachine, type Machine, type Service, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
 import { coerceJsonArray, defaultTwin } from "@spin/runtime";
+const clearAnchor = () : Partial<MenuContext> => { return ({ anchorPoint: null }); };
+
+const clearAll = () : Partial<MenuContext> => { return ({ highlightedValue: null, openSubmenu: null, anchorPoint: null }); };
+
+
 
 /**
  * Menu machine: open/closed, plus where the highlight sits.
@@ -90,18 +91,22 @@ export interface MenuHighlightChange {
   readonly highlightedValue: string | null;
 }
 
-export type MenuEvent =
-  | { type: "OPEN" }
-  | { type: "CLOSE" }
-  | { type: "CONTROLLED_OPEN" }
-  | { type: "CONTROLLED_CLOSE" }
-  | { type: "TRIGGER_CLICK" }
-  | { type: "CONTEXT_MENU"; point: { x: number; y: number } }
-  | { type: "HIGHLIGHT"; value: string | null }
-  | { type: "ENTRIES.SET"; entries: readonly MenuEntry[] }
-  | { type: "SUBMENU_OPEN"; value: string }
-  | { type: "SUBMENU_CLOSE" }
-  | { type: "ITEM_CLICK"; value: string };
+export interface MenuEvents {
+  "OPEN": {};
+  "CLOSE": {};
+  "CONTROLLED_OPEN": {};
+  "CONTROLLED_CLOSE": {};
+  "TRIGGER_CLICK": {};
+  "CONTEXT_MENU": { point: { x: number; y: number } };
+  "HIGHLIGHT": { value: string | null };
+  "ENTRIES.SET": { entries: readonly MenuEntry[] };
+  "SUBMENU_OPEN": { value: string };
+  "SUBMENU_CLOSE": {};
+  "ITEM_CLICK": { value: string };
+}
+
+export type MenuEvent = EventUnion<MenuEvents>;
+
 
 /** Transport delivers objects or nothing. */
 function isRecord(raw: unknown): raw is Record<string, unknown> {
@@ -181,7 +186,7 @@ export function initial(args: MenuArgs = {}, authored: (name: string) => boolean
   };
 }
 
-const config = {
+const config: MachineSpec<MenuContext, MenuEvents> = {
   id: "menu",
   initial: "closed",
   context: {
@@ -194,21 +199,25 @@ const config = {
   states: {
     closed: {
       on: {
-        OPEN: { target: "open", actions: [{ assign: "clearAnchor" }] },
-        CONTROLLED_OPEN: { target: "open", actions: [{ assign: "clearAnchor" }] },
-        TRIGGER_CLICK: { target: "open", actions: [{ assign: "clearAnchor" }] },
-        CONTEXT_MENU: { target: "open", actions: [{ assign: "setAnchor" }] },
+        OPEN: { target: "open", assign: clearAnchor },
+        CONTROLLED_OPEN: { target: "open", assign: clearAnchor },
+        TRIGGER_CLICK: { target: "open", assign: clearAnchor },
+        CONTEXT_MENU: { target: "open", assign: (_ctx, e) => { return e.type === "CONTEXT_MENU" ? { anchorPoint: e.point, highlightedValue: null } : {}; } },
       },
     },
     open: {
       on: {
-        CLOSE: { target: "closed", actions: [{ assign: "clearAll" }] },
-        CONTROLLED_CLOSE: { target: "closed", actions: [{ assign: "clearAll" }] },
-        HIGHLIGHT: { actions: [{ assign: "highlight" }] },
-        "ENTRIES.SET": { actions: [{ assign: "setEntries" }] },
-        SUBMENU_OPEN: { actions: [{ assign: "openSubmenu" }] },
-        SUBMENU_CLOSE: { actions: [{ assign: "closeSubmenu" }] },
-        ITEM_CLICK: { actions: [{ assign: "select" }, { assign: "clearAll" }] },
+        CLOSE: { target: "closed", assign: clearAll },
+        CONTROLLED_CLOSE: { target: "closed", assign: clearAll },
+        HIGHLIGHT: { assign: (ctx, e) => { return e.type === "HIGHLIGHT" && e.value !== ctx.highlightedValue
+        ? { highlightedValue: e.value, openSubmenu: null }
+        : {}; } },
+        "ENTRIES.SET": { assign: (ctx, event) => {
+      return sameEntries(ctx.entries, event.entries) ? {} : { entries: event.entries };
+    } },
+        SUBMENU_OPEN: { assign: (ctx, e) => { return e.type === "SUBMENU_OPEN" ? { openSubmenu: e.value, highlightedValue: e.value } : { openSubmenu: ctx.openSubmenu }; } },
+        SUBMENU_CLOSE: { assign: () => { return ({ openSubmenu: null }); } },
+        ITEM_CLICK: { assign: [() => { return ({}); }, clearAll] },
       },
     },
   },
@@ -235,37 +244,17 @@ function sameEntries(a: readonly MenuEntry[], b: readonly MenuEntry[]): boolean 
   });
 }
 
-const implementations = {
-  assigns: {
-    setEntries: (ctx: MenuContext, event: MenuEvent): Partial<MenuContext> => {
-      if (event.type !== "ENTRIES.SET") return {};
-      return sameEntries(ctx.entries, event.entries) ? {} : { entries: event.entries };
-    },
-    clearAnchor: (): Partial<MenuContext> => ({ anchorPoint: null }),
-    setAnchor: (_ctx: MenuContext, e: MenuEvent): Partial<MenuContext> =>
-      e.type === "CONTEXT_MENU" ? { anchorPoint: e.point, highlightedValue: null } : {},
-    clearAll: (): Partial<MenuContext> => ({ highlightedValue: null, openSubmenu: null, anchorPoint: null }),
-    highlight: (ctx: MenuContext, e: MenuEvent): Partial<MenuContext> =>
-      e.type === "HIGHLIGHT" && e.value !== ctx.highlightedValue
-        ? { highlightedValue: e.value, openSubmenu: null }
-        : {},
-    openSubmenu: (ctx: MenuContext, e: MenuEvent): Partial<MenuContext> =>
-      e.type === "SUBMENU_OPEN" ? { openSubmenu: e.value, highlightedValue: e.value } : { openSubmenu: ctx.openSubmenu },
-    closeSubmenu: (): Partial<MenuContext> => ({ openSubmenu: null }),
-    select: (): Partial<MenuContext> => ({}),
-  },
-};
+const implementations = {};
 
 export type MenuService = Service<MenuContext, MenuEvent>;
 
 export function menu(
   args: MenuArgs = {},
   authored: (name: string) => boolean,
-): Machine<MenuContext, MenuEvent> {
-  return createMachine<MenuContext, MenuEvent>({
+): Machine<MenuContext, MenuEvents> {
+  return createMachine<MenuContext, MenuEvents>({
     ...config,
     context: initial(args, authored),
-    assigns: implementations.assigns,
     /**
      * The `open` prop is NOT here: it drives the machine's STATE, not a
      * context field, so the element's reconcile keeps it in step.

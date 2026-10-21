@@ -9,7 +9,7 @@ import {
   valueOfPercent,
   type SliderArgs,
   type SliderContext,
-  type SliderEvent,
+  type SliderEvents,
   type SliderFocusChange,
   type SliderValueChange,
   type SliderValueChangeEnd,
@@ -113,7 +113,7 @@ const thumbIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-const def: ComponentDef<SliderContext, SliderEvent> = {
+const def: ComponentDef<SliderContext, SliderEvents> = {
   name: "slider",
   machine: (props, authored) => sliderMachine(props as SliderArgs, authored),
   start: "idle",
@@ -553,4 +553,4 @@ const def: ComponentDef<SliderContext, SliderEvent> = {
     if (idx >= 0) focus("thumb", idx);
   },
 };
-export const slider = defineComponent<SliderContext, SliderEvent, SliderApi>(def);
+export const slider = defineComponent<SliderContext, SliderEvents, SliderApi>(def);

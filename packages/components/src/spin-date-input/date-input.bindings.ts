@@ -9,7 +9,7 @@ import {
   type DateGranularity,
   type DateInputArgs,
   type DateInputContext,
-  type DateInputEvent,
+  type DateInputEvents,
   type DateInputField,
   type DateInputValueChange,
   type DateValue,
@@ -257,7 +257,7 @@ const holdersOf = (id: IdFn): Map<number, { text: string; placeholder: boolean }
   return holders;
 };
 
-const def: ComponentDef<DateInputContext, DateInputEvent> = {
+const def: ComponentDef<DateInputContext, DateInputEvents> = {
   name: "date-input",
   machine: (props, authored) => dateInputMachine(props as DateInputArgs, authored),
   settled: ({ before, after, focus }) => {
@@ -433,4 +433,4 @@ const def: ComponentDef<DateInputContext, DateInputEvent> = {
   },
 };
 
-export const dateInput = defineComponent<DateInputContext, DateInputEvent, DateInputApi>(def);
+export const dateInput = defineComponent<DateInputContext, DateInputEvents, DateInputApi>(def);

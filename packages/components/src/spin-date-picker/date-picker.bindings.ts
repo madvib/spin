@@ -7,7 +7,7 @@ import {
   valueAsAllStrings,
   type DatePickerArgs,
   type DatePickerContext,
-  type DatePickerEvent,
+  type DatePickerEvents,
   type DatePickerSelectionMode,
   type DatePickerValue,
   type DatePickerValueChange,
@@ -364,7 +364,7 @@ const rowFor = (
   return hit;
 };
 
-const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
+const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
   name: "date-picker",
   machine: (props, authored) => datePickerMachine(props as DatePickerArgs, authored),
   establish: (raw, authored) => {
@@ -705,4 +705,4 @@ const def: ComponentDef<DatePickerContext, DatePickerEvent> = {
   },
 };
 
-export const datePicker = defineComponent<DatePickerContext, DatePickerEvent, DatePickerApi>(def);
+export const datePicker = defineComponent<DatePickerContext, DatePickerEvents, DatePickerApi>(def);

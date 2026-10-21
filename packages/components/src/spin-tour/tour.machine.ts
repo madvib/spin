@@ -5,7 +5,10 @@
  */
 
 import { defaultTwin, isRecord } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const bailStep = (ctx: TourContext) : Partial<TourContext> => { return ({ previousStep: ctx.step, step: -1 }); };
+
+
 
 export interface TourStepRecord {
   readonly id: string;
@@ -93,18 +96,22 @@ export function stepOf(raw: unknown, count: number): number {
   return typeof raw === "number" && Number.isInteger(raw) && raw >= 0 && raw < count ? raw : -1;
 }
 
-export type TourEvent =
-  | { type: "START" }
-  | { type: "STEP.SET"; step: number }
-  | { type: "STEP.NEXT" }
-  | { type: "STEP.PREV" }
-  | { type: "TARGET.RESOLVED" }
-  | { type: "TARGET.NOT_FOUND" }
-  | { type: "SCROLL.END" }
-  | { type: "DISMISS" }
-  | { type: "SKIP" };
+export interface TourEvents {
+  "START": {};
+  "STEP.SET": { step: number };
+  "STEP.NEXT": {};
+  "STEP.PREV": {};
+  "TARGET.RESOLVED": {};
+  "TARGET.NOT_FOUND": {};
+  "SCROLL.END": {};
+  "DISMISS": {};
+  "SKIP": {};
+}
 
-const config = {
+export type TourEvent = EventUnion<TourEvents>;
+
+
+const config: MachineSpec<TourContext, TourEvents> = {
   id: "tour",
   initial: "inactive",
   context: {
@@ -116,85 +123,66 @@ const config = {
   // resolving: the new target is looked up and scrolled to first.
   on: {
     "STEP.SET": [
-      { cond: "isValidStep", target: "resolving", actions: [{ assign: "setStep" }] },
+      { cond: (ctx, e) => { return e.type === "STEP.SET" && e.step >= 0 && e.step < ctx.steps.length; }, target: "resolving", assign: (ctx, e) => {
+      if (e.type !== "STEP.SET") return {};
+      return { previousStep: ctx.step, step: stepOf(e.step, ctx.steps.length) };
+    } },
     ],
   },
   states: {
     inactive: {
       on: {
         "START": [
-          { cond: "hasSteps", target: "resolving", actions: [{ assign: "startAtZero" }] },
+          { cond: (ctx) => { return ctx.steps.length > 0; }, target: "resolving", assign: () => { return ({ previousStep: -1, step: 0 }); } },
         ],
       },
     },
     resolving: {
       on: {
-        "TARGET.NOT_FOUND": [{ target: "inactive", actions: [{ assign: "bailStep" }] }],
+        "TARGET.NOT_FOUND": [{ target: "inactive", assign: bailStep }],
         "TARGET.RESOLVED": [{ target: "scrolling" }],
-        "DISMISS": [{ target: "inactive", actions: [{ assign: "bailStep" }] }],
+        "DISMISS": [{ target: "inactive", assign: bailStep }],
         "SKIP": [{ target: "inactive" }],
       },
     },
     scrolling: {
       on: {
         "SCROLL.END": [{ target: "active" }],
-        "DISMISS": [{ target: "inactive", actions: [{ assign: "bailStep" }] }],
+        "DISMISS": [{ target: "inactive", assign: bailStep }],
         "SKIP": [{ target: "inactive" }],
       },
     },
     active: {
       on: {
         "STEP.NEXT": [
-          { cond: "hasNext", target: "resolving", actions: [{ assign: "advance" }] },
+          { cond: (ctx) => { return ctx.step + 1 < ctx.steps.length; }, target: "resolving", assign: (ctx) => {
+      if (ctx.step + 1 >= ctx.steps.length) return {};
+      return { previousStep: ctx.step, step: ctx.step + 1 };
+    } },
         ],
         "STEP.PREV": [
-          { cond: "hasPrev", target: "resolving", actions: [{ assign: "retreat" }] },
+          { cond: (ctx) => { return ctx.step > 0; }, target: "resolving", assign: (ctx) => {
+      if (ctx.step <= 0) return {};
+      return { previousStep: ctx.step, step: ctx.step - 1 };
+    } },
         ],
         // In active, a dismiss is the tour completing (the last step);
         // elsewhere it is a bail.
-        "DISMISS": [{ target: "inactive", actions: [{ assign: "complete" }] }],
+        "DISMISS": [{ target: "inactive", assign: (ctx) => { return ({ previousStep: ctx.step, step: -1 }); } }],
         "SKIP": [{ target: "inactive" }],
       },
     },
   },
 };
 
-const implementations = {
-  conds: {
-    hasSteps: (ctx: TourContext): boolean => ctx.steps.length > 0,
-    isValidStep: (ctx: TourContext, e: TourEvent): boolean =>
-      e.type === "STEP.SET" && e.step >= 0 && e.step < ctx.steps.length,
-    hasNext: (ctx: TourContext): boolean => ctx.step + 1 < ctx.steps.length,
-    hasPrev: (ctx: TourContext): boolean => ctx.step > 0,
-    isLastStep: (ctx: TourContext): boolean => ctx.steps.length > 0 && ctx.step === ctx.steps.length - 1,
-  },
-  assigns: {
-    startAtZero: (): Partial<TourContext> => ({ previousStep: -1, step: 0 }),
-    setStep: (ctx: TourContext, e: TourEvent): Partial<TourContext> => {
-      if (e.type !== "STEP.SET") return {};
-      return { previousStep: ctx.step, step: stepOf(e.step, ctx.steps.length) };
-    },
-    advance: (ctx: TourContext): Partial<TourContext> => {
-      if (ctx.step + 1 >= ctx.steps.length) return {};
-      return { previousStep: ctx.step, step: ctx.step + 1 };
-    },
-    retreat: (ctx: TourContext): Partial<TourContext> => {
-      if (ctx.step <= 0) return {};
-      return { previousStep: ctx.step, step: ctx.step - 1 };
-    },
-    bailStep: (ctx: TourContext): Partial<TourContext> => ({ previousStep: ctx.step, step: -1 }),
-    /** The last step's dismiss: previousStep keeps the index for the report. */
-    complete: (ctx: TourContext): Partial<TourContext> => ({ previousStep: ctx.step, step: -1 }),
-  },
-};
+const implementations = {};
 
 export function tour(
   args: TourArgs = {},
   authored: (name: string) => boolean = () => true,
-): Machine<TourContext, TourEvent> {
-  return createMachine<TourContext, TourEvent>({
+): Machine<TourContext, TourEvents> {
+  return createMachine<TourContext, TourEvents>({
     ...config,
-    ...implementations,
     context: initial(args, authored),
     /**
      * The contract with its hosts: the context fields a host may write, and

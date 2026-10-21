@@ -7,7 +7,16 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const resetTime = (ctx: TimerContext, e: TimerEvent) : Partial<TimerContext> => {
+      if (e.type === "RESTART" && e.startMs !== undefined) {
+        const start = parseMs(e.startMs) ?? 0;
+        return { startMs: start, currentMs: start };
+      }
+      return { currentMs: ctx.startMs };
+    };
+
+
 
 export type TimePart = "days" | "hours" | "minutes" | "seconds" | "milliseconds";
 
@@ -110,18 +119,20 @@ export function initial(args: TimerArgs, authored: (name: string) => boolean): T
   };
 }
 
-export type TimerEvent =
-  | { type: "START" }
-  | { type: "PAUSE" }
-  | { type: "RESUME" }
-  | { type: "RESET" }
-  // A restart carries the start time the host wrote: the payload is the raw
-  // prop, and the machine shapes it.
-  | { type: "RESTART"; startMs?: string | number }
-  | { type: "TICK"; deltaMs: number }
-  | { type: "CURRENT_MS.SET"; currentMs: string | number };
+export interface TimerEvents {
+  "START": {};
+  "PAUSE": {};
+  "RESUME": {};
+  "RESET": {};
+  "RESTART": { startMs?: string | number };
+  "TICK": { deltaMs: number };
+  "CURRENT_MS.SET": { currentMs: string | number };
+}
 
-const config = {
+export type TimerEvent = EventUnion<TimerEvents>;
+
+
+const config: MachineSpec<TimerContext, TimerEvents> = {
   id: "timer",
   initial: "idle",
   context: {
@@ -133,30 +144,50 @@ const config = {
   },
   // Programmatic commands are root-level so every phase answers them.
   on: {
-    RESTART: { target: "running", cond: "isNewRun", actions: [{ assign: "resetTime" }] },
-    "CURRENT_MS.SET": { actions: [{ assign: "setCurrentMs" }] },
+    RESTART: { target: "running", cond: (ctx, e) => {
+      if (e.type !== "RESTART" || e.startMs === undefined) return true;
+      return (parseMs(e.startMs) ?? 0) !== ctx.startMs;
+    }, assign: resetTime },
+    "CURRENT_MS.SET": { assign: (_ctx, e) => {
+      if (e.type !== "CURRENT_MS.SET") return {};
+      const currentMs = parseMs(e.currentMs);
+      return currentMs === undefined ? {} : { currentMs };
+    } },
   },
   states: {
     idle: {
       on: {
         START: { target: "running" },
-        RESET: { actions: [{ assign: "resetTime" }] },
+        RESET: { assign: resetTime },
       },
     },
     running: {
       on: {
         PAUSE: { target: "paused" },
-        RESET: { actions: [{ assign: "resetTime" }] },
+        RESET: { assign: resetTime },
         // The first candidate whose guard passes wins: a tick that reaches
         // the target ends the run, every other tick is worth its delta.
-        TICK: [{ target: "idle", cond: "hasReachedTarget" }, { actions: [{ assign: "updateTime" }] }],
+        TICK: [{ target: "idle", cond: (ctx) => {
+      const target = effectiveTarget(ctx);
+      if (target === null) return false;
+      return ctx.countdown ? ctx.currentMs <= target : ctx.currentMs >= target;
+    } }, { assign: (ctx, e) => {
+      if (e.type !== "TICK") return {};
+      // RoundToInterval: a tick is worth whole intervals, never a part — a
+      // starved clock reports a delta it then counts in interval steps.
+      const deltaMs = Math.floor(e.deltaMs / ctx.interval) * ctx.interval;
+      const next = ctx.currentMs + (ctx.countdown ? -1 : 1) * deltaMs;
+      const target = effectiveTarget(ctx);
+      if (target === null) return { currentMs: next };
+      return { currentMs: ctx.countdown ? Math.max(next, target) : Math.min(next, target) };
+    } }],
       },
     },
     paused: {
       on: {
         RESUME: { target: "running" },
         // A paused clock resets to idle: the count goes home and stops.
-        RESET: { target: "idle", actions: [{ assign: "resetTime" }] },
+        RESET: { target: "idle", assign: resetTime },
       },
     },
   },
@@ -197,53 +228,13 @@ export function formatTime(time: Time): Time<string> {
 const effectiveTarget = (ctx: TimerContext): number | null =>
   ctx.targetMs !== null ? ctx.targetMs : ctx.countdown ? 0 : null;
 
-const implementations = {
-  conds: {
-    /**
-     * A restart carrying the start time the run already has is not a new
-     * run: the seeded start is not a write. A different start time is.
-     */
-    isNewRun: (ctx: TimerContext, e: TimerEvent): boolean => {
-      if (e.type !== "RESTART" || e.startMs === undefined) return true;
-      return (parseMs(e.startMs) ?? 0) !== ctx.startMs;
-    },
-    hasReachedTarget: (ctx: TimerContext): boolean => {
-      const target = effectiveTarget(ctx);
-      if (target === null) return false;
-      return ctx.countdown ? ctx.currentMs <= target : ctx.currentMs >= target;
-    },
-  },
-  assigns: {
-    updateTime: (ctx: TimerContext, e: TimerEvent): Partial<TimerContext> => {
-      if (e.type !== "TICK") return {};
-      // RoundToInterval: a tick is worth whole intervals, never a part — a
-      // starved clock reports a delta it then counts in interval steps.
-      const deltaMs = Math.floor(e.deltaMs / ctx.interval) * ctx.interval;
-      const next = ctx.currentMs + (ctx.countdown ? -1 : 1) * deltaMs;
-      const target = effectiveTarget(ctx);
-      if (target === null) return { currentMs: next };
-      return { currentMs: ctx.countdown ? Math.max(next, target) : Math.min(next, target) };
-    },
-    resetTime: (ctx: TimerContext, e: TimerEvent): Partial<TimerContext> => {
-      if (e.type === "RESTART" && e.startMs !== undefined) {
-        const start = parseMs(e.startMs) ?? 0;
-        return { startMs: start, currentMs: start };
-      }
-      return { currentMs: ctx.startMs };
-    },
-    setCurrentMs: (_ctx: TimerContext, e: TimerEvent): Partial<TimerContext> => {
-      if (e.type !== "CURRENT_MS.SET") return {};
-      const currentMs = parseMs(e.currentMs);
-      return currentMs === undefined ? {} : { currentMs };
-    },
-  },
-};
+const implementations = {};
 
 export function timer(
   args: TimerArgs = {},
   authored: (name: string) => boolean,
-): Machine<TimerContext, TimerEvent> {
-  return createMachine<TimerContext, TimerEvent>({
+): Machine<TimerContext, TimerEvents> {
+  return createMachine<TimerContext, TimerEvents>({
     ...config,
     context: initial(args, authored),
     /**
@@ -259,7 +250,5 @@ export function timer(
       countdown: {},
       interval: {},
     },
-    assigns: implementations.assigns,
-    conds: implementations.conds,
   });
 }

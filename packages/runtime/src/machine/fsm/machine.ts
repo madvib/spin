@@ -113,6 +113,14 @@ export type Transitions<TContext extends object, TEventMap extends EventMap> = {
     | readonly Transition<TContext, EventOf<TEventMap, TName>>[];
 };
 
+/**
+ * A state's entry or exit: a context write, or the `{ assign }` form a
+ * spec writes when it names a shared body.
+ */
+export type Entry<TContext extends object, TEvent extends object> =
+  | Assign<TContext, TEvent>
+  | { readonly assign: Assign<TContext, TEvent> };
+
 export interface Config<TContext extends object, TEventMap extends EventMap> {
   readonly id?: string;
   readonly initial: string;
@@ -126,8 +134,8 @@ export interface Config<TContext extends object, TEventMap extends EventMap> {
     Record<
       string,
       {
-        readonly entry?: readonly Assign<TContext, EventUnion<TEventMap>>[];
-        readonly exit?: readonly Assign<TContext, EventUnion<TEventMap>>[];
+        readonly entry?: readonly Entry<TContext, EventUnion<TEventMap>>[];
+        readonly exit?: readonly Entry<TContext, EventUnion<TEventMap>>[];
         readonly on?: Transitions<TContext, TEventMap>;
       }
     >
@@ -228,14 +236,15 @@ function candidatesFor<TContext extends object, TEventMap extends EventMap, TNam
  * Apply a transition's context writes, in order. Each write sees the
  * context the previous one left, so a chain reads what the chain wrote.
  */
-function fold<TContext extends object, TEvent>(
-  assigns: Assign<TContext, TEvent> | readonly Assign<TContext, TEvent>[] | undefined,
+function fold<TContext extends object, TEvent extends object>(
+  assigns: readonly Entry<TContext, TEvent>[] | undefined,
   startContext: TContext,
   event: TEvent,
 ): TContext {
   if (assigns === undefined) return startContext;
   let context = startContext;
-  for (const assign of (isList(assigns) ? assigns : [assigns])) {
+  for (const entry of assigns) {
+    const assign = "assign" in entry ? entry.assign : entry;
     context = { ...context, ...assign(context, event) };
   }
   return context;
@@ -259,8 +268,8 @@ export interface MachineSpec<TContext extends object, TEventMap extends EventMap
     Record<
       string,
       {
-        readonly entry?: readonly Assign<TContext, EventUnion<TEventMap>>[];
-        readonly exit?: readonly Assign<TContext, EventUnion<TEventMap>>[];
+        readonly entry?: readonly Entry<TContext, EventUnion<TEventMap>>[];
+        readonly exit?: readonly Entry<TContext, EventUnion<TEventMap>>[];
         readonly on?: Transitions<TContext, TEventMap>;
       }
     >
@@ -351,7 +360,13 @@ export function createMachine<TContext extends object, TEventMap extends EventMa
         if (target === undefined) {
           return {
             value: current,
-            context: fold(assign, ctx, event),
+            context: fold(
+              assign === undefined
+                ? undefined
+                : (isList(assign) ? assign : [assign]),
+              ctx,
+              event as EventOf<TEventMap, typeof name>,
+            ),
             matches: (v) => v === current,
           };
         }
@@ -359,7 +374,11 @@ export function createMachine<TContext extends object, TEventMap extends EventMa
         // The chain: the state's exit, the transition's writes, the next
         // state's entry — in that order, each seeing what the last left.
         const context = fold(stateDef?.exit, ctx, event);
-        const written = fold(assign, context, event);
+        const written = fold(
+          assign === undefined ? undefined : (isList(assign) ? assign : [assign]),
+          context,
+          event as EventOf<TEventMap, typeof name>,
+        );
         return {
           value: target,
           context: fold(nextDef?.entry, written, event),

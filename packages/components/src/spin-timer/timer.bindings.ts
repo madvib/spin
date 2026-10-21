@@ -7,7 +7,7 @@ import {
   type TimePart,
   type TimerArgs,
   type TimerContext,
-  type TimerEvent,
+  type TimerEvents,
 } from "./timer.machine.ts";
 
 /**
@@ -165,7 +165,7 @@ const VALID_ACTIONS: Readonly<Record<string, true>> = {
   restart: true,
 };
 
-const def: ComponentDef<TimerContext, TimerEvent> = {
+const def: ComponentDef<TimerContext, TimerEvents> = {
   name: "timer",
   machine: (props, authored) => timerMachine(props as TimerArgs, authored),
   start: (raw) => (raw["autoStart"] === true ? "running" : "idle"),
@@ -423,4 +423,4 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
   },
 };
 
-export const timer = defineComponent<TimerContext, TimerEvent, TimerApi>(def);
+export const timer = defineComponent<TimerContext, TimerEvents, TimerApi>(def);

@@ -18,7 +18,7 @@ import {
   type CarouselArgs,
   type CarouselContext,
   type CarouselDragStatus,
-  type CarouselEvent,
+  type CarouselEvents,
   type CarouselSlide,
 } from "./carousel.machine.ts";
 
@@ -334,7 +334,7 @@ const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   event.preventDefault();
 };
 
-const def: ComponentDef<CarouselContext, CarouselEvent> = {
+const def: ComponentDef<CarouselContext, CarouselEvents> = {
   name: "carousel",
   machine: (props, authored) => carouselMachine(props as CarouselArgs, authored),
   start: (raw, _authored) => (raw["autoplay"] === true ? "autoplay" : "idle"),
@@ -759,4 +759,4 @@ const def: ComponentDef<CarouselContext, CarouselEvent> = {
   },
 };
 
-export const carousel = defineComponent<CarouselContext, CarouselEvent, CarouselApi>(def);
+export const carousel = defineComponent<CarouselContext, CarouselEvents, CarouselApi>(def);

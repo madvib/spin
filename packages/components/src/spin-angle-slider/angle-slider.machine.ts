@@ -6,7 +6,21 @@
  */
 
 import { defaultTwin } from "@spin/runtime";
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+const setDragOffset = (ctx: AngleSliderContext, event: EventUnion<AngleSliderEvents>) : Partial<AngleSliderContext> => {
+      if (event.type !== "CONTROL.POINTER_DOWN") return {};
+      void ctx;
+      return { dragOffset: event.angularOffset };
+    };
+
+const setPointerValue = (ctx: AngleSliderContext, event: EventUnion<AngleSliderEvents>) : Partial<AngleSliderContext> => {
+      if (event.type !== "CONTROL.POINTER_DOWN" && event.type !== "DOC.POINTER_MOVE") return {};
+      const offset = event.type === "CONTROL.POINTER_DOWN" ? event.angularOffset : ctx.dragOffset;
+      const dial = resolveValue(event.rawAngle, offset, ctx.value, ctx.dir);
+      return { value: constrainAngle(dial, ctx.step) };
+    };
+
+
 
 export const MIN_VALUE = 0;
 export const MAX_VALUE = 359;
@@ -24,20 +38,24 @@ export interface AngleSliderContext {
   dragOffset: number | null;
 }
 
-export type AngleSliderEvent =
-  | { type: "VALUE.SET"; value: number }
-  | { type: "CONTROL.POINTER_DOWN"; rawAngle: number; angularOffset: number | null }
-  | { type: "DOC.POINTER_MOVE"; rawAngle: number }
-  | { type: "DOC.POINTER_UP" }
-  | { type: "THUMB.FOCUS" }
-  | { type: "THUMB.BLUR" }
-  | { type: "THUMB.ARROW_DEC"; step?: number }
-  | { type: "THUMB.ARROW_INC"; step?: number }
-  | { type: "THUMB.HOME" }
-  | { type: "THUMB.END" }
-  | { type: "SET_STEP"; step: number }
-  | { type: "SET_DISABLED"; disabled: boolean }
-  | { type: "SET_READ_ONLY"; readOnly: boolean };
+export interface AngleSliderEvents {
+  "VALUE.SET": { value: number };
+  "CONTROL.POINTER_DOWN": { rawAngle: number; angularOffset: number | null };
+  "DOC.POINTER_MOVE": { rawAngle: number };
+  "DOC.POINTER_UP": {};
+  "THUMB.FOCUS": {};
+  "THUMB.BLUR": {};
+  "THUMB.ARROW_DEC": { step?: number };
+  "THUMB.ARROW_INC": { step?: number };
+  "THUMB.HOME": {};
+  "THUMB.END": {};
+  "SET_STEP": { step: number };
+  "SET_DISABLED": { disabled: boolean };
+  "SET_READ_ONLY": { readOnly: boolean };
+}
+
+export type AngleSliderEvent = EventUnion<AngleSliderEvents>;
+
 
 export type AngleSliderValueChange = {
   readonly value: number;
@@ -169,21 +187,35 @@ export function valueAsDegree(value: number): string {
   return `${value}deg`;
 }
 
-const config = {
+const config: Omit<MachineSpec<AngleSliderContext, AngleSliderEvents>, "context"> = {
   id: "angle-slider",
   initial: "idle",
   on: {
-    "VALUE.SET": { actions: [{ assign: "setValue" }] },
-    SET_STEP: { actions: [{ assign: "setStep" }] },
-    SET_DISABLED: { actions: [{ assign: "setDisabled" }] },
-    SET_READ_ONLY: { actions: [{ assign: "setReadOnly" }] },
+    "VALUE.SET": { assign: (ctx, event) => {
+      void ctx;
+      const value = asCount(event.value);
+      if (value === null) return {};
+      return { value: clampAngle(value) };
+    } },
+    SET_STEP: { assign: (ctx, event) => {
+      void ctx;
+      return { step: event.step };
+    } },
+    SET_DISABLED: { assign: (ctx, event) => {
+      void ctx;
+      return { disabled: event.disabled };
+    } },
+    SET_READ_ONLY: { assign: (ctx, event) => {
+      void ctx;
+      return { readOnly: event.readOnly };
+    } },
   },
   states: {
     idle: {
       on: {
         "CONTROL.POINTER_DOWN": {
           target: "dragging",
-          actions: [{ assign: "setDragOffset" }, { assign: "setPointerValue" }],
+          assign: [setDragOffset, setPointerValue],
         },
         "THUMB.FOCUS": { target: "focused" },
       },
@@ -192,105 +224,43 @@ const config = {
       on: {
         "CONTROL.POINTER_DOWN": {
           target: "dragging",
-          actions: [{ assign: "setDragOffset" }, { assign: "setPointerValue" }],
+          assign: [setDragOffset, setPointerValue],
         },
-        "THUMB.ARROW_DEC": { actions: [{ assign: "decrementValue" }] },
-        "THUMB.ARROW_INC": { actions: [{ assign: "incrementValue" }] },
-        "THUMB.HOME": { actions: [{ assign: "setValueToMin" }] },
-        "THUMB.END": { actions: [{ assign: "setValueToMax" }] },
+        "THUMB.ARROW_DEC": { assign: (ctx, event) => {
+      return { value: snapAngle(ctx.value - (event.step ?? ctx.step), event.step ?? ctx.step) };
+    } },
+        "THUMB.ARROW_INC": { assign: (ctx, event) => {
+      return { value: snapAngle(ctx.value + (event.step ?? ctx.step), event.step ?? ctx.step) };
+    } },
+        "THUMB.HOME": { assign: (ctx) => {
+      void ctx;
+      return { value: MIN_VALUE };
+    } },
+        "THUMB.END": { assign: (ctx) => {
+      void ctx;
+      return { value: MAX_VALUE };
+    } },
         "THUMB.BLUR": { target: "idle" },
       },
     },
     dragging: {
       on: {
-        "DOC.POINTER_UP": { target: "focused", actions: [{ assign: "clearDragOffset" }] },
-        "DOC.POINTER_MOVE": { actions: [{ assign: "setPointerValue" }] },
+        "DOC.POINTER_UP": { target: "focused", assign: () => { return ({ dragOffset: null }); } },
+        "DOC.POINTER_MOVE": { assign: setPointerValue },
       },
     },
   },
 };
 
-const implementations = {
-  conds: {},
-  assigns: {
-    setValue: (ctx: AngleSliderContext, event: AngleSliderEvent): Partial<AngleSliderContext> => {
-      if (event.type !== "VALUE.SET") return {};
-      void ctx;
-      const value = asCount(event.value);
-      if (value === null) return {};
-      return { value: clampAngle(value) };
-    },
-    setDragOffset: (ctx: AngleSliderContext, event: AngleSliderEvent): Partial<AngleSliderContext> => {
-      if (event.type !== "CONTROL.POINTER_DOWN") return {};
-      void ctx;
-      return { dragOffset: event.angularOffset };
-    },
-    clearDragOffset: (): Partial<AngleSliderContext> => ({ dragOffset: null }),
-    // The dial jumps to the pointer, or turns relative to the grab when the
-    // press started on the thumb.
-    setPointerValue: (
-      ctx: AngleSliderContext,
-      event: AngleSliderEvent,
-    ): Partial<AngleSliderContext> => {
-      if (event.type !== "CONTROL.POINTER_DOWN" && event.type !== "DOC.POINTER_MOVE") return {};
-      const offset = event.type === "CONTROL.POINTER_DOWN" ? event.angularOffset : ctx.dragOffset;
-      const dial = resolveValue(event.rawAngle, offset, ctx.value, ctx.dir);
-      return { value: constrainAngle(dial, ctx.step) };
-    },
-    decrementValue: (
-      ctx: AngleSliderContext,
-      event: AngleSliderEvent,
-    ): Partial<AngleSliderContext> => {
-      if (event.type !== "THUMB.ARROW_DEC") return {};
-      return { value: snapAngle(ctx.value - (event.step ?? ctx.step), event.step ?? ctx.step) };
-    },
-    incrementValue: (
-      ctx: AngleSliderContext,
-      event: AngleSliderEvent,
-    ): Partial<AngleSliderContext> => {
-      if (event.type !== "THUMB.ARROW_INC") return {};
-      return { value: snapAngle(ctx.value + (event.step ?? ctx.step), event.step ?? ctx.step) };
-    },
-    setValueToMin: (ctx: AngleSliderContext): Partial<AngleSliderContext> => {
-      void ctx;
-      return { value: MIN_VALUE };
-    },
-    setValueToMax: (ctx: AngleSliderContext): Partial<AngleSliderContext> => {
-      void ctx;
-      return { value: MAX_VALUE };
-    },
-    setStep: (ctx: AngleSliderContext, event: AngleSliderEvent): Partial<AngleSliderContext> => {
-      if (event.type !== "SET_STEP") return {};
-      void ctx;
-      return { step: event.step };
-    },
-    setDisabled: (
-      ctx: AngleSliderContext,
-      event: AngleSliderEvent,
-    ): Partial<AngleSliderContext> => {
-      if (event.type !== "SET_DISABLED") return {};
-      void ctx;
-      return { disabled: event.disabled };
-    },
-    setReadOnly: (
-      ctx: AngleSliderContext,
-      event: AngleSliderEvent,
-    ): Partial<AngleSliderContext> => {
-      if (event.type !== "SET_READ_ONLY") return {};
-      void ctx;
-      return { readOnly: event.readOnly };
-    },
-  },
-};
+const implementations = {};
 
 export function angleSlider(
   args: AngleSliderArgs = {},
   authored: (name: string) => boolean,
-): Machine<AngleSliderContext, AngleSliderEvent> {
-  return createMachine<AngleSliderContext, AngleSliderEvent>({
+): Machine<AngleSliderContext, AngleSliderEvents> {
+  return createMachine<AngleSliderContext, AngleSliderEvents>({
     ...config,
     context: initial(args, authored),
-    ...implementations,
     fields: {
       value: { event: "VALUE.SET" },
       step: {},

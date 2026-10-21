@@ -10,7 +10,7 @@ import {
   listbox as listboxMachine,
   type ListboxArgs,
   type ListboxContext,
-  type ListboxEvent,
+  type ListboxEvents,
 } from "./listbox.machine.ts";
 /**
  * Listbox definition: the DOM contract as data. This file maps props to
@@ -392,7 +392,7 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     }
   }
 };
-const def: ComponentDef<ListboxContext, ListboxEvent> = {
+const def: ComponentDef<ListboxContext, ListboxEvents> = {
   name: "listbox",
   machine: (props, authored) => listboxMachine(props as ListboxArgs, authored),
   reconcile: ({ context, parsed, send }) => {
@@ -736,4 +736,4 @@ const def: ComponentDef<ListboxContext, ListboxEvent> = {
   },
 };
 
-export const listbox = defineComponent<ListboxContext, ListboxEvent, ListboxApi>(def);
+export const listbox = defineComponent<ListboxContext, ListboxEvents, ListboxApi>(def);

@@ -5,7 +5,7 @@ import {
   startOpen,
   type FloatingPanelArgs,
   type FloatingPanelContext,
-  type FloatingPanelEvent,
+  type FloatingPanelEvents,
   type FloatingPanelSize,
   type FloatingPanelStage,
 } from "./floating-panel.machine.ts";
@@ -111,7 +111,7 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
   return made;
 };
 
-const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
+const def: ComponentDef<FloatingPanelContext, FloatingPanelEvents> = {
   name: "floating-panel",
   machine: (props, authored) => floatingPanelMachine(props as FloatingPanelArgs, authored),
   start: (raw, authored) => (startOpen(raw, authored) ? "open" : "closed"),
@@ -367,4 +367,4 @@ const def: ComponentDef<FloatingPanelContext, FloatingPanelEvent> = {
   },
 };
 
-export const floatingPanel = defineComponent<FloatingPanelContext, FloatingPanelEvent, FloatingPanelApi>(def);
+export const floatingPanel = defineComponent<FloatingPanelContext, FloatingPanelEvents, FloatingPanelApi>(def);
