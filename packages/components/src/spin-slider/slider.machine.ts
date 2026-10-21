@@ -241,7 +241,9 @@ export interface SliderArgs {
 export function initial(args: SliderArgs = {}, authored: (name: string) => boolean): SliderContext {
   // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const min = numProp(args.min) ?? 0;
   const max = numProp(args.max) ?? 100;
   const step = numProp(args.step) ?? 1;

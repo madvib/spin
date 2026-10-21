@@ -59,7 +59,9 @@ export interface TabsArgs {
 export function initial(args: TabsArgs = {}, authored: (name: string) => boolean): TabsContext {
   // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const rows: readonly unknown[] = Array.isArray(args.items) ? args.items : [];
   const items: TabsItem[] = [];
   for (const entry of rows) {

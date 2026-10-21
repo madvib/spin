@@ -61,7 +61,9 @@ export function initial(args: CascadeArgs, authored: (name: string) => boolean):
   // A host that wrote `defaultValue` (or `defaultHighlightedValue`) wrote
   // the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     value: written("value")
       ? parsePaths(args.value).map((path) => [...path])

@@ -87,7 +87,9 @@ export function initial(args: FileUploadArgs = {}, authored: (name: string) => b
   // `defaultValue` wrote the channel too, and the framework has already
   // resolved it into the argument.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const count = (value: unknown): number =>
     typeof value === "number" && Number.isFinite(value) ? value : 0;
   return {

@@ -53,7 +53,9 @@ export function itemsOf(raw: unknown): readonly unknown[] {
 export function initial(args: AsyncListArgs, authored: (name: string) => boolean): AsyncListContext {
   // A host that wrote `defaultSortFn` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const sortFn = written("sortFn") ? args.sortFn : undefined;
   return {
     items: itemsOf(args.initialItems),

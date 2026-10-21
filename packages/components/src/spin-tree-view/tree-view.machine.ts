@@ -90,7 +90,9 @@ export function initial(
   authored: (name: string) => boolean = () => true,
 ): TreeContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     expandedValue: written("expandedValue") ? keysOf(args.expandedValue) : [],
     selectedValue: written("selectedValue") ? keysOf(args.selectedValue) : [],

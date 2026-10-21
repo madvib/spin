@@ -52,7 +52,9 @@ export function initial(args: EditableArgs = {}, authored: (name: string) => boo
   // The twin counts as the host's write: a host that wrote `defaultValue`
   // wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const value = written("value") && typeof args.value === "string" ? args.value : "";
   const cap = args.maxLength;
   return {

@@ -47,7 +47,9 @@ const parseChars = (raw: unknown): string[] => {
 export function initial(args: PinInputArgs, authored: (name: string) => boolean): PinInputContext {
   // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const count =
     typeof args.count === "number" && Number.isFinite(args.count)
       ? Math.max(0, Math.trunc(args.count))

@@ -89,7 +89,9 @@ export function initial(args: FloatingPanelArgs = {}, authored: (name: string) =
   // The twin is the framework's convention — a host that wrote
   // `defaultSize` wrote `size` too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const stage: unknown = args.stage;
   return {
     position: { x: 0, y: 0 },

@@ -138,7 +138,9 @@ const rowsOf = (raw: unknown): SelectRow[] => {
 export function initial(args: SelectArgs, authored: (name: string) => boolean): SelectContext {
   // A host that wrote `defaultHighlightedValue` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const rows = rowsOf(args.items);
   const multiple = args.multiple === true;
   // Zag's default: a multiple select keeps its panel open over each pick.

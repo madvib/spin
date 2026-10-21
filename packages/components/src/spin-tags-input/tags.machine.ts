@@ -164,7 +164,9 @@ export function initial(args: TagsArgs, authored: (name: string) => boolean): Pi
   const fn = <T>(value: unknown, fallback: T): T => (typeof value === "function" ? value as T : fallback);
   const behavior: unknown = args.blurBehavior;
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     value: written("value")
       ? stringsOf(args.value)

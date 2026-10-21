@@ -28,7 +28,9 @@ const srcOf = (raw: unknown): string => typeof raw === "string" ? raw : "";
 export function initial(args: AvatarArgs, authored: (name: string) => boolean): AvatarContext {
   // A host that wrote `defaultSrc` wrote the src channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     src: written("src") ? srcOf(args.src) : "",
   };

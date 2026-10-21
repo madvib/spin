@@ -200,7 +200,9 @@ const asIso = (raw: unknown): string | null =>
 
 export function initial(args: DateInputArgs, authored: (name: string) => boolean): DateInputContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const granularity = written("granularity")
     ? (isGranularity(args.granularity) ? args.granularity : "day")
     : "day";

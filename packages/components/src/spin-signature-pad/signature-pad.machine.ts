@@ -92,7 +92,9 @@ export function pathsOf(value: unknown): string[] {
 export function initial(args: SignaturePadArgs, authored: (name: string) => boolean): SignaturePadContext {
   // A host that wrote `defaultPaths` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     paths: written("paths") ? pathsOf(args.paths) : [],
     currentPoints: [],

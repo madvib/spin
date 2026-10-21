@@ -119,7 +119,9 @@ export function initial(args: ToggleGroupArgs, authored: (name: string) => boole
   // The twin counts as the host's write — the framework has already
   // resolved `defaultValue` into the argument.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     value: written("value") ? parseValues(args.value) ?? [] : [],
     items,

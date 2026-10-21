@@ -343,7 +343,9 @@ export function initial(args: SplitterArgs = {}, authored: (name: string) => boo
   // A host that wrote `defaultPanels` (or `defaultSize`) wrote the
   // channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const panels = written("panels") ? parsePanels(args.panels) : [];
   const spec = written("size") ? sizesOf(args.size) ?? [] : [];
   let size: number[];

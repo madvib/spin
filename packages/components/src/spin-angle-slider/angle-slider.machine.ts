@@ -74,7 +74,9 @@ const asCount = (raw: unknown): number | null => {
 export function initial(args: AngleSliderArgs, authored: (name: string) => boolean): AngleSliderContext {
   // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const step = written("step") ? (asCount(args.step) ?? 1) : 1;
   return {
     value: written("value") ? (asCount(args.value) ?? 0) : 0,

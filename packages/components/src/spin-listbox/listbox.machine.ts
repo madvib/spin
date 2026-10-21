@@ -282,7 +282,9 @@ export function initial(args: ListboxArgs = {}, authored: (name: string) => bool
   // wrote `defaultHighlightedValue` wrote the channel too, and the
   // framework has already resolved the twin into the argument.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const rows = rowsOf(args.items);
   const order = rows.map((row) => row.value);
   const labels = Object.fromEntries(rows.map((row) => [row.value, row.label]));

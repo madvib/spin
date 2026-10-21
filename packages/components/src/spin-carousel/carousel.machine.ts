@@ -262,7 +262,9 @@ export function initial(args: CarouselArgs, authored: (name: string) => boolean)
   // A twin counts as written: a host that wrote `defaultIndex` wrote the
   // channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const slidesPerPage = slidesPerPageOf(args.slidesPerPage);
   const perMove = slidesPerMoveOf(args.slidesPerMove, slidesPerPage);
   const autoSize = args.autoSize === true;

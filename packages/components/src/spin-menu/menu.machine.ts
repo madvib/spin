@@ -167,7 +167,9 @@ export function initial(args: MenuArgs = {}, authored: (name: string) => boolean
   // is the framework's convention — a host that wrote `defaultSubmenu`
   // wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     highlightedValue: null,
     openSubmenu: null,

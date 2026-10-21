@@ -93,7 +93,9 @@ export interface StepsArgs {
 export function initial(args: StepsArgs = {}, authored: (name: string) => boolean): StepsContext {
   // A host that wrote `defaultStep` wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   // The host's count: a number, at least one.
   const count = Math.max(1, Math.floor(asCount(args.count, 1)));
   const seed = args.step;

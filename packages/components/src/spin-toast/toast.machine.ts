@@ -199,7 +199,9 @@ const asCountMachine = (raw: unknown, fallback: number): number =>
 
 export function initial(args: ToastArgs, authored: (name: string) => boolean): ToastContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     toasts: [],
     queued: [],

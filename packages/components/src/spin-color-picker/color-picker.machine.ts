@@ -342,7 +342,9 @@ const valueOf = (raw: unknown, format: ColorFormat): string => {
 export function initial(args: ColorPickerArgs, authored: (name: string) => boolean): ColorPickerContext {
   // A host that wrote the twin (`defaultValue`) wrote the channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const format = written("format")
     ? (isFormat(args.format) ? args.format : "hex")
     : "hex";

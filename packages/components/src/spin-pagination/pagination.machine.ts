@@ -146,7 +146,9 @@ export function initial(args: PaginationArgs, authored: (name: string) => boolea
   // A host that wrote `defaultPage` (or `defaultPageSize`) wrote the
   // channel too.
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     page: written("page") ? asCount(args.page) ?? 1 : 1,
     pageSize: written("pageSize") ? asCount(args.pageSize) ?? 10 : 10,

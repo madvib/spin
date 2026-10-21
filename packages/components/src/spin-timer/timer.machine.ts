@@ -89,7 +89,9 @@ export function validateTimer(
 
 export function initial(args: TimerArgs, authored: (name: string) => boolean): TimerContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const startMs = written("startMs") ? parseMs(args.startMs) : undefined;
   const targetMs = written("targetMs") ? parseMs(args.targetMs) : undefined;
   const countdown = written("countdown") ? args.countdown === true : false;

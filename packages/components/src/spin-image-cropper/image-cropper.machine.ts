@@ -79,7 +79,9 @@ const rotationOf = (raw: unknown): number | null => {
 
 export function initial(args: ImageCropperArgs = {}, authored: (name: string) => boolean): ImageCropperContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const flip = flipOf(args.flip) ?? { horizontal: false, vertical: false };
   return {
     crop: { x: 0, y: 0, width: 0, height: 0 },

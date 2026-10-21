@@ -171,7 +171,9 @@ export interface DatePickerArgs {
 
 export function initial(args: DatePickerArgs = {}, authored: (name: string) => boolean): DatePickerContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const mode: unknown = args.selectionMode;
   const count: unknown = args.numOfMonths;
   const text = (value: unknown): string | null =>

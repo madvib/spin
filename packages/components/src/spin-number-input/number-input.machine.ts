@@ -139,7 +139,9 @@ export function initial(
   authored: (name: string) => boolean = () => true,
 ): NumberInputContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     value: written("value") ? valueOf(args.value) ?? "" : "",
     hint: null,

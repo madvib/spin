@@ -114,7 +114,9 @@ const nullableProp = (raw: unknown): string | null => (typeof raw === "string" &
  */
 export function initial(args: ComboboxArgs, authored: (name: string) => boolean): ComboboxContext {
   const written = (field: string): boolean =>
-    authored(field) || authored(defaultTwin(field));
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const multiple = written("multiple") ? args.multiple === true : false;
   const selectionRaw = args.selectionBehavior;
   const selectionBehavior = written("selectionBehavior")
