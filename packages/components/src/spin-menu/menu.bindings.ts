@@ -580,7 +580,7 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
         const row = scope.slot;
         return {
           ...ariaHidden(true),
-          "data-state": row.checked === true ? "checked" : "unchecked",
+          "data-checked": row.checked === true ? "" : undefined,
         };
       },
     },

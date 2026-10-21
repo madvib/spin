@@ -793,7 +793,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
           type: "button",
           dir: scope.props["dir"],
           "aria-label": `select ${slots.value} as the color`,
-          "data-state": state.checked ? "checked" : "unchecked",
+          "data-checked": dataAttr(state.checked),
           "data-value": slots.value,
           "data-disabled": dataAttr(state.disabled),
           // The swatch's color is a published value: the theme paints the
@@ -813,7 +813,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
         const checked = swatchState(scope, slots).checked;
         return {
           ...ariaHidden("true"),
-          "data-state": checked ? "checked" : "unchecked",
+          "data-checked": dataAttr(checked),
           hidden: checked ? undefined : "",
         };
       },
@@ -824,7 +824,7 @@ const def: ComponentDef<ColorPickerContext, ColorPickerEvents> = {
         const slots = swatchOf(arg);
         const checked = swatchState(scope, slots).checked;
         return {
-          "data-state": checked ? "checked" : "unchecked",
+          "data-checked": dataAttr(checked),
           "data-value": slots.value,
           style: { "--picker-swatch": slots.value },
         };

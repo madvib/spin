@@ -545,8 +545,7 @@ Deno.test("Given a checkable item / When its props are read / Then the checkbox 
   ]);
   assertEquals(h.api.getItemProps(h.row("view"))["role"], "menuitemcheckbox", "a checkable item uses the checkbox role");
   assertEquals(h.api.getItemProps(h.row("view"))["aria-checked"], true, "the checked state is exposed");
-  assertEquals(h.api.getItemIndicatorProps(h.row("view"))["data-state"], "checked", "the indicator reports checked");
-  assertEquals(h.api.getItemIndicatorProps(h.row("edit"))["data-state"], "unchecked", "the other reports unchecked");
+  assertEquals(h.api.getItemIndicatorProps(h.row("view"))["data-checked"], "", "the indicator reports the check");
   assertEquals(h.api.getItemProps(h.row("edit"))["role"], "menuitem", "a plain item uses the item role");
 });
 

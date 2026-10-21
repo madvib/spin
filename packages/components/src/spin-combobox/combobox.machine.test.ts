@@ -1068,7 +1068,7 @@ Deno.test("Given a row / When its props are read / Then the option semantics fol
   const selected = h.api.getItemProps(h.row("banana"));
   assertEquals(selected["role"], "option", "the row is an option");
   assertEquals(selected["aria-selected"], true, "the selected row announces it");
-  assertEquals(selected["data-state"], "checked", "and carries the checked state");
+  assertEquals(selected["data-selected"], "", "and carries the selection");
   assertEquals(selected["id"], "combobox:frameworks:item:banana", "the id is the namespaced item id");
   const disabled = h.api.getItemProps(h.row("cherry"));
   assertEquals(disabled["aria-disabled"], true, "the disabled row announces it");

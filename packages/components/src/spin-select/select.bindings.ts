@@ -578,7 +578,7 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
           ...ariaHidden(true),
-          "data-state": selected ? "checked" : "unchecked",
+          "data-selected": scope.attr(selected),
         };
       },
     },

@@ -828,12 +828,11 @@ Deno.test("Given a selected row / When its parts are read / Then the indicator f
   h.api.setValue([["asia", "india", "haryana"]]);
   const row = h.row("asia", "india", "haryana");
   assertEquals(h.api.getItemProps(row)["data-selected"], "", "the row is selected");
-  assertEquals(h.api.getItemProps(row)["data-state"], "checked", "and reports checked");
+  assertEquals(h.api.getItemProps(row)["data-selected"], "", "and reports the selection");
   assertEquals(h.api.getItemIndicatorProps(row)["hidden"], false, "its indicator shows");
-  assertEquals(h.api.getItemIndicatorProps(row)["data-state"], "checked", "and reports checked");
-  assertEquals(h.api.getItemTextProps(row)["data-state"], "checked", "the text follows too");
+  assertEquals(h.api.getItemIndicatorProps(row)["data-selected"], "", "and the indicator follows");
+  assertEquals(h.api.getItemTextProps(row)["data-selected"], "", "the text follows too");
   const other = h.row("asia", "india", "karnataka");
-  assertEquals(h.api.getItemProps(other)["data-state"], "unchecked", "the sibling is unchecked");
   assertEquals(h.api.getItemIndicatorProps(other)["hidden"], true, "its indicator hides");
 });
 

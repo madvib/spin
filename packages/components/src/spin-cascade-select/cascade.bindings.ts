@@ -1016,7 +1016,6 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           "data-highlighted": state.highlighted ? "" : undefined,
           "data-selected": state.selected ? "" : undefined,
           "data-depth": item.depth,
-          "data-state": state.selected ? "checked" : "unchecked",
           "data-type": item.hasChildren ? "branch" : "leaf",
           "data-index-path": item.indexPath.join(","),
           ...itemHandlers(scope, item),
@@ -1034,7 +1033,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           dir: dirOf(scope.props),
           "data-value": item.value,
           "data-highlighted": state.highlighted ? "" : undefined,
-          "data-state": state.selected ? "checked" : "unchecked",
+          "data-selected": state.selected ? "" : undefined,
           "data-disabled": item.disabled ? "" : undefined,
         };
       },
@@ -1052,7 +1051,7 @@ const def: ComponentDef<CascadeContext, CascadeEvents> = {
           "data-value": item.value,
           "data-highlighted": state.highlighted ? "" : undefined,
           "data-type": state.hasChildren ? "branch" : "leaf",
-          "data-state": state.selected ? "checked" : "unchecked",
+          "data-selected": state.selected ? "" : undefined,
         };
       },
     },

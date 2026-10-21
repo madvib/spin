@@ -804,7 +804,6 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
           role: "option",
           tabIndex: -1,
           "data-value": row.value,
-          "data-state": state.selected ? "checked" : "unchecked",
           ...optionRow({
             selected: state.selected,
             disabled: state.disabled ? true : undefined,
@@ -821,7 +820,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
       attrs: (scope: SlotLike<ComboboxRow>) => {
         const state = itemStateOf(scope, scope.slot);
         return {
-          "data-state": state.selected ? "checked" : "unchecked",
+          "data-selected": scope.attr(state.selected),
           "data-highlighted": scope.attr(state.highlighted),
           "data-disabled": scope.attr(state.disabled),
         };
@@ -833,7 +832,7 @@ const def: ComponentDef<ComboboxContext, ComboboxEvents> = {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
           ...ariaHidden(true),
-          "data-state": selected ? "checked" : "unchecked",
+          "data-selected": scope.attr(selected),
           hidden: !selected,
         };
       },

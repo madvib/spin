@@ -20,7 +20,7 @@
             <div class="group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast cursor-default data-[highlighted]:bg-surface data-[disabled]:opacity-50" {...menu.getItemProps(row)}>
               <span class="min-w-0 flex-1 truncate" {...menu.getItemTextProps(row)}>{row.label}</span>
               <span class="shrink-0 text-xs text-muted" {...menu.getItemShortcutProps(row)}>{row.shortcut}</span>
-              <span aria-hidden="true" class="shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0 data-[state=checked]:scale-100 data-[state=checked]:opacity-100" {...menu.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+              <span aria-hidden="true" class="shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0 data-[checked]:scale-100 data-[checked]:opacity-100" {...menu.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
               <span aria-hidden="true" class="shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-90" {...menu.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
               <spin-menu class="absolute left-full top-0" {...menu.getSubmenuProps(row)} submenu />
             </div>

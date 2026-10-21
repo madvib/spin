@@ -20,7 +20,7 @@
               <template for={combobox.getRows(block)} as={row} key={row.value}>
                 <div class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...combobox.getItemProps(row)}>
                   <span class="min-w-0 flex-1 truncate" {...combobox.getItemTextProps(row)}>{row.label}</span>
-                  <span aria-hidden="true" class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[state=checked]:scale-100 data-[state=checked]:opacity-100" {...combobox.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+                  <span aria-hidden="true" class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[selected]:scale-100 data-[selected]:opacity-100" {...combobox.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
                 </div>
               </template>
             </div>

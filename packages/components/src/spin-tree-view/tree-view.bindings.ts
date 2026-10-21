@@ -544,7 +544,6 @@ const def: ComponentDef<TreeContext, TreeEvents> = {
           // must not reach this element, or every expanded parent rendered
           // as a checked box.
           "data-checked": state.checked ? "" : undefined,
-          "data-state": state.checked ? "checked" : "unchecked",
           "data-mode": ctx.selectionMode,
           hidden: ctx.selectionMode !== "multiple",
           onClick: (event: MouseEvent): void => {

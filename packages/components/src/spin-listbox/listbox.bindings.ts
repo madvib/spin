@@ -500,7 +500,6 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
             disabled: state.disabled ? "true" : undefined,
           }),
           "data-selected": scope.attr(state.selected),
-          "data-state": state.selected ? "checked" : "unchecked",
           ...factAttrs(scope, facts, "orientation"),
           "data-highlighted": scope.attr(state.highlighted),
           "data-disabled": scope.attr(state.disabled),
@@ -515,7 +514,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
       attrs: (scope: SlotLike<ListboxRow>) => {
         const state = itemStateOf(scope, scope.slot);
         return {
-          "data-state": state.selected ? "checked" : "unchecked",
+          "data-selected": scope.attr(state.selected),
           "data-disabled": scope.attr(state.disabled),
           "data-highlighted": scope.attr(state.highlighted),
         };
@@ -527,7 +526,7 @@ const def: ComponentDef<ListboxContext, ListboxEvents> = {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {
           ...ariaHidden("true"),
-          "data-state": selected ? "checked" : "unchecked",
+          "data-selected": scope.attr(selected),
           hidden: selected ? undefined : "",
         };
       },

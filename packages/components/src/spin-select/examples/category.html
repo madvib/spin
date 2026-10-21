@@ -21,7 +21,7 @@
         <template for={select.getRows()} as={row} key={row.value}>
           <div class="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:font-medium data-[disabled]:opacity-50 data-[disabled]:pointer-events-none" {...select.getItemProps(row)}>
             <span class="min-w-0 flex-1 truncate" {...select.getItemTextProps(row)}>{row.label}</span>
-            <span aria-hidden="true" class="shrink-0 text-xs text-primary opacity-0 transition-opacity duration-fast ease-decelerate data-[state=checked]:opacity-100" {...select.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+            <span aria-hidden="true" class="shrink-0 text-xs text-primary opacity-0 transition-opacity duration-fast ease-decelerate data-[selected]:opacity-100" {...select.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
           </div>
         </template>
       </div>
