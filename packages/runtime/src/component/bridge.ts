@@ -252,12 +252,25 @@ export function defineBridge<
   // trackable.
   const contextSignals = new Map<string, Signal<unknown>>();
   const stateSignal = signal("");
-  /** The live context, field by field, as signals. */
+  /** The live context, field by field, as signals. The mirror is the
+   * single writer; everything else reads. A read of a signal inside a
+   * computed subscribes to that field, and nothing else. */
   const live = {
-    field: (name: string): unknown => contextSignals.get(name)?.(),
+    /**
+     * A field's value, through its signal. A field the mirror has not
+     * written yet (the machine grew one) starts tracking the machine's
+     * own value, so a read is never undefined.
+     */
+    field: (name: string): unknown => {
+      const existing = contextSignals.get(name);
+      if (existing !== undefined) return existing();
+      const value = (ensureService().state.context as unknown as Record<string, unknown>)[name];
+      contextSignals.set(name, signal<unknown>(value));
+      return value;
+    },
     state: (): string => stateSignal(),
-    /** The signal for a field, kept in step with the context. A read
-     * repairs it, so the signals cannot drift from the machine. */
+    /** Keeps a field's signal in step with the machine. The mirror
+     * calls it; a read never does, so a read cannot loop. */
     sync: (name: string, value: unknown): void => {
       const existing = contextSignals.get(name);
       if (existing === undefined) {
@@ -266,6 +279,16 @@ export function defineBridge<
       }
       if (existing() !== value) existing(value);
     },
+    /** The machine's state, as a signal-backed read. */
+    setState: (value: string): void => {
+      if (stateSignal() !== value) stateSignal(value);
+    },
+  };
+  /** The machine's whole context, mirrored into the signals. */
+  const mirror = (context: unknown, state: string): void => {
+    const rec = (context ?? {}) as Record<string, unknown>;
+    for (const [field, value] of Object.entries(rec)) live.sync(field, value);
+    live.setState(state);
   };
   const hooks = spec.hooks(id, root, live);
   // The machine: the component's factory, or the legacy config plus
@@ -309,6 +332,16 @@ export function defineBridge<
     if (service) return service;
     service = owner.run(() => {
       const svc = interpret(machineOf()).start(spec.startState);
+      // EVERY send goes through the mirror: the scope's `send` and the
+      // commands both land here, and a send that skipped the mirror
+      // would leave the signals stale — the readers would see the
+      // machine's old state.
+      const rawSend = svc.send.bind(svc);
+      svc.send = (event: E) => {
+        rawSend(event);
+        mirror(svc.state.context, svc.state.value);
+        machineTick(machineTick() + 1);
+      };
       if (spec.machine === undefined) {
         // The legacy path: the seed is the service's STARTING context,
         // not a mutation of it — a transition replaces the context
@@ -319,6 +352,9 @@ export function defineBridge<
       }
       // Scalars first: seed sends run assigns that read them.
       hooks.refresh?.(svc, props, authored);
+      // The machine's context is mirrored into the signals: the mirror
+      // is the single writer, and the start is a write like any other.
+      mirror(svc.state.context, svc.state.value);
       // The seed replaced the context, so the bags must re-read it: the
       // machine tick is the invalidation bus every binding watches.
       machineTick(machineTick() + 1);
@@ -357,6 +393,8 @@ export function defineBridge<
       props,
       send: (report: E): void => send(report),
     });
+    // The send mirrored the context into the signals; the tick is the
+    // invalidation bus every binding watches.
     tick(tick() + 1);
     machineTick(machineTick() + 1);
     return { svc, before };
@@ -431,12 +469,20 @@ export function defineBridge<
         lastContract,
         (event) => transmit(event),
       );
+      // A silent field lands in the context without a move, so the
+      // mirror writes it: the mirror is the single writer, and every
+      // reader sees the machine's value.
+      mirror(svc.state.context, svc.state.value);
       const parsed = readParsed();
       const reconciled: E[] = [];
       const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {
         reconciled.push(event);
         transmit(event);
       }) ?? false;
+      // The reconcile may WRITE the context in place (a derived field it
+      // owns), so the mirror writes it again: the mirror is the single
+      // writer, and every reader sees the machine's value.
+      mirror(svc.state.context, svc.state.value);
       const moved = scalarMoved || syncResult.moved || derivedMoved;
       if (moved) tick(tick() + 1);
       // A silent merge (the refresh path) changes the context WITHOUT

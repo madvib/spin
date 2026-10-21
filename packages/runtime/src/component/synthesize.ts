@@ -252,14 +252,31 @@ export function defineComponent<
             send(args, ctxOf(service), resolveId) as unknown as { type: string } & Record<string, unknown>,
           );
         }
+        // The api's readers read the SIGNALS, like the scope's context
+        // does: a read in the markup's expression (a bound class, say)
+        // subscribes to the field it read, and the class re-applies when
+        // the field moves.
+        const liveContext = new Proxy({} as C, {
+          get: (_target, key: string) => machineLive.field(key),
+          has: (_target, key: string) => machineLive.field(key) !== undefined,
+        });
         for (const [name, reader] of Object.entries(def.readers ?? {})) {
           Object.defineProperty(api, name, {
             get: () => reader.read(
-              ctxOf(service),
-              service.state,
+              liveContext,
+              machineLive.state(),
               readProps(),
               root,
             ),
+            enumerable: true,
+          });
+        }
+        // The machine's state, live: a read of it subscribes, so the
+        // markup can bind a class to it. A component that declares its
+        // own `state` reader keeps it — the framework's is the default.
+        if (def.readers?.["state"] === undefined) {
+          Object.defineProperty(api, "state", {
+            get: () => machineLive.state(),
             enumerable: true,
           });
         }
@@ -302,10 +319,9 @@ export function defineComponent<
           // handler cached across transmits must see post-send state.
           const live = (): Record<string, unknown> =>
             ctxOf(service) as unknown as Record<string, unknown>;
-          // The context's fields are signals: reading one here, inside a
+          // The context's fields are SIGNALS: reading one here, inside a
           // computed, subscribes to that field and to nothing else. The
-          // read also REPAIRS the signal, so the signals cannot drift
-          // from the context: the value is always the context's.
+          // mirror is the single writer, so a read never writes.
           const context = new Proxy({} as Record<string, unknown>, {
             get: (_target, key: string) => {
               record("context", key);
