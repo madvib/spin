@@ -2,7 +2,6 @@
  * spin-tour e2e: the inactive and running modes with the three phases,
  * behind the app-controller handle.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned tour through `{ commands, state, bind }`;
  * this suite exercises the start (resolve, scroll, activate), the step
  * navigation with the spotlight moving to each target, the dismiss

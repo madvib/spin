@@ -5,13 +5,6 @@
  * over a disabled row, the controlled command surface, and the hidden input
  * that carries the value to a form.
  *
- * Run explicitly (not in the default `deno task test`):
- *   cd packages/components && deno test -A tests/cascade.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
- *
  * A `Deno.test` (not a program run by `deno run`): the shared harness the
  * slider, carousel and accordion e2e files use, so the task and the file shape
  * match.

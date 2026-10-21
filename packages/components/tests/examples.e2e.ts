@@ -10,14 +10,6 @@
  *
  * This suite mounts the examples and asserts the two things a broken
  * example breaks: the machine's state, and the page's silence.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test --allow-read --allow-net --allow-run
- *     --allow-env --allow-sys --allow-write=/tmp --allow-import
- *     --min-dep-age=0 tests/examples.e2e.ts
- *
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

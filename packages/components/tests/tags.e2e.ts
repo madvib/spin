@@ -3,13 +3,6 @@
  * keyboard map, the pointer gestures, edit-in-place, the max/overflow and
  * blurBehavior contracts, the host commands, the live-region
  * announcements and the aria contract, with zero page errors.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test -A tests/tags.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

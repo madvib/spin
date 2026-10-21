@@ -2,7 +2,6 @@
  * spin-popover e2e: the platform tier behind the same app-controller
  * handle as a machine.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The proof route binds a machine-owned toast and a platform-owned popover
  * through identical `{ commands, state, bind }` code; this suite exercises
  * both halves: the popover's native open/Escape/imperative paths with the

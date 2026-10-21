@@ -1,7 +1,6 @@
 /**
  * spin-date-input e2e: per-segment editing behind the app-controller handle.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned date-input through `{ commands, state,
  * bind }`; this suite exercises the seeded render, digit typing with
  * auto-advance, arrow cycling, the month-aware day clamp, paste, and the

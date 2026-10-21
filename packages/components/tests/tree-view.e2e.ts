@@ -2,7 +2,6 @@
  * spin-tree-view e2e: the explorer contract — indent rails, branch-only
  * chevrons, the mode-gated checkbox, and the keyboard map.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned tree-view through
  * `{ commands, state, bind }`; this suite pins the things that were
  * silently wrong and visually obvious: a leaf with a disclosure arrow, a

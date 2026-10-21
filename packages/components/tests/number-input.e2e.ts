@@ -2,13 +2,6 @@
  * E2E: the forked-FSM number input drives its machine in a real browser —
  * the keyboard map, the press-and-hold, the scrubber drag, the wheel, the
  * aria contract, the host commands, and a disabled input that stays inert.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test -A tests/number-input.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

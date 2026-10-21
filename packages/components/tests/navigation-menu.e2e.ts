@@ -2,7 +2,6 @@
  * spin-navigation-menu e2e: the closed/open modes and the dwell clocks,
  * behind the app-controller handle.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned navigation-menu through
  * `{ commands, state, bind }`; this suite exercises the dwell open, the
  * swap, the leave close after the grace, the click toggle, and the

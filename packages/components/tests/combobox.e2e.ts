@@ -3,15 +3,6 @@
  * focus/open lifecycle, the arrow walk with wrapping, Enter selection, the
  * trigger, the multiple instance that stays open, the inline autocomplete,
  * the controlled open channel, and the imperative commands.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test --allow-read --allow-net --allow-run
- *     --allow-env --allow-sys --allow-write=/tmp --allow-import
- *     --min-dep-age=0 tests/combobox.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

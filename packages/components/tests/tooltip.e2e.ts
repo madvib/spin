@@ -2,7 +2,6 @@
  * spin-tooltip e2e: the hover-delay and anchor actions behind the same
  * app-controller handle as a machine.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a platform-owned tooltip through `{ commands, state, bind }`;
  * this suite exercises the dwell open, the leave close, the immediate focus
  * open, the anchored position, and the imperative commands, with the host

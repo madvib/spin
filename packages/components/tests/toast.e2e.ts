@@ -1,13 +1,6 @@
 /**
  * E2E: the forked-FSM toast drives its machine in a real browser — the queue,
  * the lifecycle, the region's posture and the geometry channel.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test -A tests/toast.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

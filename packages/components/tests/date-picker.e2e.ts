@@ -2,7 +2,6 @@
  * spin-date-picker e2e: open/closed modes, the view climb, and the three
  * selection modes, behind the app-controller handle.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned date-picker through `{ commands, state,
  * bind }`; this suite exercises the seeded render, open/focus, day selection
  * with closeOnSelect, keyboard navigation, the view climb (day → month →

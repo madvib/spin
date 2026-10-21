@@ -2,7 +2,6 @@
  * spin-file-upload e2e: the dropzone modes and the validation split,
  * behind the app-controller handle.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned file-upload through
  * `{ commands, state, bind }`; this suite exercises the two entry paths
  * (the picker and a drop), the accept/size rules, focus and drag modes,

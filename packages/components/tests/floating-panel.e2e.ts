@@ -2,7 +2,6 @@
  * spin-floating-panel e2e: open/closed, the gesture modes, and the stage,
  * behind the app-controller handle.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a machine-owned floating-panel through
  * `{ commands, state, bind }`; this suite exercises the seeded open, the
  * drag gesture (position follows the press-origin delta), an edge resize,

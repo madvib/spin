@@ -2,7 +2,6 @@
  * spin-hover-card e2e: one hover-delay action on the root behind the same
  * app-controller handle as a machine.
  *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
  * The route binds a platform-owned hover-card through `{ commands, state,
  * bind }`; this suite exercises the dwell open, the move-to-panel persistence
  * (the behavior that separates a card from a tooltip), the leave close after

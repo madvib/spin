@@ -3,13 +3,6 @@
  * typing contract, the keyboard map, the paste distribution, the refusal
  * report, the completion edge, the host commands, and a disabled pin that
  * stays inert.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test -A tests/pin-input.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

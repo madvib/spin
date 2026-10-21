@@ -3,15 +3,6 @@
  * focus default, the arrow walk with wrapping and disabled-skip, Enter/Space
  * selection, typeahead, hover, the multiple instance with shift-extend and
  * select-all, and the imperative commands.
- *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test --allow-read --allow-net --allow-run
- *     --allow-env --allow-sys --allow-write=/tmp --allow-import
- *     --min-dep-age=0 tests/listbox.e2e.ts
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
  */
 
 import { strict as assert } from "node:assert";

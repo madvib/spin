@@ -4,13 +4,6 @@
  * submenu level that opens by hover dwell and by ArrowRight, and the rows
  * that stay inert.
  *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno task e2e:menu
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
- * Requires the Playwright browser once: `bunx playwright install chromium`.
- * Fails loud naming the step; silent on success.
- *
  * Written as a program, not a `Deno.test`: the task runs it with `deno run`,
  * which never executes registered tests — a `Deno.test` here would exit 0
  * without opening a browser.

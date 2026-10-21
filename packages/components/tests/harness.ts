@@ -1,7 +1,6 @@
 /**
- * The e2e harness: build the specimens app, serve it, drive Chromium.
- * Every component suite shares this shape — the per-file remainder (named
- * steps against locators) is the actual test.
+ * The e2e harness: the shape every component suite runs on — the per-file
+ * remainder (named steps against locators) is the actual test.
  *
  *   import { runComponentSuite, step } from "./harness.ts";
  *
@@ -9,6 +8,19 @@
  *     runComponentSuite({ port: 5252, route: "/slider", ready: CONTROL }, async ({ page }) => {
  *       await step("a track press jumps", ...);
  *     }));
+ *
+ * Run explicitly (not in default `deno task test`):
+ *   cd packages/components && deno test --allow-read --allow-net --allow-run
+ *     --allow-env --allow-sys --allow-write=/tmp --allow-import
+ *     --min-dep-age=0 tests/<suite>.e2e.ts
+ *
+ * deno.json holds that command per suite as `deno task e2e:<suite>` (every
+ * suite but `examples` has one; the menu suite's task runs it with `deno run`,
+ * because that file is a program, not a test).
+ *
+ * Builds the specimens app, serves dist, drives real Chromium via Playwright.
+ * Requires the Playwright browser once: `bunx playwright install chromium`.
+ * Fails loud naming the step; silent on success.
  */
 
 import { join } from "node:path";
