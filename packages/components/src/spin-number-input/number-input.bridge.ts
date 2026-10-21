@@ -139,6 +139,10 @@ function readArgs(): NumberInputArgs {
   const allowOverflow = p["allowOverflow"] === true;
   return {
     value: seedValue(p, authored),
+    // The twin travels with the arguments: the machine's own gate reads it
+    // to tell a declared default from an unwritten channel, so a narrowed
+    // bag that drops it loses the seed.
+    defaultValue: p["defaultValue"] as string | undefined,
     min: p["min"] as string | number,
     max: p["max"] as string | number,
     step: p["step"] as string | number,

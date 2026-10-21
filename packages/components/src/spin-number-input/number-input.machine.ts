@@ -59,6 +59,12 @@ export type NumberInputEvent =
  */
 export interface NumberInputArgs {
   value?: string;
+  /**
+   * The twin of `value`. The machine's own gate reads it to tell a
+   * declared default from an unwritten channel, so the arguments must
+   * carry it: a narrowed bag that drops it loses the seed.
+   */
+  defaultValue?: string | undefined;
   min?: string | number;
   max?: string | number;
   step?: string | number;
