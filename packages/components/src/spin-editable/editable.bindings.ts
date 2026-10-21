@@ -243,8 +243,8 @@ const def: ComponentDef<EditableContext, EditableEvent> = {
             // The field's own controls are inside: a press on the cancel
             // trigger is the cancel, not a walk-away that submits.
             exclude: (): readonly (Element | null)[] => [
-              document.getElementById(scope.id("cancelTrigger")),
-              document.getElementById(scope.id("editTrigger")),
+              scope.root().querySelector(`#${scope.id("cancelTrigger")}`),
+              scope.root().querySelector(`#${scope.id("editTrigger")}`),
             ],
             onPointerDownOutside: (event: InteractOutsideEvent): void => {
               callHandler(scope, "onPointerDownOutside", event);

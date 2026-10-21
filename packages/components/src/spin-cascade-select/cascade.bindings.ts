@@ -176,13 +176,7 @@ const parseNodes = (list: readonly unknown[]): readonly CascadeNode[] =>
 export const parseCollection = (raw: unknown): readonly CascadeNode[] => {
   if (Array.isArray(raw)) return parseNodes(raw);
   if (typeof raw !== "string" || raw.length === 0) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parseNodes(parsed);
-  } catch {
-    return [];
-  }
-  return [];
+  return parseNodes(coerceJsonArray(raw, []));
 };
 
 const isString = (segment: unknown): segment is string => typeof segment === "string";

@@ -49,6 +49,7 @@ export interface StepsApi {
   getNextTriggerProps(): Record<string, unknown>;
   getPrevTriggerProps(): Record<string, unknown>;
   getProgressProps(): Record<string, unknown>;
+  getProgressFillProps(): Record<string, unknown>;
 }
 
 interface ScopeLike extends PartScope<unknown, StepsContext> {}
@@ -179,6 +180,8 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
         },
       }),
     },
+    // The track: the bar's extent, not its progress. The progress is the
+    // fill's width, and it rides the fill's style object.
     progress: {
       sig: (scope: ScopeLike) => [percent(scope.context)].join("|"),
       attrs: (scope: ScopeLike) => {
@@ -193,9 +196,18 @@ const def: ComponentDef<StepsContext, StepsEvent> = {
           "data-scope": "steps",
           "data-part": "progress",
           "data-complete": scope.attr(value === 100),
-          style: { width: `${value.toFixed(3)}%` },
         };
       },
+    },
+    // The fill: the machine's progress, measured in the bag's style.
+    progressFill: {
+      sig: (scope: ScopeLike) => [percent(scope.context)].join("|"),
+      attrs: (scope: ScopeLike) => ({
+        id: scope.id("progress-fill"),
+        "data-scope": "steps",
+        "data-part": "progress-fill",
+        style: { width: `${percent(scope.context).toFixed(3)}%` },
+      }),
     },
   },
   slots: {

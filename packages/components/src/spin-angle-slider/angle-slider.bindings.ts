@@ -1,11 +1,4 @@
-import {
-  dataAttr,
-  defineComponent,
-  isComposing,
-  type ComponentDef,
-  type PartScope,
-  type SlotScope,
-} from "@spin/runtime";
+import { dataAttr, defineComponent, focuser, isComposing, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   angleSlider as angleSliderMachine,
   displayAngle,
@@ -150,10 +143,6 @@ const overThumb = (scope: ScopeLike, target: EventTarget | null): boolean => {
 
 /** Focus lives in the view: a press or a keyboard move hands focus to the
  * thumb. */
-const focusThumb = (id: (part: string, slot?: unknown) => string): void => {
-  if (typeof document === "undefined") return;
-  document.getElementById(id("thumb"))?.focus({ preventScroll: true });
-};
 
 const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
   name: "angle-slider",
@@ -201,7 +190,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
         onClick: (event: MouseEvent): void => {
           if (!isInteractive(scope.context)) return;
           event.preventDefault();
-          focusThumb(scope.id);
+          focuser(scope.id)("thumb");
         },
       }),
     },
@@ -247,7 +236,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
           event.stopPropagation();
           capturePointer(event.currentTarget, event.pointerId);
           scope.send({ type: "CONTROL.POINTER_DOWN", rawAngle: angle, angularOffset });
-          focusThumb(scope.id);
+          focuser(scope.id)("thumb");
         },
         onPointermove: (event: PointerEvent): void => {
           if (scope.state !== "dragging") return;
@@ -311,7 +300,7 @@ const def: ComponentDef<AngleSliderContext, AngleSliderEvent> = {
             const keyed = (type: string): boolean => {
               event.preventDefault();
               scope.send({ type, ...(large !== undefined ? { step: large } : {}) });
-              focusThumb(scope.id);
+              focuser(scope.id)("thumb");
               return true;
             };
             switch (event.key) {

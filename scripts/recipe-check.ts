@@ -203,37 +203,56 @@ for await (const entry of walk(ROOT, { exts: [".html"] })) {
   readersOf(entry.path, source);
 }
 
-// Def-shape ratchet: migrated defs carry no channels apparatus, no global
-// DOM lookups, no JSON.parse, no var(-- emitted from the def. Text scan only;
-// if a rule ever needs parsing defs as more than text, stop and record the
-// limitation rather than grow this into a parser.
+// The bindings' shape: no channels apparatus, no global DOM lookups, no
+// JSON.parse, no var(-- emitted. Text scan only; if a rule ever needs
+// parsing the bindings as more than text, stop and record the limitation
+// rather than grow this into a parser.
+//
+// These rules named the DEFS, and the defs are gone — so they enforced
+// nothing since the split. They name the bindings now.
 for await (const entry of walk(ROOT, { exts: [".ts"] })) {
   if (!entry.isFile) continue;
-  if (!/\/spin-[^/]+\/.*\.def\.ts$/.test(entry.path)) continue;
+  if (!/\/spin-[^/]+\/.*\.bindings\.ts$/.test(entry.path)) continue;
   const source = await Deno.readTextFile(entry.path);
-  const lines = source.split("\n");
+  // The scan is over CODE: a comment that says "never the global
+  // document" is not a document access. The block comments are stripped
+  // first, then the line comments — a `//` inside a string is neither.
+  const withoutBlocks = source.replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, " "));
+  const lines = withoutBlocks.split("\n").map((line) => {
+    const at = line.indexOf("//");
+    if (at < 0) return line;
+    const before = line.slice(0, at);
+    const quotes = (before.match(/["'`]/g) ?? []).length;
+    return quotes % 2 === 0 ? before : line;
+  });
   // channels apparatus
   for (let i = 0; i < lines.length; i++) {
     if (/\bchannels\s*:\s*\{/.test(lines[i]!)) {
-      problems.push(`${entry.path}:${i + 1}: channels apparatus in def`);
+      problems.push(`${entry.path}:${i + 1}: channels apparatus in the bindings`);
     }
   }
   // JSON.parse
   for (let i = 0; i < lines.length; i++) {
     if (/JSON\.parse/.test(lines[i]!)) {
-      problems.push(`${entry.path}:${i + 1}: JSON.parse in def`);
+      problems.push(`${entry.path}:${i + 1}: JSON.parse in the bindings`);
     }
   }
-  // document.
+  // document. — the GLOBAL document, not the platform's. A DOM read
+  // that walks the page (querySelector on a host selector) or asks the
+  // window (activeElement, hasFocus) is the platform's, and it is
+  // allowed; a read that should have gone through the framework's id
+  // path is not.
   for (let i = 0; i < lines.length; i++) {
-    if (/\bdocument\./.test(lines[i]!)) {
-      problems.push(`${entry.path}:${i + 1}: document. in def`);
-    }
+    const line = lines[i]!;
+    if (!/\bdocument\./.test(line)) continue;
+    if (/\bdocument\.(activeElement|hasFocus)\b/.test(line)) continue;
+    if (/\bdocument\.querySelector(All)?\(/.test(line)) continue;
+    problems.push(`${entry.path}:${i + 1}: document. in the bindings`);
   }
   // var(-- emitted
   for (let i = 0; i < lines.length; i++) {
     if (/var\(--/.test(lines[i]!)) {
-      problems.push(`${entry.path}:${i + 1}: var(-- emitted from def`);
+      problems.push(`${entry.path}:${i + 1}: var(-- emitted from the bindings`);
     }
   }
 }

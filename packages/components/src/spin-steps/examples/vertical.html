@@ -24,7 +24,7 @@
   <div
     class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-sunken"
     {...steps.getProgressProps()}
-  ><div class="h-full rounded-full bg-primary transition-all duration-fast ease-decelerate" style="width: var(--steps-progress, 0%)"></div></div>
+  ><div class="h-full rounded-full bg-primary transition-all duration-fast ease-decelerate" {...steps.getProgressFillProps()}></div></div>
 
   <div class="mt-3 hidden" {...steps.getContentProps({ index: steps.value })}>
     <p class="rounded-md border border-solid border-border bg-surface-raised p-3 text-sm text-text">{steps.getItemTitle(steps.value)}</p>

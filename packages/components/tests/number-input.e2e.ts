@@ -186,9 +186,9 @@ Deno.test("spin-number-input e2e", () =>
       assert.equal(scrolled > 5, true, `a rightward drag steps up (saw ${scrolled})`);
       const cursor = await page.locator(QUANTITY_CURSOR).getAttribute("style");
       assert.equal(
-        cursor !== null && cursor.includes("--number-input-cursor-x"),
+        cursor !== null && cursor.includes("left:"),
         true,
-        "the cursor rides custom properties",
+        "the cursor rides the style object's geometry",
       );
       await page.mouse.move(box!.x + 10, middle, { steps: 5 });
       const back = Number(await inputValue(QUANTITY_INPUT));

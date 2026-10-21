@@ -1,4 +1,4 @@
-import { dataAttr, defineComponent, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { dataAttr, defineComponent, focuser, isRecord, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import {
   isEmpty,
   isInteractive,
@@ -83,10 +83,6 @@ const segmentPathOf = (arg: unknown): string => {
   return typeof path === "string" ? path : "";
 };
 
-const focusControl = (id: (part: string, slot?: unknown) => string): void => {
-  if (typeof document === "undefined") return;
-  document.getElementById(id("control"))?.focus({ preventScroll: true });
-};
 
 const textOf = (arg: unknown): string => typeof arg === "string" ? arg : "";
 
@@ -133,7 +129,7 @@ const def: ComponentDef<SignaturePadContext, SignaturePadEvent> = {
         onClick: (event: MouseEvent): void => {
           if (!isInteractive(scope.context)) return;
           if (event.defaultPrevented) return;
-          focusControl(scope.id);
+          focuser(scope.id)("control");
         },
       }),
     },

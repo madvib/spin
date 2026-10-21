@@ -65,9 +65,12 @@ interface SlotLike<R> extends SlotScope<R, FileUploadContext> {}
  * press that opened it must not be re-read by the input's own click
  * handling, so the click waits a frame. The node is read through the
  * framework id path, never held. */
-const openPicker = (id: (part: string, slot?: unknown) => string): void => {
+const openPicker = (
+  id: (part: string, slot?: unknown) => string,
+  root: () => Element,
+): void => {
   if (typeof document === "undefined") return;
-  const node = document.getElementById(id("hiddenInput"));
+  const node = root().querySelector(`#${id("hiddenInput")}`);
   if (!(node instanceof HTMLInputElement)) return;
   const request = typeof requestAnimationFrame === "function"
     ? requestAnimationFrame
@@ -161,7 +164,7 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
           "data-disabled": dataAttr(disabled),
           onClick: (): void => {
             if (disabled) return;
-            openPicker(scope.id);
+            openPicker(scope.id, scope.root);
           },
           onFocus: (): void => scope.send({ type: "DROPZONE.FOCUS" }),
           onBlur: (): void => scope.send({ type: "DROPZONE.BLUR" }),
@@ -265,8 +268,8 @@ const def: ComponentDef<FileUploadContext, FileUploadEvent> = {
   },
   commands: {
     openFilePicker: {
-      view: ({ id }) => {
-        openPicker(id);
+      view: ({ id, root }) => {
+        openPicker(id, root);
       },
     },
     removeFile: { event: (args) => ({ type: "FILE.REMOVE", name: typeof args[0] === "string" ? args[0] : "" }) },

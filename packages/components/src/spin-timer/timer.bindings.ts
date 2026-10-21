@@ -66,6 +66,7 @@ export interface TimerApi {
   restart(): void;
   getRootProps(): Record<string, unknown>;
   getAreaProps(): Record<string, unknown>;
+  getProgressProps(): Record<string, unknown>;
   getControlProps(): Record<string, unknown>;
   getItemProps(item: TimerItem): Record<string, unknown>;
   getItemValueProps(item: TimerItem): Record<string, unknown>;
@@ -212,10 +213,20 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
           "aria-atomic": true,
           "data-state": scope.state,
-          // Continuous, so it is data for the recipe's bar, not a style.
-          style: { "--timer-progress": `${(progressOf(scope.context) * 100).toFixed(3)}%` },
         };
       },
+    },
+    // The bar's fill: the progress is the machine's geometry, so it rides
+    // the bag's style object — the markup names no property.
+    progress: {
+      sig: (scope) => [progressOf(scope.context).toFixed(3)].join("|"),
+      attrs: (scope) => ({
+        id: scope.id("progress"),
+        "data-scope": "timer",
+        "data-part": "progress",
+        "data-state": scope.state,
+        style: { width: `${(progressOf(scope.context) * 100).toFixed(3)}%` },
+      }),
     },
     control: {
       sig: (scope) => [scope.state].join(" "),
@@ -244,7 +255,9 @@ const def: ComponentDef<TimerContext, TimerEvent> = {
           "data-part": "item",
           "data-type": unit,
           "data-state": scope.state,
-          style: { "--value": value },
+          // The raw unit is data, not a style: a recipe that wants it
+          // reads the attribute.
+          "data-value": value,
           // A leading zero is a unit the run has not reached: the recipe
           // hides the days row rather than showing an empty one.
           ...(unit === "days" && value === 0 ? { hidden: true } : {}),

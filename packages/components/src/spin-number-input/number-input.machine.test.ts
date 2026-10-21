@@ -734,11 +734,11 @@ Deno.test("Given the scrubber grabbed / When the drag begins / Then the cursor i
   const style = h.bag("cursor")["style"];
   assertEquals(typeof style === "object" && style !== null, true, "the cursor rides the geometry channel");
   assertEquals(
-    (style as Record<string, string>)["--number-input-cursor-x"],
+    (style as Record<string, string>)["left"],
     "92px",
     "the point is offset by half a cursor, rounded to the device pixel",
   );
-  assertEquals((style as Record<string, string>)["--number-input-cursor-y"], "32px", "and the y is offset the same way");
+  assertEquals((style as Record<string, string>)["top"], "32px", "and the y is offset the same way");
 });
 
 Deno.test("Given a scrubbing gesture / When the pointer moves right / Then the value increments", () => {
@@ -795,7 +795,7 @@ Deno.test("Given a scrubbing gesture / When it ends / Then the cursor is cleared
   h.dropScrubber();
   assertEquals(h.bag("cursor")["hidden"], true, "and hides when the gesture ends");
   assertEquals(
-    (h.bag("cursor")["style"] as Record<string, string>)["--number-input-cursor-x"],
+    (h.bag("cursor")["style"] as Record<string, string>)["left"],
     "0px",
     "the geometry channel is reset",
   );

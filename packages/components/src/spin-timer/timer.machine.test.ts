@@ -391,12 +391,15 @@ Deno.test("Given a running countdown / When the parts are read / Then the contra
   assertEquals(area["role"], "timer", "the area is a timer");
   assertEquals(area["aria-atomic"], true, "and announces itself atomically");
   assertEquals(area["aria-label"], "1 days 01:01:01", "the area label is the count a screen reader hears");
-  assertEquals(area["style"], { "--timer-progress": "100.000%" }, "a fresh countdown shows a full bar");
+
+  const progress = h.api.getProgressProps();
+  assertEquals(progress["id"], "timer:timer:progress", "the fill carries its part id");
+  assertEquals(progress["style"], { width: "100.000%" }, "a fresh countdown shows a full bar");
 
   const item = h.api.getItemProps({ type: "seconds" });
   assertEquals(item["id"], "timer:timer:item:seconds", "the item carries its part id");
   assertEquals(item["data-type"], "seconds", "and its part");
-  assertEquals(item["style"], { "--value": 1 }, "the item's value is the raw unit, sent as data");
+  assertEquals(item["data-value"], 1, "the item's value is the raw unit, sent as data");
   assertEquals(item["hidden"], undefined, "a seconds unit is never hidden");
 
   const value = h.api.getItemValueProps({ type: "seconds" });
@@ -421,7 +424,7 @@ Deno.test("Given a stopwatch under a day / When the days unit is read / Then it 
   const h = mount({ startMs: 61_000 });
   const days = h.api.getItemProps({ type: "days" });
   assertEquals(days["hidden"], true, "a run that has not reached a day hides the unit");
-  assertEquals(days["style"], { "--value": 0 }, "and still carries its zero value");
+  assertEquals(days["data-value"], 0, "and still carries its zero value");
   assertEquals(
     h.api.getSeparatorProps({ after: "days" })["hidden"],
     true,

@@ -244,7 +244,8 @@ export function defineComponent<
         for (const [name, command] of Object.entries(def.commands)) {
           if (command.view !== undefined) {
             const view = command.view;
-            api[name] = (...args: readonly unknown[]) => view({ args, id: resolveId, focus: focusHere, measure: measureHere });
+            api[name] = (...args: readonly unknown[]) =>
+              view({ args, id: resolveId, focus: focusHere, measure: measureHere, root });
             continue;
           }
           const send = command.event;

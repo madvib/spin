@@ -154,6 +154,9 @@ export type CommandDef<
       readonly id: (part: string, slot?: unknown) => string;
       readonly focus: (part: string, slot?: unknown) => void;
       readonly measure: (part: string, slot?: unknown) => DOMRect | null;
+      /** The element that owns the component: the DOM reads a view
+       * makes stay inside it, never on the global document. */
+      readonly root: () => Element;
     }) => void;
   };
 

@@ -619,20 +619,19 @@ export function connectRobotNumberInput(
       );
     },
     // The virtual cursor's position is continuous geometry, so it rides the
-    // channel as custom properties; the markup's own placement utilities
-    // decide what feeds off them.
+    // bag's style object; the markup names no property.
     getCursorProps: () => {
       const point = ctx().cursorPoint;
       return cursorBag(
-        `${service.scrubbing}\u0000${point === null ? "" : `${point.x}\u0000${point.y}`}`,
+        `${service.scrubbing} ${point === null ? "" : `${point.x} ${point.y}`}`,
         () => ({
           id: cursorId,
           "aria-hidden": true,
           hidden: !service.scrubbing,
           "data-scrubbing": dataAttr(service.scrubbing),
           style: {
-            "--number-input-cursor-x": `${point === null ? 0 : point.x}px`,
-            "--number-input-cursor-y": `${point === null ? 0 : point.y}px`,
+            left: `${point === null ? 0 : point.x}px`,
+            top: `${point === null ? 0 : point.y}px`,
           },
         }),
       );
