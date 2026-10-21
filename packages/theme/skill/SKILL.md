@@ -470,6 +470,12 @@ call; the fourth is a browser; the fifth is a person.
 `validateTheme(text, { required, modes })` from `@spin/theme`. The same judge
 the studio's issues panel uses, so the same answer.
 
+`required` is the list of paths the document must declare. Absent, it is the
+contract's base roles — the palette, the floors that make it usable, and the
+focus ring. An app that enables more elements owes more roles, and
+`requiredRolesFor()` from `@spin/preset` names them. `modes` is the claim about
+which modes the theme serves; absent, the document's own root `modes` says it.
+
 What the failures mean:
 
 - **missing required token**: the decision was never made, so the consumer's
@@ -515,7 +521,8 @@ error: the reader cannot read the button, and nothing else in the theme matters.
 `themeGates(text, { required, modes })` — every mechanical gate in one call:
 completeness, the floors in every mode the theme serves, the scale ladders, the
 loop's strobe floor, and the mode coverage. It answers with one result per gate,
-so a failure says which gate it belongs to.
+so a failure says which gate it belongs to. The options are the ones above:
+`required` is the roles the app owes, `modes` is the claim the theme makes.
 
 ```ts
 import { themeGates } from "@spin/theme";
