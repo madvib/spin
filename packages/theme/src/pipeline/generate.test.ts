@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { generateCss, generateThemeCss, generateTypes } from "./generate.ts";
 import { parseTokens } from "./parse.ts";
+import { silkTheme } from "../themes/index.ts";
 import type { TokenTree } from "./types.ts";
 
 interface CssBlock {
@@ -435,4 +436,33 @@ Deno.test("every shipped theme declares the whole spacing scale", () => {
     const missing = REQUIRED.filter((step) => !declared.includes(step));
     assertEquals(missing, [], `${name} is missing spacing steps`);
   }
+});
+
+Deno.test("a theme in force beats the root theme's dark block", () => {
+  // The bug this covers: the root theme's dark block was `:root[data-mode="dark"]`
+  // — a pseudo-class and an attribute — while a project's theme block was a bare
+  // `[data-theme="x"]`. The dark block won, so a project theme rendered the
+  // starter's palette in dark mode, and the rule "a mode you serve but do not
+  // override falls back to your base" was false for every theme but the first.
+  const starter = parseTokens(silkTheme);
+  assert(starter.ok);
+  const css = generateThemeCss(
+    { starter: starter.tree, project: starter.tree },
+    { rootTheme: "starter" },
+  );
+
+  // The root theme's blocks are defaults: no specificity of their own, so any
+  // theme in force beats them.
+  assert(
+    css.includes(":where(:root) {") &&
+      css.includes(':where(:root[data-mode="dark"]) {'),
+    "the root theme's blocks carry no specificity",
+  );
+  // A project's own block is a bare attribute selector, and it is written after
+  // the defaults, so a token both declare resolves to the project's.
+  assert(
+    css.includes('[data-theme="project"] {') &&
+      css.indexOf('[data-theme="project"] {') > css.indexOf(":where(:root) {"),
+    "a theme in force is written after the defaults",
+  );
 });

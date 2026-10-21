@@ -182,13 +182,21 @@ export function generateThemeCss(
 
   // The root theme first, so a later scoped block overrides it: the same
   // specificity rule that makes a theme swap a selector swap.
+  //
+  // And the root theme's blocks are DEFAULTS — `:where()`, so they carry no
+  // specificity of their own. A theme in force must beat them, or a project
+  // theme's base loses to the root theme's dark block (which is a selector
+  // and an attribute, and so is stronger than a bare attribute selector) and
+  // the project theme renders the starter's palette instead of its own. With
+  // the root theme as a default, the rule holds for every theme: a mode a
+  // theme serves but does not override falls back to that theme's own base.
   if (opts.rootTheme !== undefined && themes[opts.rootTheme] !== undefined) {
     for (
       const block of collectBlocks(
         themes[opts.rootTheme] as TokenTree,
-        ":root",
+        ":where(:root)",
         opts.prefix,
-        ':root[data-mode="dark"]',
+        ':where(:root[data-mode="dark"])',
       )
     ) {
       if (block.declarations.length === 0) continue;

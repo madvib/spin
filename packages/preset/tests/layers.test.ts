@@ -40,7 +40,7 @@ Deno.test("the reset is written before the theme and the utilities", async () =>
     css,
     /\*,\s*::before,\s*::after\s*\{\s*box-sizing:\s*border-box;\s*border-width:\s*0;/,
   );
-  const variables = at(css, /:root\s*\{/);
+  const variables = at(css, /:where\(:root\)\s*\{/);
   const utility = at(css, /\.bg-primary(?![\w-])/);
 
   assert(reset !== -1, `the reset is missing from the sheet:\n${css}`);
@@ -68,7 +68,7 @@ Deno.test("the theme's variables are written before the utilities", async () => 
   });
   const { css } = await uno.generate("bg-primary flex");
 
-  const variables = at(css, /:root\s*\{/);
+  const variables = at(css, /:where\(:root\)\s*\{/);
   const utility = at(css, /\.bg-primary(?![\w-])/);
 
   assert(

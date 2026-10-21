@@ -79,7 +79,7 @@ Deno.test("a project without themes in config reads spin/*.json from disk", asyn
   await Deno.remove(root, { recursive: true });
 });
 
-Deno.test("the boot theme's variables are declared at :root", async () => {
+Deno.test("the boot theme's variables are declared at the root", async () => {
   // A custom property cannot inherit upward. Scoped only to `[data-theme]`,
   // the variables are invisible to `body {}` — so the typography primitives'
   // own base rule falls back to the browser's default font, which is how a
@@ -87,7 +87,10 @@ Deno.test("the boot theme's variables are declared at :root", async () => {
   // app boots with, so it is also written at root.
   const plugin = referencePlugin();
   const css = (await plugin.load!(plugin.resolveId!("uno.css")!)) as string;
-  const root = css.match(/:root \{([^}]*)\}/)?.[1] ?? "";
+  // The root theme's block is a default now (`:where(:root)`), so a theme in
+  // force beats it — but it still carries the boot theme's variables for the
+  // page as a whole.
+  const root = css.match(/:where\(:root\) \{([^}]*)\}/)?.[1] ?? "";
   assert(
     root.includes("--color-primary:"),
     "the root block carries the boot theme's variables",
