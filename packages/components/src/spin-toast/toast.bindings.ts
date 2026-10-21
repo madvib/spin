@@ -313,18 +313,6 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
   },
   parts: {
     group: {
-      sig: (scope: SlotLike<ToastEntry>) => {
-        const ctx = scope.context;
-        return [
-          scope.props["placement"],
-          scope.props["gap"],
-          scope.props["offsets"],
-          scope.props["label"],
-          scope.props["hotkey"],
-          ctx.toasts.length,
-          scope.state,
-        ].join(" ");
-      },
       attrs: (scope: SlotLike<ToastEntry>) => {
         const ctx = scope.context;
         const placementRaw: unknown = scope.props["placement"];
@@ -385,24 +373,6 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
   slots: {
     toast: {
       indexes: (context) => [...context.toasts],
-      sig: (scope: SlotLike<ToastEntry>) => {
-        const entry = scope.slot;
-        const ctx = scope.context;
-        return [
-          entry.status,
-          entry.mounted,
-          entry.remaining,
-          entry.height,
-          ctx.overlap,
-          scope.state,
-          ctx.pointerWithin,
-          ctx.focusWithin,
-          ctx.toasts.findIndex((candidate) => candidate.id === entry.id),
-          ctx.toasts.length,
-          scope.props["placement"],
-          scope.props["removeDelay"],
-        ].join(" ");
-      },
       attrs: (scope: SlotLike<ToastEntry>) => {
         const entry = scope.slot;
         const ctx = scope.context;
@@ -475,10 +445,6 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
     title: {
       id: "toast",
       indexes: (context) => [...context.toasts],
-      sig: (scope: SlotLike<ToastEntry>) => {
-        const entry = scope.slot;
-        return `${entry.title} ${entry.type}`;
-      },
       attrs: (scope: SlotLike<ToastEntry>) => {
         const entry = scope.slot;
         return {
@@ -490,7 +456,6 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
     description: {
       id: "toast",
       indexes: (context) => [...context.toasts],
-      sig: (scope: SlotLike<ToastEntry>) => `${(scope.slot).description}`,
       attrs: (scope: SlotLike<ToastEntry>) => {
         const entry = scope.slot;
         return {
@@ -501,7 +466,6 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
     actionTrigger: {
       id: "toast",
       indexes: (context) => [...context.toasts],
-      sig: (scope: SlotLike<ToastEntry>) => `${(scope.slot).action}`,
       attrs: (scope: SlotLike<ToastEntry>) => {
         const entry = scope.slot;
         return {
@@ -524,10 +488,6 @@ const def: ComponentDef<ToastContext, ToastEvents> = {
     closeTrigger: {
       id: "toast",
       indexes: (context) => [...context.toasts],
-      sig: (scope: SlotLike<ToastEntry>) => {
-        const entry = scope.slot;
-        return `${entry.id} ${scope.props["closable"] !== false}`;
-      },
       attrs: (scope: SlotLike<ToastEntry>) => {
         const entry = scope.slot;
         return {

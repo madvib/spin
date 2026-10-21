@@ -60,15 +60,15 @@ interface SlotLike<R> extends SlotScope<R, PaginationContext> {}
 
 type ItemSlot = PaginationPageItem;
 
-/** Stable item-array identity per window signature: the recipe's `for`
- * re-stamps rows when the source identity moves. */
+/** Stable item-array identity per window: the recipe's `for` re-stamps
+ * rows when the source identity moves. */
 const itemsCache = new Map<string, readonly PaginationPageItem[]>();
 const windowItems = (context: PaginationContext): readonly PaginationPageItem[] => {
-  const sig = [context.page, context.pageSize, context.count, context.siblingCount, context.boundaryCount].join("|");
-  const hit = itemsCache.get(sig);
+  const key = [context.page, context.pageSize, context.count, context.siblingCount, context.boundaryCount].join("|");
+  const hit = itemsCache.get(key);
   if (hit !== undefined) return hit;
   const made = pageItems(context);
-  itemsCache.set(sig, made);
+  itemsCache.set(key, made);
   return made;
 };
 
@@ -78,7 +78,6 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
   start: "idle",
   parts: {
     root: {
-      sig: (scope) => [scope.props["label"], scope.props["dir"], scope.context.page].join("|"),
       attrs: (scope) => ({
         id: scope.id(""),
         dir: scope.props["dir"],
@@ -90,25 +89,18 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
     },
     firstTrigger: {
       id: "first",
-      sig: (scope) => [textOf(scope.props, "firstLabel"), scope.context.page !== 1].join("|"),
       attrs: (scope) => triggerBag(scope, "firstTrigger", "first-trigger", textOf(scope.props, "firstLabel"), scope.context.page !== 1, "FIRST_PAGE"),
     },
     prevTrigger: {
       id: "prev",
-      sig: (scope) => [textOf(scope.props, "prevLabel"), previousPage(scope.context) !== null].join("|"),
       attrs: (scope) => triggerBag(scope, "prevTrigger", "prev-trigger", textOf(scope.props, "prevLabel"), previousPage(scope.context) !== null, "PREVIOUS_PAGE"),
     },
     nextTrigger: {
       id: "next",
-      sig: (scope) => [textOf(scope.props, "nextLabel"), nextPage(scope.context) !== null].join("|"),
       attrs: (scope) => triggerBag(scope, "nextTrigger", "next-trigger", textOf(scope.props, "nextLabel"), nextPage(scope.context) !== null, "NEXT_PAGE"),
     },
     lastTrigger: {
       id: "last",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [textOf(scope.props, "lastLabel"), ctx.page < totalPages(ctx)].join("|");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return triggerBag(scope, "lastTrigger", "last-trigger", textOf(scope.props, "lastLabel"), ctx.page < totalPages(ctx), "LAST_PAGE");
@@ -118,11 +110,6 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
   slots: {
     item: {
       indexes: (context: PaginationContext) => windowItems(context),
-      sig: (scope: SlotLike<ItemSlot>) => {
-        const item = scope.slot;
-        if (item.type !== "page") return "hidden";
-        return [item.value === scope.context.page, item.value].join("|");
-      },
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
         // Templates have no conditional: the recipe renders button + span
@@ -148,11 +135,6 @@ const def: ComponentDef<PaginationContext, PaginationEvents> = {
     },
     ellipsis: {
       indexes: (context: PaginationContext) => windowItems(context),
-      sig: (scope: SlotLike<ItemSlot>) => {
-        const item = scope.slot;
-        if (item.type !== "ellipsis") return "hidden";
-        return `ellipsis:${item.index}`;
-      },
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
         if (item.type !== "ellipsis") return { "data-hidden": "", "aria-hidden": "true" };

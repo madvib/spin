@@ -5,7 +5,6 @@ import {
   type PartScope,
   type SlotScope,
 } from "@spin/runtime";
-import type { AnchorGeometry } from "@spin/runtime/actions";
 import {
   tour as tourMachine,
   type TourArgs,
@@ -13,6 +12,7 @@ import {
   type TourDismissChange,
   type TourEvents,
   type TourStepChange,
+  type TourSpotlight,
   type TourStepRecord,
 } from "./tour.machine.ts";
 
@@ -74,41 +74,29 @@ const RESOLVE_BUDGET_MS = 2000;
 /** The settle wait after a scroll, before the spotlight activates. */
 const SCROLL_SETTLE_MS = 150;
 
-interface TourViewState {
-  spotlight: AnchorGeometry;
-  title: string;
-  description: string;
-  progress: string;
-}
-const viewByRoot = new WeakMap<Element, TourViewState>();
-const viewOf = (root: Element): TourViewState => {
-  let view = viewByRoot.get(root);
-  if (view === undefined) {
-    view = {
-      spotlight: { x: 0, y: 0, w: 0, h: 0, placement: "bottom" },
-      title: "",
-      description: "",
-      progress: "",
-    };
-    viewByRoot.set(root, view);
-  }
-  return view;
-};
-
 const runningState = (state: string): boolean =>
   state === "resolving" || state === "scrolling" || state === "active";
+
+/** The target's box, padded: the spotlight's own geometry. */
+const measure = (el: HTMLElement, padding: number): TourSpotlight => {
+  const rect = el.getBoundingClientRect();
+  return {
+    x: rect.left - padding,
+    y: rect.top - padding,
+    w: rect.width + padding * 2,
+    h: rect.height + padding * 2,
+  };
+};
 
 /**
  * The target lookup: one timer per check, capped, then NOT_FOUND. The
  * scroll reports SCROLL.END once the target settles.
  */
 const resolveAndScroll = (
-  root: Element,
   send: (event: { readonly type: string } & Record<string, unknown>) => void,
   target: string,
   spotlightPadding: number,
 ): void => {
-  viewOf(root);
   const deadline = Date.now() + RESOLVE_BUDGET_MS;
   // A rAF poll throttles in a hidden tab (a frames-based budget would
   // never run out), so the retries are timers against a wall clock.
@@ -117,13 +105,7 @@ const resolveAndScroll = (
     const h = typeof window === "undefined" ? 0 : window.innerHeight;
     const cardW = Math.min(320, w * 0.9);
     const cardH = 160;
-    viewOf(root).spotlight = {
-      x: (w - cardW) / 2,
-      y: (h - cardH) / 2,
-      w: cardW,
-      h: cardH,
-      placement: "bottom",
-    };
+    send({ type: "SPOTLIGHT.SET", x: (w - cardW) / 2, y: (h - cardH) / 2, w: cardW, h: cardH });
     send({ type: "TARGET.RESOLVED" });
     send({ type: "SCROLL.END" });
     return;
@@ -132,11 +114,13 @@ const resolveAndScroll = (
     const el = typeof document === "undefined" ? null : document.querySelector(target);
     if (el instanceof HTMLElement) {
       // Measure before the send: the bags carry the target's rect.
-      measure(root, el, spotlightPadding);
+      const geo = measure(el, spotlightPadding);
+      send({ type: "SPOTLIGHT.SET", x: geo.x, y: geo.y, w: geo.w, h: geo.h });
       send({ type: "TARGET.RESOLVED" });
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => {
-        measure(root, el, spotlightPadding);
+        const settled = measure(el, spotlightPadding);
+        send({ type: "SPOTLIGHT.SET", x: settled.x, y: settled.y, w: settled.w, h: settled.h });
         send({ type: "SCROLL.END" });
       }, SCROLL_SETTLE_MS);
       return;
@@ -150,23 +134,12 @@ const resolveAndScroll = (
   attempt();
 };
 
-const measure = (root: Element, el: HTMLElement, padding: number): void => {
-  const rect = el.getBoundingClientRect();
-  viewOf(root).spotlight = {
-    x: rect.left - padding,
-    y: rect.top - padding,
-    w: rect.width + padding * 2,
-    h: rect.height + padding * 2,
-    placement: "bottom",
-  };
-};
-
 const def: ComponentDef<TourContext, TourEvents> = {
   name: "tour",
   machine: (props, authored) => tourMachine(props as TourArgs, authored),
   // Every command that enters the resolving phase drives the lookup and
   // scroll right after its send.
-  settled: ({ event, after, props, root, send }) => {
+  settled: ({ event, after, props, send }) => {
     if (
       event.type !== "START" &&
       event.type !== "STEP.NEXT" &&
@@ -177,15 +150,13 @@ const def: ComponentDef<TourContext, TourEvents> = {
     }
     if (after.state !== "resolving") return;
     const context = after.context;
-    const node = root();
     const step = context.steps[context.step] ?? null;
     if (step === null) return;
     const padding = typeof props["spotlightPadding"] === "number" ? props["spotlightPadding"] : 8;
-    resolveAndScroll(node, send, step.target, padding);
+    resolveAndScroll(send, step.target, padding);
   },
   parts: {
     root: {
-      sig: (scope) => [`${runningState(scope.state)}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-state": runningState(scope.state) ? "running" : "closed",
@@ -193,7 +164,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
       }),
     },
     backdrop: {
-      sig: (scope) => [`${runningState(scope.state)}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("backdrop"),
           "data-scope": "tour",
@@ -204,14 +174,8 @@ const def: ComponentDef<TourContext, TourEvents> = {
       }),
     },
     spotlight: {
-      sig: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
-        const ctx = scope.context;
-        const step = ctx.steps[ctx.step] ?? null;
-        return [`${runningState(scope.state)}`, step?.target ?? "", geo.x, geo.y, geo.w, geo.h].join(" ");
-      },
       attrs: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
+        const geo = scope.context.spotlight;
         const ctx = scope.context;
         const step = ctx.steps[ctx.step] ?? null;
         const dialog = step !== null && step.target === "";
@@ -235,12 +199,8 @@ const def: ComponentDef<TourContext, TourEvents> = {
       },
     },
     positioner: {
-      sig: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
-        return [scope.state, geo.x, geo.y, geo.h].join(" ");
-      },
       attrs: (scope) => {
-        const geo = viewOf(scope.root()).spotlight;
+        const geo = scope.context.spotlight;
         return {
           id: scope.id("positioner"),
             "data-scope": "tour",
@@ -260,7 +220,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
       },
     },
     content: {
-      sig: (scope) => [scope.state, scope.context.step].join(" "),
       attrs: (scope) => {
         const ctx = scope.context;
         const step = ctx.steps[ctx.step] ?? null;
@@ -276,7 +235,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
       },
     },
     title: {
-      sig: (scope) => [`${scope.context.step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("title"),
           "data-scope": "tour",
@@ -284,7 +242,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
       }),
     },
     description: {
-      sig: (scope) => [`${scope.context.step}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("description"),
           "data-scope": "tour",
@@ -293,10 +250,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
     },
     progressText: {
       id: "progress",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [`${ctx.step}`, `${ctx.steps.length}`].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -309,7 +262,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
     },
     prevTrigger: {
       id: "prev",
-      sig: (scope) => [`${scope.context.step}`, scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("prevTrigger"),
           "data-scope": "tour",
@@ -321,10 +273,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
     },
     nextTrigger: {
       id: "next",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [`${ctx.step}`, `${ctx.steps.length}`, scope.state].join(" ");
-      },
       attrs: (scope) => ({
         id: scope.id("nextTrigger"),
           "data-scope": "tour",
@@ -335,7 +283,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
     },
     dismissTrigger: {
       id: "dismiss",
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("dismissTrigger"),
           "data-scope": "tour",
@@ -346,7 +293,6 @@ const def: ComponentDef<TourContext, TourEvents> = {
     },
     skipTrigger: {
       id: "skip",
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("skipTrigger"),
           "data-scope": "tour",

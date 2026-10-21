@@ -281,14 +281,6 @@ const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
   };
 };
 
-const panelSig = (scope: ScopeLike, id: string): string => {
-  const context = scope.context;
-  const index = context.panels.findIndex((panel) => panel.id === id);
-  const size = context.size[index] ?? 0;
-  const collapsed = panelCollapsed(context.panels, context.size, id);
-  return [size, collapsed, scope.state, scope.props["orientation"]].join(" ");
-};
-
 const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {
   const handle = handleId(beforeId, afterId);
   const context = scope.context;
@@ -336,21 +328,6 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
   };
 };
 
-const handleSig = (scope: ScopeLike, beforeId: string, afterId: string): string => {
-  const handle = handleId(beforeId, afterId);
-  const context = scope.context;
-  const focused = context.focusedHandle === handle;
-  const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
-  return [
-    focused,
-    dragging,
-    scope.state,
-    scope.props["orientation"],
-    scope.props["dir"],
-    context.disabled,
-  ].join(" ");
-};
-
 const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {
   const handle = handleId(beforeId, afterId);
   const context = scope.context;
@@ -365,14 +342,6 @@ const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Reco
     "data-focus": scope.attr(focused),
     "data-dragging": scope.attr(dragging),
   };
-};
-
-const indicatorSig = (scope: ScopeLike, beforeId: string, afterId: string): string => {
-  const handle = handleId(beforeId, afterId);
-  const context = scope.context;
-  const focused = context.focusedHandle === handle;
-  const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
-  return [focused, dragging, scope.props["orientation"]].join(" ");
 };
 
 const def: ComponentDef<SplitterContext, SplitterEvents> = {
@@ -405,7 +374,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
   ],
   parts: {
     root: {
-      sig: (scope) => [scope.props["orientation"], scope.props["dir"], scope.state].join(" "),
       attrs: (scope: ScopeLike) => ({
         id: scope.id(""),
         dir: typeof scope.props["dir"] === "string" ? scope.props["dir"] : undefined,
@@ -426,12 +394,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
   slots: {
     item: {
       indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
-      sig: (scope: SlotLike<ItemSlot>) => {
-        const item = scope.slot;
-        return item.type === "panel"
-          ? `panel ${panelSig(scope, item.id)}`
-          : `handle ${handleSig(scope, item.beforeId, item.afterId)}`;
-      },
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
         return item.type === "panel"
@@ -441,11 +403,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
     },
     itemIndicator: {
       indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
-      sig: (scope: SlotLike<ItemSlot>) => {
-        const item = scope.slot;
-        if (item.type !== "handle") return "panel";
-        return indicatorSig(scope, item.beforeId, item.afterId);
-      },
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
         if (item.type !== "handle") return {};
@@ -454,10 +411,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
     },
     itemLabel: {
       indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
-      sig: (scope: SlotLike<ItemSlot>) => {
-        const item = scope.slot;
-        return item.type === "handle" ? "handle" : `panel ${item.id}`;
-      },
       // The label span needs its own data-type, because data variants
       // match the element's own attributes, never ancestors.
       attrs: (scope) => {
@@ -469,7 +422,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
     panel: {
       id: "panel",
       indexes: (_context, props) => parsePanels(props["panels"]).map((panel) => ({ id: panel.id })),
-      sig: (scope: SlotLike<{ readonly id: string }>) => panelSig(scope, scope.slot.id),
       attrs: (scope: SlotLike<{ readonly id: string }>) => panelBag(scope, scope.slot.id),
     },
     handle: {
@@ -481,7 +433,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
           afterId: panels[index + 1]?.id ?? "",
         }));
       },
-      sig: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => handleSig(scope, scope.slot.beforeId, scope.slot.afterId),
       attrs: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => handleBag(scope, scope.slot.beforeId, scope.slot.afterId),
     },
     handleIndicator: {
@@ -493,7 +444,6 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
           afterId: panels[index + 1]?.id ?? "",
         }));
       },
-      sig: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => indicatorSig(scope, scope.slot.beforeId, scope.slot.afterId),
       attrs: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => indicatorBag(scope, scope.slot.beforeId, scope.slot.afterId),
     },
   },

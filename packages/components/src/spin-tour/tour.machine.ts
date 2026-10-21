@@ -23,6 +23,16 @@ export interface TourContext {
   step: number;
   /** Where the last transition came from; the overlay's entry. */
   previousStep: number;
+  /** The resolved target's box, padded: the spotlight's own geometry. */
+  spotlight: TourSpotlight;
+}
+
+/** The spotlight's box, in the viewport's coordinates. */
+export interface TourSpotlight {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
 }
 
 export interface TourStepChange {
@@ -80,7 +90,7 @@ export function stepsOf(raw: unknown): TourStepRecord[] {
 export function initial(
   args: TourArgs,
   authored: (name: string) => boolean = () => true,
-): Pick<TourContext, "steps" | "step" | "previousStep"> {
+): Pick<TourContext, "steps" | "step" | "previousStep" | "spotlight"> {
   const steps = stepsOf(args.steps);
   const step = authored("step") || authored(defaultTwin("step"))
     ? stepOf(args.step, steps.length)
@@ -89,6 +99,7 @@ export function initial(
     steps,
     step,
     previousStep: -1,
+    spotlight: { x: 0, y: 0, w: 0, h: 0 },
   };
 }
 
@@ -104,6 +115,9 @@ export interface TourEvents {
   "TARGET.RESOLVED": {};
   "TARGET.NOT_FOUND": {};
   "SCROLL.END": {};
+  /** The resolved target's box: the spotlight's geometry, measured by the
+   * view and handed to the machine, which owns it. */
+  "SPOTLIGHT.SET": { x: number; y: number; w: number; h: number };
   "DISMISS": {};
   "SKIP": {};
 }
@@ -118,10 +132,14 @@ const config: MachineSpec<TourContext, TourEvents> = {
     steps: [] as readonly TourStepRecord[],
     step: -1,
     previousStep: -1,
+    spotlight: { x: 0, y: 0, w: 0, h: 0 },
   },
   // A programmatic step move works from every phase and re-enters
   // resolving: the new target is looked up and scrolled to first.
   on: {
+    // The spotlight's geometry is the tour's own state: the view measures
+    // the target and hands the box over, so the bags read it from here.
+    "SPOTLIGHT.SET": { assign: (_ctx, e) => ({ spotlight: { x: e.x, y: e.y, w: e.w, h: e.h } }) },
     "STEP.SET": [
       { cond: (ctx, e) => { return e.type === "STEP.SET" && e.step >= 0 && e.step < ctx.steps.length; }, target: "resolving", assign: (ctx, e) => {
       if (e.type !== "STEP.SET") return {};

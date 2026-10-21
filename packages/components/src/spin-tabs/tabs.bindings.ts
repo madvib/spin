@@ -28,15 +28,12 @@ const def: ComponentDef<TabsContext, TabsEvents> = {
   machine: (props, authored) => tabsMachine(props as TabsArgs, authored),
   parts: {
     root: {
-      sig: () => "",
       attrs: () => ({ "data-scope": "tabs", "data-part": "root" }),
     },
     list: {
-      sig: () => "",
       attrs: () => ({ role: "tablist", "data-scope": "tabs", "data-part": "list" }),
     },
     trigger: {
-      sig: (scope: PartScope<TabsItem, TabsContext>) => [scope.context.value, scope.slot.value].join("|"),
       attrs: (scope: PartScope<TabsItem, TabsContext>) => {
         const row = scope.slot;
         const isSelected = scope.context.value === row.value;
@@ -70,7 +67,6 @@ const def: ComponentDef<TabsContext, TabsEvents> = {
       },
     },
     content: {
-      sig: (scope: PartScope<TabsItem, TabsContext>) => [scope.context.value, scope.slot.value].join("|"),
       attrs: (scope: PartScope<TabsItem, TabsContext>) => {
         const row = scope.slot;
         const isSelected = scope.context.value === row.value;

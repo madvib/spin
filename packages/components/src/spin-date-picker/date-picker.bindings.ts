@@ -388,15 +388,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
   },
   parts: {
     trigger: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [
-          scope.state === "open",
-          iso(ctx.focusedValue),
-          ctx.value.map(iso).join(","),
-          scope.props["disabled"],
-        ].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const open = scope.state === "open";
@@ -412,11 +403,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       },
     },
     content: {
-      sig: (scope) => {
-        const open = scope.state === "open";
-        const focused = iso(scope.context.focusedValue);
-        return [open, focused].join(" ");
-      },
       attrs: (scope) => {
         const open = scope.state === "open";
         const focused = iso(scope.context.focusedValue);
@@ -449,10 +435,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       },
     },
     grid: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [iso(ctx.focusedValue), ctx.view, `${scope.props["startOfWeek"]}`].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -469,17 +451,12 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       },
     },
     label: {
-      sig: () => "label",
       attrs: (scope) => ({
         id: scope.id("label"),
       }),
     },
     prevTrigger: {
       id: "prev",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [iso(ctx.focusedValue), ctx.view].join(" ");
-      },
       attrs: (scope) => ({
         id: scope.id("prevTrigger"),
         "aria-label": "Previous",
@@ -491,10 +468,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
     },
     nextTrigger: {
       id: "next",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [iso(ctx.focusedValue), ctx.view].join(" ");
-      },
       attrs: (scope) => ({
         id: scope.id("nextTrigger"),
         "aria-label": "Next",
@@ -506,10 +479,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
     },
     viewControl: {
       id: "view",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [ctx.view, iso(ctx.focusedValue)].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -525,7 +494,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
     },
     clearTrigger: {
       id: "clear",
-      sig: (scope) => scope.context.value.map(iso).join(","),
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -540,19 +508,6 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
   slots: {
     cell: {
       indexes: (context: DatePickerContext, props) => cellsOf(context, props),
-      sig: (scope: SlotLike<DatePickerCellView>) => {
-        const cell = scope.slot;
-        const ctx = scope.context;
-        const focused = iso(cell.value) === iso(ctx.focusedValue);
-        return [
-          focused,
-          cell.selected,
-          cell.inRange,
-          cell.rangeEdge ?? "",
-          cell.disabled,
-          ctx.view,
-        ].join(" ");
-      },
       attrs: (scope: SlotLike<DatePickerCellView>) => {
         const cell = scope.slot;
         const ctx = scope.context;

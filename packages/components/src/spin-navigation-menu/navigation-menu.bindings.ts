@@ -81,7 +81,6 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
     startState(resolveTwins(props, authored) as NavigationMenuArgs),
   parts: {
     root: {
-      sig: (scope) => [scope.state, scope.props["orientation"], scope.props["disabled"]].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-orientation": scope.props["orientation"],
@@ -90,7 +89,6 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
       }),
     },
     list: {
-      sig: (scope) => [`${scope.props["orientation"]}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("list"),
         role: "menubar",
@@ -101,10 +99,6 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
   slots: {
     item: {
       indexes: (_context, props: Record<string, unknown>) => itemsOf(props),
-      sig: (scope: SlotLike<NavItemRecord>) => {
-        const item = scope.slot;
-        return [scope.context.value === item.value, scope.props["disabled"]].join(" ");
-      },
       attrs: (scope: SlotLike<NavItemRecord>) => {
         const item = scope.slot;
         const ctx = scope.context;
@@ -136,10 +130,6 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
     },
     link: {
       indexes: (_context, props: Record<string, unknown>) => itemsOf(props),
-      sig: (scope: SlotLike<NavItemRecord>) => {
-        const item = scope.slot;
-        return [scope.context.value === item.value, scope.props["disabled"]].join(" ");
-      },
       attrs: (scope: SlotLike<NavItemRecord>) => {
         const item = scope.slot;
         const open = scope.context.value === item.value;
@@ -154,10 +144,6 @@ const def: ComponentDef<NavigationMenuContext, NavigationMenuEvents> = {
     itemContent: {
       id: "content",
       indexes: (_context, props: Record<string, unknown>) => itemsOf(props),
-      sig: (scope: SlotLike<NavItemRecord>) => {
-        const item = scope.slot;
-        return [scope.context.value === item.value, scope.props["orientation"]].join(" ");
-      },
       attrs: (scope: SlotLike<NavItemRecord>) => {
         const item = scope.slot;
         const open = scope.context.value === item.value;

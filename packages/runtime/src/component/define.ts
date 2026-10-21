@@ -42,12 +42,11 @@ export interface PartDef<R = unknown, C extends object = Record<string, unknown>
   readonly id?: string;
   /** The bag: attributes, aria, node reflexes (`onLoad`, `use:observe`).
    * Keys are bag entries; values may read the scope. Receives the recipe's
-   * argument when the part takes one (`getTriggerProps({ focusable })`). */
+   * argument when the part takes one (`getTriggerProps({ focusable })`).
+   *
+   * The bag rebuilds when the scope's fields it read move: the reads are
+   * recorded, so a dependency is never named by hand. */
   attrs(scope: PartScope<R, C>, arg?: unknown): Record<string, unknown>;
-  /** The memo signature: every scope field `attrs` reads, joined — the
-   * recipe argument included. A stale signature is a stale bag; the
-   * framework cannot infer this. */
-  sig(scope: PartScope<R, C>, arg?: unknown): string;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
@@ -66,7 +65,6 @@ export interface SlotDef<R = unknown, C extends object = Record<string, unknown>
     props: Record<string, unknown>,
   ) => readonly unknown[];
   attrs(scope: SlotScope<R, C>, arg?: unknown): Record<string, unknown>;
-  sig(scope: SlotScope<R, C>, arg?: unknown): string;
 }
 
 export interface ReaderDef<C extends object = Record<string, unknown>> {

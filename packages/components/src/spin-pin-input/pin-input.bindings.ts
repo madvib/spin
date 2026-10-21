@@ -326,10 +326,6 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
   parts: {
     root: {
       id: "",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [scope.props["dir"], scope.props["invalid"], scope.props["disabled"], scope.props["readOnly"], pinView(ctx.value, ctx.count).complete].join("");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -345,10 +341,6 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
       },
     },
     label: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [scope.props["dir"], scope.props["invalid"], scope.props["disabled"], scope.props["readOnly"], scope.props["required"], pinView(ctx.value, ctx.count).complete].join("");
-      },
       attrs: (scope) => ({
         id: scope.id("label"),
           "data-scope": "pin-input",
@@ -369,7 +361,6 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
       }),
     },
     control: {
-      sig: (scope) => [scope.props["dir"]].join(""),
       attrs: (scope) => ({
         id: scope.id("control"),
           "data-scope": "pin-input",
@@ -379,11 +370,6 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
     },
     hiddenInput: {
       id: "hidden",
-      sig: (scope) => {
-        const ctx = scope.context;
-        const joined = pinView(ctx.value, ctx.count);
-        return [joined.asString, joined.length, scope.props["name"], scope.props["form"], scope.props["disabled"], scope.props["readOnly"], scope.props["required"]].join("");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const joined = pinView(ctx.value, ctx.count);
@@ -410,16 +396,6 @@ const def: ComponentDef<PinInputContext, PinInputEvents> = {
   slots: {
     input: {
       indexes: (context) => cellIndexes(context.count),
-      sig: (scope: SlotLike<{ readonly index: number }>) => {
-        const index = slotIndex(scope);
-        const ctx = scope.context;
-        const filled = pinView(ctx.value, ctx.count);
-        const char = filled.chars[index] ?? "";
-        const focused = ctx.focusedIndex;
-        const tabbable = focused !== -1 ? focused : Math.min(filled.filled, filled.length - 1);
-        const label = resolveTranslations(scope).inputLabel(index, filled.length);
-        return [char, filled.complete, scope.props["invalid"], scope.props["disabled"], scope.props["readOnly"], scope.props["dir"], scope.props["mask"], scope.props["otp"], scope.props["type"], scope.props["placeholder"], scope.props["required"], label, index === tabbable, focused === index, filled.length].join("");
-      },
       attrs: (scope: SlotLike<{ readonly index: number }>) => {
         const index = slotIndex(scope);
         const ctx = scope.context;

@@ -10,7 +10,18 @@
  * framework. Specified in `.agents/specs/`.
  */
 
-import { dataAttr, keyed, memo, type BagMemo, type BagReads, type ReadRecorder } from "./bags.ts";
+import {
+  dataAttr,
+  keyed,
+  memo,
+  slotFieldKey,
+  valueKey,
+  WHOLE,
+  type BagMemo,
+  type BagReads,
+  type ReadKind,
+  type ReadRecorder,
+} from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
 import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
@@ -87,13 +98,18 @@ export function defineComponent<
     };
     const focusPart = focuser(names);
     const measurePart = measurer(names);
-    // What the LAST bag build read: the context fields and the props.
-    // The proxies record every read, so the key that decides the next
-    // rebuild is derived from the reads rather than written by hand.
-    const lastReads: { context: string[]; props: string[] } = { context: [], props: [] };
-    let recording: ReadRecorder | undefined;
-    const record = (kind: "context" | "props", key: string): void => {
-      recording?.(kind, key);
+    // What the LAST bag build read: the context fields, the props, the
+    // state and the slot's fields. The proxies record every read, so the
+    // key that decides the next rebuild is derived from the reads rather
+    // than written by hand.
+    //
+    // The recorders stack: a read belongs to the build that is running,
+    // and a build can run inside another one (a read that syncs a
+    // context field writes a signal, which re-runs an effect, which
+    // builds another bag).
+    const recorders: ReadRecorder[] = [];
+    const record = (kind: ReadKind, key: string): void => {
+      recorders[recorders.length - 1]?.(kind, key);
     };
     const bagMemos = new Map<string, ReturnType<typeof memo>>();
     const bagFor = (part: string): ReturnType<typeof memo> => {
@@ -292,14 +308,64 @@ export function defineComponent<
             resolveId,
           );
         }
-        /** The key a bag's reads make: the values of the fields it read. */
-        const readsKey = (reads: BagReads): string => {
+        /** The slot, as the scope hands it over: a recording proxy, so a
+         * field read inside the build is a dependency the key can see.
+         * A coercion (the slot as a string) and an iteration (the slot
+         * spread apart) take the slot whole, and the key counts every
+         * field then.
+         *
+         * One proxy per raw slot: a component keys its own caches by the
+         * slot (a row's handlers live in a WeakMap), and a fresh proxy per
+         * read would miss every time. */
+        const slotProxies = new WeakMap<object, object>();
+        const slotProxy = (raw: object): object => {
+          const found = slotProxies.get(raw);
+          if (found !== undefined) return found;
+          const made = new Proxy(raw, {
+            get: (target, key) => {
+              record(
+                "slot",
+                typeof key === "symbol" || key === "toString" || key === "valueOf" ? WHOLE : key,
+              );
+              return Reflect.get(target, key);
+            },
+            has: (target, key) => {
+              record("slot", typeof key === "symbol" ? WHOLE : key);
+              return Reflect.has(target, key);
+            },
+            ownKeys: (target) => {
+              record("slot", WHOLE);
+              return Reflect.ownKeys(target);
+            },
+          });
+          slotProxies.set(raw, made);
+          return made;
+        };
+        /** The recipe's argument, as the build sees it. A primitive has
+         * no field to name, so the whole value is the dependency. */
+        const argument = (rec: ReadRecorder, raw: unknown): unknown => {
+          if (raw === undefined) return undefined;
+          if (typeof raw !== "object" || raw === null) {
+            rec("slot", WHOLE);
+            return raw;
+          }
+          return slotProxy(raw);
+        };
+        /** The key a bag's reads make: the values of the fields it read.
+         * A primitive compares by its value, an object by its identity:
+         * a replaced array is a changed field even when its length is
+         * the same. */
+        const readsKey = (reads: BagReads, slot: unknown): string => {
           const ctx = ctxOf(service) as unknown as Record<string, unknown>;
           const props = readProps();
           const parts: string[] = [];
-          for (const field of reads.context) parts.push(`c:${field}=${String(ctx[field])}`);
-          for (const prop of reads.props) parts.push(`p:${prop}=${String(props[prop])}`);
-          return parts.join("|");
+          for (const field of reads.context) parts.push(`c:${field}=${valueKey(ctx[field])}`);
+          for (const prop of reads.props) parts.push(`p:${prop}=${valueKey(props[prop])}`);
+          if (reads.state) parts.push(`s=${valueKey(service.state)}`);
+          for (const field of reads.slot) {
+            parts.push(`l:${field}=${slotFieldKey(slot, field)}`);
+          }
+          return parts.join("\u0000");
         };
         function liveScope(extra: { readonly slot: unknown }): SlotScope<unknown, C>;
         function liveScope(): PartScope<unknown, C>;
@@ -315,7 +381,7 @@ export function defineComponent<
             },
             has: (_target, key: string) => key in readProps(),
           });
-          // Dynamic bag reads: sig/attrs key arbitrary context fields
+          // Dynamic bag reads: the attrs key arbitrary context fields
           // by string at render time. Untypeable by construction; the
           // values are typed at their binding-declared seams instead.
           // The lookup runs per read (not once at scope creation): a
@@ -334,6 +400,7 @@ export function defineComponent<
             },
             has: (_target, key: string) => key in live(),
           });
+          const raw = extra?.slot;
           const scope: Record<string, unknown> = {
             props,
             context,
@@ -342,10 +409,13 @@ export function defineComponent<
             measure: measurePart,
             send: dispatch,
             attr: dataAttr,
-            ...extra,
+            slot: typeof raw === "object" && raw !== null ? slotProxy(raw) : raw,
           };
           Object.defineProperty(scope, "state", {
-            get: () => service.state,
+            get: () => {
+              record("state", "");
+              return service.state;
+            },
             enumerable: true,
           });
           return scope as unknown as PartScope<unknown, C> | SlotScope<unknown, C>;
@@ -353,19 +423,19 @@ export function defineComponent<
         for (const [part, partDef] of Object.entries(def.parts)) {
           const method = `get${part[0]?.toUpperCase() ?? ""}${part.slice(1)}Props`;
           api[method] = (...callArgs: readonly unknown[]) => {
-            const scope = liveScope({ slot: callArgs[0] });
-            // The author's own signature, AND the key derived from the
-            // reads: a part that forgot to name a field can no longer
-            // go stale.
+            const raw = callArgs[0];
+            const scope = liveScope({ slot: raw });
+            // The key comes from the reads: a part that forgot to name a
+            // field it depends on can no longer go stale.
             const bag = bagFor(part);
             return bag(
-              (reads) => `${partDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,
+              (reads) => readsKey(reads, raw),
               (rec) => {
-                recording = rec;
+                recorders.push(rec);
                 try {
-                  return partDef.attrs(scope, callArgs[0]);
+                  return partDef.attrs(scope, argument(rec, raw));
                 } finally {
-                  recording = undefined;
+                  recorders.pop();
                 }
               },
             );
@@ -379,13 +449,13 @@ export function defineComponent<
             return keyed(
               slotMemos,
               slot,
-              (reads) => `${slotDef.sig(scope, callArgs[0])}|${readsKey(reads)}`,
+              (reads) => readsKey(reads, slot),
               (rec) => {
-                recording = rec;
+                recorders.push(rec);
                 try {
-                  return slotDef.attrs(scope, callArgs[0]);
+                  return slotDef.attrs(scope, argument(rec, callArgs[0]));
                 } finally {
-                  recording = undefined;
+                  recorders.pop();
                 }
               },
             );

@@ -181,7 +181,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
   },
   parts: {
     root: {
-      sig: (scope) => [scope.state, scope.context.interval].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-scope": "timer",
@@ -200,7 +199,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
       }),
     },
     area: {
-      sig: (scope) => [scope.state, scope.context.currentMs].join(" "),
       attrs: (scope) => {
         const t = timeOf(scope.context);
         const f = formatTime(t);
@@ -217,11 +215,10 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
       },
     },
     // The bar's fill: the progress is the machine's geometry, so it rides
-    // the bag's style object — the markup names no property. The state is
-    // in the sig because the bag carries it: a part that reads a field
-    // the sig does not name goes stale.
+    // the bag's style object — the markup names no property. The bag
+    // rebuilds when the fields it read move, so the state it carries
+    // cannot go stale.
     progress: {
-      sig: (scope) => [scope.state, progressOf(scope.context).toFixed(3)].join("|"),
       attrs: (scope) => ({
         id: scope.id("progress"),
         "data-scope": "timer",
@@ -231,7 +228,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
       }),
     },
     control: {
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
         "data-scope": "timer",
@@ -244,10 +240,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
     item: {
       indexes: (context) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerUnit>) => {
-        const unit = scope.slot;
-        return [scope.state, timeOf(scope.context)[unit.type]].join(" ");
-      },
       attrs: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         const value = timeOf(scope.context)[unit];
@@ -270,10 +262,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
       id: "item-value",
       indexes: (context) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerUnit>) => {
-        const unit = scope.slot.type;
-        return [scope.state, formatTime(timeOf(scope.context))[unit]].join(" ");
-      },
       attrs: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         return {
@@ -289,7 +277,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
       id: "item-label",
       indexes: (context) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerUnit>) => `${scope.slot.type}`,
       attrs: (scope: SlotLike<TimerUnit>) => {
         const unit = scope.slot.type;
         return {
@@ -304,10 +291,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
     separator: {
       indexes: (context: TimerContext) =>
         showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS,
-      sig: (scope: SlotLike<TimerSeparator>) => {
-        const after = separatorAfter(scope.slot);
-        return `${after === "days" && timeOf(scope.context).days === 0}`;
-      },
       attrs: (scope: SlotLike<TimerSeparator>) => {
         const slot = scope.slot;
         const after = separatorAfter(scope.slot);
@@ -325,10 +308,6 @@ const def: ComponentDef<TimerContext, TimerEvents> = {
     actionTrigger: {
       id: "action-trigger",
       indexes: () => ACTIONS,
-      sig: (scope: SlotLike<TimerActionTrigger>) => {
-        const action = actionOf(scope.slot);
-        return [scope.state, action].join(" ");
-      },
       attrs: (scope: SlotLike<TimerActionTrigger>) => {
         const action = actionOf(scope.slot);
         if (VALID_ACTIONS[action] !== true) {

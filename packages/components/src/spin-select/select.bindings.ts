@@ -289,7 +289,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
 
   parts: {
     root: {
-      sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
       attrs: (scope) => {
         const open = scope.state === "open";
         return {
@@ -308,7 +307,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       },
     },
     label: {
-      sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
           "data-scope": "select",
@@ -320,7 +318,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       }),
     },
     control: {
-      sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("control"),
           "data-scope": "select",
@@ -331,10 +328,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       }),
     },
     trigger: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [scope.state, ctx.value.length, scope.props["disabled"], scope.props["readOnly"]].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const open = scope.state === "open";
@@ -365,7 +358,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       },
     },
     triggerIndicator: {
-      sig: (scope) => [scope.state, scope.props["disabled"]].join(" "),
       attrs: (scope) => ({
         "aria-hidden": true,
         "data-state": scope.state === "open" ? "open" : "closed",
@@ -373,10 +365,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       }),
     },
     clearTrigger: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [`${ctx.value.length > 0}`, scope.props["clearTriggerLabel"], scope.props["disabled"]].join(" ");
-      },
       attrs: (scope) => {
         const has = scope.context.value.length > 0;
         return {
@@ -397,7 +385,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
     },
     valueText: {
       id: "value-text",
-      sig: (scope) => [selectLabel(scope.context)].join(" "),
       attrs: (scope) => ({
         id: scope.id("valueText"),
           "data-scope": "select",
@@ -406,7 +393,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       }),
     },
     positioner: {
-      sig: (scope) => [scope.state, scope.props["placement"]].join(" "),
       attrs: (scope) => {
         const open = scope.state === "open";
         return {
@@ -421,10 +407,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       },
     },
     content: {
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [scope.state, scope.props["disabled"], ctx.highlightedValue, rowsOf(scope.props).length].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         const open = scope.state === "open";
@@ -485,7 +467,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
       },
     },
     list: {
-      sig: (scope) => [scope.state, scope.props["dir"]].join(" "),
       attrs: (scope) => ({
         id: scope.id("list"),
           "data-scope": "select",
@@ -497,10 +478,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
     },
     hiddenSelect: {
       id: "hidden",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [ctx.value.join(","), rowsOf(scope.props).map((row) => row.value).join(","), scope.props["multiple"]].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -539,10 +516,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
     item: {
       id: "item",
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope: SlotLike<SelectRow>) => {
-        const state = itemStateOf(scope, scope.slot);
-        return [state.selected, state.highlighted, state.disabled].join(" ");
-      },
       attrs: (scope: SlotLike<SelectRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -563,10 +536,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
     },
     itemText: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope: SlotLike<SelectRow>) => {
-        const state = itemStateOf(scope, scope.slot);
-        return [state.selected, state.highlighted].join(" ");
-      },
       attrs: (scope: SlotLike<SelectRow>) => {
         const state = itemStateOf(scope, scope.slot);
         const row = scope.slot;
@@ -581,7 +550,6 @@ const def: ComponentDef<SelectContext, SelectEvents> = {
     },
     itemIndicator: {
       indexes: (_context, props) => rowsOf(props),
-      sig: (scope: SlotLike<SelectRow>) => `${itemStateOf(scope, scope.slot).selected}`,
       attrs: (scope: SlotLike<SelectRow>) => {
         const selected = itemStateOf(scope, scope.slot).selected;
         return {

@@ -4,6 +4,7 @@ import { signal } from "@spin/runtime";
 import { tour } from "./tour.bindings.ts";
 const createTourBridge = tour.createBridge;
 import type { TourApi } from "./tour.bindings.ts";
+import { tour as tourMachine } from "./tour.machine.ts";
 import type { TourStepRecord } from "./tour.machine.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
@@ -149,4 +150,16 @@ Deno.test("Given an authored step / When it changes / Then the machine alternate
   cell(0);
   assertEquals(h.api.step, 0, "the host's write alternates the step");
   h.dispose();
+});
+
+Deno.test("Given a resolving step / When the view reports the target's box / Then the machine holds the spotlight", () => {
+  const machine = tourMachine({ steps: JSON.stringify(STEPS) }, () => true);
+  const resolving = machine.transition(machine.initialState, { type: "START" });
+  const measured = machine.transition(resolving, { type: "SPOTLIGHT.SET", x: 10, y: 20, w: 30, h: 40 });
+  assertEquals(measured.value, "resolving", "the step keeps resolving");
+  assertEquals(
+    measured.context.spotlight,
+    { x: 10, y: 20, w: 30, h: 40 },
+    "the machine holds the target's box",
+  );
 });

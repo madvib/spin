@@ -397,7 +397,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
   },
   parts: {
     trigger: {
-      sig: (scope) => [scope.state, scope.props["composite"], scope.props["submenu"]].join(" "),
       attrs: (scope: ScopeLike) => {
         const open = scope.state === "open";
         return {
@@ -422,14 +421,12 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
       },
     },
     triggerIndicator: {
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope: ScopeLike) => ({
         "aria-hidden": true,
         "data-state": scope.state === "open" ? "open" : "closed",
       }),
     },
     contextTrigger: {
-      sig: (scope: ScopeLike) => [`${scope.props["submenu"] === true}`].join(" "),
       attrs: (scope: ScopeLike) => ({
         hidden: scope.props["submenu"] === true,
         onContextMenu: (event: MouseEvent): void => {
@@ -447,7 +444,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
       }),
     },
     positioner: {
-      sig: (scope) => [scope.state].join(" "),
       attrs: (scope: ScopeLike) => ({
         id: scope.id("positioner"),
         "data-scope": "menu",
@@ -460,13 +456,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
       }),
     },
     content: {
-      sig: (scope: ScopeLike) => [
-        scope.state,
-        scope.context.highlightedValue,
-        scope.props["composite"],
-        scope.props["submenu"],
-        scope.context.entries.length,
-      ].join(" "),
       attrs: (scope: ScopeLike) => {
         const highlightedValue = scope.context.highlightedValue;
         return {
@@ -505,7 +494,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
   slots: {
     itemGroup: {
       indexes: (context) => blocksOf(context.entries),
-      sig: (scope: SlotLike<MenuBlock>) => `${scope.slot.label}`,
       attrs: (scope: SlotLike<MenuBlock>) => {
         const block = scope.slot;
         return {
@@ -519,7 +507,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     },
     itemGroupLabel: {
       indexes: (context) => blocksOf(context.entries),
-      sig: (scope: SlotLike<MenuBlock>) => `${scope.slot.label}`,
       attrs: (scope: SlotLike<MenuBlock>) => {
         const block = scope.slot;
         return {
@@ -532,15 +519,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     },
     item: {
       indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
-      sig: (scope: SlotLike<MenuRow>) => {
-        const row = scope.slot;
-        return [
-          scope.context.highlightedValue,
-          scope.context.openSubmenu,
-          row.children.length > 0,
-          scope.props["composite"],
-        ].join("");
-      },
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         const ctx = scope.context;
@@ -573,12 +551,10 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     },
     itemText: {
       indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
-      sig: () => "text",
       attrs: () => ({}),
     },
     itemIndicator: {
       indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
-      sig: (scope: SlotLike<MenuRow>) => `${scope.slot.checked}`,
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
@@ -589,17 +565,12 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     },
     itemShortcut: {
       indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
-      sig: (scope: SlotLike<MenuRow>) => `${scope.slot.shortcut.length === 0}`,
       attrs: (scope: SlotLike<MenuRow>) => ({
         hidden: scope.slot.shortcut.length === 0,
       }),
     },
     itemSubmenuIndicator: {
       indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
-      sig: (scope: SlotLike<MenuRow>) => {
-        const row = scope.slot;
-        return `${scope.context.openSubmenu === row.value}${row.children.length === 0}`;
-      },
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
@@ -614,7 +585,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     },
     separator: {
       indexes: (context) => blocksOf(context.entries),
-      sig: (scope: SlotLike<MenuBlock>) => `${scope.slot.separator}`,
       attrs: (scope: SlotLike<MenuBlock>) => ({
         role: "separator",
         "aria-orientation": "horizontal",
@@ -626,10 +596,6 @@ const def: ComponentDef<MenuContext, MenuEvents> = {
     // Transport coerces the JSON string; the machine shapes on receipt.
     submenu: {
       indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
-      sig: (scope: SlotLike<MenuRow>) => {
-        const row = scope.slot;
-        return `${scope.context.openSubmenu}`;
-      },
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {

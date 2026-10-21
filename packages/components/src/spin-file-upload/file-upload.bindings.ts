@@ -136,7 +136,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
   machine: (props, authored) => fileUploadMachine(props as FileUploadArgs, authored),
   parts: {
     root: {
-      sig: (scope) => [`${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id(""),
         "data-disabled": dataAttr(scope.props["disabled"] === true),
@@ -144,13 +143,11 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
       }),
     },
     label: {
-      sig: (scope) => [`${scope.props["label"]}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("label"),
       }),
     },
     dropzone: {
-      sig: (scope) => [scope.state, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => {
         const focused = scope.state === "focused";
         const dragging = scope.state === "dragging";
@@ -186,10 +183,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
     },
     hiddenInput: {
       id: "hidden-input",
-      sig: (scope) => {
-        const ctx = scope.context;
-        return [`${ctx.multiple}`, ctx.accept, `${scope.props["disabled"] === true}`].join(" ");
-      },
       attrs: (scope) => {
         const ctx = scope.context;
         return {
@@ -210,7 +203,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
     },
     itemGroup: {
       id: "items",
-      sig: (scope) => scope.context.acceptedFiles.map((file) => file.name).join(","),
       attrs: (scope) => ({
         id: scope.id("itemGroup"),
         role: "list",
@@ -218,7 +210,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
     },
     clearTrigger: {
       id: "clear",
-      sig: (scope) => [`${scope.context.acceptedFiles.length}`, `${scope.props["disabled"] === true}`].join(" "),
       attrs: (scope) => ({
         id: scope.id("clearTrigger"),
         "aria-label": "Clear",
@@ -231,7 +222,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
     item: {
       indexes: (context: FileUploadContext) =>
         context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
-      sig: (scope: SlotLike<FileRow>) => `${scope.slot.value}`,
       attrs: (scope: SlotLike<FileRow>) => {
         const row = scope.slot;
         return {
@@ -244,7 +234,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
       id: "name",
       indexes: (context: FileUploadContext) =>
         context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
-      sig: (scope: SlotLike<FileRow>) => `${scope.slot.value}`,
       attrs: (scope: SlotLike<FileRow>) => {
         const row = scope.slot;
         return {
@@ -256,7 +245,6 @@ const def: ComponentDef<FileUploadContext, FileUploadEvents> = {
       id: "delete",
       indexes: (context: FileUploadContext) =>
         context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
-      sig: (scope: SlotLike<FileRow>) => `${scope.slot.value} ${scope.props["disabled"] === true}`,
       attrs: (scope: SlotLike<FileRow>) => {
         const row = scope.slot;
         return {
