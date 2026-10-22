@@ -1,5 +1,6 @@
 /**
- * The bar along the top of the window: the controls.
+ * The bar along the top of the window: the controls, and the state they act
+ * on.
  *
  * The chrome used to be a rail and a bottom bar, and the bottom bar carried
  * everything at once — the state of the file, the checks on it, the pickers
@@ -9,16 +10,24 @@
  * different jobs, and a job that shares a row with another job is a job
  * nobody can find.
  *
- * So the jobs are split by what they are. The TOP bar carries the CONTROLS:
- * the theme picker, the mode control, and the three verbs that change the
- * document. The BOTTOM bar carries the STATE, and nothing else. A control is
- * something the reader presses; a state is something the reader reads, and
- * the reader's eye goes to different places for each.
+ * So the jobs are split by what they are, and then the state is brought UP.
+ * The bar carries the CONTROLS — the theme picker, the mode control, and
+ * the three verbs that change the document — and the STATE sits in the
+ * middle of it, between the swatch that says what is being edited and the
+ * verbs that change it. A control is something the reader presses; a state
+ * is something the reader reads, and the reader's hand and eye are already
+ * at the top of the window.
+ *
+ * The state is CENTRED, and not merely left in the middle: it is the bar's
+ * subject, and a sentence pinned to one end of a row of buttons reads as a
+ * caption on the buttons rather than as what the buttons are for. So the
+ * bar is in quarters — the pickers, the state, the verbs — with the state
+ * holding the middle half. The halves are equal, so the state is centred in
+ * the BAR and not in whatever room the controls happen to leave.
  *
  * The bar is SLIM: one row, the height of a control. A bar that grew to
  * carry a heading would be a banner, and a banner is a thing that tells you
- * what the page is — which the bar along the bottom already says, in the
- * words of the studio itself.
+ * what the page is.
  *
  * The verbs are three compact icon buttons with AIR between them. Undo, redo
  * and save are three different actions, and a row of three identical glyph
@@ -32,7 +41,9 @@
 
 import { Show } from "solid-js";
 import {
+  activeMode,
   activeName,
+  activeTokenCount,
   canRedo,
   canUndo,
   divergedFromDisk,
@@ -46,6 +57,7 @@ import {
   undo,
 } from "../lib/store.ts";
 import { problemText } from "../lib/themes.ts";
+import { stateLabel } from "../lib/theme.ts";
 import { inDrawer } from "../lib/host.ts";
 import { ModePicker, ThemePicker } from "./Settings.tsx";
 
@@ -81,6 +93,26 @@ const ICON_BUTTON =
  */
 const VERBS = "flex items-center gap-3";
 
+/**
+ * What is true about the file, in the studio's words.
+ *
+ * Two facts can hold at once: the editor holds edits the file does not
+ * ("unsaved changes"), and the file holds something the studio did not
+ * write ("changed on disk"). The second is the one that bites — the save
+ * that would overwrite it is refused — so it is said even when the first is
+ * true as well.
+ */
+function fileStateText(
+  dirty: boolean,
+  diverged: boolean,
+): string {
+  const parts: string[] = [];
+  if (dirty) parts.push(stateLabel("unsaved"));
+  if (diverged) parts.push(stateLabel("changed"));
+  if (parts.length === 0) parts.push(stateLabel("saved"));
+  return parts.join(" · ");
+}
+
 export default function TopBar() {
   /** The theme being edited. */
   const theme = () => activeName();
@@ -92,9 +124,9 @@ export default function TopBar() {
   /**
    * Takes the file's word for it.
    *
-   * The same verb the state line carries, on the theme being edited: the
-   * file's text moves into the editor, and the edits that were never
-   * written go with it.
+   * The same verb the state carries, on the theme being edited: the file's
+   * text moves into the editor, and the edits that were never written go
+   * with it.
    */
   async function reload(): Promise<void> {
     const name = theme();
@@ -132,18 +164,64 @@ export default function TopBar() {
           What the studio is showing: the theme under edit and the mode it
           is shown in. Both are a glyph-sized control that opens a panel
           floating over the content, so neither takes the bar's room.
+
+          The left quarter: the bar is in quarters, and this is the first
+          one.
         */
       }
-      <ThemePicker />
-      <ModePicker />
+      <div class="flex flex-1 items-center gap-2">
+        <ThemePicker />
+        <ModePicker />
+      </div>
+
+      {
+        /*
+          The state of the document, in the middle of the bar: what is being
+          edited, in which mode, how big it is, and whether the file agrees.
+
+          Each fact is its own nowrap run, so the line can break BETWEEN
+          them and never inside one — "Editing" and the theme's name are one
+          run, because a line that broke between them would leave the
+          studio saying it was editing nothing. The line is TRUNCATED rather
+          than wrapped: a bar is one line at every width, and a state that
+          wrapped would push the controls off the end of the row. The theme's
+          name comes first, so a narrow bar gives way at the end of the
+          sentence and keeps saying what is being edited.
+
+          It takes HALF the bar, and the controls a quarter each — and that
+          is what keeps it centred: the state is the bar's subject, and a
+          subject squeezed into a third of the row is a caption. The two
+          quarters are equal, so the middle half is centred in the BAR and
+          not in whatever room the controls happen to leave.
+        */
+      }
+      <div
+        aria-label="Editing"
+        class="flex min-w-0 flex-[2_2_0%] items-center justify-center"
+      >
+        <p class="min-w-0 truncate text-center text-sm text-text-muted">
+          <span class="whitespace-nowrap">
+            Editing <strong class="text-text">{theme()}</strong>
+          </span>
+          {" · "}
+          <span class="whitespace-nowrap">{activeMode()}</span>
+          {" · "}
+          <span class="whitespace-nowrap">{activeTokenCount()} tokens</span>
+          {" · "}
+          <span class="whitespace-nowrap">
+            {fileStateText(dirty(), diverged())}
+          </span>
+        </p>
+      </div>
 
       {
         /*
           The verbs, at the far end of the bar: what the reader can DO with
-          the document, held apart from what the document IS.
+          the document, held apart from what the document IS. The last
+          quarter, and the one that ends the row.
         */
       }
-      <div class="ms-auto flex items-center gap-3">
+      <div class="flex flex-1 items-center justify-end gap-3">
         {
           /*
             The action that answers the state, and only that one: re-reading
@@ -224,8 +302,8 @@ export default function TopBar() {
             /*
               The save says what it does. A theme that is written says
               "Saved" and offers nothing; a theme with edits in it says
-              "Save to disk", and the title says what will happen when it
-              is pressed — or why it cannot be.
+              "Save to disk", and the title says what will happen when it is
+              pressed — or why it cannot be.
             */
           }
           <button

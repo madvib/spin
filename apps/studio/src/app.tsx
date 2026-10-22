@@ -7,18 +7,23 @@
  * theme therefore cannot restyle the tool you are editing it with, which is
  * what makes a broken theme recoverable.
  *
- * The chrome is four pieces and each of them has one job. The rail on the
- * edge is navigation: the mark that goes home, the concerns the project
- * is filed by, and the studio's own verbs at its foot. The bar along the
- * top of the work is the controls: the theme picker, the mode control, and
- * the verbs that change the document. The column is the work: the preview
- * of the document being edited. The bar along the bottom is the state: what
- * is being edited, what is true about the file, and the checks on it.
+ * The chrome is three pieces and each of them has one job. The rail on the
+ * edge is navigation: the mark that goes home, the concerns the project is
+ * filed by, and the studio's own verbs at its foot — where the checks on
+ * the document live too, because a check is a verdict and a verdict is
+ * something the reader looks for, not something the reader reads. The bar
+ * along the top of the work is the controls: the theme picker, the mode
+ * control, the verbs that change the document, and — in the middle of the
+ * row — the state of what is being edited. The column is the work: the
+ * preview of the document being edited.
  *
- * A control and a state are different things, and they are read from
- * different places: the reader's hand goes to the top of the window and
- * their eye to the bottom of it. So the top bar is a row of buttons and the
- * bottom bar is a sentence.
+ * There is no bar along the bottom. There used to be one, and it carried the
+ * state and the checks together; a strip of furniture at the foot of the
+ * window is a place the eye stops on the way to nothing, and everything it
+ * carried has somewhere better to be. The state is a sentence, and a
+ * sentence in the middle of the bar of controls is where the reader is
+ * already looking. The checks are a count, and a count belongs on the thing
+ * it counts.
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
@@ -40,7 +45,7 @@ import { For, Show, Suspense } from "solid-js";
 import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
-import StatusBar from "./components/StatusBar.tsx";
+import Checks from "./components/Checks.tsx";
 import StudioError from "./components/StudioError.tsx";
 import TopBar from "./components/TopBar.tsx";
 import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
@@ -124,6 +129,35 @@ function childPage(path: string, child: string): Component {
 }
 
 /**
+ * A row in the rail.
+ *
+ * The same box for every row: the width of the column and taller than the
+ * glyph, so the hit area is generous without the column growing to carry
+ * it. The chip the pointer paints is on the row, not on the glyph, so a
+ * hovered row reads as a control rather than as a lit icon.
+ */
+const ROW =
+  "peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface";
+
+/**
+ * The ink of a row, by what the row is.
+ *
+ * The row you are ON is the ACTING colour — the primary, which is what the
+ * studio acts with — and every other row is the page's own ink until the
+ * pointer arrives, when it takes the accent.
+ *
+ * The accent and not the primary, and that is the whole reason: the primary
+ * is spin's brand red, and the studio's chrome wears the studio's own
+ * theme. A rail that turned red under the pointer would be pointing at the
+ * wrong thing — and the row you are on would be the same red as the row the
+ * pointer is on, which is the one thing the reader must be able to tell
+ * apart. The accent is the other family: it says "the pointer is here"
+ * without claiming to be the selection.
+ */
+const INK_CURRENT = "bg-surface-sunken text-primary font-semibold";
+const INK_RESTING = "text-text hover:text-accent";
+
+/**
  * The name of a rail row, as a tip that opens BESIDE the row.
  *
  * A native `title` is what every icon control in the studio carries, and it
@@ -177,14 +211,12 @@ export default function App() {
             // and never changes, so a themed host that stays quiet inherits
             // the document root's ink instead of its own.
             class="flex flex-col bg-surface text-text"
-            // A column, not a row: the bar along the bottom is the width of
-            // the window, so the rail and the work sit above it in a row of
-            // their own. Modal: the shell is exactly one viewport and clips,
-            // so the DOCUMENT never scrolls and the sticky rail has no
-            // reason to move. Drawer: the shell grows with the page and the
-            // host's frame scrolls it, which is the only scroll that works
-            // there — a `h-screen` shell would pin the rail to a box the
-            // document drags away.
+            // Modal: the shell is exactly one viewport and clips, so the
+            // DOCUMENT never scrolls and the sticky rail has no reason to
+            // move. Drawer: the shell grows with the page and the host's
+            // frame scrolls it, which is the only scroll that works there —
+            // a `h-screen` shell would pin the rail to a box the document
+            // drags away.
             classList={{
               "h-screen overflow-hidden": !inDrawer(),
               "min-h-full": inDrawer(),
@@ -277,7 +309,9 @@ export default function App() {
                     // the root path matches every path, and the mark would read as
                     // current on every page.
                     end
-                    class="peer mb-2 flex h-10 w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
+                    class="peer mb-2 flex h-10 w-full shrink-0 items-center justify-center rounded-md hover:bg-surface"
+                    activeClass={INK_CURRENT}
+                    inactiveClass={INK_RESTING}
                     title={MARK.label}
                     aria-label={MARK.label}
                   >
@@ -290,9 +324,9 @@ export default function App() {
                         <li class="m-0 w-full">
                           <A
                             href={hostPath(route.path)}
-                            activeClass="bg-surface-sunken text-text font-semibold"
-                            inactiveClass="text-text"
-                            class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
+                            activeClass={INK_CURRENT}
+                            inactiveClass={INK_RESTING}
+                            class={ROW}
                             title={route.label}
                             aria-label={route.label}
                           >
@@ -319,23 +353,30 @@ export default function App() {
                   studio's own verbs belong at the edge of the tool, away from
                   the document's navigation.
 
+                  The CHECKS are at the top of it, above the verbs: a check is
+                  a verdict on the document, and a verdict is a state rather
+                  than a verb — it is what the studio says about the work, and
+                  it belongs where the eye already is when the author asks
+                  "is anything wrong?".
+
                   The two host verbs are BUTTONS, and a button is the one
                   control the theme paints: bare is the opt-out, and the
                   hover chip it cannot carry is on the row around it, so the
-                  foot's three rows read as one family.
+                  foot's rows read as one family.
                   */
                   }
                   <div class="mt-auto w-full">
                     <hr class="w-full" />
                     <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
+                      <Checks tip={<RailTip label="Checks" />} />
                       <For each={FOOT}>
                         {(route) => (
                           <li class="m-0 w-full">
                             <A
                               href={hostPath(route.path)}
-                              activeClass="bg-surface-sunken text-text font-semibold"
-                              inactiveClass="text-text"
-                              class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
+                              activeClass={INK_CURRENT}
+                              inactiveClass={INK_RESTING}
+                              class={ROW}
                               title={route.label}
                               aria-label={route.label}
                             >
@@ -352,7 +393,7 @@ export default function App() {
                         <li class="m-0 w-full rounded-md hover:bg-surface">
                           <button
                             type="button"
-                            class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-text"
+                            class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-accent"
                             aria-label={inDrawer() ? "Modal" : "Drawer"}
                             title={inDrawer() ? "Modal" : "Drawer"}
                             onClick={toggleHostMode}
@@ -367,7 +408,7 @@ export default function App() {
                         <li class="m-0 w-full rounded-md hover:bg-surface">
                           <button
                             type="button"
-                            class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-text"
+                            class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-accent"
                             aria-label="Close"
                             title="Close"
                             onClick={closeStudio}
@@ -470,13 +511,6 @@ export default function App() {
                   </main>
                 </div>
               </div>
-              {
-                /* The bar along the bottom: the state of the document being
-                edited and the checks on it — and nothing else. It is chrome,
-                so it wears the studio's own theme — the control that saves
-                a theme must not be restyled by the theme it is saving. */
-              }
-              <StatusBar />
             </StudioError>
           </div>
         </MetaProvider>
