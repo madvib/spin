@@ -16,21 +16,43 @@ export function bindText(node: Text, get: () => unknown): void {
   });
 }
 
-/** The class a markup's class object holds: the keys whose value is
- * truthy, in the source's order. A key may name several utilities — the
- * classes that belong together.
+/** The class a markup's class attribute holds.
  *
- * The keys are static strings, so the utilities are the build's to see;
- * the values are live reads, so the class follows the state.
+ * The attribute takes the shape the markup reads best: a list of parts,
+ * where a part is a string of classes or an object of conditions.
+ *
+ *     class={["mb-4 text-sm text-muted", { "text-primary": focused }]}
+ *
+ * A string is the classes themselves — plain text, so the build's
+ * extractor sees them as they are. An object's keys are the classes and
+ * its values the conditions; a key whose value is truthy is in.
+ *
+ * The values are live reads, so the class follows the state.
  */
-export function classOf(classes: Record<string, unknown>): string {
+export function classOf(classes: unknown): string {
   const out: string[] = [];
-  for (const [name, value] of Object.entries(classes)) {
-    if (!value) continue;
-    for (const token of name.split(/\s+/)) {
+  const push = (text: string): void => {
+    for (const token of text.split(/\s+/)) {
       if (token.length > 0) out.push(token);
     }
-  }
+  };
+  const part = (value: unknown): void => {
+    if (typeof value === "string") {
+      push(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) part(item);
+      return;
+    }
+    if (value !== null && typeof value === "object") {
+      for (const [name, condition] of Object.entries(value)) {
+        if (!condition) continue;
+        push(name);
+      }
+    }
+  };
+  part(classes);
   return out.join(" ");
 }
 

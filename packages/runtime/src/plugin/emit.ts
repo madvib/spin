@@ -166,10 +166,9 @@ export function emit(ir: ComponentIr): EmitOutput {
           out.push(`${pad(iDepth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
         } else {
           bindings++;
-          // A class attribute takes an OBJECT: its keys are the utilities
-          // (static, so the build sees them) and its values are live reads
-          // (so the class follows the state). The merge is ours.
-          const merge = attr.name === "class" && /^\s*\{/.test(attr.value.expr)
+          // A class attribute takes a LIST: the classes are the strings,
+          // the conditions are the objects' keys. The merge is ours.
+          const merge = attr.name === "class" && /^\s*[\[{]/.test(attr.value.expr)
             ? "classOf("
             : "";
           const close = merge === "" ? "" : ")";

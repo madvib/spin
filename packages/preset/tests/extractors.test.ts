@@ -53,10 +53,17 @@ function extractClasses(code: string): string[] {
 
 Deno.test("classObjectExtractor emits the keys of a class object", () => {
   const tokens = extractClasses(
-    `<div class={{ "bg-surface": true, "bg-primary": slider.state === "open" }}></div>`,
+    `<div class={["bg-surface", { "bg-primary": slider.state === "open" }]}></div>`,
   );
-  assert(tokens.includes("bg-surface"), "the first key must be emitted");
-  assert(tokens.includes("bg-primary"), "the second key must be emitted");
+  assert(tokens.includes("bg-primary"), "the object's key must be emitted");
+});
+
+Deno.test("classObjectExtractor leaves a value's string alone", () => {
+  const tokens = extractClasses(
+    `<div class={[{ "bg-primary": a ? "p-1" : "p-2" }]}></div>`,
+  );
+  assert(!tokens.includes("p-1"), "a ternary's arm is a value, not a class");
+  assert(!tokens.includes("p-2"), "a ternary's arm is a value, not a class");
 });
 
 Deno.test("classObjectExtractor leaves a static class attribute alone", () => {

@@ -1,15 +1,15 @@
 import type { Extractor } from "@unocss/core";
 
 /**
- * The keys of a class object as tokens.
+ * The classes a markup's class attribute names.
  *
- * A class attribute may hold an OBJECT: its keys are the utilities and
- * its values are live reads, so the class follows the state —
- * `class={{ "bg-primary": slider.state === "open" }}`. The keys are
- * static strings in the source, so the build must see them: uno's
- * default extractor reads the attribute's VALUE (an object literal, not
- * a class list) and finds nothing, and a utility nobody extracts has no
- * rule and cannot apply.
+ * A class attribute may hold a LIST: the classes themselves as a string,
+ * and the conditions as an object — `class={["mb-4 text-sm", { "text-primary":
+ * focused }]}`. The strings are plain text and uno's own extractor reads
+ * them; the object's KEYS are utilities, and uno's extractor reads the
+ * attribute's VALUE (an object literal, not a class list) and finds
+ * nothing there — a utility nobody extracts has no rule and cannot
+ * apply.
  *
  * This extractor reads the keys out of the object form, so the utilities
  * in it are the build's to generate — the same reason the element and
@@ -20,12 +20,8 @@ export const classObjectExtractor: Extractor = {
   order: 0,
   extract({ code }) {
     const out: string[] = [];
-    for (const match of code.matchAll(/class=\{\{([\s\S]*?)\}\}/g)) {
-      for (const key of (match[1] ?? "").matchAll(/"([^"]+)"|'([^']+)'/g)) {
-        const name = key[1] ?? key[2];
-        if (name === undefined) continue;
-        // A key may name several utilities: the classes that belong
-        // together.
+    for (const body of classAttributes(code)) {
+      for (const name of objectKeysOf(body)) {
         for (const token of name.split(/\s+/)) {
           if (token.length > 0) out.push(token);
         }
@@ -34,6 +30,83 @@ export const classObjectExtractor: Extractor = {
     return out;
   },
 };
+
+/** The value of every class attribute, braces balanced: a class
+ * attribute's value may hold an object, which has braces of its own. */
+function classAttributes(code: string): string[] {
+  const out: string[] = [];
+  const pattern = /class=\{/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(code)) !== null) {
+    const open = match.index + match[0].length;
+    let depth = 1;
+    let i = open;
+    for (; i < code.length; i++) {
+      const ch = code[i];
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (depth !== 0) continue;
+    out.push(code.slice(open, i));
+    pattern.lastIndex = i;
+  }
+  return out;
+}
+
+/** The keys of the objects in a class attribute's value: the classes the
+ * conditions guard. A string in a VALUE is not a class — a ternary's
+ * arms are values — so only the keys count. */
+function objectKeysOf(body: string): string[] {
+  const out: string[] = [];
+  let i = 0;
+  while (i < body.length) {
+    if (body[i] !== "{") {
+      i++;
+      continue;
+    }
+    // The object literal's own extent.
+    let depth = 0;
+    let j = i;
+    for (; j < body.length; j++) {
+      if (body[j] === "{") depth++;
+      else if (body[j] === "}") {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (depth !== 0) break;
+    for (const entry of splitEntries(body.slice(i + 1, j))) {
+      const colon = entry.indexOf(":");
+      if (colon < 0) continue;
+      const key = entry.slice(0, colon).trim();
+      const name = /^"([^"]*)"$|^'([^']*)'$/.exec(key);
+      if (name !== null) out.push(name[1] ?? name[2] ?? "");
+    }
+    i = j + 1;
+  }
+  return out.filter((name) => name.length > 0);
+}
+
+/** The entries of an object literal, at its top level. */
+function splitEntries(body: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i <= body.length; i++) {
+    const ch = body[i];
+    if (ch === "{" || ch === "[" || ch === "(") depth++;
+    else if (ch === "}" || ch === "]" || ch === ")") depth--;
+    else if ((ch === "," && depth === 0) || i === body.length) {
+      const entry = body.slice(start, i).trim();
+      if (entry.length > 0) out.push(entry);
+      start = i + 1;
+    }
+  }
+  return out;
+}
 
 /**
  * Element names as tokens.

@@ -1,7 +1,7 @@
 <scope>props={ defaultValue: string = "[50]" } consume={ slider }</scope>
 
 <div class="mx-auto w-full max-w-md" {...slider.getRootProps()}>
-  <div class={{ "mb-4 text-sm text-muted": true, "text-primary": slider.state === "focus" }} {...slider.getValueTextProps()}>{slider.valueText}</div>
+  <div class={["mb-4 text-sm text-muted", { "text-primary": slider.state === "focus" }]} {...slider.getValueTextProps()}>{slider.valueText}</div>
   <div
     class="relative flex h-4 w-full touch-none items-center select-none"
     {...slider.getControlProps()}
