@@ -14,6 +14,7 @@ One entry point. It is Solid-based, and the JSX it ships is Solid's.
                   starterList · modesFor · StarterName
   components      ThemePicker
   the mark        Mark · Logo · LogoSize · LogoSpec · logoSpec
+                  Web · WebGlyph
 ```
 
 ## The theme state
@@ -50,17 +51,36 @@ whole assembly swinging as one damped pendulum. Hover wakes it and the spider
 climbs; `prefers-reduced-motion` skips the animation whole and leaves the
 drawing finished and still. The class decides the box and the ink.
 
-`Logo` is the corner mark: the same creature at the size a corner mark actually
-appears — a filled silhouette in one ink, so it wears any surface, with spin's
-hourglass cut out of the abdomen. It comes in three sizes, which are the theme's
-own spacing steps: `sm` (a rail, twenty pixels), `md` (a header, thirty-two) and
-`lg` (a page, forty-eight). One drawing serves all three; the mark is scaled,
-never redrawn.
+`Logo` is the corner mark: the web, at the size a corner mark actually appears.
+It is one filled path, in one ink that it inherits, so it wears any surface. It
+comes in three sizes, which are the theme's own spacing steps: `sm` (a rail,
+twenty pixels), `md` (a header, thirty-two) and `lg` (a page, forty-eight). One
+drawing serves all three; the mark is scaled, never redrawn.
 
 The corner mark is drawn, not stroked, on purpose. A hairline that suits a hero
 is a grey smudge at sixteen pixels, and the wordmark beside it is type — the
 theme's brand face — because a wordmark drawn as thread turns to mush at the
 size a corner mark appears.
+
+`Web` is that mark on its own: the heavy web the owner chose, for the places a
+mark appears without the word beside it — the studio's rail, the site's icon.
+`WebGlyph` is the same drawing at a favicon's size: the heavy web needs no
+second version, because one filled path holds its edge at sixteen pixels.
+
+## Attribution
+
+The mark is not ours. It is the **Spider web** icon of the **Game Icons** set,
+made by **Lorc**, and it is used here under the **Creative Commons Attribution
+3.0 Unported (CC BY 3.0)** licence.
+
+- Author: Lorc — <http://lorcblog.blogspot.com>
+- Collection: Game Icons, by Delapouite — <https://game-icons.net/>
+- The icon: Spider web — <https://game-icons.net/1x1/lorc/spider-web.html>
+- Licence: CC BY 3.0 — <https://creativecommons.org/licenses/by/3.0/>
+
+The licence asks a derivative work to say who made the icon, so the credit
+travels with the mark: this README, the npm package it ships in, and the
+documentation site.
 
 ## Notes
 

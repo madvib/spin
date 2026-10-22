@@ -8,29 +8,24 @@
  * navigation, and a status line that sits above the work is a banner rather
  * than a status.
  *
- * So the rail is navigation and nothing else, and everything that speaks
- * about the document lives here, in one line across the bottom: what is
- * being edited and what is true about it, which theme, which mode, the three
- * verbs that change the file, and the checks on it.
+ * Then the state and the controls shared one bar, and that was furniture in
+ * the wrong shape: a bar that says and does at the same time reads as one
+ * thing. So the jobs are split by what they are. The bar along the TOP
+ * carries the controls — the theme picker, the mode control, the verbs that
+ * change the document — and this one carries the STATE, and nothing else:
+ * what is being edited, what is true about the file, and the checks on it.
  *
  * The editing state is in the MIDDLE of the bar, because it is the bar's
- * subject and the controls flank it: what the studio is showing on the left,
- * the three verbs on the right, and the sentence that says what all of it
- * means in the middle. A bar whose state sits at one end with everything
- * else crowded at the other reads as a toolbar with a caption, and the
- * caption is the part the reader came for.
+ * subject and the checks flank it: what the studio is checking on the left,
+ * and the sentence that says what all of it means in the middle. A bar whose
+ * state sits at one end with everything else crowded at the other reads as a
+ * toolbar with a caption, and the caption is the part the reader came for.
  *
  * The bar is ONE LINE at every width. The drawer is narrow because the host
  * made it narrow, and a strip that wraps is a strip whose spacing is
  * whatever the width left over — a control that ends up beside a different
  * kind of control, half a row down from where its neighbours are. So the
- * state TRUNCATES rather than wrapping, and the controls keep their size:
- * the sentence gives way, not the buttons.
- *
- * The verbs are not clustered either. Undo, redo and save are three
- * different actions, and a row of three identical icon buttons reads as one
- * control with three states; the air between them is what lets each one read
- * on its own.
+ * state TRUNCATES rather than wrapping.
  *
  * It is CHROME, and it wears the studio's own theme: the control that saves a
  * theme must not be restyled by the theme it is saving.
@@ -42,28 +37,17 @@ import {
   activeMode,
   activeName,
   activeTokenCount,
-  canRedo,
-  canUndo,
   divergedFromDisk,
   isDirty,
-  note,
-  noteRefusal,
-  redo,
-  reloadFromDisk,
-  revertToSaved,
-  saveThemeToDisk,
   themeText,
-  undo,
 } from "../lib/store.ts";
 import { stateLabel } from "../lib/theme.ts";
-import { problemText } from "../lib/themes.ts";
 import { editorRouteFor } from "../lib/tokens.ts";
 import { hostPath } from "../lib/client.ts";
 import { checks, remedyText } from "../lib/floors.ts";
 import type { Remedy } from "../lib/floors.ts";
 import { editToken } from "../lib/editing.ts";
 import { inDrawer } from "../lib/host.ts";
-import { ModePicker, ThemePicker } from "./Settings.tsx";
 
 /**
  * The bar's own look.
@@ -76,17 +60,6 @@ import { ModePicker, ThemePicker } from "./Settings.tsx";
  */
 const BAR_CLASS =
   "sticky bottom-0 z-dropdown flex shrink-0 items-center gap-2 border-t border-border bg-surface-raised px-3 py-1.5 text-sm";
-
-/**
- * A glyph button in the bar.
- *
- * One size, one ink, one hover — so the controls in the strip are a row of
- * equals. A control that is a word wide beside controls that are a glyph
- * wide reads as a different kind of thing, and the row stops being a strip
- * and becomes a list.
- */
-const ICON_BUTTON =
-  "bare flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-text disabled:opacity-50";
 
 /**
  * What is true about the file, in the studio's words.
@@ -133,34 +106,6 @@ export default function StatusBar() {
   const [checksOpen, setChecksOpen] = createSignal(false);
 
   /**
-   * Takes the file's word for it.
-   *
-   * The same verb the card carries, on the theme being edited: the file's
-   * text moves into the editor, and the edits that were never written go
-   * with it.
-   */
-  async function reload(): Promise<void> {
-    const name = theme();
-    try {
-      const found = await reloadFromDisk(name);
-      note(
-        found === "changed"
-          ? `${name} changed on disk — the studio now shows the file.`
-          : `${name} reloaded from disk.`,
-      );
-    } catch (err) {
-      noteRefusal(problemText(err));
-    }
-  }
-
-  /** Drops the edits that have not been written. */
-  function discard(): void {
-    const name = theme();
-    revertToSaved(name);
-    note(`${name} — the unsaved edits were dropped.`);
-  }
-
-  /**
    * Writes a remedy into the token it belongs to.
    *
    * The finding names the token, so the studio can offer the edit rather
@@ -180,45 +125,30 @@ export default function StatusBar() {
     >
       {
         /*
-          What the studio is showing: the theme under edit, the mode it is
-          shown in, and the checks on it.
+          The checks, as a status and not as a page.
 
-          The theme is a SWATCH — a small square of the theme's own acting
-          colour — and the mode is a glyph; both open a panel that floats
-          over the page, so neither of them takes the bar's room. The
-          checks are a count, and the count opens the panel that lists
-          them.
-
-          These three sit at the START of the bar because they are what the
-          studio is showing, and the state in the middle says so in words.
+          The findings are the document's, and they are the same on every
+          route — so a section on one page would be a section that is
+          missing from the other eight. The bar carries the count, and the
+          count opens the panel that lists them. The tip says what the
+          first finding is and what would clear it, so the pointer learns
+          the answer without opening anything.
         */
       }
       <div
         class="flex items-center gap-2"
         classList={{
+          // Drawer: the checks are the width they are, and the state takes
+          // the rest. Modal: the state is centred in the bar, so the side
+          // that carries nothing still takes its third of the width.
           "shrink-0": inDrawer(),
           "flex-1 justify-start": !inDrawer(),
         }}
       >
-        <ThemePicker />
-        <ModePicker />
-
-        {
-          /*
-            The checks, as a status and not as a page.
-
-            The findings are the document's, and they are the same on every
-            route — so a section on one page would be a section that is
-            missing from the other eight. The bar carries the count, and the
-            count opens the panel that lists them. The tip says what the
-            first finding is and what would clear it, so the pointer learns
-            the answer without opening anything.
-          */
-        }
         <button
           type="button"
           data-testid="checks"
-          class={ICON_BUTTON}
+          class="bare flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-text"
           classList={{
             "text-semantic-error": findings().length > 0,
             "text-text-muted": findings().length === 0,
@@ -286,121 +216,18 @@ export default function StatusBar() {
 
       {
         /*
-          The verbs: the three that change the document, and the one that
-          answers the file when it has moved under the studio.
+          The far side of the bar, which carries nothing.
 
-          The three are spaced rather than packed. Undo, redo and save are
-          three different actions, and three identical glyph buttons
-          shoulder to shoulder read as ONE control with three states; the air
-          between them is what tells the reader that they are three
-          different things.
-
-          The one that answers the file is a glyph too, and for the same
-          reason the bar cannot hold it as a word: the drawer is 480px wide
-          at its floor, and a sentence beside a sentence is a bar that
-          wraps.
+          It is here so that the state in the middle is centred in the BAR
+          rather than in the space the checks leave: a state that sits
+          beside its own caption is a caption, and a caption is not what the
+          reader came for. In the drawer the bar is narrow, and the checks
+          take the width they are worth and the state takes the rest.
         */
       }
-      <div
-        class="flex items-center gap-2"
-        classList={{
-          "shrink-0": inDrawer(),
-          "flex-1 justify-end": !inDrawer(),
-        }}
-      >
-        {
-          /*
-            The action that answers the state, and only that one: re-reading
-            the file is the answer when the file moved under the studio, and
-            dropping the edits is the answer when the editor holds edits the
-            file does not. The other one is not offered, because it would not
-            answer anything: re-reading the file when the file has not moved
-            gives back what dropping the edits gives back, and dropping the
-            edits when the file HAS moved leaves the save just as refused.
-
-            A control that is always there and never does anything is a
-            control the reader learns to skip.
-          */
-        }
-        <Show when={diverged()}>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            aria-label="Reload from disk"
-            title="Re-read this theme from disk"
-            onClick={() => {
-              void reload();
-            }}
-          >
-            <span
-              class="inline-block shrink-0 text-xl i-lucide-refresh-cw"
-              aria-hidden="true"
-            />
-          </button>
-        </Show>
-        <Show when={dirty() && !diverged()}>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            aria-label="Discard changes"
-            title="Drop the edits that have not been saved"
-            onClick={discard}
-          >
-            <span
-              class="inline-block shrink-0 text-xl i-lucide-eraser"
-              aria-hidden="true"
-            />
-          </button>
-        </Show>
-
-        <div class="flex items-center gap-3">
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            title="Undo"
-            aria-label="Undo"
-            disabled={!canUndo()}
-            onClick={() => undo()}
-          >
-            <span
-              class="inline-block shrink-0 text-xl i-lucide-undo-2"
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            title="Redo"
-            aria-label="Redo"
-            disabled={!canRedo()}
-            onClick={() => redo()}
-          >
-            <span
-              class="inline-block shrink-0 text-xl i-lucide-redo-2"
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            title={diverged()
-              ? "The file changed on disk — reload from disk first"
-              : dirty()
-              ? "Save to disk"
-              : "Saved"}
-            aria-label={dirty() || diverged() ? "Save to disk" : "Saved"}
-            disabled={!dirty()}
-            onClick={() => {
-              void saveThemeToDisk(theme());
-            }}
-          >
-            <span
-              class="inline-block shrink-0 text-xl i-lucide-save"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-      </div>
+      <Show when={!inDrawer()}>
+        <div class="flex-1" />
+      </Show>
 
       {
         /*

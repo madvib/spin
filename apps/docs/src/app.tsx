@@ -196,7 +196,27 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
           <ThemePicker />
         </div>
 
-        <p class="m-0 mt-auto text-xs text-text-muted">v0.1</p>
+        {
+          /*
+          The credit the mark's licence asks for: the web is Lorc's, from the
+          Game Icons set, under CC BY 3.0. It is a link, because the licence
+          is a promise about where the drawing came from, and the answer is
+          one click away.
+        */
+        }
+        <div class="mt-auto grid gap-1">
+          <p class="m-0 text-xs text-text-muted">v0.1</p>
+          <p class="m-0 text-xs text-text-muted">
+            <a
+              href="https://game-icons.net/1x1/lorc/spider-web.html"
+              target="_blank"
+              rel="noreferrer"
+              class="no-underline hover:text-text"
+            >
+              Icons made by Lorc (CC BY 3.0)
+            </a>
+          </p>
+        </div>
       </nav>
 
       <div class="flex-1">{props.children}</div>

@@ -7,12 +7,18 @@
  * theme therefore cannot restyle the tool you are editing it with, which is
  * what makes a broken theme recoverable.
  *
- * The chrome is three pieces and each of them has one job. The rail on the
+ * The chrome is four pieces and each of them has one job. The rail on the
  * edge is navigation: the mark that goes home, the concerns the project
- * is filed by, and the studio's own verbs at its foot. The column is the
- * work: the preview of the document being edited. The bar along the bottom
- * is the state: what is being edited, what is true about the file, and the
- * verbs that change it.
+ * is filed by, and the studio's own verbs at its foot. The bar along the
+ * top of the work is the controls: the theme picker, the mode control, and
+ * the verbs that change the document. The column is the work: the preview
+ * of the document being edited. The bar along the bottom is the state: what
+ * is being edited, what is true about the file, and the checks on it.
+ *
+ * A control and a state are different things, and they are read from
+ * different places: the reader's hand goes to the top of the window and
+ * their eye to the bottom of it. So the top bar is a row of buttons and the
+ * bottom bar is a sentence.
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
@@ -34,6 +40,7 @@ import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 import StatusBar from "./components/StatusBar.tsx";
+import TopBar from "./components/TopBar.tsx";
 import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 
 import {
@@ -200,10 +207,10 @@ export default function App() {
                 The rail is navigation and nothing else: the mark at the top,
                 the concerns below it, and the studio's own verbs at its foot.
                 The verbs that change the document — undo, redo, save — live
-                in the bar along the bottom, where the state they answer is
-                written down; the gear, the way out and the edge the studio is
-                shown at are chrome verbs, and chrome verbs belong to the
-                chrome, not to the document.
+                in the bar along the top of the work, where the controls are;
+                the gear, the way out and the edge the studio is shown at are
+                chrome verbs, and chrome verbs belong to the chrome, not to
+                the document.
 
                 It wears the studio's own theme, so editing a theme cannot
                 restyle the tool you are editing it with.
@@ -242,8 +249,8 @@ export default function App() {
                 {
                   /*
                   The mark: the web, in the studio's own ink. The kit draws it
-                  in strokes on `currentColor`, so it wears whatever surface it
-                  lands on.
+                  as one filled path on `currentColor`, so it wears whatever
+                  surface it lands on.
 
                   It is the BIGGEST thing in the rail: a mark reads at a glance
                   and an icon does not, so the mark is drawn larger than any
@@ -367,83 +374,92 @@ export default function App() {
                 The work: the preview of the document being edited, under
                 the project's own theme. The rail is NOT inside it — the
                 navigation is the tool's, and the content is the project's.
+
+                The column carries the bar along the top of it: the bar is
+                the work's own, so it spans the work and not the rail. A
+                bar that ran over the rail would put a control above the
+                navigation, and the navigation is the rail's own.
                 */
               }
-              <main
-                class="flex min-w-0 flex-1 flex-col"
-                // Modal: the column may be shorter than the page, and the
-                // page scrolls inside it. Drawer: the column is as tall as
-                // the page, and the document scrolls.
-                classList={{ "min-h-0": !inDrawer() }}
-              >
-                {
-                  /* What the studio refused, and what it did about the
-                    file: said where the state is. Both are the tool's own
-                    words about the author's own document, so they belong
-                    with the chrome rather than inside the project they are
-                    talking about. */
-                }
-                <Show
-                  when={lastRefusal() !== undefined ||
-                    lastNotice() !== undefined}
+              <div class="flex min-w-0 flex-1 flex-col">
+                <TopBar />
+                <main
+                  class="flex min-w-0 flex-1 flex-col"
+                  // Modal: the column may be shorter than the page, and the
+                  // page scrolls inside it. Drawer: the column is as tall as
+                  // the page, and the document scrolls.
+                  classList={{ "min-h-0": !inDrawer() }}
                 >
-                  <div
-                    role="status"
-                    class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm"
+                  {
+                    /* What the studio refused, and what it did about the
+                      file: said where the state is. Both are the tool's own
+                      words about the author's own document, so they belong
+                      with the chrome rather than inside the project they are
+                      talking about. */
+                  }
+                  <Show
+                    when={lastRefusal() !== undefined ||
+                      lastNotice() !== undefined}
                   >
-                    <Show when={lastRefusal()}>
-                      {(message) => (
-                        <p class="text-semantic-error">
-                          <span
-                            class="i-lucide-shield-alert mr-2 inline-block align-middle"
-                            aria-hidden="true"
-                          />
-                          {message()}
-                        </p>
-                      )}
-                    </Show>
-                    <Show when={lastNotice()}>
-                      {(message) => <p class="text-text-muted">{message()}</p>}
-                    </Show>
+                    <div
+                      role="status"
+                      class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm"
+                    >
+                      <Show when={lastRefusal()}>
+                        {(message) => (
+                          <p class="text-semantic-error">
+                            <span
+                              class="i-lucide-shield-alert mr-2 inline-block align-middle"
+                              aria-hidden="true"
+                            />
+                            {message()}
+                          </p>
+                        )}
+                      </Show>
+                      <Show when={lastNotice()}>
+                        {(message) => <p class="text-text-muted">{message()}
+                        </p>}
+                      </Show>
+                    </div>
+                  </Show>
+                  {
+                    /* The preview carries the project's theme. Everything
+                      around it is chrome and stays on the studio's own.
+                      `spin-preview` is the sheet's scope: the theme's rules
+                      apply inside the pane — a page that never spells a
+                      control still styles one — and never to the chrome. */
+                  }
+                  <div
+                    data-theme={activeName()}
+                    data-mode={activeMode()}
+                    // Same debt as the chrome's: <html> is stamped light, so a
+                    // label that only inherits keeps that ink on a dark surface.
+                    // `spin-preview` is the sheet's scope: the theme's rules
+                    // apply inside the pane — a page that never spells a control
+                    // still styles one — and never to the chrome.
+                    class="spin-preview flex min-w-0 flex-1 flex-col bg-surface text-text"
+                    // Modal, this column is the scroller: a page that brings its
+                    // own rail fills it exactly and never triggers this, and a
+                    // page that does not scrolls HERE rather than dragging the
+                    // document — and with it the rail. The drawer's pages do not
+                    // scroll here at all: the host's frame scrolls them, so the
+                    // page's own region grows with its content instead.
+                    classList={{
+                      "min-h-0": !inDrawer(),
+                      "overflow-y-auto": !inDrawer(),
+                    }}
+                  >
+                    <PreviewStyles />
+                    <Suspense>{props.children}</Suspense>
                   </div>
-                </Show>
-                {
-                  /* The preview carries the project's theme. Everything
-                    around it is chrome and stays on the studio's own.
-                    `spin-preview` is the sheet's scope: the theme's rules
-                    apply inside the pane — a page that never spells a
-                    control still styles one — and never to the chrome. */
-                }
-                <div
-                  data-theme={activeName()}
-                  data-mode={activeMode()}
-                  // Same debt as the chrome's: <html> is stamped light, so a
-                  // label that only inherits keeps that ink on a dark surface.
-                  // `spin-preview` is the sheet's scope: the theme's rules
-                  // apply inside the pane — a page that never spells a control
-                  // still styles one — and never to the chrome.
-                  class="spin-preview flex min-w-0 flex-1 flex-col bg-surface text-text"
-                  // Modal, this column is the scroller: a page that brings its
-                  // own rail fills it exactly and never triggers this, and a
-                  // page that does not scrolls HERE rather than dragging the
-                  // document — and with it the rail. The drawer's pages do not
-                  // scroll here at all: the host's frame scrolls them, so the
-                  // page's own region grows with its content instead.
-                  classList={{
-                    "min-h-0": !inDrawer(),
-                    "overflow-y-auto": !inDrawer(),
-                  }}
-                >
-                  <PreviewStyles />
-                  <Suspense>{props.children}</Suspense>
-                </div>
-              </main>
+                </main>
+              </div>
             </div>
             {
               /* The bar along the bottom: the state of the document being
-                edited and the verbs that change it. It is chrome, so it
-                wears the studio's own theme — the control that saves a
-                theme must not be restyled by the theme it is saving. */
+                edited and the checks on it — and nothing else. It is chrome,
+                so it wears the studio's own theme — the control that saves
+                a theme must not be restyled by the theme it is saving. */
             }
             <StatusBar />
           </div>

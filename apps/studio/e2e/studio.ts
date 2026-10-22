@@ -275,14 +275,65 @@ export class StudioPage {
     );
   }
 
-  async press(label: string): Promise<string> {
-    const pressed = await this.eval<string>(
-      `(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent.trim() === ${
-        JSON.stringify(label)
-      }); if (!b) return "absent"; b.click(); return "pressed"; })()`,
+  /**
+   * Choose a mode from the mode menu.
+   *
+   * The mode lives in a menu that hangs off the top bar, so the menu is
+   * opened and the item is chosen from it. A text match on a hidden item
+   * would fire the handler without proving the menu opens — and the menu
+   * opening is the thing worth proving.
+   */
+  async chooseMode(mode: "light" | "dark" | "system"): Promise<string> {
+    const chosen = await this.eval<string>(
+      `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const button = document.querySelector('[data-testid="mode-button"]');
+        if (!button) return "absent";
+        button.click();
+        await wait(300);
+        const item = document.querySelector('[role="menuitem"][data-mode="${mode}"]');
+        if (!item) return "no-item";
+        if (item.disabled) return "disabled";
+        item.click();
+        await wait(600);
+        return "pressed";
+      })()`,
     );
     await this.settle(600);
-    return pressed;
+    return chosen;
+  }
+
+  /**
+   * Seat a theme from the theme panel.
+   *
+   * The panel is the picker: a swatch opens it, a row applies a theme. The
+   * row is waited for, because the registry is refetched after every create
+   * and every delete — a theme the studio has not heard of yet is a theme
+   * whose row is not there yet.
+   */
+  async chooseTheme(name: string): Promise<string> {
+    const seated = await this.eval<string>(
+      `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const button = document.querySelector('[data-testid="theme-picker"]');
+        if (!button) return "absent";
+        button.click();
+        await wait(300);
+        const selector = '[role="option"][data-theme=' + ${
+        JSON.stringify(name)
+      } + ']';
+        const deadline = Date.now() + 15000;
+        while (!document.querySelector(selector)) {
+          if (Date.now() > deadline) return "not-offered";
+          await wait(100);
+        }
+        document.querySelector(selector).click();
+        await wait(600);
+        return "seated";
+      })()`,
+    );
+    await this.settle(600);
+    return seated;
   }
 
   /**

@@ -112,15 +112,16 @@ export async function cardText(
 }
 
 /**
- * Seat a theme through the picker, and wait for the preview to wear it.
+ * Seat a theme through the panel, and wait for the preview to wear it.
  *
- * The picker is the studio's own control for this, and the preview's
- * `data-theme` is what the studio renders the seated theme under — so both
- * are read here rather than the studio's internal state.
+ * The panel is the studio's own control for this — a swatch opens it, a row
+ * applies a theme — and the preview's `data-theme` is what the studio
+ * renders the seated theme under, so both are read here rather than the
+ * studio's internal state.
  *
  * The registry is refetched after every create and every delete, so a theme
- * the picker does not offer yet is a theme the registry has not answered
- * with: the picker is asked again before the answer is taken for a no.
+ * the panel does not offer yet is a theme the registry has not answered
+ * with: the row is waited for before the answer is taken for a no.
  */
 export async function seatTheme(
   page: StudioPage,
@@ -129,17 +130,19 @@ export async function seatTheme(
   return await page.eval<string>(
     `(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-      const picker = document.getElementById("theme-picker-compact");
-      if (!picker) return "no-picker";
-      const offered = () =>
-        [...picker.options].some((o) => o.value === ${JSON.stringify(name)});
+      const button = document.querySelector('[data-testid="theme-picker"]');
+      if (!button) return "no-picker";
+      button.click();
+      await wait(300);
+      const selector = '[role="option"][data-theme=' + ${
+      JSON.stringify(name)
+    } + ']';
       const deadline = Date.now() + 15000;
-      while (!offered()) {
+      while (!document.querySelector(selector)) {
         if (Date.now() > deadline) return "not-offered";
         await wait(100);
       }
-      picker.value = ${JSON.stringify(name)};
-      picker.dispatchEvent(new Event("change", { bubbles: true }));
+      document.querySelector(selector).click();
       for (let i = 0; i < 150; i++) {
         const pane = document.querySelector(".spin-preview");
         if (pane && pane.getAttribute("data-theme") === ${
@@ -273,11 +276,11 @@ export interface RailState {
   readonly save: boolean;
 }
 
-/** What the editing bar offers: undo, redo and save, each enabled or not. */
+/** What the top bar offers: undo, redo and save, each enabled or not. */
 export async function railState(page: StudioPage): Promise<RailState> {
   return await page.eval<RailState>(
     `(() => {
-      const bar = document.querySelector('footer[aria-label="Editing"]');
+      const bar = document.querySelector('header[aria-label="Document controls"]');
       const one = (label) => {
         const b = [...(bar?.querySelectorAll("button") ?? [])].find((x) =>
           x.getAttribute("aria-label") === label
@@ -290,11 +293,11 @@ export async function railState(page: StudioPage): Promise<RailState> {
 }
 
 /**
- * Press one of the editing bar's controls.
+ * Press one of the top bar's controls.
  *
  * The bar's controls are glyphs: they are named by their `aria-label`, not by
  * a text a press could look for. The rail is navigation; the verbs that
- * answer the editing state live in the bar.
+ * answer the editing state live in the top bar.
  */
 export async function pressRail(
   page: StudioPage,
@@ -303,7 +306,7 @@ export async function pressRail(
   return await page.eval<string>(
     `(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-      const bar = document.querySelector('footer[aria-label="Editing"]');
+      const bar = document.querySelector('header[aria-label="Document controls"]');
       const b = [...(bar?.querySelectorAll("button") ?? [])].find((x) =>
         x.getAttribute("aria-label") === ${JSON.stringify(label)}
       );

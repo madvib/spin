@@ -8,12 +8,12 @@
 /**
  * Where an entry sits in the studio's chrome.
  *
- * The chrome is two pieces and each of them says something different: the
- * rail on the edge is navigation and nothing else, and the bar along the
- * bottom is the studio's own state and the controls that answer it. A route
- * is placed in the rail or it is not offered at all — the bar carries no
- * routes, because a route is a place the studio can go and the bar is a
- * place it reads.
+ * The chrome is three pieces and each of them says something different: the
+ * rail on the edge is navigation and nothing else, the bar along the top of
+ * the work is the studio's controls, and the bar along the bottom is the
+ * studio's own state. A route is placed in the rail or it is not offered at
+ * all — the bars carry no routes, because a route is a place the studio can
+ * go and the bars are places it reads and acts.
  *
  * Within the rail there are three places, and each says something different
  * about the route it carries: the mark that goes home, the concerns the

@@ -47,11 +47,11 @@ test("every route renders", async (t) => {
 });
 
 for (const mode of ["Light", "Dark"] as const) {
-  const label = mode.toLowerCase();
+  const label = mode.toLowerCase() as "light" | "dark";
   test(`the studio is legible in ${label} mode`, async (t) => {
     await withPage(async (page) => {
       await page.goto(`${studioUrl()}/`);
-      const pressed = await page.press(mode);
+      const pressed = await page.chooseMode(label);
       assert(pressed === "pressed", `the ${mode} control is ${pressed}`);
       const failures: string[] = [];
       for (const route of ROUTE_PATHS) {
@@ -73,11 +73,11 @@ for (const mode of ["Light", "Dark"] as const) {
 }
 
 for (const mode of ["Light", "Dark"] as const) {
-  const label = mode.toLowerCase();
+  const label = mode.toLowerCase() as "light" | "dark";
   test(`the code view is legible in ${label} mode`, async () => {
     await withPage(async (page) => {
       await page.goto(`${studioUrl()}/`);
-      const pressed = await page.press(mode);
+      const pressed = await page.chooseMode(label);
       await page.followRail("/components");
       await page.followRail("/components/button");
       const shown = await page.toggleCode();
@@ -334,7 +334,7 @@ test("save clears the dirty set", async () => {
           else await rpc("/project/themes/remove", { name: theme });
           await rpc("/overlay/clear", {});
         };
-        const saveButton = () => [...document.querySelectorAll("button")].find((b) => b.getAttribute("aria-label") === "Save to disk");
+        const saveButton = () => document.querySelector('[data-testid="save"]');
         const input = document.querySelector('[id="token-color.primary-light"]');
         if (!input) return { edited: "no-input", restored: false };
         input.value = "#b91c1c";
@@ -416,13 +416,28 @@ test("a theme is created, seated, and deleted from the registry", async () => {
 
         const listed = (await names()).indexOf(NAME) > -1;
         const carded = [...document.querySelectorAll("article button")].some((b) => b.textContent.trim() === NAME);
-        const picker = document.getElementById("theme-picker-compact");
-        const offered = picker !== null && [...picker.options].some((o) => o.value === NAME);
+        // The panel is the picker: a swatch opens it, a row applies a theme.
+        const openPanel = async () => {
+          const button = document.querySelector('[data-testid="theme-picker"]');
+          const list = document.querySelector('[data-testid="theme-list"]');
+          if (!button || !list) return false;
+          if (list.getBoundingClientRect().height === 0) {
+            button.click();
+            await wait(300);
+          }
+          return true;
+        };
+        const row = (name) =>
+          document.querySelector('[role="option"][data-theme="' + name + '"]');
+        await openPanel();
+        const offered = row(NAME) !== null;
         const seated = (document.getElementById("app")?.innerText ?? "").indexOf("Editing " + NAME) > -1;
 
         // Away from the copy, because its card offers no delete while it is
         // the theme being edited.
-        if (picker) { picker.value = REST; picker.dispatchEvent(new Event("change", { bubbles: true })); }
+        await openPanel();
+        const rest = row(REST);
+        if (rest) rest.click();
         await wait(600);
 
         const card = [...document.querySelectorAll("article")].find((c) => [...c.querySelectorAll("button")].some((b) => b.textContent.trim() === NAME));
@@ -434,7 +449,8 @@ test("a theme is created, seated, and deleted from the registry", async () => {
         await wait(1800);
 
         const stillListed = (await names()).indexOf(NAME) > -1;
-        const stale = picker !== null && [...picker.options].some((o) => o.value === NAME);
+        await openPanel();
+        const stale = row(NAME) !== null;
         const restored = (document.getElementById("app")?.innerText ?? "").indexOf("Editing " + REST) > -1;
         return { created: "created", listed, carded, offered, seated, removed: "removed", stillListed, stale, restored };
       })()`,
@@ -592,7 +608,7 @@ test("the dark slot writes $modes.dark and the app renders it", async () => {
     const base = await watcher.cssVar("--color-primary");
 
     await driver.goto(`${studioUrl()}/?app=${encodeURIComponent(app)}`);
-    const flipped = await driver.press("Dark");
+    const flipped = await driver.chooseMode("dark");
     await driver.followRail("/colors");
     const edited = await driver.setColor(
       '[id="token-color.primary-dark"]',
@@ -653,32 +669,48 @@ test("a theme that declares one mode disables the other", async () => {
     }>(
       `(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-        const picker = () => document.getElementById("theme-picker-compact");
         const seat = async (name) => {
-          const p = picker();
-          if (!p) return "no-picker";
-          p.value = name;
-          p.dispatchEvent(new Event("change", { bubbles: true }));
+          const button = document.querySelector('[data-testid="theme-picker"]');
+          if (!button) return "no-picker";
+          button.click();
+          await wait(300);
+          const row = document.querySelector('[role="option"][data-theme="' + name + '"]');
+          if (!row) return "not-offered";
+          row.click();
           await wait(900);
           return "seated";
         };
-        const modeButton = (label) => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
+        const openMenu = async () => {
+          const button = document.querySelector('[data-testid="mode-button"]');
+          if (!button) return false;
+          button.click();
+          await wait(300);
+          return true;
+        };
+        const modeItem = (mode) =>
+          document.querySelector('[role="menuitem"][data-mode="' + mode + '"]');
+        // The panel's rows carry the theme's name too, so the pane is named
+        // by its own class: a row is not the preview.
         const paneMode = (name) => {
-          const pane = document.querySelector('[data-theme="' + name + '"]');
+          const pane = document.querySelector(
+            '.spin-preview[data-theme="' + name + '"]',
+          );
           return pane ? pane.getAttribute("data-mode") : null;
         };
 
         // Work in dark, on a theme that has one.
         await seat("silk");
-        const first = modeButton("Dark");
-        if (first && first.getAttribute("aria-pressed") !== "true") { first.click(); await wait(500); }
+        await openMenu();
+        const first = modeItem("dark");
+        if (first && first.getAttribute("aria-current") !== "true") { first.click(); await wait(500); }
         const dark = paneMode("silk") === "dark";
 
         // Seat the light-only theme while working in dark.
         const seatedLightOnly = (await seat("neobrut")) === "seated";
         await wait(400);
         const clamped = paneMode("neobrut") === "light";
-        const darkButton = modeButton("Dark");
+        await openMenu();
+        const darkButton = modeItem("dark");
         const disabled = darkButton ? darkButton.disabled === true : false;
         const explained = darkButton ? (darkButton.getAttribute("title") ?? "").indexOf("no dark mode") > -1 : false;
         if (darkButton) { darkButton.click(); await wait(400); }
@@ -699,13 +731,15 @@ test("a theme that declares one mode disables the other", async () => {
         await seat("console");
         await wait(400);
         const darkOnlyClamped = paneMode("console") === "dark";
-        const lightButton = modeButton("Light");
+        await openMenu();
+        const lightButton = modeItem("light");
         const lightDisabled = lightButton ? lightButton.disabled === true : false;
 
         // Leave the studio where it was found.
         await seat("silk");
-        const back = modeButton("Light");
-        if (back && back.getAttribute("aria-pressed") !== "true") { back.click(); await wait(400); }
+        await openMenu();
+        const back = modeItem("light");
+        if (back && back.getAttribute("aria-current") !== "true") { back.click(); await wait(400); }
         const restored = paneMode("silk") === "light";
 
         return { dark, seatedLightOnly, clamped, held, disabled, explained, onAnotherRoute, darkOnlyClamped, lightDisabled, restored };
@@ -749,16 +783,7 @@ test("a classless control behaves the theme's way on every route", async () => {
     await page.goto(`${studioUrl()}/`);
     const before = await page.editingName();
 
-    const seat = await page.eval<string>(
-      `(async () => {
-        const picker = document.getElementById("theme-picker-compact");
-        if (!picker) return "no-picker";
-        picker.value = "neobrut";
-        picker.dispatchEvent(new Event("change", { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 1200));
-        return "seated";
-      })()`,
-    );
+    const seat = await page.chooseTheme("neobrut");
     assert(seat === "seated", `seating neobrut stopped at ${seat}`);
 
     const trigger =
@@ -830,16 +855,7 @@ test("a classless control behaves the theme's way on every route", async () => {
 
     // Leave the studio where it was found.
     await page.followRail("/");
-    await page.eval(
-      `(async () => {
-        const picker = document.getElementById("theme-picker-compact");
-        if (picker) { picker.value = ${
-        JSON.stringify(before)
-      }; picker.dispatchEvent(new Event("change", { bubbles: true })); }
-        await new Promise((r) => setTimeout(r, 400));
-        return "restored";
-      })()`,
-    );
+    await page.chooseTheme(before);
   });
 });
 
@@ -893,16 +909,7 @@ async function openComponentPanel(page: StudioPage): Promise<string> {
 test("the component-token controls read as chrome, not as calls to action", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
-    const seat = await page.eval<string>(
-      `(async () => {
-        const picker = document.getElementById("theme-picker-compact");
-        if (!picker) return "no-picker";
-        picker.value = "neobrut";
-        picker.dispatchEvent(new Event("change", { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 1200));
-        return "seated";
-      })()`,
-    );
+    const seat = await page.chooseTheme("neobrut");
     assert(seat === "seated", `seating neobrut stopped at ${seat}`);
 
     const opened = await openComponentPanel(page);

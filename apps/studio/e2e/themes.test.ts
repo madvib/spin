@@ -485,7 +485,7 @@ test("a theme with two modes renders the mode the control names", async () => {
 
     // light
     assert(
-      await page.press("Light") === "pressed",
+      await page.chooseMode("light") === "pressed",
       "the light control is absent",
     );
     await page.settle(1200);
@@ -501,7 +501,7 @@ test("a theme with two modes renders the mode the control names", async () => {
 
     // dark
     assert(
-      await page.press("Dark") === "pressed",
+      await page.chooseMode("dark") === "pressed",
       "the dark control is absent",
     );
     await page.settle(1200);
@@ -517,7 +517,7 @@ test("a theme with two modes renders the mode the control names", async () => {
 
     // and the studio is left in the light, where it was found
     assert(
-      await page.press("Light") === "pressed",
+      await page.chooseMode("light") === "pressed",
       "the light control is absent",
     );
     await page.settle(800);

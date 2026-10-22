@@ -13,9 +13,9 @@
  * affordance in the bar, and a panel that floats over the page.
  *
  * The theme's affordance is a SWATCH — a small square of the theme's own
- * acting colour. The bar is a strip of state, and a chip carrying a theme's
- * name was neither small enough to be a status nor big enough to be a
- * picker: the NAME is what the panel is for, and the COLOUR is what the
+ * acting colour. The bar is a strip of controls, and a chip carrying a
+ * theme's name was neither small enough to be a status nor big enough to be
+ * a picker: the NAME is what the panel is for, and the COLOUR is what the
  * reader is actually looking for. So the button is a picture of the theme
  * and the panel is the picker — and the panel can be as large as a picker
  * needs, because it does not have to fit in the bar.
@@ -23,9 +23,9 @@
  * A popover here is an OVERLAY. It is positioned out of the flow, so opening
  * it moves nothing and resizes nothing: the bar is the width of the window
  * and the height of one line, and a panel that pushed on it would make the
- * whole studio jump under the reader. The panels open UPWARD, because the bar
- * is at the bottom of the window and a panel that opened down would leave the
- * viewport.
+ * whole studio jump under the reader. The panels open DOWNWARD, because the
+ * bar is along the TOP of the window and a panel that opened up would leave
+ * the viewport.
  *
  * The runtime's menu is the right answer for both — a menu that filters as
  * it opens, with the roving focus and the typeahead a real menu has. The
@@ -113,15 +113,18 @@ function facts(text: string | undefined, mode: string): ThemeFacts {
  *
  * The square is DATA, so it cannot be a utility: a utility paints the
  * active theme's token, and this one sits beside every theme at once.
+ *
+ * The square is 18px — a swatch, not a chip — and it wears the theme's
+ * resolved value or the control's OWN ink. The fallback is `currentColor`
+ * rather than a painted fill, so a theme that declares no colour still
+ * reads as a swatch (a patch of the control's ink) instead of as a hole in
+ * the bar, and so the swatch is never a colour the studio chose.
  */
 function Swatch(props: { color: string | undefined }) {
   return (
     <span
       class="h-[18px] w-[18px] shrink-0 rounded-sm border border-border"
-      classList={{ "bg-surface-sunken": props.color === undefined }}
-      style={props.color === undefined
-        ? undefined
-        : { background: props.color }}
+      style={{ background: props.color ?? "currentColor" }}
       aria-hidden="true"
     />
   );
@@ -156,14 +159,17 @@ const TRIGGER =
 /**
  * The panel's own frame.
  *
- * It is out of the flow — absolutely positioned above the affordance — so
+ * It is out of the flow — absolutely positioned below the affordance — so
  * opening it moves nothing. The bounds keep it honest at either edge: it
  * cannot grow past the width of the window, and it cannot grow taller than
- * the space the bar has above it, so a long list scrolls inside the panel
+ * the space the bar has below it, so a long list scrolls inside the panel
  * rather than leaving the viewport.
+ *
+ * It opens DOWNWARD: the bar is along the top of the window, so a panel
+ * that opened upward would have nothing to open into.
  */
 const PANEL =
-  "absolute bottom-full start-0 z-dropdown mb-1 w-max max-w-[80vw] max-h-[60vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-1 shadow-lg";
+  "absolute top-full start-0 z-dropdown mt-1 w-max max-w-[80vw] max-h-[60vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-1 shadow-lg";
 
 /**
  * Which popover in the bar is open.
@@ -266,7 +272,7 @@ function Popover(props: {
  * the studio's own chrome. The selected theme drives the preview surface
  * only.
  *
- * It lives in the bar along the bottom of the window, on every route: the
+ * It lives in the bar along the TOP of the window, on every route: the
  * theme under edit is a fact about the whole studio, not about one page, and
  * a control that only some pages carry is a control the reader has to hunt
  * for.
@@ -311,6 +317,13 @@ export function ThemePicker() {
               role="option"
               data-theme={theme.name}
               aria-selected={theme.name === activeName()}
+              /*
+                The row's NAME is the theme's name, and nothing else: the
+                reader picks a theme by the name it is known by, and a row
+                that announced its mode count too would make the name harder
+                to match. The count is decoration, and says so.
+              */
+              aria-label={theme.name}
               class={ROW}
               onClick={() => {
                 setActiveName(theme.name);
