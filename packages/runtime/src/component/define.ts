@@ -67,7 +67,7 @@ export interface SlotDef<R = unknown, C extends object = Record<string, unknown>
   attrs(scope: SlotScope<R, C>, arg?: unknown): Record<string, unknown>;
 }
 
-export interface ReaderDef<C extends object = Record<string, unknown>> {
+export interface ReaderDef<C extends object = Record<string, unknown>, R = unknown> {
   /** A state projection: live context + state + parsed props (the
    * collection lives in props, rows never enter the machine) + the root
    * (a fieldset's disabled state disables the control, and only the root
@@ -77,7 +77,7 @@ export interface ReaderDef<C extends object = Record<string, unknown>> {
     state: string,
     props: Record<string, unknown>,
     root?: () => Element,
-  ): unknown;
+  ): R;
 }
 
 /**
@@ -109,7 +109,7 @@ export type MachineFactory<C extends object, E extends EventMap> = (
   authored: (name: string) => boolean,
 ) => Machine<C, E>;
 
-export interface MethodDef<C extends object = Record<string, unknown>> {
+export interface MethodDef<C extends object = Record<string, unknown>, R = unknown> {
   /** An indexed read (`getThumbValue(index)`): live context + state + args
    * + parsed props + part ids. For per-slot numbers the recipe could compute
    * from context, but hosts and tests call these directly — they stay on
@@ -120,7 +120,7 @@ export interface MethodDef<C extends object = Record<string, unknown>> {
     args: readonly unknown[],
     props: Record<string, unknown>,
     id: (part: string, slot?: unknown) => string,
-  ) => unknown;
+  ) => R;
 }
 
 export type CommandDef<
@@ -188,7 +188,12 @@ export interface EventDef<W extends readonly unknown[] = readonly unknown[], C e
     source?: string,
   ) => Record<string, unknown> | readonly Record<string, unknown>[] | null;
 }
-export interface ComponentDef<C extends object, E extends EventMap> {
+export interface ComponentDef<
+  C extends object,
+  E extends EventMap,
+  Methods = Record<string, MethodDef<C, unknown>>,
+  Readers = Record<string, ReaderDef<C, unknown>>,
+> {
   readonly name: string;
   /** The start state, or its computation from parsed props (an authored
    * `open` starts the panel up). Absent, the machine's own initial. */
@@ -295,7 +300,37 @@ export interface ComponentDef<C extends object, E extends EventMap> {
   readonly parts: Record<string, PartDef<unknown, C>>;
   readonly slots?: Record<string, SlotDef<unknown, C>>;
   readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;
-  readonly methods?: Record<string, MethodDef<C>>;
-  readonly readers?: Record<string, ReaderDef<C>>;
+  readonly methods?: Methods;
+  readonly readers?: Readers;
   readonly events: Record<string, EventDef<readonly unknown[], C>>;
 }
+
+/** The api a component's def implies.
+ *
+ * Every reader with the type it reads, every method with the type it
+ * returns, every command, and the bag getter for each part and slot —
+ * all of it read off the def, so a component does not hand-write its api
+ * and the api cannot disagree with the component.
+ */
+export type ApiOf<D> = {
+  readonly [K in keyof D & string as D[K] extends ReaderDef<never, unknown> ? K : never]: D[K] extends
+    ReaderDef<never, infer R> ? R
+    : never;
+} & {
+  readonly [K in keyof D & string as D[K] extends MethodDef<never, unknown> ? K : never]: D[K] extends
+    MethodDef<never, infer R> ? R
+    : never;
+} & {
+  readonly [K in keyof D & string as D[K] extends CommandDef<readonly unknown[], never, never> ? K
+    : never]: (...args: never[]) => void;
+} & {
+  readonly [K in keyof D & string as D[K] extends PartDef<never, never> ? `get${Capitalize<K>}Props`
+    : never]: () => Record<string, unknown>;
+} & {
+  readonly [K in keyof D & string as D[K] extends SlotDef<never, never>
+    ? `get${Capitalize<K>}Props` | `get${Capitalize<K>}Indexes`
+    : never]: unknown;
+} & {
+  /** The machine's mode, live: the framework's own reader. */
+  readonly state: string;
+};
