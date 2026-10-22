@@ -4,7 +4,7 @@ import {
   getValuePercent,
   getValueRanges,
   snapValueToStep,
-} from "@zag-js/utils";
+} from "@spin/runtime";
 
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
 
@@ -103,23 +103,26 @@ export function isInteractive(ctx: SliderContext): boolean {
 }
 
 export function valuePercent(ctx: SliderContext): number[] {
-  return ctx.value.map((value) => getValuePercent(value, ctx.min, ctx.max) as number);
+  return ctx.value.map((value) => getValuePercent(value, ctx.min, ctx.max));
 }
 
-function rangeAt(ctx: SliderContext, index: number): { min: number; max: number } {
+function rangeAt(
+  ctx: SliderContext,
+  index: number,
+): { readonly min: number; readonly max: number; readonly value: number } {
   const ranges = getValueRanges(
     ctx.value,
     ctx.min,
     ctx.max,
     ctx.step * ctx.minStepsBetweenThumbs,
-  ) as { min: number; max: number }[];
-  return ranges[index] ?? { min: ctx.min, max: ctx.max };
+  );
+  return ranges[index] ?? { min: ctx.min, max: ctx.max, value: ctx.value[index] ?? ctx.min };
 }
 
 function constrain(ctx: SliderContext, value: number, index: number): number {
   const range = rangeAt(ctx, index);
-  const snapped = snapValueToStep(value, ctx.min, ctx.max, ctx.step) as number;
-  return clampValue(snapped, range.min, range.max) as number;
+  const snapped = snapValueToStep(value, ctx.min, ctx.max, ctx.step);
+  return clampValue(snapped, range.min, range.max);
 }
 
 function normalizeAll(ctx: SliderContext, next: readonly number[]): number[] {
@@ -134,10 +137,10 @@ function resolveNone(
   max: number,
 ): { values: number[]; index: number; swapped: boolean } {
   if (values.length === 1) {
-    return { values: [clampValue(value, min, max) as number], index: 0, swapped: false };
+    return { values: [clampValue(value, min, max)], index: 0, swapped: false };
   }
   const next = [...values];
-  next[index] = clampValue(value, min, max) as number;
+  next[index] = clampValue(value, min, max);
   return { values: next, index, swapped: false };
 }
 
@@ -152,7 +155,7 @@ function handlePush(
   gap: number,
 ): { values: number[]; index: number; swapped: boolean } {
   const next = [...values];
-  const clamped = clampValue(value, min, max) as number;
+  const clamped = clampValue(value, min, max);
   next[index] = clamped;
   // Push neighbors apart so the gap holds: walk outward from the moved
   // thumb, shoving each neighbor that intrudes.
@@ -164,7 +167,7 @@ function handlePush(
     const lower = next[i] ?? min;
     if ((next[i + 1] ?? max) < lower + gap) next[i + 1] = round10(lower + gap);
   }
-  return { values: next.map((v) => clampValue(v, min, max) as number), index, swapped: false };
+  return { values: next.map((v) => clampValue(v, min, max)), index, swapped: false };
 }
 
 /** Later thumbs win ties. */
@@ -197,11 +200,11 @@ export function thumbRange(
 }
 
 export function percentOf(ctx: SliderContext, value: number): number {
-  return (getValuePercent(value, ctx.min, ctx.max) as number) * 100;
+  return (getValuePercent(value, ctx.min, ctx.max)) * 100;
 }
 
 export function valueOfPercent(ctx: SliderContext, percent: number): number {
-  return getPercentValue(percent, ctx.min, ctx.max, ctx.step) as number;
+  return getPercentValue(percent, ctx.min, ctx.max, ctx.step);
 }
 
 export { constrain, handlePush, normalizeAll, rangeAt, resolveNone };

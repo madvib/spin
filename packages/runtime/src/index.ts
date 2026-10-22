@@ -26,8 +26,20 @@ export {
   type CoercePropDecl,
   type PropCoerceType,
 } from "./props.ts";
-export { defineComponent } from "./component/synthesize.ts";
 export { factAttrs, type FactScope } from "./component/facts.ts";
+export { defineComponent } from "./component/synthesize.ts";
+export {
+  clampValue,
+  closestIndex,
+  getNextStepValue,
+  getPercentValue,
+  getPreviousStepValue,
+  getValuePercent,
+  getValueRanges,
+  isInteractive,
+  round10,
+  snapValueToStep,
+} from "./math/index.ts";
 export {
   type ApiOf,
   type CommandDef,

@@ -2,7 +2,7 @@ import {
   clampValue,
   getNextStepValue,
   getPreviousStepValue,
-} from "@zag-js/utils";
+} from "@spin/runtime";
 import type { EventOf, EventUnion } from "@spin/runtime/fsm";
 import type { SliderEvents } from "./slider.events.ts";
 import type { SliderContext } from "./slider.state.ts";
@@ -23,12 +23,12 @@ export const incrementThumb = (
   const index = event.type === "INCREMENT" && event.index !== undefined ? event.index : ctx.focusedIndex;
   if (index < 0 || index >= ctx.value.length) return {};
   const range = rangeAt(ctx, index);
-  const next = getNextStepValue(index, {
+  const next = [...getNextStepValue(index, {
     ...range,
     step: event.step ?? ctx.step,
     values: [...ctx.value],
-  }) as number[];
-  next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max) as number;
+  })];
+  next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max);
   return { value: next };
 };
 
@@ -39,12 +39,12 @@ export const decrementThumb = (
   const index = event.type === "DECREMENT" && event.index !== undefined ? event.index : ctx.focusedIndex;
   if (index < 0 || index >= ctx.value.length) return {};
   const range = rangeAt(ctx, index);
-  const next = getPreviousStepValue(index, {
+  const next = [...getPreviousStepValue(index, {
     ...range,
     step: event.step ?? ctx.step,
     values: [...ctx.value],
-  }) as number[];
-  next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max) as number;
+  })];
+  next[index] = clampValue(next[index] ?? ctx.min, range.min, range.max);
   return { value: next };
 };
 
