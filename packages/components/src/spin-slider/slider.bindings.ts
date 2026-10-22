@@ -20,21 +20,6 @@ import type {
 
 export type { SliderArgs };
 
-/** A number the host set, or absent when it did not. The boundary between
- * the host's values and the machine's domain: one place, beside the map. */
-const asNumber = (raw: unknown): number | undefined =>
-  typeof raw === "number" && Number.isFinite(raw) ? raw : undefined;
-
-/** Numbers the host set, or absent when it did not. */
-const asNumbers = (raw: unknown): readonly number[] | undefined =>
-  Array.isArray(raw) && raw.every((item) => typeof item === "number" && Number.isFinite(item))
-    ? (raw as readonly number[])
-    : undefined;
-
-/** One of the allowed literals, or absent when the host wrote anything else. */
-const asLiteral = <const T extends string>(raw: unknown, allowed: readonly T[]): T | undefined =>
-  typeof raw === "string" && (allowed as readonly string[]).includes(raw) ? (raw as T) : undefined;
-
 /** Slider definition: the DOM contract as data. */
 
 export interface SliderApi {
@@ -74,16 +59,9 @@ type Ctx = SliderContext;
 
 interface ScopeLike extends PartScope<unknown, SliderContext> {}
 interface SlotLike<R> extends SlotScope<R, SliderContext> {}
-/** The slot's index: the recipe passes the index itself, but a wrapped
- * `{ index }` is the other spelling a recipe may use. */
-const slotIndex = (slot: unknown): number => {
-  if (typeof slot === "number" && Number.isInteger(slot)) return slot;
-  if (typeof slot === "object" && slot !== null && "index" in slot) {
-    const index: unknown = slot.index;
-    if (typeof index === "number" && Number.isInteger(index)) return index;
-  }
-  return -1;
-};
+/** The slot's index. Recipes always pass `{ index }` — the wrapper is
+ * the slot's identity, so it must be an object. */
+const slotIndex = (slot: { readonly index: number }): number => slot.index;
 
 /** Marker slots wrap raw values so bags read `{value}` like recipes pass.
  * Memoized on the markers identity: fresh wrappers would re-stamp rows. */
@@ -98,14 +76,14 @@ const markerRowsOf = (markers: readonly number[]): readonly { readonly value: nu
 
 /** A client point as a stepped track value, measured off the track node. */
 const trackValue = (
-  scope: ScopeLike,
+  measure: (part: string) => DOMRect | null,
   orientation: string,
   dir: string,
   context: Ctx,
   clientX: number,
   clientY: number,
 ): number | null => {
-  const rect = scope.measure("track");
+  const rect = measure("track");
   if (rect === null) return null;
   if (orientation === "vertical") {
     const percent = rect.height <= 0 ? 0 : (rect.bottom - clientY) / rect.height;
@@ -130,36 +108,9 @@ const thumbIndexes = (length: number): readonly number[] => {
 };
 
 
-const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, SliderArgs> = {
+export const def = {
   name: "slider",
   machine: (args: SliderArgs, authored) => sliderMachine(args, authored),
-  args: (props): SliderArgs => {
-    const mapped: SliderArgs = {};
-    const value = asNumbers(props.value);
-    if (value !== undefined) mapped.value = value;
-    const min = asNumber(props.min);
-    if (min !== undefined) mapped.min = min;
-    const max = asNumber(props.max);
-    if (max !== undefined) mapped.max = max;
-    const step = asNumber(props.step);
-    if (step !== undefined) mapped.step = step;
-    const largeStep = asNumber(props.largeStep);
-    if (largeStep !== undefined) mapped.largeStep = largeStep;
-    const minStepsBetweenThumbs = asNumber(props.minStepsBetweenThumbs);
-    if (minStepsBetweenThumbs !== undefined) mapped.minStepsBetweenThumbs = minStepsBetweenThumbs;
-    const origin = asLiteral(props.origin, ["start", "center", "end"]);
-    if (origin !== undefined) mapped.origin = origin;
-    const orientation = asLiteral(props.orientation, ["horizontal", "vertical"]);
-    if (orientation !== undefined) mapped.orientation = orientation;
-    const thumbCollisionBehavior = asLiteral(props.thumbCollisionBehavior, ["none", "push", "swap"]);
-    if (thumbCollisionBehavior !== undefined) mapped.thumbCollisionBehavior = thumbCollisionBehavior;
-    if (props.disabled === true) mapped.disabled = true;
-    if (props.readOnly === true) mapped.readOnly = true;
-    if (props.invalid === true) mapped.invalid = true;
-    const markers = asNumbers(props.markers);
-    if (markers !== undefined) mapped.markers = markers;
-    return mapped;
-  },
   start: "idle",
   commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
   parts: {
@@ -215,13 +166,13 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
             onStart: (press: DragPress): void => {
               const context = scope.context;
               if (press.metaKey || press.ctrlKey || press.altKey) return;
-              const value = trackValue(scope, context.orientation, press.direction, context, press.x, press.y);
+              const value = trackValue(scope.measure, context.orientation, press.direction, context, press.x, press.y);
               if (value === null) return;
               scope.send({ type: "POINTER_DOWN", pointValue: value });
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
-              const value = trackValue(scope, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
+              const value = trackValue(scope.measure, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
               if (value === null) return;
               scope.send({ type: "POINTER_MOVE", pointValue: value });
             },
@@ -332,7 +283,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
-              const value = trackValue(scope, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
+              const value = trackValue(scope.measure, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
               if (value === null) return;
               scope.send({ type: "POINTER_MOVE", pointValue: value });
             },
@@ -523,5 +474,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     const idx = after.context.focusedIndex;
     if (idx >= 0) focus("thumb", idx);
   },
-};
+} satisfies ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, SliderArgs>;
+
 export const slider = defineComponent<SliderContext, SliderEvents, SliderApi, SliderArgs>(def);

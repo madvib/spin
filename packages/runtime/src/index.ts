@@ -29,6 +29,7 @@ export {
 export { defineComponent } from "./component/synthesize.ts";
 export { factAttrs, type FactScope } from "./component/facts.ts";
 export {
+  type ApiOf,
   type CommandDef,
   type ComponentDef,
   type EventDef,

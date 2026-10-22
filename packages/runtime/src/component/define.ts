@@ -331,31 +331,60 @@ export interface ComponentDef<
   readonly events: Record<string, EventDef<readonly unknown[], C>>;
 }
 
+/** A reader entry's value type, or never when the entry is not a reader. */
+export type ReaderValue<T> = T extends { read(...args: never[]): infer R } ? R : never;
+
+/** A method entry's api surface: what the bridge exposes. The raw
+ * args list in, the value out — the typed per-index wrappers authors call
+ * exist only in hand-written interfaces, which this derivation replaces.
+ * The return type is preserved; the params are honest. */
+export type MethodValue<T> = T extends { call(...args: never[]): infer R } ? (...args: readonly unknown[]) => R : never;
+
+/** A command entry's callable surface: what the bridge exposes.
+ * Always the raw args list — the event factory's params are the factory's
+ * business (checked where the factory is defined), not the api's. A
+ * command with a typed public call shape declares it where authors see
+ * it; the derived type does not invent one. */
+export type CommandFn<T> = T extends { event(...args: never[]): unknown } | { view(...args: never[]): unknown } ? (...args: readonly unknown[]) => void
+  : never;
+
 /** The api a component's def implies.
  *
  * Every reader with the type it reads, every method with the type it
- * returns, every command, and the bag getter for each part and slot —
- * all of it read off the def, so a component does not hand-write its api
- * and the api cannot disagree with the component.
+ * returns, every command as a callable, and the bag getter for each part
+ * and slot — all of it read off the def, so a component does not
+ * hand-write its api and the api cannot disagree with the component.
+ *
+ * The def's sections are records keyed by name (`readers`, `methods`,
+ * `commands`, `parts`, `slots`), each with its own entry shape — the
+ * mapped types read each section, never the def's top level (which also
+ * holds the machine, the map, and the chart — none of which are api).
  */
-export type ApiOf<D> = {
-  readonly [K in keyof D & string as D[K] extends ReaderDef<never, unknown> ? K : never]: D[K] extends
-    ReaderDef<never, infer R> ? R
+export type ApiOf<D extends {
+  readonly readers?: Record<string, unknown>;
+  readonly methods?: Record<string, unknown>;
+  readonly commands?: Record<string, unknown>;
+  readonly parts?: Record<string, unknown>;
+  readonly slots?: Record<string, unknown>;
+}> = {
+  readonly [K in keyof D["readers"] & string as D["readers"] extends Record<K, unknown> ? K : never]: D["readers"] extends Record<K, infer T> ? ReaderValue<T>
     : never;
 } & {
-  readonly [K in keyof D & string as D[K] extends MethodDef<never, unknown> ? K : never]: D[K] extends
-    MethodDef<never, infer R> ? R
+  readonly [K in keyof D["methods"] & string as D["methods"] extends Record<K, unknown> ? K : never]: D["methods"] extends Record<K, infer T> ? MethodValue<T>
     : never;
 } & {
-  readonly [K in keyof D & string as D[K] extends CommandDef<readonly unknown[], never, never> ? K
-    : never]: (...args: never[]) => void;
+  readonly [K in keyof D["commands"] & string]: D["commands"] extends Record<K, infer T> ? CommandFn<T>
+    : never;
 } & {
-  readonly [K in keyof D & string as D[K] extends PartDef<never, never> ? `get${Capitalize<K>}Props`
-    : never]: () => Record<string, unknown>;
+  readonly [K in keyof NonNullable<D["parts"]> & string as `get${Capitalize<K>}Props`]: () => Record<string, unknown>;
 } & {
-  readonly [K in keyof D & string as D[K] extends SlotDef<never, never>
-    ? `get${Capitalize<K>}Props` | `get${Capitalize<K>}Indexes`
-    : never]: unknown;
+  // Slots synthesize two members: getXProps(slot) reads the slot's bag,
+  // getXIndexes() reads the slot's identities. The indexes return the
+  // slot's identity array (whatever the slot yields); the props take the
+  // slot identity and return the bag.
+  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Indexes`]: NonNullable<D["slots"]> extends Record<K, infer T> ? T extends { indexes(...args: never[]): readonly (infer E)[] } ? () => readonly E[] : () => readonly unknown[] : () => readonly unknown[];
+} & {
+  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`]: (slot: object) => Record<string, unknown>;
 } & {
   /** The machine's mode, live: the framework's own reader. */
   readonly state: string;
