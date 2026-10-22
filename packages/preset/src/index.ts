@@ -44,6 +44,7 @@ import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { spinShortcuts } from "./shortcuts.ts";
 import {
+  classObjectExtractor,
   elementExtractor,
   typeExtractor,
   variantExtractor,
@@ -230,7 +231,7 @@ const factory = definePreset(
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.
-      extractors: [elementExtractor, typeExtractor, variantExtractor],
+      extractors: [classObjectExtractor, elementExtractor, typeExtractor, variantExtractor],
       // Ours first. Uno keeps the first rule that MATCHES a token, and dynamic
       // rules are `unshift`ed onto the match list as they register — so
       // among dynamic rules the LAST registered is tried first. Ours first

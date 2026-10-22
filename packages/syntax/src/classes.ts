@@ -39,8 +39,37 @@ export function classTokensOf(value: AttrValue): string[] {
     push(value.value);
     return out;
   }
+  // A class OBJECT: its keys are the classes, and its values are the
+  // conditions. A literal in a value is not a class.
+  if (/^\s*\{/.test(value.expr)) {
+    for (const key of objectKeysOf(value.expr)) push(key);
+    return out;
+  }
   for (const literal of literalsOf(value.expr)) push(literal);
   return out;
+}
+
+/** The keys of an object literal, at its top level. */
+function objectKeysOf(literal: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let start = 0;
+  const body = literal.trim().replace(/^\{/, "").replace(/\}$/, "");
+  for (let i = 0; i <= body.length; i++) {
+    const ch = body[i];
+    if (ch === "{" || ch === "[" || ch === "(") depth++;
+    else if (ch === "}" || ch === "]" || ch === ")") depth--;
+    else if ((ch === "," && depth === 0) || i === body.length) {
+      const entry = body.slice(start, i).trim();
+      start = i + 1;
+      if (entry.length === 0) continue;
+      const colon = entry.indexOf(":");
+      const key = (colon < 0 ? entry : entry.slice(0, colon)).trim();
+      const name = /^"([^"]*)"$|^'([^']*)'$/.exec(key);
+      if (name !== null) out.push(name[1] ?? name[2] ?? "");
+    }
+  }
+  return out.filter((name) => name.length > 0);
 }
 
 /** Every class token a node names, in the document's order. */

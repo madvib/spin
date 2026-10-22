@@ -60,6 +60,11 @@ Deno.test("spin examples e2e", () =>
         "focus",
         "and it follows the machine",
       );
+      // The class is an OBJECT: its keys are the utilities and its values
+      // are the conditions, so the class follows the state too — no
+      // `data-[…]:` hook in sight.
+      const cls = await mode.getAttribute("class");
+      assert.ok(cls?.includes("text-primary"), `the focus class applied (got "${cls}")`);
     });
 
     await step("every example's machine has a state", async () => {

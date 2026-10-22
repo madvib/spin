@@ -136,6 +136,7 @@ export {
   bindProp,
   bindText,
   bindValue,
+  classOf,
   placeSlot,
   projectSlots,
   type Binding,

@@ -1,5 +1,5 @@
 import { assert } from "@std/assert";
-import { variantExtractor } from "../src/extractors.ts";
+import { classObjectExtractor, variantExtractor } from "../src/extractors.ts";
 
 function extract(code: string): string[] {
   const result = variantExtractor.extract!({
@@ -38,4 +38,28 @@ Deno.test("variantExtractor ignores markup without variant attributes", () => {
     tokens.length === 0,
     "no tokens should be emitted when no variant attribute is present",
   );
+});
+
+function extractClasses(code: string): string[] {
+  const result = classObjectExtractor.extract!({
+    code,
+    original: code,
+    extracted: new Set<string>(),
+  });
+  if (result instanceof Set) return [...result];
+  if (Array.isArray(result)) return result;
+  return [];
+}
+
+Deno.test("classObjectExtractor emits the keys of a class object", () => {
+  const tokens = extractClasses(
+    `<div class={{ "bg-surface": true, "bg-primary": slider.state === "open" }}></div>`,
+  );
+  assert(tokens.includes("bg-surface"), "the first key must be emitted");
+  assert(tokens.includes("bg-primary"), "the second key must be emitted");
+});
+
+Deno.test("classObjectExtractor leaves a static class attribute alone", () => {
+  const tokens = extractClasses(`<div class="bg-surface p-2"></div>`);
+  assert(!tokens.includes("bg-surface"), "a static class is uno's own business");
 });

@@ -21,3 +21,8 @@ Deno.test("a text expression is content, not a class", () => {
   const ir = parse(`<span>{getChannelValue("hue")}</span>`);
   assertEquals(classTokens(ir), []);
 });
+
+Deno.test("a class object's tokens are its keys, not its values' literals", () => {
+  const ir = parse(`<div class={{ "bg-surface": true, "text-primary": slider.state === "focus" }}></div>`);
+  assertEquals(classTokens(ir), ["bg-surface", "text-primary"]);
+});

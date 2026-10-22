@@ -166,7 +166,14 @@ export function emit(ir: ComponentIr): EmitOutput {
           out.push(`${pad(iDepth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
         } else {
           bindings++;
-          out.push(`${pad(iDepth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${scopeExpr(attr.value.expr, bound)}));`);
+          // A class attribute takes an OBJECT: its keys are the utilities
+          // (static, so the build sees them) and its values are live reads
+          // (so the class follows the state). The merge is ours.
+          const merge = attr.name === "class" && /^\s*\{/.test(attr.value.expr)
+            ? "classOf("
+            : "";
+          const close = merge === "" ? "" : ")";
+          out.push(`${pad(iDepth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${merge}${scopeExpr(attr.value.expr, bound)}${close}));`);
         }
       }
       for (const ev of node.events) {
@@ -198,7 +205,7 @@ export function emit(ir: ComponentIr): EmitOutput {
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect, machineTick } from "@spin/runtime";`,
+    `import { runAction, on, bindAttr, bindText, classOf, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect, machineTick } from "@spin/runtime";`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,
     `  const frag = document.createDocumentFragment();`,

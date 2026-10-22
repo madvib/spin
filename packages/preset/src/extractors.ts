@@ -1,6 +1,41 @@
 import type { Extractor } from "@unocss/core";
 
 /**
+ * The keys of a class object as tokens.
+ *
+ * A class attribute may hold an OBJECT: its keys are the utilities and
+ * its values are live reads, so the class follows the state —
+ * `class={{ "bg-primary": slider.state === "open" }}`. The keys are
+ * static strings in the source, so the build must see them: uno's
+ * default extractor reads the attribute's VALUE (an object literal, not
+ * a class list) and finds nothing, and a utility nobody extracts has no
+ * rule and cannot apply.
+ *
+ * This extractor reads the keys out of the object form, so the utilities
+ * in it are the build's to generate — the same reason the element and
+ * type extractors ship.
+ */
+export const classObjectExtractor: Extractor = {
+  name: "spin/class-object",
+  order: 0,
+  extract({ code }) {
+    const out: string[] = [];
+    for (const match of code.matchAll(/class=\{\{([\s\S]*?)\}\}/g)) {
+      for (const key of (match[1] ?? "").matchAll(/"([^"]+)"|'([^']+)'/g)) {
+        const name = key[1] ?? key[2];
+        if (name === undefined) continue;
+        // A key may name several utilities: the classes that belong
+        // together.
+        for (const token of name.split(/\s+/)) {
+          if (token.length > 0) out.push(token);
+        }
+      }
+    }
+    return out;
+  },
+};
+
+/**
  * Element names as tokens.
  *
  * uno's default extractor reads class attributes, so a classless primitive
