@@ -219,7 +219,12 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
         </div>
       </nav>
 
-      <div class="flex-1">{props.children}</div>
+      {
+        /* `min-w-0`: a flex item's width is its content's minimum unless it
+          is told otherwise, so the column beside the rail could not shrink
+          and every page scrolled sideways on a narrow screen. */
+      }
+      <div class="min-w-0 flex-1">{props.children}</div>
     </div>
   );
 }
