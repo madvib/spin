@@ -18,7 +18,9 @@ import { createGenerator } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { walk } from "@std/fs/walk";
+import { classTokens } from "../packages/syntax/src/classes.ts";
 import { expandVariantGroups } from "../packages/syntax/src/expand-groups.ts";
+import { parse } from "../packages/syntax/src/parse.ts";
 import { spinPreset } from "../packages/preset/src/index.ts";
 import { starterThemes } from "../packages/theme/src/themes/index.ts";
 
@@ -42,11 +44,26 @@ function classesOf(source: string): string[] {
   return out;
 }
 
+/** The classes a markup file names, expressions included: a dynamic
+ * class names its utilities in its string literals, and those are
+ * utilities the build must have. */
+function classesOfMarkup(source: string): string[] {
+  try {
+    return classTokens(parse(source));
+  } catch {
+    // Not a component (a fragment, a document): the text walk sees what
+    // it can.
+    return classesOf(source);
+  }
+}
+
 const tokens = new Set<string>();
 for (const root of SOURCES) {
   for await (const entry of walk(root, { exts: [".html", ".tsx", ".ts"] })) {
     if (!entry.isFile) continue;
-    for (const token of classesOf(await Deno.readTextFile(entry.path))) tokens.add(token);
+    const source = await Deno.readTextFile(entry.path);
+    const found = entry.path.endsWith(".html") ? classesOfMarkup(source) : classesOf(source);
+    for (const token of found) tokens.add(token);
   }
 }
 

@@ -14,6 +14,7 @@ export {
   type CodeTokenType,
 } from "./display.ts";
 export { expandVariantGroups } from "./expand-groups.ts";
+export { classAttrOf, classTokens, classTokensOf } from "./classes.ts";
 export type {
   ActionUse,
   Attr,
