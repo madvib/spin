@@ -1,4 +1,4 @@
-import { createSignal, Show } from "solid-js";
+import { createEffect, createSignal, on, Show } from "solid-js";
 
 /**
  * An easing is a curve, and a curve is four control points. Typing
@@ -13,11 +13,17 @@ export default function BezierEditor(props: {
   const parsed = () => parse(props.value);
   const [draft, setDraft] = createSignal(parsed());
 
+  // The document is the source of truth: undo, redo, a reset or a reload
+  // moves the curve, and the four fields have to move with it. `on` so the
+  // effect answers the value rather than the draft being edited.
+  createEffect(on(() => props.value, (value) => setDraft(parse(value))));
+
   function commit(next: { x1: string; y1: string; x2: string; y2: string }) {
     const value =
       `cubic-bezier(${next.x1}, ${next.y1}, ${next.x2}, ${next.y2})`;
-    setDraft({ kind: "bezier", ...next });
-    props.onCommit(value);
+    // A refused curve is not the document's: the fields go back to the
+    // curve the theme still holds.
+    if (!props.onCommit(value)) setDraft(parse(props.value));
   }
 
   return (

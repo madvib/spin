@@ -1,4 +1,13 @@
-import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  on,
+  Show,
+  Switch,
+} from "solid-js";
 import { formatHex, indexTree, parseColor } from "@spin/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
@@ -104,16 +113,27 @@ export default function ValueInput(props: {
       ? undefined
       : compositeLadders(tree, activeMode());
   });
+  /**
+   * The control's id: the caller's, or one derived from the token's path.
+   *
+   * The id is what `keepFocus` puts back after a commit rebuilds the row.
+   * A control that has none is a control the author has to find again, so
+   * the path — which every row carries and which is exactly what identifies
+   * the token across a render — is the fallback.
+   */
+  const controlId = () =>
+    props.id ??
+      (props.label === undefined ? undefined : `token-${props.label}`);
   return (
     <div class="row-sm gap-2">
-      <Switch fallback={<TextControl {...props} />}>
+      <Switch fallback={<TextControl {...props} id={controlId()} />}>
         <Match when={isCompositeType(props.type) && ladders() !== undefined}>
           <CompositeEditor
             type={props.type}
             value={props.value}
             ladders={ladders()!}
             onCommit={props.onCommit}
-            id={props.id}
+            id={controlId()}
             label={props.label}
           />
         </Match>
@@ -124,13 +144,13 @@ export default function ValueInput(props: {
           <ShadowEditor value={props.value} onCommit={props.onCommit} />
         </Match>
         <Match when={controlFor(props.type, props.value) === "boolean"}>
-          <CheckControl {...props} />
+          <CheckControl {...props} id={controlId()} />
         </Match>
         <Match when={controlFor(props.type, props.value) === "color"}>
-          <ColorControl {...props} />
+          <ColorControl {...props} id={controlId()} />
         </Match>
         <Match when={controlFor(props.type, props.value) === "range"}>
-          <RangeControl {...props} />
+          <RangeControl {...props} id={controlId()} />
         </Match>
       </Switch>
       <ResetButton
@@ -205,6 +225,11 @@ function ColorControl(props: {
 }) {
   const hex = () => asHex(props.value);
   const [draft, setDraft] = createSignal(props.value);
+  // The document is the source of truth: undo, redo, a reset, a reload or a
+  // picker elsewhere moves the value, and a field holding the old spelling is
+  // a field lying about the document. `on` so the effect answers the value
+  // rather than the draft the author is typing.
+  createEffect(on(() => props.value, (value) => setDraft(value)));
   return (
     <Show
       // The hex itself, not a boolean: `<Show>` hands its children the `when`
@@ -221,8 +246,14 @@ function ColorControl(props: {
             const next = event.currentTarget.value;
             setDraft(next);
             // A text color is legitimate — oklch has no hex form — but it
-            // still has to parse. Anything else is not committed.
-            if (asHex(next) !== undefined) props.onCommit(next);
+            // still has to parse. Anything else is not committed, and the
+            // field goes back to the document's value: a field that keeps a
+            // word the document refused is a field saying something false.
+            if (asHex(next) === undefined) {
+              setDraft(props.value);
+              return;
+            }
+            if (!props.onCommit(next)) setDraft(props.value);
           }}
         />
       }
@@ -417,6 +448,12 @@ function TextControl(props: {
     props.value.includes(",") ||
     props.value.length > 24;
   const [draft, setDraft] = createSignal(props.value);
+  // The document is the source of truth. A field that kept the word it had
+  // when it mounted is a field that disagrees with the document the moment
+  // the author presses undo, redo or reset — and the word it shows is the
+  // one they will next act on. `on` so typing is not undone by the effect's
+  // own read.
+  createEffect(on(() => props.value, (value) => setDraft(value)));
   const paths = () => {
     const current = analyzeTheme(themeText()).tree;
     if (current === undefined) return [];
@@ -437,7 +474,9 @@ function TextControl(props: {
             onChange={(event) => {
               const next = event.currentTarget.value;
               setDraft(next);
-              props.onCommit(next);
+              // A refused value stays in the document's word, so the field
+              // says what is true rather than what was typed at it.
+              if (!props.onCommit(next)) setDraft(props.value);
             }}
           />
           <datalist id="spin-token-paths">
@@ -456,7 +495,7 @@ function TextControl(props: {
           onChange={(event) => {
             const next = event.currentTarget.value;
             setDraft(next);
-            props.onCommit(next);
+            if (!props.onCommit(next)) setDraft(props.value);
           }}
         />
         <Show when={isShadow(draft())}>

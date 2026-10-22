@@ -2,7 +2,12 @@ import { createMemo, createSignal, For, Show } from "solid-js";
 import { generateScale } from "@spin/theme";
 import { inDrawer } from "../lib/host.ts";
 import { analyzeTheme } from "../lib/theme.ts";
-import { activeMode, activeModes, themeText } from "../lib/store.ts";
+import {
+  activeMode,
+  activeModes,
+  refusalFor,
+  themeText,
+} from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
 import { type MeasuredFloor, measureFloors } from "../lib/floors.ts";
 import {
@@ -214,6 +219,18 @@ function RolePicker(props: {
               )}
             </Show>
           </div>
+          {
+            /* The refusal belongs beside the role it is about: the banner
+              at the top of the work is a different line of sight from the
+              slot the author just committed. */
+          }
+          <Show when={refusalFor(role().path)}>
+            {(message) => (
+              <p class="text-sm text-semantic-error" role="alert">
+                {message()}
+              </p>
+            )}
+          </Show>
           <div class="stack-sm">
             <h4>Floors</h4>
             <Show when={owed().length > 0}>
@@ -269,8 +286,24 @@ function SlotEditor(props: {
   /** Whether the theme restates this role for the dark mode. */
   restated?: boolean;
 }) {
-  function commit(value: string): void {
-    editToken(props.role.path.split("."), value, commitSlot(props.slot));
+  /** The text field, so a refused value can be put back where it was. */
+  let field: HTMLInputElement | undefined;
+
+  /**
+   * Write the value, or say why not by putting the field back.
+   *
+   * The document is the truth: a value the gate refuses must not stay in the
+   * box, because the box is what the author will act on next. The refusal
+   * itself is rendered by the picker, beside the role.
+   */
+  function commit(value: string): boolean {
+    const accepted = editToken(
+      props.role.path.split("."),
+      value,
+      commitSlot(props.slot),
+    );
+    if (!accepted && field !== undefined) field.value = props.value.raw;
+    return accepted;
   }
   return (
     <div class="stack-sm rounded-md border border-border p-3">
@@ -292,7 +325,13 @@ function SlotEditor(props: {
             type="color"
             class="visually-hidden"
             value={props.value.hex ?? "#000000"}
-            onChange={(event) => commit(event.currentTarget.value)}
+            onChange={(event) => {
+              // A refused colour goes back to the value the document holds,
+              // the same honesty the text field keeps.
+              if (!commit(event.currentTarget.value)) {
+                event.currentTarget.value = props.value.hex ?? "#000000";
+              }
+            }}
           />
         </label>
         <Hex value={props.value.value ?? ""} />
@@ -305,11 +344,16 @@ function SlotEditor(props: {
           : "set"}
       </p>
       <input
+        ref={field}
         type="text"
         class="w-full"
         value={props.value.raw}
         aria-label={`${props.role.path} value in ${props.slot}`}
-        onChange={(event) => commit(event.currentTarget.value)}
+        onChange={(event) => {
+          // The value the document refused never stays in the field: the
+          // refusal is rendered above, and the field says what is true.
+          commit(event.currentTarget.value);
+        }}
       />
       <div class="stack-sm">
         <span class="text-xs text-text-muted">Point at another token</span>

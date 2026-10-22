@@ -220,6 +220,39 @@ export default function OverviewPage() {
     }
   }
 
+  /**
+   * Copies a shipped starter into the project's own files.
+   *
+   * A starter is read-only until a project forks it: the save forks it on
+   * the first write, but an author looking at a starter has no obvious way
+   * to start, and a starter that is only ever edited in memory is a theme
+   * that never reaches a build. So the card offers the fork, names the copy
+   * after the theme it came from, and seats it.
+   */
+  async function fork(theme: string): Promise<void> {
+    setNote(null);
+    try {
+      const taken = new Set(
+        (await listProjectThemes()).map((item) => item.name),
+      );
+      let next = `${theme}-copy`;
+      for (let index = 2; taken.has(next); index++) {
+        next = `${theme}-copy-${index}`;
+      }
+      const written = await copyTheme(theme, next);
+      if (written.error !== null) {
+        setNote(written.error);
+        return;
+      }
+      refetchThemes();
+      refetchProjectThemes();
+      setActiveName(next);
+      setNote(`${theme} forked to ${next}.`);
+    } catch (err) {
+      setNote(problemText(err));
+    }
+  }
+
   async function remove(theme: string): Promise<void> {
     if (confirming() !== theme) {
       setConfirming(theme);
@@ -477,13 +510,34 @@ export default function OverviewPage() {
                     */
                   }
                   <div class="row-sm">
+                    {
+                      /*
+                        A shipped starter has no file of its own to save to,
+                        so the way to start is to take a copy of it. The verb
+                        says so, and names the copy it makes.
+                      */
+                    }
+                    <Show when={summary.file === null}>
+                      <button
+                        type="button"
+                        class="bare text-text-muted"
+                        title="Copy this starter into the project so it can be edited and saved"
+                        onClick={() => void fork(summary.name)}
+                      >
+                        Fork
+                      </button>
+                    </Show>
                     <button
                       type="button"
                       class="bare text-text-muted"
-                      title="Re-read this theme from disk"
+                      title={summary.file === null
+                        ? "Take the starter's own text back"
+                        : "Re-read this theme from disk"}
                       onClick={() => reload(summary.name)}
                     >
-                      Reload from disk
+                      {summary.file === null
+                        ? "Reset to starter"
+                        : "Reload from disk"}
                     </button>
                     <Show when={summary.dirty}>
                       <button
@@ -636,15 +690,35 @@ export default function OverviewPage() {
               <span>Copy a theme</span>
             </label>
             <Show when={!blanks()}>
-              <select
-                value={chosen()}
-                onChange={(event) => setSource(event.currentTarget.value)}
-                title="Source theme"
+              {
+                /*
+                  The source is a list of the project's own names, as radio
+                  rows: a native select is drawn by the browser, and the
+                  studio does not wear the browser's idea of a control. The
+                  rows are also the keyboard contract the platform already
+                  has, which a hand-built menu would have to re-earn.
+                */
+              }
+              <fieldset
+                class="stack-sm max-h-[40vh] overflow-y-auto ps-5"
+                aria-label="Source theme"
               >
+                <legend class="text-text-muted">Copy from</legend>
                 <For each={registry() ?? []}>
-                  {(theme) => <option value={theme.name}>{theme.name}</option>}
+                  {(theme) => (
+                    <label class="row-sm text-sm">
+                      <input
+                        type="radio"
+                        name="new-theme-source-theme"
+                        value={theme.name}
+                        checked={chosen() === theme.name}
+                        onChange={() => setSource(theme.name)}
+                      />
+                      <span>{theme.name}</span>
+                    </label>
+                  )}
                 </For>
-              </select>
+              </fieldset>
             </Show>
             <label class="row-sm text-sm">
               <input

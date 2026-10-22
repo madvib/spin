@@ -17,6 +17,7 @@
 
 import { Show } from "solid-js";
 import type { TokenRow } from "../../lib/tokens";
+import { refusalFor } from "../../lib/store.ts";
 import ValueInput from "./ValueInput.tsx";
 
 /** `color.neutral.50` → `neutral-50`, the utility suffix a swatch spends. */
@@ -49,31 +50,44 @@ export default function TokenRow_({
 }) {
   const id = `token-${row.path}`;
   return (
-    <card class="split p-2">
-      <div class="row-sm min-w-0">
-        <Show when={swatch}>
-          <div
-            class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
+    <>
+      <card class="split p-2">
+        <div class="row-sm min-w-0">
+          <Show when={swatch}>
+            <div
+              class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
+            />
+          </Show>
+          <label for={id} class="truncate">
+            {row.path}
+          </label>
+        </div>
+        <div class="row-sm min-w-0 flex-1 flex-wrap justify-end gap-2">
+          <ValueInput
+            id={id}
+            value={row.value}
+            type={row.type}
+            onCommit={(value) => onEdit(row.path.split("."), value)}
+            group={group}
+            variable={variable}
+            onPreview={onPreview === undefined
+              ? undefined
+              : (value) => onPreview(row.path, value)}
+            onCancel={onCancel}
           />
-        </Show>
-        <label for={id} class="truncate">
-          {row.path}
-        </label>
-      </div>
-      <div class="row-sm min-w-0 flex-1 flex-wrap justify-end gap-2">
-        <ValueInput
-          id={id}
-          value={row.value}
-          type={row.type}
-          onCommit={(value) => onEdit(row.path.split("."), value)}
-          group={group}
-          variable={variable}
-          onPreview={onPreview === undefined
-            ? undefined
-            : (value) => onPreview(row.path, value)}
-          onCancel={onCancel}
-        />
-      </div>
-    </card>
+        </div>
+      </card>
+      {
+        /* The refusal belongs beside the control that asked for the value:
+          the banner at the top of the work is a different line of sight. */
+      }
+      <Show when={refusalFor(row.path)}>
+        {(message) => (
+          <p class="text-xs text-semantic-error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
+    </>
   );
 }

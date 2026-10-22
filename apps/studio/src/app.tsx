@@ -41,7 +41,7 @@ import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
 import FindingsPage from "./routes/findings.tsx";
-import { For, Show, Suspense } from "solid-js";
+import { For, onMount, Show, Suspense } from "solid-js";
 import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
@@ -59,6 +59,7 @@ import {
 } from "./lib/store.ts";
 import { closeStudio, embedded, inDrawer, toggleHostMode } from "./lib/host.ts";
 import { hostPath } from "./lib/client.ts";
+import { installShortcuts } from "./lib/shortcuts.ts";
 
 /**
  * The chrome's own theme. A constant rather than a lookup, so the shell does
@@ -189,6 +190,10 @@ function RailTip(props: { label: string; top?: string }) {
 }
 
 export default function App() {
+  // The keyboard's verbs are the tool's, not a page's: installed once with
+  // the shell, and taken off only when the shell goes.
+  onMount(() => installShortcuts());
+
   return (
     <Router
       // The bundle is served under `/__spin/studio/`; dev serves at `/`.

@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal, on } from "solid-js";
 
 /**
  * A shadow is four lengths and a colour, and typing the string by hand is
@@ -13,14 +13,16 @@ export default function ShadowEditor(props: {
   const parsed = () => parse(props.value);
   const [draft, setDraft] = createSignal(parsed());
 
-  // Re-parse when the committed value changes externally.
-  // (The component is re-created per row, so this is a one-shot init.)
+  // Re-parse when the value changes externally: undo, redo, a reset and a
+  // reload all move the shadow, and five fields holding the old parts are
+  // five fields lying about the document. `on` so typing is not undone by
+  // the effect's own read.
+  createEffect(on(() => props.value, (value) => setDraft(parse(value))));
 
   function commit(next: ShadowParts) {
     const value =
       `${next.x} ${next.y} ${next.blur} ${next.spread} ${next.color}`;
-    setDraft(next);
-    props.onCommit(value);
+    if (!props.onCommit(value)) setDraft(parse(props.value));
   }
 
   return (

@@ -27,9 +27,12 @@ import { spinClient } from "./client.ts";
  */
 export function paintPreview(vars: Record<string, string>): () => void {
   if (typeof document === "undefined") return () => {};
-  const host = document.querySelector<HTMLElement>(
-    '[data-theme="studio"] > [data-theme]',
-  );
+  // The pane, by the class that marks it a preview and the attribute that
+  // says which theme it wears. NOT a child combinator: the studio's error
+  // boundary, the shell's layout row and the work column all sit between
+  // the themed root and the pane, so `[data-theme="studio"] > [data-theme]`
+  // matched nothing and every drag painted into the void.
+  const host = document.querySelector<HTMLElement>(".spin-preview[data-theme]");
   if (host === null) return () => {};
   for (const [name, value] of Object.entries(vars)) {
     host.style.setProperty(name, value);

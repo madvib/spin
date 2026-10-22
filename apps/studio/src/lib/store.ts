@@ -22,6 +22,7 @@ import type { FileState } from "./theme.ts";
 import { indexTree } from "@spin/theme";
 import type { Mode } from "@spin/theme";
 import { documentFailure, editRefusal } from "./live-edit.ts";
+import { keepFocus } from "./keep-focus.ts";
 import {
   currentProject,
   listProjectThemes,
@@ -168,15 +169,53 @@ const [saved, setSaved] = createSignal<Record<string, string>>({});
 /** How many snapshots a theme keeps. A bounded stack means undo cannot eat a tab. */
 const UNDO_LIMIT = 100;
 
-const [activeName, setActiveName] = createSignal("silk");
-const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
-  typeof localStorage !== "undefined" &&
-    localStorage.getItem("spin-dock-side") === "left"
-    ? "left"
-    : "right",
+/**
+ * A preference the browser is asked to keep, when it will.
+ *
+ * The studio is a tool an author leaves and comes back to, and the theme
+ * they were editing is not a fact about a page — it is where they were
+ * working. Kept in the browser rather than in the document: a project is
+ * edited by several people and none of them owns the other's seat.
+ */
+function stored(key: string): string | undefined {
+  try {
+    return localStorage.getItem(key) ?? undefined;
+  } catch {
+    // Private mode: the session keeps it.
+    return undefined;
+  }
+}
+
+/** Ask the browser to keep a preference. */
+function remember(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Private mode: the session keeps it.
+  }
+}
+
+const [activeName, setActiveNameSignal] = createSignal(
+  stored("spin-theme") ?? "silk",
 );
 
-export { activeName, dockSide, setActiveName };
+/**
+ * Seat a theme, and remember the seat.
+ *
+ * A reload is not a new session: the author was editing a theme, and the
+ * theme they were editing is the one they come back to. A name the project
+ * no longer holds is clamped by the seat effect when the registry answers.
+ */
+export function setActiveName(name: string): void {
+  setActiveNameSignal(name);
+  remember("spin-theme", name);
+}
+
+const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
+  stored("spin-dock-side") === "left" ? "left" : "right",
+);
+
+export { activeName, dockSide };
 
 /**
  * The mode the author chose, kept across themes.
@@ -194,7 +233,14 @@ export { activeName, dockSide, setActiveName };
  */
 export type ModeChoice = "light" | "dark" | "system";
 
-const [chosenMode, setChosenMode] = createSignal<ModeChoice>("light");
+/** The mode an author can choose: the theme's two lights, or the machine's. */
+function modeChoiceFrom(value: string | undefined): ModeChoice {
+  return value === "dark" || value === "system" ? value : "light";
+}
+
+const [chosenMode, setChosenMode] = createSignal<ModeChoice>(
+  modeChoiceFrom(stored("spin-mode")),
+);
 
 /**
  * What the operating system asks for.
@@ -253,9 +299,10 @@ export function systemMode(): Mode {
   return osMode();
 }
 
-/** The mode the author chose. */
+/** The mode the author chose, remembered across the themes they seat. */
 export function setActiveMode(mode: ModeChoice): void {
   setChosenMode(mode);
+  remember("spin-mode", mode);
 }
 
 /** The drawer edge. Persisted: a handedness choice, not a session one. */
@@ -575,6 +622,11 @@ export function setThemeText(
   // studio has nothing to refuse about the gesture that just succeeded.
   clearRefusal(touched);
   setLastRefused(undefined);
+
+  // A commit rebuilds the row, and the control the author is holding is a
+  // new element afterwards. Put focus back on the control with the same id
+  // BEFORE the document moves — the capture has to see the old element.
+  keepFocus();
 
   // History is recorded BEFORE the document moves. Reading the document
   // afterwards would seed `present` with the new text, and a stack whose

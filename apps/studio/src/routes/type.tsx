@@ -30,6 +30,8 @@ import {
   createSignal,
   For,
   on,
+  onCleanup,
+  onMount,
   Show,
 } from "solid-js";
 import { Dynamic } from "solid-js/web";
@@ -742,6 +744,55 @@ function FamilyField(props: {
 }) {
   const [open, setOpen] = createSignal(false);
   const [draft, setDraft] = createSignal(props.value);
+  let root: HTMLDivElement | undefined;
+  let field: HTMLInputElement | undefined;
+  let list: HTMLUListElement | undefined;
+  /**
+   * The dismissal, and the keyboard's way into the results.
+   *
+   * The list used to close on the field's `blur`, deferred by 150ms so a
+   * mouse click could land — which made it unreachable from the keyboard:
+   * Tab is a blur, so the list closed before a reader could get in. The
+   * field now owns no blur rule: the list closes on a pointer outside it,
+   * on Escape, or when Tab leaves it. The three things a reader reaches
+   * for.
+   */
+  const dismiss = () => setOpen(false);
+  /**
+   * Whether focus is being handed BACK to the field.
+   *
+   * The field opens the list when it takes focus, which is right for a
+   * reader arriving in it and wrong for the studio returning focus after
+   * Escape: the close would reopen the list in the same gesture. The flag
+   * says "this focus is a return, not an arrival".
+   */
+  let returning = false;
+  const returnToField = () => {
+    returning = true;
+    dismiss();
+    field?.focus();
+    returning = false;
+  };
+  const buttons = (): HTMLButtonElement[] => [
+    ...(list?.querySelectorAll<HTMLButtonElement>("button") ?? []),
+  ];
+  const enterList = (edge: "first" | "last") => {
+    setOpen(true);
+    queueMicrotask(() => {
+      const all = buttons();
+      const target = edge === "first" ? all[0] : all[all.length - 1];
+      target?.focus();
+    });
+  };
+  onMount(() => {
+    const onPointer = (event: PointerEvent) => {
+      if (open() && !root?.contains(event.target as Node)) dismiss();
+    };
+    document.addEventListener("pointerdown", onPointer, true);
+    onCleanup(() =>
+      document.removeEventListener("pointerdown", onPointer, true)
+    );
+  });
   // The families that match what has been typed, asked of the catalogue the
   // host keeps. The studio does not hold the catalogue: the host has the
   // whole of it, and the endpoint answers a name rather than a list.
@@ -769,7 +820,7 @@ function FamilyField(props: {
 
   const family = () => firstFamily(draft());
   return (
-    <div class="stack-sm">
+    <div class="stack-sm" ref={root}>
       <div class="row-sm">
         <span
           class="rounded-md bg-surface-sunken px-2 py-1 text-sm"
@@ -778,13 +829,16 @@ function FamilyField(props: {
           {family() || "—"}
         </span>
         <input
+          ref={field}
           type="text"
           aria-label={props.label}
           class="w-[16rem] max-w-full"
           placeholder="Inter, ui-sans-serif, system-ui, sans-serif"
           value={draft()}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          aria-expanded={open()}
+          onFocus={() => {
+            if (!returning) setOpen(true);
+          }}
           onInput={(event) => setDraft(event.currentTarget.value)}
           onChange={(event) => {
             setDraft(event.currentTarget.value);
@@ -792,7 +846,18 @@ function FamilyField(props: {
           }}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
-              setOpen(false);
+              dismiss();
+              return;
+            }
+            // The field is the way INTO the list for a keyboard reader.
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              enterList("first");
+              return;
+            }
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              enterList("last");
               return;
             }
             // Enter commits, so a stack the author typed is not held until
@@ -804,7 +869,30 @@ function FamilyField(props: {
         />
       </div>
       <Show when={open() && matches().length > 0}>
-        <ul class="flow-list stack-sm max-w-full">
+        <ul
+          ref={list}
+          class="flow-list stack-sm max-w-full"
+          aria-label="Font families"
+          onKeyDown={(event) => {
+            const all = buttons();
+            const at = all.indexOf(
+              document.activeElement as HTMLButtonElement,
+            );
+            const move = (index: number) => {
+              event.preventDefault();
+              all[(index + all.length) % all.length]?.focus();
+            };
+            if (event.key === "ArrowDown") move(at < 0 ? 0 : at + 1);
+            else if (event.key === "ArrowUp") {
+              move(at < 0 ? all.length - 1 : at - 1);
+            } else if (event.key === "Home") move(0);
+            else if (event.key === "End") move(all.length - 1);
+            else if (event.key === "Escape") {
+              event.preventDefault();
+              returnToField();
+            } else if (event.key === "Tab") dismiss();
+          }}
+        >
           <For each={matches()}>
             {(font) => (
               <li class="m-0">
@@ -815,7 +903,7 @@ function FamilyField(props: {
                   onClick={() => {
                     const stack = stackFor(font);
                     setDraft(stack);
-                    setOpen(false);
+                    returnToField();
                     props.onCommit(stack);
                   }}
                 >

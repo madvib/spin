@@ -31,9 +31,11 @@
  */
 
 import {
+  createEffect,
   createMemo,
   createSignal,
   For,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -98,15 +100,50 @@ function Panel(props: {
 }) {
   const id = `composite-panel-${panelCount++}`;
   const open = () => openPanel() === id;
-  const close = () => setOpenPanel(undefined);
+  const hide = () => setOpenPanel(undefined);
+  /**
+   * Close, and put the reader back on the control that opened the panel.
+   *
+   * The row they picked is gone from the tab order the moment the panel is
+   * hidden, so focus left there is focus nowhere: the next Tab would start
+   * the page over.
+   */
+  const dismiss = () => {
+    hide();
+    trigger?.focus();
+  };
   let root: HTMLDivElement | undefined;
+  let trigger: HTMLButtonElement | undefined;
+  let panel: HTMLDivElement | undefined;
+
+  const items = (): HTMLElement[] => [
+    ...(panel?.querySelectorAll<HTMLElement>(
+      '[role="option"]:not([disabled])',
+    ) ?? []),
+  ];
+  const chosen = (): HTMLElement | undefined =>
+    items().find((item) => item.getAttribute("aria-selected") === "true");
+
+  /** Open, and land a keyboard reader on the answer in force. */
+  function show(edge: "first" | "last" | "current"): void {
+    setOpenPanel(id);
+    queueMicrotask(() => {
+      const list = items();
+      const target = edge === "first"
+        ? list[0]
+        : edge === "last"
+        ? list[list.length - 1]
+        : chosen() ?? list[0];
+      target?.focus();
+    });
+  }
 
   onMount(() => {
     const onPointer = (event: MouseEvent) => {
-      if (open() && !root?.contains(event.target as Node)) close();
+      if (open() && !root?.contains(event.target as Node)) hide();
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape" && open()) hide();
     };
     document.addEventListener("click", onPointer, true);
     document.addEventListener("keydown", onKey);
@@ -116,26 +153,84 @@ function Panel(props: {
     });
   });
 
+  const onTriggerKey = (event: KeyboardEvent) => {
+    // The picker opens on the step in force, so the arrow keys start from
+    // the document rather than from the top of the ladder.
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      show("current");
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      if (open()) dismiss();
+      else show("current");
+      return;
+    }
+    if (event.key === "Escape" && open()) {
+      event.preventDefault();
+      dismiss();
+    }
+  };
+
+  const onPanelKey = (event: KeyboardEvent) => {
+    const list = items();
+    if (list.length === 0) return;
+    const at = list.indexOf(document.activeElement as HTMLElement);
+    const move = (index: number) => {
+      event.preventDefault();
+      list[(index + list.length) % list.length]?.focus();
+    };
+    switch (event.key) {
+      case "ArrowDown":
+        move(at < 0 ? 0 : at + 1);
+        break;
+      case "ArrowUp":
+        move(at < 0 ? list.length - 1 : at - 1);
+        break;
+      case "Home":
+        move(0);
+        break;
+      case "End":
+        move(list.length - 1);
+        break;
+      case "Escape":
+        event.preventDefault();
+        dismiss();
+        break;
+      case "Tab":
+        hide();
+        break;
+    }
+  };
+
   return (
     <div class="relative shrink-0" ref={root}>
       <button
+        ref={trigger}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open()}
         aria-label={props.label}
         title={props.label}
         class="secondary s-sm row-sm min-w-0 gap-2 text-text-muted hover:border-primary hover:text-text"
-        onClick={() => setOpenPanel(open() ? undefined : id)}
+        onClick={() => {
+          if (open()) hide();
+          else setOpenPanel(id);
+        }}
+        onKeyDown={onTriggerKey}
       >
         {props.trigger}
       </button>
       <div
+        ref={panel}
         hidden={!open()}
         role="listbox"
         aria-label={props.label}
         class={PANEL}
+        onKeyDown={onPanelKey}
       >
-        {props.children(close)}
+        {props.children(dismiss)}
       </div>
     </div>
   );
@@ -160,8 +255,8 @@ export function StepField(props: {
   value: string;
   /** The theme's own steps for the part. */
   steps: readonly LadderStep[];
-  /** Called with the step's value when one is picked. */
-  onPick: (value: string) => void;
+  /** Called with the step's value when one is picked; false when refused. */
+  onPick: (value: string) => boolean;
 }) {
   const current = createMemo(() =>
     props.steps.find((step) => step.value === props.value)
@@ -177,7 +272,13 @@ export function StepField(props: {
             type="text"
             class="w-24"
             value={props.value}
-            onChange={(event) => props.onPick(event.currentTarget.value)}
+            onChange={(event) => {
+              // A refused value is not the document's: the field says what
+              // the theme still holds rather than what was typed at it.
+              if (props.onPick(event.currentTarget.value) === false) {
+                event.currentTarget.value = props.value;
+              }
+            }}
           />
         }
       >
@@ -224,9 +325,14 @@ export function ColourField(props: {
   value: string;
   /** The theme's own colours — the roles of its palette. */
   steps: readonly LadderStep[];
-  onPick: (value: string) => void;
+  /** Called with the colour; false when the document refused it. */
+  onPick: (value: string) => boolean;
 }) {
   const [draft, setDraft] = createSignal(props.value);
+  // The document is the source of truth: undo, redo and a reset move the
+  // colour, and a field holding the old spelling is a field lying about the
+  // document. `on` so the effect answers the value, not the draft.
+  createEffect(on(() => props.value, (value) => setDraft(value)));
   return (
     <label class="stack-sm text-xs text-text-muted">
       {props.label}
@@ -272,7 +378,7 @@ export function ColourField(props: {
           onChange={(event) => {
             const next = event.currentTarget.value;
             setDraft(next);
-            props.onPick(next);
+            if (props.onPick(next) === false) setDraft(props.value);
           }}
         />
       </div>
@@ -286,7 +392,7 @@ export function ColourField(props: {
 export function TextField(props: {
   label: string;
   value: string;
-  onPick: (value: string) => void;
+  onPick: (value: string) => boolean;
   placeholder?: string;
 }) {
   return (
@@ -297,7 +403,13 @@ export function TextField(props: {
         class="w-32"
         placeholder={props.placeholder}
         value={props.value}
-        onChange={(event) => props.onPick(event.currentTarget.value)}
+        onChange={(event) => {
+          // Same honesty as the step field: a refused value does not stay
+          // in a field the document never took.
+          if (props.onPick(event.currentTarget.value) === false) {
+            event.currentTarget.value = props.value;
+          }
+        }}
       />
     </label>
   );
@@ -316,7 +428,7 @@ export function ChoiceField(props: {
   value: string;
   /** The values there are to choose from. */
   choices: readonly string[];
-  onPick: (value: string) => void;
+  onPick: (value: string) => boolean;
 }) {
   const known = createMemo(() => props.choices.includes(props.value));
   return (

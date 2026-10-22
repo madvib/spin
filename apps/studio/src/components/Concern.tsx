@@ -1,6 +1,7 @@
 import { Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { inDrawer } from "../lib/host.ts";
+import { refusalFor } from "../lib/store.ts";
 
 /**
  * The furniture every concern page is built from.
@@ -188,6 +189,19 @@ export function TokenLine(props: {
         </code>
       </Show>
       <div class="min-w-0">{props.editor}</div>
+      {
+        /* A refused value is said where the value was asked for. The banner
+          at the top of the work says what the studio last refused; a reader
+          scrolled to a token halfway down a page is not looking at it, and
+          the message they need is the one beside the control they hold. */
+      }
+      <Show when={refusalFor(props.path)}>
+        {(message) => (
+          <p class="w-full text-xs text-semantic-error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
     </li>
   );
 }

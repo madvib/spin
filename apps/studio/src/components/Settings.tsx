@@ -218,14 +218,68 @@ function Popover(props: {
   readonly children: (close: () => void) => JSX.Element;
 }) {
   const open = () => openPopover() === props.name;
-  const close = () => setOpenPopover(undefined);
+  const hide = () => setOpenPopover(undefined);
+  /**
+   * Close, and put the reader back where they were.
+   *
+   * The one control that opened the panel is the one they come back to: a
+   * menu that closes with focus inside a hidden box leaves a keyboard
+   * reader at the top of the document, and the next Tab starts the page
+   * over.
+   */
+  const dismiss = () => {
+    hide();
+    trigger?.focus();
+  };
   let root: HTMLDivElement | undefined;
+  let trigger: HTMLButtonElement | undefined;
+  let panel: HTMLDivElement | undefined;
+
+  /**
+   * The options a reader can move between.
+   *
+   * Read from the panel rather than held as a list: the rows are the
+   * theme's registry, which is refetched while the panel is open.
+   */
+  const items = (): HTMLElement[] => [
+    ...(panel?.querySelectorAll<HTMLElement>(
+      '[role="option"]:not([disabled]), [role="menuitem"]:not([disabled])',
+    ) ?? []),
+  ];
+
+  /** The row that says it is the current answer, when one does. */
+  const chosen = (): HTMLElement | undefined =>
+    items().find((item) =>
+      item.getAttribute("aria-selected") === "true" ||
+      item.getAttribute("aria-current") === "true"
+    );
+
+  /**
+   * Open, and move focus to the row a reader is most likely to want.
+   *
+   * A pointer opens the panel and keeps focus on the trigger — moving focus
+   * under a mouse is a jump nobody asked for. A KEY opens it and lands on
+   * the answer in force, so the next arrow starts from where the document
+   * is rather than from the top of a list.
+   */
+  function show(edge: "first" | "last" | "current"): void {
+    setOpenPopover(props.name);
+    queueMicrotask(() => {
+      const list = items();
+      const target = edge === "first"
+        ? list[0]
+        : edge === "last"
+        ? list[list.length - 1]
+        : chosen() ?? list[0];
+      target?.focus();
+    });
+  }
 
   const onPointer = (event: MouseEvent) => {
-    if (open() && !root?.contains(event.target as Node)) close();
+    if (open() && !root?.contains(event.target as Node)) hide();
   };
   const onKey = (event: KeyboardEvent) => {
-    if (event.key === "Escape") close();
+    if (event.key === "Escape" && open()) hide();
   };
   onMount(() => {
     document.addEventListener("click", onPointer, true);
@@ -236,9 +290,67 @@ function Popover(props: {
     });
   });
 
+  /** The keyboard contract: open, move, choose, leave. */
+  const onTriggerKey = (event: KeyboardEvent) => {
+    // A picker opens on the answer in force: the reader is asking "what is
+    // it now, and what else could it be", and the answer they have is the
+    // row worth starting from. An arrow from there moves to its neighbour.
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      show("current");
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      // The button's own activation is replaced, because a menu that opens
+      // under the pointer is a menu a keyboard cannot reach without a
+      // second gesture.
+      event.preventDefault();
+      if (open()) dismiss();
+      else show("current");
+      return;
+    }
+    if (event.key === "Escape" && open()) {
+      event.preventDefault();
+      dismiss();
+    }
+  };
+
+  const onPanelKey = (event: KeyboardEvent) => {
+    const list = items();
+    if (list.length === 0) return;
+    const at = list.indexOf(document.activeElement as HTMLElement);
+    const move = (index: number) => {
+      event.preventDefault();
+      list[(index + list.length) % list.length]?.focus();
+    };
+    switch (event.key) {
+      case "ArrowDown":
+        move(at < 0 ? 0 : at + 1);
+        break;
+      case "ArrowUp":
+        move(at < 0 ? list.length - 1 : at - 1);
+        break;
+      case "Home":
+        move(0);
+        break;
+      case "End":
+        move(list.length - 1);
+        break;
+      case "Escape":
+        event.preventDefault();
+        dismiss();
+        break;
+      case "Tab":
+        // Leaving the panel closes it; focus is moving somewhere on purpose.
+        hide();
+        break;
+    }
+  };
+
   return (
     <div class="relative shrink-0" ref={root}>
       <button
+        ref={trigger}
         type="button"
         data-testid={props.testid}
         class={`${TRIGGER} ${props.triggerClass ?? ""}`}
@@ -247,18 +359,24 @@ function Popover(props: {
         aria-expanded={open()}
         aria-label={props.label}
         title={props.label}
-        onClick={() => setOpenPopover(open() ? undefined : props.name)}
+        onClick={() => {
+          if (open()) hide();
+          else setOpenPopover(props.name);
+        }}
+        onKeyDown={onTriggerKey}
       >
         {props.trigger}
       </button>
       <div
+        ref={panel}
         hidden={!open()}
         role={props.popup}
         data-testid={props.panelTestid}
         aria-label={props.label}
         class={PANEL}
+        onKeyDown={onPanelKey}
       >
-        {props.children(close)}
+        {props.children(dismiss)}
       </div>
     </div>
   );
