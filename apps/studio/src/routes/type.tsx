@@ -159,9 +159,18 @@ function elementRows(): readonly TokenRow[] {
  * value — the four decisions the scales above hold separately — so it gets
  * a row of its own and an editor that takes the four apart. A theme that
  * declares none has no such row, and the section says so.
+ *
+ * The theme decides where it keeps them: a composite is a *type*, and a
+ * type may be declared in any group — `typography.body` beside the other
+ * groups, or `font.body` inside the font one. So the page asks the theme
+ * which tokens are typography, wherever the theme put them.
  */
 function compositeRows(): readonly TokenRow[] {
-  return fontRows().filter((row) => row.type === "typography");
+  const tree = resolvedTree();
+  if (tree === undefined) return [];
+  return groupTokens(tree, [[]], activeMode()).filter(
+    (row) => row.type === "typography",
+  );
 }
 
 /** The letter-spacing tokens the theme declares, for the tracking family. */
