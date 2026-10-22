@@ -2,8 +2,18 @@ import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { formatHex, indexTree, parseColor } from "@spin/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
-import { themeText } from "../../lib/store.ts";
+import {
+  activeMode,
+  activeName,
+  registry,
+  themeText,
+} from "../../lib/store.ts";
 import { paintPreview } from "../../lib/preview.ts";
+import {
+  declaredValue,
+  rangeProgress,
+  tokenPath,
+} from "../../lib/live-edit.ts";
 import ShadowEditor from "./ShadowEditor.tsx";
 import BezierEditor from "./BezierEditor.tsx";
 
@@ -52,6 +62,11 @@ function controlFor(type: string, value: string): Control {
  * Each branch constrains what it can produce. The text branch is the
  * fallback for values with no structured control, and it is permissive
  * because there is no shorter honest check.
+ *
+ * Beside the control there is a RESET: the token back to the value the
+ * theme declares. It is there for every control, because every control
+ * here edits a token, and a gesture that went the wrong way should not
+ * need the document to be retyped.
  */
 export default function ValueInput(props: {
   value: string;
@@ -79,23 +94,85 @@ export default function ValueInput(props: {
   onCancel?: () => void;
 }) {
   return (
-    <Switch fallback={<TextControl {...props} />}>
-      <Match when={isBezierValue(props.value)}>
-        <BezierEditor value={props.value} onCommit={props.onCommit} />
-      </Match>
-      <Match when={isShadowValue(props.value)}>
-        <ShadowEditor value={props.value} onCommit={props.onCommit} />
-      </Match>
-      <Match when={controlFor(props.type, props.value) === "boolean"}>
-        <CheckControl {...props} />
-      </Match>
-      <Match when={controlFor(props.type, props.value) === "color"}>
-        <ColorControl {...props} />
-      </Match>
-      <Match when={controlFor(props.type, props.value) === "range"}>
-        <RangeControl {...props} />
-      </Match>
-    </Switch>
+    <div class="row-sm gap-2">
+      <Switch fallback={<TextControl {...props} />}>
+        <Match when={isBezierValue(props.value)}>
+          <BezierEditor value={props.value} onCommit={props.onCommit} />
+        </Match>
+        <Match when={isShadowValue(props.value)}>
+          <ShadowEditor value={props.value} onCommit={props.onCommit} />
+        </Match>
+        <Match when={controlFor(props.type, props.value) === "boolean"}>
+          <CheckControl {...props} />
+        </Match>
+        <Match when={controlFor(props.type, props.value) === "color"}>
+          <ColorControl {...props} />
+        </Match>
+        <Match when={controlFor(props.type, props.value) === "range"}>
+          <RangeControl {...props} />
+        </Match>
+      </Switch>
+      <ResetButton
+        id={props.id}
+        label={props.label}
+        value={props.value}
+        onCommit={props.onCommit}
+      />
+    </div>
+  );
+}
+
+/**
+ * The reset: the token back to the value the theme declares.
+ *
+ * The value the theme declares is the PROJECT's document — the file the
+ * project holds, or the starter it has not forked — and never the studio's
+ * own theme: the studio wears its own theme, and a reset that put a token
+ * back to the studio's value would move the project towards the tool.
+ *
+ * Inert when the value already IS the theme's value: a reset that would
+ * change nothing is a button that says nothing, and a button that can be
+ * pressed to do nothing is a button that lies.
+ */
+function ResetButton(props: {
+  id?: string;
+  label?: string;
+  value: string;
+  onCommit: (value: string) => boolean;
+}) {
+  const path = () => tokenPath(props.id, props.label);
+  /** The project's own document for the theme being edited. */
+  const projectText = () =>
+    registry()?.find((theme) => theme.name === activeName())?.text;
+  /** What the theme declares for this token, in the mode being edited. */
+  const declared = () => {
+    const token = path();
+    if (token === undefined) return undefined;
+    const text = projectText();
+    if (text === undefined) return undefined;
+    return declaredValue(text, token, activeMode());
+  };
+  const inert = () => {
+    const value = declared();
+    return value === undefined || value === props.value;
+  };
+  const title = () =>
+    `Reset ${path() ?? "this token"} to the value the theme declares`;
+  return (
+    <button
+      type="button"
+      class="shrink-0 rounded-md border border-border px-2 py-1 text-sm text-text-muted hover:border-primary hover:text-text disabled:opacity-50"
+      title={title()}
+      aria-label={title()}
+      disabled={inert()}
+      onClick={() => {
+        const value = declared();
+        if (value === undefined) return;
+        props.onCommit(value);
+      }}
+    >
+      <span class="i-lucide-undo-2" aria-hidden="true" />
+    </button>
   );
 }
 
@@ -195,6 +272,19 @@ function CheckControl(props: {
  * own custom property is painted on the preview surface, so the specimen
  * moves under the finger; on release one commit lands, one snapshot of
  * undo, and the paint comes off.
+ *
+ * **The track's value follows the drag.** The control shows the value the
+ * gesture proposes, not the value the document held when the gesture
+ * started: a slider that springs back to the document's value under the
+ * pointer is a slider the author cannot aim with. The document's value is
+ * what the control falls back to once the gesture is over.
+ *
+ * **The readout does not move.** Its width is fixed, because the row it
+ * sits in is packed to one side: a readout that grows as the value grows
+ * pushes the track sideways, and a track that moves under the pointer
+ * turns the drag into a jitter — the value the author is aiming at is the
+ * value under a pointer that has moved, so the two disagree and the value
+ * walks backwards while the finger walks forwards.
  */
 function RangeControl(props: {
   value: string;
@@ -217,6 +307,14 @@ function RangeControl(props: {
     clear = undefined;
   };
 
+  // The value the control shows: the gesture's own while it is in flight,
+  // the document's once it is over.
+  const shown = () => draft() ?? props.value;
+  const shownNumber = () => measure(shown())?.n;
+  // How far along the value is, as the share of the travel the fill paints.
+  const progress = () =>
+    rangeProgress(shownNumber() ?? range().min, range().min, range().max);
+
   return (
     <Show
       when={current()}
@@ -236,7 +334,10 @@ function RangeControl(props: {
           min={range().min}
           max={range().max}
           step={range().step}
-          value={current()?.n ?? range().min}
+          value={shownNumber() ?? range().min}
+          // The fill the groove paints stops where the thumb is: the sheet
+          // cannot read the value, so the control hands it the share.
+          style={{ "--range-progress": progress() }}
           class="min-w-16 max-w-32 flex-1"
           onInput={(event) => {
             const next = quantize(
@@ -273,7 +374,12 @@ function RangeControl(props: {
             setDraft(undefined);
           }}
         />
-        <code class="text-sm">{draft() ?? props.value}</code>
+        <code
+          class="w-[6rem] shrink-0 truncate text-right text-sm tabular-nums"
+          title={shown()}
+        >
+          {shown()}
+        </code>
       </div>
     </Show>
   );

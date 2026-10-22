@@ -23,31 +23,31 @@ ${inner}
         </div>`;
 
 export const rangeFixtureNote =
-  "A slider with no class: `type=range` is the opt-in. Track and thumb are pseudo-elements, stated for both engines; `disabled` dims the control.";
+  "A slider with no class: `type=range` is the opt-in. Track and thumb are pseudo-elements, stated for both engines; the fill follows `--range-progress`, the share of the travel the value has covered; `disabled` dims the control.";
 
 export const RANGE_EXAMPLES: readonly RangeExample[] = [
   {
     name: "Range · min, max, step and a value",
     html: row(
-      `          <input type="range" min="0" max="100" step="5" value="40">`,
+      `          <input type="range" min="0" max="100" step="5" value="40" style="--range-progress: 40%">`,
     ),
   },
   {
     name: "Range · disabled",
     html: row(
-      `          <input type="range" min="0" max="10" step="1" value="3" disabled>`,
+      `          <input type="range" min="0" max="10" step="1" value="3" disabled style="--range-progress: 30%">`,
     ),
   },
   {
     name: "Range · labelled, the value as plain text",
     html: row(
-      `          <label><input type="range" min="0" max="100" value="40"><span>40%</span></label>`,
+      `          <label><input type="range" min="0" max="100" value="40" style="--range-progress: 40%"><span>40%</span></label>`,
     ),
   },
   {
     name: "Range · a non-default span",
     html: row(
-      `          <input type="range" min="20" max="80" value="60">`,
+      `          <input type="range" min="20" max="80" value="60" style="--range-progress: 66%">`,
     ),
   },
 ];

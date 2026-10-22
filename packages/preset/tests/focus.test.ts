@@ -242,14 +242,17 @@ Deno.test("a focused radio paints the ring as an outline, and its edge takes the
 
 Deno.test("a focused slider paints the ring as an outline, and its groove takes the ring's ink", async () => {
   // A slider's edge is its groove: the border is drawn on the track, never
-  // on the host, so the groove is what takes the ring's ink.
+  // on the host, so the groove is what takes the ring's ink. The host is the
+  // groove's own thickness, so the ring stands off the groove's edge by the
+  // theme's offset — the same distance every other control's ring stands
+  // from its edge — and lands on the thumb that overhangs the groove.
   const css = await sheetFor('<input type="range">');
   const focused = declarationsFor(css, 'input[type="range"]:focus-visible');
   assertEquals(focused["outline"], RING.outline, "the ring is an outline");
   assertEquals(
     focused["outline-offset"],
-    "var(--spacing-1)",
-    "the ring stands clear of the thumb that overhangs the track",
+    RING["outline-offset"],
+    "the ring stands off the groove's edge by the theme's offset",
   );
   const groove = declarationsFor(
     css,

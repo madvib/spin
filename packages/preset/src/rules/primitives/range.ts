@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
+import { focusRing, type Mode, withFallback } from "./shared.ts";
 
 /**
  * Range — `<input type="range">`, the slider.
@@ -28,11 +28,37 @@ import type { Mode } from "./shared.ts";
  * the slider, none of the four pseudo-elements can be styled at all.
  *
  * The webkit thumb centres with a negative margin, not with luck: the track
- * is one spacing step thick and the thumb is the step above it, so the thumb
+ * is one step thick and the thumb is the step above it, so the thumb
  * overhangs the track by half the difference on each side. The margin states
  * exactly that half as a calc of the two tokens read from the theme, so a
  * size change carries the centring with it. Firefox centres its own thumb
  * and would be moved by the margin, so it takes none.
+ *
+ * **The slider is three things, and each is a decision.** A GROOVE the value
+ * travels in, a FILL that says how far along it is, and a THUMB the reader
+ * holds. Each is drawn from the theme, and none of them is a decoration:
+ *
+ * - **The groove reads in both modes.** Its interior is the field — the
+ *   colour a control's own slot spends — and its edge is the strong border,
+ *   not the hairline. `color.border` is a divider's ink: at one pixel it is
+ *   close to invisible on a light field, and in a dark theme where the
+ *   field and the border are the same colour it is not visible at all, so a
+ *   slider whose groove you cannot see is a thumb floating on nothing. The
+ *   strong border is the role the system keeps for a control's edge.
+ * - **The fill says how far along the value is.** It is the primary, thinned
+ *   so the THUMB — the primary itself — still reads as a shape against it.
+ *   A fill in the thumb's own colour swallows the half of the thumb that
+ *   sits on it, and a knob that is half a knob is the same duotone the
+ *   owner complained about, one step further along.
+ * - **The thumb is one solid colour.** No shadow, no ring, no second tone:
+ *   the thumb is the theme's acting colour, flat, and the only thing that
+ *   gives it depth is the groove it sits in.
+ *
+ * **How far along the value is, is a runtime fact.** The browser knows it
+ * and CSS cannot read it, so the primitive asks for it: the element carries
+ * `--range-progress`, a percentage of the travel, and the fill is drawn up
+ * to it. A consumer that does not set it gets a groove with no fill — the
+ * primitive never guesses a value it cannot know.
  */
 export function rangeRules(roots: readonly string[], _mode: Mode): Rule[] {
   if (!roots.includes("range")) return [];
@@ -44,28 +70,42 @@ function rangeRule(): Rule {
   return [
     /^range$/,
     function* (_m, ctx) {
-      const trackHeight = token(ctx, "spacing.2");
+      // The groove is one step thick and the thumb the step above it, so the
+      // thumb overhangs the groove by half the difference on each side — the
+      // difference the thumb's margin states.
+      const groove = token(ctx, "spacing.3");
       const thumbSize = token(ctx, "spacing.4");
       const field = token(ctx, "color.field");
-      const border = token(ctx, "color.border");
+      // The groove's edge: the strong border, falling back to the hairline
+      // for a theme that states no stronger one.
+      const edge = withFallback(ctx, "color.border-strong", "color.border");
       const borderWidth = token(ctx, "border.width");
       const primary = token(ctx, "color.primary");
-      const shadowSm = token(ctx, "shadow.sm");
       const full = token(ctx, "radius.full");
-      const focusWidth = token(ctx, "focus.width");
-      const focusRing = token(ctx, "color.focus-ring");
-      const offset = token(ctx, "spacing.1");
+      const ring = focusRing(ctx);
 
-      // The element itself: a host for the pseudo-elements, sized by the
-      // track's own step. `spacing.2` rather than a heavier step because the
-      // scale carries no `3` and a slider is a band you grab, not a groove.
-      // `background: transparent` because the surface belongs to the track —
-      // a tinted host behind it reads as a second, larger track.
+      // The element itself: a host for the pseudo-elements, and the ring's
+      // subject.
+      //
+      // The host is the groove's own thickness, so the focus ring stands
+      // off the groove's EDGE — the theme's offset from the border, the
+      // distance the field box's ring stands from the field's edge. A host
+      // taller than the groove would put the ring clear of the groove and
+      // leave it standing off nothing, and the ring and the edge would read
+      // as two borders arguing rather than as one focus treatment.
+      //
+      // The thumb is the step above the groove, so it overhangs by half the
+      // difference — and the ring, at the theme's offset, lands exactly on
+      // the thumb's edge: close enough to be one treatment, far enough that
+      // the thumb never covers it.
+      //
+      // `background: transparent` because the surface belongs to the groove —
+      // a tinted host behind it reads as a second, larger groove.
       //
       // The padding and border-width are taken back from the field box: it
       // pads every text-like input, and half-rem padding inside a half-rem
-      // border-box leaves no content box for the track to sit in. The border
-      // goes by `border-width`, never by the `border` shorthand — the
+      // border-box leaves no content box for the groove to sit in. The
+      // border goes by `border-width`, never by the `border` shorthand — the
       // preflight documents that Chromium keys a control's `appearance` to
       // whether it has a border at all, and `border: 0 solid` sets the style
       // to `none`, which silently restores the platform's own slider.
@@ -74,86 +114,121 @@ function rangeRule(): Rule {
         appearance: "none",
         "-webkit-appearance": "none",
         "-moz-appearance": "none",
-        ...(trackHeight !== undefined ? { height: trackHeight } : {}),
+        ...(groove !== undefined ? { height: groove } : {}),
         background: "transparent",
         cursor: "pointer",
         padding: "0",
         "border-width": "0",
+        // The ring is the slider's shape: a pill, like the groove it rings.
+        ...(full !== undefined ? { "border-radius": full } : {}),
+        // The fill's two facts, on the element. A custom property set on the
+        // element is inherited by its pseudo-elements and substituted first,
+        // so the gradient on the groove resolves them; a value written
+        // straight into the gradient does not.
+        ...(primary !== undefined
+          ? {
+            "--range-fill": `color-mix(in oklab, ${primary} 35%, transparent)`,
+          }
+          : {}),
+        "--range-progress": "0%",
       };
 
-      // The groove: the field surface — the colour a text field's box spends
-      // — fully round, one step thick, with the border token as an edge.
+      // The groove: the field's own interior, fully round, one step thick,
+      // with the strong border as its edge — and the fill, up to how far
+      // along the value is.
       //
-      // The edge is not decoration: in a starter whose `field` sits at the
-      // page's own depth (console) a bare fill is invisible against the
-      // page, and a slider whose groove you cannot see is a thumb floating
-      // on nothing. The border is drawn on the pseudo, never on the host —
-      // the preflight documents that Chromium keys a control's appearance
-      // to whether the HOST has a border, and styling the host silently
-      // restores the platform slider.
+      // The fill is drawn over the groove's own colour, and it stops at the
+      // THUMB's centre rather than at the thumb's edge: the thumb travels
+      // between the two ends of the groove minus itself, so the fill's area
+      // is the travel and the fill's end is where the thumb is. The
+      // background's size and position are what say so — the fill is drawn
+      // over the TRAVEL, inset by half the thumb at each end, which is
+      // where the thumb's centre is at the two extremes.
       const track = {
         ...(field !== undefined ? { "background-color": field } : {}),
-        ...(borderWidth !== undefined && border !== undefined
-          ? { border: `${borderWidth} solid ${border}` }
+        ...(borderWidth !== undefined && edge !== undefined
+          ? { border: `${borderWidth} solid ${edge}` }
           : {}),
         ...(full !== undefined ? { "border-radius": full } : {}),
-        ...(trackHeight !== undefined ? { height: trackHeight } : {}),
+        ...(groove !== undefined ? { height: groove } : {}),
       };
+      const fill = primary !== undefined && thumbSize !== undefined
+        ? {
+          "background-image":
+            "linear-gradient(to right, var(--range-fill) 0 var(--range-progress), transparent var(--range-progress))",
+          "background-size": `calc(100% - ${thumbSize}) 100%`,
+          "background-position": `calc(${thumbSize} / 2) 0`,
+          "background-repeat": "no-repeat",
+        }
+        : {};
       yield {
         [ctx.symbols.selector]: () =>
           'input[type="range"]::-webkit-slider-runnable-track',
         ...track,
+        ...fill,
         "-webkit-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () => 'input[type="range"]::-moz-range-track',
         ...track,
+        ...fill,
         "-moz-appearance": "none",
       };
 
-      // Focus: the ring every interactive element shares, as an outline so it
-      // never resizes the control.
-      //
-      // The offset is the theme's own spacing step rather than `focus.offset`:
-      // the thumb overhangs the track by half the difference between the two,
-      // so a ring at the focus offset would be painted UNDER the thumb — and a
-      // focus ring the thumb hides is not a focus ring. The theme's offset is
-      // what clears it.
+      // Focus: the ring every interactive element shares, as an outline so
+      // it never resizes the control.
       yield {
         [ctx.symbols.selector]: () => 'input[type="range"]:focus-visible',
-        ...(focusWidth !== undefined && focusRing !== undefined
-          ? { outline: `${focusWidth} solid ${focusRing}` }
+        ...(ring.width !== undefined && ring.color !== undefined
+          ? { outline: `${ring.width} solid ${ring.color}` }
           : {}),
-        ...(offset !== undefined ? { "outline-offset": offset } : {}),
+        ...(ring.offset !== undefined ? { "outline-offset": ring.offset } : {}),
+      };
+      // A pointer that lands on a slider leaves no ring: the browser's own
+      // is not the theme's, so it goes.
+      yield {
+        [ctx.symbols.selector]: () =>
+          'input[type="range"]:focus:not(:focus-visible)',
+        outline: "none",
+      };
+      // The same ring for engines without :focus-visible. A rule cannot be
+      // wrapped in `@supports` from its body, so the parent symbol carries
+      // the at-rule and the selector symbol the fallback selector.
+      yield {
+        [ctx.symbols.parent]: "@supports not selector(:focus-visible)",
+        [ctx.symbols.selector]: () => 'input[type="range"]:focus',
+        ...(ring.width !== undefined && ring.color !== undefined
+          ? { outline: `${ring.width} solid ${ring.color}` }
+          : {}),
+        ...(ring.offset !== undefined ? { "outline-offset": ring.offset } : {}),
       };
       // And the ring is the control's edge: the groove's own border takes
       // the ring's ink while the slider is focused, so the reader sees one
       // edge in the theme's focus colour rather than the groove's edge with a
       // second band beside it.
-      if (focusRing !== undefined) {
+      if (ring.color !== undefined) {
         yield {
           [ctx.symbols.selector]: () =>
             'input[type="range"]:focus-visible::-webkit-slider-runnable-track',
-          "border-color": focusRing,
+          "border-color": ring.color,
         };
         yield {
           [ctx.symbols.selector]: () =>
             'input[type="range"]:focus-visible::-moz-range-track',
-          "border-color": focusRing,
+          "border-color": ring.color,
         };
       }
 
-      // The thumb: the primary tone, one step above the track, fully round,
-      // wearing the theme's own physical language — a soft lift, a hard
-      // offset edge or a phosphor ring — so the value's handle reads as an
-      // object the theme made rather than a decal on the page.
+      // The thumb: the primary, one step above the groove, fully round, and
+      // FLAT. A shadow would give the knob a second tone — the one thing a
+      // handle on a groove must not have, because the handle is what the
+      // reader aims at.
       const thumb = {
         appearance: "none",
         ...(thumbSize !== undefined
           ? { width: thumbSize, height: thumbSize }
           : {}),
         ...(primary !== undefined ? { "background-color": primary } : {}),
-        ...(shadowSm !== undefined ? { "box-shadow": shadowSm } : {}),
         ...(full !== undefined ? { "border-radius": full } : {}),
       };
       yield {
@@ -163,8 +238,8 @@ function rangeRule(): Rule {
         // Half the difference between the two steps, negative: webkit positions
         // its thumb against the track box, and without this the thumb sits a
         // quarter-rem low. Firefox takes no margin — it centres its own thumb.
-        ...(trackHeight !== undefined && thumbSize !== undefined
-          ? { "margin-top": `calc((${trackHeight} - ${thumbSize}) / 2)` }
+        ...(groove !== undefined && thumbSize !== undefined
+          ? { "margin-top": `calc((${groove} - ${thumbSize}) / 2)` }
           : {}),
         "-webkit-appearance": "none",
       };
