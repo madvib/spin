@@ -20,7 +20,7 @@
     </div>
     <template for={machine.getThumbIndexes()} as={row} key={row}>
       <span
-        class="absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
+        class={["absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface", { "ring-2 ring-border-strong": machine.state === "focus" && machine.focusedIndex === row, "scale-110": machine.state === "dragging" && machine.focusedIndex === row, "opacity-50": machine.disabled }]}
         {...machine.getThumbProps({ index: row })}
       ></span>
       <input {...machine.getHiddenInputProps({ index: row })} />
