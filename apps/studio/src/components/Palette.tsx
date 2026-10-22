@@ -4,9 +4,14 @@
  * A palette is a list of colours and a list of names, and a page that draws
  * them as two lists asks the reader to hold one in their head while they look
  * at the other. So each role is ONE thing here: a large swatch, and under it
- * a single line carrying the name on the left and the hex on the right. The
- * line is one line because the name and the hex are the same fact said twice,
- * and a hex on a line of its own is a fact about nothing.
+ * a single line carrying the name and the hex side by side. The line is one
+ * line because the name and the hex are the same fact said twice, and a hex
+ * on a line of its own is a fact about nothing.
+ *
+ * The name is never the thing that truncates: it is the short half of the
+ * fact and the one that identifies the role, so the value gives way first
+ * (a theme that writes `oklch(...)` says more than a column holds) and the
+ * whole value is in the title and on the clipboard either way.
  *
  * The hex is a button, because a hex is the one value an author reaches for
  * — into a stylesheet, into a message, into another tool — and reading it off
