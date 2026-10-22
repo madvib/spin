@@ -15,6 +15,7 @@ export {
 } from "./display.ts";
 export { expandVariantGroups } from "./expand-groups.ts";
 export { classAttrOf, classTokens, classTokensOf } from "./classes.ts";
+export { parseScript, scriptScope, type ScriptProp, type ScriptScope } from "./script.ts";
 export type {
   ActionUse,
   Attr,
