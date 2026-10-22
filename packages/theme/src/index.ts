@@ -141,6 +141,7 @@ export {
   parseColor,
   relativeLuminance,
   type Rgb,
+  toHex,
 } from "./pipeline/color.ts";
 
 // Colour authoring — the toolbox for composing new colours.
