@@ -3,7 +3,8 @@
  *
  * Each entry below carries everything a role is: the path that names it, the
  * type it must have, the value a scaffold writes for it, the documentation an
- * editor shows, and the contrast floor it owes. Everything else derives:
+ * editor shows, and the contrast floors it owes — one, or more where a role is
+ * read against more than one surface. Everything else derives:
  * `requiredPaths()` for validation, `themeSchema()` for the JSON Schema, and
  * `scaffoldTheme()` for a minimal document.
  */
@@ -30,44 +31,98 @@ export interface RoleDeclaration {
   /** What a scaffold writes. Valid, legible, and obviously unfinished. */
   readonly value: string;
   readonly doc: string;
+  /**
+   * Every contrast floor this role owes.
+   *
+   * More than one, because a role is read against more than one surface: body
+   * ink is read on the page AND on the raised sheet above it, and the floor
+   * that holds it there is the same promise asked twice. A role with no floors
+   * owes none.
+   */
+  readonly floors?: readonly LegibilityFloor[];
+  /**
+   * The role's headline floor: the first of the floors it owes.
+   *
+   * Derived from `floors`, so the two cannot disagree, and kept because it is
+   * the one a reader asks for — "what does this role owe?".
+   */
   readonly floor?: LegibilityFloor;
 }
 
-const SURFACE: LegibilityFloor = {
+/** Body ink on the page. */
+const TEXT_ON_SURFACE: LegibilityFloor = {
   fg: "color.text",
   bg: "color.surface",
   min: 4.5,
 };
-const MUTED: LegibilityFloor = {
+/**
+ * Body ink on the raised sheet above the page.
+ *
+ * The same promise asked again: a card is a surface the reader reads on, and
+ * a theme whose ink holds on the page but not on the card has a card nobody
+ * can read.
+ */
+const TEXT_ON_RAISED: LegibilityFloor = {
+  fg: "color.text",
+  bg: "color.surface-raised",
+  min: 4.5,
+};
+/** The second voice on the page. */
+const MUTED_ON_SURFACE: LegibilityFloor = {
   fg: "color.text-muted",
   bg: "color.surface",
   min: 3,
 };
-const INDICATOR: LegibilityFloor = {
-  fg: "color.semantic.error",
-  bg: "color.surface",
+/** The second voice on the raised sheet above the page. */
+const MUTED_ON_RAISED: LegibilityFloor = {
+  fg: "color.text-muted",
+  bg: "color.surface-raised",
   min: 3,
 };
+
+/**
+ * A status colour on the page.
+ *
+ * The floor is the TEXT one, not the non-text one, because a status colour is
+ * worn as ink as often as it is worn as a fill: an error message in the
+ * prose, a warning beside a field, a success beside a number. Read as a
+ * slab on the page it only has to be visible; read as a word it has to be
+ * legible, so it owes four and a half to one.
+ */
+function statusFloor(name: string): LegibilityFloor {
+  return { fg: `color.semantic.${name}`, bg: "color.surface", min: 4.5 };
+}
+
+/**
+ * The ink on a fill, and the floor that holds it there.
+ *
+ * Both sides are dotted paths under `color`: the ink is a role of its own
+ * (`on-semantic-error`) and the fill is the token it sits on
+ * (`semantic.error`).
+ */
+function inkFloor(ink: string, fill: string): LegibilityFloor {
+  return { fg: `color.${ink}`, bg: `color.${fill}`, min: 4.5 };
+}
 
 /**
  * Roles a theme must declare regardless of which components it enables: the
  * palette, the contrast floors that make a palette usable, and the focus ring
  * every interactive element shares.
  */
-export const BASE_ROLES: readonly RoleDeclaration[] = [
+const DECLARED_ROLES: readonly Omit<RoleDeclaration, "floor">[] = [
   {
     path: "color.text",
     type: "color",
     value: "#111111",
     doc: "Default body text.",
-    floor: SURFACE,
+    floors: [TEXT_ON_SURFACE, TEXT_ON_RAISED],
   },
   {
     path: "color.text-muted",
     type: "color",
     value: "#555555",
     doc: "Secondary text.",
-    floor: MUTED,
+    floors: [MUTED_ON_SURFACE, MUTED_ON_RAISED],
   },
   {
     path: "color.surface",
@@ -95,57 +150,73 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     // A filled button is the densest text-on-color pairing in the system and
     // the one most often authored wrong: a bright primary needs a dark
     // foreground, a near-black primary needs a light one.
-    floor: {
-      fg: "color.on-primary",
-      bg: "color.primary",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-primary", "primary")],
   },
   {
     path: "color.secondary",
     type: "color",
     value: "#444444",
     doc: "Secondary actions.",
+    // The secondary fill is a fill like any other, and the badge spends it as
+    // a pill with a word on it. Without an ink of its own the label is
+    // whatever the browser paints.
+    floors: [inkFloor("on-secondary", "secondary")],
   },
   {
     path: "color.accent",
     type: "color",
     value: "#555555",
     doc: "Supporting emphasis.",
+    // The accent fill is the badge's third tone and the one most often left
+    // to chance: an accent is a bright colour by definition, and a bright
+    // fill with the wrong ink is a badge nobody can read.
+    floors: [inkFloor("on-accent", "accent")],
   },
   {
     path: "color.semantic.success",
     type: "color",
     value: "#1a7f37",
     doc: "Success status.",
-    floor: INDICATOR,
+    floors: [statusFloor("success")],
   },
   {
     path: "color.semantic.warning",
     type: "color",
     value: "#9a6700",
     doc: "Warning status.",
-    floor: { ...INDICATOR, fg: "color.semantic.warning" },
+    floors: [statusFloor("warning")],
   },
   {
     path: "color.semantic.error",
     type: "color",
     value: "#b42318",
     doc: "Error status.",
-    floor: INDICATOR,
+    floors: [statusFloor("error")],
   },
   {
     path: "color.semantic.info",
     type: "color",
     value: "#175cd3",
     doc: "Info status.",
-    floor: { ...INDICATOR, fg: "color.semantic.info" },
+    floors: [statusFloor("info")],
   },
   {
     path: "color.on-primary",
     type: "color",
     value: "#ffffff",
     doc: "Text on a primary fill.",
+  },
+  {
+    path: "color.on-secondary",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a secondary fill.",
+  },
+  {
+    path: "color.on-accent",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on an accent fill.",
   },
   {
     // One ink, one name: the semantic fills pair with `on-semantic-*`, and a
@@ -158,11 +229,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#ffffff",
     doc: "Text on an error fill.",
-    floor: {
-      fg: "color.on-semantic-error",
-      bg: "color.semantic.error",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-semantic-error", "semantic.error")],
   },
   {
     // The ink on the success fill, and the floor that holds it there.
@@ -175,11 +242,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#ffffff",
     doc: "Text on a success fill.",
-    floor: {
-      fg: "color.on-semantic-success",
-      bg: "color.semantic.success",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-semantic-success", "semantic.success")],
   },
   {
     // The ink on the warning fill. A warning is the one badge whose fill is
@@ -189,11 +252,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#ffffff",
     doc: "Text on a warning fill.",
-    floor: {
-      fg: "color.on-semantic-warning",
-      bg: "color.semantic.warning",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-semantic-warning", "semantic.warning")],
   },
   {
     // The ink on the info fill.
@@ -201,11 +260,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#ffffff",
     doc: "Text on an info fill.",
-    floor: {
-      fg: "color.on-semantic-info",
-      bg: "color.semantic.info",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-semantic-info", "semantic.info")],
   },
   {
     // The fill a dead control wears, and the ink that reads on it. A
@@ -218,11 +273,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#e0e0e0",
     doc: "The fill a dead control wears.",
-    floor: {
-      fg: "color.on-disabled",
-      bg: "color.disabled",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-disabled", "disabled")],
   },
   {
     path: "color.on-disabled",
@@ -237,7 +288,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#333333",
     doc: "Focus indicator.",
-    floor: { fg: "color.focus-ring", bg: "color.surface", min: 3 },
+    floors: [{ fg: "color.focus-ring", bg: "color.surface", min: 3 }],
   },
   {
     // A control's fill color is not a usable link color: a theme whose primary
@@ -249,7 +300,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     doc: "Prose links.",
     // The role's warning made mechanical: a link that cannot be read on the
     // page it sits on fails validation like any other text.
-    floor: { fg: "color.link", bg: "color.surface", min: 4.5 },
+    floors: [{ fg: "color.link", bg: "color.surface", min: 4.5 }],
   },
   {
     path: "font.family.sans",
@@ -273,14 +324,35 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
   },
 ];
 
+/**
+ * The roles a theme must declare, each with its headline floor derived from
+ * the floors it owes.
+ *
+ * The floor is derived rather than written twice, so the list and the headline
+ * cannot drift apart: a role that owes two floors has a headline, and a role
+ * that owes none has none.
+ */
+export const BASE_ROLES: readonly RoleDeclaration[] = DECLARED_ROLES.map(
+  (role) => ({
+    ...role,
+    ...(role.floors?.[0] === undefined ? {} : { floor: role.floors[0] }),
+  }),
+);
 /** The paths every theme must declare. */
 export function requiredPaths(): readonly string[] {
   return BASE_ROLES.map((role) => role.path);
 }
 
-/** The contrast floors, attached to the roles that owe them. */
+/**
+ * The contrast floors, attached to the roles that owe them.
+ *
+ * A role owes every floor it declares: the ink on a fill, the body ink on
+ * the page AND on the raised sheet above it. The list is flat because the
+ * gate asks one question of one pair at a time — "does this foreground hold
+ * on this background?" — and a role that owes two answers is two answers.
+ */
 export function legibilityFloors(): LegibilityFloor[] {
-  return BASE_ROLES.flatMap((role) => (role.floor ? [role.floor] : []));
+  return BASE_ROLES.flatMap((role) => [...(role.floors ?? [])]);
 }
 
 /**

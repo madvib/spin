@@ -62,9 +62,11 @@ A theme declares tokens under a closed set of `$type` values (`TOKEN_TYPES`). A
 token with an unrecognised `$type` is a parse error naming every valid type.
 
 A theme must declare the base roles (`BASE_ROLES`). Each carries its DTCG type,
-the placeholder a scaffold writes, its documentation, and any contrast floor it
-owes. `requiredPaths()`, `themeSchema()` and `scaffoldTheme()` derive from that
-one declaration.
+the placeholder a scaffold writes, its documentation, and the contrast floors it
+owes — one, or more where a role is read against more than one surface: the body
+ink owes a floor on the page and on the raised sheet above it.
+`requiredPaths()`, `themeSchema()` and `scaffoldTheme()` derive from that one
+declaration.
 
 A theme may also declare the per-element groups (`ELEMENT_ROLES`): the decisions
 one element owns — the card's corner, the alert's air, the field's edge, the
@@ -116,6 +118,7 @@ document is held to, in one call, with one result per gate.
 | `scales`       | the ladders: spacing, radius and elevation do not descend         |
 | `motion`       | the loop holds the strobe floor                                   |
 | `modes`        | every mode the theme serves is a mode it has                      |
+| `invariance`   | a mode changes ink and focus, and nothing else                    |
 
 The battery runs against **any** document — a starter, a project's own theme, a
 file an author is halfway through — because that is the question the house skill

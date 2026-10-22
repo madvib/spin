@@ -30,6 +30,16 @@ export const STROBE_FLOOR_MS = 250;
 export const LOOP_DURATION = "motion.duration.loop";
 
 /**
+ * The loop step's own name, as the theme writes it under `motion.duration`.
+ *
+ * The step is a duration but not a TRANSITION duration: `duration-loop` is
+ * not a utility, because a transition that takes as long as a pulse is not
+ * what a transition is. The name is here so the rule that refuses it reads
+ * the step from the contract rather than from a list kept beside it.
+ */
+export const LOOP_STEP = "loop";
+
+/**
  * The step a loop falls back to when a theme declares no loop of its own.
  *
  * The old answer, kept as the fallback so a theme written before the loop

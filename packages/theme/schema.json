@@ -36,6 +36,8 @@
         "accent",
         "semantic",
         "on-primary",
+        "on-secondary",
+        "on-accent",
         "on-semantic-error",
         "on-semantic-success",
         "on-semantic-warning",
@@ -997,6 +999,162 @@
         "on-primary": {
           "additionalProperties": true,
           "description": "Text on a primary fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-secondary": {
+          "additionalProperties": true,
+          "description": "Text on a secondary fill.",
+          "type": "object",
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "anyOf": [
+                {
+                  "const": "color",
+                  "type": "string"
+                },
+                {
+                  "const": "boolean",
+                  "type": "string"
+                },
+                {
+                  "const": "dimension",
+                  "type": "string"
+                },
+                {
+                  "const": "fontFamily",
+                  "type": "string"
+                },
+                {
+                  "const": "fontWeight",
+                  "type": "string"
+                },
+                {
+                  "const": "duration",
+                  "type": "string"
+                },
+                {
+                  "const": "cubicBezier",
+                  "type": "string"
+                },
+                {
+                  "const": "number",
+                  "type": "string"
+                },
+                {
+                  "const": "strokeStyle",
+                  "type": "string"
+                },
+                {
+                  "const": "border",
+                  "type": "string"
+                },
+                {
+                  "const": "transition",
+                  "type": "string"
+                },
+                {
+                  "const": "shadow",
+                  "type": "string"
+                },
+                {
+                  "const": "gradient",
+                  "type": "string"
+                },
+                {
+                  "const": "typography",
+                  "type": "string"
+                },
+                {
+                  "const": "textTransform",
+                  "type": "string"
+                }
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-accent": {
+          "additionalProperties": true,
+          "description": "Text on an accent fill.",
           "type": "object",
           "required": [
             "$value"

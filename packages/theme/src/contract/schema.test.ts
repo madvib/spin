@@ -238,6 +238,8 @@ Deno.test("a theme that declares the dead pair validates", () => {
         info: { $value: "#175cd3" },
       },
       "on-primary": { $value: "#ffffff" },
+      "on-secondary": { $value: "#ffffff" },
+      "on-accent": { $value: "#ffffff" },
       "on-semantic-success": { $value: "#ffffff" },
       "on-semantic-warning": { $value: "#ffffff" },
       "on-semantic-error": { $value: "#ffffff" },

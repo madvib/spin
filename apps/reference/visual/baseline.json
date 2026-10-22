@@ -1,15 +1,17 @@
 {
-  "url": "http://localhost:5199",
+  "url": "http://localhost:9214",
   "themes": [
-    "default",
+    "silk",
     "neobrut",
-    "console"
+    "console",
+    "spin",
+    "synthwave"
   ],
   "modes": [
     "base",
     "dark"
   ],
-  "routes": 176,
+  "routes": 405,
   "findings": [],
   "counts": {}
 }

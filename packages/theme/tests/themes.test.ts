@@ -6,7 +6,10 @@ import {
   generateThemeCss,
   generateTypes,
   inkTokens,
+  legibilityFloors,
   parseTokens,
+  requiredPaths,
+  scaffoldTheme,
   themeGates,
   validateTokens,
 } from "@spin/theme";
@@ -779,12 +782,23 @@ Deno.test("every starter passes the battery", async () => {
  * A PROJECT's theme: a document written for a product, not for the package.
  *
  * It is built from a starter because that is how a project usually starts —
- * a fork — and then broken in the four ways a theme breaks: an unreadable
- * badge, a ladder that descends, a loop under the strobe floor, and a dark
- * mode that restates nothing.
+ * a fork — and then broken in the ways a theme breaks: an unreadable badge, a
+ * ladder that descends, a loop under the strobe floor, a dark mode that
+ * restates nothing, ink that cannot be read on a raised sheet, a fill with no
+ * ink of its own, a status colour that is a word nobody can read, and a dark
+ * mode that restates the spacing.
  */
 function projectTheme(
-  broken: "badge" | "ladder" | "loop" | "mode" | "none",
+  broken:
+    | "badge"
+    | "ladder"
+    | "loop"
+    | "mode"
+    | "raised"
+    | "ink"
+    | "status"
+    | "scale"
+    | "none",
 ): string {
   const doc = JSON.parse(
     JSON.stringify(starterThemes.silk),
@@ -807,6 +821,31 @@ function projectTheme(
   }
   if (broken === "loop") {
     duration["loop"] = { $type: "duration", $value: "120ms" };
+  }
+  if (broken === "raised") {
+    // A raised sheet darker than the page: the ink holds on the page and
+    // nowhere else.
+    color["surface-raised"] = { $type: "color", $value: "#555555" };
+  }
+  if (broken === "ink") {
+    // The secondary fill with its own ink on it: a badge with a word in it.
+    color["on-secondary"] = { $type: "color", $value: "#1a2434" };
+  }
+  if (broken === "status") {
+    // A status colour worn as ink on the page, and too pale to read.
+    (color["semantic"] as Record<string, unknown>)["success"] = {
+      $type: "color",
+      $value: "#b8f0c6",
+    };
+  }
+  if (broken === "scale") {
+    // A dark mode with its own spacing: a second set of decisions that the
+    // scales gate never measured.
+    spacing["4"] = {
+      $type: "dimension",
+      $value: "1rem",
+      $modes: { dark: "1.5rem" },
+    };
   }
   if (broken === "mode") {
     // A theme that serves a dark mode and restates nothing for it: every
@@ -873,6 +912,65 @@ Deno.test("the battery catches a project theme's dark mode that restates nothing
   );
 });
 
+Deno.test("the battery catches text that cannot be read on a raised sheet", () => {
+  // The page and the sheet above it are two surfaces, and the ink owes the
+  // floor on both: a card the reader cannot read is a card nobody reads.
+  const report = themeGates(projectTheme("raised"));
+  const legibility = report.gates.find((gate) => gate.gate === "legibility");
+  assert(
+    legibility?.issues.some((issue) =>
+      issue.path === "color.text" &&
+      issue.message.includes("color.surface-raised") &&
+      issue.message.includes("4.5:1 floor")
+    ),
+    `the unreadable sheet is not reported: ${JSON.stringify(report.issues)}`,
+  );
+});
+
+Deno.test("the battery catches a fill with no ink of its own", () => {
+  // The badge spends the secondary fill as a pill with a word on it, so the
+  // ink on it is a floor and not a habit.
+  const report = themeGates(projectTheme("ink"));
+  const legibility = report.gates.find((gate) => gate.gate === "legibility");
+  assert(
+    legibility?.issues.some((issue) =>
+      issue.path === "color.on-secondary" &&
+      issue.message.includes("4.5:1 floor")
+    ),
+    `the fill with no ink is not reported: ${JSON.stringify(report.issues)}`,
+  );
+});
+
+Deno.test("the battery catches a status colour nobody can read", () => {
+  // A status colour is worn as ink on the page as often as it is worn as a
+  // fill, so it owes the text floor.
+  const report = themeGates(projectTheme("status"));
+  const legibility = report.gates.find((gate) => gate.gate === "legibility");
+  assert(
+    legibility?.issues.some((issue) =>
+      issue.path === "color.semantic.success" &&
+      issue.message.includes("4.5:1 floor")
+    ),
+    `the unreadable status colour is not reported: ${
+      JSON.stringify(report.issues)
+    }`,
+  );
+});
+
+Deno.test("the battery catches a mode that restates the spacing", () => {
+  // The scales are judged once, on the base document, so a dark mode with
+  // its own spacing is a second set of decisions nobody measured.
+  const report = themeGates(projectTheme("scale"));
+  const invariance = report.gates.find((gate) => gate.gate === "invariance");
+  assert(
+    invariance?.issues.some((issue) =>
+      issue.path === "spacing.4" &&
+      issue.message.includes("ink and focus")
+    ),
+    `the restated spacing is not reported: ${JSON.stringify(report.issues)}`,
+  );
+});
+
 Deno.test("a project theme that breaks nothing passes the battery", () => {
   const report = themeGates(projectTheme("none"));
   assertEquals(
@@ -880,4 +978,64 @@ Deno.test("a project theme that breaks nothing passes the battery", () => {
     [],
   );
   assert(report.valid);
+});
+
+Deno.test("the body ink owes a floor on the page and on the sheet above it", () => {
+  // Two surfaces, two floors: a card is a surface the reader reads on, and
+  // the ink that holds on the page has to hold there too.
+  const floors = legibilityFloors();
+  assertEquals(
+    floors.find((floor) =>
+      floor.fg === "color.text" && floor.bg === "color.surface"
+    ),
+    { fg: "color.text", bg: "color.surface", min: 4.5 },
+  );
+  assertEquals(
+    floors.find((floor) =>
+      floor.fg === "color.text" && floor.bg === "color.surface-raised"
+    ),
+    { fg: "color.text", bg: "color.surface-raised", min: 4.5 },
+  );
+});
+
+Deno.test("a status colour owes the text floor on the page", () => {
+  // A status colour is worn as ink on the page as often as it is worn as a
+  // fill, so it owes four and a half to one rather than the non-text three.
+  for (const name of ["success", "warning", "error", "info"]) {
+    assertEquals(
+      legibilityFloors().find((floor) => floor.fg === `color.semantic.${name}`),
+      { fg: `color.semantic.${name}`, bg: "color.surface", min: 4.5 },
+    );
+  }
+});
+
+Deno.test("the ink on the secondary and the accent fill is a role the contract asks for", () => {
+  // The badge spends the secondary and the accent tones as filled pills with
+  // a word on them, so the ink on them is a role with a floor — like the ink
+  // on the primary — and a scaffold writes it.
+  const paths = requiredPaths();
+  assert(paths.includes("color.on-secondary"), "the secondary fill has an ink");
+  assert(paths.includes("color.on-accent"), "the accent fill has an ink");
+  const floors = legibilityFloors();
+  assertEquals(
+    floors.find((floor) => floor.fg === "color.on-secondary"),
+    { fg: "color.on-secondary", bg: "color.secondary", min: 4.5 },
+  );
+  assertEquals(
+    floors.find((floor) => floor.fg === "color.on-accent"),
+    { fg: "color.on-accent", bg: "color.accent", min: 4.5 },
+  );
+  const scaffolded = new Set(
+    scaffoldTheme()
+      .flatMap((node) => leavesOf(node))
+      .map((leaf) => leaf.path.join(".")),
+  );
+  assert(
+    scaffolded.has("color.on-secondary"),
+    "the scaffold writes the ink on the secondary fill",
+  );
+  assert(
+    scaffolded.has("color.on-accent"),
+    "the scaffold writes the ink on the accent fill",
+  );
 });

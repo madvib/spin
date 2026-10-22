@@ -120,14 +120,14 @@
     "semantic": {
       "$description": "The console's other four lamps. Each is a quieter neighbour of the accent rather than a colour from another theme, and each is answered with an ink of its own so a filled badge is never a label on a colour nobody chose.",
       "success": {
-        "$value": "oklch(52% 0.11 195)",
-        "$description": "The teal lamp: a thing that worked. It is the accent's partner on the same console, kept at half the accent's chroma so it never argues with the one saturated colour.",
+        "$value": "oklch(50% 0.11 195)",
+        "$description": "The teal lamp: a thing that worked. It is the accent's partner on the same console, kept at half the accent's chroma so it never argues with the one saturated colour, and deep enough to read as a word on the day panel.",
         "$modes": {
           "dark": "oklch(76% 0.13 190)"
         }
       },
       "warning": {
-        "$value": "oklch(55% 0.13 75)",
+        "$value": "oklch(53% 0.13 75)",
         "$description": "The amber lamp: a mark that wants to be read before it is acted on. It is the warmest thing in the theme and still well under the accent.",
         "$modes": {
           "dark": "oklch(80% 0.14 80)"
@@ -137,7 +137,7 @@
         "$value": "oklch(52% 0.19 28)",
         "$description": "The fault lamp: a vermilion, warmer and more orange than the accent so a danger and a mark are never the same word on a panel.",
         "$modes": {
-          "dark": "oklch(55% 0.19 30)"
+          "dark": "oklch(61% 0.19 30)"
         }
       },
       "info": {
@@ -262,9 +262,9 @@
     },
     "on-semantic-error": {
       "$value": "oklch(99% 0.005 28)",
-      "$description": "The ink on the fault lamp: paper in the day shift, and paper at night too, because a vermilion stays a warm colour in a dark room.",
+      "$description": "The ink on the fault lamp: paper in the day shift, and the console's own black at night, because a vermilion that reads as a word on a night panel is a lit lamp and takes the dark ink like the others.",
       "$modes": {
-        "dark": "oklch(99% 0.005 28)"
+        "dark": "oklch(16% 0.03 28)"
       }
     },
     "on-danger": {

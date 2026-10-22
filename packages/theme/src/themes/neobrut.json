@@ -77,7 +77,8 @@
     "semantic": {
       "$description": "Status colors. Named by meaning, never by hue.",
       "success": {
-        "$value": "#16a34a"
+        "$value": "#166534",
+        "$description": "A deep green, because this theme wears white on its chromatic fills and a status colour has to read as ink on the sky page as well: a lighter green sits at three to one against the page and is a word nobody can read."
       },
       "warning": {
         "$type": "color",
@@ -85,7 +86,8 @@
       },
       "error": {
         "$type": "color",
-        "$value": "#dc2626"
+        "$value": "#b91c1c",
+        "$description": "A red deep enough to carry white on the fill and to read as ink on the page: the loud one, but never illegible."
       },
       "info": {
         "$value": "#0369a1",
@@ -138,7 +140,7 @@
     },
     "on-semantic-success": {
       "$type": "color",
-      "$value": "#1a1a1a"
+      "$value": "#ffffff"
     },
     "on-semantic-warning": {
       "$type": "color",

@@ -19,6 +19,9 @@
  * - **modes** — every mode a theme serves is a mode it has. A theme that
  *   serves a dark mode and restates nothing for it renders the light mode
  *   twice, which is a promise nothing keeps.
+ * - **invariance** — a mode changes ink and focus, and nothing else. The
+ *   scales and the loop are judged once, on the base document, so a mode that
+ *   restates them is a second set of scales nobody checked.
  *
  * The battery is runnable against ANY document — a starter, a project's own
  * theme, a half-written file in an editor — because that is what the house
@@ -35,7 +38,7 @@ import type {
   ValidationIssue,
 } from "../pipeline/types.ts";
 import { validateTokens } from "../pipeline/validate.ts";
-import { relativeLuminance } from "../pipeline/color.ts";
+import { isColor, relativeLuminance } from "../pipeline/color.ts";
 import { type Mode, treeInMode } from "../modes.ts";
 import { LOOP_DURATION, LOOP_FALLBACK, STROBE_FLOOR_MS } from "./motion.ts";
 import { requiredPaths } from "./roles.ts";
@@ -48,6 +51,7 @@ export const GATES = [
   "scales",
   "motion",
   "modes",
+  "invariance",
 ] as const;
 
 /** The name of one gate. */
@@ -142,6 +146,7 @@ export function themeGates(
     { gate: "scales", issues: scaleIssues(parsed.tree) },
     { gate: "motion", issues: motionIssues(parsed.tree) },
     { gate: "modes", issues: modeIssues(parsed.tree, served) },
+    { gate: "invariance", issues: invarianceIssues(parsed.tree) },
   ];
   const issues = gates.flatMap((gate) => gate.issues);
   return { gates, issues, valid: issues.length === 0 };
@@ -483,4 +488,76 @@ function baseReadsAs(index: TokenIndex, mode: Mode): boolean {
   return mode === "dark"
     ? surfaceLuminance < inkLuminance
     : surfaceLuminance > inkLuminance;
+}
+
+/**
+ * The invariance gate: a mode changes ink and focus, and nothing else.
+ *
+ * A mode is a variant of a token, and the variant is a change of INK: the
+ * page goes dark, the ink goes light, the focus ring follows. Everything
+ * else — the spacing, the type scale, the radius, the loop — is the theme's
+ * one decision, and the battery judges it once, on the base document. A mode
+ * that restates them is a second set of decisions that nobody measured: a
+ * dark mode with its own spacing is a layout the scales gate never saw.
+ *
+ * So the rule is about WHAT a mode may change, not which group a token
+ * happens to sit in. Two things are allowed:
+ *
+ * - the focus ring, whose width and offset are lengths and not ink, and
+ * - an INK: a colour, or a colour with a blur — a shadow, whose offsets and
+ *   blur are the theme's decision and whose colour follows the surface.
+ *
+ * A restatement that changes nothing is not a change: a theme that restates
+ * `primary` as itself in dark has said nothing, and the gate says nothing
+ * about it.
+ */
+function invarianceIssues(tree: TokenTree): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const before = indexTree(resolveAliases(tree).tree);
+  for (const mode of modesIn(tree)) {
+    const resolved = indexTree(resolveAliases(treeInMode(tree, mode)).tree);
+    for (const leaf of leavesOf(tree)) {
+      const override = leaf.modes?.[mode];
+      if (override === undefined) continue;
+      const path = leaf.path.join(".");
+      const value = resolved.leaves[path]?.value;
+      // A restatement that changes nothing is not a change.
+      if (value === before.leaves[path]?.value) continue;
+      // The focus ring: the one thing besides the ink a mode may restate.
+      if (leaf.path[0] === "focus") continue;
+      if (isInk(value)) continue;
+      issues.push({
+        path,
+        message:
+          `the ${mode} mode restates ${path}, and a mode changes ink and focus, not ${
+            leaf.path[0]
+          }`,
+      });
+    }
+  }
+  return issues;
+}
+
+/** Every mode a document says anything about. */
+function modesIn(tree: TokenTree): readonly string[] {
+  const out = new Set<string>();
+  for (const leaf of leavesOf(tree)) {
+    for (const mode of Object.keys(leaf.modes ?? {})) out.add(mode);
+  }
+  return [...out];
+}
+
+/**
+ * Whether a value is an ink: a colour, or a colour with a blur.
+ *
+ * A shadow is the awkward one: the offsets and the blur are the theme's
+ * decision and the colour inside it is the mode's, so a shadow whose ink
+ * follows the surface is still colour. The geometry is not checked here —
+ * what a mode may change is the ink, and the ink is what this reads.
+ */
+function isInk(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  if (isColor(value)) return true;
+  return /\b(?:rgb|rgba|oklch|oklab|hsla?|color)\(|#[0-9a-f]{3,8}\b|var\(--color-/i
+    .test(value);
 }

@@ -130,11 +130,12 @@ goes on which fill.
 four surface steps that separate by lightness rather than by shadow. One primary
 and at most one accent; the neutrals carry the weight and the accent is spent on
 small things, a mark, a link, a focus ring. Status colours quiet enough to sit
-beside the accent without competing. Every fill paired with the ink that goes on
-it, including the fills nothing looks at until something goes wrong — and the
-pairing is a role, not a habit: `on-semantic-success` belongs to the success
-fill, `on-semantic-warning` to the warning fill, and each of them has a floor
-that says so.
+beside the accent without competing, and dark enough to read as words on the
+page. Every fill paired with the ink that goes on it, including the fills
+nothing looks at until something goes wrong — and the pairing is a role, not a
+habit: `on-semantic-success` belongs to the success fill, `on-semantic-warning`
+to the warning fill, `on-secondary` to the secondary fill and `on-accent` to the
+accent fill, and each of them has a floor that says so.
 
 **Lazy.** A primary that is the same value as the text, so every link in the
 prose disappears while the buttons look perfect. Four accent hues fighting over
@@ -249,7 +250,9 @@ status dot. Two or three curves: an entrance that eases out, an exit that eases
 in, and a standard that lands a press. The loop is a step of its own, so a theme
 that wants a two-second pulse says so without making every panel's transition
 two seconds long, and it never sits below the floor below which an endless
-animation reads as a strobe.
+animation reads as a strobe. The loop is not a transition: `duration-loop` is
+not a class, because a transition that takes as long as a pulse is not what a
+transition is. The endless animations spend the loop directly.
 
 **Lazy.** A sheet of near-identical durations, or one duration for everything. A
 bounce on a control that should land. A loop faster than a quarter of a second.
@@ -445,7 +448,9 @@ The shape of a token:
   for, not what it is.
 - `$modes` holds the value a token takes in another mode. Only colour and focus
   vary by mode: a dark mode changes ink and surface, not space and type. A mode
-  the theme does not serve is a value nobody ever sees.
+  the theme does not serve is a value nobody ever sees, and a mode that restates
+  anything but the ink is a second set of scales nobody measured — the battery's
+  invariance gate says so.
 - An alias is a value written as another token's path in braces,
   `"{color.neutral.50}"`. Use aliases for anything that means the same thing in
   two places, so the palette can change under them.
@@ -500,12 +505,20 @@ scaffold decide it?
 
 ### Gate two: legibility
 
-The floors are the contract's own list: body ink on the page at four and a half
-to one, muted ink on the page at three to one, the ink on a primary fill at four
-and a half to one, the ink on a success, a warning, an error or an info fill at
-four and a half to one, the ink on a disabled fill at four and a half to one,
-the focus ring on the page at three to one, the link on the page at four and a
-half to one, and each status colour on the page at three to one.
+The floors are the contract's own list: body ink on the page and on the raised
+sheet above it at four and a half to one, muted ink on the page and on the
+raised sheet at three to one, the ink on a primary, a secondary or an accent
+fill at four and a half to one, the ink on a success, a warning, an error or an
+info fill at four and a half to one, the ink on a disabled fill at four and a
+half to one, the focus ring on the page at three to one, the link on the page at
+four and a half to one, and each status colour on the page at four and a half to
+one — a status colour is worn as ink as often as it is worn as a fill, so it
+owes the text floor rather than the non-text one.
+
+Every fill has an ink of its own, and the ink is a role: `color.on-secondary`
+and `color.on-accent` are asked for like `color.on-primary`, because the badge
+spends the secondary and the accent tones as filled pills with a word on them,
+and a fill with no ink of its own is a label nobody can read.
 
 `validateTheme(text, { required, modes, mode })`. The `mode` option is the one
 that measures legibility IN a mode: the document is judged as it reads there, so
@@ -520,9 +533,10 @@ error: the reader cannot read the button, and nothing else in the theme matters.
 
 `themeGates(text, { required, modes })` — every mechanical gate in one call:
 completeness, the floors in every mode the theme serves, the scale ladders, the
-loop's strobe floor, and the mode coverage. It answers with one result per gate,
-so a failure says which gate it belongs to. The options are the ones above:
-`required` is the roles the app owes, `modes` is the claim the theme makes.
+loop's strobe floor, the mode coverage, and the mode's invariance. It answers
+with one result per gate, so a failure says which gate it belongs to. The
+options are the ones above: `required` is the roles the app owes, `modes` is the
+claim the theme makes.
 
 ```ts
 import { themeGates } from "@spin/theme";
@@ -546,6 +560,9 @@ What the battery adds to the two gates above:
 - **modes**: every mode the theme serves is a mode it has. A theme that serves
   dark and restates nothing for it renders the light mode twice, which is a
   promise nothing keeps.
+- **invariance**: a mode changes ink and focus, and nothing else. The scales and
+  the loop are judged once, on the base document, so a mode that restates the
+  spacing or the type scale is a second set of decisions nobody measured.
 
 Run it against the document you just wrote — a project theme, not a starter:
 

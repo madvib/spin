@@ -12,7 +12,7 @@ import {
 } from "@spin/preset/reference/build.ts";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
-import { inkTokens } from "@spin/theme";
+import { inkTokens, LOOP_STEP } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -1691,6 +1691,42 @@ function InteractivityBench() {
 }
 
 /**
+ * The theme's motion steps, read from the theme.
+ *
+ * The page shows the theme's OWN steps, so a theme that names its durations
+ * something else shows those: a list written here would be the reference
+ * app's idea of a theme's vocabulary, and a theme that disagreed with it
+ * would be shown boxes naming classes that do not exist.
+ */
+function motionSteps(): readonly { name: string; value: string }[] {
+  const index = indexTree(resolveAliases(themeTreeOrParse()).tree);
+  const out: { name: string; value: string }[] = [];
+  for (const [path, leaf] of Object.entries(index.leaves)) {
+    if (!path.startsWith("motion.duration.")) continue;
+    if (typeof leaf.value !== "string") continue;
+    out.push({
+      name: path.slice("motion.duration.".length),
+      value: leaf.value,
+    });
+  }
+  return out;
+}
+
+/**
+ * The duration a box wears when the row under test is not the duration.
+ *
+ * The theme's own base step when it has one, and its first step when it does
+ * not: a class named here that the theme does not carry would be a box that
+ * does not move, which is the one thing this bench cannot show.
+ */
+function neutralDuration(steps: readonly { name: string }[]): string {
+  const transitions = steps.filter((step) => step.name !== LOOP_STEP);
+  const chosen = transitions.find((step) => step.name === "base") ??
+    transitions[0];
+  return chosen === undefined ? "" : `duration-${chosen.name}`;
+}
+
+/**
  * The transitions bench: the utilities that only exist while something is
  * moving. Three comparisons — what moves, how long it takes, how it travels —
  * each on boxes the reader hovers.
@@ -1706,7 +1742,15 @@ function TransitionsBench() {
     "transition-shadow",
     "transition-none",
   ];
-  const duration = ["duration-fast", "duration-base", "duration-slow"];
+  const steps = motionSteps();
+  // The loop is a duration but not a transition's: it is the period of an
+  // endless animation, and it is spent by the animations themselves rather
+  // than by a class. The bench shows it on its own, below.
+  const duration = steps
+    .filter((step) => step.name !== LOOP_STEP)
+    .map((step) => `duration-${step.name}`);
+  const loop = steps.find((step) => step.name === LOOP_STEP);
+  const neutral = neutralDuration(steps);
   const easing = [
     "ease-linear",
     "ease-standard",
@@ -1724,7 +1768,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 ${cls} duration-base ease-standard hover:bg-accent hover:translate-x-8 hover:opacity-50 hover:shadow-lg`}
+                    class={`block h-16 w-16 rounded-sm bg-neutral-300 ${cls} ${neutral} ease-standard hover:bg-accent hover:translate-x-8 hover:opacity-50 hover:shadow-lg`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1754,7 +1798,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/4 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 transition-all duration-base ${cls} hover:bg-accent hover:translate-x-8`}
+                    class={`block h-16 w-16 rounded-sm bg-neutral-300 transition-all ${neutral} ${cls} hover:bg-accent hover:translate-x-8`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1762,6 +1806,20 @@ function TransitionsBench() {
             </For>
           </div>
         </div>
+        <Show when={loop}>
+          {(step) => (
+            <div>
+              <div class={LABEL}>what loops</div>
+              <div class={RAIL_WRAP}>
+                <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
+                  <i class="block h-16 w-16 rounded-sm bg-neutral-300 animate-spin" />
+                  <code class={CAP}>motion.duration.{step().name}</code>
+                  <code class={CAP}>{step().value}</code>
+                </div>
+              </div>
+            </div>
+          )}
+        </Show>
       </div>
     </div>
   );
@@ -1773,7 +1831,10 @@ function TransitionsBench() {
  */
 const HEADLINE: Record<string, string> = {
   background: "bg-primary",
-  "text-color": "text-primary",
+  // The link: the one colour the contract floors as ink ON THE PAGE. A
+  // theme's primary is a fill, and a fill worn as a word is a word nobody
+  // can read (a brand red on a night panel measures 3.15:1).
+  "text-color": "text-link",
   sizing: "w-1/2",
   divide: "divide-y divide-neutral-300",
   border: "border-4 border-dashed border-primary",

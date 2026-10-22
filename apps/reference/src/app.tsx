@@ -703,17 +703,22 @@ function formatExampleHtml(html: string): string {
  * The ink each token of the code viewer wears.
  *
  * Every one is a theme token and every one was MEASURED against the panel it
- * sits on, in all three starter themes and both modes: the hues that read as
- * syntax in one palette are illegible in another — `semantic-success` is a
+ * sits on, in every theme the app serves and both modes: the hues that read
+ * as syntax in one palette are illegible in another — `semantic-success` is a
  * 3.3:1 slab on neobrut's white — so this is the set that clears 4.5:1
  * everywhere rather than the set that looks most like someone else's editor.
  * Tag and attribute are the two that carry the structure, so they take the
  * two brand inks; a string is the one value a reader copies, and the muted
  * step is the ink comments and punctuation are written in.
+ *
+ * The attribute ink is the theme's LINK rather than its primary: in three
+ * themes the two are the same colour, but a brand red is a fill, and spin's
+ * does not change when the page does — a red that measures 3.15:1 on the
+ * night panel is not a word anybody can read.
  */
 const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
   tag: "text-semantic-error",
-  attr: "text-primary",
+  attr: "text-link",
   string: "text-semantic-warning",
   comment: "text-text-muted",
   punct: "text-text-muted",

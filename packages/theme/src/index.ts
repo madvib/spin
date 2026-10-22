@@ -82,6 +82,7 @@ export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export {
   LOOP_DURATION,
   LOOP_FALLBACK,
+  LOOP_STEP,
   STROBE_FLOOR_MS,
 } from "./contract/motion.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
