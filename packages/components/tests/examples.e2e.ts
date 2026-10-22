@@ -76,6 +76,21 @@ Deno.test("spin examples e2e", () =>
       assert.ok(!cls1.includes("ring-2"), `the other thumb does not (got "${cls1}")`);
     });
 
+    await step("the thumbs render where their values are", async () => {
+      // Rendering, not just state: the thumb's inline position must match
+      // its value on a 0..100 track. basic declares [50] — halfway.
+      const thumb = page.locator("slider-basic [role='slider']").first();
+      await thumb.waitFor({ state: "attached", timeout: 5000 });
+      const style = await thumb.getAttribute("style") ?? "";
+      assert.match(style, /inset-inline-start:\s*50%/, `the thumb sits at 50% (got "${style}")`);
+      // Range: two thumbs at 20 and 80.
+      const thumbs = page.locator("slider-range [role='slider']");
+      const s0 = await thumbs.nth(0).getAttribute("style") ?? "";
+      const s1 = await thumbs.nth(1).getAttribute("style") ?? "";
+      assert.match(s0, /inset-inline-start:\s*20%/, `thumb 0 at 20% (got "${s0}")`);
+      assert.match(s1, /inset-inline-start:\s*80%/, `thumb 1 at 80% (got "${s1}")`);
+    });
+
     await step("every example's machine has a state", async () => {
       // A machine that never started has no value: the thumb's aria is
       // the observable.

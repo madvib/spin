@@ -1,9 +1,8 @@
-import { ariaDisabled, ariaOrientation, defineComponent, sliderThumb, type ApiOf, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaOrientation, defineComponent, isInteractive, sliderThumb, type ApiOf, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { slider as sliderMachine } from "./slider.machine.ts";
 import {
-  isInteractive,
   percentOf,
   thumbRange,
   valueOfPercent,

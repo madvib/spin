@@ -2,7 +2,8 @@
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 import type { SliderArgs, SliderContext } from "./slider.state.ts";
-import { initial, isInteractive } from "./slider.state.ts";
+import { initial } from "./slider.state.ts";
+import { isInteractive } from "@spin/runtime";
 import type { SliderEvents } from "./slider.events.ts";
 import {
   clearDragRefs,

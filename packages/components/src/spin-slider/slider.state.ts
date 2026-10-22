@@ -98,10 +98,6 @@ export function initial(args: SliderArgs = {}, authored: (name: string) => boole
   };
 }
 
-export function isInteractive(ctx: SliderContext): boolean {
-  return !ctx.readOnly && !ctx.disabled;
-}
-
 export function valuePercent(ctx: SliderContext): number[] {
   return ctx.value.map((value) => getValuePercent(value, ctx.min, ctx.max));
 }
