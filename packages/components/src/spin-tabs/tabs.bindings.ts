@@ -1,16 +1,37 @@
-import { ariaControls, ariaLabelledBy, defineComponent, optionRow, type ComponentDef, type PartScope } from "@spin/runtime";
+import { ariaControls, ariaLabelledBy, defineComponent, isRecord, optionRow, type ComponentDef, type PartScope } from "@spin/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
-import {
-  tabs as tabsMachine,
-  type TabsArgs,
-  type TabsContext,
-  type TabsEvents,
-  type TabsItem,
-  type TabsValueChange,
-} from "./tabs.machine.ts";
+import { tabs as tabsMachine } from "./tabs.machine.ts";
+import type { TabsArgs, TabsContext, TabsItem, TabsRow } from "./tabs.state.ts";
+import type { TabsEvents, TabsValueChange } from "./tabs.events.ts";
+
+export type { TabsArgs };
 
 /** Tabs definition: the DOM contract (data). */
 export type { TabsItem, TabsValueChange };
+
+/** A string the host set, or absent when it did not. The boundary between
+ * the host's values and the machine's domain: one place, beside the map. */
+const asString = (raw: unknown): string | undefined =>
+  typeof raw === "string" ? raw : undefined;
+
+/** The rows the host set: plain records, each field narrowed to its own
+ * type. A row without a usable value is left to the machine's own shaping. */
+const asRows = (raw: unknown): readonly TabsRow[] | undefined => {
+  if (!Array.isArray(raw)) return undefined;
+  const rows: TabsRow[] = [];
+  for (const entry of raw) {
+    if (!isRecord(entry)) continue;
+    const row: { value?: string; label?: string; content?: string } = {};
+    const value = asString(entry["value"]);
+    if (value !== undefined) row.value = value;
+    const label = asString(entry["label"]);
+    if (label !== undefined) row.label = label;
+    const content = asString(entry["content"]);
+    if (content !== undefined) row.content = content;
+    rows.push(row);
+  }
+  return rows;
+};
 
 const enabledValues = (scope: PartScope<TabsItem, TabsContext>): string[] =>
   scope.context.items.map((item) => item.value);
@@ -23,9 +44,19 @@ const neighbor = (scope: PartScope<TabsItem, TabsContext>, value: string, direct
   return items[next]?.value ?? null;
 };
 
-const def: ComponentDef<TabsContext, TabsEvents> = {
+const def: ComponentDef<TabsContext, TabsEvents, Record<string, unknown>, TabsArgs> = {
   name: "tabs",
-  machine: (props, authored) => tabsMachine(props as TabsArgs, authored),
+  machine: (args: TabsArgs, authored) => tabsMachine(args, authored),
+  args: (props): TabsArgs => {
+    const mapped: TabsArgs = {};
+    const items = asRows(props.items);
+    if (items !== undefined) mapped.items = items;
+    const value = asString(props.value);
+    if (value !== undefined) mapped.value = value;
+    const defaultValue = asString(props.defaultValue);
+    if (defaultValue !== undefined) mapped.defaultValue = defaultValue;
+    return mapped;
+  },
   parts: {
     root: {
       attrs: () => ({ "data-scope": "tabs", "data-part": "root" }),
@@ -103,4 +134,4 @@ const def: ComponentDef<TabsContext, TabsEvents> = {
   },
 };
 
-export const tabs = defineComponent<TabsContext, TabsEvents>(def);
+export const tabs = defineComponent<TabsContext, TabsEvents, Record<string, unknown>, TabsArgs>(def);

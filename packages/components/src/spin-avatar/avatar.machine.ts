@@ -8,56 +8,16 @@
  * else. There is no guard: the last signal wins.
  */
 
-import { defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
+import type { AvatarArgs, AvatarContext } from "./avatar.state.ts";
+import { initial } from "./avatar.state.ts";
+import type { AvatarEvents } from "./avatar.events.ts";
+
 const setSrc = (ctx: AvatarContext, event: EventUnion<AvatarEvents>) : Partial<AvatarContext> => {
       if (event.type !== "SRC.CHANGE" && event.type !== "SET_SRC") return {};
-      return { src: typeof event.src === "string" ? event.src : ctx.src };
+      void ctx;
+      return { src: event.src };
     };
-
-
-
-export interface AvatarContext {
-  src: string;
-}
-
-/**
- * The avatar's arguments: the values the host may set.
- */
-export interface AvatarArgs {
-  src?: string;
-  defaultSrc?: string;
-}
-
-const srcOf = (raw: unknown): string => typeof raw === "string" ? raw : "";
-
-export function initial(args: AvatarArgs, authored: (name: string) => boolean): AvatarContext {
-  // A host that wrote `defaultSrc` wrote the src channel too.
-  const written = (field: string): boolean =>
-    authored(field) ||
-    authored(defaultTwin(field)) ||
-    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
-  return {
-    src: written("src") ? srcOf(args.src) : "",
-  };
-}
-
-export interface AvatarEvents {
-  "IMG.LOADED": {};
-  "IMG.ERROR": {};
-  "IMG.UNMOUNT": {};
-  "SRC.CHANGE": { src: string };
-  "SET_SRC": { src: string };
-}
-
-export type AvatarEvent = EventUnion<AvatarEvents>;
-
-
-export type AvatarStatus = "loading" | "error" | "loaded";
-
-export type AvatarStatusChange = {
-  readonly status: AvatarStatus;
-};
 
 const config: Omit<MachineSpec<AvatarContext, AvatarEvents>, "context"> = {
   id: "avatar",

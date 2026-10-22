@@ -3,14 +3,15 @@ import {
   type ComponentDef,
   type PartScope,
 } from "@spin/runtime";
-import {
-  avatar as avatarMachine,
-  type AvatarArgs,
-  type AvatarContext,
-  type AvatarEvents,
-  type AvatarStatus,
-  type AvatarStatusChange,
-} from "./avatar.machine.ts";
+import { avatar as avatarMachine } from "./avatar.machine.ts";
+import type { AvatarArgs, AvatarContext } from "./avatar.state.ts";
+import type {
+  AvatarEvents,
+  AvatarStatus,
+  AvatarStatusChange,
+} from "./avatar.events.ts";
+
+export type { AvatarArgs };
 
 /**
  * Avatar definition: the DOM contract as data.
@@ -40,11 +41,24 @@ const fallbackOf = (props: Record<string, unknown>): string => {
   return textOf(props, "label");
 };
 
+/** A string the host set, or absent when it did not. The boundary between
+ * the host's values and the machine's domain: one place, beside the map. */
+const asString = (raw: unknown): string | undefined =>
+  typeof raw === "string" ? raw : undefined;
+
 interface ScopeLike extends PartScope<unknown, AvatarContext> {}
 
-const def: ComponentDef<AvatarContext, AvatarEvents> = {
+const def: ComponentDef<AvatarContext, AvatarEvents, Record<string, unknown>, AvatarArgs> = {
   name: "avatar",
-  machine: (props, authored) => avatarMachine(props as AvatarArgs, authored),
+  machine: (args: AvatarArgs, authored) => avatarMachine(args, authored),
+  args: (props): AvatarArgs => {
+    const mapped: AvatarArgs = {};
+    const src = asString(props.src);
+    if (src !== undefined) mapped.src = src;
+    const defaultSrc = asString(props.defaultSrc);
+    if (defaultSrc !== undefined) mapped.defaultSrc = defaultSrc;
+    return mapped;
+  },
   start: "loading",
   parts: {
     root: {
@@ -126,4 +140,4 @@ const def: ComponentDef<AvatarContext, AvatarEvents> = {
   },
 };
 
-export const avatar = defineComponent<AvatarContext, AvatarEvents, AvatarApi>(def);
+export const avatar = defineComponent<AvatarContext, AvatarEvents, AvatarApi, AvatarArgs>(def);

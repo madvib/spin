@@ -1,0 +1,76 @@
+import { defaultTwin } from "@spin/runtime";
+
+export interface TabsItem {
+  readonly value: string;
+  readonly label: string;
+  readonly content: string;
+}
+
+export interface TabsContext {
+  value: string;
+  defaultValue: string;
+  /** Configuration-that-never-changes: the shaped rows, supplied once at
+   * instantiation. Bags read this for keyboard navigation. */
+  items: readonly TabsItem[];
+}
+
+/** A row as the host set it: the fields the host wrote, narrowed to their
+ * own types. `label` may be absent — transport does not invent labels,
+ * `initial` falls back to the value. */
+export interface TabsRow {
+  readonly value?: string;
+  readonly label?: string;
+  readonly content?: string;
+}
+
+/**
+ * The tabs' arguments: the values the host may set.
+ *
+ * The twin (`defaultValue`) is resolved by the framework before the factory
+ * is called, so the machine only ever sees the live value; the machine
+ * keeps the twin's own text in its context, so it also reads it when the
+ * factory is called on its own.
+ */
+export interface TabsArgs {
+  items?: readonly TabsRow[];
+  value?: string;
+  defaultValue?: string;
+}
+
+/**
+ * Shape the arguments into the machine's initial context.
+ * Pure shaping only: the rows (label-from-value, content-to-empty, and a
+ * row without a usable value drops out), and the first-selected fallback
+ * (the host's write, then `defaultValue`, then the first row).
+ *
+ * The seed twin (`defaultValue`) is the host's write of the selection —
+ * the framework resolved it into the args — so it counts as a write too.
+ */
+export function initial(args: TabsArgs = {}, authored: (name: string) => boolean): TabsContext {
+  // A host that wrote `defaultValue` wrote the channel too.
+  const written = (field: string): boolean =>
+    authored(field) ||
+    authored(defaultTwin(field)) ||
+    args.defaultValue !== undefined;
+  const items: TabsItem[] = [];
+  for (const row of args.items ?? []) {
+    const value = row.value;
+    if (value === undefined || value.length === 0) continue;
+    items.push({
+      value,
+      label: row.label ?? value,
+      content: row.content ?? "",
+    });
+  }
+  const hostValue = args.value ?? "";
+  const defaultValue = args.defaultValue ?? "";
+  return {
+    // The host's write wins outright; uncontrolled falls back to the first
+    // tab, so a value is always selected.
+    value: written("value")
+      ? hostValue || defaultValue || items[0]?.value || ""
+      : items[0]?.value || "",
+    defaultValue,
+    items,
+  };
+}

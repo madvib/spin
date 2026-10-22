@@ -4,7 +4,7 @@ import { signal } from "@spin/runtime";
 import { avatar } from "./avatar.bindings.ts";
 const createAvatarBridge = avatar.createBridge;
 import type { AvatarApi } from "./avatar.bindings.ts";
-import type { AvatarStatusChange } from "./avatar.machine.ts";
+import type { AvatarStatusChange } from "./avatar.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

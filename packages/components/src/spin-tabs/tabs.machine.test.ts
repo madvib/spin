@@ -1,11 +1,8 @@
 import { assertEquals } from "jsr:@std/assert";
 import { interpret, type Service } from "@spin/runtime/fsm";
-import {
-  tabs as tabsMachine,
-  type TabsArgs,
-  type TabsContext,
-  type TabsEvents,
-} from "./tabs.machine.ts";
+import { tabs as tabsMachine } from "./tabs.machine.ts";
+import type { TabsArgs, TabsContext } from "./tabs.state.ts";
+import type { TabsEvents } from "./tabs.events.ts";
 
 /**
  * The tabs machine, through the fork's public API.
@@ -56,7 +53,7 @@ Deno.test("tabs initial shapes rows: label falls back to the value, content to e
 
 Deno.test("tabs initial skips rows without a usable value", () => {
   const shaped = contextOf(tabs({
-    items: [{ label: "no value" }, { value: "" }, "nope", { value: "ok" }],
+    items: [{ label: "no value" }, { value: "" }, { value: "ok" }],
   }));
   assertEquals(shaped.items, [{ value: "ok", label: "ok", content: "" }]);
 });
