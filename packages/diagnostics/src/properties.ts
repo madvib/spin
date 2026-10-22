@@ -15,25 +15,17 @@
  * property — and only then are they equal or not.
  */
 
+import type { PaintKey } from "@spin/preset";
+
 /**
  * The decisions an element's look is made of.
  *
  * The names are the primitives' own — the same words the manifest's scope
- * table uses — so the lint and the theme speak one language.
+ * table uses — so the lint and the theme speak one language. The list is the
+ * primitives', not a copy of it: a decision the primitives do not know is a
+ * decision the lint cannot speak about.
  */
-export type Decision =
-  | "background"
-  | "ink"
-  | "edge"
-  | "corner"
-  | "elevation"
-  | "face"
-  | "weight"
-  | "size"
-  | "tracking"
-  | "case"
-  | "decoration"
-  | "opacity";
+export type Decision = PaintKey;
 
 /**
  * The decisions that are the text's own shape.
@@ -141,6 +133,19 @@ export function canonical(property: string): string {
 const BOX: Readonly<Record<string, readonly string[]>> = {
   padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
   margin: ["margin-top", "margin-right", "margin-bottom", "margin-left"],
+};
+
+/**
+ * The `background` shorthand, as the lint reads it.
+ *
+ * The shorthand stands for the fill's colour among other things, and the fill
+ * is the decision the lint compares. A variant that clears the fill with
+ * `background: none` clears the colour with it — that is what the shorthand
+ * means — so the shorthand is recorded under the colour's name, and the value
+ * is carried over as it was written.
+ */
+const BACKGROUND: Readonly<Record<string, readonly string[]>> = {
+  background: ["background-color"],
 };
 
 /** The longhands of the border shorthands. */
@@ -256,6 +261,10 @@ export function declarations(
     return box.map((name, index) =>
       [name, [top, right, bottom, left][index] as string] as [string, string]
     );
+  }
+  const background = BACKGROUND[property];
+  if (background !== undefined) {
+    return background.map((name) => [name, value] as [string, string]);
   }
   const border = BORDER[property];
   if (border !== undefined) {

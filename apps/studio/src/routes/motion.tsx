@@ -558,7 +558,10 @@ function EasingChart(props: {
  *
  * The control is quiet while the race is at rest and loud while it runs —
  * in the colour of the family it runs — because "stop" is only worth
- * reading when there is something to stop.
+ * reading when there is something to stop. Quiet means the theme's own
+ * paint-free button: a plain button is the theme's loudest control, and a
+ * control that shouts before anything has happened is a control the reader
+ * learns to ignore.
  */
 function LoopButton(props: {
   running: boolean;
@@ -574,7 +577,7 @@ function LoopButton(props: {
       class={`rounded-md border px-2 py-1 text-xs ${
         props.running
           ? `border-transparent ${props.paint}`
-          : "border-border text-text-muted hover:text-text"
+          : "ghost border-border text-text-muted hover:text-text"
       }`}
       onClick={props.onToggle}
     >

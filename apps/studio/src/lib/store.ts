@@ -19,9 +19,9 @@ import {
   resolveMode,
 } from "./theme.ts";
 import type { FileState } from "./theme.ts";
-import { parseTokens, validateLegibility } from "@spin/theme";
 import { indexTree } from "@spin/theme";
-import type { Mode, ValidationIssue } from "@spin/theme";
+import type { Mode } from "@spin/theme";
+import { documentFailure, editRefusal } from "./live-edit.ts";
 import {
   currentProject,
   listProjectThemes,
@@ -167,46 +167,6 @@ const [saved, setSaved] = createSignal<Record<string, string>>({});
 
 /** How many snapshots a theme keeps. A bounded stack means undo cannot eat a tab. */
 const UNDO_LIMIT = 100;
-
-/**
- * The theme's own rules, applied to a proposed document.
- *
- * Local, and deliberately: the gate runs on every commit, and an edit that
- * waits on a round trip is an edit that lags. The AUTHORITY is still the
- * daemon — `preview.css` re-judges the whole document and refuses what
- * breaks a floor, so a theme that clears this gate and then fails generation
- * is one the author sees immediately with a reason. Early refusal is a
- * courtesy; the daemon is the guarantee.
- */
-function legibilityIssues(text: string): readonly ValidationIssue[] {
-  try {
-    const parsed = parseTokens(text);
-    if (!parsed.ok) return [{ path: "", message: parsed.error }];
-    return validateLegibility(parsed.tree);
-  } catch {
-    // Unparseable text is never a legibility problem, and the gate is about
-    // legibility; a broken document is caught by generation.
-    return [];
-  }
-}
-
-/**
- * The floors an edit would break: the ones the proposed document fails that
- * the current one holds.
- *
- * The comparison is by the token each floor is about, so an edit that
- * leaves a failing floor alone — or that clears one — is allowed through,
- * and an edit that breaks a floor the document used to hold is refused with
- * the module's own words. A document that cannot be parsed is refused as
- * before: the parse error is at no token, so nothing holds it.
- */
-function brokenFloors(
-  before: string,
-  after: string,
-): readonly ValidationIssue[] {
-  const held = new Set(legibilityIssues(before).map((issue) => issue.path));
-  return legibilityIssues(after).filter((issue) => !held.has(issue.path));
-}
 
 const [activeName, setActiveName] = createSignal("silk");
 const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
@@ -438,27 +398,124 @@ function historyFor(name: string): History {
  * Why the last edit was refused.
  *
  * An edit that would break the theme does not enter the document: the gate
- * runs the theme's own legibility rule on the proposed text and refuses,
+ * runs the theme module's own judgement on the proposed text and refuses,
  * which is validation by construction rather than by discovery. A document
- * that fails a floor has no build to fall back to — the preset throws — so
- * letting it in would leave the author with a broken theme and no idea which
- * edit did it.
+ * that does not build has no stylesheet to fall back to — the preset throws,
+ * and in development the throw takes the studio's OWN stylesheet with it,
+ * because both are generated in the same process — so letting the value in
+ * would leave the author with a blank studio and no idea which edit did it.
  *
- * What the gate refuses is an edit that BREAKS a floor. A document that
- * already fails one stays editable, because the studio is where an author
+ * What the gate refuses is an edit that BREAKS the theme. A document that
+ * already fails stays editable, because the studio is where an author
  * repairs one: a gate that refused every edit to a broken theme would make
  * the repair impossible, and the finding that names the fix would be an
  * offer the studio cannot honour.
+ *
+ * A refusal is kept per theme and per token: the chrome's banner says what
+ * the studio refused last, and the token's own row says why THIS value was
+ * refused — addressed by the token's path, so the message can be read where
+ * the value is shown, beside the control that asked for it, and not only in
+ * a banner.
  */
-const [refusal, setRefusal] = createSignal<string | undefined>();
+const [refusals, setRefusals] = createSignal<
+  Readonly<Record<string, Readonly<Record<string, string>>>>
+>({});
 
+/** The token whose value was refused last, in the theme being edited. */
+const [lastRefused, setLastRefused] = createSignal<string | undefined>();
+
+/**
+ * Why the document being edited does not build, when it does not.
+ *
+ * The gate refuses an edit that would break the theme, but a document can
+ * arrive broken from outside: a hand-edited file, a value that slipped
+ * through, a merge that landed badly. The studio says so rather than
+ * pretending the document is fine — and the last good stylesheet stays in
+ * force, so the studio is alive while the author repairs it.
+ */
+const [buildFailure, setBuildFailure] = createSignal<string | undefined>();
+
+/**
+ * What the studio last refused, and what it last found broken.
+ *
+ * The refusal is what the author did most recently; the failure is what the
+ * document is. The refusal comes first: it is the answer to the gesture the
+ * author has just made, and the failure is the standing condition behind
+ * it.
+ */
 export function lastRefusal(): string | undefined {
-  return refusal();
+  const path = lastRefused();
+  const message = path === undefined
+    ? undefined
+    : refusals()[activeName()]?.[path];
+  return message ?? buildFailure();
 }
 
-/** Record why an edit did not land — the gate or the document says so. */
+/**
+ * Why this token's value was refused, when it was.
+ *
+ * Addressed by the token's path — `radius.none` — which is the path the
+ * control that edits it carries, so the message can be read where the value
+ * is shown.
+ */
+export function refusalFor(path: string): string | undefined {
+  return refusals()[activeName()]?.[path];
+}
+
+/**
+ * Record why an edit did not land — the gate or the document says so.
+ *
+ * A refusal that is about no particular token is kept under the empty path:
+ * it is the studio's own sentence about the last thing it did, and the
+ * banner is what reads it.
+ */
 export function noteRefusal(message: string): void {
-  setRefusal(message);
+  refuse(message, "");
+}
+
+/**
+ * Record a refusal, and where it belongs.
+ *
+ * The token's message is dropped when the value lands — a refusal about a
+ * value that is now in the document is a stale sentence.
+ */
+function refuse(message: string, path: string): void {
+  const theme = activeName();
+  setRefusals((prev) => ({
+    ...prev,
+    [theme]: { ...(prev[theme] ?? {}), [path]: message },
+  }));
+  setLastRefused(path);
+}
+
+/** The token's refusal is stale once the value it was about has landed. */
+function clearRefusal(paths: readonly string[]): void {
+  if (paths.length === 0) return;
+  const theme = activeName();
+  setRefusals((prev) => {
+    const held = prev[theme];
+    if (held === undefined) return prev;
+    const next = { ...held };
+    for (const path of paths) delete next[path];
+    return { ...prev, [theme]: next };
+  });
+  if (paths.includes(lastRefused() ?? "")) setLastRefused(undefined);
+}
+
+/**
+ * A refusal is about a gesture, and a gesture that was undone is not
+ * standing: the document went back to a state the gate would have taken,
+ * so the sentence about the refused value is a stale one.
+ */
+function forgetRefusals(): void {
+  const theme = activeName();
+  setRefusals((prev) => {
+    if (prev[theme] === undefined) return prev;
+    const next = { ...prev };
+    delete next[theme];
+    return next;
+  });
+  setLastRefused(undefined);
 }
 
 /**
@@ -480,19 +537,44 @@ export function note(message: string): void {
   setNotice(message);
 }
 
-/** Replaces the editor text for the active theme. Not a write to disk. */
-export function setThemeText(next: string): boolean {
+/**
+ * Replaces the editor text for the active theme. Not a write to disk.
+ *
+ * The `touched` paths are the tokens the edit is about: the gate refuses an
+ * edit that leaves one of them broken, and the refusal is recorded against
+ * it, so the message belongs to the value the author is holding.
+ *
+ * The gate is LOCAL, and deliberately: it runs on every commit, and an edit
+ * that waits on a round trip is an edit that lags. The judge is the theme
+ * module's — the same `validateTheme` the daemon's analysis procedure asks —
+ * and it is the judge the stylesheet is generated from, so a refusal here is
+ * a refusal the build would agree with. The AUTHORITY is still the daemon:
+ * `preview.css` re-judges the whole document, so a theme that clears this
+ * gate and then fails generation is one the author sees immediately with a
+ * reason. Early refusal is a courtesy; the daemon is the guarantee.
+ *
+ * The arithmetic lives in `live-edit.ts`: it is pure, and it is the same
+ * arithmetic a control needs while an author is dragging a value.
+ */
+export function setThemeText(
+  next: string,
+  touched: readonly string[] = [],
+): boolean {
   const name = activeName();
-  // The rule is the theme's, not the studio's: the same one `spinPreset`
-  // applies when it generates, so the two cannot disagree. What is refused is
-  // the edit that BREAKS a floor — a floor the document already failed is
-  // the author's to repair, and the studio is where they repair it.
-  const broken = brokenFloors(themeText(), next);
-  if (broken.length > 0) {
-    setRefusal(broken[0]!.message);
+  // The rule is the theme's, not the studio's: the same judgement
+  // `spinPreset` applies when it generates, so the two cannot disagree.
+  // What is refused is the edit that BREAKS the theme — a problem the
+  // document already had is the author's to repair, and the studio is where
+  // they repair it.
+  const refused = editRefusal(themeText(), next, touched);
+  if (refused !== undefined) {
+    refuse(refused.message, refused.path);
     return false;
   }
-  setRefusal(undefined);
+  // The value landed, so a refusal about it is a stale sentence; and the
+  // studio has nothing to refuse about the gesture that just succeeded.
+  clearRefusal(touched);
+  setLastRefused(undefined);
 
   // History is recorded BEFORE the document moves. Reading the document
   // afterwards would seed `present` with the new text, and a stack whose
@@ -523,6 +605,16 @@ export function setThemeText(next: string): boolean {
  * app shows is always one the preset can generate from.
  */
 async function pushOverlay(name: string, text: string): Promise<void> {
+  // The overlay is what the running app wears, and the app's stylesheet is
+  // generated from it — in development, in the SAME process the studio's own
+  // stylesheet is generated in. A document that does not build therefore
+  // does not only fail the app's sheet: it takes the studio's own sheet
+  // with it, the studio's page never renders, and the author is left with a
+  // white window and no error to read.
+  //
+  // So a document that does not build never goes into the overlay: the last
+  // good one stays in force, and the studio says what is wrong instead.
+  if (documentFailure(text) !== undefined) return;
   let document: unknown;
   try {
     document = JSON.parse(text);
@@ -567,6 +659,7 @@ export function undo(): void {
     },
   }));
   setDocs((prev) => ({ ...prev, [name]: previous }));
+  forgetRefusals();
   void pushOverlay(name, previous);
 }
 
@@ -584,6 +677,7 @@ export function redo(): void {
     },
   }));
   setDocs((prev) => ({ ...prev, [name]: next }));
+  forgetRefusals();
   void pushOverlay(name, next);
 }
 
@@ -613,6 +707,7 @@ export function revertToSaved(name: string): void {
   if (snapshot === undefined) return;
   setDocs((prev) => ({ ...prev, [name]: snapshot }));
   forgetHistory(name, snapshot);
+  forgetRefusals();
   void pushOverlay(name, snapshot);
 }
 
@@ -634,6 +729,7 @@ export async function reloadFromDisk(name: string): Promise<FileState> {
   setSaved((prev) => ({ ...prev, [name]: text }));
   setOnDisk((prev) => ({ ...prev, [name]: text }));
   forgetHistory(name, text);
+  forgetRefusals();
   void pushOverlay(name, text);
   return moved ? "changed" : "saved";
 }
@@ -685,7 +781,7 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
   const document = docs()[name];
   if (document === undefined) {
     const problem = "the studio holds no document to write";
-    setRefusal(problem);
+    noteRefusal(problem);
     return { written: false, problem };
   }
 
@@ -695,7 +791,7 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
     disk = await loadProjectTheme(name);
   } catch (err) {
     const problem = `the file could not be read: ${problemText(err)}`;
-    setRefusal(problem);
+    noteRefusal(problem);
     return { written: false, problem };
   }
   if (disk !== undefined) {
@@ -711,17 +807,17 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
     (disk === undefined && hasProjectFile(name));
   if (moved) {
     const problem = `${name} changed on disk — reload from disk first.`;
-    setRefusal(problem);
+    noteRefusal(problem);
     return { written: false, problem };
   }
 
   const result = await saveTheme(name, document);
   if (result.error !== null) {
-    setRefusal(result.error);
+    noteRefusal(result.error);
     return { written: false, problem: result.error };
   }
   markSaved(name);
-  setRefusal(undefined);
+  setLastRefused(undefined);
   return { written: true, problem: null };
 }
 
@@ -829,3 +925,38 @@ export function themeSummaries(): ThemeSummary[] {
     };
   });
 }
+
+/**
+ * The document being edited, judged as it stands.
+ *
+ * The studio's gate refuses an edit that would break the theme, so a
+ * document that does not build is one that arrived broken: a hand-edited
+ * file, a value that slipped through, a merge that landed badly. The studio
+ * says so where the author reads it — the chrome's banner — and says what
+ * to do about it, because the studio that cannot show you its own error is
+ * a studio you cannot trust.
+ *
+ * The stylesheet is not at stake here: a document that does not build never
+ * reaches the overlay, so the last good one stays in force and the studio
+ * keeps rendering while the author repairs the document.
+ *
+ * It lives at the foot of the module because it reads what the rest of it
+ * declares: an effect that runs while the module is still being evaluated
+ * would find the theme, the document and the state it keeps still in their
+ * birth.
+ */
+createEffect(() => {
+  const name = activeName();
+  const text = seed(name);
+  if (text === undefined) {
+    setBuildFailure(undefined);
+    return;
+  }
+  const failure = documentFailure(text);
+  setBuildFailure(
+    failure === undefined
+      ? undefined
+      : `${name} does not build: ${failure}. The last good stylesheet is ` +
+        "still in force — fix the token and the theme comes back.",
+  );
+});

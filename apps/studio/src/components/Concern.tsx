@@ -166,7 +166,10 @@ export function Frame(props: { children: JSX.Element; class?: string }) {
  * and the eye reads a column rather than a row — and the editor follows the
  * name instead of being pushed to the far edge of a wide page, which is what
  * a stretched row is: a name at one end and a control at the other with
- * nothing in between.
+ * nothing in between. The editor may SHRINK, so a row whose control is
+ * wider than the page wraps inside itself rather than pushing the page
+ * sideways — a page that scrolls sideways in a drawer is a page the reader
+ * cannot widen.
  */
 export function TokenLine(props: {
   path: string;
@@ -184,7 +187,7 @@ export function TokenLine(props: {
           {props.utility}
         </code>
       </Show>
-      <div class="shrink-0">{props.editor}</div>
+      <div class="min-w-0">{props.editor}</div>
     </li>
   );
 }
@@ -230,18 +233,23 @@ export function Badge(props: {
  * A token, as a chip: its path beside its value.
  *
  * The path is the token's name and the value is what it is worth now; the
- * two are one fact, so they share a line. The chip wears a sunken fill
- * because a token is a fact on the page rather than a control, and the
- * value is the half that gives way when the column is narrow — the path is
- * what identifies the token.
+ * two are one fact, so they share a line and one chip. The chip is a raised
+ * surface with a hairline — the studio's own small chip, the one the count
+ * beside a component's name wears — because a token is a fact on the page
+ * rather than a control, and the value is the half that gives way when the
+ * column is narrow: the path is what identifies the token.
+ *
+ * The two halves are spans and not `code` elements: the theme draws inline
+ * code on a surface of its own, and a chip that carried one would have two
+ * fills inside it and read as two things.
  */
 export function TokenChip(props: { path: string; value: string }) {
   return (
-    <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm bg-surface-sunken px-1.5 py-0.5">
-      <code class="truncate font-mono text-xs text-text-muted">
+    <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm border border-border bg-surface-raised px-1.5 py-0.5">
+      <span class="truncate font-mono text-xs text-text-muted">
         {props.path}
-      </code>
-      <code class="shrink-0 font-mono text-xs text-text">{props.value}</code>
+      </span>
+      <span class="shrink-0 font-mono text-xs text-text">{props.value}</span>
     </span>
   );
 }

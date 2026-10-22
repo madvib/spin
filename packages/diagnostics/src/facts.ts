@@ -185,6 +185,7 @@ export function factsFor(
     colors,
     inks,
     values: valuesOf(trees),
+    paths: pathsOf(trees),
     surfaces: surfacesFor(documents),
     // A declaration the lint could not read leaves the vocabulary
     // incomplete: the rule that asks "can this be produced?" stands down,
@@ -217,7 +218,26 @@ function valuesOf(trees: readonly TokenTree[]): Map<string, string> {
   return out;
 }
 
-/** The facts of a vocabulary nobody could read. */
+/**
+ * The theme's token paths, by custom property name.
+ *
+ * The path is the token's own name in the document, and the variable is the
+ * generator's spelling of it. A theme that renames a token renames both, so
+ * the path is what a reader asks for.
+ */
+function pathsOf(trees: readonly TokenTree[]): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const tree of trees) {
+    for (const leaf of Object.values(indexTree(tree).leaves)) {
+      out.set(cssVarName(leaf.path), leaf.path.join("."));
+    }
+  }
+  return out;
+}
+
+/**
+ * The facts of a vocabulary nobody could read.
+ */
 function unreadable(): Facts {
   return {
     readable: false,
@@ -230,6 +250,7 @@ function unreadable(): Facts {
     colors: new Set(),
     inks: new Set(),
     values: new Map(),
+    paths: new Map(),
     surfaces: surfacesFor([]),
     shortcuts: null,
   };

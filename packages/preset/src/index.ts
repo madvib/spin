@@ -100,6 +100,16 @@ export type {
   PrimitiveCategory,
   PrimitiveElement,
 } from "./rules/primitives/categories.ts";
+/**
+ * The decisions an element's look is made of, and the property each one is
+ * read from.
+ *
+ * The vocabulary belongs to the primitives: the manifest's scope table is
+ * written in these words, and a consumer that reads the manifest has to be
+ * able to say which decision a CSS property belongs to without keeping a
+ * second list of its own.
+ */
+export { type PaintKey, paintKeyOf } from "./rules/primitives/scope.ts";
 
 /** Options for {@link spinPreset}. */
 export interface SpinPresetOptions {

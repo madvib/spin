@@ -33,6 +33,7 @@ import {
   resolveAliases,
   validateTheme,
 } from "@spin/theme";
+import { tokenValue } from "./overview.ts";
 
 /** Which way a colour has to move to clear a floor. */
 export type Direction = "darker" | "lighter";
@@ -114,6 +115,67 @@ export function floorFindings(text: string): readonly FloorFinding[] {
     });
   }
   return findings;
+}
+
+/**
+ * One floor, measured in one mode.
+ */
+export interface MeasuredFloor {
+  /** The role that is read. */
+  readonly fg: string;
+  /** The surface it is read on. */
+  readonly bg: string;
+  /** The ratio the pair owes. */
+  readonly min: number;
+  /** The ratio the pair measures. */
+  readonly ratio: number;
+  /** The value the role would take to clear the floor, when one exists. */
+  readonly remedy: string | null;
+}
+
+/**
+ * Every floor the contract declares, measured in one mode.
+ *
+ * The floors are the contract's and the measurement is the theme module's,
+ * so this reads the same pairs the checks panel reads — in a mode rather
+ * than in the base. A mode restates the values, so the ratio a role owes in
+ * the dark is not the ratio it owes in the light, and one number for both
+ * would be the base said twice.
+ *
+ * The remedy is the value that would clear the floor, so a page can offer
+ * the fix instead of only the complaint.
+ */
+export function measureFloors(
+  text: string,
+  mode: string,
+): readonly MeasuredFloor[] {
+  const parsed = parseTokens(text);
+  if (!parsed.ok) return [];
+  const out: MeasuredFloor[] = [];
+  for (const floor of legibilityFloors()) {
+    const fg = tokenValue(parsed.tree, mode, floor.fg);
+    const bg = tokenValue(parsed.tree, mode, floor.bg);
+    if (fg === undefined || bg === undefined) continue;
+    let ratio: number;
+    try {
+      ratio = contrastRatio(fg, bg);
+    } catch {
+      // A colour the theme module cannot read has no ratio, and no remedy
+      // either: the completeness gate is that business.
+      continue;
+    }
+    const remedy = ratio < floor.min
+      ? clearingValue(floor.fg, fg, floor.bg, bg, floor.min)
+      : undefined;
+    out.push({
+      fg: floor.fg,
+      bg: floor.bg,
+      min: floor.min,
+      ratio,
+      remedy: remedy?.value ?? null,
+    });
+  }
+  return out;
 }
 
 /**

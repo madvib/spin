@@ -40,6 +40,7 @@ import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 import StatusBar from "./components/StatusBar.tsx";
+import StudioError from "./components/StudioError.tsx";
 import TopBar from "./components/TopBar.tsx";
 import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 
@@ -187,23 +188,31 @@ export default function App() {
               "min-h-full": inDrawer(),
             }}
           >
-            <div
-              // The row the rail and the work share. In the drawer the rail
-              // mirrors to the outer edge — the host's drawer is
-              // right-anchored, so a left rail traps the content between
-              // chrome and the viewport edge.
-              class="flex flex-1 flex-row"
-              classList={{
-                // Modal: the row takes what the bar leaves, and may be
-                // shorter than its content — the page scrolls INSIDE it.
-                // Drawer: the row is as tall as the page, and the document
-                // scrolls.
-                "min-h-0": !inDrawer(),
-                "flex-row-reverse": inDrawer() && dockSide() === "right",
-              }}
-            >
-              {
-                /*
+            {
+              /* The studio's own boundary. It sits INSIDE the themed shell,
+                so a failure is drawn with the studio's surfaces and ink
+                rather than in an unstyled page — and so the chrome around it
+                survives: the studio is broken, not gone. A tool that cannot
+                show you its own error is a tool you cannot trust. */
+            }
+            <StudioError>
+              <div
+                // The row the rail and the work share. In the drawer the rail
+                // mirrors to the outer edge — the host's drawer is
+                // right-anchored, so a left rail traps the content between
+                // chrome and the viewport edge.
+                class="flex flex-1 flex-row"
+                classList={{
+                  // Modal: the row takes what the bar leaves, and may be
+                  // shorter than its content — the page scrolls INSIDE it.
+                  // Drawer: the row is as tall as the page, and the document
+                  // scrolls.
+                  "min-h-0": !inDrawer(),
+                  "flex-row-reverse": inDrawer() && dockSide() === "right",
+                }}
+              >
+                {
+                  /*
                 The rail is navigation and nothing else: the mark at the top,
                 the concerns below it, and the studio's own verbs at its foot.
                 The verbs that change the document — undo, redo, save — live
@@ -232,22 +241,22 @@ export default function App() {
                 the column and taller than the glyph, so the hit area is
                 generous without the column growing to carry it.
                 */
-              }
-              <nav
-                aria-label="Studio"
-                class="sticky top-0 flex w-10 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-2"
-                classList={{
-                  "border-r": !inDrawer() || dockSide() === "left",
-                  "border-l": inDrawer() && dockSide() === "right",
-                  // Modal: the row is the height of the window less the
-                  // bar, and the rail fills it. Drawer: the row is as tall
-                  // as the page, so the rail is a window's worth and
-                  // stays put while the document scrolls under it.
-                  "h-screen": inDrawer(),
-                }}
-              >
-                {
-                  /*
+                }
+                <nav
+                  aria-label="Studio"
+                  class="sticky top-0 flex w-10 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-2"
+                  classList={{
+                    "border-r": !inDrawer() || dockSide() === "left",
+                    "border-l": inDrawer() && dockSide() === "right",
+                    // Modal: the row is the height of the window less the
+                    // bar, and the rail fills it. Drawer: the row is as tall
+                    // as the page, so the rail is a window's worth and
+                    // stays put while the document scrolls under it.
+                    "h-screen": inDrawer(),
+                  }}
+                >
+                  {
+                    /*
                   The mark: the web, in the studio's own ink. The kit draws it
                   as one filled path on `currentColor`, so it wears whatever
                   surface it lands on.
@@ -259,44 +268,44 @@ export default function App() {
                   it from the concerns — a rule would say "this ends"; space
                   says "this is a different thing", which is what a mark is.
                   */
-                }
-                <A
-                  href={hostPath(MARK.path)}
-                  // `end`: the mark is the overview and nothing else. Without it
-                  // the root path matches every path, and the mark would read as
-                  // current on every page.
-                  end
-                  class="peer mb-2 flex h-10 w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
-                  title={MARK.label}
-                  aria-label={MARK.label}
-                >
-                  <Web size={40} class="h-10 w-10 shrink-0" />
-                </A>
-                <RailTip label={MARK.label} top="top-4" />
-                <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-1">
-                  <For each={CONCERNS}>
-                    {(route) => (
-                      <li class="m-0 w-full">
-                        <A
-                          href={hostPath(route.path)}
-                          activeClass="bg-surface-sunken text-text font-semibold"
-                          inactiveClass="text-text"
-                          class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
-                          title={route.label}
-                          aria-label={route.label}
-                        >
-                          <span
-                            class={`inline-block shrink-0 text-xl ${route.icon}`}
-                            aria-hidden="true"
-                          />
-                        </A>
-                        <RailTip label={route.label} />
-                      </li>
-                    )}
-                  </For>
-                </ul>
-                {
-                  /*
+                  }
+                  <A
+                    href={hostPath(MARK.path)}
+                    // `end`: the mark is the overview and nothing else. Without it
+                    // the root path matches every path, and the mark would read as
+                    // current on every page.
+                    end
+                    class="peer mb-2 flex h-10 w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
+                    title={MARK.label}
+                    aria-label={MARK.label}
+                  >
+                    <Web size={40} class="h-10 w-10 shrink-0" />
+                  </A>
+                  <RailTip label={MARK.label} top="top-4" />
+                  <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-1">
+                    <For each={CONCERNS}>
+                      {(route) => (
+                        <li class="m-0 w-full">
+                          <A
+                            href={hostPath(route.path)}
+                            activeClass="bg-surface-sunken text-text font-semibold"
+                            inactiveClass="text-text"
+                            class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
+                            title={route.label}
+                            aria-label={route.label}
+                          >
+                            <span
+                              class={`inline-block shrink-0 text-xl ${route.icon}`}
+                              aria-hidden="true"
+                            />
+                          </A>
+                          <RailTip label={route.label} />
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                  {
+                    /*
                   The foot: the studio's own verbs, in the same language as
                   the concerns above them — the same box, the same glyph size,
                   the same hover. The rule above them says "these are the
@@ -313,64 +322,64 @@ export default function App() {
                   hover chip it cannot carry is on the row around it, so the
                   foot's three rows read as one family.
                   */
-                }
-                <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2">
-                  <For each={FOOT}>
-                    {(route) => (
-                      <li class="m-0 w-full">
-                        <A
-                          href={hostPath(route.path)}
-                          activeClass="bg-surface-sunken text-text font-semibold"
-                          inactiveClass="text-text"
-                          class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
-                          title={route.label}
-                          aria-label={route.label}
+                  }
+                  <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2">
+                    <For each={FOOT}>
+                      {(route) => (
+                        <li class="m-0 w-full">
+                          <A
+                            href={hostPath(route.path)}
+                            activeClass="bg-surface-sunken text-text font-semibold"
+                            inactiveClass="text-text"
+                            class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
+                            title={route.label}
+                            aria-label={route.label}
+                          >
+                            <span
+                              class={`inline-block shrink-0 text-xl ${route.icon}`}
+                              aria-hidden="true"
+                            />
+                          </A>
+                          <RailTip label={route.label} />
+                        </li>
+                      )}
+                    </For>
+                    <Show when={embedded()}>
+                      <li class="m-0 w-full rounded-md hover:bg-surface">
+                        <button
+                          type="button"
+                          class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
+                          aria-label={inDrawer() ? "Modal" : "Drawer"}
+                          title={inDrawer() ? "Modal" : "Drawer"}
+                          onClick={toggleHostMode}
                         >
                           <span
-                            class={`inline-block shrink-0 text-xl ${route.icon}`}
+                            class="inline-block shrink-0 text-xl i-lucide-panel-right"
                             aria-hidden="true"
                           />
-                        </A>
-                        <RailTip label={route.label} />
+                        </button>
+                        <RailTip label={inDrawer() ? "Modal" : "Drawer"} />
                       </li>
-                    )}
-                  </For>
-                  <Show when={embedded()}>
-                    <li class="m-0 w-full rounded-md hover:bg-surface">
-                      <button
-                        type="button"
-                        class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
-                        aria-label={inDrawer() ? "Modal" : "Drawer"}
-                        title={inDrawer() ? "Modal" : "Drawer"}
-                        onClick={toggleHostMode}
-                      >
-                        <span
-                          class="inline-block shrink-0 text-xl i-lucide-panel-right"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <RailTip label={inDrawer() ? "Modal" : "Drawer"} />
-                    </li>
-                    <li class="m-0 w-full rounded-md hover:bg-surface">
-                      <button
-                        type="button"
-                        class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
-                        aria-label="Close"
-                        title="Close"
-                        onClick={closeStudio}
-                      >
-                        <span
-                          class="inline-block shrink-0 text-xl i-lucide-x"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <RailTip label="Close" />
-                    </li>
-                  </Show>
-                </ul>
-              </nav>
-              {
-                /*
+                      <li class="m-0 w-full rounded-md hover:bg-surface">
+                        <button
+                          type="button"
+                          class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
+                          aria-label="Close"
+                          title="Close"
+                          onClick={closeStudio}
+                        >
+                          <span
+                            class="inline-block shrink-0 text-xl i-lucide-x"
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <RailTip label="Close" />
+                      </li>
+                    </Show>
+                  </ul>
+                </nav>
+                {
+                  /*
                 The work: the preview of the document being edited, under
                 the project's own theme. The rail is NOT inside it — the
                 navigation is the tool's, and the content is the project's.
@@ -380,88 +389,90 @@ export default function App() {
                 bar that ran over the rail would put a control above the
                 navigation, and the navigation is the rail's own.
                 */
-              }
-              <div class="flex min-w-0 flex-1 flex-col">
-                <TopBar />
-                <main
-                  class="flex min-w-0 flex-1 flex-col"
-                  // Modal: the column may be shorter than the page, and the
-                  // page scrolls inside it. Drawer: the column is as tall as
-                  // the page, and the document scrolls.
-                  classList={{ "min-h-0": !inDrawer() }}
-                >
-                  {
-                    /* What the studio refused, and what it did about the
+                }
+                <div class="flex min-w-0 flex-1 flex-col">
+                  <TopBar />
+                  <main
+                    class="flex min-w-0 flex-1 flex-col"
+                    // Modal: the column may be shorter than the page, and the
+                    // page scrolls inside it. Drawer: the column is as tall as
+                    // the page, and the document scrolls.
+                    classList={{ "min-h-0": !inDrawer() }}
+                  >
+                    {
+                      /* What the studio refused, and what it did about the
                       file: said where the state is. Both are the tool's own
                       words about the author's own document, so they belong
                       with the chrome rather than inside the project they are
                       talking about. */
-                  }
-                  <Show
-                    when={lastRefusal() !== undefined ||
-                      lastNotice() !== undefined}
-                  >
-                    <div
-                      role="status"
-                      class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm"
+                    }
+                    <Show
+                      when={lastRefusal() !== undefined ||
+                        lastNotice() !== undefined}
                     >
-                      <Show when={lastRefusal()}>
-                        {(message) => (
-                          <p class="text-semantic-error">
-                            <span
-                              class="i-lucide-shield-alert mr-2 inline-block align-middle"
-                              aria-hidden="true"
-                            />
-                            {message()}
-                          </p>
-                        )}
-                      </Show>
-                      <Show when={lastNotice()}>
-                        {(message) => <p class="text-text-muted">{message()}
-                        </p>}
-                      </Show>
-                    </div>
-                  </Show>
-                  {
-                    /* The preview carries the project's theme. Everything
+                      <div
+                        role="status"
+                        class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm"
+                      >
+                        <Show when={lastRefusal()}>
+                          {(message) => (
+                            <p class="text-semantic-error">
+                              <span
+                                class="i-lucide-shield-alert mr-2 inline-block align-middle"
+                                aria-hidden="true"
+                              />
+                              {message()}
+                            </p>
+                          )}
+                        </Show>
+                        <Show when={lastNotice()}>
+                          {(message) => (
+                            <p class="text-text-muted">{message()}</p>
+                          )}
+                        </Show>
+                      </div>
+                    </Show>
+                    {
+                      /* The preview carries the project's theme. Everything
                       around it is chrome and stays on the studio's own.
                       `spin-preview` is the sheet's scope: the theme's rules
                       apply inside the pane — a page that never spells a
                       control still styles one — and never to the chrome. */
-                  }
-                  <div
-                    data-theme={activeName()}
-                    data-mode={activeMode()}
-                    // Same debt as the chrome's: <html> is stamped light, so a
-                    // label that only inherits keeps that ink on a dark surface.
-                    // `spin-preview` is the sheet's scope: the theme's rules
-                    // apply inside the pane — a page that never spells a control
-                    // still styles one — and never to the chrome.
-                    class="spin-preview flex min-w-0 flex-1 flex-col bg-surface text-text"
-                    // Modal, this column is the scroller: a page that brings its
-                    // own rail fills it exactly and never triggers this, and a
-                    // page that does not scrolls HERE rather than dragging the
-                    // document — and with it the rail. The drawer's pages do not
-                    // scroll here at all: the host's frame scrolls them, so the
-                    // page's own region grows with its content instead.
-                    classList={{
-                      "min-h-0": !inDrawer(),
-                      "overflow-y-auto": !inDrawer(),
-                    }}
-                  >
-                    <PreviewStyles />
-                    <Suspense>{props.children}</Suspense>
-                  </div>
-                </main>
+                    }
+                    <div
+                      data-theme={activeName()}
+                      data-mode={activeMode()}
+                      // Same debt as the chrome's: <html> is stamped light, so a
+                      // label that only inherits keeps that ink on a dark surface.
+                      // `spin-preview` is the sheet's scope: the theme's rules
+                      // apply inside the pane — a page that never spells a control
+                      // still styles one — and never to the chrome.
+                      class="spin-preview flex min-w-0 flex-1 flex-col bg-surface text-text"
+                      // Modal, this column is the scroller: a page that brings its
+                      // own rail fills it exactly and never triggers this, and a
+                      // page that does not scrolls HERE rather than dragging the
+                      // document — and with it the rail. The drawer's pages do not
+                      // scroll here at all: the host's frame scrolls them, so the
+                      // page's own region grows with its content instead.
+                      classList={{
+                        "min-h-0": !inDrawer(),
+                        "overflow-y-auto": !inDrawer(),
+                      }}
+                    >
+                      <PreviewStyles />
+                      <Suspense>{props.children}</Suspense>
+                    </div>
+                  </main>
+                </div>
               </div>
-            </div>
-            {
-              /* The bar along the bottom: the state of the document being
+              {
+                /* The bar along the bottom: the state of the document being
                 edited and the checks on it — and nothing else. It is chrome,
                 so it wears the studio's own theme — the control that saves
                 a theme must not be restyled by the theme it is saving. */
-            }
-            <StatusBar />
+              }
+              <StatusBar />
+            </StudioError>
           </div>
         </MetaProvider>
       )}

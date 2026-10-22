@@ -125,9 +125,16 @@ const COPY_CONTROL =
 const CODE_PRE =
   "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
 
-/** The panel every specimen sits in: one box, one surface, room to stand. */
+/**
+ * The panel every specimen sits in: one box, one surface, room to stand.
+ *
+ * The fill is the RAISED surface, not the page's own: a panel painted in the
+ * page's colour is a hole with a dashed edge around it, and the specimen in
+ * it looks like it is floating in nothing. A card says "this is a thing on
+ * a surface", which is what the specimen is.
+ */
 const SPECIMEN_PANEL =
-  "min-h-[2rem] flex items-center justify-center rounded-md border border-dashed border-border bg-surface p-4 shadow-sm";
+  "min-h-[2rem] flex items-center justify-center rounded-md border border-dashed border-border bg-surface-raised p-4 shadow-sm";
 
 /** The measure a specimen's content is set at. */
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";

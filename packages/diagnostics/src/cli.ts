@@ -22,11 +22,12 @@ import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { CheckConfig } from "./check.ts";
-import type {
-  SemanticOptions,
-  SemanticTags,
-  Strictness,
-  TextEdit,
+import {
+  DEFAULT_SEMANTIC_OPTIONS,
+  type SemanticOptions,
+  type SemanticTags,
+  type Strictness,
+  type TextEdit,
 } from "./core.ts";
 import { applyFixes, type Diagnostic } from "./engine.ts";
 import { type RuleName, RULES } from "./rules.ts";
@@ -102,7 +103,7 @@ Commands:
 Options for lint:
   --format <text|json>     how the findings are printed (default: text)
   --strictness <dial>      strict | balanced | lenient (default: strict)
-  --semantic-tags <which>  all | native | spin | none (default: all)
+  --semantic-tags <which>  all | native | spin | none (default: native)
   --rule <name>            run only this rule (repeatable)
   --fix                    apply the edits the findings carry
   -h, --help               this text
@@ -149,7 +150,7 @@ function parseLint(argv: readonly string[]): Command {
   const rules: RuleName[] = [];
   let format: Format = "text";
   let strictness: Strictness = "strict";
-  let semanticTags: SemanticTags = "all";
+  let semanticTags: SemanticTags = DEFAULT_SEMANTIC_OPTIONS.semanticTags;
   let fix = false;
   let help = false;
 

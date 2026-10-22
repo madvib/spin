@@ -38,10 +38,25 @@ const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs|vue|svelte|astro|html?)$/;
 /**
  * The classes a file's markup declares.
  *
- * Only the string class attributes: those are the ones the rules read, so
- * those are the ones the vocabulary has to know about.
+ * A class attribute is either a string or a template: a template's static
+ * text is still the classes the author wrote, and the expressions in it are
+ * the author's own arithmetic. Both are read, because the generator has to
+ * be asked about every class the project writes — a class nobody asks
+ * about is a class the vocabulary cannot vouch for.
  */
-const CLASS_ATTRIBUTE = /(?:class|className)\s*=\s*["']([^"']*)["']/g;
+const CLASS_ATTRIBUTE =
+  /(?:class|className)\s*=\s*\{?\s*(?:"([^"]*)"|'([^']*)'|`([^`]*)`)/g;
+
+/** The classes a template literal spells, apart from its expressions. */
+function staticClasses(text: string): string[] {
+  const out: string[] = [];
+  for (const part of text.split(/\$\{[^}]*\}/)) {
+    for (const cls of part.split(/\s+/)) {
+      if (cls.length > 0) out.push(cls);
+    }
+  }
+  return out;
+}
 
 /**
  * Every class the project's markup declares.
@@ -74,11 +89,39 @@ function declaredClasses(root: string): Set<string> {
         continue;
       }
       for (const match of text.matchAll(CLASS_ATTRIBUTE)) {
-        for (const cls of (match[1] as string).split(/\s+/)) {
-          if (cls.length > 0) out.add(cls);
+        const quoted = match[1] ?? match[2];
+        if (quoted !== undefined) {
+          for (const cls of quoted.split(/\s+/)) {
+            if (cls.length > 0) out.add(cls);
+          }
+          continue;
         }
+        for (const cls of staticClasses(match[3] ?? "")) out.add(cls);
       }
     }
+  }
+  return out;
+}
+
+/**
+ * The class names the generated stylesheet names.
+ *
+ * A class the sheet names is a class the project produces, even when the
+ * class styles nothing by itself: the marker a variant looks for (`peer`) is
+ * named in the selector the variant writes, and a rule that dropped it would
+ * break the variant that reads it.
+ *
+ * The names are read off the sheet, so the answer cannot disagree with what
+ * the browser is handed.
+ */
+function namedIn(css: string): Set<string> {
+  const out = new Set<string>();
+  for (
+    const match of css.matchAll(
+      /(?<![\w-])\.((?:[a-zA-Z0-9_-]|\\.)+)/g,
+    )
+  ) {
+    out.add((match[1] as string).replace(/\\(.)/g, "$1"));
   }
   return out;
 }
@@ -95,8 +138,8 @@ async function resolve(): Promise<ReadonlySet<string>> {
         spinPreset({ themes: { ...starterThemes } }),
       ],
     });
-    const { matched } = await generator.generate(candidates);
-    return matched;
+    const { matched, css } = await generator.generate(candidates);
+    return new Set([...matched, ...namedIn(css)]);
   } catch {
     // The vocabulary is the catalog's alone; the rules abstain rather than
     // guess, and a generator that cannot be built is not a reason to stop.

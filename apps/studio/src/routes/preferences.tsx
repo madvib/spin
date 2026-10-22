@@ -56,7 +56,7 @@ export default function PreferencesPage() {
               <EdgeFigure edge="left" chosen={side() === "left"} />
               <EdgeFigure edge="right" chosen={side() === "right"} />
             </div>
-            <div class="stack-sm">
+            <div class="stack-sm min-w-[12rem] flex-1">
               <DrawerEdge />
               <p class="text-sm text-text-muted">
                 The studio asks the host which edge it is on rather than
@@ -71,7 +71,7 @@ export default function PreferencesPage() {
       <Section
         title="The studio's own theme"
         fact={`${studioChips().length} roles`}
-        note="The chrome wears this theme and never the project's, so editing a theme cannot restyle the tool you are editing it with."
+        note="The rail and the bar along the bottom wear this theme and never the project's, so editing a theme cannot restyle the tool you are editing it with."
       >
         <Frame>
           <div class="flex flex-wrap gap-3">
@@ -115,7 +115,7 @@ function EdgeFigure(props: { edge: "left" | "right"; chosen: boolean }) {
       props.chosen ? "bg-primary" : "bg-surface-sunken"
     }`;
   return (
-    <figure class="stack-sm w-32">
+    <figure class="stack-sm w-24">
       <div class="flex h-24 gap-1 rounded-md border border-border bg-surface p-1">
         {props.edge === "left" && <div class={strip()} />}
         <div class="flex-1 rounded-sm bg-surface-sunken" />

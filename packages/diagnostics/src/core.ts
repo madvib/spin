@@ -18,11 +18,12 @@
  * itself belongs to whoever is holding the file.
  */
 
+import { paintKeyOf } from "@spin/preset";
 import { isNativeElement } from "./html.ts";
 import { type Tier, tierInPlace } from "./tiers.ts";
 import type { Decision } from "./properties.ts";
 import { isTypography, sameValue } from "./properties.ts";
-import type { Surfaces } from "./surface.ts";
+import type { Ancestor, Surfaces } from "./surface.ts";
 
 /** Where a finding sits: the start of the node that caused it. */
 export interface Position {
@@ -127,6 +128,15 @@ export interface Facts {
    */
   readonly values: ReadonlyMap<string, string>;
   /**
+   * The theme's token paths, by custom property name.
+   *
+   * The path is the token's name in the theme — `color.border-strong` — and
+   * the variable is what the generator makes of it. A rule that says which
+   * token an author meant says the path, because the path is what a reader
+   * asks for and the variable is what the generator emits.
+   */
+  readonly paths: ReadonlyMap<string, string>;
+  /**
    * What the theme puts on elements, and what a class sets.
    *
    * Read by running the preset's own rules, so the lint cannot disagree
@@ -187,9 +197,11 @@ export type Strictness = "strict" | "balanced" | "lenient";
 /**
  * Which tags the semantic rules treat as semantic.
  *
- * - `all` — every tag a primitive claims. The default.
+ * - `all` — every tag the markup writes. The default.
  * - `native` — only the elements HTML defines.
- * - `spin` — only spin's own elements.
+ * - `spin` — only spin's own elements: the tags the primitives claim that
+ *   HTML does not define. A component is neither — the theme says nothing
+ *   about what a component renders.
  * - `none` — no tag is semantic, and the rules say nothing.
  */
 export type SemanticTags = "all" | "native" | "spin" | "none";
@@ -200,10 +212,18 @@ export interface SemanticOptions {
   readonly semanticTags: SemanticTags;
 }
 
-/** What the semantic rules do when nothing says otherwise. */
+/**
+ * What the semantic rules do when nothing says otherwise.
+ *
+ * The default is `native`: the lint reads markup, and a component's tag is
+ * not a tag the browser owns — nothing in the lint can say what such a tag
+ * renders, so the rules must not reason about it. A project that knows its
+ * own components reads them with the `spin` dial, which is the primitives'
+ * claimed non-native tags.
+ */
 export const DEFAULT_SEMANTIC_OPTIONS: SemanticOptions = {
   strictness: "strict",
-  semanticTags: "all",
+  semanticTags: "native",
 };
 
 /**
@@ -226,12 +246,26 @@ export function coreName(
   return parts[parts.length - 1] as string;
 }
 
-/** Whether a tag counts as semantic under the dial. */
-function isSemanticTag(tag: string, setting: SemanticTags): boolean {
+/**
+ * Whether a tag counts as semantic under the dial.
+ *
+ * Spin's own elements are the tags the primitives claim that HTML does not
+ * define: the theme states something about those, and the rules may speak
+ * about what it stated. A component is not one of them — the theme says
+ * nothing about what a component renders — so a project that reads its own
+ * components leaves them alone.
+ */
+function isSemanticTag(
+  facts: Facts,
+  tag: string,
+  setting: SemanticTags,
+): boolean {
   if (setting === "none") return false;
   if (setting === "all") return true;
   const native = isNativeElement(tag);
-  return setting === "native" ? native : !native;
+  if (setting === "native") return native;
+  return !native &&
+    facts.scopes.some((scope) => scope.tag === tag || scope.self === tag);
 }
 
 /** Whether a tier is reported under the strictness dial. */
@@ -354,8 +388,15 @@ function readings(
 ): Reading[] {
   const tag = node.tag;
   if (tag === undefined) return [];
-  if (!isSemanticTag(tag, options.semanticTags)) return [];
-  const element = facts.surfaces.element(tag, node.ancestors ?? []);
+  if (!isSemanticTag(facts, tag, options.semanticTags)) return [];
+  // The element as it stands: where it sits, and what it wears. A variant
+  // speaks over the base, so the surface the classes are compared against is
+  // the one the browser would see.
+  const element = facts.surfaces.element(
+    tag,
+    node.ancestors ?? [],
+    node.classes,
+  );
   const out: Reading[] = [];
   for (const cls of node.classes) {
     if (facts.variants.has(cls)) continue;
@@ -455,11 +496,17 @@ export function checkPreferThemeValue(
   const tag = node.tag;
   if (tag === undefined) return [];
   const owners = ownersOf(facts, node);
+  const claimed = claimedBy(facts, node);
   const out: Finding[] = [];
   for (const reading of readings(facts, node, options)) {
     if (!isReported(reading.tier, options.strictness)) continue;
     if (reading.dead) continue;
     const decision = reading.decision;
+    // A decision the element's own variant has claimed is the VARIANT's
+    // answer, not the scope's: the scope no longer owns it. A class that
+    // sets it is either the variant's own answer or a deliberate override,
+    // and neither is a second opinion about the scope.
+    if (decision !== undefined && claimed.has(decision)) continue;
     const holder = holderOf(owners, decision);
     const spacing = reading.tier === "spacing";
     if (holder === undefined && !spacing) continue;
@@ -473,7 +520,9 @@ export function checkPreferThemeValue(
         claim: claimOf(family, tag, decision),
         remedy: remedyOf(
           family,
-          variantsOf(facts, holder, tag),
+          family === "spacing"
+            ? sizeVariants(facts, owners, node)
+            : variantsOf(facts, holder, tag, node, decision),
         ),
       },
       position: node.position,
@@ -481,6 +530,38 @@ export function checkPreferThemeValue(
   }
   return out;
 }
+
+/**
+ * The decisions the element's own variants have claimed.
+ *
+ * A variant is how a primitive is told to change, and what it sets is the
+ * element's look and not the base's: a button that wears `bare` has no fill
+ * and no edge, whatever the base said. So the decisions a variant speaks
+ * about belong to the variant, and the scope that painted the element by
+ * default no longer owns them.
+ *
+ * The ink follows the fill: the ink is the foreground OF a fill, so a variant
+ * that speaks about the fill speaks about the ink with it. A button with no
+ * fill has no foreground to be — which is why the bare button leaves its ink
+ * to the utilities, and why an author who wants the page's ink on one spells
+ * `text-text`.
+ */
+function claimedBy(facts: Facts, node: ClassFacts): ReadonlySet<Decision> {
+  const tag = node.tag;
+  if (tag === undefined) return NO_DECISIONS;
+  const out = new Set<Decision>();
+  const worn = facts.surfaces.worn(tag, node.ancestors ?? [], node.classes);
+  for (const property of worn.keys()) {
+    const decision = paintKeyOf(property);
+    if (decision === undefined) continue;
+    out.add(decision);
+  }
+  if (out.has("background")) out.add("ink");
+  return out;
+}
+
+/** The empty set of decisions, for an element that claims nothing. */
+const NO_DECISIONS: ReadonlySet<Decision> = new Set<Decision>();
 
 /**
  * The primitive that owns a decision for this element, when one does.
@@ -534,12 +615,56 @@ function claimOf(
  * A variant is how a primitive is told to change its own look, so the skin
  * family's way out is a variant — named, when the element declares any —
  * and the theme's value is the way out of the rest.
+ *
+ * The spacing family has a way out of its own on a CONTROL: the space inside
+ * a control is the size of that control, and the theme's answer to the size
+ * is a variant.
  */
 function remedyOf(family: Family, variants: readonly string[]): string {
-  if (family === "skin" && variants.length > 0) {
+  if ((family === "skin" || family === "spacing") && variants.length > 0) {
     return "Use a variant (" + namesOf(variants) + ") or the theme's value.";
   }
   return "Use the theme's value.";
+}
+
+/**
+ * The size variants the element's own scope declares.
+ *
+ * A size variant is the one that changes the size the element is read in —
+ * and with it the space inside it: a smaller control has less padding, and
+ * that padding is the theme's answer to how big the control is. So the way
+ * out of a spacing override on a control is the variant and not a step.
+ *
+ * The variants are found by what they set: the variant that sets the
+ * element's size is the one that speaks about its size. A variant the
+ * element already wears is not offered — telling an author to use the
+ * variant they are using is not advice.
+ */
+function sizeVariants(
+  facts: Facts,
+  owners: readonly ScopeFact[],
+  node: ClassFacts,
+): readonly string[] {
+  const tag = node.tag;
+  if (tag === undefined) return [];
+  const worn = facts.surfaces.variants(tag, node.classes);
+  const out: string[] = [];
+  for (const owner of owners) {
+    // A variant belongs to the primitive's OWN element: the card's variants
+    // belong to the card, not to the title the card paints.
+    if (owner.tag !== owner.self) continue;
+    for (const name of facts.surfaces.variants(tag, owner.variants)) {
+      if (out.includes(name) || worn.includes(name)) continue;
+      const declarations = facts.surfaces.worn(
+        tag,
+        node.ancestors ?? [],
+        [name],
+      );
+      if (!declarations.has("font-size")) continue;
+      out.push(name);
+    }
+  }
+  return out;
 }
 
 /**
@@ -555,10 +680,51 @@ function variantsOf(
   facts: Facts,
   holder: ScopeFact | undefined,
   tag: string,
+  node: ClassFacts,
+  decision: Decision | undefined,
 ): readonly string[] {
   if (holder === undefined) return [];
   if (holder.tag !== holder.self) return [];
-  return facts.surfaces.variants(tag, holder.variants);
+  // A variant the element already wears is not offered: telling an author to
+  // use the variant they are using is not advice.
+  const worn = facts.surfaces.variants(tag, node.classes);
+  return facts.surfaces.variants(tag, holder.variants).filter((name) => {
+    if (worn.includes(name)) return false;
+    if (decision === undefined) return true;
+    // And a variant that says nothing about the decision is not a way out of
+    // it: offering one sends the author to a door that does not open.
+    return carries(
+      facts,
+      tag,
+      node.ancestors ?? [],
+      name,
+      decision,
+    );
+  });
+}
+
+/**
+ * Whether a variant carries a decision.
+ *
+ * A variant carries what it sets. The ink follows the fill here as it does
+ * everywhere else: a variant that clears the fill leaves the ink to the
+ * author, and so carries the ink too.
+ */
+function carries(
+  facts: Facts,
+  tag: string,
+  ancestors: readonly Ancestor[],
+  name: string,
+  decision: Decision,
+): boolean {
+  const declarations = facts.surfaces.worn(tag, ancestors, [name]);
+  let fill = false;
+  for (const property of declarations.keys()) {
+    const claimed = paintKeyOf(property);
+    if (claimed === decision) return true;
+    if (claimed === "background") fill = true;
+  }
+  return decision === "ink" && fill;
 }
 
 /**
@@ -589,11 +755,20 @@ export function checkPreferElement(
   const tag = node.tag;
   if (tag === undefined) return [];
   const owners = ownersOf(facts, node);
+  const claimed = claimedBy(facts, node);
   const out: Finding[] = [];
   for (const reading of readings(facts, node, options)) {
     if (!isReported(reading.tier, options.strictness)) continue;
     const decision = reading.decision;
     if (decision === undefined) continue;
+    // The decoration family is not this rule's. A control's `text-decoration:
+    // none` is a RESET, not a themed answer, and "the element already says
+    // that" is the redundancy rule's business — and it says it correctly.
+    // A tag-based push is not advice either: it moves authors toward divs.
+    if (decision === "decoration") continue;
+    // The element's own variant has claimed the decision, so the decision is
+    // accounted for here and is not another element's to carry.
+    if (claimed.has(decision)) continue;
     if (owners.some((owner) => owner.owns.includes(decision))) continue;
     const element = ownerOf(facts, decision, reading);
     if (element === undefined) continue;
@@ -783,7 +958,15 @@ export function checkNoHandwrittenTokens(
     const token = match[1] as string;
     out.push({
       messageId: "handwritten",
-      data: { token, group: token.split("-")[0] ?? "", step: token },
+      data: {
+        token,
+        group: token.split("-")[0] ?? "",
+        step: token,
+        // The token's path in the theme, which is what a reader asks for:
+        // the variable is the generator's spelling of it, and the path is
+        // the token's own name.
+        path: facts.paths.get(`--${token}`) ?? token,
+      },
       position: node.position,
     });
   }

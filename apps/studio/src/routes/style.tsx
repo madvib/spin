@@ -329,13 +329,18 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
               "z-index": `var(${row.variable})`,
             }}
           >
-            <code
-              class={`text-xs ${
+            {
+              /* A span and not a `code`: the theme draws inline code on its
+                own little surface, and a chip of that surface on a painted
+                card would carry the page's ink under the card's ink. */
+            }
+            <span
+              class={`font-mono text-xs ${
                 row.path === winner() ? "text-on-primary" : "text-text-muted"
               }`}
             >
               {row.path}
-            </code>
+            </span>
           </div>
         )}
       </For>

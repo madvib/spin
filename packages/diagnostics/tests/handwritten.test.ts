@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import plugin from "../src/index.ts";
-import type { GateNode } from "../src/rules.ts";
+import { type GateNode, renderMessage } from "../src/rules.ts";
 import { lint, type LintOptions } from "../src/service.ts";
 
 /**
@@ -89,7 +89,33 @@ Deno.test("a token written by hand in a class attribute is reported", () => {
     token: "color-text",
     group: "color",
     step: "color-text",
+    // The path is the token's own name in the theme: the variable is the
+    // generator's spelling of it, and the path is what a reader asks for.
+    path: "color.text",
   });
+});
+
+Deno.test("the message names the token, not the variable", () => {
+  // The remedy has to be true: the variable is generated output, and the
+  // theme's path is what an author spends.
+  const rule = plugin.rules["no-handwritten-tokens"];
+  const seen: string[] = [];
+  const visit = rule.create({
+    report(descriptor) {
+      seen.push(
+        renderMessage(rule.meta, {
+          messageId: descriptor.messageId,
+          data: descriptor.data ?? {},
+          position: { line: 1, column: 1 },
+        }),
+      );
+    },
+  }).JSXAttribute;
+  visit?.(attribute("class", literal("var(--color-text)")));
+  assertEquals(seen, [
+    "`var(--color-text)` is generated output, not an API. " +
+    "Read the theme's token `color.text`, not its variable.",
+  ]);
 });
 
 Deno.test("a token written by hand in a style attribute is reported", () => {

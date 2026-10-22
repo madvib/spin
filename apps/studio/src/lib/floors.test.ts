@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { contrastRatio } from "@spin/theme";
-import { floorFindings, remedyText } from "./floors.ts";
+import { floorFindings, measureFloors, remedyText } from "./floors.ts";
 
 /**
  * A document with one failing floor and everything else the floors ask for
@@ -77,4 +77,52 @@ Deno.test("the remedy text names the value and the ratio it reaches", () => {
   assertEquals(text.includes(finding.remedy.value), true);
   assertEquals(text.includes("color.surface"), true);
   assertEquals(text.includes("Darken"), true);
+});
+
+Deno.test("a measured floor is the ratio the pair makes", () => {
+  // The page reads the same pairs the checks read, in a mode: the number it
+  // shows is the one the theme module measures.
+  const measured = measureFloors(fixture("#2f9e44"), "light");
+  const success = measured.find((floor) =>
+    floor.fg === "color.semantic.success"
+  );
+  assertEquals(success?.min, 4.5);
+  assertEquals(success?.ratio, contrastRatio("#2f9e44", "#ffffff"));
+});
+
+Deno.test("a failing floor offers a value that clears it", () => {
+  const success = measureFloors(fixture("#2f9e44"), "light").find((floor) =>
+    floor.fg === "color.semantic.success"
+  );
+  assertEquals(success?.remedy !== null, true);
+  const cleared = contrastRatio(success?.remedy as string, "#ffffff");
+  assertEquals(cleared >= 4.5, true);
+});
+
+Deno.test("a floor that holds offers nothing: there is nothing to fix", () => {
+  const success = measureFloors(fixture("#0b5c22"), "light").find((floor) =>
+    floor.fg === "color.semantic.success"
+  );
+  assertEquals((success?.ratio ?? 0) >= 4.5, true);
+  assertEquals(success?.remedy, null);
+});
+
+Deno.test("a mode is measured on the values it shows", () => {
+  // The dark slot restates the surface, so the pair the dark mode shows is
+  // not the pair the light mode shows.
+  const document = JSON.stringify({
+    color: {
+      $type: "color",
+      surface: { $value: "#ffffff", $modes: { dark: "#101010" } },
+      "semantic": { success: { $value: "#2f9e44" } },
+    },
+  });
+  const light = measureFloors(document, "light").find((floor) =>
+    floor.fg === "color.semantic.success"
+  );
+  const dark = measureFloors(document, "dark").find((floor) =>
+    floor.fg === "color.semantic.success"
+  );
+  assertEquals(light?.ratio, contrastRatio("#2f9e44", "#ffffff"));
+  assertEquals(dark?.ratio, contrastRatio("#2f9e44", "#101010"));
 });

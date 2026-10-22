@@ -100,14 +100,19 @@ export interface Ancestor {
  */
 export interface Surfaces {
   /**
-   * The declarations the theme puts on an element, given where it sits.
+   * The declarations the theme puts on an element, given where it sits and
+   * what it wears.
    *
    * An element inside a document column is painted differently from the same
    * element outside one, so the chain of ancestors is part of the question.
+   * And an element that wears a VARIANT is painted differently from the same
+   * element that does not: the variant speaks over the base, so the classes
+   * the element carries are part of the question too.
    */
   element(
     tag: string,
     ancestors: readonly Ancestor[],
+    classes?: readonly string[],
   ): ReadonlyMap<string, string>;
   /** The declarations a class sets. */
   utility(cls: string): ReadonlyMap<string, string>;
@@ -121,6 +126,19 @@ export interface Surfaces {
    * paints the element because its selector names the element.
    */
   variants(tag: string, classes: readonly string[]): readonly string[];
+  /**
+   * The declarations the element's own variants set on it.
+   *
+   * A variant is how a primitive is told to change, so what it sets is the
+   * element's look and not the base's: a button that wears `bare` has no fill
+   * and no edge, whatever the base said. The declarations are read from the
+   * rules, so a variant cannot claim a decision its rule does not make.
+   */
+  worn(
+    tag: string,
+    ancestors: readonly Ancestor[],
+    classes: readonly string[],
+  ): ReadonlyMap<string, string>;
 }
 
 /* ------------------------------------------------------------- the runner -- */
@@ -358,29 +376,50 @@ function splitTop(compound: string): string[] {
   return out.filter((part) => part !== "");
 }
 
-/** Whether a compound's subject is conditional. */
+/**
+ * Whether a compound's subject is conditional.
+ *
+ * The subject of a compound says WHAT the element is; what stands beside it
+ * qualifies it. A qualification that is a state (`:hover`), an attribute
+ * (`[title]`) or a negation (`:not(...)`) says the rule speaks about the
+ * element only in some circumstances — and a rule that speaks only in some
+ * circumstances does not say what the element looks like.
+ *
+ * A class beside the subject is not a qualification of that kind: the
+ * primitive's variants are classes, and `:is(button, ...).bare` names the
+ * button and says nothing about when.
+ */
 function isConditional(compound: string): boolean {
   for (const part of splitTop(compound)) {
-    if (part.startsWith("[")) return true;
-    if (!part.startsWith(":")) continue;
-    if (isFunctional(part)) continue;
-    return true;
+    const subject = leadingSubject(part);
+    const beside = part.slice(subject.length);
+    if (beside.includes("[")) return true;
+    if (/::?[a-z-]/.test(beside)) return true;
+    // A compound that is nothing but an attribute names the element by what
+    // it carries, and says nothing about how it looks.
+    if (subject === "") return true;
   }
   return false;
 }
 
 /**
- * Whether a part is nothing but a functional pseudo-class.
+ * The subject of a part of a compound: what says WHAT the element is.
  *
- * `:is(button)` is a subject. `:is(button):hover` is a subject under a
- * state, and the state is what makes it conditional — so the group has to
- * END the part for the part to be a plain subject.
+ * A type selector names it, a class or an id names it, and a group
+ * (`:is(...)`, `:where(...)`) names what it MAY be. Whatever stands after
+ * the subject qualifies it.
  */
-function isFunctional(part: string): boolean {
-  const open = /^:(?:is|where)\(/.exec(part);
-  if (open === null) return false;
-  const close = matchingParen(part, open[0].length - 1);
-  return close === part.length - 1;
+function leadingSubject(part: string): string {
+  const group = /^:(?:is|where)\(/.exec(part);
+  if (group !== null) {
+    const close = matchingParen(part, group[0].length - 1);
+    return close === -1 ? part : part.slice(0, close + 1);
+  }
+  const name = /^([a-zA-Z*][a-zA-Z0-9-]*)/.exec(part);
+  if (name !== null) return name[0];
+  const mark = /^([.#][a-zA-Z0-9_-]+)/.exec(part);
+  if (mark !== null) return mark[0];
+  return "";
 }
 
 /** The index of the parenthesis that closes the one at `open`. */
@@ -468,12 +507,70 @@ export function surfacesFor(
     return painted;
   };
 
+  /**
+   * The classes among these that paint the element.
+   *
+   * A primitive's variants are classes an author types on its own element, and
+   * some of the classes a primitive declares are not: the icon slot is a class
+   * on a CHILD, so it is a class the vocabulary knows and not a variant of the
+   * element. The rules are asked which is which: a variant paints the element
+   * because its selector names the element.
+   */
+  const variantsOf = (
+    tag: string,
+    classes: readonly string[],
+  ): readonly string[] => {
+    const key = tag + "\u0000" + classes.join("\u0000");
+    const cached = variants.get(key);
+    if (cached !== undefined) return cached;
+    const out: string[] = [];
+    for (const cls of classes) {
+      const painted = paint(rules, contextFor(cls), cls);
+      // A class that paints no element paints no element: the slot on a
+      // child says nothing about the element the class sits on.
+      if (painted.some((item) => namesElement(item.selector, tag))) {
+        out.push(cls);
+      }
+    }
+    variants.set(key, out);
+    return out;
+  };
+
+  /**
+   * What a class sets on the element it names.
+   *
+   * Only the yields that reach the element in its resting state count: a
+   * variant's hover and its dead form are states, and a state is not what the
+   * element looks like while it rests.
+   */
+  const wornFor = (
+    tag: string,
+    ancestors: readonly Ancestor[],
+    cls: string,
+  ): ReadonlyMap<string, string> => {
+    const out = new Map<string, string>();
+    for (const item of paint(rules, contextFor(cls), cls)) {
+      if (!appliesTo(item.selector, tag, ancestors)) continue;
+      for (const [property, value] of item.declarations) {
+        out.set(property, value);
+      }
+    }
+    return out;
+  };
+
   return {
-    element(tag, ancestors) {
+    element(tag, ancestors, classes = []) {
       const out = new Map<string, string>();
       for (const item of paintedFor(tag)) {
         if (!appliesTo(item.selector, tag, ancestors)) continue;
         for (const [property, value] of item.declarations) {
+          out.set(property, value);
+        }
+      }
+      // The variants the element wears speak over the base: they are the
+      // element's own look, so they are read last and they win.
+      for (const cls of variantsOf(tag, classes)) {
+        for (const [property, value] of wornFor(tag, ancestors, cls)) {
           out.set(property, value);
         }
       }
@@ -494,19 +591,15 @@ export function surfacesFor(
       return declarations;
     },
     variants(tag, classes) {
-      const key = tag + " " + classes.join(" ");
-      const cached = variants.get(key);
-      if (cached !== undefined) return cached;
-      const out: string[] = [];
-      for (const cls of classes) {
-        const painted = paint(rules, contextFor(cls), cls);
-        // A class that paints no element paints no element: the slot on a
-        // child says nothing about the element the class sits on.
-        if (painted.some((item) => namesElement(item.selector, tag))) {
-          out.push(cls);
+      return variantsOf(tag, classes);
+    },
+    worn(tag, ancestors, classes) {
+      const out = new Map<string, string>();
+      for (const cls of variantsOf(tag, classes)) {
+        for (const [property, value] of wornFor(tag, ancestors, cls)) {
+          out.set(property, value);
         }
       }
-      variants.set(key, out);
       return out;
     },
   };
@@ -520,9 +613,11 @@ export function surfacesFor(
  * child — which is no element at all.
  */
 function namesElement(selector: string, tag: string): boolean {
-  for (const compound of compounds(selector)) {
-    for (const name of subjects(compound.text)) {
-      if (name.tag === tag) return true;
+  for (const alternative of splitTop(selector)) {
+    for (const compound of compounds(alternative)) {
+      for (const name of subjects(compound.text)) {
+        if (name.tag === tag) return true;
+      }
     }
   }
   return false;
@@ -575,6 +670,7 @@ function empty(): Surfaces {
     element: () => new Map(),
     utility: () => new Map(),
     variants: () => [],
+    worn: () => new Map(),
   };
 }
 
@@ -588,6 +684,24 @@ function empty(): Surfaces {
  * nothing about a quotation outside one.
  */
 function appliesTo(
+  selector: string,
+  tag: string,
+  ancestors: readonly Ancestor[],
+): boolean {
+  // A selector is a LIST of alternatives, and a rule that paints the element
+  // paints it through ONE of them: a variant writes its class and the
+  // attribute form of the same variant side by side, and both are the
+  // element.
+  for (const alternative of splitTop(selector)) {
+    if (appliesToOne(alternative, tag, ancestors)) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether ONE alternative of a rule's selector paints this element, here.
+ */
+function appliesToOne(
   selector: string,
   tag: string,
   ancestors: readonly Ancestor[],

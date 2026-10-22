@@ -18,6 +18,10 @@ export interface TokenEdit {
  * colours, a scale emits steps — so a bad edit cannot reach the document in
  * the first place. The batch is all or nothing, because a group scaled by
  * one factor that half-landed is a group whose ratios the factor never set.
+ *
+ * The paths are handed to the gate with the edit: the gate refuses a value
+ * that would not build, and it says so about the TOKEN the value belongs
+ * to, so the refusal can be read where the value is shown.
  */
 export function editTokens(
   edits: readonly TokenEdit[],
@@ -33,11 +37,11 @@ export function editTokens(
     }
   })();
   if (next === undefined) return false;
-  // The gate refuses a document the theme's own legibility rule fails and
-  // says why; the answer is whether the DOCUMENT moved, which is what the
-  // control needs in order to revert.
+  // The gate refuses a document the theme's own rules fail and says why;
+  // the answer is whether the DOCUMENT moved, which is what the control
+  // needs in order to revert.
   const before = themeText();
-  setThemeText(next);
+  setThemeText(next, edits.map((edit) => edit.path.join(".")));
   return themeText() !== before;
 }
 
@@ -76,7 +80,9 @@ export function createToken(
     noteRefusal(err instanceof Error ? err.message : String(err));
     return false;
   }
-  setThemeText(next);
+  // The token is named with the edit, so a value that would not build is
+  // refused against the token it would have landed in.
+  setThemeText(next, [path.join(".")]);
   return themeText() !== before;
 }
 

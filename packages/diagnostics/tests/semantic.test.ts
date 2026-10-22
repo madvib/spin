@@ -6,6 +6,7 @@ import {
   checkPreferElement,
   checkPreferThemeValue,
   type ClassFacts,
+  DEFAULT_SEMANTIC_OPTIONS,
   type Facts,
   type SemanticOptions,
 } from "../src/core.ts";
@@ -176,11 +177,21 @@ Deno.test("the spacing family says the theme owns the rhythm", () => {
 
 Deno.test("a painted descendant is offered the theme's value, not a variant", () => {
   // The card's variants belong to the card; the title the card paints is
-  // not the card, so there is no variant to offer it.
-  const [finding] = override("card-title", "text-text-muted");
+  // not the card, so there is no variant to offer it. The card is spin's own
+  // element, so it is read with the `spin` dial.
+  const [finding] = override("card-title", "text-text-muted", SPIN);
   assertEquals(finding?.data["family"], "skin");
   assertEquals(finding?.data["remedy"], "Use the theme's value.");
 });
+
+/**
+ * Spin's own elements are not the browser's, so a project reads them with the
+ * `spin` dial — the primitives' claimed non-native tags.
+ */
+const SPIN: SemanticOptions = {
+  strictness: "strict",
+  semanticTags: "spin",
+};
 
 Deno.test("an override is an error and the wrong element is advisory", () => {
   // The stance: a one-off override of a decision the system made is banned,
@@ -219,7 +230,10 @@ Deno.test("the primitives' own variants are not reported", () => {
   // of them is the sanctioned way to spend it.
   assertEquals(redundant("button", "secondary"), []);
   assertEquals(override("button", "secondary"), []);
-  assertEquals(redundant("button", "ghost bg-primary").length, 1);
+  // And what the variant claimed is not the base's: the ghost button has no
+  // fill, so a class that puts one back is not dead weight and not a fight.
+  assertEquals(redundant("button", "ghost bg-primary"), []);
+  assertEquals(override("button", "ghost bg-primary"), []);
 });
 
 Deno.test("a class under a state is not compared with the resting value", () => {
@@ -283,6 +297,61 @@ Deno.test("the semantic tags dial chooses which elements count", () => {
   assertEquals(override("card", "bg-surface", spin).length, 1);
   assertEquals(override("button", "bg-surface-raised", native).length, 1);
   assertEquals(override("button", "bg-surface-raised", spin), []);
+});
+
+Deno.test("a component's tag is not the browser's, and the default says so", () => {
+  // The lint reads markup and cannot know what a component renders, so the
+  // default does not reason about a component's tag: a capitalised tag is
+  // neither an element HTML defines nor one of spin's own.
+  assertEquals(other("A", "text-link"), []);
+  // A project that knows its own components reads them with the `spin` dial.
+  const spin: SemanticOptions = {
+    strictness: "strict",
+    semanticTags: "spin",
+  };
+  assertEquals(other("A", "text-link", spin), []);
+  // And the `all` dial is the one that speaks about everything.
+  const all: SemanticOptions = {
+    strictness: "strict",
+    semanticTags: "all",
+  };
+  assertEquals(other("A", "text-link", all).length, 1);
+});
+
+Deno.test("the default speaks about the browser's elements only", () => {
+  // The dial's default is `native`: a tag the browser does not own is a
+  // component, and the lint knows nothing about what a component renders.
+  assertEquals(DEFAULT_SEMANTIC_OPTIONS.semanticTags, "native");
+  assertEquals(override("card", "bg-surface"), []);
+  assertEquals(override("button", "bg-surface-raised").length, 1);
+});
+
+Deno.test("the decoration family is not the element rule's business", () => {
+  // A control's `text-decoration: none` is a reset, not a themed answer, and
+  // "the element already says that" is the redundancy rule's business — it
+  // says it correctly. A tag-based push is not advice either.
+  const all: SemanticOptions = {
+    strictness: "strict",
+    semanticTags: "all",
+  };
+  assertEquals(other("A", "no-underline", all), []);
+  assertEquals(other("span", "underline", all), []);
+  // The redundancy rule still says it: the class sets what the element sets.
+  const [finding] = redundant("button", "no-underline", all);
+  assertEquals(finding?.messageId, "redundant");
+});
+
+Deno.test("a control's spacing is answered by its size variant", () => {
+  // The space inside a control is the size of that control, and the theme's
+  // answer to the size is a variant — so the remedy names it.
+  const [control] = override("button", "px-3");
+  assertEquals(
+    control?.data["remedy"],
+    "Use a variant (`s-lg`, `s-sm`) or the theme's value.",
+  );
+  // A block is not a control: the theme's spacing step is the answer there.
+  const [block] = override("p", "mt-6");
+  assertEquals(block?.data["remedy"], "Use the theme's value.");
 });
 
 Deno.test("a paragraph outside a document column is the author's", () => {

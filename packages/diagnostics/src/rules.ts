@@ -689,7 +689,7 @@ const noHandwrittenTokens: GateRule = {
     schema: [],
     messages: {
       handwritten:
-        '`var(--{{token}})` is generated output, not an API. Read the theme: `groupOf(ctx, "{{group}}")["{{step}}"]`.',
+        "`var(--{{token}})` is generated output, not an API. Read the theme's token `{{path}}`, not its variable.",
     },
   },
   create(context) {
