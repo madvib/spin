@@ -33,7 +33,8 @@ export function defineComponent<
   C extends object,
   E extends EventMap,
   Api extends object = Record<string, unknown>,
->(def: ComponentDef<C, E>): Omit<MachineDef, "createBridge"> & {
+  A = unknown,
+>(def: ComponentDef<C, E, Record<string, unknown>, A>): Omit<MachineDef, "createBridge"> & {
   readonly createBridge: (
     props: () => Record<string, unknown>,
     root: () => Element,
@@ -53,7 +54,7 @@ export function defineComponent<
     id: string,
     root: () => Element,
     machineLive: BridgeLive,
-  ): BridgeHooks<C, E, Record<string, unknown>, Record<string, unknown>, Record<string, unknown>> => {
+  ): BridgeHooks<C, E, Api, Record<string, unknown>, Record<string, unknown>> => {
     // The last event sent, which is what a controlled close reads to tell
     // a commit from a cancel — the `previousEvent` value. Per bridge, advanced
     // on every transmitted send (sync writes included).
@@ -475,7 +476,7 @@ export function defineComponent<
             return cached;
           };
         }
-        return api;
+        return api as unknown as Api;
       },
     };
   };
@@ -491,10 +492,10 @@ export function defineComponent<
     const startState = typeof def.start === "function"
       ? def.start(props(), authoredProps(props))
       : def.start;
-    const bridged = defineBridge(
+    const bridged = defineBridge<C, E, Api, Record<string, unknown>, Record<string, unknown>, A>(
       {
         machine: def.machine,
-        ...(def.args === undefined ? {} : { args: def.args as (props: Record<string, unknown>) => unknown }),
+        ...(def.args === undefined ? {} : { args: def.args }),
         ...(startState === undefined ? {} : { startState }),
         hooks,
       },

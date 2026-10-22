@@ -9,7 +9,7 @@ import type {
   SliderFocusChange,
   SliderValueChange,
   SliderValueChangeEnd,
-} from "./slider.machine.ts";
+} from "./slider.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -177,7 +177,7 @@ Deno.test("a track press jumps the thumb and the release commits", () => {
 });
 
 Deno.test("a thumb press drags that thumb by its own box", () => {
-  const { api, events } = mount({ defaultValue: "[50]" });
+  const { api, events } = mount({ defaultValue: [50] });
   const bag = thumb(api, 0);
   // The thumb's own box: the grab offset is measured against its midpoint.
   pressHandle(bag, { ...press(110), rect: thumbBox() });
@@ -236,7 +236,7 @@ Deno.test("setValue constrains to the step grid", () => {
 });
 
 Deno.test("range thumbs keep their order and collide by clamping", () => {
-  const { api } = mount({ defaultValue: "[20, 80]" });
+  const { api } = mount({ defaultValue: [20, 80] });
   assertEquals(api.value, [20, 80]);
   // "none" still clamps to the neighbor's window: thumb 0 cannot pass 80.
   api.setThumbValue(0, 90);
@@ -255,7 +255,7 @@ Deno.test("authored value seeds the slider and a host write moves it", () => {
 });
 
 Deno.test("increment and decrement commands step the thumb", () => {
-  const { api } = mount({ defaultValue: "[10]" });
+  const { api } = mount({ defaultValue: [10] });
   api.increment(0);
   assertEquals(api.value, [11]);
   api.decrement(0);
@@ -264,7 +264,7 @@ Deno.test("increment and decrement commands step the thumb", () => {
 });
 
 Deno.test("thumb percents feed the geometry channel", () => {
-  const { api } = mount({ defaultValue: "[25]" });
+  const { api } = mount({ defaultValue: [25] });
   assertEquals(api.getThumbPercent(0), 25);
   const bag = thumb(api, 0);
   const style = bag["style"] as Record<string, unknown>;

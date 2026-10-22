@@ -1,22 +1,39 @@
 import { ariaDisabled, ariaOrientation, defineComponent, factAttrs, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
+import { slider as sliderMachine } from "./slider.machine.ts";
 import {
   isInteractive,
   percentOf,
-  slider as sliderMachine,
   thumbRange,
   valueOfPercent,
   type SliderArgs,
   type SliderContext,
-  type SliderEvents,
-  type SliderFocusChange,
-  type SliderValueChange,
-  type SliderValueChangeEnd,
   type ThumbCollisionBehavior,
-} from "./slider.machine.ts";
+} from "./slider.state.ts";
+import type {
+  SliderEvents,
+  SliderFocusChange,
+  SliderValueChange,
+  SliderValueChangeEnd,
+} from "./slider.events.ts";
 
 export type { SliderArgs };
+
+/** A number the host set, or absent when it did not. The boundary between
+ * the host's values and the machine's domain: one place, beside the map. */
+const asNumber = (raw: unknown): number | undefined =>
+  typeof raw === "number" && Number.isFinite(raw) ? raw : undefined;
+
+/** Numbers the host set, or absent when it did not. */
+const asNumbers = (raw: unknown): readonly number[] | undefined =>
+  Array.isArray(raw) && raw.every((item) => typeof item === "number" && Number.isFinite(item))
+    ? (raw as readonly number[])
+    : undefined;
+
+/** One of the allowed literals, or absent when the host wrote anything else. */
+const asLiteral = <const T extends string>(raw: unknown, allowed: readonly T[]): T | undefined =>
+  typeof raw === "string" && (allowed as readonly string[]).includes(raw) ? (raw as T) : undefined;
 
 /** Slider definition: the DOM contract as data. */
 
@@ -125,9 +142,36 @@ export const facts = {
   focus: (scope: ScopeLike) => scope.state === "focus",
 };
 
-const def: ComponentDef<SliderContext, SliderEvents> = {
+const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, SliderArgs> = {
   name: "slider",
-  machine: (props, authored) => sliderMachine(props as SliderArgs, authored),
+  machine: (args: SliderArgs, authored) => sliderMachine(args, authored),
+  args: (props): SliderArgs => {
+    const mapped: SliderArgs = {};
+    const value = asNumbers(props.value);
+    if (value !== undefined) mapped.value = value;
+    const min = asNumber(props.min);
+    if (min !== undefined) mapped.min = min;
+    const max = asNumber(props.max);
+    if (max !== undefined) mapped.max = max;
+    const step = asNumber(props.step);
+    if (step !== undefined) mapped.step = step;
+    const largeStep = asNumber(props.largeStep);
+    if (largeStep !== undefined) mapped.largeStep = largeStep;
+    const minStepsBetweenThumbs = asNumber(props.minStepsBetweenThumbs);
+    if (minStepsBetweenThumbs !== undefined) mapped.minStepsBetweenThumbs = minStepsBetweenThumbs;
+    const origin = asLiteral(props.origin, ["start", "center", "end"]);
+    if (origin !== undefined) mapped.origin = origin;
+    const orientation = asLiteral(props.orientation, ["horizontal", "vertical"]);
+    if (orientation !== undefined) mapped.orientation = orientation;
+    const thumbCollisionBehavior = asLiteral(props.thumbCollisionBehavior, ["none", "push", "swap"]);
+    if (thumbCollisionBehavior !== undefined) mapped.thumbCollisionBehavior = thumbCollisionBehavior;
+    if (props.disabled === true) mapped.disabled = true;
+    if (props.readOnly === true) mapped.readOnly = true;
+    if (props.invalid === true) mapped.invalid = true;
+    const markers = asNumbers(props.markers);
+    if (markers !== undefined) mapped.markers = markers;
+    return mapped;
+  },
   start: "idle",
   commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
   parts: {
@@ -511,4 +555,4 @@ const def: ComponentDef<SliderContext, SliderEvents> = {
     if (idx >= 0) focus("thumb", idx);
   },
 };
-export const slider = defineComponent<SliderContext, SliderEvents, SliderApi>(def);
+export const slider = defineComponent<SliderContext, SliderEvents, SliderApi, SliderArgs>(def);

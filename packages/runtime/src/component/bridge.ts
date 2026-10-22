@@ -34,7 +34,7 @@ export interface BridgeService<C, E extends EventMap> {
   send(event: EventUnion<E>): void;
 }
 
-export interface BridgeShared<C extends object, E extends EventMap> {
+export interface BridgeShared<C extends object, E extends EventMap, A = unknown> {
   /**
    * The machine: a factory over the machine's own arguments. The
    * factory builds the machine with its context already seeded from them,
@@ -42,14 +42,14 @@ export interface BridgeShared<C extends object, E extends EventMap> {
    * framework's.
    */
   readonly machine?: (
-    args: unknown,
+    args: A,
     authored: (name: string) => boolean,
   ) => Machine<C, E>;
   /**
    * The props, mapped onto the machine's arguments. Absent, the props
    * ARE the arguments.
    */
-  readonly args?: (props: Record<string, unknown>) => unknown;
+  readonly args?: (props: Record<string, unknown>) => A;
   /** The start state. Undefined starts at the machine's own initial. */
   readonly startState?: string;
 }
@@ -151,7 +151,8 @@ export interface BridgeSpec<
   Api extends object,
   ConnectProps,
   Callbacks,
-> extends BridgeShared<C, E> {
+  A = unknown,
+> extends BridgeShared<C, E, A> {
   /** Fresh per-bridge hooks: notify cursors live in this closure, so two
    * elements on one page never share them. Receives the element id for
    * post-send view reflexes. */
@@ -233,8 +234,9 @@ export function defineBridge<
   Api extends object,
   ConnectProps,
   Callbacks,
+  A = unknown,
 >(
-  spec: BridgeSpec<C, E, Api, ConnectProps, Callbacks>,
+  spec: BridgeSpec<C, E, Api, ConnectProps, Callbacks, A>,
   props: () => Record<string, unknown>,
   id: string,
   root: () => Element = () => {
@@ -313,7 +315,10 @@ export function defineBridge<
     // The twins resolve first: a host that wrote `defaultValue` wrote the
     // channel too, and the map sees the resolved props.
     const resolved = resolveTwins(props(), authored);
-    machine = spec.machine(spec.args?.(resolved) ?? resolved, authored);
+    // Absent the map the props ARE the arguments: the old shape. The cast
+    // lives at the transport boundary, not in any component.
+    const args = (spec.args === undefined ? resolved : spec.args(resolved)) as A;
+    machine = spec.machine(args, authored);
     return machine;
   };
 
