@@ -36,15 +36,20 @@ export interface BridgeService<C, E extends EventMap> {
 
 export interface BridgeShared<C extends object, E extends EventMap> {
   /**
-   * The machine: a factory over the element's props. The factory builds
-   * the machine with its context already seeded from the arguments it
-   * wants, so the seed is the machine's business and the transport is
-   * the framework's.
+   * The machine: a factory over the machine's own arguments. The
+   * factory builds the machine with its context already seeded from them,
+   * so the seed is the machine's business and the transport is the
+   * framework's.
    */
   readonly machine?: (
-    props: Record<string, unknown>,
+    args: unknown,
     authored: (name: string) => boolean,
   ) => Machine<C, E>;
+  /**
+   * The props, mapped onto the machine's arguments. Absent, the props
+   * ARE the arguments.
+   */
+  readonly args?: (props: Record<string, unknown>) => unknown;
   /** The start state. Undefined starts at the machine's own initial. */
   readonly startState?: string;
 }
@@ -305,7 +310,10 @@ export function defineBridge<
     if (spec.machine === undefined) {
       throw new Error("[spin] the bridge has no machine");
     }
-    machine = spec.machine(resolveTwins(props(), authored), authored);
+    // The twins resolve first: a host that wrote `defaultValue` wrote the
+    // channel too, and the map sees the resolved props.
+    const resolved = resolveTwins(props(), authored);
+    machine = spec.machine(spec.args?.(resolved) ?? resolved, authored);
     return machine;
   };
 

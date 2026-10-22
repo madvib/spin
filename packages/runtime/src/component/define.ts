@@ -24,8 +24,14 @@ export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
 
 /** What a part bag reads. All live — the framework calls this per tick
  * and memoizes on the returned signature. */
-export interface PartScope<R = unknown, C extends object = Record<string, unknown>> {
-  readonly props: Record<string, unknown>;
+export interface PartScope<
+  R = unknown,
+  C extends object = Record<string, unknown>,
+  P = Record<string, unknown>,
+> {
+  /** The component's props, typed. The host sets them; the machine never
+   * sees them. */
+  readonly props: P;
   readonly context: C;
   readonly state: string;
   readonly root: () => Element;
@@ -36,7 +42,11 @@ export interface PartScope<R = unknown, C extends object = Record<string, unknow
   readonly slot: R;
 }
 
-export interface PartDef<R = unknown, C extends object = Record<string, unknown>> {
+export interface PartDef<
+  R = unknown,
+  C extends object = Record<string, unknown>,
+  P = Record<string, unknown>,
+> {
   /** The id segment when it differs from the part key (`value-text` for
    * the `valueText` method family). Default: the key. */
   readonly id?: string;
@@ -46,15 +56,23 @@ export interface PartDef<R = unknown, C extends object = Record<string, unknown>
    *
    * The bag rebuilds when the scope's fields it read move: the reads are
    * recorded, so a dependency is never named by hand. */
-  attrs(scope: PartScope<R, C>, arg?: unknown): Record<string, unknown>;
+  attrs(scope: PartScope<R, C, P>, arg?: unknown): Record<string, unknown>;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
  * stable identities (a thumb index, a row key) — the memo dies with the
  * slot it came from, so a slot object must be identity-stable per index. */
-export interface SlotScope<R = unknown, C extends object = Record<string, unknown>> extends PartScope<R, C> {}
+export interface SlotScope<
+  R = unknown,
+  C extends object = Record<string, unknown>,
+  P = Record<string, unknown>,
+> extends PartScope<R, C, P> {}
 
-export interface SlotDef<R = unknown, C extends object = Record<string, unknown>> {
+export interface SlotDef<
+  R = unknown,
+  C extends object = Record<string, unknown>,
+  P = Record<string, unknown>,
+> {
   /** The id segment when it differs from the slot key. Default: the key. */
   readonly id?: string;
   /** The slot identities, for the recipe's iteration: rows, blocks, thumb
@@ -64,7 +82,7 @@ export interface SlotDef<R = unknown, C extends object = Record<string, unknown>
     context: C,
     props: Record<string, unknown>,
   ) => readonly unknown[];
-  attrs(scope: SlotScope<R, C>, arg?: unknown): Record<string, unknown>;
+  attrs(scope: SlotScope<R, C, P>, arg?: unknown): Record<string, unknown>;
 }
 
 export interface ReaderDef<C extends object = Record<string, unknown>, R = unknown> {
@@ -97,15 +115,16 @@ export type InitSpec<C extends object, E extends EventMap> =
   | ((props: Readonly<Record<string, unknown>>, authored: (name: string) => boolean) => Partial<C>);
 
 /**
- * The machine a component consumes: a factory over the element's props.
+ * The machine a component consumes: a factory over the machine's OWN
+ * arguments.
  *
- * The factory receives the whole prop bag — the machine picks the
- * arguments it wants, by name, and shapes them. So the runtime never
- * needs a descriptor of the machine's arguments, and the arguments
- * cannot drift from the context they fill.
+ * The arguments are the machine's, not the component's: the machine knows
+ * nothing about props, markup, or the DOM. The bindings — the DOM
+ * contract, which knows both — map the component's props onto them, and
+ * the map is typed on both sides, so neither can drift from the other.
  */
-export type MachineFactory<C extends object, E extends EventMap> = (
-  props: Record<string, unknown>,
+export type MachineFactory<C extends object, E extends EventMap, A = unknown> = (
+  args: A,
   authored: (name: string) => boolean,
 ) => Machine<C, E>;
 
@@ -191,6 +210,8 @@ export interface EventDef<W extends readonly unknown[] = readonly unknown[], C e
 export interface ComponentDef<
   C extends object,
   E extends EventMap,
+  P = Record<string, unknown>,
+  A = unknown,
   Methods = Record<string, MethodDef<C, unknown>>,
   Readers = Record<string, ReaderDef<C, unknown>>,
 > {
@@ -286,19 +307,24 @@ export interface ComponentDef<
    */
   readonly init?: InitSpec<C, E>;
   /**
-   * The machine that owns this consumer's state. The machine is a
-   * separate artifact: it knows nothing about the consumer, and one
-   * machine can drive any number of consumers.
+   * The machine: a factory over the machine's OWN arguments.
+   *
+   * The arguments are the machine's, not the component's: the machine
+   * knows nothing about props, markup, or the DOM. The bindings — the DOM
+   * contract, which knows both — map the component's props onto them, and
+   * the map is typed on both sides, so neither can drift from the other.
    */
+  readonly machine?: MachineFactory<C, E, A>;
   /**
-   * The machine: a factory. It takes the element's prop bag and returns
-   * the machine, with its context already built from the arguments it
-   * wants. The machine is headless: it knows its own arguments, and
-   * nothing about props, markup, or the DOM.
+   * The props, mapped onto the machine's arguments.
+   *
+   * Absent, the props ARE the arguments (a machine whose arguments are
+   * the component's props — the old shape, and the one that made the
+   * machine know the props' names).
    */
-  readonly machine?: MachineFactory<C, E>;
-  readonly parts: Record<string, PartDef<unknown, C>>;
-  readonly slots?: Record<string, SlotDef<unknown, C>>;
+  readonly args?: (props: P) => A;
+  readonly parts: Record<string, PartDef<unknown, C, P>>;
+  readonly slots?: Record<string, SlotDef<unknown, C, P>>;
   readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;
   readonly methods?: Methods;
   readonly readers?: Readers;

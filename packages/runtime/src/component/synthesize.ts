@@ -494,6 +494,7 @@ export function defineComponent<
     const bridged = defineBridge(
       {
         machine: def.machine,
+        ...(def.args === undefined ? {} : { args: def.args as (props: Record<string, unknown>) => unknown }),
         ...(startState === undefined ? {} : { startState }),
         hooks,
       },
