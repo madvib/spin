@@ -199,21 +199,22 @@ export async function createTheme(
       if (!scaffold) return { accepted: false, problem: "no-scaffold-choice" };
       scaffold.click();
       await wait(200);`
-        : `const select = dialog.querySelector('select[title="Source theme"]');
-      if (!select) return { accepted: false, problem: "no-source-chooser" };
+        : `// The source is a radio per theme: a native select is drawn by the
+      // browser, and the studio does not wear the browser's idea of a
+      // control. The rows arrive with the registry's answer.
+      const source = ${JSON.stringify(options.source ?? "")};
+      let radio = null;
       for (let i = 0; i < 50; i++) {
-        if ([...select.options].some((o) => o.value === ${
-          JSON.stringify(options.source ?? "")
-        })) break;
+        const rows = [...dialog.querySelectorAll(
+          'input[name="new-theme-source-theme"]',
+        )];
+        if (rows.length === 0) return { accepted: false, problem: "no-source-chooser" };
+        radio = rows.find((row) => row.value === source) ?? null;
+        if (radio) break;
         await wait(100);
       }
-      if (![...select.options].some((o) => o.value === ${
-          JSON.stringify(options.source ?? "")
-        })) {
-        return { accepted: false, problem: "no-source-choice" };
-      }
-      select.value = ${JSON.stringify(options.source ?? "")};
-      select.dispatchEvent(new Event("change", { bubbles: true }));
+      if (!radio) return { accepted: false, problem: "no-source-choice" };
+      radio.click();
       await wait(200);`
     }
       const create = [...dialog.querySelectorAll("button")].find((b) =>
