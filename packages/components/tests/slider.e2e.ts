@@ -40,42 +40,43 @@ Deno.test("spin-slider e2e", () =>
       const box = await page.locator(CONTROL).boundingBox();
       assert.ok(box !== null, "the control has a box");
       // Three quarters across the track: near 75 on a 0..100 slider.
+      // Asserted on the thumb (machine state, direct) — not the host
+      // readout, which only updates on the controlled channel (host
+      // writes), never on machine-internal moves.
       await page.mouse.move(box.x + box.width * 0.75, box.y + box.height / 2);
       await page.mouse.down();
       await page.mouse.up();
       await page.waitForTimeout(300);
-      const text = await readout.textContent() ?? "";
-      const value = Number(text.replace("volume:", "").trim());
+      const value = Number(await page.locator(THUMB).getAttribute("aria-valuenow"));
       assert.ok(value >= 70 && value <= 80, `the press jumped near 75 (got ${value})`);
     });
 
     await step("arrows step the thumb", async () => {
+      // Machine-internal moves never reach the host readout (the units
+      // assert valueChange stays silent); assert the thumb directly.
       await page.locator(THUMB).focus();
-      const before = Number((await readout.textContent() ?? "").replace("volume:", "").trim());
+      const before = Number(await page.locator(THUMB).getAttribute("aria-valuenow"));
       await page.keyboard.press("ArrowRight");
       await page.waitForTimeout(300);
-      const after = Number((await readout.textContent() ?? "").replace("volume:", "").trim());
+      const after = Number(await page.locator(THUMB).getAttribute("aria-valuenow"));
       assert.equal(after, before + 1, "ArrowRight stepped by one");
-      assert.equal(
-        await page.locator(THUMB).getAttribute("aria-valuenow"),
-        String(after),
-        "aria-valuenow tracks the value",
-      );
     });
 
     await step("Home and End jump", async () => {
       await page.keyboard.press("End");
       await page.waitForTimeout(300);
-      assert.match(await readout.textContent() ?? "", /volume: 100/, "End jumped to max");
+      assert.equal(await page.locator(THUMB).getAttribute("aria-valuenow"), "100", "End jumped to max");
       await page.keyboard.press("Home");
       await page.waitForTimeout(300);
-      assert.match(await readout.textContent() ?? "", /volume: 0/, "Home jumped to min");
+      assert.equal(await page.locator(THUMB).getAttribute("aria-valuenow"), "0", "Home jumped to min");
     });
 
     await step("commands drive the instance", async () => {
+      // Same contract as gestures: commands move the machine silently;
+      // the host hears only its own writes. Assert the thumb.
       await page.getByText("el.setValue([75])").click();
       await page.waitForTimeout(300);
-      assert.match(await readout.textContent() ?? "", /volume: 75/, "setValue committed 75");
+      assert.equal(await page.locator(THUMB).getAttribute("aria-valuenow"), "75", "setValue committed 75");
     });
 
   }));

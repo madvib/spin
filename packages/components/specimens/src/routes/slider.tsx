@@ -7,7 +7,13 @@ import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
 
-import "./spin-slider.html";
+// The specimen shows the product: the examples are the markup, mounted
+// verbatim with the demo's commands and readouts wired around them.
+// There is no specimen-local copy of the slider markup — a demo that
+// needs different content changes the example, and every user benefits.
+import "../../../src/spin-slider/examples/basic.html";
+import "../../../src/spin-slider/examples/range.html";
+
 interface SliderCommands {
   setValue: (value: number[]) => void;
   setThumbValue: (index: number, value: number) => void;
@@ -30,7 +36,7 @@ export default function Slider() {
   createEffect(() => {
     const ctl = volumeCtl();
     if (ctl === undefined) return undefined;
-    return ctl.bind({ label: "Volume", name: "volume" }, {
+    return ctl.bind({}, {
       "value-change": (e: CustomEvent<SliderValueChange>) =>
         setVolume(e.detail.value.join(", ")),
     });
@@ -41,7 +47,7 @@ export default function Slider() {
   createEffect(() => {
     const ctl = rangeCtl();
     if (ctl === undefined) return undefined;
-    return ctl.bind({ label: "Range", defaultValue: [20, 80] }, {
+    return ctl.bind({}, {
       "value-change": (e: CustomEvent<SliderValueChange>) =>
         setRange(e.detail.value.join(", ")),
     });
@@ -54,11 +60,9 @@ export default function Slider() {
         width="sm"
         note="Press the track to jump, drag the thumb, arrows to step, Home and End to jump."
       >
-        <spin-slider
+        <slider-basic
           id="volume"
           ref={setVolumeEl}
-          prop:label="Volume"
-          prop:name="volume"
         />
         <DemoControls>
           <button
@@ -85,10 +89,9 @@ export default function Slider() {
         width="sm"
         note="Thumbs clamp at each other under the none collision."
       >
-        <spin-slider
+        <slider-range
           id="range"
           ref={setRangeEl}
-          prop:label="Range"
         />
         <DemoReadout>
           range: {range()}

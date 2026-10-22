@@ -56,6 +56,14 @@ declare module "solid-js" {
         "prop:zoomStep"?: string;
         "prop:disabled"?: boolean;
       };
+      "slider-basic": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        id?: string;
+      };
+      "slider-range": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        id?: string;
+      };
       "spin-avatar": {
         ref?: HTMLElement | ((el: HTMLElement) => void);
         children?: JSX.Element;
