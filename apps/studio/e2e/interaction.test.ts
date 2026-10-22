@@ -781,3 +781,75 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
     }
   });
 });
+
+/**
+ * Every range slider has an editable text readout beside it, and the type
+ * page's element map uses keyboard-navigable step panels with a reset to the
+ * ladder rather than native `<select>` controls.
+ */
+test("a range readout accepts typed numbers and the element map picks and resets steps", async () => {
+  await withPage(async (page) => {
+    try {
+      await page.goto(`${studioUrl()}/spacing`);
+      await page.selectStep("spacing.4");
+      await page.settle(400);
+
+      const typed = await page.eval<{
+        error?: string;
+        thumb?: string;
+        pane?: string;
+      }>(`(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const text = () => document.querySelector('input[aria-label="spacing.4 value"]');
+        const track = () => document.querySelector('input[type="range"][aria-label="spacing.4"]');
+        const pane = document.querySelector('.spin-preview[data-theme]');
+        if (!text() || !track() || !pane) return { error: "no-controls" };
+        // Typing a bare number adopts the token's unit ("rem") and moves the thumb.
+        text().value = "1.75";
+        text().dispatchEvent(new Event("change", { bubbles: true }));
+        await wait(900);
+        return {
+          thumb: track()?.value ?? "",
+          pane: getComputedStyle(pane).getPropertyValue("--spacing-4").trim(),
+        };
+      })()`);
+      assertEquals(typed.error, undefined);
+      assertEquals(typed.thumb, "1.75");
+      assertEquals(typed.pane, "1.75rem");
+
+      await page.goto(`${studioUrl()}/type`);
+      const elementMap = await page.eval<{
+        error?: string;
+        before?: string;
+        picked?: string;
+        hasReset?: boolean;
+        afterReset?: string;
+      }>(`(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const trigger = () => document.querySelector('button[aria-haspopup="listbox"][aria-label="font.element.h1.size"]');
+        if (!trigger()) return { error: "no-trigger" };
+        const before = (trigger().textContent ?? "").trim();
+        trigger().click();
+        await wait(300);
+        const panel = document.querySelector('div[role="listbox"][aria-label="font.element.h1.size"]');
+        const option = panel ? [...panel.querySelectorAll('button[role="option"]')].find((o) => (o.querySelector("span")?.textContent ?? "").trim() === "sm") : null;
+        if (!option) return { error: "no-option" };
+        option.click();
+        await wait(800);
+        const picked = (trigger()?.textContent ?? "").trim();
+        const reset = document.querySelector('button[aria-label="Reset h1 to the ladder"]');
+        const hasReset = reset !== null;
+        if (reset) reset.click();
+        await wait(800);
+        const afterReset = (trigger()?.textContent ?? "").trim();
+        return { before, picked, hasReset, afterReset };
+      })()`);
+      assertEquals(elementMap.error, undefined);
+      assertEquals(elementMap.picked, "sm");
+      assertEquals(elementMap.hasReset, true);
+      assertEquals(elementMap.afterReset, elementMap.before);
+    } finally {
+      await page.clearOverlay(studioUrl());
+    }
+  });
+});

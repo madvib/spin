@@ -448,7 +448,7 @@ export default function IconsPage() {
           <section class="stack-sm">
             <div class="row-sm justify-between gap-2">
               <h2>Glyph sizes</h2>
-              <LinkToggle group="icon" />
+              <LinkToggle group="icon" ratio={iconSizes.activeRatio()} />
             </div>
             <p class="text-sm text-text-muted">
               The theme's <code>icon</code>{" "}
@@ -460,6 +460,7 @@ export default function IconsPage() {
               onEdit={(path, value) => iconSizes.commit(path.join("."), value)}
               onPreview={(path, value) => iconSizes.preview(path, value)}
               onCancel={iconSizes.abandon}
+              shown={iconSizes.shown}
             />
           </section>
         </aside>

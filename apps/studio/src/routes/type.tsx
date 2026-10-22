@@ -54,11 +54,17 @@ import {
   QUOTE,
   SENTENCE,
 } from "../lib/specimen-copy.ts";
-import { editToken, upsertToken } from "../lib/editing.ts";
+import { editToken, removeToken, upsertToken } from "../lib/editing.ts";
+import { StepPicker } from "../components/demos/CompositeEditor.tsx";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
-import Page from "../components/Page";
+import {
+  ConcernPage,
+  Frame,
+  Section,
+  TokenLine,
+} from "../components/Concern.tsx";
 import { inDrawer } from "../lib/host.ts";
 import { type CatalogFont } from "../lib/fonts.ts";
 import { spinClient } from "../lib/client.ts";
@@ -273,18 +279,15 @@ export default function TypePage() {
   const elements = createMemo(elementRows);
 
   return (
-    <Page
+    <ConcernPage
       title="Type"
       note="The faces a theme uses, the scale it sets, and which element reads which. The map at the end is the theme's to change."
-      wide
     >
-      <section class="stack mt-8" aria-label="Faces">
-        <h2>Faces</h2>
-        <p class="max-w-screen-md text-text-muted">
-          The families the theme declares. Each card names the slot, the face it
-          resolves to, the stack behind it, and whether the theme loads that
-          family itself.
-        </p>
+      <Section
+        title="Faces"
+        fact={`${declaredFaces().length} faces`}
+        note="The families the theme declares. Each card names the slot, the face it resolves to, the stack behind it, and whether the theme loads that family itself."
+      >
         <Show
           when={declaredFaces().length > 0}
           fallback={
@@ -299,112 +302,116 @@ export default function TypePage() {
             </For>
           </div>
         </Show>
-      </section>
+      </Section>
 
-      <section class="stack mt-8" aria-label="Scale">
-        <div class="row-sm justify-between gap-3">
-          <h2>Scale</h2>
-          <LinkToggle group="font.size" />
-        </div>
-        <p class="max-w-screen-md text-text-muted">
-          The steps, largest first. Each is drawn at its own size, so the ramp
-          is the judgement.
-        </p>
-        <div class="flex flex-col">
-          <For each={scaleOrder()}>
-            {(step) => <ScaleRow step={step} family={sizes} />}
-          </For>
-        </div>
-      </section>
+      <Section
+        title="Scale"
+        fact={`${scaleOrder().length} steps`}
+        note="The steps, largest first. Each is drawn at its own size, so the ramp is the judgement."
+        aside={<LinkToggle group="font.size" ratio={sizes.activeRatio()} />}
+      >
+        <Frame>
+          <div class="flex flex-col">
+            <For each={scaleOrder()}>
+              {(step) => <ScaleRow step={step} family={sizes} />}
+            </For>
+          </div>
+        </Frame>
+      </Section>
 
-      <section class="stack mt-8" aria-label="Weight">
-        <h2>Weight</h2>
-        <p class="max-w-screen-md text-text-muted">
-          The weights a face can take, edited at their named step, so an element
-          can claim any of them and the specimens read the value.
-        </p>
-        <ul class="flow-list stack-sm">
-          <For each={weightRows()}>
-            {(row) => (
-              <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="row-sm flex-wrap">
-                  <span class={`text-2xl ${`font-${suffixOf(row.path)}`}`}>
-                    {HEADING}
-                  </span>
-                  <code>{row.path}</code>
-                </div>
-                <div class="row-sm flex-wrap shrink-0">
-                  <code class="whitespace-nowrap">
-                    {`font-${suffixOf(row.path)}`}
-                  </code>
-                  <ValueInput
-                    value={row.value}
-                    type={row.type}
-                    onCommit={(value) => editToken(row.path.split("."), value)}
-                    group={weightRows().map((r) => r.value)}
-                    variable={row.variable}
-                    label={row.path}
+      <Section
+        title="Weight"
+        fact={`${weightRows().length} steps`}
+        note="The weights a face can take, edited at their named step, so an element can claim any of them and the specimens read the value."
+      >
+        <Show
+          when={weightRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no weights yet.
+            </p>
+          }
+        >
+          <Frame>
+            <ul class="flow-list">
+              <For each={weightRows()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    utility={`font-${suffixOf(row.path)}`}
+                    specimen={
+                      <span class={`text-2xl ${`font-${suffixOf(row.path)}`}`}>
+                        {HEADING}
+                      </span>
+                    }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) =>
+                          editToken(row.path.split("."), value)}
+                        group={weightRows().map((r) => r.value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
                   />
-                </div>
-              </li>
-            )}
-          </For>
-        </ul>
-        <Show when={weightRows().length === 0}>
-          <p class="text-sm text-text-muted">
-            This theme declares no weights yet.
-          </p>
+                )}
+              </For>
+            </ul>
+          </Frame>
         </Show>
-      </section>
+      </Section>
 
-      <section class="stack mt-8" aria-label="Tracking">
-        <h2>Tracking</h2>
-        <p class="max-w-screen-md text-text-muted">
-          The letter spacing at each named step, on a line of text read at
-          display size, where the spacing is the judgement.
-        </p>
-        <ul class="flow-list stack-sm">
-          <For each={trackingRows()}>
-            {(row) => (
-              <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="row-sm flex-wrap">
-                  <h2 style={{ "letter-spacing": `var(${row.variable})` }}>
-                    {HEADING}
-                  </h2>
-                  <code>{row.path}</code>
-                </div>
-                <div class="row-sm flex-wrap shrink-0">
-                  <code class="whitespace-nowrap">
-                    {`tracking-${suffixOf(row.path)}`}
-                  </code>
-                  <ValueInput
-                    value={row.value}
-                    type={row.type}
-                    onCommit={(value) => editToken(row.path.split("."), value)}
-                    group={trackingRows().map((r) => r.value)}
-                    variable={row.variable}
-                    label={row.path}
+      <Section
+        title="Tracking"
+        fact={`${trackingRows().length} steps`}
+        note="The letter spacing at each named step, on a line of text read at display size, where the spacing is the judgement."
+      >
+        <Show
+          when={trackingRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no tracking yet.
+            </p>
+          }
+        >
+          <Frame>
+            <ul class="flow-list">
+              <For each={trackingRows()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    utility={`tracking-${suffixOf(row.path)}`}
+                    specimen={
+                      <h2 style={{ "letter-spacing": `var(${row.variable})` }}>
+                        {HEADING}
+                      </h2>
+                    }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) =>
+                          editToken(row.path.split("."), value)}
+                        group={trackingRows().map((r) => r.value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
                   />
-                </div>
-              </li>
-            )}
-          </For>
-        </ul>
-        <Show when={trackingRows().length === 0}>
-          <p class="text-sm text-text-muted">
-            This theme declares no tracking yet.
-          </p>
+                )}
+              </For>
+            </ul>
+          </Frame>
         </Show>
-      </section>
+      </Section>
 
-      <section class="stack mt-8" aria-label="Type in one token">
-        <h2>Type in one token</h2>
-        <p class="max-w-screen-md text-text-muted">
-          A typography token is a family, a size, a weight and a tracking in one
-          value. Each part is a step of a scale the theme already keeps above,
-          so the editor offers those steps rather than free numbers, and the
-          specimen is set in the result.
-        </p>
+      <Section
+        title="Type in one token"
+        fact={`${compositeRows().length} tokens`}
+        note="A typography token is a family, a size, a weight and a tracking in one value. Each part is a step of a scale the theme already keeps above, so the editor offers those steps rather than free numbers, and the specimen is set in the result."
+      >
         <Show
           when={compositeRows().length > 0}
           fallback={
@@ -433,15 +440,13 @@ export default function TypePage() {
             </For>
           </ul>
         </Show>
-      </section>
+      </Section>
 
-      <section class="stack mt-8" aria-label="Element map">
-        <h2>Element map</h2>
-        <p class="max-w-screen-md text-text-muted">
-          Which element reads which face, size and weight. A row the theme says
-          nothing about reads the ladder; setting one writes a token under
-          {" `font.element` "}for that element.
-        </p>
+      <Section
+        title="Element map"
+        fact={`${elementTypeElements().length} elements`}
+        note="Which element reads which face, size and weight. A row the theme says nothing about reads the ladder; setting one writes a token under `font.element` for that element."
+      >
         {
           /* Six columns and a specimen in each: wider than the drawer's
             floor, so the table scrolls inside its own rail rather than
@@ -472,8 +477,8 @@ export default function TypePage() {
             </tbody>
           </table>
         </div>
-      </section>
-    </Page>
+      </Section>
+    </ConcernPage>
   );
 }
 
@@ -562,6 +567,7 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
               label={current().path}
               onPreview={(value) => props.family.preview(current().path, value)}
               onCancel={props.family.abandon}
+              proposed={props.family.shown(current().path, current().value)}
             />
           )}
         </Show>
@@ -628,10 +634,35 @@ function ElementRow(props: {
     return out;
   };
 
+  const hasOverride = () =>
+    stated("family") !== undefined ||
+    stated("size") !== undefined ||
+    stated("weight") !== undefined;
+
+  const resetElement = (): void => {
+    for (const field of ["family", "size", "weight"] as const) {
+      const path = fields()[field]?.path;
+      if (path !== undefined) removeToken(path.split("."));
+    }
+  };
+
   return (
     <tr>
       <td>
-        <code>{`<${props.element}>`}</code>
+        <div class="row-sm">
+          <code>{`<${props.element}>`}</code>
+          <Show when={hasOverride()}>
+            <button
+              type="button"
+              class="bare text-primary"
+              title={`Reset <${props.element}> to the ladder`}
+              aria-label={`Reset ${props.element} to the ladder`}
+              onClick={resetElement}
+            >
+              reset
+            </button>
+          </Show>
+        </div>
       </td>
       <td>
         <Dynamic
@@ -679,7 +710,8 @@ function ElementRow(props: {
 }
 
 /**
- * One step of the theme's own scale, chosen from a list.
+ * One step of the theme's own scale, chosen from a panel of the theme's
+ * ladder rather than a native `<select>`.
  *
  * The value written is the ALIAS — `{font.size.3xl}` — so the element keeps
  * reading the ladder's step rather than a copy of it: move the step and the
@@ -693,38 +725,13 @@ function StepChoice(props: {
   label: string;
   onCommit: (value: string) => void;
 }) {
-  let select: HTMLSelectElement | undefined;
-  // The value is set on the element rather than on the attribute: a select's
-  // value means nothing until its options exist, and the options are created
-  // after the element is.
-  createEffect(() => {
-    const value = props.value;
-    if (select === undefined) return;
-    if (select.value !== value) select.value = value;
-  });
-  const known = () => props.steps.some((step) => step.value === props.value);
   return (
-    <select
-      ref={(element) => {
-        select = element;
-      }}
-      aria-label={props.label}
-      class="w-full"
-      onChange={(event) => {
-        const step = props.steps.find((entry) =>
-          entry.value === event.currentTarget.value
-        );
-        if (step === undefined) return;
-        props.onCommit(`{${props.group}.${step.name}}`);
-      }}
-    >
-      <Show when={!known()}>
-        <option value={props.value}>{props.value || "—"}</option>
-      </Show>
-      <For each={props.steps}>
-        {(step) => <option value={step.value}>{step.name}</option>}
-      </For>
-    </select>
+    <StepPicker
+      label={props.label}
+      value={props.value}
+      steps={props.steps}
+      onPick={(step) => props.onCommit(`{${props.group}.${step.name}}`)}
+    />
   );
 }
 

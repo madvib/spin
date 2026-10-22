@@ -248,6 +248,50 @@ function Panel(props: {
  * field takes the value instead: the theme's own scale is the first answer,
  * and a field is the fallback rather than the rule.
  */
+export function StepPicker(props: {
+  /** What the control is called, for the reader and for the pointer. */
+  label: string;
+  /** The value currently in force. */
+  value: string;
+  /** The theme's own steps for the group. */
+  steps: readonly LadderStep[];
+  /** Called with the picked step entry; false when refused. */
+  onPick: (step: LadderStep) => boolean | void;
+}) {
+  const current = createMemo(() =>
+    props.steps.find((step) => step.value === props.value)
+  );
+  const shown = createMemo(() => current()?.name ?? (props.value || "—"));
+  return (
+    <Panel
+      label={props.label}
+      trigger={<span class="truncate">{shown()}</span>}
+    >
+      {(close) => (
+        <For each={props.steps}>
+          {(step) => (
+            <button
+              type="button"
+              role="option"
+              aria-selected={step.value === props.value}
+              class={ROW}
+              onClick={() => {
+                props.onPick(step);
+                close();
+              }}
+            >
+              <span class="truncate">{step.name}</span>
+              <span class="ms-auto truncate text-xs text-text-muted">
+                {step.value}
+              </span>
+            </button>
+          )}
+        </For>
+      )}
+    </Panel>
+  );
+}
+
 export function StepField(props: {
   /** What the part is, in the words an author edits it by. */
   label: string;

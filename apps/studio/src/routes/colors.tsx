@@ -22,7 +22,7 @@ import {
   type RoleValue,
   type Target,
 } from "../lib/colors.ts";
-import Page from "../components/Page";
+import { ConcernPage, Section } from "../components/Concern.tsx";
 import Palette, { Hex } from "../components/Palette.tsx";
 import { paletteChips } from "../lib/overview.ts";
 
@@ -89,24 +89,15 @@ export default function ColorsPage() {
   }
 
   return (
-    <Page
+    <ConcernPage
       title="Colors"
       note="A theme's colours: the roles the interface paints with, what each role is for, and which of them you set."
     >
-      <p class="text-sm text-text-muted">
-        A role is a job the interface has: the page, the ink on it, the hairline
-        between things, the danger.
-      </p>
-
-      <section class="stack-sm mb-6" aria-label="Palette">
-        <div class="split">
-          <h2>Palette</h2>
-          <span class="text-sm text-text-muted">{mode()}</span>
-        </div>
-        <p class="text-sm text-text-muted">
-          The colours a theme picks, in the order a palette reads. Press a
-          swatch to edit the role below it; press a hex to copy it.
-        </p>
+      <Section
+        title="Palette"
+        fact={mode()}
+        note="The colours a theme picks, in the order a palette reads. Press a swatch to edit the role below it; press a hex to copy it."
+      >
         <Show
           when={palette().length > 0}
           fallback={
@@ -125,13 +116,15 @@ export default function ColorsPage() {
             targets={targets()}
           />
         </div>
-      </section>
+      </Section>
 
       <For each={FAMILIES}>
         {(family) => (
-          <section class="stack-sm mb-6" aria-label={FAMILY_TITLES[family]}>
-            <h2>{FAMILY_TITLES[family]}</h2>
-            <p class="text-sm text-text-muted">{FAMILY_NOTES[family]}</p>
+          <Section
+            title={FAMILY_TITLES[family]}
+            fact={`${rolesOf(roles(), family).length} roles`}
+            note={FAMILY_NOTES[family]}
+          >
             <For each={rolesOf(roles(), family)}>
               {(role) => (
                 <RoleRow
@@ -143,13 +136,13 @@ export default function ColorsPage() {
                 />
               )}
             </For>
-          </section>
+          </Section>
         )}
       </For>
 
       <Ramp />
       <InUse />
-    </Page>
+    </ConcernPage>
   );
 }
 
@@ -607,21 +600,21 @@ function Ramp() {
     }
   });
   return (
-    <section class="stack-sm mb-6" aria-label="The ramp">
-      <div class="split">
-        <h2>The ramp</h2>
+    <Section
+      title="The ramp"
+      fact={`${steps().length} steps`}
+      note="The greys the neutrals are cut from. The steps are the ramp's own spelling; the roles above are what the steps are for."
+      aside={
         <button
           type="button"
+          class="secondary s-sm"
           aria-expanded={open()}
           onClick={() => setOpen(!open())}
         >
           {open() ? "Hide the steps" : "Show the steps"}
         </button>
-      </div>
-      <p class="text-sm text-text-muted">
-        The greys the neutrals are cut from. The steps are the ramp's own
-        spelling; the roles above are what the steps are for.
-      </p>
+      }
+    >
       <Show when={open()}>
         <div class="stack-sm">
           <div class="flex gap-1">
@@ -701,7 +694,7 @@ function Ramp() {
           </div>
         </div>
       </Show>
-    </section>
+    </Section>
   );
 }
 
@@ -715,11 +708,10 @@ function Ramp() {
  */
 function InUse() {
   return (
-    <section class="stack-sm mb-6" aria-label="Palette in use">
-      <h2>Palette in use</h2>
-      <p class="text-sm text-text-muted">
-        The roles on the elements they paint, wearing the theme being edited.
-      </p>
+    <Section
+      title="Palette in use"
+      note="The roles on the elements they paint, wearing the theme being edited."
+    >
       <div class="row-sm flex-wrap items-center gap-3 rounded-md border border-border bg-surface-raised p-4">
         <button type="button">Primary</button>
         <button type="button" class="danger">Danger</button>
@@ -727,6 +719,6 @@ function InUse() {
         <badge variant="warning">Warning</badge>
         <a href="#link">Link</a>
       </div>
-    </section>
+    </Section>
   );
 }

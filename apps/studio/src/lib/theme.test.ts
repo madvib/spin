@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { applyEdits, createToken } from "./theme.ts";
+import { applyEdits, createToken, deleteToken } from "./theme.ts";
 
 /** A document small enough to read and real enough for setToken to walk. */
 function fixture(): string {
@@ -139,4 +139,29 @@ Deno.test("a creation lands its scaffold as the type it declares", () => {
     createToken(fixture(), ["checkbox", "depth"], "number", "1"),
   ) as { checkbox: { depth: { $value: unknown } } };
   assertEquals(number.checkbox.depth.$value, 1);
+});
+
+Deno.test("deleteToken removes a leaf and prunes groups that hold nothing else", () => {
+  const withElement = createToken(
+    fixture(),
+    ["font", "element", "h1", "size"],
+    "dimension",
+    "{font.size.3xl}",
+  );
+  const after = JSON.parse(
+    deleteToken(withElement, ["font", "element", "h1", "size"]),
+  ) as Record<string, unknown>;
+  assertEquals(after["font"], undefined);
+  assertEquals(
+    (after["spacing"] as Record<string, { $value: string }>)["4"]?.$value,
+    "1rem",
+  );
+});
+
+Deno.test("deleteToken leaves sibling tokens in the same group untouched", () => {
+  const after = JSON.parse(
+    deleteToken(fixture(), ["spacing", "4"]),
+  ) as { spacing: Record<string, { $value: string } | undefined> };
+  assertEquals(after.spacing["4"], undefined);
+  assertEquals(after.spacing["8"]?.$value, "2rem");
 });

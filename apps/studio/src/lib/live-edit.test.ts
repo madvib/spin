@@ -7,6 +7,7 @@ import {
   editRefusal,
   rangeProgress,
   tokenPath,
+  tokenStatus,
 } from "./live-edit.ts";
 
 /** A document small enough to read and real enough to answer about. */
@@ -325,4 +326,42 @@ Deno.test("a composite the theme can build is allowed through", () => {
     "1px dashed #333333",
   );
   assertEquals(editRefusal(before, after, ["border.default"]), undefined);
+});
+
+Deno.test("tokenStatus reports aliases, dark overrides and session edits", () => {
+  const project = JSON.stringify(
+    {
+      radius: {
+        md: { $type: "dimension", $value: "0.25rem" },
+      },
+      card: {
+        radius: {
+          $type: "dimension",
+          $value: "{radius.md}",
+          $modes: { dark: "0.5rem" },
+        },
+      },
+    },
+    null,
+    2,
+  );
+  assertEquals(tokenStatus(project, project, "card.radius", "light"), {
+    raw: "{radius.md}",
+    aliasOf: "radius.md",
+    restatedInDark: false,
+    modified: false,
+  });
+  assertEquals(tokenStatus(project, project, "card.radius", "dark"), {
+    raw: "0.5rem",
+    aliasOf: undefined,
+    restatedInDark: true,
+    modified: false,
+  });
+  const edited = withValue(project, "radius.md", "0.375rem");
+  assertEquals(tokenStatus(edited, project, "radius.md", "light"), {
+    raw: "0.375rem",
+    aliasOf: undefined,
+    restatedInDark: false,
+    modified: true,
+  });
 });

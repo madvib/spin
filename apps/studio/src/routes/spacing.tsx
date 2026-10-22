@@ -124,7 +124,7 @@ export default function SpacingPage() {
         title="Scale"
         fact={`${steps.rows().length} steps`}
         note="The ramp: each step on one track, each step against the ratio that made it. A row opens the step's editor and its two applied figures."
-        aside={<LinkToggle group="spacing" />}
+        aside={<LinkToggle group="spacing" ratio={steps.activeRatio()} />}
       >
         <Show
           when={steps.rows().length > 0}
@@ -180,10 +180,10 @@ export default function SpacingPage() {
                           onCancel={steps.abandon}
                         />
                       </span>
-                      <code class="w-16 shrink-0 text-right">
-                        {entry.row.value}
+                      <code class="w-16 shrink-0 text-right tabular-nums">
+                        {steps.shown(entry.row.path, entry.row.value)}
                       </code>
-                      <code class="w-10 shrink-0 text-right">
+                      <code class="w-10 shrink-0 text-right tabular-nums">
                         {ratioAt(index())}
                       </code>
                     </span>
@@ -210,6 +210,7 @@ export default function SpacingPage() {
                     onPreview={(value) =>
                       steps.preview(entry().row.path, value)}
                     onCancel={steps.abandon}
+                    proposed={steps.shown(entry().row.path, entry().row.value)}
                   />
                 </div>
                 <StepFigures
@@ -228,7 +229,12 @@ export default function SpacingPage() {
         fact={`${breakpoints.rows().length} widths`}
         tone="accent"
         note="The viewport widths a layout changes at. Each is shown as a share of the widest this theme declares, which is the only relative fact about one."
-        aside={<LinkToggle group="breakpoint" />}
+        aside={
+          <LinkToggle
+            group="breakpoint"
+            ratio={breakpoints.activeRatio()}
+          />
+        }
       >
         <Show
           when={breakpoints.rows().length > 0}
@@ -278,6 +284,7 @@ export default function SpacingPage() {
                       onPreview={(value) =>
                         breakpoints.preview(row.path, value)}
                       onCancel={breakpoints.abandon}
+                      proposed={breakpoints.shown(row.path, row.value)}
                     />
                   }
                 />

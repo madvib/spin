@@ -23,6 +23,7 @@ import {
   rangeProgress,
   tokenPath,
 } from "../../lib/live-edit.ts";
+import { removeToken } from "../../lib/editing.ts";
 import { compositeLadders, isCompositeType } from "../../lib/tokens.ts";
 import ShadowEditor from "./ShadowEditor.tsx";
 import BezierEditor from "./BezierEditor.tsx";
@@ -95,14 +96,15 @@ export default function ValueInput(props: {
   group?: readonly string[];
   /** The token's custom property, painted on the preview surface while dragging. */
   variable?: string;
-  /**
-   * Reports a value the control PROPOSES while dragged, in place of
+  /** Reports a value the control PROPOSES while dragged, in place of
    * painting the token's own property: a linked group paints the whole
    * family, and two painters on one variable cannot both take it off.
    */
   onPreview?: (value: string) => void;
   /** Reports a drag abandoned before it committed. */
   onCancel?: () => void;
+  /** Live proposed value when a linked sibling in the group is being dragged. */
+  proposed?: string;
 }) {
   // The theme's own ladders, for a composite whose parts are steps the
   // theme declared elsewhere. Read from the document being edited, in the
@@ -193,7 +195,17 @@ function ResetButton(props: {
     if (text === undefined) return undefined;
     return declaredValue(text, token, activeMode());
   };
+  /** What the working document currently holds for this token. */
+  const currentDeclared = () => {
+    const token = path();
+    if (token === undefined) return undefined;
+    return declaredValue(themeText(), token, activeMode());
+  };
+  /** True when the token was created in this session and did not exist on disk. */
+  const createdInSession = () =>
+    declared() === undefined && currentDeclared() !== undefined;
   const inert = () => {
+    if (createdInSession()) return false;
     const value = declared();
     return value === undefined || value === props.value;
   };
@@ -207,6 +219,11 @@ function ResetButton(props: {
       aria-label={title()}
       disabled={inert()}
       onClick={() => {
+        if (createdInSession()) {
+          const token = path();
+          if (token !== undefined) removeToken(token.split("."));
+          return;
+        }
         const value = declared();
         if (value === undefined) return;
         props.onCommit(value);
@@ -347,12 +364,14 @@ function RangeControl(props: {
   variable?: string;
   onPreview?: (value: string) => void;
   onCancel?: () => void;
+  proposed?: string;
 }) {
   const current = () => measure(props.value);
   const range = () => sliderRange(props.value, props.group ?? [props.value]);
   // What the track proposes while it is being dragged; the document's own
   // value once the gesture is over.
   const [draft, setDraft] = createSignal<string | undefined>(undefined);
+  let textInput: HTMLInputElement | undefined;
   let clear: (() => void) | undefined;
   const release = () => {
     clear?.();
@@ -360,8 +379,8 @@ function RangeControl(props: {
   };
 
   // The value the control shows: the gesture's own while it is in flight,
-  // the document's once it is over.
-  const shown = () => draft() ?? props.value;
+  // a linked sibling's proposal when the group is moving, or the document's.
+  const shown = () => draft() ?? props.proposed ?? props.value;
   const shownNumber = () => measure(shown())?.n;
   // How far along the value is, as the share of the travel the fill paints.
   const progress = () =>
@@ -426,10 +445,30 @@ function RangeControl(props: {
             setDraft(undefined);
           }}
         />
-        <code
-          class="w-[6rem] shrink-0 truncate text-right tabular-nums"
+        <input
+          ref={textInput}
+          id={props.id === undefined ? undefined : `${props.id}-text`}
+          type="text"
+          aria-label={props.label === undefined
+            ? "Token value"
+            : `${props.label} value`}
+          class="w-[5.5rem] shrink-0 text-right tabular-nums"
+          value={shown()}
           title={shown()}
-        >
+          onChange={(event) => {
+            const raw = event.currentTarget.value.trim();
+            // A bare number typed into a unit-bearing token adopts the
+            // token's unit so typing "16" into a "12px" token writes "16px".
+            const unit = current()?.unit ?? "";
+            const next = /^-?\d+(?:\.\d+)?$/.test(raw) && unit !== ""
+              ? `${raw}${unit}`
+              : raw;
+            if (!props.onCommit(next) && textInput !== undefined) {
+              textInput.value = props.value;
+            }
+          }}
+        />
+        <code hidden title={shown()}>
           {shown()}
         </code>
       </div>

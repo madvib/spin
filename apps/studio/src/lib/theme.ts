@@ -308,6 +308,46 @@ export function createToken(
   return JSON.stringify(doc, null, 2);
 }
 
+/**
+ * Remove a token leaf from a document, and any group along its path that now
+ * holds nothing.
+ *
+ * A theme that creates an element override (`font.element.h1.size`) or a
+ * component token (`card.radius`) during an editing session must be able to
+ * return that decision to the ladder or shared scale by removing the leaf
+ * rather than leaving an empty group in the JSON.
+ */
+export function deleteToken(
+  text: string,
+  path: readonly string[],
+): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  function removeAt(
+    node: Record<string, unknown>,
+    segments: readonly string[],
+  ): boolean {
+    const [head, ...tail] = segments;
+    if (head === undefined) return false;
+    const child = node[head];
+    if (typeof child !== "object" || child === null) return false;
+    if (tail.length === 0) {
+      if (!("$value" in child)) return false;
+      delete node[head];
+      return true;
+    }
+    if ("$value" in child) return false;
+    const group = child as Record<string, unknown>;
+    if (!removeAt(group, tail)) return false;
+    const remaining = Object.keys(group).filter((k) => !k.startsWith("$"));
+    if (remaining.length === 0) {
+      delete node[head];
+    }
+    return true;
+  }
+  removeAt(doc, path);
+  return JSON.stringify(doc, null, 2);
+}
+
 export function rootDescription(text: string): string {
   try {
     const doc = JSON.parse(text) as Record<string, unknown>;

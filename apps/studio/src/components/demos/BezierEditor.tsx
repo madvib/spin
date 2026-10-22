@@ -38,51 +38,22 @@ export default function BezierEditor(props: {
         />
       }
     >
-      <div class="stack-sm">
-        <div class="row-sm flex-wrap gap-2">
-          {(["x1", "y1", "x2", "y2"] as const).map((key) => (
-            <label class="text-xs text-text-muted">
-              {key}
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="1"
-                class="w-[3.5rem]"
-                value={draft()[key]}
-                onChange={(e) =>
-                  commit({ ...draft(), [key]: e.currentTarget.value })}
-              />
-            </label>
-          ))}
-        </div>
-        <svg
-          viewBox="0 0 100 100"
-          class="h-16 w-16 rounded-md border border-border bg-surface"
-        >
-          <path
-            d={`M 0,100 C ${Number(draft().x1) * 100},${
-              (1 - Number(draft().y1)) * 100
-            } ${Number(draft().x2) * 100},${
-              (1 - Number(draft().y2)) * 100
-            } 100,0`}
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-          <circle
-            cx={Number(draft().x1) * 100}
-            cy={(1 - Number(draft().y1)) * 100}
-            r="3"
-            fill="currentColor"
-          />
-          <circle
-            cx={Number(draft().x2) * 100}
-            cy={(1 - Number(draft().y2)) * 100}
-            r="3"
-            fill="currentColor"
-          />
-        </svg>
+      <div class="row-sm flex-wrap gap-2">
+        {(["x1", "y1", "x2", "y2"] as const).map((key) => (
+          <label class="text-xs text-text-muted">
+            {key}
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              max="1"
+              class="w-[3.5rem]"
+              value={draft()[key]}
+              onChange={(e) =>
+                commit({ ...draft(), [key]: e.currentTarget.value })}
+            />
+          </label>
+        ))}
       </div>
     </Show>
   );

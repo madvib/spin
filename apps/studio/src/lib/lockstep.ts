@@ -2,7 +2,7 @@ import { createMemo, createSignal } from "solid-js";
 import { editTokens } from "./editing.ts";
 import type { TokenEdit } from "./editing.ts";
 import { paintPreview } from "./preview.ts";
-import { lockstepEdits } from "./scale.ts";
+import { lockstepEdits, measure } from "./scale.ts";
 import type { TokenRow } from "./tokens.ts";
 
 /**
@@ -95,6 +95,14 @@ export interface Lockstep {
   readonly abandon: () => void;
   /** Whether this group's values currently move together. */
   readonly linked: () => boolean;
+  /**
+   * The value a row shows: its in-flight proposal while a drag is active, or
+   * the committed value at rest. Reading this inside a row's readout updates
+   * only that text node without re-keying `<For each={rows()}>`.
+   */
+  readonly shown: (path: string, committed: string) => string;
+  /** The multiplier in flight when a linked scale is being dragged, e.g. `1.25×`. */
+  readonly activeRatio: () => string | undefined;
 }
 
 /**
@@ -109,12 +117,51 @@ export function createLockstep(
   name: string,
 ): Lockstep {
   const raw = createMemo(group);
+  const [proposals, setProposals] = createSignal<
+    Readonly<Record<string, string>>
+  >({});
+  const [ratio, setRatio] = createSignal<string | undefined>(undefined);
   return {
     name,
     rows: raw,
-    preview: (path, next) => propose(raw(), path, next, linkedFor(name)),
-    commit: (path, next) => commit(raw(), path, next, linkedFor(name)),
-    abandon,
+    preview: (path, next) => {
+      const steps = raw();
+      const isLinked = linkedFor(name);
+      const edits = lockstepEdits(steps, path, next, isLinked);
+      const map: Record<string, string> = {};
+      for (const edit of edits) {
+        map[edit.path.join(".")] = edit.value;
+      }
+      setProposals(map);
+      if (isLinked) {
+        const origin = steps.find((step) => step.path === path);
+        const before = origin === undefined ? undefined : measure(origin.value);
+        const after = measure(next);
+        if (
+          before !== undefined && after !== undefined &&
+          before.kind === after.kind && before.n !== 0
+        ) {
+          setRatio(`${Number((after.n / before.n).toFixed(2))}×`);
+        } else {
+          setRatio(undefined);
+        }
+      } else {
+        setRatio(undefined);
+      }
+      propose(steps, path, next, isLinked);
+    },
+    commit: (path, next) => {
+      setProposals({});
+      setRatio(undefined);
+      return commit(raw(), path, next, linkedFor(name));
+    },
+    abandon: () => {
+      setProposals({});
+      setRatio(undefined);
+      abandon();
+    },
     linked: () => linkedFor(name),
+    shown: (path, committed) => proposals()[path] ?? committed,
+    activeRatio: ratio,
   };
 }

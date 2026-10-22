@@ -15,9 +15,16 @@
  * one, and neither could see the other drift.
  */
 
-import { Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import type { TokenRow } from "../../lib/tokens";
-import { refusalFor } from "../../lib/store.ts";
+import { tokenStatus } from "../../lib/live-edit.ts";
+import {
+  activeMode,
+  activeName,
+  refusalFor,
+  registry,
+  themeText,
+} from "../../lib/store.ts";
 import ValueInput from "./ValueInput.tsx";
 
 /** `color.neutral.50` → `neutral-50`, the utility suffix a swatch spends. */
@@ -33,6 +40,7 @@ export default function TokenRow_({
   variable,
   onPreview,
   onCancel,
+  proposed,
 }: {
   row: TokenRow;
   /** Applies an edit. Returns false when the theme refused it. */
@@ -47,8 +55,15 @@ export default function TokenRow_({
   onPreview?: (path: string, value: string) => void;
   /** Reports a drag abandoned before it committed. */
   onCancel?: () => void;
+  /** Live proposed value when a linked sibling in the group is being dragged. */
+  proposed?: string;
 }) {
   const id = `token-${row.path}`;
+  const projectText = () =>
+    registry()?.find((theme) => theme.name === activeName())?.text;
+  const status = createMemo(() =>
+    tokenStatus(themeText(), projectText(), row.path, activeMode())
+  );
   return (
     <>
       <card class="split p-2">
@@ -61,6 +76,32 @@ export default function TokenRow_({
           <label for={id} class="truncate">
             {row.path}
           </label>
+          <Show when={status().aliasOf}>
+            {(target) => (
+              <span
+                class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
+                title={`Points at ${target()}`}
+              >
+                → {target()}
+              </span>
+            )}
+          </Show>
+          <Show when={activeMode() === "dark" && status().restatedInDark}>
+            <span
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
+              title="Overridden in dark mode"
+            >
+              dark
+            </span>
+          </Show>
+          <Show when={status().modified}>
+            <span
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
+              title="Modified in this session"
+            >
+              edited
+            </span>
+          </Show>
         </div>
         <div class="row-sm min-w-0 flex-1 flex-wrap justify-end gap-2">
           <ValueInput
@@ -74,6 +115,7 @@ export default function TokenRow_({
               ? undefined
               : (value) => onPreview(row.path, value)}
             onCancel={onCancel}
+            proposed={proposed}
           />
         </div>
       </card>

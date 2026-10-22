@@ -20,6 +20,8 @@ export default function TokenGroupEditor(props: {
   onPreview?: (path: string, value: string) => void;
   /** Reports a drag abandoned before it committed. */
   onCancel?: () => void;
+  /** Returns the live proposed value for a path while the group is dragged. */
+  shown?: (path: string, committed: string) => string;
 }) {
   // The whole group rides on every row: the slider's ceiling is the
   // group's top, so the rows' thumbs line up as the ramp they belong to.
@@ -36,6 +38,7 @@ export default function TokenGroupEditor(props: {
             variable={row.variable}
             onPreview={props.onPreview}
             onCancel={props.onCancel}
+            proposed={props.shown?.(row.path, row.value)}
           />
         )}
       </For>

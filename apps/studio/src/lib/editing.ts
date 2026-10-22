@@ -1,4 +1,8 @@
-import { applyEdits, createToken as insertToken } from "./theme";
+import {
+  applyEdits,
+  createToken as insertToken,
+  deleteToken as dropToken,
+} from "./theme";
 import type { EditSlot } from "./theme";
 import { activeMode, noteRefusal, setThemeText, themeText } from "./store";
 
@@ -109,6 +113,24 @@ export function upsertToken(
     return false;
   }
   return createToken(path, type, value);
+}
+
+/**
+ * Remove a token from the working document so the element or component falls
+ * back to its ladder or shared scale.
+ */
+export function removeToken(path: readonly string[]): boolean {
+  const before = themeText();
+  if (!pathExists(before, path)) return false;
+  let next: string;
+  try {
+    next = dropToken(before, path);
+  } catch (err) {
+    noteRefusal(err instanceof Error ? err.message : String(err));
+    return false;
+  }
+  setThemeText(next, [path.join(".")]);
+  return themeText() !== before;
 }
 
 function pathExists(text: string, path: readonly string[]): boolean {

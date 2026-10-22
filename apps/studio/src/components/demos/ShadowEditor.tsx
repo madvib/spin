@@ -26,64 +26,53 @@ export default function ShadowEditor(props: {
   }
 
   return (
-    <div class="stack-sm">
-      <div class="row-sm flex-wrap gap-2">
-        <label class="text-xs text-text-muted">
-          x
-          <input
-            type="text"
-            class="w-12"
-            value={draft().x}
-            onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
-          />
-        </label>
-        <label class="text-xs text-text-muted">
-          y
-          <input
-            type="text"
-            class="w-12"
-            value={draft().y}
-            onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
-          />
-        </label>
-        <label class="text-xs text-text-muted">
-          blur
-          <input
-            type="text"
-            class="w-12"
-            value={draft().blur}
-            onChange={(e) =>
-              commit({ ...draft(), blur: e.currentTarget.value })}
-          />
-        </label>
-        <label class="text-xs text-text-muted">
-          spread
-          <input
-            type="text"
-            class="w-12"
-            value={draft().spread}
-            onChange={(e) =>
-              commit({ ...draft(), spread: e.currentTarget.value })}
-          />
-        </label>
-        <label class="text-xs text-text-muted">
-          colour
-          <input
-            type="text"
-            class="w-[7rem]"
-            value={draft().color}
-            onChange={(e) =>
-              commit({ ...draft(), color: e.currentTarget.value })}
-          />
-        </label>
-      </div>
-      <div
-        class="h-8 w-16 rounded-md bg-surface-raised"
-        style={{
-          "box-shadow":
-            `${draft().x} ${draft().y} ${draft().blur} ${draft().spread} ${draft().color}`,
-        }}
-      />
+    <div class="row-sm flex-wrap gap-2">
+      <label class="text-xs text-text-muted">
+        x
+        <input
+          type="text"
+          class="w-12"
+          value={draft().x}
+          onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
+        />
+      </label>
+      <label class="text-xs text-text-muted">
+        y
+        <input
+          type="text"
+          class="w-12"
+          value={draft().y}
+          onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
+        />
+      </label>
+      <label class="text-xs text-text-muted">
+        blur
+        <input
+          type="text"
+          class="w-12"
+          value={draft().blur}
+          onChange={(e) => commit({ ...draft(), blur: e.currentTarget.value })}
+        />
+      </label>
+      <label class="text-xs text-text-muted">
+        spread
+        <input
+          type="text"
+          class="w-12"
+          value={draft().spread}
+          onChange={(e) =>
+            commit({ ...draft(), spread: e.currentTarget.value })}
+        />
+      </label>
+      <label class="text-xs text-text-muted">
+        colour
+        <input
+          type="text"
+          class="w-[7rem]"
+          value={draft().color}
+          onChange={(e) => commit({ ...draft(), color: e.currentTarget.value })}
+        />
+      </label>
     </div>
   );
 }

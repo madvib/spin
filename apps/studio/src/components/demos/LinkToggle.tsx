@@ -1,3 +1,4 @@
+import { Show } from "solid-js";
 import { linkedFor, setLinked } from "../../lib/lockstep.ts";
 
 /**
@@ -7,13 +8,18 @@ import { linkedFor, setLinked } from "../../lib/lockstep.ts";
  * the same ratio, because a scale is one decision rather than fourteen.
  * Unlinked, a step is wrong on its own and moves alone.
  */
-export default function LinkToggle(props: { group: string }) {
+export default function LinkToggle(
+  props: { group: string; ratio?: string },
+) {
   const linked = () => linkedFor(props.group);
   return (
     <button
       type="button"
       class="secondary s-sm row-sm shrink-0 text-xs text-text-muted"
-      classList={{ "bg-transparent": !linked() }}
+      classList={{
+        "bg-transparent": !linked(),
+        "border-primary text-text": linked(),
+      }}
       aria-pressed={linked()}
       title={linked()
         ? "Linked: one step's track moves every step by the same ratio"
@@ -26,7 +32,10 @@ export default function LinkToggle(props: { group: string }) {
         }`}
         aria-hidden="true"
       />
-      {linked() ? "Linked" : "Unlinked"}
+      <span>{linked() ? "Linked" : "Unlinked"}</span>
+      <Show when={linked() && props.ratio}>
+        {(factor) => <span class="font-mono text-primary">{factor()}</span>}
+      </Show>
     </button>
   );
 }

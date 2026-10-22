@@ -1,7 +1,14 @@
-import { Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { inDrawer } from "../lib/host.ts";
-import { refusalFor } from "../lib/store.ts";
+import { tokenStatus } from "../lib/live-edit.ts";
+import {
+  activeMode,
+  activeName,
+  refusalFor,
+  registry,
+  themeText,
+} from "../lib/store.ts";
 
 /**
  * The furniture every concern page is built from.
@@ -42,6 +49,8 @@ export function ConcernPage(props: {
   title: string;
   /** One line, in plain words: what the page is for. */
   note: string;
+  /** Optional header action beside the page title. */
+  action?: JSX.Element;
   children: JSX.Element;
 }) {
   return (
@@ -52,7 +61,10 @@ export function ConcernPage(props: {
     >
       <div class="mx-auto stack-lg max-w-screen-lg">
         <header class="stack-sm">
-          <h1>{props.title}</h1>
+          <div class="split">
+            <h1>{props.title}</h1>
+            {props.action}
+          </div>
           <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p>
         </header>
         {props.children}
@@ -176,19 +188,57 @@ export function TokenLine(props: {
   path: string;
   /** The utility an author writes, when the family spends one. */
   utility?: string;
+  /** Optional inline specimen or bar rendered between the label and the control. */
+  specimen?: JSX.Element;
   editor: JSX.Element;
 }) {
+  const projectText = () =>
+    registry()?.find((theme) => theme.name === activeName())?.text;
+  const status = createMemo(() =>
+    tokenStatus(themeText(), projectText(), props.path, activeMode())
+  );
   return (
     <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
-      <code class="w-[10rem] shrink-0 truncate">
-        {props.path}
-      </code>
+      <div class="row-sm min-w-[10rem] shrink-0">
+        <code class="truncate">
+          {props.path}
+        </code>
+        <Show when={status().aliasOf}>
+          {(target) => (
+            <span
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
+              title={`Points at ${target()}`}
+            >
+              → {target()}
+            </span>
+          )}
+        </Show>
+        <Show when={activeMode() === "dark" && status().restatedInDark}>
+          <span
+            class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
+            title="Overridden in dark mode"
+          >
+            dark
+          </span>
+        </Show>
+        <Show when={status().modified}>
+          <span
+            class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
+            title="Modified in this session"
+          >
+            edited
+          </span>
+        </Show>
+      </div>
       <Show when={props.utility}>
         <code class="w-[7rem] shrink-0 truncate">
           {props.utility}
         </code>
       </Show>
-      <div class="min-w-0">{props.editor}</div>
+      <Show when={props.specimen}>
+        <div class="min-w-[8rem] flex-1">{props.specimen}</div>
+      </Show>
+      <div class="ms-auto min-w-0">{props.editor}</div>
       {
         /* A refused value is said where the value was asked for. The banner
           at the top of the work says what the studio last refused; a reader
@@ -234,7 +284,7 @@ export function Badge(props: {
 }) {
   return (
     <span
-      class={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+      class={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
         TONES[props.tone] ?? ""
       }`}
     >

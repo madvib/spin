@@ -477,83 +477,68 @@ export default function ComponentPage() {
             </p>
 
             <Show when={showTokens() && componentTokens().length > 0}>
-              <div
-                class="fixed inset-0 z-40"
-                onClick={() => setShowTokens(false)}
-              >
-                <div
-                  class="absolute end-4 top-20 w-[22rem] max-h-[70vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-3 shadow-lg"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div class="mb-2 flex items-center justify-between">
-                    <h2>Component tokens</h2>
-                    <button
-                      type="button"
-                      // `bare` takes the theme's button tokens back: the
-                      // panel's close is a way out of the panel, not the
-                      // loudest action in it. Without it the theme's own
-                      // primary fill and hard shadow reach a control that
-                      // meant to read as a link.
-                      class="bare text-text-muted hover:text-text"
-                      onClick={() => setShowTokens(false)}
-                    >
-                      close
-                    </button>
-                  </div>
-                  <p class="text-xs text-text-muted">
-                    The tokens this component declares as its own — edited here,
-                    created here when the theme has never had to spell it.
-                  </p>
-                  <div class="stack-sm">
-                    <For each={componentTokens()}>
-                      {(entry) =>
-                        entry.row !== undefined
-                          ? (
-                            <TokenRow
-                              row={entry.row}
-                              onEdit={editToken}
-                              variable={entry.row.variable}
-                              group={siblingsFor(entry.entry.path)}
-                            />
-                          )
-                          : (
-                            <card class="split p-2">
-                              <div class="row-sm min-w-0">
-                                <span class="truncate font-mono text-xs">
-                                  {entry.entry.path}
-                                </span>
-                              </div>
-                              <div class="row-sm min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-                                <span class="font-mono text-xs text-text-muted">
-                                  {entry.entry.type} · {entry.entry.value}
-                                </span>
-                                {
-                                  /*
-                                  The theme has never had to spell this one,
-                                  and the component wants it: a gap in the
-                                  theme, said as a gap, so the row that offers
-                                  to fill it is not mistaken for a row that
-                                  already holds a value.
-                                */
-                                }
-                                <Badge tone="warning">not declared</Badge>
-                                <button
-                                  type="button"
-                                  class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
-                                  onClick={() =>
-                                    createToken(
-                                      entry.entry.path.split("."),
-                                      entry.entry.type,
-                                      entry.entry.value,
-                                    )}
-                                >
-                                  Create
-                                </button>
-                              </div>
-                            </card>
-                          )}
-                    </For>
-                  </div>
+              <div class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4">
+                <div class="flex items-center justify-between">
+                  <h2>Component tokens</h2>
+                  <button
+                    type="button"
+                    // `bare` takes the theme's button tokens back: the
+                    // panel's close is a way out of the panel, not the
+                    // loudest action in it. Without it the theme's own
+                    // primary fill and hard shadow reach a control that
+                    // meant to read as a link.
+                    class="bare text-text-muted hover:text-text"
+                    onClick={() => setShowTokens(false)}
+                  >
+                    close
+                  </button>
+                </div>
+                <p class="text-xs text-text-muted">
+                  The tokens this component declares as its own — edited inline
+                  while you interact with the specimens below, or created here
+                  when the theme currently relies on the shared scale.
+                </p>
+                <div class="stack-sm">
+                  <For each={componentTokens()}>
+                    {(entry) =>
+                      entry.row !== undefined
+                        ? (
+                          <TokenRow
+                            row={entry.row}
+                            onEdit={editToken}
+                            variable={entry.row.variable}
+                            group={siblingsFor(entry.entry.path)}
+                          />
+                        )
+                        : (
+                          <card class="split p-2">
+                            <div class="row-sm min-w-0">
+                              <span class="truncate font-mono text-xs">
+                                {entry.entry.path}
+                              </span>
+                            </div>
+                            <div class="row-sm min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+                              <span class="font-mono text-xs text-text-muted">
+                                {entry.entry.type} · falls back to{" "}
+                                {entry.entry.value}
+                              </span>
+                              <Badge tone="warning">not declared</Badge>
+                              <button
+                                type="button"
+                                class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
+                                onClick={() =>
+                                  createToken(
+                                    entry.entry.path.split("."),
+                                    entry.entry.type,
+                                    entry.entry.value,
+                                  )}
+                              >
+                                Create
+                              </button>
+                            </div>
+                          </card>
+                        )}
+                  </For>
                 </div>
               </div>
             </Show>

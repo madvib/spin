@@ -82,6 +82,23 @@ export default defineConfig(({ command }) => ({
   // would escape the mount and 404 behind the middleware. Dev serves at
   // `/` so routes resolve without the prefix.
   base: command === "build" ? "/__spin/studio/" : "/",
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("@unocss") || id.includes("packages/preset")) {
+            return "preset";
+          }
+          if (id.includes("packages/theme")) {
+            return "theme";
+          }
+          if (id.includes("node_modules")) {
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
   resolve: {
     // The browser cannot read a disk, and the diagnostics package reads the
     // project's files. The studio's bundle reaches it through the API, so

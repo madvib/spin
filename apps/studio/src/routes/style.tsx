@@ -285,7 +285,12 @@ function Family(props: {
       note={props.note}
       aside={
         <Show when={family}>
-          {(active) => <LinkToggle group={active().name} />}
+          {(active) => (
+            <LinkToggle
+              group={active().name}
+              ratio={active().activeRatio()}
+            />
+          )}
         </Show>
       }
     >
@@ -327,6 +332,7 @@ function Family(props: {
                         ? undefined
                         : (value) => family.preview(row.path, value)}
                       onCancel={family?.abandon}
+                      proposed={family?.shown(row.path, row.value)}
                     />
                   }
                 />

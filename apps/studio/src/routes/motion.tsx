@@ -126,6 +126,8 @@ function RaceStage(props: {
   onPreview?: (path: string, value: string) => void;
   /** Reports a drag abandoned before it committed. */
   onCancel?: () => void;
+  /** Returns the live proposed value for a path while the group is dragged. */
+  shown?: (path: string, committed: string) => string;
   /** Under the section's loop control; stopped, the stage rests at its shares. */
   running: boolean;
 }) {
@@ -205,6 +207,7 @@ function RaceStage(props: {
                     ? undefined
                     : (value) => preview(lane.path, value)}
                   onCancel={props.onCancel}
+                  proposed={props.shown?.(lane.path, lane.value)}
                 />
               </div>
             </div>
@@ -680,7 +683,10 @@ export default function MotionPage() {
         note="Every duration, raced under one shared easing, so the ranking is the specimen. Loop it: 150ms played once is gone before you have seen it."
         aside={
           <div class="row-sm gap-2">
-            <LinkToggle group="motion.duration" />
+            <LinkToggle
+              group="motion.duration"
+              ratio={durations.activeRatio()}
+            />
             <LoopButton
               running={durationLoop()}
               onToggle={() => setDurationLoop(!durationLoop())}
@@ -707,6 +713,7 @@ export default function MotionPage() {
               onEdit={(path, value) => durations.commit(path, value)}
               onPreview={(path, value) => durations.preview(path, value)}
               onCancel={durations.abandon}
+              shown={durations.shown}
               running={durationLoop()}
             />
           </Frame>

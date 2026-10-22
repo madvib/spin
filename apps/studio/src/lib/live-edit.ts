@@ -102,6 +102,58 @@ export function tokenPath(
 }
 
 /**
+ * What is happening to one token in the active mode: its raw spelling in the
+ * document, whether that spelling is an alias to another token, whether dark
+ * mode restates it, and whether the session has moved it from the project's
+ * declared value.
+ */
+export interface TokenStatus {
+  readonly raw: string | undefined;
+  readonly aliasOf: string | undefined;
+  readonly restatedInDark: boolean;
+  readonly modified: boolean;
+}
+
+export function tokenStatus(
+  currentText: string,
+  projectText: string | undefined,
+  path: string,
+  mode: string,
+): TokenStatus {
+  const current = declaredValue(currentText, path, mode);
+  const declared = projectText === undefined
+    ? current
+    : declaredValue(projectText, path, mode);
+  let restatedInDark = false;
+  if (mode === "dark") {
+    try {
+      const doc = JSON.parse(currentText) as Record<string, unknown>;
+      let node: unknown = doc;
+      for (const segment of path.split(".")) {
+        if (typeof node !== "object" || node === null) {
+          node = undefined;
+          break;
+        }
+        node = (node as Record<string, unknown>)[segment];
+      }
+      if (typeof node === "object" && node !== null && "$modes" in node) {
+        const modes = (node as { $modes?: Record<string, unknown> }).$modes;
+        restatedInDark = modes !== undefined && modes["dark"] !== undefined;
+      }
+    } catch {
+      restatedInDark = false;
+    }
+  }
+  const target = current !== undefined ? aliasTarget(current) : null;
+  return {
+    raw: current,
+    aliasOf: target ?? undefined,
+    restatedInDark,
+    modified: current !== declared,
+  };
+}
+
+/**
  * Every problem the theme module finds in a document.
  *
  * The module's own judgement, asked exactly as the build asks it: the roles
