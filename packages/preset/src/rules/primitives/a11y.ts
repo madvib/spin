@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
+import { focusRing } from "./shared.ts";
 
 /**
  * Accessibility and operability — the two things CSS can say about an
@@ -76,6 +77,7 @@ function hiddenRules(roots: readonly string[]): Rule[] {
       /^visually-hidden$/,
       function* (_m, ctx) {
         const duration = token(ctx, "motion.duration.fast");
+        const ring = focusRing(ctx);
         yield {
           [ctx.symbols.selector]: () =>
             ':is([aria-hidden="false"][hidden], .visually-hidden)',
@@ -97,6 +99,21 @@ function hiddenRules(roots: readonly string[]): Rule[] {
           "clip-path": "none",
           width: "auto",
           height: "auto",
+        };
+        // And it wears the theme's ring while it is there, so a keyboard
+        // reader can see where they are: an element that comes back on the
+        // page with no ring around it says nothing about where the focus
+        // went. The ring is on :focus-visible, so a pointer that lands on
+        // the element leaves none.
+        yield {
+          [ctx.symbols.selector]: () =>
+            ':is([aria-hidden="false"][hidden], .visually-hidden):focus-visible',
+          ...(ring.width !== undefined && ring.color !== undefined
+            ? { outline: `${ring.width} solid ${ring.color}` }
+            : {}),
+          ...(ring.offset !== undefined
+            ? { "outline-offset": ring.offset }
+            : {}),
         };
       },
       { layer: "primitives", autocomplete: "visually-hidden" },

@@ -135,6 +135,62 @@ export function disabledPosture(
  */
 export const ALIVE = ':not(:disabled):not([aria-disabled="true"])';
 
+/* ------------------------------------------------------------------- focus --
+ *
+ * The ring every interactive element shares.
+ */
+
+/**
+ * The theme's focus ring: its stroke, its distance from the edge, its ink.
+ *
+ * Every element that can take focus spends the same three, so they are read
+ * once and handed round rather than each rule spelling the paths out.
+ */
+export interface FocusRing {
+  /** The ring's stroke — the outline's width. */
+  readonly width: string | undefined;
+  /** How far the ring stands off the control's edge. */
+  readonly offset: string | undefined;
+  /** The ring's ink. */
+  readonly color: string | undefined;
+}
+
+/** The focus ring, read from the theme. */
+export function focusRing(ctx: ThemeContext | undefined): FocusRing {
+  return {
+    width: token(ctx, "focus.width"),
+    offset: token(ctx, "focus.offset"),
+    color: token(ctx, "color.focus-ring"),
+  };
+}
+
+/**
+ * What a focused control wears.
+ *
+ * **The ring is an OUTLINE.** It is painted outside the control's box, so it
+ * never changes the control's size and focusing a control never nudges the
+ * page, and it is painted in the theme's focus ink rather than in a colour
+ * the rule invented.
+ *
+ * **The ring is the control's edge.** The control's own border takes the
+ * ring's ink too, so the reader sees ONE edge, in the theme's focus colour.
+ * A border in one colour with a ring in another, sitting beside it, is a
+ * doubled edge: it reads as a broken border rather than as focus. The ring
+ * stands off the border by the theme's offset, so the two are one focus
+ * treatment and not two borders arguing.
+ */
+export function focusPaint(
+  ring: FocusRing,
+): Record<string, string | undefined> {
+  return {
+    ...(ring.width !== undefined && ring.color !== undefined
+      ? { outline: `${ring.width} solid ${ring.color}` }
+      : {}),
+    ...(ring.offset !== undefined ? { "outline-offset": ring.offset } : {}),
+    ...(ring.color !== undefined ? { "border-color": ring.color } : {}),
+  };
+}
+
 /**
  * A CSS entry, stated as a tuple rather than inferred.
  *

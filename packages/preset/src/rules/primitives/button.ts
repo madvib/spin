@@ -5,6 +5,8 @@ import {
   ALIVE,
   disabledPosture,
   type Entry,
+  focusPaint,
+  focusRing,
   spend,
   spentEntries,
 } from "./shared.ts";
@@ -309,12 +311,14 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // same reason ghost spends none. Without this the theme's shadow hangs
       // off an empty box (a hard offset in neobrut).
       "box-shadow": "none",
-      // The edge and the label are the same mark: the theme's accent, which
-      // is a colour chosen to be read as ink. The primary is a FILL — the
-      // deep end of the ramp, legible with paper on it, and not legible as
-      // text on the page (a brand red on a dark surface measures 3:1).
+      // The edge is the theme's accent: the mark. The LABEL is the page's
+      // ink, because an accent is a FILL — it is legible with its own ink on
+      // it, and not legible as a word on the page (neobrut's amber measures
+      // 1.76:1 on its own sky). Every variant with no fill wears the page's
+      // ink; this one wore a fill colour, which is a pairing the contract
+      // does not promise.
       "border-color": token(ctx, "color.accent"),
-      color: token(ctx, "color.accent"),
+      color: token(ctx, "color.text"),
     }),
   },
   "s-sm": {
@@ -403,11 +407,15 @@ const VARIANT_HOVER: Record<string, {
   },
   outline: {
     selector: `${BUTTON}.outline:hover${ALIVE}:not([aria-busy="true"])`,
+    // The hover answers the accent: the edge fills in and the label takes the
+    // accent's OWN ink, which is the pairing the contract floors. A hover
+    // that put a fill colour on the page as a word would fail the same way
+    // the resting label did.
     body: (ctx) => ({
-      "background-color": "transparent",
+      "background-color": token(ctx, "color.accent"),
       "box-shadow": "none",
       "border-color": token(ctx, "color.accent"),
-      color: token(ctx, "color.primary"),
+      color: token(ctx, "color.on-accent"),
     }),
   },
   bare: {
@@ -423,6 +431,25 @@ const VARIANT_HOVER: Record<string, {
       border: "none",
       transform: "none",
     }),
+  },
+};
+
+/**
+ * The variant-specific focus rules.
+ *
+ * A variant that owns its own EDGE has to say what that edge wears while the
+ * control is focused. The base's focus rule gives every control the ring's
+ * ink, which is right for a control whose edge is its own — but a ghost has
+ * no edge of its own: it is paint-free, and a ring-coloured border beside the
+ * ring would be the second edge the ring exists to replace.
+ */
+const VARIANT_FOCUS: Record<string, {
+  selector: string;
+  body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
+}> = {
+  ghost: {
+    selector: `${BUTTON}.ghost:focus-visible${ALIVE}`,
+    body: () => ({ "border-color": "transparent" }),
   },
 };
 
@@ -546,17 +573,15 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // The ring, drawn on focus-visible so a mouse press leaves none. Its
         // width and offset come from the theme's focus scale; a theme that
         // states none gets no ring rather than an outline of undefined width.
-        const focusWidth = token(ctx, "focus.width");
-        const focusRing = token(ctx, "color.focus-ring");
-        const focusOffset = token(ctx, "focus.offset");
+        //
+        // And the ring is the control's edge: the button's own border takes
+        // the ring's ink while it is focused, so the reader sees one edge in
+        // the theme's focus colour rather than the button's own edge with a
+        // second band beside it.
+        const ring = focusRing(ctx);
         yield {
           [ctx.symbols.selector]: () => `${BUTTON}:focus-visible${ALIVE}`,
-          ...(focusWidth !== undefined && focusRing !== undefined
-            ? { outline: `${focusWidth} solid ${focusRing}` }
-            : {}),
-          ...(focusOffset !== undefined
-            ? { "outline-offset": focusOffset }
-            : {}),
+          ...focusPaint(ring),
         };
         // Remove the UA default ring only where :focus-visible is supported.
         yield {
@@ -569,12 +594,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.parent]: "@supports not selector(:focus-visible)",
           [ctx.symbols.selector]: () => `button:focus${ALIVE}`,
-          ...(focusWidth !== undefined && focusRing !== undefined
-            ? { outline: `${focusWidth} solid ${focusRing}` }
-            : {}),
-          ...(focusOffset !== undefined
-            ? { "outline-offset": focusOffset }
-            : {}),
+          ...focusPaint(ring),
         };
         // A dead control wears a posture, not a dim.
         //
@@ -685,6 +705,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
       // can miss is a lookup that can silently drop a variant.
       const def = VARIANTS[variant];
       const hover = VARIANT_HOVER[variant];
+      const focus = VARIANT_FOCUS[variant];
       const rule: Rule = [
         new RegExp(`^${variant}$`),
         function* (_m, ctx) {
@@ -707,6 +728,22 @@ export function buttonRules(roots: readonly string[]): Rule[] {
             yield {
               [ctx.symbols.selector]: () => hover.selector,
               ...hover.body(ctx),
+            };
+          }
+          // A variant whose edge is its own says what that edge wears while
+          // the control is focused.
+          if (focus !== undefined) {
+            yield {
+              [ctx.symbols.selector]: () => focus.selector,
+              ...focus.body(ctx),
+            };
+            // And the same for engines without :focus-visible, where the
+            // base's fallback puts the ring's ink on the edge.
+            yield {
+              [ctx.symbols.parent]: "@supports not selector(:focus-visible)",
+              [ctx.symbols.selector]: () =>
+                `${BUTTON}.${def.name}:focus${ALIVE}`,
+              ...focus.body(ctx),
             };
           }
         },

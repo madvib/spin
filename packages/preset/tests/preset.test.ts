@@ -389,6 +389,8 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
         info: { $value: "#444" },
       },
       "on-primary": { $value: "#fff" },
+      "on-secondary": { $value: "#fff" },
+      "on-accent": { $value: "#fff" },
       "on-semantic-success": { $value: "#fff" },
       "on-semantic-warning": { $value: "#fff" },
       "on-semantic-error": { $value: "#fff" },
@@ -452,6 +454,8 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
         info: { $value: "#38bdf8" },
       },
       "on-primary": { $value: "#000" },
+      "on-secondary": { $value: "#000" },
+      "on-accent": { $value: "#000" },
       "on-semantic-success": { $value: "#000" },
       "on-semantic-warning": { $value: "#000" },
       "on-semantic-error": { $value: "#000" },
@@ -686,6 +690,35 @@ Deno.test("transition-colors resolves to color properties", async () => {
 Deno.test("duration-base resolves to the duration token variable", async () => {
   const css = await cssFor("duration-base");
   assertTokenDriven(css, "duration-base", "transition-duration");
+});
+
+Deno.test("duration-loop is not a transition", async () => {
+  // The loop step is the period of an endless animation — the skeleton's
+  // pulse, the spinner — and a transition that takes as long as a pulse is
+  // not what a transition is. So the class is refused: the endless
+  // animations read the loop off the custom property, and nothing spends it
+  // as a duration.
+  const uno = await generatorFor({
+    themes: {
+      default: withGroup("motion", {
+        duration: {
+          $type: "duration",
+          base: { $value: "200ms" },
+          loop: { $value: "1.2s" },
+        },
+      }),
+    },
+  });
+  const { css } = await uno.generate("duration-loop duration-base");
+  assertEquals(
+    valueFor(css, "duration-loop", "transition-duration"),
+    undefined,
+    `the loop step must not be spendable as a transition:\n${css}`,
+  );
+  assertEquals(
+    valueFor(css, "duration-base", "transition-duration"),
+    "var(--motion-duration-base)",
+  );
 });
 
 Deno.test("ease-standard resolves to the easing token variable", async () => {

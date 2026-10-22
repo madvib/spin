@@ -50,7 +50,9 @@ interface Tokens {
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
   readonly weightSemibold: string | undefined;
+  readonly focusWidth: string | undefined;
   readonly focusOffset: string | undefined;
+  readonly focusRing: string | undefined;
   readonly duration: string | undefined;
   readonly easing: string | undefined;
   /** The reveal's duration: a whole block entering, so a step slower. */
@@ -69,7 +71,9 @@ function tokens(ctx: ThemeContext | undefined): Tokens {
     border: token(ctx, "color.border"),
     borderWidth: token(ctx, "border.width"),
     weightSemibold: token(ctx, "font.weight.semibold"),
+    focusWidth: token(ctx, "focus.width"),
     focusOffset: token(ctx, "focus.offset"),
+    focusRing: token(ctx, "color.focus-ring"),
     duration: token(ctx, "motion.duration.fast"),
     easing: token(ctx, "motion.easing.standard"),
     reveal: token(ctx, "motion.duration.base"),
@@ -210,9 +214,15 @@ function summaryRule(summary: string, details: string): Rule {
       };
 
       // The focus ring belongs to the row: the row is the control, so the
-      // control is what shows focus.
+      // control is what shows focus. It is the theme's own ring — the
+      // browser's default is not the theme's, and a default ring is a colour
+      // nobody chose. The summary wears no border of its own, so the outline
+      // is the whole of its edge.
       yield {
         [ctx.symbols.selector]: () => `${summary}:focus-visible`,
+        ...(t.focusWidth !== undefined && t.focusRing !== undefined
+          ? { outline: `${t.focusWidth} solid ${t.focusRing}` }
+          : {}),
         ...(t.focusOffset !== undefined
           ? { "outline-offset": t.focusOffset }
           : {}),

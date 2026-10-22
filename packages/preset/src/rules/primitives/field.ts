@@ -1,6 +1,11 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { disabledPosture, withFallback } from "./shared.ts";
+import {
+  disabledPosture,
+  focusPaint,
+  focusRing,
+  withFallback,
+} from "./shared.ts";
 
 /**
  * The tokens a field box spends. Absent ones drop their declaration rather
@@ -9,6 +14,10 @@ import { disabledPosture, withFallback } from "./shared.ts";
  * Shared by every text-like field — input, select, textarea — because they
  * are one box with three contents. That shared box is `shared.ts`; what is
  * here is only what belongs to `<input>` itself.
+ *
+ * The focus ring is not here: it is the ring every interactive element
+ * shares, and it is read through `shared.ts` so the field and the button
+ * cannot paint two different rings.
  */
 export interface FieldTokens {
   readonly spacing2: string | undefined;
@@ -21,8 +30,6 @@ export interface FieldTokens {
   readonly edge: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
-  readonly focusWidth: string | undefined;
-  readonly focusRing: string | undefined;
   readonly duration: string | undefined;
   readonly easing: string | undefined;
   readonly primary: string | undefined;
@@ -45,8 +52,6 @@ export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
     edge: withFallback(ctx, "field.border", "color.border-strong"),
     border: token(ctx, "color.border"),
     borderWidth: token(ctx, "border.width"),
-    focusWidth: token(ctx, "focus.width"),
-    focusRing: token(ctx, "color.focus-ring"),
     duration: token(ctx, "motion.duration.fast"),
     easing: token(ctx, "motion.easing.standard"),
     primary: token(ctx, "color.primary"),
@@ -102,14 +107,13 @@ export function fieldBox(): Rule {
         field,
         border,
         borderWidth,
-        focusWidth,
-        focusRing,
         duration,
         easing,
         primary,
         success,
         error,
       } = fieldTokens(context);
+      const ring = focusRing(context);
 
       const box: Record<string, string | undefined> = {
         "font-family": fontFamily,
@@ -145,8 +149,11 @@ export function fieldBox(): Rule {
         Object.assign(box, {
           "transition-duration": duration,
           "transition-timing-function": easing ?? "linear",
+          // The ring is painted with `outline`, so `outline` is what moves —
+          // and the edge, which takes the ring's ink while the field is
+          // focused, moves with it.
           "transition-property":
-            "color, background-color, border-color, box-shadow",
+            "color, background-color, border-color, outline",
         });
       }
 
@@ -171,19 +178,32 @@ export function fieldBox(): Rule {
         opacity: "1",
       };
 
-      // Focus replaces the border rather than sitting beside it, so the ring
-      // never changes the field's size.
+      // The ring is the field's edge.
+      //
+      // The border takes the ring's ink, and the ring itself is an OUTLINE:
+      // painted outside the field's box, so it never changes the field's
+      // size and focusing a field never nudges the page. It stands off the
+      // border by the theme's offset, so what the reader sees is ONE edge in
+      // the theme's focus colour — a border in one colour with a ring in
+      // another, sitting beside it, is a doubled edge that reads as a broken
+      // border rather than as focus.
       yield {
-        [context.symbols.selector]: () => `${FIELDS}:focus`,
-        outline: "none",
-        ...(primary !== undefined ? { "border-color": primary } : {}),
-        ...(focusWidth !== undefined && focusRing !== undefined
-          ? { "box-shadow": `0 0 0 ${focusWidth} ${focusRing}` }
-          : {}),
+        [context.symbols.selector]: () => `${FIELDS}:focus-visible`,
+        ...focusPaint(ring),
       };
+      // A pointer that lands on a field leaves no ring: the browser's own is
+      // not the theme's, so it goes.
       yield {
         [context.symbols.selector]: () => `${FIELDS}:focus:not(:focus-visible)`,
-        "box-shadow": "none",
+        outline: "none",
+      };
+      // The same ring for engines without :focus-visible. A rule cannot be
+      // wrapped in `@supports` from its body, so the parent symbol carries
+      // the at-rule and the selector symbol the fallback selector.
+      yield {
+        [context.symbols.parent]: "@supports not selector(:focus-visible)",
+        [context.symbols.selector]: () => `${FIELDS}:focus`,
+        ...focusPaint(ring),
       };
 
       // An unjudged field: attention without judgement.

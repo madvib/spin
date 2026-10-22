@@ -41,6 +41,7 @@ import { resolveThemes } from "./session.ts";
 import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
+import { transitionDurations } from "./rules/transitions.ts";
 import {
   elementExtractor,
   typeExtractor,
@@ -307,7 +308,7 @@ const factory = definePreset(
           letterSpacing: orGroup(theme, "font-letter-spacing"),
           breakpoint: orGroup(theme, "breakpoint"),
           zIndex: orGroup(theme, "z-index"),
-          motionDuration: orGroup(theme, "motion-duration"),
+          motionDuration: "(" + transitionDurations(theme).join("|") + ")",
           motionEasing: orGroup(theme, "motion-easing"),
           fontSize: orGroup(theme, "font-size"),
           fontFamily: orGroup(theme, "font-family"),

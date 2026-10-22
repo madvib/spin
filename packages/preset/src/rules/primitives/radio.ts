@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
-import { disabledPosture } from "./shared.ts";
+import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
 
 /**
  * Radio — a drawn control, not a themed `accent-color`.
@@ -34,9 +34,7 @@ export function radioRules(roots: readonly string[]): Rule[] {
         const primary = token(ctx, "color.primary");
         const duration = token(ctx, "motion.duration.fast");
         const easing = token(ctx, "motion.easing.standard");
-        const focusWidth = token(ctx, "focus.width");
-        const focusRing = token(ctx, "color.focus-ring");
-        const focusOffset = token(ctx, "focus.offset");
+        const ring = focusRing(ctx);
 
         const shell: Record<string, string | undefined> = {
           appearance: "none",
@@ -140,14 +138,15 @@ export function radioRules(roots: readonly string[]): Rule[] {
           [ctx.symbols.selector]: () => 'input[type="radio"]:checked',
           ...(primary !== undefined ? { "border-color": primary } : {}),
         };
+        // The ring, drawn on focus-visible so a mouse press leaves none. And
+        // the ring IS the control's edge: the radio's own border takes the
+        // ring's ink while it is focused, so the reader sees one edge in the
+        // theme's focus colour rather than the ring's edge with a second band
+        // beside it. It is stated after the checked state, because a focused
+        // control says where it is before it says what it is.
         yield {
           [ctx.symbols.selector]: () => 'input[type="radio"]:focus-visible',
-          ...(focusWidth !== undefined && focusRing !== undefined
-            ? { outline: `${focusWidth} solid ${focusRing}` }
-            : {}),
-          ...(focusOffset !== undefined
-            ? { "outline-offset": focusOffset }
-            : {}),
+          ...focusPaint(ring),
         };
         yield {
           [ctx.symbols.selector]: () =>

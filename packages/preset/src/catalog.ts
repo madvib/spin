@@ -19,7 +19,7 @@ import {
   WORD_BREAK_NAMES,
 } from "./rules/text.ts";
 
-import { TRANSITION_NAMES } from "./rules/transitions.ts";
+import { TRANSITION_NAMES, transitionDurations } from "./rules/transitions.ts";
 import { TYPOGRAPHY_NAMES } from "./rules/typography.ts";
 import { FRACTIONS, INSET_KEYWORDS } from "./utils/vocabulary.ts";
 import { variantPrefixes } from "./variants/index.ts";
@@ -171,7 +171,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Transitions",
       utilities: [
         ...TRANSITION_NAMES,
-        ...prefixed(["duration-"], namesIn(theme, "motion-duration")),
+        ...prefixed(["duration-"], transitionDurations(theme)),
         ...prefixed(["ease-"], namesIn(theme, "motion-easing")),
       ],
     },

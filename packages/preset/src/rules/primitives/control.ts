@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, token } from "../../utils/lookup.ts";
-import { disabledPosture } from "./shared.ts";
+import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
 
 /**
  * Checkbox and switch — the two controls a theme has real decisions about.
@@ -65,9 +65,7 @@ function checkboxRule(): Rule {
       const duration = token(ctx, "motion.duration.fast");
       const easing = token(ctx, "motion.easing.standard");
       const borderWidth = token(ctx, "border.width");
-      const focusWidth = token(ctx, "focus.width");
-      const focusRing = token(ctx, "color.focus-ring");
-      const focusOffset = token(ctx, "focus.offset");
+      const ring = focusRing(ctx);
 
       // Depth is three inset shadows driven by one scalar rather than a
       // single drop shadow. A dark inner line at the bottom edge is what makes
@@ -166,15 +164,6 @@ function checkboxRule(): Rule {
         ...mark,
       };
 
-      yield {
-        [ctx.symbols.selector]: () =>
-          'input[type="checkbox"]:not([role]):focus-visible',
-        ...(focusWidth !== undefined && focusRing !== undefined
-          ? { outline: `${focusWidth} solid ${focusRing}` }
-          : {}),
-        ...(focusOffset !== undefined ? { "outline-offset": focusOffset } : {}),
-      };
-
       // Checked: the light top inset goes and the dark one compresses, so a
       // filled box reads as pressed rather than as a painted one.
       const on = {
@@ -198,6 +187,18 @@ function checkboxRule(): Rule {
         [ctx.symbols.selector]: () =>
           'input[type="checkbox"]:not([role]):indeterminate',
         ...on,
+      };
+
+      // The ring, drawn on focus-visible so a mouse press leaves none. And
+      // the ring IS the control's edge: the box's own border takes the
+      // ring's ink while it is focused, so the reader sees one edge in the
+      // theme's focus colour rather than the box's edge with a second band
+      // beside it. It is stated AFTER the checked state, because a focused
+      // control says where it is before it says what it is.
+      yield {
+        [ctx.symbols.selector]: () =>
+          'input[type="checkbox"]:not([role]):focus-visible',
+        ...focusPaint(ring),
       };
 
       // A 45°-rotated square has its visual mass below its geometric centre,
@@ -272,9 +273,7 @@ function switchRule(): Rule {
       const shadow = token(ctx, "shadow.sm");
       const duration = token(ctx, "motion.duration.fast");
       const easing = token(ctx, "motion.easing.standard");
-      const focusWidth = token(ctx, "focus.width");
-      const focusRing = token(ctx, "color.focus-ring");
-      const focusOffset = token(ctx, "focus.offset");
+      const ring = focusRing(ctx);
 
       const shell: Record<string, string | undefined> = {
         appearance: "none",
@@ -408,13 +407,15 @@ function switchRule(): Rule {
         ...(onPrimary !== undefined ? { "background-color": onPrimary } : {}),
       };
 
+      // The ring, drawn on focus-visible so a mouse press leaves none. And
+      // the ring IS the control's edge: the track's own border takes the
+      // ring's ink while it is focused, so the reader sees one edge in the
+      // theme's focus colour rather than the track's edge with a second band
+      // beside it.
       yield {
         [ctx.symbols.selector]: () =>
           'input[type="checkbox"][role="switch"]:focus-visible',
-        ...(focusWidth !== undefined && focusRing !== undefined
-          ? { outline: `${focusWidth} solid ${focusRing}` }
-          : {}),
-        ...(focusOffset !== undefined ? { "outline-offset": focusOffset } : {}),
+        ...focusPaint(ring),
       };
       yield {
         [ctx.symbols.selector]: () =>

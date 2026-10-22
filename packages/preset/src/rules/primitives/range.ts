@@ -111,6 +111,38 @@ function rangeRule(): Rule {
         "-moz-appearance": "none",
       };
 
+      // Focus: the ring every interactive element shares, as an outline so it
+      // never resizes the control.
+      //
+      // The offset is the theme's own spacing step rather than `focus.offset`:
+      // the thumb overhangs the track by half the difference between the two,
+      // so a ring at the focus offset would be painted UNDER the thumb — and a
+      // focus ring the thumb hides is not a focus ring. The theme's offset is
+      // what clears it.
+      yield {
+        [ctx.symbols.selector]: () => 'input[type="range"]:focus-visible',
+        ...(focusWidth !== undefined && focusRing !== undefined
+          ? { outline: `${focusWidth} solid ${focusRing}` }
+          : {}),
+        ...(offset !== undefined ? { "outline-offset": offset } : {}),
+      };
+      // And the ring is the control's edge: the groove's own border takes
+      // the ring's ink while the slider is focused, so the reader sees one
+      // edge in the theme's focus colour rather than the groove's edge with a
+      // second band beside it.
+      if (focusRing !== undefined) {
+        yield {
+          [ctx.symbols.selector]: () =>
+            'input[type="range"]:focus-visible::-webkit-slider-runnable-track',
+          "border-color": focusRing,
+        };
+        yield {
+          [ctx.symbols.selector]: () =>
+            'input[type="range"]:focus-visible::-moz-range-track',
+          "border-color": focusRing,
+        };
+      }
+
       // The thumb: the primary tone, one step above the track, fully round,
       // wearing the theme's own physical language — a soft lift, a hard
       // offset edge or a phosphor ring — so the value's handle reads as an
@@ -140,17 +172,6 @@ function rangeRule(): Rule {
         [ctx.symbols.selector]: () => 'input[type="range"]::-moz-range-thumb',
         ...thumb,
         "-moz-appearance": "none",
-      };
-
-      // Focus: the ring every interactive element shares, as an outline so it
-      // never resizes the control, lifted clear of the thumb that overhangs
-      // the track.
-      yield {
-        [ctx.symbols.selector]: () => 'input[type="range"]:focus-visible',
-        ...(focusWidth !== undefined && focusRing !== undefined
-          ? { outline: `${focusWidth} solid ${focusRing}` }
-          : {}),
-        ...(offset !== undefined ? { "outline-offset": offset } : {}),
       };
 
       // Disabled: dimmed, not gone. The theme's opacity scale owns the

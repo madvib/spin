@@ -7,7 +7,7 @@
  * re-declares existing tokens for another mode rather than adding new ones.
  */
 
-import { resolveAliases } from "@spin/theme";
+import { LOOP_STEP, resolveAliases } from "@spin/theme";
 import type { TokenLeaf, TokenNode, TokenTree } from "@spin/theme";
 
 export interface UnoTheme {
@@ -96,6 +96,11 @@ export function toUnoTheme(tree: TokenTree): UnoTheme {
       } else if (
         root === "motion" && rest[0] === "duration" && rest.length === 2
       ) {
+        // The loop is a duration but not a transition's: the Uno shape has no
+        // slot for the period of an endless animation, and putting it where a
+        // transition's duration goes is how `duration-loop` became a
+        // transition. The loop is spent off the custom property instead.
+        if (rest[1] === LOOP_STEP) continue;
         theme.transitionDuration[rest[1] as string] = value;
       } else if (
         root === "motion" && rest[0] === "easing" && rest.length === 2
