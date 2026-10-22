@@ -5,7 +5,7 @@ import {
   getValuePercent,
   getValueRanges,
   snapValueToStep,
-} from "../../../../node_modules/@zag-js/utils/dist/number.mjs";
+} from "@zag-js/utils";
 
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
 
