@@ -8,10 +8,10 @@
     "$type": "color",
     "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
     "primary": {
-      "$value": "#3f3f46",
+      "$value": "#c8102e",
       "$description": "Brand accent: primary actions, links, focus rings.",
       "$modes": {
-        "dark": "#e4e4e7"
+        "dark": "#ff5a63"
       }
     },
     "secondary": {
