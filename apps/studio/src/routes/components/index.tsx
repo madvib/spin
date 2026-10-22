@@ -20,10 +20,13 @@ import { createMemo, For, Match, Switch } from "solid-js";
 import { A } from "@solidjs/router";
 import { primitiveCategories, primitiveElements } from "@spin/preset";
 import { library } from "../../lib/store.ts";
-import { inDrawer } from "../../app.tsx";
+import { inDrawer } from "../../lib/host.ts";
 
 export default function ComponentsIndex() {
-  const drawer = inDrawer();
+  // Read through a memo, so the gallery re-lays-out when the host switches
+  // the studio between the drawer and the modal: a grid that only changed
+  // on the next navigation was a grid that was stale until the author left.
+  const drawer = createMemo(() => inDrawer());
 
   /**
    * The groups, in the taxonomy's order, with the cards each one shows.
@@ -68,8 +71,8 @@ export default function ComponentsIndex() {
                   <div
                     class="mt-4 grid gap-4"
                     classList={{
-                      "grid-cols-2": drawer,
-                      "sm:grid-cols-2 lg:grid-cols-3": !drawer,
+                      "grid-cols-2": drawer(),
+                      "sm:grid-cols-2 lg:grid-cols-3": !drawer(),
                     }}
                   >
                     <For each={group.rows}>

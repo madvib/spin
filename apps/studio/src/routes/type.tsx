@@ -34,7 +34,7 @@ import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
 import Page from "../components/Page";
-import { inDrawer } from "../app.tsx";
+import { inDrawer } from "../lib/host.ts";
 
 /** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
 function suffixOf(path: string): string {

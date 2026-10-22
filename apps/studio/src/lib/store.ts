@@ -208,24 +208,75 @@ export { activeName, dockSide, setActiveName };
  * theme's values under a name the theme does not use. The clamp must not
  * cost the author the mode they were working in — the choice is kept here,
  * and the theme that serves it gives it back.
+ *
+ * The choice has three answers, not two: light, dark, and SYSTEM — the
+ * studio following whatever the operating system asks for. The third answer
+ * is the studio's own rather than the theme's: a theme declares the modes it
+ * can be shown in, and the studio decides which of them it wears.
  */
-const [chosenMode, setChosenMode] = createSignal<Mode>("light");
+export type ModeChoice = "light" | "dark" | "system";
+
+const [chosenMode, setChosenMode] = createSignal<ModeChoice>("light");
+
+/**
+ * What the operating system asks for.
+ *
+ * The studio reads the preference and follows it while the choice is
+ * `system`, and the reading is live: an author who switches their machine
+ * to dark sees the studio follow, without touching the studio at all.
+ */
+const [osMode, setOsMode] = createSignal<Mode>(
+  systemPrefersDark() ? "dark" : "light",
+);
+
+/** Whether the system asks for a dark studio. */
+function systemPrefersDark(): boolean {
+  return typeof matchMedia === "function" &&
+    matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+if (typeof window !== "undefined" && typeof matchMedia === "function") {
+  const query = matchMedia("(prefers-color-scheme: dark)");
+  query.addEventListener(
+    "change",
+    () => setOsMode(query.matches ? "dark" : "light"),
+  );
+}
 
 /**
  * The mode the studio is showing.
  *
  * The theme's constraint and the author's choice, in that order: a theme
  * that serves the chosen mode wears it, and a theme that does not wears
- * its own first mode. The choice is kept either way, which is what makes
- * the clamp reversible: seating a two-mode theme after a one-mode theme
- * gives the mode back.
+ * its own first mode. The choice itself is not spent by the clamp — it is
+ * the mode the studio comes back to when a theme that serves it is seated
+ * again, so a theme that serves one mode cannot cost the author the other.
+ *
+ * A choice of `system` is the author's way of saying "whatever the machine
+ * says", so it is resolved to the machine's answer BEFORE the theme's
+ * constraint is applied: a theme that serves only light stays light even on
+ * a machine that asks for dark, because the theme's answer is the one that
+ * has to hold.
  */
 export function activeMode(): Mode {
-  return resolveMode(activeModes(), chosenMode());
+  const modes = activeModes();
+  const choice = chosenMode();
+  const wanted = choice === "system" ? osMode() : choice;
+  return resolveMode(modes, wanted);
+}
+
+/** The choice the author made: light, dark, or the system's own answer. */
+export function modeChoice(): ModeChoice {
+  return chosenMode();
+}
+
+/** What the operating system asks for. */
+export function systemMode(): Mode {
+  return osMode();
 }
 
 /** The mode the author chose. */
-export function setActiveMode(mode: Mode): void {
+export function setActiveMode(mode: ModeChoice): void {
   setChosenMode(mode);
 }
 

@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { BASE_ROLES, generateScale, valuesInMode } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
-import { inDrawer } from "../app.tsx";
+import { inDrawer } from "../lib/host.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { activeMode, activeModes, themeText } from "../lib/store.ts";

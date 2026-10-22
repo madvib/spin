@@ -3,7 +3,7 @@ import { A, useLocation } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { primitiveCategories, primitiveElements } from "@spin/preset";
 import { library } from "../lib/store.ts";
-import { inDrawer } from "../app.tsx";
+import { inDrawer } from "../lib/host.ts";
 
 /**
  * The component gallery's side list, read from the daemon.
@@ -81,12 +81,14 @@ const DRAWER_LINK =
 /**
  * The group heading, as the drawer wears it.
  *
- * The drawer reads as one strip, so a heading that took a row of its own
- * would push the rows it captions below the fold. It stays a caption: small,
- * quiet, and beside the rows it names.
+ * The drawer stacks the groups — a heading, and then the rows it names — so
+ * the heading is a heading: a size above the rows under it, a heavier
+ * weight, and the page's own ink rather than the muted step. A heading
+ * beside its rows, at their size and their quietness, is one more row, and
+ * the reader loses the one thing the group was there to say.
  */
 const DRAWER_BAND =
-  "shrink-0 text-xs font-semibold normal-case tracking-normal text-text-muted";
+  "text-sm font-semibold normal-case tracking-normal text-text";
 
 /** One row of the list: the component it names, and the glyph it wears. */
 interface Row {
@@ -99,8 +101,11 @@ interface Row {
 export default function ComponentsLayout(props: { children?: JSX.Element }) {
   const location = useLocation();
   // The drawer has no room for a rail beside the content: the list becomes a
-  // wrapping strip above the page it navigates.
-  const drawer = inDrawer();
+  // wrapping strip above the page it navigates. It is read through a memo, so
+  // the page re-lays-out when the host switches the studio between the
+  // drawer and the modal — a layout that only changed on the next
+  // navigation was a layout that was stale until the author left.
+  const drawer = createMemo(() => inDrawer());
   const [query, setQuery] = createSignal("");
   const needle = () => query().trim().toLowerCase();
   const total = () => library()?.length ?? 0;
@@ -140,21 +145,21 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
   });
 
   const navClass = () =>
-    drawer
+    drawer()
       ? "flex shrink-0 flex-col gap-2 border-b border-border bg-surface-raised p-3"
       : "flex w-[13rem] shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4";
   const listClass = () =>
-    drawer
-      ? "flow-list flex flex-wrap gap-x-3 gap-y-1"
+    drawer()
+      ? "flow-list flex flex-wrap gap-x-2 gap-y-1"
       : "flow-list flex flex-col gap-1";
 
   return (
     <div
-      class={drawer ? "flex min-h-0 flex-col" : "drawer-scroll flex"}
+      class={drawer() ? "flex min-h-0 flex-col" : "drawer-scroll flex"}
     >
       <nav aria-label="Components" class={navClass()}>
         <h2
-          class={drawer ? "text-sm text-text-muted" : "text-sm font-semibold"}
+          class={drawer() ? "text-sm text-text-muted" : "text-sm font-semibold"}
         >
           Components
         </h2>
@@ -189,15 +194,13 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
               }
             >
               <div
-                class={drawer
-                  ? "flex flex-wrap items-baseline gap-x-4 gap-y-1"
-                  : "flex flex-col"}
+                class={drawer() ? "flex flex-col gap-3" : "flex flex-col"}
               >
                 <For each={groups()}>
                   {(group) => (
                     <>
-                      {drawer
-                        ? <span class={DRAWER_BAND}>{group.label}</span>
+                      {drawer()
+                        ? <div class={DRAWER_BAND}>{group.label}</div>
                         : <div class={RAIL_BAND}>{group.label}</div>}
                       <ul class={listClass()}>
                         <For each={group.rows}>
@@ -205,7 +208,7 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
                             <li>
                               <A
                                 href={`/components/${row.name}`}
-                                class={drawer ? DRAWER_LINK : RAIL_LINK}
+                                class={drawer() ? DRAWER_LINK : RAIL_LINK}
                                 // The row is current when the URL names it.
                                 // The state is drawn by `data-[current]:`, so
                                 // the router's own active class has nothing to

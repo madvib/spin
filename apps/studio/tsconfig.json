@@ -37,8 +37,14 @@
       "@spin/api": [
         "../../packages/api/src/index.ts"
       ],
+      "@spin/project": [
+        "../../packages/project/src/index.ts"
+      ],
       "@spin/preset": [
         "../../packages/preset/src/index.ts"
+      ],
+      "@spin/preset/config": [
+        "../../packages/preset/src/config.ts"
       ],
       "@spin/solid": [
         "../../packages/preset/src/solid.d.ts"

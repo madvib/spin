@@ -33,7 +33,7 @@ import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { scaffoldTheme, treeToJson } from "@spin/theme";
 import { refetchProjectThemes } from "../components/Settings.tsx";
-import { inDrawer } from "../app.tsx";
+import { inDrawer } from "../lib/host.ts";
 import {
   activeComponents,
   activeMode,

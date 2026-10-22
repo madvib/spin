@@ -28,7 +28,7 @@ import ComponentsIndex from "./routes/components/index.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
-import { createSignal, For, Show, Suspense } from "solid-js";
+import { For, Show, Suspense } from "solid-js";
 import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
@@ -42,6 +42,7 @@ import {
   lastNotice,
   lastRefusal,
 } from "./lib/store.ts";
+import { inDrawer } from "./lib/host.ts";
 import { hostPath } from "./lib/client.ts";
 
 /**
@@ -49,35 +50,6 @@ import { hostPath } from "./lib/client.ts";
  * not depend on discovery having succeeded before it can render.
  */
 const STUDIO_THEME = "studio";
-
-/**
- * Whether the studio runs in the host's drawer.
- *
- * The overlay names `mode=` in the iframe URL, so the studio lays itself
- * out for the edge it occupies rather than guessing from its own width: a
- * drawer is narrow because the host made it narrow, and the pages get a
- * different layout there rather than a squeezed one.
- */
-const [hostMode, setHostMode] = createSignal<"drawer" | "modal">(
-  new URLSearchParams(location.search).get("mode") === "drawer"
-    ? "drawer"
-    : "modal",
-);
-
-// The host shell announces mode switches without reloading the frame: the
-// layout re-branches in place, which is the whole reason the toggles feel
-// instant instead of rebooting the studio.
-if (typeof window !== "undefined") {
-  globalThis.addEventListener("message", (event) => {
-    if (event.data === "spin:mode-drawer") setHostMode("drawer");
-    if (event.data === "spin:mode-modal") setHostMode("modal");
-  });
-}
-
-/** Whether the studio runs in the host's drawer. Pages lay out for it. */
-export function inDrawer(): boolean {
-  return hostMode() === "drawer";
-}
 
 // The rail reads the route table rather than keeping its own copy of the
 // paths: a concern the rail offers and a route the router serves are the
@@ -233,16 +205,24 @@ export default function App() {
                 It wears the studio's own theme, so editing a theme cannot
                 restyle the tool you are editing it with.
 
-                It is a STRIP, not a menu: forty-eight pixels of icons, and
-                every row is nothing but its glyph. So every row carries its
-                name twice — a `title` for the pointer, and an `aria-label`
-                for the reader and for the keyboard, where the row takes
-                focus and has to announce itself.
+                It is a STRIP, not a menu: a column of glyphs, and every row
+                is nothing but its glyph. So every row carries its name
+                twice — a `title` for the pointer, and an `aria-label` for
+                the reader and for the keyboard, where the row takes focus
+                and has to announce itself.
+
+                The rows are BOXES, not glyphs. A row that is only as wide as
+                its icon gives the pointer a target the size of a stamp and
+                paints its resting state as a chip the width of a letter — so
+                the rail reads as a column of marks pressed against its
+                edge. A row with room around it reads as a control, and the
+                air it carries is what the theme's own spacing step says a
+                control is worth.
                 */
               }
               <nav
                 aria-label="Studio"
-                class="sticky top-0 flex w-12 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-1"
+                class="sticky top-0 flex w-16 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-2"
                 classList={{
                   "border-r": !inDrawer() || dockSide() === "left",
                   "border-l": inDrawer() && dockSide() === "right",
@@ -269,13 +249,13 @@ export default function App() {
                   // the root path matches every path, and the mark would read as
                   // current on every page.
                   end
-                  class="peer mb-1 flex w-10 shrink-0 items-center justify-center rounded-md py-4 text-text hover:bg-surface"
+                  class="peer mb-2 flex h-12 w-10 shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
                   title={MARK.label}
                   aria-label={MARK.label}
                 >
                   <Web size={24} class="h-6 w-6 shrink-0" />
                 </A>
-                <RailTip label={MARK.label} top="top-5" />
+                <RailTip label={MARK.label} top="top-6" />
                 <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-2">
                   <For each={CONCERNS}>
                     {(route) => (
@@ -284,7 +264,7 @@ export default function App() {
                           href={hostPath(route.path)}
                           activeClass="bg-surface-sunken text-text font-semibold"
                           inactiveClass="text-text"
-                          class="peer flex items-center justify-center rounded-md hover:bg-surface"
+                          class="peer flex h-10 w-10 items-center justify-center rounded-md hover:bg-surface"
                           title={route.label}
                           aria-label={route.label}
                         >
@@ -371,45 +351,6 @@ export default function App() {
                     "overflow-y-auto": !inDrawer(),
                   }}
                 >
-                  <Show
-                    when={new URLSearchParams(location.search).get("app") !==
-                      null}
-                  >
-                    <div class="flex shrink-0 items-center justify-end gap-1 border-b border-border bg-surface px-2 py-1">
-                      <button
-                        type="button"
-                        class="bare shrink-0 text-text"
-                        aria-label={inDrawer() ? "Modal" : "Drawer"}
-                        title={inDrawer() ? "Modal" : "Drawer"}
-                        onClick={() => {
-                          const next = inDrawer() ? "modal" : "drawer";
-                          setHostMode(next);
-                          globalThis.parent.postMessage(
-                            next === "modal" ? "spin:modal" : "spin:drawer",
-                            "*",
-                          );
-                        }}
-                      >
-                        <span
-                          class="inline-block icon-md i-lucide-panel-right"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <button
-                        type="button"
-                        class="bare shrink-0 text-text"
-                        aria-label="Close"
-                        title="Close"
-                        onClick={() =>
-                          globalThis.parent.postMessage("spin:close", "*")}
-                      >
-                        <span
-                          class="inline-block icon-md i-lucide-x"
-                          aria-hidden="true"
-                        />
-                      </button>
-                    </div>
-                  </Show>
                   <PreviewStyles />
                   <Suspense>{props.children}</Suspense>
                 </div>

@@ -13,6 +13,14 @@
  * being edited and what is true about it, which theme, which mode, the three
  * verbs that change the file, and the checks on it.
  *
+ * In the DRAWER the bar is two lines: the state on one, the controls on the
+ * other, centred and evenly spaced. The drawer is narrow because the host
+ * made it narrow, and a strip of controls that wraps is a strip whose
+ * spacing is whatever the width left over — a control that ends up beside a
+ * different kind of control, half a row down from where its neighbours are.
+ * Two lines with the controls gathered in the middle of the second one says
+ * the same thing at any width.
+ *
  * It is CHROME, and it wears the studio's own theme: the control that saves
  * a theme must not be restyled by the theme it is saving.
  */
@@ -41,6 +49,12 @@ import { problemText } from "../lib/themes.ts";
 import { editorRouteFor } from "../lib/tokens.ts";
 import { hostPath } from "../lib/client.ts";
 import { BAR } from "../lib/routes.ts";
+import {
+  closeStudio,
+  embedded,
+  inDrawer,
+  toggleHostMode,
+} from "../lib/host.ts";
 import { ModePicker, ThemePicker } from "./Settings.tsx";
 
 /**
@@ -53,7 +67,18 @@ import { ModePicker, ThemePicker } from "./Settings.tsx";
  * rail.
  */
 const BAR_CLASS =
-  "sticky bottom-0 z-dropdown flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-t border-border bg-surface-raised px-3 py-1.5 text-sm";
+  "sticky bottom-0 z-dropdown flex shrink-0 border-t border-border bg-surface-raised px-3 py-1.5 text-sm";
+
+/**
+ * A glyph button in the bar.
+ *
+ * One size, one ink, one hover — so the controls in the strip are a row of
+ * equals. A control that is a word wide beside controls that are a glyph
+ * wide reads as a different kind of thing, and the row stops being a strip
+ * and becomes a list.
+ */
+const ICON_BUTTON =
+  "bare flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-text disabled:opacity-50";
 
 /**
  * What is true about the file, in the studio's words.
@@ -132,7 +157,17 @@ export default function StatusBar() {
   }
 
   return (
-    <footer aria-label="Editing" class={BAR_CLASS}>
+    <footer
+      aria-label="Editing"
+      class={BAR_CLASS}
+      classList={{
+        // Modal: one line, the state on the left and the controls on the
+        // right. Drawer: two lines, the state above and the controls
+        // gathered in the middle of the second.
+        "flex-row items-center gap-x-4": !inDrawer(),
+        "flex-col items-stretch gap-1": inDrawer(),
+      }}
+    >
       {
         /*
           The state of the document, first and leftmost: what is being
@@ -144,82 +179,88 @@ export default function StatusBar() {
           studio saying it was editing nothing.
         */
       }
-      <p class="min-w-0 text-text-muted">
-        <span class="whitespace-nowrap">
-          Editing <strong class="text-text">{theme()}</strong>
-        </span>
-        {" · "}
-        <span class="whitespace-nowrap">{activeMode()}</span>
-        {" · "}
-        <span class="whitespace-nowrap">{activeTokenCount()} tokens</span>
-        {" · "}
-        <span class="whitespace-nowrap">
-          {fileStateText(dirty(), diverged())}
-        </span>
-      </p>
+      <div
+        class="flex min-w-0 items-center gap-2"
+        classList={{ "justify-between": inDrawer() }}
+      >
+        <p class="min-w-0 text-text-muted">
+          <span class="whitespace-nowrap">
+            Editing <strong class="text-text">{theme()}</strong>
+          </span>
+          {" · "}
+          <span class="whitespace-nowrap">{activeMode()}</span>
+          {" · "}
+          <span class="whitespace-nowrap">{activeTokenCount()} tokens</span>
+          {" · "}
+          <span class="whitespace-nowrap">
+            {fileStateText(dirty(), diverged())}
+          </span>
+        </p>
 
-      {
-        /*
-          The two actions that answer the state, and only when there is
-          something to answer: re-reading the file is worth offering when
-          the editor and the file differ, and dropping the edits is worth
-          offering when there are edits. A button that is always there and
-          never does anything is a control the reader learns to skip.
-        */
-      }
-      <Show when={dirty() || diverged()}>
-        <button
-          type="button"
-          class="bare shrink-0 whitespace-nowrap text-text-muted hover:text-text"
-          title="Re-read this theme from disk"
-          onClick={() => {
-            void reload();
-          }}
-        >
-          Reload from disk
-        </button>
-      </Show>
-      <Show when={dirty()}>
-        <button
-          type="button"
-          class="bare shrink-0 whitespace-nowrap text-text-muted hover:text-text"
-          title="Drop the edits that have not been saved"
-          onClick={discard}
-        >
-          Discard changes
-        </button>
-      </Show>
-
-      <span class="flex-1" />
-
-      {
-        /*
-          The theme under edit, and the mode it is shown in.
-
-          These two are the studio's OWN controls — a popover for the
-          theme, a toggle group for the mode — and the runtime's are the
-          right ones: a menu that filters as it opens, a segmented control
-          that reads as one choice. They are plain controls here for now,
-          because those primitives are not in this tree yet. When they
-          arrive, these two slots are where they go.
-        */
-      }
-      <div class="row-sm shrink-0">
-        <label for="theme-picker-compact" class="text-text-muted">
-          Theme
-        </label>
-        <ThemePicker compact />
+        {
+          /*
+            The two actions that answer the state, and only when there is
+            something to answer: re-reading the file is worth offering when
+            the editor and the file differ, and dropping the edits is worth
+            offering when there are edits. A button that is always there and
+            never does anything is a control the reader learns to skip.
+          */
+        }
+        <Show when={dirty() || diverged()}>
+          <div class="row-sm shrink-0">
+            <button
+              type="button"
+              class="bare shrink-0 whitespace-nowrap text-text-muted hover:text-text"
+              title="Re-read this theme from disk"
+              onClick={() => {
+                void reload();
+              }}
+            >
+              Reload from disk
+            </button>
+            <Show when={dirty()}>
+              <button
+                type="button"
+                class="bare shrink-0 whitespace-nowrap text-text-muted hover:text-text"
+                title="Drop the edits that have not been saved"
+                onClick={discard}
+              >
+                Discard changes
+              </button>
+            </Show>
+          </div>
+        </Show>
       </div>
-      <ModePicker />
 
       {
-        /* The three verbs that change the document, as the icons they have
-          always been: undo, redo, and the write. */
+        /*
+          The controls: the theme under edit, the mode it is shown in, the
+          three verbs that change the document, the checks on it, the
+          studio's own routes, and the host's own verbs.
+
+          In the drawer they are gathered in the middle of their own line —
+          centred, evenly spaced, and all the same kind of control. A strip
+          that wraps is a strip whose spacing is whatever the width left
+          over.
+        */
       }
-      <div class="row-sm shrink-0">
+      <div
+        class="flex items-center gap-1"
+        classList={{
+          "ml-auto": !inDrawer(),
+          "justify-center": inDrawer(),
+        }}
+      >
+        <ThemePicker compact />
+        <ModePicker />
+
+        {
+          /* The three verbs that change the document, as the icons they have
+            always been: undo, redo, and the write. */
+        }
         <button
           type="button"
-          class="bare shrink-0 text-text disabled:opacity-50"
+          class={ICON_BUTTON}
           title="Undo"
           aria-label="Undo"
           disabled={!canUndo()}
@@ -232,7 +273,7 @@ export default function StatusBar() {
         </button>
         <button
           type="button"
-          class="bare shrink-0 text-text disabled:opacity-50"
+          class={ICON_BUTTON}
           title="Redo"
           aria-label="Redo"
           disabled={!canRedo()}
@@ -245,7 +286,7 @@ export default function StatusBar() {
         </button>
         <button
           type="button"
-          class="bare shrink-0 text-text disabled:opacity-50"
+          class={ICON_BUTTON}
           title={diverged()
             ? "The file changed on disk — reload from disk first"
             : dirty()
@@ -262,69 +303,109 @@ export default function StatusBar() {
             aria-hidden="true"
           />
         </button>
-      </div>
 
-      {
-        /*
-          The checks, as a status and not as a page.
+        {
+          /*
+            The checks, as a status and not as a page.
 
-          The findings are the document's, and they are the same on every
-          route — so a section on one page would be a section that is
-          missing from the other eight. The bar carries the count, and the
-          count opens the panel that lists them.
-        */
-      }
-      <button
-        type="button"
-        class="bare row-sm shrink-0 whitespace-nowrap"
-        classList={{
-          "text-semantic-error": issues().length > 0,
-          "text-text-muted": issues().length === 0,
-        }}
-        aria-expanded={checksOpen()}
-        aria-haspopup="dialog"
-        title="What the checks say about this document"
-        onClick={() => setChecksOpen(true)}
-      >
-        <span
-          class={`inline-block shrink-0 icon-md ${
-            issues().length > 0
-              ? "i-lucide-shield-alert"
-              : "i-lucide-shield-check"
-          }`}
-          aria-hidden="true"
-        />
-        <span>
-          {issues().length === 0
-            ? "no issues"
+            The findings are the document's, and they are the same on every
+            route — so a section on one page would be a section that is
+            missing from the other eight. The bar carries the count, and the
+            count opens the panel that lists them.
+          */
+        }
+        <button
+          type="button"
+          class={ICON_BUTTON}
+          classList={{
+            "text-semantic-error": issues().length > 0,
+            "text-text-muted": issues().length === 0,
+          }}
+          aria-expanded={checksOpen()}
+          aria-haspopup="dialog"
+          aria-label={issues().length === 0
+            ? "No issues"
             : `${issues().length} ${
               issues().length === 1 ? "issue" : "issues"
             }`}
-        </span>
-      </button>
+          title="What the checks say about this document"
+          onClick={() => setChecksOpen(true)}
+        >
+          <span
+            class={`inline-block shrink-0 icon-md ${
+              issues().length > 0
+                ? "i-lucide-shield-alert"
+                : "i-lucide-shield-check"
+            }`}
+            aria-hidden="true"
+          />
+          <Show when={issues().length > 0}>
+            <span class="text-xs">{issues().length}</span>
+          </Show>
+        </button>
 
-      {
-        /* The studio's own routes, which the rail does not carry: the rail
-          is navigation to the PROJECT, and the settings are the tool's. A
-          LINK, so it is not a button wearing a link's clothes — and the
-          underline is taken off, because an underlined glyph is a glyph
-          with a line through the page. */
-      }
-      <For each={BAR}>
-        {(route) => (
-          <A
-            href={hostPath(route.path)}
-            class="no-underline flex shrink-0 items-center justify-center text-text"
-            title={route.label}
-            aria-label={route.label}
+        {
+          /* The studio's own routes, which the rail does not carry: the rail
+            is navigation to the PROJECT, and the settings are the tool's. A
+            LINK, so it is not a button wearing a link's clothes — and the
+            underline is taken off, because an underlined glyph is a glyph
+            with a line through the page. */
+        }
+        <For each={BAR}>
+          {(route) => (
+            <A
+              href={hostPath(route.path)}
+              class={`${ICON_BUTTON} no-underline`}
+              title={route.label}
+              aria-label={route.label}
+            >
+              <span
+                class={`inline-block shrink-0 text-xl ${route.icon}`}
+                aria-hidden="true"
+              />
+            </A>
+          )}
+        </For>
+
+        {
+          /*
+            The host's own verbs: the edge the studio is shown at, and the
+            way out of it.
+
+            They were a strip of their own above the work — a band of
+            nothing that pushed the page down — and they are the HOST's
+            controls, so they belong with the rest of the chrome rather than
+            inside the project's own theme. The bar is where the studio's
+            own furniture lives, so that is where they are.
+          */
+        }
+        <Show when={embedded()}>
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            aria-label={inDrawer() ? "Modal" : "Drawer"}
+            title={inDrawer() ? "Modal" : "Drawer"}
+            onClick={toggleHostMode}
           >
             <span
-              class={`inline-block shrink-0 text-xl ${route.icon}`}
+              class="inline-block shrink-0 icon-md i-lucide-panel-right"
               aria-hidden="true"
             />
-          </A>
-        )}
-      </For>
+          </button>
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            aria-label="Close"
+            title="Close"
+            onClick={closeStudio}
+          >
+            <span
+              class="inline-block shrink-0 icon-md i-lucide-x"
+              aria-hidden="true"
+            />
+          </button>
+        </Show>
+      </div>
 
       {
         /*
@@ -337,7 +418,11 @@ export default function StatusBar() {
       <Show when={checksOpen()}>
         <dialog
           aria-label="Checks"
-          class="stack panel w-96 max-w-[90vw]"
+          // The chrome's own type. A heading in the chrome is not a heading
+          // in a document: the theme's heading face belongs to the document
+          // the studio previews, and the studio's chrome has one face — the
+          // body face it reads in everywhere else.
+          class="stack panel w-96 max-w-[90vw] font-sans"
           ref={(el: HTMLDialogElement) => {
             requestAnimationFrame(() => {
               if (el.isConnected && !el.open) el.showModal();
@@ -345,7 +430,7 @@ export default function StatusBar() {
           }}
           onClose={() => setChecksOpen(false)}
         >
-          <h2 class="text-lg">Checks</h2>
+          <h2 class="text-lg font-sans">Checks</h2>
           <Show
             when={issues().length > 0}
             fallback={

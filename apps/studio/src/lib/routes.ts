@@ -60,7 +60,10 @@ export const ROUTES = [
   {
     path: "/icons",
     label: "Icons",
-    icon: "i-lucide-shapes",
+    // A stack of glyphs, not a shapes glyph: `shapes` reads as geometry —
+    // a concern the style page already owns — where the concern here is a
+    // SET of glyphs to choose from.
+    icon: "i-lucide-layers",
     place: "concern",
     owns: [["icon"]],
   },

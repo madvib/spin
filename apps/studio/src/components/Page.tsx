@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { inDrawer } from "../app.tsx";
+import { inDrawer } from "../lib/host.ts";
 
 /**
  * The frame every full-page concern sits in: its own scroll rail, a column

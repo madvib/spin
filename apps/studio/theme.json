@@ -327,8 +327,8 @@
         "$description": "Code, identifiers, tabular figures."
       },
       "heading": {
-        "$value": "Georgia, ui-serif, Cambria, serif",
-        "$description": "Headings, and anything that leads the document."
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Headings, and anything that leads the document. The tool speaks in one voice: a serif here made every heading in the chrome a different typeface from the body."
       }
     },
     "size": {

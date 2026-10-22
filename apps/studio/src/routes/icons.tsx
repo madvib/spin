@@ -44,7 +44,7 @@ import {
 } from "../lib/icons.ts";
 import { createLockstep } from "../lib/lockstep.ts";
 import { activeMode, themeText } from "../lib/store.ts";
-import { inDrawer } from "../app.tsx";
+import { inDrawer } from "../lib/host.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens } from "../lib/tokens.ts";
 
