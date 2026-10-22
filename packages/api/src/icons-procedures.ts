@@ -1,9 +1,10 @@
 /**
- * The icon catalogue, over RPC.
+ * The icon catalogue, and the project's saved icons, over RPC.
  *
  * Five iconify collections are installed — `lucide`, `material-symbols`,
- * `tabler`, `carbon`, `ph` — and the studio asks what they hold rather than
- * remembering. Two endpoints, split by what the page actually needs:
+ * `tabler`, `carbon`, `ph` — and the studio asks what they hold rather
+ * than remembering. The catalogue answers in two steps, split by what the
+ * page actually needs:
  *
  *   1. `catalog` answers "what are the names", once, for the whole grid. It
  *      carries no glyph bodies — 44k strings at a body apiece is a megabyte
@@ -17,6 +18,15 @@
  *      glyph the user copies (`i-<collection>-<name>`) still resolves
  *      against the same collections the preset is composed with.
  *
+ * `collections` answers the third question — who made these, and under
+ * what licence — which is what a saved icon has to record about itself.
+ *
+ * The SAVED ICONS are the other half of the surface, and they are not the
+ * catalogue: a catalogue is what everybody may draw, and a library is what
+ * this project chose to keep. The saved icons live in the project, so their
+ * procedures resolve a root the way the project procedures do, and the
+ * logic over them is the project's own (`@spin/project`).
+ *
  * A name that is not in a collection draws `null` rather than throwing: one
  * missing glyph is a state the studio can name, and an exception out of a
  * handler is not.
@@ -25,13 +35,22 @@
 import { oc } from "@orpc/contract";
 import * as v from "valibot";
 import { implement } from "@orpc/server";
+import carbonInfo from "@iconify-json/carbon/info.json" with { type: "json" };
 import carbonSet from "@iconify-json/carbon/icons.json" with { type: "json" };
+import lucideInfo from "@iconify-json/lucide/info.json" with { type: "json" };
 import lucideSet from "@iconify-json/lucide/icons.json" with { type: "json" };
+import materialSymbolsInfo from "@iconify-json/material-symbols/info.json" with {
+  type: "json",
+};
 import materialSymbolsSet from "@iconify-json/material-symbols/icons.json" with {
   type: "json",
 };
+import phInfo from "@iconify-json/ph/info.json" with { type: "json" };
 import phSet from "@iconify-json/ph/icons.json" with { type: "json" };
+import tablerInfo from "@iconify-json/tabler/info.json" with { type: "json" };
 import tablerSet from "@iconify-json/tabler/icons.json" with { type: "json" };
+import { projectService } from "@spin/project";
+import { rootFor } from "./project-procedures.ts";
 
 /** One glyph: the markup, and the box the markup was drawn in. */
 export interface IconBody {
@@ -64,11 +83,12 @@ interface IconifySet extends IconifyGlyph {
   readonly aliases: Record<string, IconifyGlyph>;
 }
 
-/** A collection, as the studio sees it: every offered name, and each glyph. */
-interface Collection {
-  readonly prefix: string;
-  readonly names: readonly string[];
-  readonly glyphs: ReadonlyMap<string, IconBody>;
+/** The part of an iconify collection's info file the studio reads. */
+interface IconifyInfo {
+  readonly prefix?: string;
+  readonly name?: string;
+  readonly author?: { readonly name?: string; readonly url?: string };
+  readonly license?: { readonly title?: string; readonly spdx?: string };
 }
 
 /**
@@ -76,7 +96,9 @@ interface Collection {
  *
  * The five JSON files are a static import each: they are data on this host,
  * not a fetch, and the catalogue they build is the same for every project —
- * which is what makes it safe to build once.
+ * which is what makes it safe to build once. The info files ride beside
+ * them: who made a collection and under what licence is the answer a saved
+ * icon has to carry, and it is the same answer for every project.
  */
 const INSTALLED: readonly IconifySet[] = [
   lucideSet,
@@ -85,6 +107,27 @@ const INSTALLED: readonly IconifySet[] = [
   carbonSet,
   phSet,
 ].map((set) => set as unknown as IconifySet);
+
+const INSTALLED_INFO: readonly IconifyInfo[] = [
+  lucideInfo,
+  materialSymbolsInfo,
+  tablerInfo,
+  carbonInfo,
+  phInfo,
+].map((info) => info as unknown as IconifyInfo);
+
+/** A collection, as the studio sees it: every offered name, and each glyph. */
+interface Collection {
+  readonly prefix: string;
+  readonly names: readonly string[];
+  readonly glyphs: ReadonlyMap<string, IconBody>;
+  /** The collection's own name, as iconify states it. */
+  readonly title: string;
+  /** Who made it. */
+  readonly author: string | null;
+  /** The licence it is under. */
+  readonly license: string | null;
+}
 
 /**
  * The collections, built once and remembered for this host's lifetime.
@@ -140,7 +183,15 @@ function buildCollection(set: IconifySet): Collection | undefined {
   // order; the page ranks from here and the input order stops it being
   // arbitrary.
   names.sort();
-  return { prefix: set.prefix, names, glyphs };
+  const info = INSTALLED_INFO.find((entry) => entry.prefix === set.prefix);
+  return {
+    prefix: set.prefix,
+    names,
+    glyphs,
+    title: info?.name ?? set.prefix,
+    author: info?.author?.name ?? null,
+    license: info?.license?.title ?? null,
+  };
 }
 
 /**
@@ -161,6 +212,48 @@ function dimension(
     height: glyph.height ?? set.height ?? 16,
   };
 }
+
+/**
+ * The name a saved icon is filed under.
+ *
+ * A file stem, like a theme's: the name is what the project writes back to
+ * disk, and a name the file system will not take is refused here rather
+ * than tidied on its way to the disk.
+ */
+const IconName = v.pipe(
+  v.string(),
+  v.regex(/^[a-z0-9][a-z0-9-]*$/i),
+  v.description("An icon file stem, e.g. `arrow-up`."),
+);
+
+/**
+ * Where a saved icon came from.
+ *
+ * Every member may be absent: attribution is recordable, not required, and
+ * an icon the project drew itself has no collection behind it.
+ */
+const IconAttribution = v.object({
+  collection: v.nullable(v.string()),
+  author: v.nullable(v.string()),
+  license: v.nullable(v.string()),
+});
+
+/** A saved icon the project holds. */
+const SavedIcon = v.object({
+  name: v.string(),
+  markup: v.string(),
+  attribution: IconAttribution,
+});
+
+/**
+ * A project a call is about.
+ *
+ * Optional for the same reason the project procedures' is: the daemon has
+ * a project it was started with, and one process can serve many.
+ */
+const ProjectInput = v.object({
+  root: v.optional(v.string()),
+});
 
 export const iconsContract = oc.tag("icons").router({
   icons: {
@@ -190,6 +283,59 @@ export const iconsContract = oc.tag("icons").router({
         path: "/icons/body",
         summary: "One glyph's inline SVG body, at its own size",
       }),
+    collections: oc
+      .input(v.object({}))
+      .output(v.array(v.object({
+        prefix: v.string(),
+        name: v.string(),
+        author: v.nullable(v.string()),
+        license: v.nullable(v.string()),
+      })))
+      .route({
+        method: "POST",
+        path: "/icons/collections",
+        summary:
+          "The installed collections, with who made them and under what licence",
+      }),
+    saved: {
+      list: oc
+        .input(ProjectInput)
+        .output(v.array(SavedIcon))
+        .route({
+          method: "GET",
+          path: "/icons/saved/list",
+          summary: "The icons the project has saved, with their attribution",
+        }),
+      read: oc
+        .input(v.object({ name: IconName, root: v.optional(v.string()) }))
+        .output(v.object({ icon: v.nullable(SavedIcon) }))
+        .route({
+          method: "GET",
+          path: "/icons/saved/read",
+          summary: "Read one saved icon, markup and attribution",
+        }),
+      save: oc
+        .input(v.object({
+          name: IconName,
+          markup: v.string(),
+          attribution: v.optional(IconAttribution),
+          root: v.optional(v.string()),
+        }))
+        .output(v.object({ error: v.nullable(v.string()) }))
+        .route({
+          method: "POST",
+          path: "/icons/saved/save",
+          summary: "Save one icon into the project's library",
+        }),
+      remove: oc
+        .input(v.object({ name: IconName, root: v.optional(v.string()) }))
+        .output(v.object({ error: v.nullable(v.string()) }))
+        .route({
+          method: "POST",
+          path: "/icons/saved/remove",
+          summary: "Remove one saved icon from the project's library",
+        }),
+    },
   },
 });
 
@@ -220,5 +366,34 @@ export const iconsRouter = os.router({
         height: glyph.height,
       };
     }),
+    collections: os.icons.collections.handler(() =>
+      collections().map((collection) => ({
+        prefix: collection.prefix,
+        name: collection.title,
+        author: collection.author,
+        license: collection.license,
+      }))
+    ),
+    saved: {
+      list: os.icons.saved.list.handler(({ input }) =>
+        projectService.icons.list(rootFor(input))
+      ),
+      read: os.icons.saved.read.handler(({ input }) =>
+        projectService.icons.read(rootFor(input), input.name)
+      ),
+      save: os.icons.saved.save.handler(({ input }) =>
+        projectService.icons.write(rootFor(input), input.name, {
+          markup: input.markup,
+          attribution: input.attribution ?? {
+            collection: null,
+            author: null,
+            license: null,
+          },
+        })
+      ),
+      remove: os.icons.saved.remove.handler(({ input }) =>
+        projectService.icons.remove(rootFor(input), input.name)
+      ),
+    },
   },
 });

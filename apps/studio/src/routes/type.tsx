@@ -27,7 +27,6 @@
 import {
   createEffect,
   createMemo,
-  createResource,
   createSignal,
   For,
   on,
@@ -59,7 +58,7 @@ import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
 import Page from "../components/Page";
 import { inDrawer } from "../lib/host.ts";
-import { type CatalogFont, searchCatalog } from "../lib/fonts.ts";
+import { type CatalogFont } from "../lib/fonts.ts";
 import { spinClient } from "../lib/client.ts";
 
 /** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
@@ -468,9 +467,11 @@ function FaceCard(props: { slot: string }) {
         {SPECIMENS[role()] ?? SENTENCE}
       </p>
       <div class="border-border stack-sm border-t pt-4">
-        <code class="text-text-muted text-xs break-words">
-          {row()?.value ?? "—"}
-        </code>
+        <FamilyField
+          value={row()?.value ?? ""}
+          label={`font.family.${props.slot}`}
+          onCommit={(stack) => editToken([`font.family.${props.slot}`], stack)}
+        />
         <p class="text-xs text-text-muted">
           {loaded().includes(family())
             ? `The theme loads ${family()}.`
@@ -542,9 +543,10 @@ function ElementRow(props: {
   ): TokenRow | undefined => {
     const fallback = fields()[field]?.fallback;
     if (fallback === undefined) return undefined;
+    // A face falls back through the contract's chain; a size and a weight
+    // name their step outright.
     if (field === "family") return faceFor(props.families, fallback);
-    return props.families.find((row) => row.path === fallback) ??
-      fontRows().find((row) => row.path === fallback);
+    return fontRows().find((row) => row.path === fallback);
   };
 
   const family = () =>
@@ -686,13 +688,25 @@ function FamilyField(props: {
 }) {
   const [open, setOpen] = createSignal(false);
   const [draft, setDraft] = createSignal(props.value);
-  // The catalogue is asked for when the field opens, not when the page
-  // mounts: a reader who never touches a face never waits for two thousand
-  // families.
-  const [fonts] = createResource(
-    () => open(),
-    (wanted) => (wanted ? catalogue() : Promise.resolve([])),
-  );
+  // The families that match what has been typed, asked of the catalogue the
+  // host keeps. The studio does not hold the catalogue: the host has the
+  // whole of it, and the endpoint answers a name rather than a list.
+  //
+  // A signal, not a resource: a resource read during the render is tracked
+  // by the shell's Suspense, and a refetch would take the page's content
+  // down for a moment — the scroll with it, so the field the reader just
+  // focused would jump out of sight.
+  const [matches, setMatches] = createSignal<readonly CatalogFont[]>([]);
+  let asked = "";
+  createEffect(() => {
+    const query = firstFamily(draft());
+    if (query === asked) return;
+    asked = query;
+    void searchFonts(query).then((listed) => {
+      // A slower answer for an older question must not land over a newer one.
+      if (asked === query) setMatches(listed);
+    });
+  });
 
   // The document's answer lands in the field once it is written; until then
   // the author is typing into it, and a re-render must not swallow the word
@@ -700,7 +714,6 @@ function FamilyField(props: {
   createEffect(on(() => props.value, (value) => setDraft(value)));
 
   const family = () => firstFamily(draft());
-  const matches = () => searchCatalog(fonts() ?? [], firstFamily(draft()), 8);
   return (
     <div class="stack-sm">
       <div class="row-sm">
@@ -736,7 +749,7 @@ function FamilyField(props: {
           }}
         />
       </div>
-      <Show when={open() && (fonts() ?? []).length > 0}>
+      <Show when={open() && matches().length > 0}>
         <ul class="stack-sm m-0 w-64 max-w-full list-none p-0">
           <For each={matches()}>
             {(font) => (
@@ -776,24 +789,17 @@ function stackFor(font: CatalogFont): string {
 }
 
 /**
- * The catalogue, fetched once for the whole page.
+ * The families that match a name, asked of the host's catalogue.
  *
- * Two thousand families is a filter, not a list: the field asks the
- * catalogue for the families that match what has been typed.
+ * Two thousand families is a filter, not a list: the field asks the host for
+ * the families that match what has been typed, and the host answers from the
+ * whole of its catalogue rather than from the forty it would send unasked.
  */
-let catalogueRequest: Promise<readonly CatalogFont[]> | undefined;
+let client: ReturnType<typeof spinClient> | undefined;
 
-function catalogue(): Promise<readonly CatalogFont[]> {
-  catalogueRequest ??= (async () => {
-    try {
-      const client = await spinClient();
-      const listed = await client.fonts.catalog({});
-      return listed as readonly CatalogFont[];
-    } catch {
-      // A catalogue that cannot be reached is an empty one: the field still
-      // takes a stack, which is the decision, and the list is a convenience.
-      return [];
-    }
-  })();
-  return catalogueRequest;
+function searchFonts(query: string): Promise<readonly CatalogFont[]> {
+  client ??= spinClient();
+  return client
+    .then((ready) => ready.fonts.catalog({ query }))
+    .then((listed) => listed as readonly CatalogFont[]);
 }

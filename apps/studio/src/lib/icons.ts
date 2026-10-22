@@ -1,5 +1,5 @@
 /**
- * The icon catalogue, over RPC — and the search that reads it.
+ * The icon catalogue, over RPC — and the project's saved icons.
  *
  * The five installed iconify collections live on the host the project runs
  * on; the studio asks for their names rather than shipping 44k glyphs in its
@@ -19,6 +19,10 @@
  * Bodies come one glyph at a time and are cached per name: the page renders
  * the exact inline SVG at the theme's own `icon.*` sizes, so what a glyph
  * costs is one small RPC, once.
+ *
+ * The SAVED ICONS are the other half: the project's own library, as against
+ * the catalogue everybody may draw. The daemon owns the files; this file
+ * asks it, and composes the markup a saved icon is written as.
  */
 
 import { spinClient } from "./client.ts";
@@ -34,6 +38,33 @@ export interface IconGlyph {
   readonly body: string;
   readonly width: number;
   readonly height: number;
+}
+
+/**
+ * Where a saved icon came from.
+ *
+ * Every member may be absent: attribution is recordable, not required, and
+ * an icon the project drew itself has no collection behind it.
+ */
+export interface IconAttribution {
+  readonly collection: string | null;
+  readonly author: string | null;
+  readonly license: string | null;
+}
+
+/** A saved icon the project holds. */
+export interface SavedIcon {
+  readonly name: string;
+  readonly markup: string;
+  readonly attribution: IconAttribution;
+}
+
+/** One installed collection, with who made it and under what licence. */
+export interface IconCollection {
+  readonly prefix: string;
+  readonly name: string;
+  readonly author: string | null;
+  readonly license: string | null;
 }
 
 /** How many results a query offers. A grid past this is a wall. */
@@ -135,4 +166,90 @@ export function collectionsIn(
     order.push(entry.collection);
   }
   return order;
+}
+
+/**
+ * The markup a saved icon is written as: an inline SVG element.
+ *
+ * The element carries the box the glyph was drawn in — its `viewBox` — and
+ * nothing else: no width and no height, so the icon takes the size it is
+ * given (the theme's icon step in the studio, whatever an app asks for)
+ * rather than the size it happened to be collected at.
+ *
+ * `fill="currentColor"` is the element's own, so a glyph that paints with
+ * the current colour follows the text it sits in. A glyph that strokes
+ * (lucide, tabler) says so on its own paths, and this does not touch it.
+ */
+export function iconMarkup(glyph: IconGlyph): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${glyph.width} ${glyph.height}" fill="currentColor">${glyph.body}</svg>`;
+}
+
+/**
+ * Where a saved icon came from, as one line.
+ *
+ * What was stated and nothing more: an icon whose attribution was never
+ * recorded says so, rather than showing an empty line.
+ */
+export function attributionText(attribution: IconAttribution): string {
+  const parts = [
+    attribution.collection,
+    attribution.author,
+    attribution.license,
+  ]
+    .filter((part): part is string => part !== null && part !== "");
+  return parts.length > 0 ? parts.join(" · ") : "no source recorded";
+}
+
+/**
+ * The installed collections, with who made them and under what licence.
+ *
+ * Cached as a promise, like the catalogue: the answer is the same for every
+ * project and every session, and the page asks for it once.
+ */
+let loadingCollections: Promise<readonly IconCollection[]> | undefined;
+
+export function loadIconCollections(): Promise<readonly IconCollection[]> {
+  loadingCollections ??= (async () => {
+    const client = await spinClient();
+    const rows = await client.icons.collections({});
+    return rows as readonly IconCollection[];
+  })();
+  return loadingCollections;
+}
+
+/**
+ * The icons the project has saved.
+ *
+ * Not cached: the library changes while the studio is open — the author
+ * saves and removes — and a list fetched once is a list only a reload can
+ * mend.
+ */
+export async function loadSavedIcons(): Promise<readonly SavedIcon[]> {
+  const client = await spinClient();
+  const icons = await client.icons.saved.list({});
+  return icons.map((icon) => ({
+    name: icon.name,
+    markup: icon.markup,
+    attribution: icon.attribution,
+  }));
+}
+
+/** Saves one icon into the project's library, and says what it did. */
+export async function saveSavedIcon(
+  name: string,
+  markup: string,
+  attribution: IconAttribution,
+): Promise<{ error: string | null }> {
+  const client = await spinClient();
+  const saved = await client.icons.saved.save({ name, markup, attribution });
+  return { error: saved.error ?? null };
+}
+
+/** Removes one icon from the project's library, and says what it did. */
+export async function removeSavedIcon(
+  name: string,
+): Promise<{ error: string | null }> {
+  const client = await spinClient();
+  const removed = await client.icons.saved.remove({ name });
+  return { error: removed.error ?? null };
 }

@@ -42,6 +42,52 @@ export interface ProjectTheme {
 }
 
 /**
+ * Where a saved icon came from.
+ *
+ * Recordable, not required: an icon the project drew itself has no
+ * collection behind it, and an author who knows the author and the licence
+ * states them. A member that was not stated is `null` rather than an empty
+ * string, so "nobody said" and "somebody said nothing" cannot be confused.
+ */
+export interface IconAttribution {
+  /** The collection the glyph came from, e.g. `lucide`. */
+  readonly collection: string | null;
+  /** Who made it. */
+  readonly author: string | null;
+  /** The licence it is under, e.g. `ISC`. */
+  readonly license: string | null;
+}
+
+/**
+ * A saved icon the project holds.
+ *
+ * The markup is the icon: an inline SVG element, stored as text and read
+ * back byte for byte, because it is what a renderer draws and what an
+ * author pastes.
+ */
+export interface ProjectIcon {
+  /** File stem, and the name written back to disk. */
+  readonly name: string;
+  /** The markup that draws it. */
+  readonly markup: string;
+  /** Where it came from, when that is known. */
+  readonly attribution: IconAttribution;
+}
+
+/**
+ * What a save carries: the markup, and where it came from.
+ *
+ * The name is the save's own argument — a file stem, like a theme's — so
+ * the document on disk does not repeat what its own name already says.
+ */
+export interface SavedIcon {
+  /** The markup that draws the icon. */
+  readonly markup: string;
+  /** Where it came from, when that is known. */
+  readonly attribution: IconAttribution;
+}
+
+/**
  * What an operation that writes answers with.
  *
  * `error` is the message a person reads; a refused write is not an

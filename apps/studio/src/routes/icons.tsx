@@ -1,5 +1,6 @@
 /**
- * Icons — the glyphs a theme can spend, at the sizes the theme spends them.
+ * Icons — the glyphs a theme can spend, at the sizes the theme spends them,
+ * and the ones this project has decided to keep.
  *
  * Five iconify collections are installed, 44,082 names between them. This
  * page is where they are chosen, and it answers three questions:
@@ -20,6 +21,13 @@
  *     the same collections the server reads. No rule is safelisted for the
  *     44k — the page renders bodies it was given, never classes it hopes
  *     exist.
+ *
+ * The SAVED ICONS are the project's own: the library it keeps, as against
+ * the catalogue anybody may draw. A glyph the author chooses is written into
+ * the project with where it came from — the collection it was fetched from,
+ * and that collection's author and licence — so the library can be reused
+ * and credited. The library is the project's data; the daemon owns the
+ * files, and this page asks it.
  */
 
 import {
@@ -34,12 +42,18 @@ import {
 import TokenGroupEditor from "../components/demos/TokenGroupEditor.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import {
+  attributionText,
   collectionsIn,
   type IconEntry,
   type IconGlyph,
+  iconMarkup,
   iconUtility,
   loadIconCatalog,
+  loadIconCollections,
   loadIconGlyph,
+  loadSavedIcons,
+  removeSavedIcon,
+  saveSavedIcon,
   searchIcons,
 } from "../lib/icons.ts";
 import { createLockstep } from "../lib/lockstep.ts";
@@ -71,10 +85,16 @@ export default function IconsPage() {
   );
 
   const [catalog] = createResource(loadIconCatalog);
+  const [installed] = createResource(loadIconCollections);
+  const [saved, { refetch: refetchSaved }] = createResource(loadSavedIcons);
   const [picked, setPicked] = createSignal("");
   const [query, setQuery] = createSignal("");
   const [size, setSize] = createSignal("md");
   const [copied, setCopied] = createSignal<string | null>(null);
+  /** The glyph the author is looking at: the one the panel offers to keep. */
+  const [chosen, setChosen] = createSignal<IconEntry | null>(null);
+  /** What the page last did about the library. */
+  const [notice, setNotice] = createSignal<string | null>(null);
   let copiedFor: ReturnType<typeof globalThis.setTimeout> | undefined;
 
   /** The collections the catalogue carries, in the order it lists them. */
@@ -99,6 +119,11 @@ export default function IconsPage() {
     return /^\d*\.?\d+$/.test(value) ? `${value}px` : value;
   });
 
+  /** Whether the library already holds an icon under this name. */
+  const kept = createMemo(() =>
+    (saved() ?? []).some((icon) => icon.name === chosen()?.name)
+  );
+
   async function copy(entry: IconEntry): Promise<void> {
     const utility = iconUtility(entry);
     try {
@@ -115,6 +140,47 @@ export default function IconsPage() {
     copiedFor = globalThis.setTimeout(() => setCopied(null), 1200);
   }
 
+  /**
+   * Keeps the glyph the author is looking at.
+   *
+   * The markup is the glyph's own body in an SVG element that carries the
+   * box it was drawn in, and the attribution is what the collection says
+   * about itself — the author and the licence, taken from where the glyph
+   * came from rather than typed in.
+   */
+  async function keep(entry: IconEntry): Promise<void> {
+    const glyph = await loadIconGlyph(entry);
+    if (glyph === null) {
+      setNotice(`No glyph “${entry.name}” in ${entry.collection}.`);
+      return;
+    }
+    const collection = installed()?.find(
+      (candidate) => candidate.prefix === entry.collection,
+    );
+    const result = await saveSavedIcon(entry.name, iconMarkup(glyph), {
+      collection: entry.collection,
+      author: collection?.author ?? null,
+      license: collection?.license ?? null,
+    });
+    if (result.error !== null) {
+      setNotice(result.error);
+      return;
+    }
+    refetchSaved();
+    setNotice(`Kept “${entry.name}” in the library.`);
+  }
+
+  /** Takes an icon out of the library. */
+  async function unkeep(name: string): Promise<void> {
+    const result = await removeSavedIcon(name);
+    if (result.error !== null) {
+      setNotice(result.error);
+      return;
+    }
+    refetchSaved();
+    setNotice(`Removed “${name}” from the library.`);
+  }
+
   return (
     <div class="flex min-h-0 min-w-0 flex-1 flex-col">
       <div class="shrink-0 p-4 stack-sm">
@@ -122,7 +188,8 @@ export default function IconsPage() {
         <p class="max-w-screen-md text-text-muted">
           Every glyph in the five installed collections. Click one to copy its
           utility; the grid draws at the selected step of the theme's icon
-          scale, so an edit below changes what you see.
+          scale, so an edit below changes what you see. The library beside it is
+          the project's own — the glyphs this project has kept.
         </p>
         <div class="flex flex-wrap items-center gap-2">
           <button
@@ -182,12 +249,56 @@ export default function IconsPage() {
             </For>
           </div>
         </div>
+
+        {
+          /*
+        The glyph in hand. The grid is a catalogue — 44k names — and the
+        library is a choice, so the choice needs something to be made about:
+        the one glyph the author looked at, named, with what it would cost
+        to keep and what it would cost to copy.
+        */
+        }
+        <Show when={chosen()}>
+          {(entry) => (
+            <div class="flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface-raised p-2">
+              <Glyph entry={entry()} box={box()} />
+              <div class="stack-sm min-w-[10rem] flex-1">
+                <p class="truncate text-sm font-semibold text-text">
+                  {entry().collection} · {entry().name}
+                </p>
+                <code class="truncate font-mono text-xs text-text-muted">
+                  {iconUtility(entry())}
+                </code>
+              </div>
+              <button
+                type="button"
+                class="secondary s-sm"
+                onClick={() => copy(entry())}
+              >
+                Copy utility
+              </button>
+              <button
+                type="button"
+                class="s-sm"
+                onClick={() => keep(entry())}
+              >
+                {kept() ? "Replace in library" : "Keep in library"}
+              </button>
+            </div>
+          )}
+        </Show>
+
         <Show when={copied() !== null}>
           <p class="text-xs text-text-muted" role="status">
             copied{" "}
             <code class="font-mono text-text">
               {copied()}
             </code>
+          </p>
+        </Show>
+        <Show when={notice() !== null}>
+          <p class="text-xs text-text-muted" role="status">
+            {notice()}
           </p>
         </Show>
       </div>
@@ -211,10 +322,15 @@ export default function IconsPage() {
                       class="stack-sm items-center rounded-lg border border-border bg-surface-raised p-2 w-24 text-text-muted hover:border-primary hover:text-text"
                       classList={{
                         "border-primary text-text": copied() ===
-                          iconUtility(entry),
+                            iconUtility(entry) ||
+                          (chosen()?.collection === entry.collection &&
+                            chosen()?.name === entry.name),
                       }}
                       aria-label={`Copy ${iconUtility(entry)}`}
-                      onClick={() => copy(entry)}
+                      onClick={() => {
+                        setChosen(entry);
+                        void copy(entry);
+                      }}
                     >
                       <Glyph entry={entry} box={box()} />
                       <span class="w-full truncate text-center text-xs">
@@ -246,10 +362,10 @@ export default function IconsPage() {
 
         {
           /*
-          In the drawer the sizes stack below the grid: an 18rem aside beside
-          a 300px grid crushes both into slivers, which is the breakage the
-          drawer screenshot showed. The measure is the page's own bound —
-          no spacing token reaches 18rem.
+        In the drawer the sizes stack below the grid: an 18rem aside beside
+        a 300px grid crushes both into slivers, which is the breakage the
+        drawer screenshot showed. The measure is the page's own bound —
+        no spacing token reaches 18rem.
         */
         }
         <aside
@@ -259,21 +375,93 @@ export default function IconsPage() {
             "w-[18rem]": !inDrawer(),
           }}
         >
-          <div class="row-sm justify-between gap-2">
-            <h2 class="text-sm font-semibold">Glyph sizes</h2>
-            <LinkToggle group="icon" />
-          </div>
-          <p class="text-sm text-text-muted">
-            The theme's <code>icon</code>{" "}
-            group. The grid draws at the selected step; editing a step redraws
-            it.
-          </p>
-          <TokenGroupEditor
-            tokens={iconSizes.rows()}
-            onEdit={(path, value) => iconSizes.commit(path.join("."), value)}
-            onPreview={(path, value) => iconSizes.preview(path, value)}
-            onCancel={iconSizes.abandon}
-          />
+          {
+            /*
+          The library: the icons this project keeps, each with where it came
+          from. It is the project's data, so the daemon holds the files and
+          the page asks for them; what it shows is what the project saved.
+          */
+          }
+          <section class="stack-sm">
+            <div class="row-sm justify-between gap-2">
+              <h2 class="text-sm font-semibold">Saved icons</h2>
+              <span class="text-xs text-text-muted">
+                {saved()?.length ?? 0}
+              </span>
+            </div>
+            <p class="text-sm text-text-muted">
+              The project's own library — the glyphs it keeps, with where each
+              came from.
+            </p>
+            <Switch
+              fallback={
+                <ul class="stack-sm">
+                  <For each={saved() ?? []}>
+                    {(icon) => (
+                      <li class="row-sm items-start gap-2">
+                        <span
+                          class="block h-6 w-6 shrink-0 text-text"
+                          aria-hidden="true"
+                          innerHTML={icon.markup}
+                        />
+                        <span class="stack-sm min-w-0 flex-1">
+                          <span class="block truncate text-sm text-text">
+                            {icon.name}
+                          </span>
+                          {
+                            /*
+                          The attribution wraps rather than truncates: it is
+                          the credit the icon carries, and a credit cut off
+                          at the column's edge is no credit at all.
+                          */
+                          }
+                          <span class="block break-words text-xs text-text-muted">
+                            {attributionText(icon.attribution)}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          class="bare shrink-0 text-xs text-text-muted hover:text-text"
+                          title={`Remove ${icon.name} from the library`}
+                          aria-label={`Remove ${icon.name} from the library`}
+                          onClick={() => unkeep(icon.name)}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              }
+            >
+              <Match when={saved() === undefined}>
+                <p class="text-sm text-text-muted">reading the library…</p>
+              </Match>
+              <Match when={(saved() ?? []).length === 0}>
+                <p class="text-sm text-text-muted">
+                  Nothing kept yet. Look at a glyph above and keep it.
+                </p>
+              </Match>
+            </Switch>
+          </section>
+
+          <section class="stack-sm">
+            <div class="row-sm justify-between gap-2">
+              <h2 class="text-sm font-semibold">Glyph sizes</h2>
+              <LinkToggle group="icon" />
+            </div>
+            <p class="text-sm text-text-muted">
+              The theme's <code>icon</code>{" "}
+              group. The grid draws at the selected step; editing a step redraws
+              it.
+            </p>
+            <TokenGroupEditor
+              tokens={iconSizes.rows()}
+              onEdit={(path, value) => iconSizes.commit(path.join("."), value)}
+              onPreview={(path, value) => iconSizes.preview(path, value)}
+              onCancel={iconSizes.abandon}
+            />
+          </section>
         </aside>
       </div>
     </div>

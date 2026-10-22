@@ -1,7 +1,7 @@
 # @spin/project
 
 The project: where it is, whether it is a spin project, what its build
-configuration declares, and the theme files it holds.
+configuration declares, the theme files it holds, and the icons it has saved.
 
 A project is a directory with a claim on it — a `spin/` directory of theme
 documents, and a build configuration that says how the app is put together. The
@@ -13,16 +13,18 @@ this package rather than keeping its own answer.
 
 ```
 @spin/project
-  facts        PROJECT_DIR · CONFIG_FILENAME · initFiles · isWired
+  facts        PROJECT_DIR · ICONS_DIR · CONFIG_FILENAME · initFiles · isWired
 
   service      detectProject · currentProject · initProject · readConfiguration
                listThemes · readTheme · writeTheme · removeTheme · copyTheme
                projectService          (the same operations, as one surface)
 
+  icons        listIcons · readIcon · writeIcon · removeIcon
+
   reading      configurationIn · shortcutsIn · contentIn · mountIn
 
-  types        ProjectReport · ProjectTheme · ProjectConfiguration
-               InitProjectOptions · WriteResult
+  types        ProjectReport · ProjectTheme · ProjectIcon · IconAttribution
+               SavedIcon · ProjectConfiguration · InitProjectOptions · WriteResult
 ```
 
 ## The operations
@@ -42,11 +44,40 @@ project is a place on disk that the caller names.
 | `writeTheme(root, name, text)` | writes one theme file, creating the directory if it is new          |
 | `removeTheme(root, name)`      | takes one theme file away                                           |
 | `copyTheme(root, from, to)`    | copies one theme to a new name, refusing a name that is taken       |
+| `listIcons(root)`              | the icons the project has saved, by name                            |
+| `readIcon(root, name)`         | one saved icon: its markup and where it came from                   |
+| `writeIcon(root, name, icon)`  | saves one icon, creating the library's drawer if it is new          |
+| `removeIcon(root, name)`       | takes one saved icon away                                           |
 
 `detectProject` and `currentProject` are one walk: they differ only in which
 root they examine, so the notions of "has spin", "has uno" and "is wired" cannot
 drift apart. The daemon's `current` is that walk over the root the daemon was
 started with.
+
+## The saved icons
+
+A saved icon is a name, the markup that draws it, and where it came from. The
+attribution — the collection, its author, its licence — is recordable but
+optional: an icon the project drew itself has no collection behind it.
+
+The files live in the project's own directory, under a name of their own:
+`spin/icons/<name>.json`, beside the themes and not among them. The document is
+the icon:
+
+```json
+{
+  "markup": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" …>",
+  "attribution": {
+    "collection": "lucide",
+    "author": "Lucide Contributors",
+    "license": "ISC"
+  }
+}
+```
+
+A name is a file stem, like a theme's: a name the file system will not take is
+refused rather than tidied, because a tidied name would file the icon under a
+name its author did not choose.
 
 ## The configuration
 

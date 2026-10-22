@@ -36,23 +36,28 @@ contract and its own handlers, and this one mounts them.
 
 The router is the union of every module's router:
 
-| Namespace      | What it answers                                                                          |
-| -------------- | ---------------------------------------------------------------------------------------- |
-| `theme.*`      | analyze a document · its CSS · its types · the scaffold · set, remove and rename a token |
-| `themes.css`   | the stylesheet for a set of documents                                                    |
-| `preset.*`     | the utilities a theme resolves · the same, grouped by intent                             |
-| `primitives.*` | the element library: its contracts, its tokens                                           |
-| `project.*`    | the project: detect, current, init, and the themes on disk                               |
-| `preview.css`  | the stylesheet a theme plus markup produces                                              |
-| `overlay.*`    | the live overlay: set, clear, and what it holds                                          |
-| `icons.*`      | the installed iconify collections: names, then glyph bodies                              |
-| `fonts.*`      | the font catalogue, filtered by name                                                     |
+| Namespace       | What it answers                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| `theme.*`       | analyze a document · its CSS · its types · the scaffold · set, remove and rename a token |
+| `themes.css`    | the stylesheet for a set of documents                                                    |
+| `preset.*`      | the utilities a theme resolves · the same, grouped by intent                             |
+| `primitives.*`  | the element library: its contracts, its tokens                                           |
+| `project.*`     | the project: detect, current, init, and the themes on disk                               |
+| `preview.css`   | the stylesheet a theme plus markup produces                                              |
+| `overlay.*`     | the live overlay: set, clear, and what it holds                                          |
+| `icons.*`       | the installed collections: names, glyph bodies, and who made them                        |
+| `icons.saved.*` | the icons the project has saved: list, read, save, remove                                |
+| `fonts.*`       | the font catalogue, filtered by name                                                     |
 
 `project.*` is transport over `@spin/project`. The contract stays here — it is
 the wire shape, and the wire is the daemon's — while the operations live in the
 module that owns them: where a project's files are, what a theme document is,
 and what a configuration declares. The handlers hold no filesystem code; they
 name the root, ask the service, and answer.
+
+`icons.saved.*` is transport over the same service: the saved icons are the
+project's own files, so they resolve a root the way the project procedures do.
+The catalogue beside them is the host's, and the same for every project.
 
 ## Contract
 

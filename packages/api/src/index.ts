@@ -37,6 +37,7 @@ export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
 export { presetRouter } from "@spin/preset";
 export { presetContract } from "@spin/preset";
 export { iconsContract } from "./icons-procedures.ts";
+export { iconsRouter } from "./icons-procedures.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */
 export const router = {

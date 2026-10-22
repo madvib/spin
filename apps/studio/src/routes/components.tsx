@@ -47,9 +47,14 @@ import { inDrawer } from "../lib/host.ts";
  * because the router's own active class would leave a gallery row dark on
  * every page inside it, and a state a stylesheet can see has to be the state
  * the reader is in.
+ *
+ * The edge that answers is the ACTING colour: the row you are on and the
+ * row the pointer is on both say so in the colour the theme spends on the
+ * thing that is doing something. A raised surface on a raised rail is
+ * nothing at all, which is what the row used to be.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:bg-surface-raised hover:text-text data-[current]:border-border-strong data-[current]:bg-surface-raised data-[current]:text-text data-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised hover:text-text data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:text-text data-[current]:font-medium";
 
 /**
  * The band a run of rows is bucketed into.
@@ -63,9 +68,12 @@ const RAIL_LINK =
  *
  * The padding is a step wider than the row's own, so the band hangs over the
  * column of tiles instead of hiding in it.
+ *
+ * The size steps down on a narrow window, where the rail is a strip rather
+ * than a column and the groups are read across rather than down.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-sm font-semibold normal-case tracking-normal text-text first:mt-0 lg:text-md";
 
 /**
  * The row, as the drawer wears it.
@@ -76,7 +84,7 @@ const RAIL_BAND =
  * strong edge, full ink — so a reader who knows the rail knows it collapsed.
  */
 const DRAWER_LINK =
-  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 text-sm no-underline text-text-muted hover:bg-surface-raised hover:text-text data-[current]:border-border-strong data-[current]:bg-surface-raised data-[current]:text-text data-[current]:font-medium";
+  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 text-sm no-underline text-text-muted hover:border-primary hover:bg-surface-raised hover:text-text data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:text-text data-[current]:font-medium";
 
 /**
  * The group heading, as the drawer wears it.
@@ -144,18 +152,31 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
       .filter((group) => group.rows.length > 0);
   });
 
+  /**
+   * The rail's own shape, and the page's beside it.
+   *
+   * The drawer has no room for a column: the list becomes a strip above the
+   * page it navigates. A narrow WINDOW has no room for one either — a
+   * thirteen-rem column beside a page that is four hundred pixels wide
+   * leaves the page a sliver and pushes its cards off the screen — so the
+   * window lays the rail out as a strip until there is room for a column.
+   * The strip is the drawer's layout, so a reader who has seen one knows
+   * the other.
+   */
   const navClass = () =>
     drawer()
       ? "flex shrink-0 flex-col gap-2 border-b border-border bg-surface-raised p-3"
-      : "flex w-[13rem] shrink-0 flex-col gap-4 overflow-y-auto bg-surface-raised p-4";
+      : "flex w-full shrink-0 flex-col gap-4 border-b border-border bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:overflow-y-auto";
   const listClass = () =>
     drawer()
       ? "flow-list flex flex-wrap gap-x-2 gap-y-1"
-      : "flow-list flex flex-col gap-1";
+      : "flow-list flex flex-wrap gap-x-2 gap-y-1 lg:flex-col lg:flex-nowrap lg:gap-1";
 
   return (
     <div
-      class={drawer() ? "flex min-h-0 flex-col" : "drawer-scroll flex"}
+      class={drawer()
+        ? "flex min-h-0 flex-col"
+        : "drawer-scroll flex flex-col lg:flex-row"}
     >
       <nav aria-label="Components" class={navClass()}>
         <h2

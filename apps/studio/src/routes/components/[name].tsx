@@ -61,6 +61,7 @@ import {
   tokenizeHtml,
 } from "../../lib/code.ts";
 import TokenRow from "../../components/demos/TokenRow.tsx";
+import { Badge, Marker, TokenChip } from "../../components/Concern.tsx";
 
 /** Where a run of characters sits, and the ink that says so. */
 const INK: Record<CodeKind, string> = {
@@ -85,9 +86,13 @@ type View = "component" | "code";
  * says which one is showing, so the eye and the screen reader read the same
  * fact. `min-h-0` drops the height floor the button primitive puts under
  * every control, because a switch is a way of looking, not a call to action.
+ *
+ * The button that IS showing wears the acting colour, because "this is what
+ * you are looking at" is the one thing a switch has to say, and a raised
+ * surface on a raised page says it too quietly to be read at a glance.
  */
 const SWITCH =
-  "inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none hover:bg-surface-raised hover:text-text focus:bg-surface-raised focus:text-text aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text";
+  "inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none hover:bg-surface-raised hover:text-text focus:bg-surface-raised focus:text-text aria-[pressed=true]:bg-primary aria-[pressed=true]:text-on-primary";
 
 /**
  * The copy control.
@@ -333,9 +338,15 @@ export default function ComponentPage() {
   });
   onCleanup(() => registerMarkup(""));
 
-  // The contract names the variables a component reads; the live theme says
-  // which token path each one is, so the readout is editable identity rather
-  // than emitted output.
+  /**
+   * The tokens the component reads, and what each is worth.
+   *
+   * The contract names the variables a component reads; the live theme says
+   * which token path each one is, so the readout is editable identity rather
+   * than emitted output — and the value beside the path is the theme's own
+   * answer for it now, so the chip says what the token IS rather than only
+   * what it is called.
+   */
   const tokenEntries = () => {
     const tree = analyzeTheme(themeText()).tree;
     if (tree === undefined) return [];
@@ -344,7 +355,10 @@ export default function ComponentPage() {
     const paths = vars
       .map((variable) => byVar.get(variable))
       .filter((path): path is string => path !== undefined);
-    return [...new Set(paths)].map((path) => ({ path }));
+    return [...new Set(paths)].map((path) => ({
+      path,
+      value: tokenRowAt(tree, path, activeMode())?.value ?? "—",
+    }));
   };
 
   /**
@@ -428,7 +442,17 @@ export default function ComponentPage() {
                 <Show when={componentTokens().length > 0}>
                   <button
                     type="button"
-                    class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text shadow-none hover:border-primary"
+                    // The chip that opens the panel wears the acting colour
+                    // while the panel is open: it is the control that is on,
+                    // and a control that is on says so in colour. The two
+                    // states are spelled out rather than layered, because a
+                    // second colour class on the same element is a coin toss
+                    // for which one the sheet writes last.
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
+                      showTokens()
+                        ? "border-transparent bg-primary text-on-primary"
+                        : "border-border bg-surface-raised text-text"
+                    }`}
                     onClick={() => setShowTokens((v) => !v)}
                   >
                     {showTokens() ? "hide" : "component tokens"}{" "}
@@ -496,6 +520,16 @@ export default function ComponentPage() {
                                 <span class="font-mono text-xs text-text-muted">
                                   {entry.entry.type} · {entry.entry.value}
                                 </span>
+                                {
+                                  /*
+                                  The theme has never had to spell this one,
+                                  and the component wants it: a gap in the
+                                  theme, said as a gap, so the row that offers
+                                  to fill it is not mistaken for a row that
+                                  already holds a value.
+                                */
+                                }
+                                <Badge tone="warning">not declared</Badge>
                                 <button
                                   type="button"
                                   class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-regular normal-case tracking-normal text-text shadow-none hover:border-primary"
@@ -524,22 +558,24 @@ export default function ComponentPage() {
             </For>
 
             <Show when={tokenEntries().length > 0}>
-              <h2 class="mt-6 text-xl">Tokens this reads</h2>
-              <p class="mt-2 font-mono text-xs leading-relaxed text-text-muted">
-                <For each={tokenEntries()}>
-                  {({ path }, i) => (
-                    <>
-                      {i() > 0 && <span>,</span>}
+              <section class="mt-6 stack-sm" aria-label="Tokens this reads">
+                <h2 class="row-sm text-xl">
+                  <Marker />
+                  <span>Tokens this reads</span>
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                  <For each={tokenEntries()}>
+                    {(entry) => (
                       <A
-                        href={editorRouteFor(path)}
-                        class="hover:text-text hover:underline"
+                        href={editorRouteFor(entry.path)}
+                        class="no-underline hover:underline"
                       >
-                        {path}
+                        <TokenChip path={entry.path} value={entry.value} />
                       </A>
-                    </>
-                  )}
-                </For>
-              </p>
+                    )}
+                  </For>
+                </div>
+              </section>
             </Show>
           </div>
         )}

@@ -36,8 +36,14 @@ has more than one.
 | `component` | list · contract                                            |
 | `utility`   | the utility classes a theme can produce, grouped by intent |
 | `icon`      | search · body                                              |
+| `savedIcon` | list · read · save · remove                                |
 | `font`      | the fontsource catalogue, filtered by name                 |
 | `preview`   | the stylesheet a theme plus markup produces                |
+
+`icon` reads the catalogue: the installed collections, searchable, with a
+glyph's body on demand. `savedIcon` reads the project's own library: the curated
+set it keeps, each with where it came from. One is what anybody may draw; the
+other is what this project has chosen.
 
 Two resources carry the read-only documents, for clients that render resources:
 `spin://project` (the root, the config presence, the theme files) and

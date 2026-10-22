@@ -36,7 +36,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "skill"
   ],
   "dependencies": {
     "@orpc/contract": "1",

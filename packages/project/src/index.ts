@@ -21,6 +21,7 @@
 export {
   CONFIG_FILENAME,
   CONFIG_FILES,
+  ICONS_DIR,
   initFiles,
   isWired,
   PROJECT_DIR,
@@ -39,6 +40,8 @@ export {
   writeTheme,
 } from "./service.ts";
 
+export { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
+
 export {
   configurationIn,
   contentIn,
@@ -51,9 +54,12 @@ export type {
 } from "./configuration.ts";
 
 export type {
+  IconAttribution,
   InitProjectOptions,
   ProjectConfiguration,
+  ProjectIcon,
   ProjectReport,
   ProjectTheme,
+  SavedIcon,
   WriteResult,
 } from "./types.ts";

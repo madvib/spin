@@ -14,6 +14,10 @@
  *
  * The card is thin on purpose. The column it links to is where a component
  * is judged; this page is where you find it.
+ *
+ * The group is marked the way every group in the studio is marked — a bar in
+ * the acting colour beside its name — so the reader scanning the page for
+ * the family they want is scanning the same marks they scan everywhere else.
  */
 
 import { createMemo, For, Match, Switch } from "solid-js";
@@ -21,6 +25,7 @@ import { A } from "@solidjs/router";
 import { primitiveCategories, primitiveElements } from "@spin/preset";
 import { library } from "../../lib/store.ts";
 import { inDrawer } from "../../lib/host.ts";
+import { Marker } from "../../components/Concern.tsx";
 
 export default function ComponentsIndex() {
   // Read through a memo, so the gallery re-lays-out when the host switches
@@ -55,21 +60,27 @@ export default function ComponentsIndex() {
   });
 
   return (
-    <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-8">
-      <h1 class="text-3xl">Components</h1>
-      <p class="max-w-screen-md text-text-muted">
-        Every primitive the preset ships, in the groups the library files them
-        by. Pick one to see its variants, what it reads, and where to change it.
-      </p>
+    <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-8">
+      <header class="stack-sm">
+        <h1 class="text-3xl">Components</h1>
+        <p class="max-w-screen-md text-sm text-text-muted">
+          Every primitive the preset ships, in the groups the library files them
+          by. Pick one to see its variants, what it reads, and where to change
+          it.
+        </p>
+      </header>
       <Switch
         fallback={
           <div class="mt-6 flex flex-col gap-8">
             <For each={groups()}>
               {(group) => (
-                <section>
-                  <h2 class="text-xl">{group.label}</h2>
+                <section class="stack-sm" aria-label={group.label}>
+                  <h2 class="row-sm text-xl">
+                    <Marker />
+                    <span>{group.label}</span>
+                  </h2>
                   <div
-                    class="mt-4 grid gap-4"
+                    class="grid gap-4"
                     classList={{
                       "grid-cols-2": drawer(),
                       "sm:grid-cols-2 lg:grid-cols-3": !drawer(),
@@ -79,14 +90,14 @@ export default function ComponentsIndex() {
                       {(row) => (
                         <A
                           href={`/components/${row.name}`}
-                          class="stack-sm rounded-lg border border-border bg-surface-raised p-4 no-underline"
+                          class="stack-sm rounded-lg border border-border bg-surface-raised p-4 no-underline hover:border-primary"
                         >
                           <span class="flex items-center gap-2">
                             <i
-                              class={`${row.icon} icon-md shrink-0 text-text-muted`}
+                              class={`${row.icon} icon-md shrink-0 text-primary`}
                               aria-hidden="true"
                             />
-                            <strong class="capitalize">
+                            <strong class="capitalize text-text">
                               {row.name.replace(/-/g, " ")}
                             </strong>
                           </span>

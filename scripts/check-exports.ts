@@ -41,6 +41,7 @@ interface NpmManifest {
   readonly exports: Record<string, { types?: string; default?: string }>;
   readonly dependencies?: Record<string, string>;
   readonly peerDependencies?: Record<string, string>;
+  readonly files?: string[];
 }
 
 async function readJson(path: string): Promise<Record<string, unknown>> {
@@ -159,6 +160,24 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
         continue;
       }
       targets.push(file);
+    }
+  }
+
+  // A house skill ships with its package: it is a product agents install, so
+  // it must be in the npm package, and the manifest must say it is there.
+  if (await exists(join(dir, "skill"))) {
+    const files = npm["files"] as string[] | undefined;
+    if (!Array.isArray(files) || !files.includes("skill")) {
+      findings.fail(
+        `${name}: the package has a skill, and the npm manifest does not ` +
+          `ship it`,
+      );
+    }
+    if (!await exists(join(dir, NPM_DIR, "skill", "SKILL.md"))) {
+      findings.fail(
+        `${name}: the package has a skill, and the built package does not ` +
+          `carry it`,
+      );
     }
   }
 

@@ -22,6 +22,17 @@ import { configScaffoldText } from "@spin/preset/config";
 export const PROJECT_DIR = "spin";
 
 /**
+ * The directory a project's saved icons live in, under its own.
+ *
+ * Inside the project's directory and beside its themes, under a name of
+ * their own: the themes listing reads that directory for documents, and a
+ * directory of icons sitting among them would be one more thing there that
+ * is not a theme. A library is a list of documents too, and it gets its
+ * own drawer.
+ */
+export const ICONS_DIR = "icons";
+
+/**
  * The file a project's build configuration is written to.
  *
  * The one name `spin init` writes, and the one the report looks for when it

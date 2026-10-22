@@ -7,19 +7,7 @@
   "required": [
     "color",
     "font",
-    "focus",
-    "avatar",
-    "badge",
-    "button",
-    "checkbox",
-    "switch",
-    "icon",
-    "card",
-    "alert",
-    "field",
-    "stat",
-    "table",
-    "link"
+    "focus"
   ],
   "properties": {
     "color": {
@@ -1860,8 +1848,7 @@
       "additionalProperties": true,
       "type": "object",
       "required": [
-        "family",
-        "element"
+        "family"
       ],
       "properties": {
         "family": {
@@ -1954,21 +1941,6 @@
         "element": {
           "additionalProperties": true,
           "type": "object",
-          "required": [
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "p",
-            "blockquote",
-            "code",
-            "small",
-            "strong",
-            "a",
-            "figcaption"
-          ],
           "properties": {
             "h1": {
               "additionalProperties": true,

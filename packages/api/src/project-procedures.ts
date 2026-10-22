@@ -32,8 +32,12 @@ export function setProjectRoot(root: string): void {
  * A client that names a root gets that root's themes; a client that names
  * none gets the project the daemon was started with. One process can serve
  * many projects this way, with no shared state to stomp on.
+ *
+ * Exported because another procedure family serves project data too — the
+ * saved icons — and the rule about which root a call is about is the
+ * daemon's, not one family's.
  */
-function rootFor(input: { readonly root?: string }): string {
+export function rootFor(input: { readonly root?: string }): string {
   if (input.root !== undefined) return input.root;
   if (projectRoot === undefined) {
     throw new Error(

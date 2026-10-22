@@ -439,7 +439,14 @@ export function themeSchema(): Record<string, unknown> {
     gather(role.path.split(".")[0] as string, role.path, false);
   }
   for (const [group, entry] of groups) {
-    properties[group] = groupSchema(entry.paths, entry.required);
+    const schema = groupSchema(entry.paths, entry.required);
+    // A group a theme does not have to declare is OPTIONAL in the schema:
+    // the per-element groups and the per-element typography are decisions a
+    // theme MAY make, and a document that omits them is complete. Saying
+    // otherwise would make a scaffolded theme — which carries neither — fail
+    // the schema that describes it.
+    const must = entry.paths.some((path) => entry.required.has(path));
+    properties[group] = must ? schema : Type.Optional(schema);
   }
   // `modes` is document metadata, not a token: it sits at the root beside
   // the groups and no emitter reads it. `additionalProperties` would already
@@ -465,8 +472,18 @@ export function themeSchema(): Record<string, unknown> {
  * Building the nested shape first and converting once at the end keeps every
  * step typed — an accumulator of `TSchema` means the leaves are known to be
  * schemas and the compiler checks the assembly.
+ *
+ * A nested group carries whether a theme MUST declare it: a group that holds
+ * a required role is required, and a group that holds only optional ones is
+ * not. The same rule decides the leaves, so the two cannot disagree.
  */
-type GroupShape = { [segment: string]: TSchema | GroupShape };
+interface ShapeGroup {
+  /** Whether the group must be declared. */
+  readonly required: boolean;
+  readonly children: GroupShape;
+}
+
+type GroupShape = { [segment: string]: TSchema | ShapeGroup };
 
 /** The nested schema for one token group, built from its role paths. */
 function groupSchema(
@@ -478,16 +495,33 @@ function groupSchema(
   const byType = new Map<string, ElementTypeDeclaration>(
     ELEMENT_TYPE_ROLES.map((role) => [role.path, role]),
   );
+  // Which groups hold a required role: a group a theme must declare is the
+  // one with something required under it.
+  const holds = new Map<string, boolean>();
+  for (const path of paths) {
+    const segments = path.split(".");
+    for (let depth = 1; depth < segments.length; depth++) {
+      const prefix = segments.slice(0, depth).join(".");
+      holds.set(
+        prefix,
+        (holds.get(prefix) ?? false) || required.has(path),
+      );
+    }
+  }
   const shape: GroupShape = {};
   for (const path of paths) {
     const segments = path.split(".");
     let level = shape;
-    for (const segment of segments.slice(1, -1)) {
+    for (let depth = 1; depth < segments.length - 1; depth++) {
+      const segment = segments[depth] as string;
+      const prefix = segments.slice(0, depth + 1).join(".");
       const child = level[segment];
-      level = typeof child === "object" && child !== null &&
-          !("type" in child)
-        ? child as GroupShape
-        : (level[segment] = {}) as GroupShape;
+      level = typeof child === "object" && child !== null && !isLeaf(child)
+        ? (child as ShapeGroup).children
+        : (level[segment] = {
+          required: holds.get(prefix) ?? false,
+          children: {},
+        }).children;
     }
     const role = byRole.get(path);
     const element = byElement.get(path);
@@ -508,12 +542,19 @@ function toSchema(shape: GroupShape): TSchema {
   for (const [key, value] of Object.entries(shape)) {
     // A leaf already carries its schema; anything without a `type` is a group
     // that still needs converting.
-    properties[key] = isLeaf(value) ? value : toSchema(value as GroupShape);
+    if (isLeaf(value)) {
+      properties[key] = value;
+      continue;
+    }
+    const group = toSchema((value as ShapeGroup).children);
+    properties[key] = (value as ShapeGroup).required
+      ? group
+      : Type.Optional(group);
   }
   return Type.Object(properties, { additionalProperties: true });
 }
 
 /** True when a value is a finished schema rather than an unconverted group. */
-function isLeaf(value: TSchema | GroupShape): value is TSchema {
+function isLeaf(value: TSchema | ShapeGroup): value is TSchema {
   return typeof value === "object" && value !== null && "type" in value;
 }

@@ -10,7 +10,7 @@
  * MCP's framing.
  *
  * The surface is one tool per noun an agent acts on, with `action` naming the
- * verb where a noun has more than one — seven tools rather than a tool per
+ * verb where a noun has more than one — eight tools rather than a tool per
  * procedure. The read-only documents are resources as well
  * (`spin://project`, `spin://themes/{name}`), so a client that renders
  * resources can look without calling a tool.
@@ -419,6 +419,88 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
         return failed(`no glyph "${name}" in collection "${collection}"`);
       }
       return json(body);
+    },
+  );
+
+  server.registerTool(
+    "savedIcon",
+    {
+      title: "Saved icons",
+      description:
+        "The icons this project has saved — its own curated library, as against the searchable catalogue the `icon` tool reads. Use this when an icon is part of the project: list what it has kept (each with where it came from), read one's markup, save a glyph the project has chosen, or remove one. Use `icon` to find a glyph in the installed collections; use this to keep one.",
+      inputSchema: {
+        action: z.enum(["list", "read", "save", "remove"]).describe(
+          "What to do.",
+        ),
+        name: z
+          .string()
+          .optional()
+          .describe("read, save and remove: the icon's name, e.g. 'arrow-up'."),
+        markup: z
+          .string()
+          .optional()
+          .describe("save: the inline SVG markup the icon draws."),
+        collection: z
+          .string()
+          .optional()
+          .describe("save: the collection the glyph came from, e.g. 'lucide'."),
+        author: z
+          .string()
+          .optional()
+          .describe("save: who made it."),
+        license: z
+          .string()
+          .optional()
+          .describe("save: the licence it is under, e.g. 'ISC'."),
+      },
+    },
+    async ({ action, name, markup, collection, author, license }) => {
+      switch (action) {
+        case "list": {
+          const icons = await client.icons.saved.list({});
+          return json(
+            icons.map((icon) => ({
+              name: icon.name,
+              attribution: icon.attribution,
+            })),
+          );
+        }
+        case "read": {
+          if (name === undefined) return failed("read needs an icon name");
+          const read = await client.icons.saved.read({ name });
+          if (read.icon === null) {
+            return failed(`no saved icon named "${name}" in this project`);
+          }
+          return json({
+            name: read.icon.name,
+            markup: read.icon.markup,
+            attribution: read.icon.attribution,
+          });
+        }
+        case "save": {
+          if (name === undefined) return failed("save needs an icon name");
+          if (markup === undefined) {
+            return failed("save needs the icon's markup");
+          }
+          const saved = await client.icons.saved.save({
+            name,
+            markup,
+            attribution: {
+              collection: collection ?? null,
+              author: author ?? null,
+              license: license ?? null,
+            },
+          });
+          if (saved.error !== null) return failed(saved.error);
+          return json({ name, saved: true });
+        }
+        case "remove": {
+          if (name === undefined) return failed("remove needs an icon name");
+          const removed = await client.icons.saved.remove({ name });
+          if (removed.error !== null) return failed(removed.error);
+          return json({ name, removed: true });
+        }
+      }
     },
   );
 

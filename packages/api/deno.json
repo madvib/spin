@@ -19,10 +19,15 @@
     "@orpc/client": "npm:@orpc/client@^1.0.0",
     "@spin/preset": "../preset/src/index.ts",
     "@iconify-json/carbon/icons.json": "npm:@iconify-json/carbon/icons.json",
+    "@iconify-json/carbon/info.json": "npm:@iconify-json/carbon/info.json",
     "@iconify-json/lucide/icons.json": "npm:@iconify-json/lucide/icons.json",
+    "@iconify-json/lucide/info.json": "npm:@iconify-json/lucide/info.json",
     "@iconify-json/material-symbols/icons.json": "npm:@iconify-json/material-symbols/icons.json",
+    "@iconify-json/material-symbols/info.json": "npm:@iconify-json/material-symbols/info.json",
     "@iconify-json/ph/icons.json": "npm:@iconify-json/ph/icons.json",
-    "@iconify-json/tabler/icons.json": "npm:@iconify-json/tabler/icons.json"
+    "@iconify-json/ph/info.json": "npm:@iconify-json/ph/info.json",
+    "@iconify-json/tabler/icons.json": "npm:@iconify-json/tabler/icons.json",
+    "@iconify-json/tabler/info.json": "npm:@iconify-json/tabler/info.json"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-write --allow-net --allow-env src/ tests/",

@@ -35,6 +35,7 @@
 
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { renderSkill } from "../packages/theme/src/skill/index.ts";
 import { reachableFiles } from "./dist-graph.ts";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -52,6 +53,17 @@ const COPY_PREFIX = ".dist-";
  * therefore its own directory: `npm publish packages/<name>/npm`.
  */
 const NPM_DIR = "npm";
+
+/**
+ * The packages whose skill's checklist is emitted from the contract.
+ *
+ * The manual a package ships is rendered, not the template it is written in:
+ * a template with a hole where the checklist goes is not a manual an agent
+ * can follow.
+ */
+const SKILL_RENDERERS: Record<string, (template: string) => string> = {
+  "@spin/theme": (template) => renderSkill(template),
+};
 
 /** A package's `deno.json`, as far as the build cares. */
 interface Manifest {
@@ -660,6 +672,30 @@ async function buildPackage(
         join(dir, NPM_DIR, "README.md"),
         await Deno.readTextFile(readme),
       );
+    }
+
+    // The house skill, when the package has one: it is a product agents
+    // install, so it ships with the package. The manual's checklist is
+    // emitted from the contract, so the copy that ships is the rendered
+    // one, not the template it was written in.
+    const skill = join(dir, "skill");
+    if (await exists(skill)) {
+      const target = join(dir, NPM_DIR, "skill");
+      await Deno.remove(target, { recursive: true }).catch(() => {});
+      const renderer = SKILL_RENDERERS[manifest.name];
+      for (const file of await walk(skill)) {
+        const from = join(skill, file);
+        const to = join(target, file);
+        await Deno.mkdir(dirname(to), { recursive: true });
+        if (file === "SKILL.md" && renderer) {
+          await Deno.writeTextFile(
+            to,
+            renderer(await Deno.readTextFile(from)),
+          );
+        } else {
+          await Deno.copyFile(from, to);
+        }
+      }
     }
 
     // The declarations that are exports in their own right: a `.d.ts` source

@@ -18,6 +18,7 @@ import {
   isWired,
   PROJECT_DIR,
 } from "./facts.ts";
+import { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
 import type {
   InitProjectOptions,
   ProjectConfiguration,
@@ -351,5 +352,11 @@ export const projectService = {
     write: writeTheme,
     remove: removeTheme,
     copy: copyTheme,
+  },
+  icons: {
+    list: listIcons,
+    read: readIcon,
+    write: writeIcon,
+    remove: removeIcon,
   },
 };

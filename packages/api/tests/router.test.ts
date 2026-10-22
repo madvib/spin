@@ -3,6 +3,8 @@ import { parseTokens, setToken, treeToJson } from "@spin/theme";
 import { scaffold } from "@spin/preset";
 import {
   createSpinClient,
+  iconsContract,
+  iconsRouter,
   presetContract,
   presetRouter,
   previewContract,
@@ -93,6 +95,20 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     ["preset.catalog", "preset.organization"],
     presetContract,
     presetRouter,
+  ],
+  [
+    "icons",
+    [
+      "icons.catalog",
+      "icons.body",
+      "icons.collections",
+      "icons.saved.list",
+      "icons.saved.read",
+      "icons.saved.save",
+      "icons.saved.remove",
+    ],
+    iconsContract,
+    iconsRouter,
   ],
 ];
 

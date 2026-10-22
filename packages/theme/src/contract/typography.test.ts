@@ -25,28 +25,32 @@ import { starterThemes } from "@spin/theme/themes";
 
 Deno.test("the per-element typography is optional", () => {
   // A theme that says nothing about a heading gets the system's answer, so
-  // the group cannot be required — and the schema must not make it so.
+  // the group cannot be required — and the schema must not say it is.
   const schema = themeSchema();
   const font = schema["properties"] as Record<string, {
     properties?: Record<string, unknown>;
+    required?: string[];
   }>;
   const element = font["font"]?.properties?.["element"] as {
     properties?: Record<string, unknown>;
+    required?: string[];
   } | undefined;
   assert(element !== undefined, "the schema must know the group");
+  assertEquals(
+    element.required,
+    undefined,
+    "the group a theme may leave out must not be required",
+  );
   const h1 = element.properties?.["h1"] as {
     properties?: Record<string, unknown>;
+    required?: string[];
   } | undefined;
   assert(h1 !== undefined, "the schema must know the first heading");
-  for (const field of ["family", "size", "weight"]) {
-    const leaf = h1.properties?.[field] as { type?: string } | undefined;
-    assert(leaf !== undefined, `the schema must know ${field}`);
-    assertEquals(
-      leaf.type,
-      "object",
-      `${field} must be optional: a theme that omits it is complete`,
-    );
-  }
+  assertEquals(
+    h1.required,
+    undefined,
+    "a heading's decisions are the theme's to make, not the schema's to demand",
+  );
 });
 
 Deno.test("a theme that declares no per-element typography is valid", () => {

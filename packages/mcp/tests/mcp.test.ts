@@ -361,6 +361,68 @@ describe("the spin MCP server", () => {
     assert(typeof glyph.width === "number", "and knows its box");
   });
 
+  it("keeps an icon in the project's library, and takes it away again", async () => {
+    const markup =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14"/></svg>';
+    const saved = await mcp.callTool({
+      name: "savedIcon",
+      arguments: {
+        action: "save",
+        name: "arrow-up",
+        markup,
+        collection: "lucide",
+        author: "Lucide Contributors",
+        license: "ISC",
+      },
+    });
+    assertEquals(saved.isError, undefined);
+
+    // The library is project data: the file the tool wrote is what the
+    // project now holds.
+    const document = JSON.parse(
+      readFileSync(join(dir, "spin", "icons", "arrow-up.json"), "utf8"),
+    ) as {
+      markup: string;
+      attribution: { collection: string; author: string; license: string };
+    };
+    assertEquals(document.markup, markup);
+    assertEquals(document.attribution.collection, "lucide");
+    assertEquals(document.attribution.author, "Lucide Contributors");
+    assertEquals(document.attribution.license, "ISC");
+
+    const listed = await mcp.callTool({
+      name: "savedIcon",
+      arguments: { action: "list" },
+    });
+    const icons = jsonOf(listed) as Array<{
+      name: string;
+      attribution: { collection: string };
+    }>;
+    const kept = icons.find((icon) => icon.name === "arrow-up");
+    assert(
+      kept !== undefined,
+      `arrow-up among ${icons.map((i) => i.name).join(",")}`,
+    );
+    assertEquals(kept.attribution.collection, "lucide");
+
+    const read = await mcp.callTool({
+      name: "savedIcon",
+      arguments: { action: "read", name: "arrow-up" },
+    });
+    const answer = jsonOf(read) as { markup: string; attribution: unknown };
+    assertEquals(answer.markup, markup);
+
+    const removed = await mcp.callTool({
+      name: "savedIcon",
+      arguments: { action: "remove", name: "arrow-up" },
+    });
+    assertEquals(removed.isError, undefined);
+    assertEquals(
+      existsSync(join(dir, "spin", "icons", "arrow-up.json")),
+      false,
+    );
+  });
+
   it("previews a theme's stylesheet", async () => {
     const result = await mcp.callTool({
       name: "preview",

@@ -7,24 +7,24 @@ import {
   Show,
   untrack,
 } from "solid-js";
-import ValueInput from "../components/demos/ValueInput";
-import LinkToggle from "../components/demos/LinkToggle";
-import Page from "../components/Page";
+import ValueInput from "../components/demos/ValueInput.tsx";
+import LinkToggle from "../components/demos/LinkToggle.tsx";
+import { ConcernPage, Frame, Section } from "../components/Concern.tsx";
 import {
   bezierY,
   durationMs,
   easingControlPoints,
   easingUtility,
   easingValue,
-} from "../lib/motion";
-import { durationUtility } from "../lib/overview";
-import { analyzeTheme } from "../lib/theme";
-import { groupTokens } from "../lib/tokens";
-import type { TokenRow } from "../lib/tokens";
-import { activeMode, themeText } from "../lib/store";
-import { editToken } from "../lib/editing";
-import { createLockstep } from "../lib/lockstep";
-import { paintPreview } from "../lib/preview";
+} from "../lib/motion.ts";
+import { durationUtility } from "../lib/overview.ts";
+import { analyzeTheme } from "../lib/theme.ts";
+import { groupTokens } from "../lib/tokens.ts";
+import type { TokenRow } from "../lib/tokens.ts";
+import { activeMode, themeText } from "../lib/store.ts";
+import { editToken } from "../lib/editing.ts";
+import { createLockstep } from "../lib/lockstep.ts";
+import { paintPreview } from "../lib/preview.ts";
 
 /**
  * Motion — the values that move things, raced against each other.
@@ -43,6 +43,12 @@ import { paintPreview } from "../lib/preview";
  * the token, the handles are its control points, and dragging one writes
  * `cubic-bezier(…)` on release. Looping runs a playhead along every curve
  * at the shared duration, so the shape shows up as speed.
+ *
+ * The page holds two kinds of token and they do not look alike: a duration
+ * is a length of time and a curve is a shape, so the durations wear the
+ * acting colour and the easings wear the accent — and the curve under the
+ * pointer is the one in the accent, so the reader can see which shape is
+ * about to be written.
  */
 
 /** The side a curve is drawn on, and the dash that identifies it in the overlay. */
@@ -101,11 +107,20 @@ function longestOf(lanes: Lane[]): number {
  * coalesce them into none, run races each bar to the far edge under its own
  * duration, and the hold outlasts the longest so the last arrival is seen
  * rather than assumed before it starts again.
+ *
+ * The clock a lane runs on is the token's OWN property, not a utility name:
+ * a utility is a name the scanner has to see written down, and a theme may
+ * name its durations and its curves anything at all — the property is the
+ * value, so the race is the theme's race.
  */
 function RaceStage(props: {
   lanes: Lane[];
-  /** The one thing held still across every lane, so the rest can be compared. */
-  anchor: string;
+  /** The lane's own time, as the custom property that carries it. */
+  durationOf: (lane: Lane) => string | undefined;
+  /** The lane's own curve, as the custom property that carries it. */
+  easingOf: (lane: Lane) => string | undefined;
+  /** The colour this family's bars wear. */
+  paint: string;
   onEdit: (path: string, value: string) => boolean;
   /** Reports a value a lane's control proposes while dragged. */
   onPreview?: (path: string, value: string) => void;
@@ -151,54 +166,68 @@ function RaceStage(props: {
     return ((durationMs(lane.value) ?? longest) / longest) * 100;
   };
 
+  /**
+   * The bar's own clock.
+   *
+   * The transition is written out rather than named by a utility, for the
+   * reason the specimen is: a utility is a name the sheet has to have been
+   * told about, and the theme's own durations and curves are the values the
+   * race is supposed to be running at.
+   */
+  const clock = (lane: Lane) => {
+    const duration = props.durationOf(lane);
+    const easing = props.easingOf(lane);
+    if (duration === undefined || easing === undefined) return {};
+    return {
+      "transition-property": "all",
+      "transition-duration": `var(${duration})`,
+      "transition-timing-function": `var(${easing})`,
+    };
+  };
+
   return (
-    <div class="panel stack-sm">
-      <ul class="flow-list stack-sm">
-        <For each={props.lanes}>
-          {(lane) => (
-            <li class="stack-sm">
-              <div class="row-sm flex-wrap justify-between gap-3">
-                <code class="text-xs text-text-muted">{lane.path}</code>
-                <div class="row-sm flex-wrap gap-2">
-                  <code class="text-xs whitespace-nowrap">
-                    {lane.utility}
-                  </code>
-                  <ValueInput
-                    value={lane.value}
-                    type={lane.type}
-                    onCommit={(value) => props.onEdit(lane.path, value)}
-                    group={props.lanes.map((other) => other.value)}
-                    variable={lane.variable}
-                    label={lane.path}
-                    onPreview={preview === undefined
-                      ? undefined
-                      : (value) => preview(lane.path, value)}
-                    onCancel={props.onCancel}
-                  />
-                </div>
-              </div>
-              {
-                /* The lane's own utility on the bar, so the specimen is the
-                  token and not a stand-in for it. */
-              }
-              <div
-                class="spin-preview h-5 overflow-hidden rounded-sm bg-surface-sunken"
-                aria-hidden="true"
-              >
-                <div
-                  class={`h-full rounded-sm bg-primary ${
-                    phase() === "run"
-                      ? `transition-all ${props.anchor} ${lane.utility}`
-                      : "transition-none"
-                  }`}
-                  style={{ width: `${share(lane)}%` }}
+    <ul class="flow-list">
+      <For each={props.lanes}>
+        {(lane) => (
+          <li class="stack-sm">
+            <div class="row-sm flex-wrap justify-between gap-3">
+              <code class="text-xs text-text-muted">{lane.path}</code>
+              <div class="row-sm flex-wrap gap-2">
+                <code class="text-xs whitespace-nowrap">{lane.utility}</code>
+                <ValueInput
+                  value={lane.value}
+                  type={lane.type}
+                  onCommit={(value) => props.onEdit(lane.path, value)}
+                  group={props.lanes.map((other) => other.value)}
+                  variable={lane.variable}
+                  label={lane.path}
+                  onPreview={preview === undefined
+                    ? undefined
+                    : (value) => preview(lane.path, value)}
+                  onCancel={props.onCancel}
                 />
               </div>
-            </li>
-          )}
-        </For>
-      </ul>
-    </div>
+            </div>
+            {
+              /* The lane's own clock on the bar, so the specimen is the
+                token and not a stand-in for it. */
+            }
+            <div
+              class="spin-preview h-5 overflow-hidden rounded-sm bg-surface-sunken"
+              aria-hidden="true"
+            >
+              <div
+                class={`h-full rounded-sm ${props.paint}`}
+                style={{
+                  width: `${share(lane)}%`,
+                  ...(phase() === "run" ? clock(lane) : {}),
+                }}
+              />
+            </div>
+          </li>
+        )}
+      </For>
+    </ul>
   );
 }
 
@@ -208,7 +237,9 @@ function RaceStage(props: {
  * Overlaying is the comparison: four separate thumbnails cannot show how
  * standard differs from decelerate, because the eye has to hold three shapes
  * in memory. Each curve is told apart by its dash, so the chart needs no
- * colour the theme did not ask for.
+ * colour to say which is which — but the curve the reader has picked is in
+ * the accent, because that one is the shape about to be written, and a
+ * reader who cannot see which curve is live will drag the wrong one.
  *
  * The legend picks a curve; the picked curve grows its two handles, and a
  * handle drags the control point it belongs to — x clamped to time, y to
@@ -218,6 +249,8 @@ function RaceStage(props: {
  */
 function EasingChart(props: {
   lanes: Lane[];
+  /** The colour the picked curve wears, and the playhead wears. */
+  ink: string;
   onEdit: (path: string, value: string) => boolean;
   /** Playheads run the shared duration while the section loops. */
   running: boolean;
@@ -321,7 +354,7 @@ function EasingChart(props: {
   });
 
   return (
-    <div class="panel stack-sm">
+    <div class="stack-sm">
       <div class="flex flex-wrap items-start gap-4">
         <svg
           ref={svg}
@@ -369,8 +402,14 @@ function EasingChart(props: {
                       at(points()[2], points()[3])
                     } ${at(1, 1)}`}
                     // The preset ships no stroke- utility, so the curve takes
-                    // the theme's own ink custom property.
-                    style={{ stroke: "var(--color-text)" }}
+                    // the theme's own ink custom property — and the picked
+                    // curve takes the accent, which is the colour the
+                    // easings family wears.
+                    style={{
+                      stroke: active()?.path === lane.path
+                        ? props.ink
+                        : "var(--color-text)",
+                    }}
                     stroke-dasharray={DASH[index() % DASH.length]}
                     stroke-width={active()?.path === lane.path ? 3 : 2}
                     fill="none"
@@ -406,7 +445,7 @@ function EasingChart(props: {
                   class="cursor-grab"
                   style={{
                     fill: "var(--color-surface)",
-                    stroke: "var(--color-text)",
+                    stroke: props.ink,
                   }}
                   stroke-width="2"
                   onPointerDown={(event) => {
@@ -426,7 +465,7 @@ function EasingChart(props: {
                   class="cursor-grab"
                   style={{
                     fill: "var(--color-surface)",
-                    stroke: "var(--color-text)",
+                    stroke: props.ink,
                   }}
                   stroke-width="2"
                   onPointerDown={(event) => {
@@ -452,7 +491,7 @@ function EasingChart(props: {
                       cx={t() * CHART}
                       cy={CHART - bezierY(points(), t()) * CHART}
                       r="4"
-                      style={{ fill: "var(--color-primary)" }}
+                      style={{ fill: props.ink }}
                     />
                   )}
                 </Show>
@@ -469,6 +508,7 @@ function EasingChart(props: {
                   class="bare text-text"
                   classList={{
                     "font-semibold underline": active()?.path === lane.path,
+                    "text-accent": active()?.path === lane.path,
                   }}
                   aria-pressed={active()?.path === lane.path}
                   onClick={() => setSelected(lane.path)}
@@ -480,7 +520,11 @@ function EasingChart(props: {
                         y1="4"
                         x2="20"
                         y2="4"
-                        style={{ stroke: "var(--color-text)" }}
+                        style={{
+                          stroke: active()?.path === lane.path
+                            ? props.ink
+                            : "var(--color-text)",
+                        }}
                         stroke-dasharray={DASH[index() % DASH.length]}
                         stroke-width="2"
                       />
@@ -509,16 +553,29 @@ function EasingChart(props: {
   );
 }
 
-/** The section's loop control: run it until you say stop. */
+/**
+ * The section's loop control: run it until you say stop.
+ *
+ * The control is quiet while the race is at rest and loud while it runs —
+ * in the colour of the family it runs — because "stop" is only worth
+ * reading when there is something to stop.
+ */
 function LoopButton(props: {
   running: boolean;
   onToggle: () => void;
   label: string;
+  /** The fill and the ink on it, while the race runs. */
+  paint: string;
 }) {
   return (
     <button
       type="button"
       aria-pressed={props.running}
+      class={`rounded-md border px-2 py-1 text-xs ${
+        props.running
+          ? `border-transparent ${props.paint}`
+          : "border-border text-text-muted hover:text-text"
+      }`}
       onClick={props.onToggle}
     >
       {props.running ? "stop" : props.label}
@@ -552,11 +609,17 @@ export default function MotionPage() {
     const rows = durations.rows();
     return rows.find((row) => row.path.endsWith(".base")) ?? rows[0];
   };
-  const anchor = (prefix: string) => {
-    const preferred = preferredDuration();
-    if (preferred === undefined) return "transition-all";
-    const name = preferred.path.split(".").slice(2).join("-");
-    return `transition-all ${prefix}-${name}`;
+  /**
+   * The curve every duration shares.
+   *
+   * The theme's standard curve when it declares one, and its first curve
+   * when it does not — a race in which every lane curves differently is a
+   * race about two things at once, and the reader learns nothing about
+   * either.
+   */
+  const sharedEasing = () => {
+    const rows = easings();
+    return rows.find((row) => row.path.endsWith(".standard")) ?? rows[0];
   };
   /** The shared duration in ms: the race's unit, and the playhead's period. */
   const anchorMs = () => {
@@ -568,23 +631,26 @@ export default function MotionPage() {
   };
 
   return (
-    <Page
-      wide
+    <ConcernPage
       title="Motion"
-      note="A duration is only legible against another duration, an easing only against another curve. Each stage runs every token at once, so the ranking is the specimen. Loop it: 150ms played once is gone before you have seen it. Durations hold the curve still; easings hold the time still."
+      note="A duration is only legible against another duration, and a curve only against another curve, so each stage runs every token at once."
     >
-      <section class="stack-sm" aria-label="Durations">
-        <div class="row-sm flex-wrap justify-between gap-3">
-          <h2 class="text-xl">Durations</h2>
+      <Section
+        title="Durations"
+        fact={`${durations.rows().length} steps`}
+        note="Every duration, raced under one shared easing, so the ranking is the specimen. Loop it: 150ms played once is gone before you have seen it."
+        aside={
           <div class="row-sm gap-2">
             <LinkToggle group="motion.duration" />
             <LoopButton
               running={durationLoop()}
               onToggle={() => setDurationLoop(!durationLoop())}
               label="loop all"
+              paint="bg-primary text-on-primary"
             />
           </div>
-        </div>
+        }
+      >
         <Show
           when={durations.rows().length > 0}
           fallback={
@@ -593,26 +659,35 @@ export default function MotionPage() {
             </p>
           }
         >
-          <RaceStage
-            lanes={lanesFor(durations.rows(), durationUtility, false)}
-            anchor={anchor("ease")}
-            onEdit={(path, value) => durations.commit(path, value)}
-            onPreview={(path, value) => durations.preview(path, value)}
-            onCancel={durations.abandon}
-            running={durationLoop()}
-          />
+          <Frame>
+            <RaceStage
+              lanes={lanesFor(durations.rows(), durationUtility, false)}
+              durationOf={(lane) => lane.variable}
+              easingOf={() => sharedEasing()?.variable}
+              paint="bg-primary"
+              onEdit={(path, value) => durations.commit(path, value)}
+              onPreview={(path, value) => durations.preview(path, value)}
+              onCancel={durations.abandon}
+              running={durationLoop()}
+            />
+          </Frame>
         </Show>
-      </section>
+      </Section>
 
-      <section class="stack-sm" aria-label="Easings">
-        <div class="row-sm flex-wrap justify-between gap-3">
-          <h2 class="text-xl">Easings</h2>
+      <Section
+        title="Easings"
+        fact={`${easings().length} curves`}
+        tone="accent"
+        note="Every curve, drawn on one chart and raced over one shared duration, so the shape shows up as speed."
+        aside={
           <LoopButton
             running={easingLoop()}
             onToggle={() => setEasingLoop(!easingLoop())}
             label="loop all"
+            paint="bg-accent text-on-accent"
           />
-        </div>
+        }
+      >
         <Show
           when={easings().length > 0}
           fallback={
@@ -621,22 +696,29 @@ export default function MotionPage() {
             </p>
           }
         >
-          <div class="stack-sm">
+          <Frame>
             <EasingChart
               lanes={lanesFor(easings(), easingUtility, true)}
+              ink="var(--color-accent)"
               onEdit={edit}
               running={easingLoop()}
               periodMs={anchorMs()}
             />
-            <RaceStage
-              lanes={lanesFor(easings(), easingUtility, false)}
-              anchor={anchor("duration")}
-              onEdit={edit}
-              running={easingLoop()}
-            />
+          </Frame>
+          <div class="stack-sm">
+            <Frame>
+              <RaceStage
+                lanes={lanesFor(easings(), easingUtility, false)}
+                durationOf={() => preferredDuration()?.variable}
+                easingOf={(lane) => lane.variable}
+                paint="bg-accent"
+                onEdit={edit}
+                running={easingLoop()}
+              />
+            </Frame>
           </div>
         </Show>
-      </section>
-    </Page>
+      </Section>
+    </ConcernPage>
   );
 }
