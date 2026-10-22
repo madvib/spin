@@ -196,8 +196,8 @@ const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
 
 /**
  * The sub-heading every section of a page carries. Same rule as the rail's:
- * never smaller than the items under it, so the size matches the prose it
- * captains and the hierarchy is carried by weight and ink alone.
+ * never smaller than the items under it — and it is the theme's own step, so
+ * the ladder does the sizing and the weight and the ink carry the rest.
  */
 const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal text-text first:mt-0";
 
