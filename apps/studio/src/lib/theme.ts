@@ -164,20 +164,27 @@ function coerceValue(current: unknown, value: string): unknown {
 }
 
 /**
- * Set one token's value, in one mode.
+ * Where a value can live on a token.
  *
- * `mode` is `"base"` for the token's own `$value` and `"dark"` for its
- * `$modes.dark` — which are the only two places a value can live, now that
- * the dark side lives on the token rather than in a group beside it. A dark
- * value that equals the base is dropped rather than stored: a mode that
- * restates the light value says nothing changed, and the reader should have
- * to say something did.
+ * `"base"` is the token's own `$value` — the value the document's first
+ * served mode wears — and a mode name is that mode's restatement in
+ * `$modes`, now that the modes live on the token rather than in a group
+ * beside it. The two are the only places a value can live.
+ */
+export type EditSlot = "base" | "light" | "dark";
+
+/**
+ * Set one token's value, in one slot.
+ *
+ * A mode value that equals the base is dropped rather than stored: a mode
+ * that restates the base value says nothing changed, and the reader should
+ * have to say something did.
  */
 export function setToken(
   text: string,
   path: string[],
   value: string,
-  mode: "base" | "dark",
+  mode: EditSlot,
 ): string {
   const doc = JSON.parse(text) as Record<string, unknown>;
   let node: unknown = doc;
@@ -202,9 +209,9 @@ export function setToken(
 
   const modes = (leaf["$modes"] ?? {}) as Record<string, unknown>;
   if (next === leaf["$value"]) {
-    delete modes["dark"];
+    delete modes[mode];
   } else {
-    modes["dark"] = next;
+    modes[mode] = next;
   }
   if (Object.keys(modes).length === 0) {
     delete leaf["$modes"];
@@ -226,7 +233,7 @@ export function setToken(
 export function applyEdits(
   text: string,
   edits: readonly { path: readonly string[]; value: string }[],
-  mode: "base" | "dark",
+  mode: EditSlot,
 ): string {
   let doc = text;
   for (const edit of edits) {

@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { contrastRatio } from "@spin/theme";
-import { floorFindings, measureFloors, remedyText } from "./floors.ts";
+import { checks, floorFindings, measureFloors, remedyText } from "./floors.ts";
+import { applyEdits } from "./theme.ts";
 
 /**
  * A document with one failing floor and everything else the floors ask for
@@ -105,6 +106,66 @@ Deno.test("a floor that holds offers nothing: there is nothing to fix", () => {
   );
   assertEquals((success?.ratio ?? 0) >= 4.5, true);
   assertEquals(success?.remedy, null);
+});
+
+/**
+ * The document whose DARK side fails a floor the light side keeps.
+ *
+ * The success green clears the floor on white and disappears on ink; the
+ * base declares both, so the base is the light side and dark is the
+ * restatement — the arrangement every two-mode starter has.
+ */
+function darkFailure(): string {
+  return JSON.stringify({
+    modes: ["light", "dark"],
+    color: {
+      $type: "color",
+      surface: { $value: "#ffffff", $modes: { dark: "#0b0f19" } },
+      "semantic": { success: { $value: "#0b5c22" } },
+    },
+  });
+}
+
+Deno.test("the checks read a restatement, and name the mode it fails in", () => {
+  // The base keeps the floor; the dark value does not. A check that read the
+  // base alone would say the document clears every floor, which is the
+  // false sentence the panel used to say.
+  const found = checks(darkFailure()).filter((check) =>
+    check.path === "color.semantic.success"
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]!.message.includes("in dark"), true);
+  assertEquals(found[0]!.remedy?.mode, "dark");
+});
+
+Deno.test("the fix a restatement finding offers is written into that mode", () => {
+  // The contract of the remedy: apply it where it says, and the finding is
+  // gone — while the base, which was never the problem, keeps its value.
+  const finding = checks(darkFailure()).find((check) =>
+    check.path === "color.semantic.success"
+  )!;
+  const remedy = finding.remedy!;
+  const next = applyEdits(
+    darkFailure(),
+    [{ path: remedy.path.split("."), value: remedy.value }],
+    "dark",
+  );
+  const after = checks(next).filter((check) =>
+    check.path === "color.semantic.success"
+  );
+  assertEquals(after.length, 0);
+  // The write landed in the restatement, and the base — which was never the
+  // problem — still holds the value the author chose.
+  const doc = JSON.parse(next) as {
+    color: {
+      semantic: {
+        success: { $value: string; $modes?: Record<string, string> };
+      };
+    };
+  };
+  const held = doc.color.semantic.success;
+  assertEquals(held.$value, "#0b5c22");
+  assertEquals(held.$modes?.dark, remedy.value);
 });
 
 Deno.test("a mode is measured on the values it shows", () => {

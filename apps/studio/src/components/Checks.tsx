@@ -128,13 +128,24 @@ export default function Checks(props: {
    * Writes a remedy into the token it belongs to.
    *
    * The finding names the token, so the studio can offer the edit rather
-   * than only describe it. The value goes into the token's own slot — the
-   * base, which is the slot the finding was measured on — and the studio's
-   * own gate has the last word: an edit that breaks a floor the document
-   * used to keep is refused and says why.
+   * than only describe it. The value goes into the slot the finding was
+   * measured in — a restatement's fix into that mode, so the value the
+   * panel measured is the value the document ends up holding — and the
+   * studio's own gate has the last word: an edit that breaks a floor the
+   * document used to keep is refused and says why.
    */
   function apply(remedy: Remedy): void {
-    editToken(remedy.path.split("."), remedy.value, "base");
+    // Into the slot the finding was measured in: a dark restatement's fix
+    // written into the base would leave the dark value exactly as it was.
+    editToken(
+      remedy.path.split("."),
+      remedy.value,
+      remedy.mode === "dark"
+        ? "dark"
+        : remedy.mode === "light"
+        ? "light"
+        : "base",
+    );
   }
 
   return (

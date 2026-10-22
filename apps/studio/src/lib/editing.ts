@@ -1,4 +1,5 @@
 import { applyEdits, createToken as insertToken } from "./theme";
+import type { EditSlot } from "./theme";
 import { activeMode, noteRefusal, setThemeText, themeText } from "./store";
 
 /** One edit, as the controls spell it: a DTCG path and the value to write. */
@@ -25,7 +26,7 @@ export interface TokenEdit {
  */
 export function editTokens(
   edits: readonly TokenEdit[],
-  mode?: "base" | "dark",
+  mode?: EditSlot,
 ): boolean {
   const slot = mode ?? (activeMode() === "dark" ? "dark" : "base");
   const next = (() => {
@@ -49,7 +50,7 @@ export function editTokens(
 export function editToken(
   path: string[],
   value: string,
-  mode?: "base" | "dark",
+  mode?: EditSlot,
 ): boolean {
   return editTokens([{ path, value }], mode);
 }
@@ -100,7 +101,7 @@ export function upsertToken(
   path: string[],
   type: string,
   value: string,
-  mode?: "base" | "dark",
+  mode?: EditSlot,
 ): boolean {
   const before = themeText();
   if (pathExists(before, path)) {

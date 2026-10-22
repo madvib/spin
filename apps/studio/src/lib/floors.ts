@@ -34,6 +34,7 @@ import {
   validateTheme,
 } from "@spin/theme";
 import { tokenValue } from "./overview.ts";
+import { declaredModes } from "./theme.ts";
 
 /** Which way a colour has to move to clear a floor. */
 export type Direction = "darker" | "lighter";
@@ -52,6 +53,16 @@ export interface Remedy {
   readonly ratio: number;
   /** The surface it is measured on, as a path. */
   readonly bg: string;
+  /**
+   * The mode the finding is in, when it is a restatement.
+   *
+   * A floor is measured on the values a mode SHOWS, and a mode restates
+   * them, so the same pair can clear a floor in the base and miss it in a
+   * restatement. The mode is what the fix has to be written into, so the
+   * remedy carries it; a base finding carries none, because the base is
+   * where the token's own value lives.
+   */
+  readonly mode?: string;
 }
 
 /** A floor the document does not clear, and what would clear it. */
@@ -74,20 +85,35 @@ export interface FloorFinding {
  * The floors a document breaks, with the edit that clears each.
  *
  * The floors are the contract's own list and the measurement is the
- * contract's own function, so a finding here says what the module says. The
- * document is judged as it stands — the base values, which is what the
- * studio's own checks read — and a floor the document keeps is not a
- * finding at all.
+ * contract's own function, so a finding here says what the module says. With
+ * no mode the document is judged as it stands — the base values, which is
+ * where a token's own `$value` lives. With a mode it is judged on the values
+ * that mode shows, aliases followed the same way, because a restatement can
+ * break a floor the base keeps. A floor the document keeps is not a finding
+ * at all.
  */
-export function floorFindings(text: string): readonly FloorFinding[] {
+export function floorFindings(
+  text: string,
+  mode?: string,
+): readonly FloorFinding[] {
   const parsed = parseTokens(text);
   if (!parsed.ok) return [];
-  const index = indexTree(resolveAliases(parsed.tree).tree);
+  const index = mode === undefined
+    ? indexTree(resolveAliases(parsed.tree).tree)
+    : undefined;
+  /** The value a path holds, in the base or in the mode being measured. */
+  const held = (path: string): string | undefined => {
+    if (index !== undefined) {
+      const value = index.leaves[path]?.value;
+      return typeof value === "string" ? value : undefined;
+    }
+    return tokenValue(parsed.tree, mode!, path);
+  };
   const findings: FloorFinding[] = [];
   for (const floor of legibilityFloors()) {
-    const fgValue = index.leaves[floor.fg]?.value;
-    const bgValue = index.leaves[floor.bg]?.value;
-    if (typeof fgValue !== "string" || typeof bgValue !== "string") continue;
+    const fgValue = held(floor.fg);
+    const bgValue = held(floor.bg);
+    if (fgValue === undefined || bgValue === undefined) continue;
     let ratio: number;
     try {
       ratio = contrastRatio(fgValue, bgValue);
@@ -111,7 +137,7 @@ export function floorFindings(text: string): readonly FloorFinding[] {
       bg: floor.bg,
       min: floor.min,
       ratio,
-      remedy,
+      remedy: mode === undefined ? remedy : { ...remedy, mode },
     });
   }
   return findings;
@@ -283,7 +309,8 @@ function amountAtLuminance(
  */
 export function remedyText(remedy: Remedy): string {
   const verb = remedy.direction === "darker" ? "Darken" : "Lighten";
-  return `${verb} ${remedy.path} to ${remedy.value} — ${
+  const mode = remedy.mode === undefined ? "" : ` in ${remedy.mode}`;
+  return `${verb} ${remedy.path} to ${remedy.value}${mode} — ${
     remedy.ratio.toFixed(2)
   }:1 on ${remedy.bg}.`;
 }
@@ -310,6 +337,13 @@ export interface Check {
  * A finding carries its path either way, because the path is what an author
  * edits by — it is how the panel links to the token's editor, and how the
  * remedy knows where to write.
+ *
+ * EVERY MODE IS READ, not only the base. The document's first served mode is
+ * what the base values are, and a mode that restates them can break a floor
+ * the base keeps — the studio's write gate only reads the base, so a value
+ * written into a restatement is exactly the value that can fail silently.
+ * A check that judged the base and then said "every value it declares clears
+ * the floors" would be describing one mode and claiming two.
  */
 export function checks(text: string): readonly Check[] {
   const report = validateTheme(text);
@@ -322,9 +356,24 @@ export function checks(text: string): readonly Check[] {
       : [{ path: "", message: report.error }]),
     ...report.issues,
   ];
-  return issues.map((issue) => ({
+  const found: Check[] = issues.map((issue) => ({
     path: issue.path,
     message: issue.message,
     remedy: remedies.get(issue.path),
   }));
+
+  // The restatements: every served mode after the first, which is the base.
+  const [, ...restatements] = declaredModes(text);
+  for (const mode of restatements) {
+    for (const finding of floorFindings(text, mode)) {
+      found.push({
+        path: finding.path,
+        message: `${finding.path} measures ${
+          finding.ratio.toFixed(2)
+        }:1 on ${finding.bg} in ${mode} — the floor is ${finding.min}:1.`,
+        remedy: finding.remedy,
+      });
+    }
+  }
+  return found;
 }
