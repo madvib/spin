@@ -1,5 +1,5 @@
 import { createUnplugin } from "unplugin";
-import { expandVariantGroups, parse, parseScope } from "@spin/runtime";
+import { expandVariantGroups, extractScript, parse, parseScope, stripScript } from "@spin/runtime";
 import { emit } from "./emit.ts";
 
 export interface SpinElementsOptions {
@@ -52,7 +52,14 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const code = expandVariantGroups(
         (await resolveIncludes(source.replace(/<!--[\s\S]*?-->/g, ""), id)).code,
       );
-      if (/<!doctype|<script[\s>]|<style[\s>]/i.test(code)) {
+      // A script block is the component's own TypeScript: extract it before
+      // the parse, so the markup parser never sees it.
+      const scriptSource = extractScript(code);
+      const script = scriptSource === undefined ? undefined : stripScript(scriptSource);
+      const markup = scriptSource === undefined
+        ? code
+        : code.replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "");
+      if (/<!doctype|<style[\s>]/i.test(markup)) {
         throw new Error(`spin-elements: ${id} looks like a document, not a component`);
       }
       const file = id.split("?")[0]!;
@@ -72,9 +79,22 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const dir = file.split("/").slice(0, -1).join("/");
       const { parse: parseMod } = await import("@spin/runtime");
       void parseMod;
-      const ir = parse(code);
+      const ir = parse(markup);
       const { js } = emit(ir);
-      const scopeDecls = parseScope(code);
+      const scopeDecls = parseScope(markup);
+      // Script bindings: `const machine = slider({...})` — the machine is
+      // a function, call it. Each binding becomes a bridge under its own
+      // name, with the call's args object as the props seed. No coercion:
+      // the checker guarantees the args.
+      const scriptBindings: { readonly name: string; readonly factory: string; readonly args: string }[] = [];
+      if (script !== undefined) {
+        for (const m of script.module.matchAll(/const\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*)\s*\(([\s\S]*?)\)\s*;?\s*(?:\n|$)/g)) {
+          scriptBindings.push({ name: m[1] ?? "", factory: m[2] ?? "", args: (m[3] ?? "").trim() });
+        }
+      }
+      if (script !== undefined && scopeDecls.props.length > 0) {
+        throw new Error(`spin-elements: ${id} has both <script> and <scope> props — the script replaces the scope`);
+      }
       const body = js
         .replace(/^export function create\(ctx, actions\) \{/, "export function create(actions, values) {")
         .replace(/void ctx;\n/, "");
@@ -264,7 +284,51 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           );
         }
       }
-      const hasConsume = consumeCalls.length > 0;
+      // Script imports pass through verbatim: the script names its
+      // machine, and the checker (not a convention walk) resolves it.
+      // Each machine-factory binding also imports its sibling component
+      // (`slider.machine.ts` -> `slider.bindings.ts`) under an alias for
+      // the bridge: the factory is the type source, the component the
+      // runtime source.
+      const scriptImports: string[] = [];
+      if (script !== undefined) {
+        for (const m of script.module.matchAll(/^\s*import\s[^;]+;?$/gm)) {
+          scriptImports.push(m[0].trim());
+        }
+        for (const binding of scriptBindings) {
+          for (const m of script.module.matchAll(
+            new RegExp(`import\\s*\\{[^}]*\\b${binding.factory}\\b[^}]*\\}\\s*from\\s*["\']([^"\']+)["\']`, "g"),
+          )) {
+            const machinePath = m[1] ?? "";
+            const componentPath = machinePath.replace(/\.machine\.ts$/, ".bindings.ts");
+            if (componentPath !== machinePath) {
+              scriptImports.push(`import { ${binding.factory} as ${binding.factory}Component } from ${JSON.stringify(componentPath)};`);
+            }
+          }
+        }
+      }
+      // Script bindings become bridges under their own names. The script
+      // calls the machine FACTORY (typed args, checked by the gate); the
+      // plugin pairs it with the sibling component (bags, presentation)
+      // for the bridge. The factory import is the type source; the
+      // component is the runtime source. The pair is found the way consume
+      // finds defs: `<name>.machine.ts` beside `<name>.bindings.ts`.
+      const scriptCalls: string[] = [];
+      if (script !== undefined) {
+        for (const binding of scriptBindings) {
+          const bridge = `${binding.name}Bridge`;
+          const component = `${binding.factory}Component`;
+          scriptCalls.push(
+            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}) }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
+            `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
+            `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
+            `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
+            `  for (const command of ${component}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
+            `  own(() => ${bridge}.dispose());`
+          );
+        }
+      }
+      const hasConsume = consumeCalls.length > 0 || scriptCalls.length > 0;
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
@@ -324,6 +388,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         code: [
           runtimeImport,
           actionImports,
+          ...scriptImports,
           ...consumeImports,
           `const actions = { ${actionNames.join(", ")} };`,
           body,
@@ -338,6 +403,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           `  const initial = coerceProps(${JSON.stringify(scopeDecls.props)}, attrs);`,
           `  const values = { ...initial };`,
           ...seedProps,
+          ...scriptCalls,
           ...consumeCalls,
           // Light-DOM children are projected BEFORE create(): the markup's
           // `<slot>` points resolve against this map. Reserved like

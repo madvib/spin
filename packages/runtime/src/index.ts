@@ -145,7 +145,7 @@ export {
 export { bindFor, type BindForOptions, type RenderedItem } from "./directives/for.ts";
 export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
 export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
-export { coerceProps, parse, parseScope } from "@spin/syntax";
+export { coerceProps, extractScript, parse, parseScope, stripScript } from "@spin/syntax";
 export { formatExampleHtml, tokenizeHtml, type CodeToken, type CodeTokenType } from "@spin/syntax";
 export { expandVariantGroups } from "@spin/syntax";
 export type {

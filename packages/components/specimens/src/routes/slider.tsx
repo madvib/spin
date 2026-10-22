@@ -41,7 +41,7 @@ export default function Slider() {
   createEffect(() => {
     const ctl = rangeCtl();
     if (ctl === undefined) return undefined;
-    return ctl.bind({ label: "Range", defaultValue: "[20, 80]" }, {
+    return ctl.bind({ label: "Range", defaultValue: [20, 80] }, {
       "value-change": (e: CustomEvent<SliderValueChange>) =>
         setRange(e.detail.value.join(", ")),
     });
@@ -89,7 +89,6 @@ export default function Slider() {
           id="range"
           ref={setRangeEl}
           prop:label="Range"
-          prop:defaultValue="[20, 80]"
         />
         <DemoReadout>
           range: {range()}

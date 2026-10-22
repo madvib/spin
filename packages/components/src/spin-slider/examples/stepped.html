@@ -1,3 +1,7 @@
-<scope>props={ defaultValue: string = "[50]", step: string = "5" } consume={ slider }</scope>
+<script lang="ts">
+  import { slider } from "../slider.machine.ts";
+
+  const machine = slider({ value: [50], step: 5 });
+</script>
 
 <include file="./basic.html" />

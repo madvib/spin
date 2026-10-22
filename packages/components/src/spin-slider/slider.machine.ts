@@ -28,7 +28,9 @@ import {
 } from "./slider.transitions.ts";
 export function slider(
   args: SliderArgs = {},
-  authored: (name: string) => boolean,
+  // A script-constructed machine has no host-authored props; the authored
+  // channel exists only for element property/attribute writes.
+  authored: (name: string) => boolean = () => false,
 ): Machine<SliderContext, SliderEvents> {
   return createMachine<SliderContext, SliderEvents>({
     id: "slider",

@@ -1,4 +1,3 @@
-import { defaultTwin } from "@spin/runtime";
 import {
   clampValue,
   getPercentValue,
@@ -66,11 +65,11 @@ export interface SliderArgs {
  * framework resolved it into the args — so it counts as a write too.
  */
 export function initial(args: SliderArgs = {}, authored: (name: string) => boolean): SliderContext {
-  // A host that wrote `defaultValue` wrote the channel too.
+  // Presence is the evidence: the map drops absent fields, so a field
+  // present in the args was provided — by the host directly, or resolved
+  // from its twin upstream. The machine's own default owns absence.
   const written = (field: string): boolean =>
-    authored(field) ||
-    authored(defaultTwin(field)) ||
-    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
+    (args as Record<string, unknown>)[field] !== undefined || authored(field);
   const min = args.min ?? 0;
   const max = args.max ?? 100;
   const step = args.step ?? 1;

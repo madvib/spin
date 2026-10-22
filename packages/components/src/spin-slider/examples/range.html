@@ -1,26 +1,30 @@
-<scope>props={ defaultValue: string = "[25, 75]" } consume={ slider }</scope>
+<script lang="ts">
+  import { slider } from "../slider.machine.ts";
 
-<div class="mx-auto w-full max-w-md" {...slider.getRootProps()}>
-  <div class="mb-4 text-sm text-muted" {...slider.getValueTextProps()}>{slider.getThumbValue(0)} - {slider.getThumbValue(1)}</div>
+  const machine = slider({ value: [25, 75] });
+</script>
+
+<div class="mx-auto w-full max-w-md" {...machine.getRootProps()}>
+  <div class="mb-4 text-sm text-muted" {...machine.getValueTextProps()}>{machine.getThumbValue(0)} - {machine.getThumbValue(1)}</div>
   <div
     class="relative flex h-4 w-full touch-none items-center select-none"
-    {...slider.getControlProps()}
+    {...machine.getControlProps()}
   >
 <div
       class="relative h-2 w-full overflow-hidden rounded-full bg-surface-sunken"
-      {...slider.getTrackProps()}
+      {...machine.getTrackProps()}
     >
       <div
         class="absolute inset-y-0 rounded-full bg-primary"
-        {...slider.getRangeProps()}
+        {...machine.getRangeProps()}
       ></div>
     </div>
-<template for={slider.getThumbIndexes()} as={row} key={row}>
+<template for={machine.getThumbIndexes()} as={row} key={row}>
       <span
         class="absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[dragging]:scale-110 data-[disabled]:opacity-50"
-        {...slider.getThumbProps({ index: row })}
+        {...machine.getThumbProps({ index: row })}
       ></span>
-      <input {...slider.getHiddenInputProps({ index: row })} />
+      <input {...machine.getHiddenInputProps({ index: row })} />
     </template>
   </div>
 </div>
