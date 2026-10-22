@@ -4,30 +4,38 @@
 import type { JSX } from "solid-js";
 import { Code, Section } from "../../bits.tsx";
 
-const GATE = `// deno.json — the gate
+const COMMANDS = `// package.json or deno.json
 {
-  "tasks": { "check": "spin check --config path/to/check.ts http://localhost:5173" }
+  "scripts": {
+    "lint": "spin lint src/",
+    "lint:fix": "spin lint --fix src/",
+    "check": "spin check --config path/to/check.ts http://localhost:5173"
+  }
 }`;
 
-const ORACLES = [
+const CHECKS = [
   [
-    "visual",
-    "contrast (WCAG), appearance (theme agreement, geometry)",
+    "spin lint",
+    "closed vocabulary, redundant classes, ink pairing, theme values — via oxlint, ESLint, or the CLI",
   ],
-  ["layout", "overflow, intersection, alignment, stacking"],
+  [
+    "spin check",
+    "contrast (WCAG), state-contrast (hover, focus, active, disabled), geometry and overflow in a real browser",
+  ],
 ] as const;
 
 export default function Verify(): JSX.Element {
   return (
     <Section id="verify" title="Verify">
       <p>
-        Two kinds of check, both from the same package: the lints, which read
-        your source, and the rendered checks, which open your app in a real
-        browser and measure what a person would see. Both ship as{" "}
-        <code>npx spin</code>.
+        Two kinds of tooling, both from{" "}
+        <code>@spin/diagnostics</code>: the source lints, which inspect your
+        markup and class lists against your project's theme, and the rendered
+        checks, which open your running app in a browser and measure what a
+        person sees.
       </p>
       <div class="mt-4">
-        {ORACLES.map(([name, what]) => (
+        {CHECKS.map(([name, what]) => (
           <div class="flex flex-col gap-1 border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4 mt-2 md:flex-row md:items-baseline md:gap-4">
             <code class="shrink-0">{name}</code>
             <span class="text-sm">{what}</span>
@@ -35,7 +43,7 @@ export default function Verify(): JSX.Element {
         ))}
       </div>
       <p>Running them:</p>
-      <Code code={GATE} />
+      <Code code={COMMANDS} />
     </Section>
   );
 }
