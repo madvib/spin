@@ -68,7 +68,7 @@ const pressAt = (x: number, y: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: handleNode,
-  rect: handleRect,
+  rect: handleRect, direction: "ltr",
 });
 
 /** The move the drag action reports: the point, plus the delta. */

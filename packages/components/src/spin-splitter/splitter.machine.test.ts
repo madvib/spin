@@ -50,7 +50,7 @@ const press = (clientX: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: rootNode(),
-  rect: rootNode().getBoundingClientRect(),
+  rect: rootNode().getBoundingClientRect(), direction: "ltr",
 });
 
 /** The move the drag action reports: the point, plus the delta from the

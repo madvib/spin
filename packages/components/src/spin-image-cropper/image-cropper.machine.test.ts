@@ -65,7 +65,7 @@ const dragPress = (x: number, y: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: viewportNode(),
-  rect: viewportNode().getBoundingClientRect(),
+  rect: viewportNode().getBoundingClientRect(), direction: "ltr",
 });
 
 /** A move, as the drag action reports it: the absolute point and the delta

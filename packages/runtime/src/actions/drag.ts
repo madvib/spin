@@ -57,6 +57,9 @@ export interface DragPress {
   readonly target: EventTarget | null;
   /** The handle's box, read where the gesture is reported. */
   readonly rect: DOMRect | null;
+  /** The handle's direction at press time: mirroring math reads this,
+   * not a prop. */
+  readonly direction: "ltr" | "rtl";
 }
 
 export interface DragDelta extends DragPress {
@@ -68,6 +71,19 @@ export interface DragDelta extends DragPress {
 type Capturable = Element & {
   setPointerCapture?: (pointerId: number) => void;
   releasePointerCapture?: (pointerId: number) => void;
+};
+
+/** The handle's direction, read where the gesture is reported: direction
+ * is platform truth (inherited, settable above the component), so it is
+ * read at gesture time, never stored, never passed as a prop. */
+const directionOf = (node: Element): "ltr" | "rtl" => {
+  try {
+    return node.ownerDocument?.defaultView?.getComputedStyle(node).direction === "rtl"
+      ? "rtl"
+      : "ltr";
+  } catch {
+    return "ltr";
+  }
 };
 
 /** The handle's box, read where the gesture is reported: a handle that
@@ -135,6 +151,7 @@ export const drag: ElementAction<DragParam | undefined> = createAction((node, pa
       pressure: event.pressure,
       target,
       rect: boxOf(node),
+      direction: directionOf(node),
     };
     if (param?.capture !== false) {
       const capture = (node as Capturable).setPointerCapture;
@@ -162,6 +179,7 @@ export const drag: ElementAction<DragParam | undefined> = createAction((node, pa
         pressure: moveEvent.pressure,
         target: moveEvent.target,
         rect: boxOf(node),
+        direction: directionOf(node),
         dx: moveEvent.clientX - originX,
         dy: moveEvent.clientY - originY,
       });

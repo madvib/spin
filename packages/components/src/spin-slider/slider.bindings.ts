@@ -235,13 +235,13 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
             onStart: (press: DragPress): void => {
               const context = scope.context;
               if (press.metaKey || press.ctrlKey || press.altKey) return;
-              const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), context, press.x, press.y);
+              const value = trackValue(scope, context.orientation, press.direction, context, press.x, press.y);
               if (value === null) return;
               scope.send({ type: "POINTER_DOWN", pointValue: value });
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
-              const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), scope.context, delta.x, delta.y);
+              const value = trackValue(scope, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
               if (value === null) return;
               scope.send({ type: "POINTER_MOVE", pointValue: value });
             },
@@ -267,13 +267,13 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
       attrs: (scope: ScopeLike) => {
         const context = scope.context;
         const percents = context.value.map((value) => percentOf(context, value));
-        const origin = scope.props["origin"];
+        const origin = context.origin;
         // Single-thumb ranges start at the origin edge, not the thumb: a
         // lone 50% value fills 0-50, not a zero-width band.
         const single = percents.length < 2;
         const low = single && origin === "start" ? 0 : Math.min(...percents);
         const high = single && origin === "end" ? 100 : Math.max(...percents);
-        const vertical = scope.props["orientation"] === "vertical";
+        const vertical = context.orientation === "vertical";
         return {
           id: scope.id("range"),
           dir: scope.props["dir"],
@@ -305,20 +305,20 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const percent = percentOf(context, value);
         const focused = scope.state === "focus" && context.focusedIndex === slotIndex(scope.slot);
         const dragging = scope.state === "dragging" && context.focusedIndex === slotIndex(scope.slot);
-        const vertical = scope.props["orientation"] === "vertical";
-        const orientation = scope.props["orientation"];
+        const vertical = context.orientation === "vertical";
+        const orientation = context.orientation;
         return {
           id: scope.id("thumb", slotIndex(scope.slot)),
           dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "thumb",
           "data-index": String(slotIndex(scope.slot)),
-          "data-disabled": scope.attr(scope.props["disabled"] === true),
-          "data-orientation": scope.props["orientation"],
+          "data-disabled": scope.attr(context.disabled),
+          "data-orientation": context.orientation,
           "data-focus": scope.attr(focused),
           "data-dragging": scope.attr(dragging),
           draggable: "false",
-          ...ariaDisabled(scope.props["disabled"] === true ? "true" : undefined),
+          ...ariaDisabled(context.disabled ? "true" : undefined),
           ...ariaOrientation(
             orientation === "horizontal" || orientation === "vertical"
               ? orientation
@@ -330,7 +330,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
             now: String(value),
           }),
           role: "slider",
-          tabindex: scope.props["disabled"] === true ? undefined : "0",
+          tabindex: context.disabled ? undefined : "0",
           style: vertical
             ? { bottom: `${percent}%` }
             : { [(scope.props["dir"] === "rtl") ? "right" : "left"]: `${percent}%` },
@@ -364,7 +364,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
-              const value = trackValue(scope, orientationOf(scope.props), dirOf(scope.props), scope.context, delta.x, delta.y);
+              const value = trackValue(scope, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
               if (value === null) return;
               scope.send({ type: "POINTER_MOVE", pointValue: value });
             },
@@ -435,7 +435,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const percent = percentOf(context, slot.value);
         const first = context.value[0] ?? context.min;
         const state = slot.value < first ? "under-value" : slot.value > first ? "over-value" : "at-value";
-        const vertical = scope.props["orientation"] === "vertical";
+        const vertical = context.orientation === "vertical";
         return {
           id: scope.id("marker", slot.value),
           dir: scope.props["dir"],
@@ -443,7 +443,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
           "data-part": "marker",
           "data-value": String(slot.value),
           "data-state": state,
-          "data-orientation": scope.props["orientation"],
+          "data-orientation": context.orientation,
           style: vertical
             ? { bottom: `${percent}%` }
             : { left: `${percent}%` },

@@ -54,7 +54,7 @@ const press = (x: number, y: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: controlNode(),
-  rect: controlBox(),
+  rect: controlBox(), direction: "ltr",
 });
 
 /** The gesture's move: where the pointer is, and the delta from the press. */
