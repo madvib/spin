@@ -1,101 +1,209 @@
 /**
- * Type — the first surface in the studio designed as a product rather than
- * assembled from token rows.
+ * Type — the faces a theme uses, the scale it sets, and the element map.
  *
  * A token list answers "what is `font-size-lg` worth". A type surface has to
  * answer the questions a theme author actually has:
  *
- *   **What does each face look like, and which slot claims it?** `body`,
- *   `heading`, `serif`, `mono` — each a live specimen, not a CSS stack in a
- *   text field. A stack string is the value, not the thing.
+ *   **What does each face look like, and what is it for?** `body`, `heading`,
+ *   `serif`, `mono` — each a live specimen, the stack it resolves to, and
+ *   the place the family is loaded from. A stack string is the value; the
+ *   face is the thing.
  *
  *   **Does the scale read as a scale?** Nine sizes in a list are nine
  *   numbers; nine sizes in a ramp are a decision. The ramp is rendered at
  *   size, largest first, with the token and the computed value beside it.
  *
- *   **Which face does each element claim?** `<h1>`–`<h6>` claiming `heading`
- *   and `<p>` claiming `body` is a mapping, and it should be legible at a
- *   glance rather than inferred from which specimens happened to be on screen.
+ *   **Which face does each element read?** That is the theme's answer, and
+ *   this page edits it. `font.element.<tag>.<field>` is a decision a theme
+ *   may make about ONE element — its face, its size, its weight — and the
+ *   map at the end is where that decision is made. A row the theme says
+ *   nothing about reads the ladder.
  *
  * The specimens are the studio's own neutral copy, the same in every
  * project, so two themes are compared on the same reading rather than on
  * whoever wrote the sample.
  */
 
-import { createMemo, For, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  on,
+  Show,
+} from "solid-js";
+import { Dynamic } from "solid-js/web";
+import {
+  elementTypeElements,
+  elementTypeFields,
+  FACE_CHAINS,
+  resolveAliases,
+  treeInMode,
+} from "@spin/theme";
+import type { TokenTree } from "@spin/theme";
 import { analyzeTheme } from "../lib/theme.ts";
-import { defaultFaceFor } from "../lib/faces.ts";
 import { activeMode, themeText } from "../lib/store.ts";
-import FontPicker from "../components/FontPicker.tsx";
 import { groupTokens, type TokenRow, toPx } from "../lib/tokens.ts";
-import { DISPLAY, HEADING } from "../lib/specimen-copy.ts";
-import { editToken } from "../lib/editing.ts";
+import {
+  DISPLAY,
+  HEADING,
+  MONOSPACE,
+  PARAGRAPH,
+  QUOTE,
+  SENTENCE,
+} from "../lib/specimen-copy.ts";
+import { editToken, upsertToken } from "../lib/editing.ts";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
 import Page from "../components/Page";
 import { inDrawer } from "../lib/host.ts";
+import { type CatalogFont, searchCatalog } from "../lib/fonts.ts";
+import { spinClient } from "../lib/client.ts";
 
 /** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
 function suffixOf(path: string): string {
   return path.split(".").slice(2).join("-");
 }
+
 /**
- * Which step of the ladder each element reads.
+ * What each family slot is for.
  *
- * The FACE is not here: it is read from the theme's own families — a heading
- * reads the display face, a quotation the editorial one, the code family the
- * mono one — so a theme that names no display face is shown reading the one
- * it does name. The steps and the weights are the system's ladder, and they
- * are stated once, here.
+ * The slots are the theme's own names; the role is this page's word for what
+ * the slot does. A slot the map has never heard of is still a face the theme
+ * named, and it is filed as such rather than dropped.
  */
-const TAG_MAP = [
-  {
-    tag: "h1",
-    size: "3xl",
-    weight: "bold",
-    note: "the document's one opening claim",
-  },
-  {
-    tag: "h2",
-    size: "2xl",
-    weight: "semibold",
-    note: "a section",
-  },
-  {
-    tag: "h3",
-    size: "xl",
-    weight: "semibold",
-    note: "a sub-section",
-  },
-  {
-    tag: "h4",
-    size: "lg",
-    weight: "semibold",
-    note: "a group",
-  },
-  {
-    tag: "h5",
-    size: "md",
-    weight: "semibold",
-    note: "a sub-group",
-  },
-  {
-    tag: "h6",
-    size: "sm",
-    weight: "semibold",
-    note: "a run of related items",
-  },
-  { tag: "p", size: "md", note: "a paragraph" },
-  {
-    tag: "blockquote",
-    size: "md",
-    note: "quoted editorial text",
-  },
-  { tag: "code", size: "sm", note: "inline code" },
-  { tag: "pre", size: "sm", note: "a block of code" },
-  { tag: "kbd", size: "sm", note: "a key the reader presses" },
-] as const;
+const ROLES: Record<string, string> = {
+  heading: "display",
+  body: "body",
+  sans: "body",
+  serif: "editorial",
+  mono: "values",
+  brand: "brand",
+};
+
+/** The specimen each role is judged on: the face doing its own job. */
+const SPECIMENS: Record<string, string> = {
+  display: DISPLAY,
+  body: SENTENCE,
+  editorial: QUOTE,
+  values: MONOSPACE,
+  brand: PARAGRAPH,
+};
+
+/** What each element is for, in one line. */
+const NOTES: Record<string, string> = {
+  h1: "the document's one opening claim",
+  h2: "a section",
+  h3: "a sub-section",
+  h4: "a group",
+  h5: "a sub-group",
+  h6: "a run of related items",
+  p: "a paragraph",
+  blockquote: "quoted editorial text",
+  code: "inline code",
+  small: "a small label",
+  strong: "a strong run",
+  a: "a link",
+  figcaption: "the caption under a figure",
+};
+
+/**
+ * The theme's document as it reads, with its aliases resolved.
+ *
+ * A theme says what a face IS by pointing at another slot — silk's heading
+ * face is the sans — so a page that shows the raw document shows a reference
+ * where the reader expects a family. The aliases are followed here, once,
+ * and everything below reads the answer.
+ */
+function resolvedTree(): TokenTree | undefined {
+  const tree = analyzeTheme(themeText()).tree;
+  if (tree === undefined) return undefined;
+  return resolveAliases(treeInMode(tree, activeMode())).tree;
+}
+
+/** Every token under `font`, resolved: the families, the scale, the weights. */
+function fontRows(): readonly TokenRow[] {
+  const tree = resolvedTree();
+  if (tree === undefined) return [];
+  return groupTokens(tree, [["font"]], activeMode());
+}
+
+/** The rows of one group under `font`, by its path prefix. */
+function rowsUnder(prefix: string): readonly TokenRow[] {
+  return fontRows().filter((row) => row.path.startsWith(`${prefix}.`));
+}
+
+/** The family and scale tokens the active theme declares, resolved live. */
+function familyRows(): readonly TokenRow[] {
+  return rowsUnder("font.family");
+}
+
+function scaleRows(): readonly TokenRow[] {
+  return rowsUnder("font.size");
+}
+
+function weightRows(): readonly TokenRow[] {
+  return rowsUnder("font.weight");
+}
+
+/** The per-element decisions the theme states, if it states any. */
+function elementRows(): readonly TokenRow[] {
+  return rowsUnder("font.element");
+}
+
+/** The letter-spacing tokens the theme declares, for the tracking family. */
+function trackingRows(): readonly TokenRow[] {
+  return rowsUnder("font.letter-spacing");
+}
+
+function tokenFor(
+  families: readonly TokenRow[],
+  slot: string,
+): TokenRow | undefined {
+  return families.find((row) => row.path === `font.family.${slot}`);
+}
+
+function sizeOf(
+  sizes: readonly TokenRow[],
+  step: string,
+): TokenRow | undefined {
+  return sizes.find((row) => row.path === `font.size.${step}`);
+}
+
+/** The face names the theme actually declares. */
+function declaredFaces(): readonly string[] {
+  return familyRows().map((row) => row.path.split(".").pop()!);
+}
+
+/**
+ * The families the theme loads.
+ *
+ * A name in a stack is not a family on the machine: the theme says which
+ * families it loads under `$extensions.spin.fonts`, and a stack that names
+ * one the theme does not load falls through to the next name in the stack.
+ */
+function loadedFamilies(): readonly string[] {
+  try {
+    const doc = JSON.parse(themeText()) as Record<string, unknown>;
+    const extensions = (doc["$extensions"] ?? {}) as Record<string, unknown>;
+    const spin = (extensions["spin"] ?? {}) as Record<string, unknown>;
+    const fonts = spin["fonts"];
+    if (!Array.isArray(fonts)) return [];
+    return fonts
+      .map((entry) => (entry as { family?: unknown }).family)
+      .filter((family): family is string => typeof family === "string");
+  } catch {
+    return [];
+  }
+}
+
+/** The first family in a stack, without its quotes. */
+function firstFamily(stack: string): string {
+  const first = stack.split(",")[0]?.trim() ?? "";
+  return first.replace(/^["']|["']$/g, "");
+}
 
 /**
  * The scale the active theme declares, largest first.
@@ -117,86 +225,61 @@ function scaleOrder(): readonly string[] {
 }
 
 /**
- * The family and scale tokens the active theme declares, resolved live.
+ * The face a role reads, following the contract's chain.
  *
- * Read from the editor's own document rather than from the shipped theme:
- * what this page draws is what a token edit produces, which is the whole
- * point of a studio. `valuesInMode` inside `groupTokens` keeps dark mode
- * honest — it used to edit the base value while writing the override.
+ * The display face falls back to the heading family and the body to the sans,
+ * so a theme that names no display voice still has a face for its headings.
  */
-function familyRows(): readonly TokenRow[] {
-  const tree = analyzeTheme(themeText()).tree;
-  if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "family"]], activeMode());
-}
-
-function scaleRows(): readonly TokenRow[] {
-  const tree = analyzeTheme(themeText()).tree;
-  if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "size"]], activeMode());
-}
-
-function tokenFor(
+function faceFor(
   families: readonly TokenRow[],
-  slot: string,
+  path: string,
 ): TokenRow | undefined {
-  return families.find((row) => row.path === `font.family.${slot}`);
-}
-
-function sizeOf(
-  sizes: readonly TokenRow[],
-  step: string,
-): TokenRow | undefined {
-  return sizes.find((row) => row.path === `font.size.${step}`);
-}
-
-/** The font-weight tokens the theme declares, so the controls edit real rows. */
-function weightRows(): TokenRow[] {
-  const tree = analyzeTheme(themeText()).tree;
-  if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "weight"]], activeMode());
-}
-
-/** The letter-spacing tokens the theme declares, for the tracking family. */
-function trackingRows(): TokenRow[] {
-  const tree = analyzeTheme(themeText()).tree;
-  if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "letter-spacing"]], activeMode());
-}
-
-/** The face names the theme actually declares. */
-function declaredFaces(): readonly string[] {
-  return familyRows().map((row) => row.path.split(".").pop()!);
+  const chain = [
+    path,
+    ...(FACE_CHAINS[path as keyof typeof FACE_CHAINS] ?? []),
+  ];
+  for (const step of chain) {
+    const found = families.find((row) => row.path === step);
+    if (found !== undefined) return found;
+  }
+  return undefined;
 }
 
 export default function TypePage() {
   const sizes = createLockstep(scaleRows, "font.size");
+  const families = createMemo(familyRows);
+  const elements = createMemo(elementRows);
+
   return (
     <Page
       title="Type"
-      note="Four faces and one scale, and a map of which element claims which."
+      note="The faces a theme uses, the scale it sets, and which element reads which. The map at the end is the theme's to change."
       wide
     >
-      <section class="stack mt-8 px-8">
+      <section class="stack mt-8" aria-label="Faces">
         <h2 class="text-xl">Faces</h2>
-        <div class="flex flex-col gap-4">
-          <For each={declaredFaces()}>
-            {(slot) => (
-              <FamilyCard
-                slot={slot}
-                sample={DISPLAY}
-              />
-            )}
-          </For>
-          <Show when={declaredFaces().length === 0}>
+        <p class="max-w-screen-md text-text-muted">
+          The families the theme declares. Each card names the slot, the face it
+          resolves to, the stack behind it, and whether the theme loads that
+          family itself.
+        </p>
+        <Show
+          when={declaredFaces().length > 0}
+          fallback={
             <p class="text-sm text-text-muted">
               This theme declares no faces yet.
             </p>
-          </Show>
-        </div>
+          }
+        >
+          <div class="grid gap-4 sm:grid-cols-2">
+            <For each={declaredFaces()}>
+              {(slot) => <FaceCard slot={slot} />}
+            </For>
+          </div>
+        </Show>
       </section>
 
-      <section class="stack mt-12 px-8">
+      <section class="stack mt-8" aria-label="Scale">
         <div class="row-sm justify-between gap-3">
           <h2 class="text-xl">Scale</h2>
           <LinkToggle group="font.size" />
@@ -212,7 +295,7 @@ export default function TypePage() {
         </div>
       </section>
 
-      <section class="stack mt-12 px-8">
+      <section class="stack mt-8" aria-label="Weight">
         <h2 class="text-xl">Weight</h2>
         <p class="max-w-screen-md text-text-muted">
           The weights a face can take, edited at their named step, so an element
@@ -252,7 +335,7 @@ export default function TypePage() {
         </Show>
       </section>
 
-      <section class="stack mt-12 px-8">
+      <section class="stack mt-8" aria-label="Tracking">
         <h2 class="text-xl">Tracking</h2>
         <p class="max-w-screen-md text-text-muted">
           The letter spacing at each named step, on a line of text read at
@@ -295,12 +378,15 @@ export default function TypePage() {
         </Show>
       </section>
 
-      <section class="stack mt-12 mb-16 px-8">
+      <section class="stack mt-8" aria-label="Element map">
+        <h2 class="text-xl">Element map</h2>
         <p class="max-w-screen-md text-text-muted">
-          {"The map of what each element reads. A heading reads the theme's display face and the ladder's steps, a quotation reads the editorial face, the code family reads the mono one, and everything else reads the body's. The map is the system's, not the theme's: the faces it names are edited above, and so is the scale. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
+          Which element reads which face, size and weight. A row the theme says
+          nothing about reads the ladder; setting one writes a token under
+          {" `font.element` "}for that element.
         </p>
         {
-          /* Six columns and a face specimen in each: wider than the drawer's
+          /* Six columns and a specimen in each: wider than the drawer's
             floor, so the table scrolls inside its own rail rather than
             widening a frame the reader cannot widen. */
         }
@@ -309,44 +395,21 @@ export default function TypePage() {
             <thead>
               <tr>
                 <th>Element</th>
-                <th>Reads</th>
+                <th>Specimen</th>
                 <th>Face</th>
                 <th>Size</th>
                 <th>Weight</th>
-                <th>Why</th>
+                <th>What it is for</th>
               </tr>
             </thead>
             <tbody>
-              <For each={TAG_MAP}>
-                {(entry) => (
-                  <tr>
-                    <td>
-                      <code>{`<${entry.tag}>`}</code>
-                    </td>
-                    {
-                      /* The preview is the row's own specimen: the element, empty,
-                      so it takes whatever this row decides and nothing from the
-                      copy beside it. */
-                    }
-                    <td>
-                      <span
-                        class={previewClass(entry.tag)}
-                        style={previewStyle(entry.tag)}
-                      >
-                        {entry.tag === "p" ? "Aa Bb Cc" : "Aa"}
-                      </span>
-                    </td>
-                    <td>
-                      <code>{faceFor(entry.tag)}</code>
-                    </td>
-                    <td>
-                      <code>{entry.size}</code>
-                    </td>
-                    <td>
-                      <code>{tagWeight(entry.tag) || "—"}</code>
-                    </td>
-                    <td class="text-text-muted">{entry.note}</td>
-                  </tr>
+              <For each={elementTypeElements()}>
+                {(element) => (
+                  <ElementRow
+                    element={element}
+                    families={families()}
+                    elements={elements()}
+                  />
                 )}
               </For>
             </tbody>
@@ -357,10 +420,16 @@ export default function TypePage() {
   );
 }
 
-/** One family slot: the face drawn in itself, and the stack that names it. */
-function FamilyCard(props: { slot: string; sample: string }) {
+/**
+ * One family slot: the face it names, the role it plays, and where the
+ * family comes from.
+ */
+function FaceCard(props: { slot: string }) {
   const rows = createMemo(familyRows);
   const row = () => tokenFor(rows(), props.slot);
+  const role = () => ROLES[props.slot] ?? "the theme's own";
+  const family = () => firstFamily(row()?.value ?? "");
+  const loaded = () => loadedFamilies();
   return (
     <card class="stack p-6">
       {
@@ -374,24 +443,41 @@ function FamilyCard(props: { slot: string; sample: string }) {
         <code class="text-text-muted text-sm">
           {`font.family.${props.slot}`}
         </code>
+        <span class="rounded-md bg-surface-sunken px-2 py-1 text-xs text-text-muted">
+          {role()}
+        </span>
       </div>
-      <p class={`font-${props.slot} text-2xl leading-tight`}>{props.sample}</p>
       {
-        /* The stack is output. Under it, the decision: which family this slot
-           spends, chosen from the catalogue rather than typed as a comma
-           separated list. */
+        /* The face, drawn in itself. A name in a stack is a reference; this
+           is the thing the reference points at. */
       }
-      <div class="border-border border-t pt-4">
-        <code class="text-text-muted text-xs">{row()?.value ?? "—"}</code>
-        <FontPicker
-          slot={props.slot}
-          value={row()?.value ?? ""}
-          onPick={(stack) =>
-            editToken(
-              (row()?.path ?? `font.family.${props.slot}`).split("."),
-              stack,
-            )}
-        />
+      <p
+        class="text-2xl leading-tight"
+        style={{ "font-family": row()?.value ?? "inherit" }}
+      >
+        {family() || "—"}
+      </p>
+      {
+        /* The specimen is the face doing the job the slot exists for, and the
+           stack is the value the theme holds. */
+      }
+      <p
+        class="text-text-muted"
+        style={{ "font-family": row()?.value ?? "inherit" }}
+      >
+        {SPECIMENS[role()] ?? SENTENCE}
+      </p>
+      <div class="border-border stack-sm border-t pt-4">
+        <code class="text-text-muted text-xs break-words">
+          {row()?.value ?? "—"}
+        </code>
+        <p class="text-xs text-text-muted">
+          {loaded().includes(family())
+            ? `The theme loads ${family()}.`
+            : `The theme does not load ${
+              family() || "this family"
+            }, so the browser uses the next name in the stack.`}
+        </p>
       </div>
     </card>
   );
@@ -428,65 +514,286 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
 }
 
 /**
- * The face an element claims: the slot the system spends for it.
+ * One element of the map: the specimen it draws, and the three decisions the
+ * theme may make about it.
  *
- * The map is the system's, so the face is READ, not written: the theme's
- * families are edited in the Faces section above, and the element map says
- * which of them each element reads.
+ * The specimen is the element itself, set in the theme's answer, so a row
+ * shows what the element reads rather than what the row says it reads.
  */
-function faceFor(tag: string): string {
-  return defaultFaceFor(tag, declaredFaces());
-}
+function ElementRow(props: {
+  element: string;
+  families: readonly TokenRow[];
+  elements: readonly TokenRow[];
+}) {
+  const fields = createMemo(() => elementTypeFields(props.element));
 
-/** The scale weight a heading level states. */
-function tagWeight(tag: string): string {
-  const row = TAG_MAP.find((entry) => entry.tag === tag);
-  return row && "weight" in row ? String(row.weight) : "";
-}
+  /** What the theme states for one of the three decisions. */
+  const stated = (
+    field: "family" | "size" | "weight",
+  ): TokenRow | undefined => {
+    const path = fields()[field]?.path;
+    if (path === undefined) return undefined;
+    return props.elements.find((row) => row.path === path);
+  };
 
-/** The scale size an element states. */
-function tagSize(tag: string): string {
-  const row = TAG_MAP.find((entry) => entry.tag === tag);
-  return row ? row.size : "";
+  /** What the element reads when the theme says nothing: the ladder's answer. */
+  const inherited = (
+    field: "family" | "size" | "weight",
+  ): TokenRow | undefined => {
+    const fallback = fields()[field]?.fallback;
+    if (fallback === undefined) return undefined;
+    if (field === "family") return faceFor(props.families, fallback);
+    return props.families.find((row) => row.path === fallback) ??
+      fontRows().find((row) => row.path === fallback);
+  };
+
+  const family = () =>
+    stated("family")?.value ?? inherited("family")?.value ?? "";
+  const size = () => stated("size")?.value ?? inherited("size")?.value ?? "";
+  const weight = () =>
+    stated("weight")?.value ?? inherited("weight")?.value ?? "";
+
+  const commit = (
+    field: "family" | "size" | "weight",
+    value: string,
+  ): void => {
+    const role = fields()[field];
+    if (role === undefined) return;
+    upsertToken(role.path.split("."), role.type, value);
+  };
+
+  const specimen = (): Record<string, string> => {
+    const out: Record<string, string> = {};
+    if (family() !== "") out["font-family"] = family();
+    if (size() !== "") out["font-size"] = size();
+    if (weight() !== "") out["font-weight"] = weight();
+    return out;
+  };
+
+  return (
+    <tr>
+      <td>
+        <code>{`<${props.element}>`}</code>
+      </td>
+      <td>
+        <Dynamic
+          component={props.element}
+          class="m-0"
+          style={specimen()}
+        >
+          Aa
+        </Dynamic>
+      </td>
+      <td>
+        <FamilyField
+          value={family()}
+          label={`font.element.${props.element}.family`}
+          onCommit={(stack) => commit("family", stack)}
+        />
+      </td>
+      <td>
+        <StepChoice
+          value={size()}
+          group="font.size"
+          steps={scaleRows().map((row) => ({
+            name: row.path.split(".").pop() ?? "",
+            value: row.value,
+          }))}
+          label={`font.element.${props.element}.size`}
+          onCommit={(value) => commit("size", value)}
+        />
+      </td>
+      <td>
+        <StepChoice
+          value={weight()}
+          group="font.weight"
+          steps={weightRows().map((row) => ({
+            name: row.path.split(".").pop() ?? "",
+            value: row.value,
+          }))}
+          label={`font.element.${props.element}.weight`}
+          onCommit={(value) => commit("weight", value)}
+        />
+      </td>
+      <td class="text-text-muted">{NOTES[props.element] ?? ""}</td>
+    </tr>
+  );
 }
 
 /**
- * A step's custom property, so a preview renders at the theme's own size.
+ * One step of the theme's own scale, chosen from a list.
  *
- * The naming is the system's: a step named `2xs` is `--font-size-2xs`, and a
- * step a theme invents (`display`) follows the same rule — which is why this
- * is derived rather than listed.
+ * The value written is the ALIAS — `{font.size.3xl}` — so the element keeps
+ * reading the ladder's step rather than a copy of it: move the step and the
+ * element moves with it.
  */
-function sizeVar(step: string): string {
-  return `--font-size-${step}`;
+function StepChoice(props: {
+  value: string;
+  /** The group the steps live in: `font.size` or `font.weight`. */
+  group: string;
+  steps: readonly { name: string; value: string }[];
+  label: string;
+  onCommit: (value: string) => void;
+}) {
+  let select: HTMLSelectElement | undefined;
+  // The value is set on the element rather than on the attribute: a select's
+  // value means nothing until its options exist, and the options are created
+  // after the element is.
+  createEffect(() => {
+    const value = props.value;
+    if (select === undefined) return;
+    if (select.value !== value) select.value = value;
+  });
+  const known = () => props.steps.some((step) => step.value === props.value);
+  return (
+    <select
+      ref={(element) => {
+        select = element;
+      }}
+      aria-label={props.label}
+      class="border-border rounded-md border bg-surface px-2 py-1 text-sm"
+      onChange={(event) => {
+        const step = props.steps.find((entry) =>
+          entry.value === event.currentTarget.value
+        );
+        if (step === undefined) return;
+        props.onCommit(`{${props.group}.${step.name}}`);
+      }}
+    >
+      <Show when={!known()}>
+        <option value={props.value}>{props.value || "—"}</option>
+      </Show>
+      <For each={props.steps}>
+        {(step) => <option value={step.value}>{step.name}</option>}
+      </For>
+    </select>
+  );
 }
-
-/** A step's weight custom property. */
-const WEIGHT_VAR: Record<string, string> = {
-  regular: "--font-weight-regular",
-  medium: "--font-weight-medium",
-  semibold: "--font-weight-semibold",
-  bold: "--font-weight-bold",
-};
 
 /**
- * The style a row's preview renders at.
+ * A family stack, typed as text.
  *
- * The scale step the element sits on, read as the custom property the theme
- * declared. A preview rendering at a fixed size is a label, and this whole
- * page exists to judge size.
+ * The theme's value is a stack — `Inter, ui-sans-serif, system-ui, sans-serif`
+ * — and a stack is what the field takes. The swatch beside it says which
+ * family the stack names, and the list below filters the catalogue as the
+ * field is typed, so the families that exist are a filter rather than a list
+ * to scroll.
  */
-function previewStyle(tag: string): Record<string, string> {
-  const style: Record<string, string> = {};
-  const size = sizeVar(tagSize(tag) ?? "lg");
-  style["font-size"] = size.startsWith("--") ? `var(${size})` : size;
-  const weight = WEIGHT_VAR[tagWeight(tag)] ?? "";
-  if (weight !== "") style["font-weight"] = `var(${weight})`;
-  return style;
+function FamilyField(props: {
+  value: string;
+  label: string;
+  onCommit: (stack: string) => void;
+}) {
+  const [open, setOpen] = createSignal(false);
+  const [draft, setDraft] = createSignal(props.value);
+  // The catalogue is asked for when the field opens, not when the page
+  // mounts: a reader who never touches a face never waits for two thousand
+  // families.
+  const [fonts] = createResource(
+    () => open(),
+    (wanted) => (wanted ? catalogue() : Promise.resolve([])),
+  );
+
+  // The document's answer lands in the field once it is written; until then
+  // the author is typing into it, and a re-render must not swallow the word
+  // being written.
+  createEffect(on(() => props.value, (value) => setDraft(value)));
+
+  const family = () => firstFamily(draft());
+  const matches = () => searchCatalog(fonts() ?? [], firstFamily(draft()), 8);
+  return (
+    <div class="stack-sm">
+      <div class="row-sm">
+        <span
+          class="rounded-md bg-surface-sunken px-2 py-1 text-sm"
+          style={{ "font-family": `"${family()}"` }}
+        >
+          {family() || "—"}
+        </span>
+        <input
+          type="text"
+          aria-label={props.label}
+          class="w-64 max-w-full rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs"
+          placeholder="Inter, ui-sans-serif, system-ui, sans-serif"
+          value={draft()}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onInput={(event) => setDraft(event.currentTarget.value)}
+          onChange={(event) => {
+            setDraft(event.currentTarget.value);
+            props.onCommit(event.currentTarget.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setOpen(false);
+              return;
+            }
+            // Enter commits, so a stack the author typed is not held until
+            // the field loses the pointer.
+            if (event.key === "Enter") {
+              props.onCommit(event.currentTarget.value);
+            }
+          }}
+        />
+      </div>
+      <Show when={open() && (fonts() ?? []).length > 0}>
+        <ul class="stack-sm m-0 w-64 max-w-full list-none p-0">
+          <For each={matches()}>
+            {(font) => (
+              <li class="m-0">
+                <button
+                  type="button"
+                  class="bare w-full rounded-md border border-border bg-surface-raised px-2 py-1 text-left text-sm hover:border-primary"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    const stack = stackFor(font);
+                    setDraft(stack);
+                    setOpen(false);
+                    props.onCommit(stack);
+                  }}
+                >
+                  <span style={{ "font-family": `"${font.family}"` }}>
+                    {font.family}
+                  </span>
+                </button>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </div>
+  );
 }
 
-/** The class that renders the preview in the face its row names. */
-function previewClass(tag: string): string {
-  const slot = faceFor(tag);
-  return `font-${slot.replace(/[^a-z]/g, "")}`;
+/** The stack a catalogue family resolves to. */
+function stackFor(font: CatalogFont): string {
+  const fallback = font.category.includes("serif")
+    ? "Georgia, serif"
+    : font.category.includes("mono")
+    ? "ui-monospace, monospace"
+    : "ui-sans-serif, system-ui, sans-serif";
+  return `"${font.family}", ${fallback}`;
+}
+
+/**
+ * The catalogue, fetched once for the whole page.
+ *
+ * Two thousand families is a filter, not a list: the field asks the
+ * catalogue for the families that match what has been typed.
+ */
+let catalogueRequest: Promise<readonly CatalogFont[]> | undefined;
+
+function catalogue(): Promise<readonly CatalogFont[]> {
+  catalogueRequest ??= (async () => {
+    try {
+      const client = await spinClient();
+      const listed = await client.fonts.catalog({});
+      return listed as readonly CatalogFont[];
+    } catch {
+      // A catalogue that cannot be reached is an empty one: the field still
+      // takes a stack, which is the decision, and the list is a convenience.
+      return [];
+    }
+  })();
+  return catalogueRequest;
 }

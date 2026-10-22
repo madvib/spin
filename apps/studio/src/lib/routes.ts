@@ -8,12 +8,18 @@
 /**
  * Where an entry sits in the studio's chrome.
  *
- * The chrome is three places now, and each of them says something different
- * about the route it carries. The rail is navigation and nothing else: the
- * mark that goes home, and the concerns the project is filed by. The rail's
- * FOOT is the studio's own: the verbs that are not about the document at all.
- * A route the chrome does not offer is served but not offered, which is a fact
- * the table states rather than the app guessing.
+ * The chrome is two pieces and each of them says something different: the
+ * rail on the edge is navigation and nothing else, and the bar along the
+ * bottom is the studio's own state and the controls that answer it. A route
+ * is placed in the rail or it is not offered at all — the bar carries no
+ * routes, because a route is a place the studio can go and the bar is a
+ * place it reads.
+ *
+ * Within the rail there are three places, and each says something different
+ * about the route it carries: the mark that goes home, the concerns the
+ * project is filed by, and the foot, which is the studio's own. A route the
+ * chrome does not offer is served but not offered, which is a fact the
+ * table states rather than the app guessing.
  */
 export type ChromePlace = "mark" | "concern" | "foot";
 

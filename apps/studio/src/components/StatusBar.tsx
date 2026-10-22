@@ -14,23 +14,23 @@
  * verbs that change the file, and the checks on it.
  *
  * The editing state is in the MIDDLE of the bar, because it is the bar's
- * subject and the controls flank it: the theme and the mode on one side,
- * the verbs and the checks on the other. A bar whose state sits at one end
- * with everything else crowded at the other reads as a toolbar with a
- * caption, and the caption is the part the reader came for.
+ * subject and the controls flank it: what the studio is showing on the left,
+ * the three verbs on the right, and the sentence that says what all of it
+ * means in the middle. A bar whose state sits at one end with everything
+ * else crowded at the other reads as a toolbar with a caption, and the
+ * caption is the part the reader came for.
+ *
+ * The bar is ONE LINE at every width. The drawer is narrow because the host
+ * made it narrow, and a strip that wraps is a strip whose spacing is
+ * whatever the width left over — a control that ends up beside a different
+ * kind of control, half a row down from where its neighbours are. So the
+ * state TRUNCATES rather than wrapping, and the controls keep their size:
+ * the sentence gives way, not the buttons.
  *
  * The verbs are not clustered either. Undo, redo and save are three
  * different actions, and a row of three identical icon buttons reads as one
  * control with three states; the air between them is what lets each one read
  * on its own.
- *
- * In the DRAWER the bar is two lines: the state on one, the controls on the
- * other, centred and evenly spaced. The drawer is narrow because the host
- * made it narrow, and a strip of controls that wraps is a strip whose
- * spacing is whatever the width left over — a control that ends up beside a
- * different kind of control, half a row down from where its neighbours are.
- * Two lines with the controls gathered in the middle of the second one says
- * the same thing at any width.
  *
  * It is CHROME, and it wears the studio's own theme: the control that saves a
  * theme must not be restyled by the theme it is saving.
@@ -75,7 +75,7 @@ import { ModePicker, ThemePicker } from "./Settings.tsx";
  * rail.
  */
 const BAR_CLASS =
-  "sticky bottom-0 z-dropdown flex shrink-0 border-t border-border bg-surface-raised px-3 py-1.5 text-sm";
+  "sticky bottom-0 z-dropdown flex shrink-0 items-center gap-2 border-t border-border bg-surface-raised px-3 py-1.5 text-sm";
 
 /**
  * A glyph button in the bar.
@@ -177,170 +177,31 @@ export default function StatusBar() {
     <footer
       aria-label="Editing"
       class={BAR_CLASS}
-      classList={{
-        // Modal: one line, the state in the middle and the controls flanking
-        // it. Drawer: the state on a line of its own, the controls gathered
-        // in the middle of the next.
-        "flex-row items-center": !inDrawer(),
-        "flex-wrap justify-center gap-x-2 gap-y-1": inDrawer(),
-      }}
     >
       {
         /*
-          The theme under edit and the mode it is shown in: what the reader
-          is looking at. They sit on one side of the state because they ARE
-          the state, said in the studio's controls rather than in its words.
+          What the studio is showing: the theme under edit, the mode it is
+          shown in, and the checks on it.
+
+          The theme is a SWATCH — a small square of the theme's own acting
+          colour — and the mode is a glyph; both open a panel that floats
+          over the page, so neither of them takes the bar's room. The
+          checks are a count, and the count opens the panel that lists
+          them.
+
+          These three sit at the START of the bar because they are what the
+          studio is showing, and the state in the middle says so in words.
         */
       }
       <div
         class="flex items-center gap-2"
         classList={{
+          "shrink-0": inDrawer(),
           "flex-1 justify-start": !inDrawer(),
-          "order-2": inDrawer(),
         }}
       >
-        <ThemePicker compact />
+        <ThemePicker />
         <ModePicker />
-      </div>
-
-      {
-        /*
-          The state of the document, in the middle of the bar: what is being
-          edited, in which mode, how big it is, and whether the file agrees.
-
-          Each fact is its own nowrap run, so the line can break BETWEEN
-          them and never inside one — "Editing" and the theme's name are one
-          run, because a line that broke between them would leave the
-          studio saying it was editing nothing. The line is truncated rather
-          than wrapped: a bar is one line, and a state that wrapped would
-          push the controls off the end of the row.
-        */
-      }
-      <div
-        class="flex min-w-0 items-center gap-2"
-        classList={{
-          "flex-1 justify-center": !inDrawer(),
-          "order-1 w-full": inDrawer(),
-        }}
-      >
-        <p class="min-w-0 flex-1 truncate text-center text-text-muted">
-          <span class="whitespace-nowrap">
-            Editing <strong class="text-text">{theme()}</strong>
-          </span>
-          {" · "}
-          <span class="whitespace-nowrap">{activeMode()}</span>
-          {" · "}
-          <span class="whitespace-nowrap">{activeTokenCount()} tokens</span>
-          {" · "}
-          <span class="whitespace-nowrap">
-            {fileStateText(dirty(), diverged())}
-          </span>
-        </p>
-
-        {
-          /*
-            The two actions that answer the state, and only when there is
-            something to answer: re-reading the file is worth offering when
-            the editor and the file differ, and dropping the edits is worth
-            offering when there are edits. A button that is always there and
-            never does anything is a control the reader learns to skip.
-          */
-        }
-        <Show when={dirty() || diverged()}>
-          <div class="row-sm shrink-0">
-            <button
-              type="button"
-              class="bare shrink-0 whitespace-nowrap text-text-muted hover:text-text"
-              title="Re-read this theme from disk"
-              onClick={() => {
-                void reload();
-              }}
-            >
-              Reload from disk
-            </button>
-            <Show when={dirty()}>
-              <button
-                type="button"
-                class="bare shrink-0 whitespace-nowrap text-text-muted hover:text-text"
-                title="Drop the edits that have not been saved"
-                onClick={discard}
-              >
-                Discard changes
-              </button>
-            </Show>
-          </div>
-        </Show>
-      </div>
-
-      {
-        /*
-          The controls: the three verbs that change the document and the
-          checks on it. They are gathered on the other side of the state, so
-          the bar reads as a sentence rather than a toolbar: here is what you
-          are editing, and here is what you can do about it.
-
-          The verbs are spaced rather than packed. Three identical glyph
-          buttons shoulder to shoulder read as ONE control with three
-          states, and the air between them is what tells the reader that
-          undo, redo and save are three different things.
-        */
-      }
-      <div
-        class="flex items-center gap-2"
-        classList={{
-          "flex-1 justify-end": !inDrawer(),
-          "order-3": inDrawer(),
-        }}
-      >
-        {
-          /* The three verbs that change the document, as the icons they have
-            always been: undo, redo, and the write. */
-        }
-        <button
-          type="button"
-          class={ICON_BUTTON}
-          title="Undo"
-          aria-label="Undo"
-          disabled={!canUndo()}
-          onClick={() => undo()}
-        >
-          <span
-            class="inline-block shrink-0 text-xl i-lucide-undo-2"
-            aria-hidden="true"
-          />
-        </button>
-        <button
-          type="button"
-          class={ICON_BUTTON}
-          title="Redo"
-          aria-label="Redo"
-          disabled={!canRedo()}
-          onClick={() => redo()}
-        >
-          <span
-            class="inline-block shrink-0 text-xl i-lucide-redo-2"
-            aria-hidden="true"
-          />
-        </button>
-        <button
-          type="button"
-          class={ICON_BUTTON}
-          title={diverged()
-            ? "The file changed on disk — reload from disk first"
-            : dirty()
-            ? "Save to disk"
-            : "Saved"}
-          aria-label="Save to disk"
-          disabled={!dirty()}
-          onClick={() => {
-            void saveThemeToDisk(theme());
-          }}
-        >
-          <span
-            class="inline-block shrink-0 text-xl i-lucide-save"
-            aria-hidden="true"
-          />
-        </button>
 
         {
           /*
@@ -356,7 +217,8 @@ export default function StatusBar() {
         }
         <button
           type="button"
-          class={`${ICON_BUTTON} ml-2`}
+          data-testid="checks"
+          class={ICON_BUTTON}
           classList={{
             "text-semantic-error": findings().length > 0,
             "text-text-muted": findings().length === 0,
@@ -389,6 +251,155 @@ export default function StatusBar() {
             <span class="text-xs">{findings().length}</span>
           </Show>
         </button>
+      </div>
+
+      {
+        /*
+          The state of the document, in the middle of the bar: what is being
+          edited, in which mode, how big it is, and whether the file agrees.
+
+          Each fact is its own nowrap run, so the line can break BETWEEN
+          them and never inside one — "Editing" and the theme's name are one
+          run, because a line that broke between them would leave the
+          studio saying it was editing nothing. The line is TRUNCATED rather
+          than wrapped: a bar is one line at every width, and a state that
+          wrapped would push the controls off the end of the row. The theme's
+          name comes first, so a narrow bar gives way at the end of the
+          sentence and keeps saying what is being edited.
+        */
+      }
+      <div class="flex min-w-0 flex-1 items-center justify-center">
+        <p class="min-w-0 truncate text-center text-text-muted">
+          <span class="whitespace-nowrap">
+            Editing <strong class="text-text">{theme()}</strong>
+          </span>
+          {" · "}
+          <span class="whitespace-nowrap">{activeMode()}</span>
+          {" · "}
+          <span class="whitespace-nowrap">{activeTokenCount()} tokens</span>
+          {" · "}
+          <span class="whitespace-nowrap">
+            {fileStateText(dirty(), diverged())}
+          </span>
+        </p>
+      </div>
+
+      {
+        /*
+          The verbs: the three that change the document, and the one that
+          answers the file when it has moved under the studio.
+
+          The three are spaced rather than packed. Undo, redo and save are
+          three different actions, and three identical glyph buttons
+          shoulder to shoulder read as ONE control with three states; the air
+          between them is what tells the reader that they are three
+          different things.
+
+          The one that answers the file is a glyph too, and for the same
+          reason the bar cannot hold it as a word: the drawer is 480px wide
+          at its floor, and a sentence beside a sentence is a bar that
+          wraps.
+        */
+      }
+      <div
+        class="flex items-center gap-2"
+        classList={{
+          "shrink-0": inDrawer(),
+          "flex-1 justify-end": !inDrawer(),
+        }}
+      >
+        {
+          /*
+            The action that answers the state, and only that one: re-reading
+            the file is the answer when the file moved under the studio, and
+            dropping the edits is the answer when the editor holds edits the
+            file does not. The other one is not offered, because it would not
+            answer anything: re-reading the file when the file has not moved
+            gives back what dropping the edits gives back, and dropping the
+            edits when the file HAS moved leaves the save just as refused.
+
+            A control that is always there and never does anything is a
+            control the reader learns to skip.
+          */
+        }
+        <Show when={diverged()}>
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            aria-label="Reload from disk"
+            title="Re-read this theme from disk"
+            onClick={() => {
+              void reload();
+            }}
+          >
+            <span
+              class="inline-block shrink-0 text-xl i-lucide-refresh-cw"
+              aria-hidden="true"
+            />
+          </button>
+        </Show>
+        <Show when={dirty() && !diverged()}>
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            aria-label="Discard changes"
+            title="Drop the edits that have not been saved"
+            onClick={discard}
+          >
+            <span
+              class="inline-block shrink-0 text-xl i-lucide-eraser"
+              aria-hidden="true"
+            />
+          </button>
+        </Show>
+
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            title="Undo"
+            aria-label="Undo"
+            disabled={!canUndo()}
+            onClick={() => undo()}
+          >
+            <span
+              class="inline-block shrink-0 text-xl i-lucide-undo-2"
+              aria-hidden="true"
+            />
+          </button>
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            title="Redo"
+            aria-label="Redo"
+            disabled={!canRedo()}
+            onClick={() => redo()}
+          >
+            <span
+              class="inline-block shrink-0 text-xl i-lucide-redo-2"
+              aria-hidden="true"
+            />
+          </button>
+          <button
+            type="button"
+            class={ICON_BUTTON}
+            title={diverged()
+              ? "The file changed on disk — reload from disk first"
+              : dirty()
+              ? "Save to disk"
+              : "Saved"}
+            aria-label={dirty() || diverged() ? "Save to disk" : "Saved"}
+            disabled={!dirty()}
+            onClick={() => {
+              void saveThemeToDisk(theme());
+            }}
+          >
+            <span
+              class="inline-block shrink-0 text-xl i-lucide-save"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </div>
 
       {

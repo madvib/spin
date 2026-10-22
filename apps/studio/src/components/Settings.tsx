@@ -9,9 +9,23 @@
  * studio drew. The mode's two words were the loudest things on that strip,
  * where everything else is a glyph.
  *
- * Both are controls the studio draws now: a chip that carries the theme's
- * swatch and its name, and a single button that carries the mode as a glyph
- * and opens the list of modes behind it.
+ * Both are controls the studio draws now, and both are POPOVERS: a small
+ * affordance in the bar, and a panel that floats over the page.
+ *
+ * The theme's affordance is a SWATCH — a small square of the theme's own
+ * acting colour. The bar is a strip of state, and a chip carrying a theme's
+ * name was neither small enough to be a status nor big enough to be a
+ * picker: the NAME is what the panel is for, and the COLOUR is what the
+ * reader is actually looking for. So the button is a picture of the theme
+ * and the panel is the picker — and the panel can be as large as a picker
+ * needs, because it does not have to fit in the bar.
+ *
+ * A popover here is an OVERLAY. It is positioned out of the flow, so opening
+ * it moves nothing and resizes nothing: the bar is the width of the window
+ * and the height of one line, and a panel that pushed on it would make the
+ * whole studio jump under the reader. The panels open UPWARD, because the bar
+ * is at the bottom of the window and a panel that opened down would leave the
+ * viewport.
  *
  * The runtime's menu is the right answer for both — a menu that filters as
  * it opens, with the roving focus and the typeahead a real menu has. The
@@ -21,6 +35,7 @@
  */
 
 import {
+  createMemo,
   createResource,
   createSignal,
   For,
@@ -43,7 +58,6 @@ import {
 import type { ModeChoice } from "../lib/store.ts";
 import { listProjectThemes } from "../lib/themes.ts";
 import { summarySwatches } from "../lib/overview.ts";
-import type { Chip } from "../lib/overview.ts";
 
 /**
  * The project's themes, fetched once per session. Module scope so the
@@ -60,50 +74,61 @@ const [projectThemes, { refetch: refetchProjectThemes }] = createResource(
 export { refetchProjectThemes };
 
 /**
- * A theme's own palette, as the colours it declares.
+ * What the studio knows about a theme, for the picker to draw.
  *
- * The strip is DATA rather than a utility's paint: a chip's utility paints
+ * The colour is DATA rather than a utility's paint: a chip's utility paints
  * the ACTIVE theme's token, and the picker shows every theme at once — so
  * the colour beside a name is that theme's own resolved value, drawn from
  * the value and not from the studio's tokens. It is the same answer the
  * overview's cards give, read the same way.
  */
-function palette(text: string | undefined, mode: string): readonly Chip[] {
-  if (text === undefined) return [];
-  const groups = summarySwatches(text);
-  const group = groups.find((entry) => entry.mode === mode) ?? groups[0];
-  return group?.chips ?? [];
+interface ThemeFacts {
+  /** The colour the theme acts with, in the mode being shown. */
+  readonly color: string | undefined;
+  /** How many modes the theme serves. */
+  readonly modes: number;
 }
 
 /**
- * A theme's palette, drawn as a strip of its own colours.
+ * A theme's acting colour and its mode count, read from its own document.
  *
- * The strip is the theme's own ink, so it cannot be a utility: a utility
- * paints the active theme's token, and this strip sits beside every theme
- * at once.
+ * The palette is ordered by how hard a theme leans on a colour, and the
+ * first one it declares is the one it acts with. The mode count is what the
+ * theme claims: a theme that declares its modes says how many, and a theme
+ * that declares none serves the base alone — which is one mode, because the
+ * studio's word for the base is light.
+ *
+ * A document that does not parse claims nothing: an empty answer, because
+ * the picker keeps rendering while an author is half-way through typing.
  */
-function Swatch(props: { chips: readonly Chip[] }) {
+function facts(text: string | undefined, mode: string): ThemeFacts {
+  if (text === undefined) return { color: undefined, modes: 0 };
+  const groups = summarySwatches(text);
+  const group = groups.find((entry) => entry.mode === mode) ?? groups[0];
+  return { color: group?.chips[0]?.value, modes: groups.length };
+}
+
+/**
+ * A theme's own colour, as a small square.
+ *
+ * The square is DATA, so it cannot be a utility: a utility paints the
+ * active theme's token, and this one sits beside every theme at once.
+ */
+function Swatch(props: { color: string | undefined }) {
   return (
     <span
-      class="flex h-4 w-10 shrink-0 overflow-hidden rounded-sm border border-border"
+      class="h-[18px] w-[18px] shrink-0 rounded-sm border border-border"
+      classList={{ "bg-surface-sunken": props.color === undefined }}
+      style={props.color === undefined
+        ? undefined
+        : { background: props.color }}
       aria-hidden="true"
-    >
-      <For each={props.chips}>
-        {(chip) => (
-          <span
-            class="flex-1"
-            // The theme's OWN colour, resolved: the value IS the paint.
-            style={{ background: chip.value }}
-            title={chip.label}
-          />
-        )}
-      </For>
-    </span>
+    />
   );
 }
 
 /**
- * A row of a menu.
+ * A row of a panel.
  *
  * A plain button rather than a `bare` one: `bare` opts out of the control's
  * paint AND out of its hover, so a bare row cannot show the reader where
@@ -114,37 +139,81 @@ function Swatch(props: { chips: readonly Chip[] }) {
  * The row that is current says so twice: `aria-current` for the reader, and
  * the surface for the eye.
  */
-const MENU_ROW =
-  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-normal text-text-muted hover:bg-surface-sunken hover:text-text data-[current]:bg-surface-sunken data-[current]:text-text data-[current]:font-medium";
+const ROW =
+  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-normal text-text-muted hover:bg-surface-sunken hover:text-text aria-selected:bg-surface-sunken aria-selected:text-text aria-current:bg-surface-sunken aria-current:text-text";
 
 /**
- * A menu that opens from a trigger.
+ * The affordance of a popover: a glyph in a box, in the bar's own language.
+ *
+ * One size, one ink, one hover — so the controls in the strip are a row of
+ * equals. A control that is a word wide beside controls that are a glyph
+ * wide reads as a different kind of thing, and the row stops being a strip
+ * and becomes a list.
+ */
+const TRIGGER =
+  "bare flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-text";
+
+/**
+ * The panel's own frame.
+ *
+ * It is out of the flow — absolutely positioned above the affordance — so
+ * opening it moves nothing. The bounds keep it honest at either edge: it
+ * cannot grow past the width of the window, and it cannot grow taller than
+ * the space the bar has above it, so a long list scrolls inside the panel
+ * rather than leaving the viewport.
+ */
+const PANEL =
+  "absolute bottom-full start-0 z-dropdown mb-1 w-max max-w-[80vw] max-h-[60vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-1 shadow-lg";
+
+/**
+ * Which popover in the bar is open.
+ *
+ * At most one: two panels over one another is a stack of furniture, and the
+ * reader cannot tell which of them they are looking at.
+ */
+type PopoverName = "theme" | "mode";
+
+const [openPopover, setOpenPopover] = createSignal<PopoverName | undefined>(
+  undefined,
+);
+
+/**
+ * A popover: a small affordance, and the panel that floats over the page.
  *
  * The panel is always in the document and hidden rather than unmounted: a
  * control the reader cannot see is still a control the studio has, and the
- * studio's own tests seat a theme by writing to the picker the way a
- * `<select>` is written to. `hidden` keeps the panel out of the way and out
- * of the tab order.
+ * panel's rows are the studio's own answer to "what could I pick".
+ * `hidden` keeps the panel out of the way and out of the tab order.
  *
  * The dismissal is the platform's own: a click anywhere else, or Escape,
- * closes it — the two things a reader reaches for when a menu is in the way.
+ * closes it — the two things a reader reaches for when a panel is in the way.
  */
-function Menu(props: {
+function Popover(props: {
+  /** Which popover this is, so two of them do not open at once. */
+  readonly name: PopoverName;
   /** What the control is called, for the reader and for the pointer. */
   readonly label: string;
-  /** The trigger's own face: the glyph, or the name and the swatch. */
+  /** What the control opens: a list to pick from, or a list of choices. */
+  readonly popup: "listbox" | "menu";
+  /** The affordance's own test surface. */
+  readonly testid: string;
+  /** The panel's own test surface. */
+  readonly panelTestid: string;
+  /** The trigger's own face. */
   readonly trigger: JSX.Element;
-  /** The panel: what the menu offers, and the way to close it. */
+  /**
+   * The trigger's own hover, when the shared one does not fit.
+   *
+   * A glyph answers the pointer by changing its ink; a colour chip has no
+   * ink to change, so it answers with the surface behind it.
+   */
+  readonly triggerClass?: string;
+  /** The panel: what the popover offers, and the way to close it. */
   readonly children: (close: () => void) => JSX.Element;
-  /** The id the studio's own tests read the control by. */
-  readonly id?: string;
-  /** The control itself, for the studio's own tests to write to. */
-  readonly control?: (element: HTMLButtonElement) => void;
 }) {
-  const [open, setOpen] = createSignal(false);
+  const open = () => openPopover() === props.name;
+  const close = () => setOpenPopover(undefined);
   let root: HTMLDivElement | undefined;
-
-  const close = () => setOpen(false);
 
   const onPointer = (event: MouseEvent) => {
     if (open() && !root?.contains(event.target as Node)) close();
@@ -162,24 +231,26 @@ function Menu(props: {
   });
 
   return (
-    <div class="relative" ref={root}>
+    <div class="relative shrink-0" ref={root}>
       <button
         type="button"
-        id={props.id}
-        ref={props.control}
-        class="flex h-8 min-h-0 items-center gap-2 rounded-md border border-border bg-surface px-2 text-sm text-text hover:bg-surface-sunken"
-        // The panel is the studio's own, so the control says what it opens:
-        // a menu, not a dialog and not a disclosure.
-        aria-haspopup="menu"
+        data-testid={props.testid}
+        class={`${TRIGGER} ${props.triggerClass ?? ""}`}
+        // The panel is the studio's own, so the control says what it opens.
+        aria-haspopup={props.popup}
+        aria-expanded={open()}
         aria-label={props.label}
         title={props.label}
-        onClick={() => setOpen(!open())}
+        onClick={() => setOpenPopover(open() ? undefined : props.name)}
       >
         {props.trigger}
       </button>
       <div
         hidden={!open()}
-        class="absolute bottom-full end-0 z-dropdown mb-1 w-max rounded-md border border-border bg-surface-raised p-1 shadow-lg"
+        role={props.popup}
+        data-testid={props.panelTestid}
+        aria-label={props.label}
+        class={PANEL}
       >
         {props.children(close)}
       </div>
@@ -190,105 +261,84 @@ function Menu(props: {
 /**
  * The project theme picker.
  *
- * Lists the themes the project serves — the shipped starters, forked by its
- * own files — not the studio's own chrome. The selected theme drives the
- * preview surface only.
+ * A SWATCH in the bar and a panel over the page. The panel lists the themes
+ * the project serves — the shipped starters, forked by its own files — not
+ * the studio's own chrome. The selected theme drives the preview surface
+ * only.
  *
  * It lives in the bar along the bottom of the window, on every route: the
  * theme under edit is a fact about the whole studio, not about one page, and
  * a control that only some pages carry is a control the reader has to hunt
  * for.
  *
- * The chip carries the theme's SWATCH as well as its name: a list of names
- * is a list the reader has to know, and the colour is the thing they are
- * actually looking for.
+ * Each row carries the theme's COLOUR as well as its name, and how many
+ * modes the theme serves: a list of names is a list the reader has to know,
+ * and the colour is the thing they are actually looking for.
  */
-export function ThemePicker(props: { compact?: boolean }) {
-  const id = props.compact === true ? "theme-picker-compact" : "theme-picker";
-
+export function ThemePicker() {
   /** The document behind a theme: the editor's own, or the registry's. */
   const source = (name: string): string | undefined =>
     name === activeName()
       ? themeText()
       : (projectThemes() ?? []).find((theme) => theme.name === name)?.text;
 
-  let control: HTMLButtonElement | undefined;
+  /** Every theme the project serves, with what the panel draws of it. */
+  const offered = createMemo(() =>
+    (projectThemes() ?? []).map((theme) => ({
+      name: theme.name,
+      ...facts(theme.text, activeMode()),
+    }))
+  );
 
-  /**
-   * The picker, as the studio's own end-to-end tests read it.
-   *
-   * They seat a theme by writing the picker's `value` and firing a `change`,
-   * and they ask what the picker offers by reading its `options` — the
-   * vocabulary of a `<select>`. The picker is not a `<select>` any more, so
-   * that vocabulary is stated here: the same two properties, on the control
-   * that draws the themes, with the same meaning. The tests keep reading the
-   * picker the way they always did, and the picker is a control the studio's
-   * own theme can dress.
-   */
-  onMount(() => {
-    if (control === undefined) return;
-    Object.defineProperty(control, "options", {
-      configurable: true,
-      get: () =>
-        (projectThemes() ?? []).map((theme) => ({
-          value: theme.name,
-          label: theme.name,
-        })),
-    });
-    Object.defineProperty(control, "value", {
-      configurable: true,
-      get: () => activeName(),
-      set: (next: string) => {
-        setActiveName(next);
-        control?.dispatchEvent(new Event("change", { bubbles: true }));
-      },
-    });
-  });
+  /** The theme under edit, with what the swatch draws of it. */
+  const current = createMemo(() => facts(source(activeName()), activeMode()));
 
   return (
-    <Menu
-      id={id}
+    <Popover
+      name="theme"
       label={`Theme: ${activeName()}`}
-      control={(element) => {
-        control = element;
-      }}
-      trigger={
-        <>
-          <Swatch chips={palette(source(activeName()), activeMode())} />
-          <span class="max-w-20 truncate">{activeName()}</span>
-          <span
-            class="i-lucide-chevron-down icon-sm shrink-0 text-text-muted"
-            aria-hidden="true"
-          />
-        </>
-      }
+      popup="listbox"
+      testid="theme-picker"
+      panelTestid="theme-list"
+      trigger={<Swatch color={current().color} />}
+      triggerClass="hover:bg-surface-sunken"
     >
       {(close) => (
-        <ul class="flow-list flex flex-col">
-          <For each={projectThemes()}>
-            {(theme) => (
-              <li>
-                <button
-                  type="button"
-                  class={MENU_ROW}
-                  data-current={theme.name === activeName() ? "" : undefined}
-                  aria-current={theme.name === activeName()
-                    ? "true"
-                    : undefined}
-                  onClick={() => {
-                    setActiveName(theme.name);
-                    close();
-                  }}
-                >
-                  <Swatch chips={palette(theme.text, activeMode())} />
-                  <span class="truncate">{theme.name}</span>
-                </button>
-              </li>
-            )}
-          </For>
-        </ul>
+        <For each={offered()}>
+          {(theme) => (
+            <button
+              type="button"
+              role="option"
+              data-theme={theme.name}
+              aria-selected={theme.name === activeName()}
+              class={ROW}
+              onClick={() => {
+                setActiveName(theme.name);
+                close();
+              }}
+            >
+              <Swatch color={theme.color} />
+              <span class="truncate">{theme.name}</span>
+              {
+                /*
+                  The mode count is decoration: the row is about the theme,
+                  and the reader picks it by its name. It is hidden from the
+                  reader so that the row's own name is the theme's name and
+                  nothing else.
+                */
+              }
+              <span
+                aria-hidden="true"
+                class="ms-auto shrink-0 text-xs text-text-muted"
+              >
+                {" "}
+                {theme.modes} {theme.modes === 1 ? "mode" : "modes"}
+              </span>
+            </button>
+          )}
+        </For>
       )}
-    </Menu>
+    </Popover>
   );
 }
 
@@ -331,8 +381,12 @@ export function ModePicker() {
     MODES.find((mode) => mode.choice === modeChoice())?.label ?? "System";
 
   return (
-    <Menu
+    <Popover
+      name="mode"
       label={`Color mode: ${said()}`}
+      popup="menu"
+      testid="mode-button"
+      panelTestid="mode-menu"
       trigger={
         <span
           class={`${glyph()} icon-md shrink-0`}
@@ -341,43 +395,40 @@ export function ModePicker() {
       }
     >
       {(close) => (
-        <ul class="flow-list flex flex-col">
-          <For each={MODES}>
-            {(mode) => (
-              <li>
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={modeChoice() === mode.choice}
-                  class={MENU_ROW}
-                  // A theme that serves one mode cannot be shown in the
-                  // other, so the answer it does not serve is refused —
-                  // and it says why, rather than sitting there dead.
-                  disabled={mode.choice === "system"
-                    ? false
-                    : !activeModes().includes(mode.choice)}
-                  title={mode.choice === "system"
-                    ? `Follow the operating system — it asks for ${systemMode()}`
-                    : activeModes().includes(mode.choice)
-                    ? undefined
-                    : `The theme declares no ${mode.label.toLowerCase()} mode`}
-                  onClick={() => {
-                    setActiveMode(mode.choice);
-                    close();
-                  }}
-                >
-                  <span
-                    class={`${mode.icon} icon-sm shrink-0`}
-                    aria-hidden="true"
-                  />
-                  <span>{mode.label}</span>
-                </button>
-              </li>
-            )}
-          </For>
-        </ul>
+        <For each={MODES}>
+          {(mode) => (
+            <button
+              type="button"
+              role="menuitem"
+              data-mode={mode.choice}
+              aria-current={modeChoice() === mode.choice ? "true" : undefined}
+              class={ROW}
+              // A theme that serves one mode cannot be shown in the other,
+              // so the answer it does not serve is refused — and it says
+              // why, rather than sitting there dead.
+              disabled={mode.choice === "system"
+                ? false
+                : !activeModes().includes(mode.choice)}
+              title={mode.choice === "system"
+                ? `Follow the operating system — it asks for ${systemMode()}`
+                : activeModes().includes(mode.choice)
+                ? undefined
+                : `The theme declares no ${mode.label.toLowerCase()} mode`}
+              onClick={() => {
+                setActiveMode(mode.choice);
+                close();
+              }}
+            >
+              <span
+                class={`${mode.icon} icon-sm shrink-0`}
+                aria-hidden="true"
+              />
+              <span>{mode.label}</span>
+            </button>
+          )}
+        </For>
       )}
-    </Menu>
+    </Popover>
   );
 }
 

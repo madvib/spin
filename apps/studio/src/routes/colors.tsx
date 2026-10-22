@@ -7,7 +7,8 @@ import { groupTokens, type TokenRow } from "../lib/tokens.ts";
 import { activeMode, activeModes, themeText } from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
 import Page from "../components/Page";
-import { tokenValue } from "../lib/overview.ts";
+import Palette from "../components/Palette.tsx";
+import { paletteChips, tokenValue } from "../lib/overview.ts";
 
 /**
  * Colors — every color token, grouped by family, edited beside its swatch.
@@ -134,7 +135,13 @@ function Swatch(props: { row: TokenRow }) {
               valueIn(tree(), mode, props.row.path) ?? props.row.value;
             return (
               <label
-                class="block h-12 flex-1 cursor-pointer rounded-md border border-border shrink-0"
+                class="relative block h-12 flex-1 cursor-pointer rounded-md border border-border shrink-0"
+                // `relative` is load-bearing: the hidden input and the
+                // hidden name inside are positioned absolutely, and with no
+                // positioned ancestor they are laid out against the
+                // DOCUMENT — so a swatch scrolled below the fold drags the
+                // whole page down with it and the window scrolls a page
+                // that is supposed to be furniture.
                 style={{ background: value() }}
                 title={`${props.row.path} · ${mode}`}
               >
@@ -179,11 +186,43 @@ export default function ColorsPage() {
     return { hues, roles };
   });
 
+  /**
+   * The named roles, as they stand right now.
+   *
+   * The hues below are every colour the theme declares, and the surfaces
+   * below them are the jobs those colours are pointed at — but neither
+   * answers the question a palette asks: which colours are the theme's own
+   * accents, what are they called, and what are they worth in the mode being
+   * looked at. That is what this section is: the roles in palette order,
+   * accents first and then status, resolved for the active mode.
+   */
+  const palette = createMemo(() => paletteChips(themeText(), activeMode()));
+
   return (
     <Page
       title="Colors"
-      note="What exists, then what it is for."
+      note="The roles the theme names, then every hue it declares, then the jobs those hues are pointed at."
     >
+      <section class="stack-sm mb-6" aria-label="Palette">
+        <div class="split">
+          <h2 class="text-xl">Palette</h2>
+          <span class="text-sm text-text-muted">{activeMode()}</span>
+        </div>
+        <p class="text-sm text-text-muted">
+          The named colour roles in palette order — accents first, then status —
+          resolved for the active mode. Click a hex to copy it.
+        </p>
+        <Show
+          when={palette().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no palette roles yet.
+            </p>
+          }
+        >
+          <Palette chips={palette()} tall />
+        </Show>
+      </section>
       <section class="stack-sm mb-6" aria-label="Hues">
         <h2 class="text-xl">Hues</h2>
         <div

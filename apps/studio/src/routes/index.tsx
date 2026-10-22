@@ -61,10 +61,10 @@ import {
   saveTheme,
 } from "../lib/themes.ts";
 import { analyzeTheme } from "../lib/theme.ts";
-import { groupTokens } from "../lib/tokens.ts";
+import { groupTokens, toPx } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
+import Palette from "../components/Palette.tsx";
 import {
-  durationUtility,
   elementSamples,
   faceSpecimens,
   paletteChips,
@@ -131,7 +131,7 @@ export default function OverviewPage() {
       // animation utilities, and they are named here for the same reason
       // the elements are: what is on screen is what the sheet is generated
       // for.
-      "animate-slide-up animate-fade-in animate-spin",
+      "animate-slide-up animate-spin",
     ].join("\n"));
   });
   onCleanup(() => registerMarkup(""));
@@ -546,7 +546,14 @@ export default function OverviewPage() {
             a palette you can look at beats a link that says "palette". The
             paths come from the route table, so a card cannot name an editor
             that is not there, and a concern can be added by adding an entry
-            and a card rather than by remembering two lists. */
+            and a card rather than by remembering two lists.
+
+            The order is the order of the SCALE — the palette, the surfaces,
+            the shape, the space — and then the order of what is SET — the
+            type, the motion, the elements. A grid row is as tall as its
+            tallest card, so the cards that answer the same kind of question
+            sit in the same row and none of them is stretched against
+            another. */
         }
         <section class="stack-sm" aria-label="Concerns">
           <div
@@ -558,9 +565,9 @@ export default function OverviewPage() {
           >
             <PaletteCard chips={palette()} wide />
             <SurfaceCard steps={ladder()} />
-            <TypeCard faces={faces()} />
             <ShapeCard radius={radius()} shadow={shadow()} />
             <SpaceCard steps={space()} />
+            <TypeCard faces={faces()} />
             <MotionCard durations={durations()} easings={easings()} />
             <ElementsCard samples={samples()} />
           </div>
@@ -653,6 +660,12 @@ export default function OverviewPage() {
  *
  * The path is typed against the route table rather than spelled as a string,
  * so a card cannot link to an editor the studio does not serve.
+ *
+ * The specimen gets the room the card has. A grid row is as tall as its
+ * tallest card, so a card whose specimen stops early is a card with an empty
+ * box under it — the shape the studio's own overview used to wear, and the
+ * reason the specimen is given a column of its own that grows: the specimen
+ * fills the card, and the card fills the row.
  */
 function ConcernCard(props: {
   path: RoutePath;
@@ -683,11 +696,19 @@ function ConcernCard(props: {
         </A>
       </h3>
       <p class="text-sm text-text-muted">{props.blurb}</p>
-      {props.children}
+      <div class="flex min-h-0 flex-1 flex-col">{props.children}</div>
     </article>
   );
 }
 
+/**
+ * The palette, as swatches.
+ *
+ * The card is the studio's summary of the theme's named roles, and the
+ * specimen is the same one the colours page draws in full: large swatches,
+ * and the name and the hex on one line under each. The hex is a button
+ * there too, so a hex can be copied from either page.
+ */
 function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
   return (
     <ConcernCard
@@ -704,66 +725,37 @@ function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
           </p>
         }
       >
-        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <For each={props.chips}>
-            {(chip) => (
-              <div class="stack-sm">
-                <span
-                  class={`h-10 rounded-md border border-border ${chip.paint}`}
-                  title={`${chip.label} ${chip.value}`}
-                />
-                <code class="truncate text-xs">{chip.label}</code>
-                <code class="truncate text-xs text-text-muted">
-                  {chip.value}
-                </code>
-              </div>
-            )}
-          </For>
-        </div>
+        <Palette
+          chips={props.chips}
+          columns="grid-cols-2 sm:grid-cols-4 lg:grid-cols-8"
+          tall
+        />
       </Show>
     </ConcernCard>
   );
 }
 
 /**
- * The depth ladder, nested the way depth is.
+ * The depth ladder, as layers.
  *
- * A page sits on what is sunken and what is raised sits on the page, so the
- * three steps are drawn inside each other rather than beside each other —
- * beside each other they are three colours, and the question the ladder
- * answers is whether they separate.
+ * A surface is a RELATIONSHIP: a page sits on something, and something sits
+ * on the page. Drawn as three nested boxes the ladder is three colours in a
+ * row — the question the ladder answers is whether the steps SEPARATE, and
+ * that question is only asked of neighbours. Drawn as bands stacked one on
+ * the next, each band is a layer, the order is the ladder, and two steps
+ * that do not separate are visible as two bands that do.
  *
- * Built from the steps rather than typed three deep, because a theme may
- * declare two of them: a card that assumes three shows a hole where the
- * third would be.
+ * Each band carries the same line of ink, because that is the other half of
+ * the question: a step that separates but takes the ink with it is a step
+ * that has failed as well. The band paints the step's own surface, so the
+ * ink on it is the ink this theme pairs with that surface.
  */
-function ladderElements(steps: readonly Chip[]): JSX.Element {
-  return steps.reduceRight<JSX.Element>(
-    (inner, step) => (
-      <div
-        class={`stack-sm rounded-md border border-border p-3 ${step.paint}`}
-      >
-        <div class="split">
-          {
-            /* Named, not inherited: the box paints the step's own surface, so
-              the label needs the ink that theme pairs with it. */
-          }
-          <span class="text-sm text-text">{step.label}</span>
-          <code class="text-xs text-text">{step.value}</code>
-        </div>
-        {inner}
-      </div>
-    ),
-    null,
-  );
-}
-
 function SurfaceCard(props: { steps: readonly Chip[] }) {
   return (
     <ConcernCard
       path="/colors"
       title="Surface"
-      blurb="The three depths nested — sunken, page, raised — so a step that does not separate fails visibly."
+      blurb="The three depths as layers, one on the next — sunken, page, raised — so a step that does not separate fails visibly."
     >
       <Show
         when={props.steps.length > 0}
@@ -773,7 +765,25 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
           </p>
         }
       >
-        <div class="stack-sm">{ladderElements(props.steps)}</div>
+        <div class="flex flex-1 flex-col gap-2">
+          <For each={props.steps}>
+            {(step) => (
+              <div
+                class={`flex flex-1 flex-col justify-center gap-1 rounded-md border border-border px-3 ${step.paint}`}
+              >
+                <div class="split">
+                  <span class="text-sm font-medium text-text">
+                    {step.label}
+                  </span>
+                  <code class="shrink-0 font-mono text-xs text-text">
+                    {step.value}
+                  </code>
+                </div>
+                <p class="truncate text-sm text-text">{PHRASE}</p>
+              </div>
+            )}
+          </For>
+        </div>
       </Show>
     </ConcernCard>
   );
@@ -824,6 +834,50 @@ function TypeCard(props: { faces: readonly Face[] }) {
   );
 }
 
+/**
+ * The radius ladder, as nested shapes.
+ *
+ * A radius is not a number, it is a corner — and a row of little boxes with
+ * a number under each says a number. So the ladder is drawn the way the
+ * corners relate: each step nested inside the one before it, so the figure
+ * is the whole ladder at once, from the sharpest corner to the roundest, and
+ * the eye reads the progression rather than five separate shapes.
+ *
+ * The corners are the theme's own: each shape spends the step's own
+ * custom property, so the figure is the edited theme's ladder and not the
+ * studio's.
+ */
+function RadiusLadder(props: { rows: readonly TokenRow[] }) {
+  /** How many shapes are in the ladder; the figure spaces them by it. */
+  const count = () => Math.max(1, props.rows.length);
+  return (
+    <div class="relative mx-auto h-[11rem] w-[11rem]">
+      <For each={props.rows}>
+        {(row, index) => (
+          <div
+            class="absolute rounded-md border border-border bg-surface"
+            style={{
+              // Each step is inset a little further than the last, so the
+              // shapes nest: the sharp corner is the outermost, the round
+              // one the core.
+              inset: `${(index() / count()) * 50}%`,
+              "border-radius": `var(${row.variable})`,
+            }}
+          />
+        )}
+      </For>
+    </div>
+  );
+}
+
+/**
+ * The shape concern: how round the corners are, and how high the lift is.
+ *
+ * The radius is the figure — the nested ladder above — and the shadows are
+ * the steps they are: each a card stood off the sunken ground, because a
+ * shadow read as a string of offsets says nothing about how far the card
+ * stands off the page.
+ */
 function ShapeCard(props: {
   radius: readonly TokenRow[];
   shadow: readonly TokenRow[];
@@ -833,7 +887,7 @@ function ShapeCard(props: {
     <ConcernCard
       path="/style"
       title="Shape"
-      blurb="How round the theme's corners are, and how high each shadow step lifts."
+      blurb="How round the theme's corners are — the ladder, nested — and how high each shadow step lifts."
     >
       <Show
         when={!empty()}
@@ -843,45 +897,80 @@ function ShapeCard(props: {
           </p>
         }
       >
-        <div class="flex flex-wrap items-end gap-3">
-          <For each={props.radius}>
-            {(row) => (
-              <div class="stack-sm w-14">
-                <div
-                  class="h-12 w-full border-2 border-primary bg-surface"
-                  style={{ "border-radius": `var(${row.variable})` }}
-                />
-                <code class="truncate text-xs">
-                  {row.path.split(".").pop()}
-                </code>
+        <div class="stack-sm flex-1 justify-between">
+          <Show when={props.radius.length > 0}>
+            <div class="stack-sm">
+              <RadiusLadder rows={props.radius} />
+              <ul class="flow-list stack-sm">
+                <For each={props.radius}>
+                  {(row) => (
+                    <li class="split">
+                      <code class="text-xs text-text">
+                        {row.path.split(".").pop()}
+                      </code>
+                      <code class="text-xs text-text-muted">{row.value}</code>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </div>
+          </Show>
+          <Show when={props.shadow.length > 0}>
+            <div class="stack-sm">
+              <span class="text-xs font-semibold uppercase text-text-muted">
+                Lift
+              </span>
+              <div class="flex flex-wrap items-end gap-3 rounded-md bg-surface-sunken p-3">
+                <For each={props.shadow}>
+                  {(row) => (
+                    <figure class="stack-sm w-16">
+                      <div
+                        class="h-10 w-full rounded-md bg-surface-raised"
+                        style={{ "box-shadow": `var(${row.variable})` }}
+                      />
+                      <figcaption class="truncate text-xs text-text-muted">
+                        {row.path.split(".").pop()}
+                      </figcaption>
+                    </figure>
+                  )}
+                </For>
               </div>
-            )}
-          </For>
-          <For each={props.shadow}>
-            {(row) => (
-              <div class="stack-sm w-20">
-                <div
-                  class="h-12 w-full rounded-md bg-surface-raised"
-                  style={{ "box-shadow": `var(${row.variable})` }}
-                />
-                <code class="truncate text-xs">
-                  {row.path.split(".").pop()}
-                </code>
-              </div>
-            )}
-          </For>
+            </div>
+          </Show>
         </div>
       </Show>
     </ConcernCard>
   );
 }
 
+/**
+ * The spacing scale, drawn as the scale.
+ *
+ * A spacing step is a LENGTH, and a length is only legible against another
+ * length: three bars in the top-left corner, each as wide as its own value,
+ * is three numbers — the biggest of them a third of the card, because six
+ * rem is a third of six hundred pixels.
+ *
+ * So the steps stand on one baseline and rise by their own value, which
+ * makes the ladder the subject: the first step is a hair because it IS a
+ * hair next to the last, and the card is full because the last step is.
+ * Every column stands in the scale's own height, so the share a step takes
+ * of the whole is visible as well as its value.
+ *
+ * The scale is the theme's own: each column is as tall as the step's own
+ * value, measured against the scale's longest, and the number under it is
+ * that value as the theme wrote it.
+ */
 function SpaceCard(props: { steps: readonly TokenRow[] }) {
+  /** The scale's longest step: the column that fills the track is this one. */
+  const longest = () =>
+    Math.max(1, ...props.steps.map((row) => toPx(row.value) ?? 0));
+
   return (
     <ConcernCard
       path="/spacing"
       title="Space"
-      blurb="First, middle and last of the scale: the spacing, without the whole table."
+      blurb="First, middle and last of the scale, standing on one baseline: the spacing, without the whole table."
     >
       <Show
         when={props.steps.length > 0}
@@ -891,25 +980,33 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
           </p>
         }
       >
-        <div class="stack-sm">
-          <For each={props.steps}>
-            {(row) => (
-              <div class="row-sm">
-                <code class="w-12 shrink-0 text-xs">
-                  {row.path.split(".").pop()}
-                </code>
-                <span class="min-w-0 flex-1 overflow-hidden">
-                  <span
-                    class="block h-4 rounded-sm bg-primary"
-                    style={{ width: `var(${row.variable})` }}
+        <div class="flex flex-1 flex-col gap-2">
+          <div class="flex min-h-24 flex-1 items-stretch gap-3">
+            <For each={props.steps}>
+              {(row) => (
+                <div class="flex flex-1 items-end rounded-sm bg-surface-sunken">
+                  <div
+                    class="w-full rounded-sm bg-primary"
+                    style={{
+                      height: `${((toPx(row.value) ?? 0) / longest()) * 100}%`,
+                    }}
                   />
-                </span>
-                <code class="shrink-0 text-xs text-text-muted">
-                  {row.value}
-                </code>
-              </div>
-            )}
-          </For>
+                </div>
+              )}
+            </For>
+          </div>
+          <div class="flex gap-3">
+            <For each={props.steps}>
+              {(row) => (
+                <div class="flex-1 stack-sm text-center">
+                  <code class="text-xs font-semibold text-text">
+                    {row.path.split(".").pop()}
+                  </code>
+                  <code class="text-xs text-text-muted">{row.value}</code>
+                </div>
+              )}
+            </For>
+          </div>
         </div>
       </Show>
     </ConcernCard>
@@ -917,15 +1014,20 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
 }
 
 /**
- * The motion card: the theme's own clock, spent on things that move.
+ * The motion card: the theme's own clock, spent on something that moves.
  *
- * The card this replaces showed a swatch changing colour on a loop. That is a
- * slideshow: a colour fading in and out says nothing about how the theme
- * MOVES, and a theme's motion is exactly that — how long things take and how
- * they arrive. So the card spends the theme's own scale instead: the durations
- * it declares as a ladder of shares, the easings it declares beside them,
- * and three specimens that move at the theme's tempo — a card that slides in,
- * a row that arrives one after another, and a spinner at the theme's cadence.
+ * The card this replaces showed a swatch changing colour on a loop, and then
+ * grew into a slide show: a ladder of durations, a ladder of easings, and
+ * three specimens all moving at once, so the eye had nothing to rest on.
+ *
+ * So the card spends the theme's clock on ONE motion — a card that arrives,
+ * which is what a theme's signature looks like — and says the rest as
+ * numbers. The durations are a ladder of shares, the easings are the curves
+ * they curve by, and the one thing that never stops is the spinner, which
+ * turns at the theme's LOOP: the period it gave an endless animation, not
+ * its slowest transition. A spinner that turns as fast as a hover is not a
+ * loading indicator, it is a flicker — and the loop is the step a theme
+ * declares precisely so that this one thing can be slow.
  *
  * The specimens are the library's `animate-*` utilities, and those spend the
  * theme's motion tokens rather than naming a time: `animate-slide-up` runs
@@ -937,7 +1039,7 @@ function MotionCard(props: {
   durations: readonly TokenRow[];
   easings: readonly TokenRow[];
 }) {
-  /** The counter that makes the specimens arrive again. */
+  /** The counter that makes the specimen arrive again. */
   const [run, setRun] = createSignal(0);
 
   /** One token's own value, read by the name it ends in. */
@@ -947,11 +1049,23 @@ function MotionCard(props: {
   ): string | undefined =>
     rows.find((row) => row.path.split(".").pop() === name)?.value;
 
-  const fast = () => valueOf(props.durations, "fast");
   const base = () => valueOf(props.durations, "base");
-  const slow = () => valueOf(props.durations, "slow");
   const decelerate = () => valueOf(props.easings, "decelerate");
   const linear = () => valueOf(props.easings, "linear");
+
+  /**
+   * The period of an endless animation, if the theme declares one.
+   *
+   * A theme that declares no loop falls back to its slowest transition,
+   * which is the same fallback the library's own endless utilities make.
+   */
+  const loop = () =>
+    props.durations.find((row) => row.path === "motion.duration.loop") ??
+      props.durations.find((row) => row.path === "motion.duration.slow");
+
+  /** Whether the theme gave the spinner a period of its own. */
+  const hasLoop = () =>
+    props.durations.some((row) => row.path === "motion.duration.loop");
 
   /**
    * The longest run on the ladder, so a share is a share of something.
@@ -959,19 +1073,11 @@ function MotionCard(props: {
   const longest = () =>
     Math.max(1, ...props.durations.map((row) => durationMs(row.value) ?? 0));
 
-  /**
-   * The step between the arrivals of a staggered row.
-   *
-   * The theme's shortest breath: a row that waits as long as the theme's
-   * fastest step is a row the theme set, not one the studio invented.
-   */
-  const step = () => durationMs(fast() ?? base() ?? "") ?? 150;
-
   return (
     <ConcernCard
       path="/motion"
       title="Motion"
-      blurb="The theme's own clock: the durations and easings it declares, spent on something that actually moves."
+      blurb="The theme's own clock: the durations and easings it declares, spent on one motion that moves."
     >
       <Show
         when={props.durations.length > 0}
@@ -982,7 +1088,7 @@ function MotionCard(props: {
           </p>
         }
       >
-        <div class="stack-sm">
+        <div class="stack-sm flex-1 justify-between">
           <div class="stack-sm">
             <span class="text-xs font-semibold uppercase text-text-muted">
               Durations
@@ -992,12 +1098,12 @@ function MotionCard(props: {
                 {(row) => (
                   <li class="stack-sm">
                     <div class="split">
-                      <code class="truncate text-xs text-text-muted">
-                        {row.path}
+                      <code class="truncate text-xs text-text">
+                        {row.path.split(".").pop()}
                       </code>
-                      <span class="shrink-0 text-xs text-text-muted">
+                      <code class="shrink-0 text-xs text-text-muted">
                         {row.value}
-                      </span>
+                      </code>
                     </div>
                     <div class="h-2 w-full overflow-hidden rounded-sm bg-surface-sunken">
                       <div
@@ -1012,9 +1118,6 @@ function MotionCard(props: {
                         }}
                       />
                     </div>
-                    <code class="truncate text-xs text-text-muted">
-                      {durationUtility(row.path)}
-                    </code>
                   </li>
                 )}
               </For>
@@ -1030,8 +1133,8 @@ function MotionCard(props: {
                 <For each={props.easings}>
                   {(row) => (
                     <li class="split">
-                      <code class="truncate text-xs text-text-muted">
-                        {row.path}
+                      <code class="truncate text-xs text-text">
+                        {row.path.split(".").pop()}
                       </code>
                       <span
                         class="min-w-0 truncate text-xs text-text-muted"
@@ -1054,7 +1157,7 @@ function MotionCard(props: {
               <button
                 type="button"
                 class="bare shrink-0 text-xs text-text-muted hover:text-text"
-                title="Run the specimens again"
+                title="Run the specimen again"
                 onClick={() => setRun(run() + 1)}
               >
                 play
@@ -1062,46 +1165,42 @@ function MotionCard(props: {
             </div>
             {
               /*
-                The specimens. The counter is the key: a new one remakes
-                the elements, and an element that is made afresh runs its
-                entrance again. The spinner is outside — it never stops.
+                The one specimen. The counter is the key: a new one remakes
+                the element, and an element that is made afresh runs its
+                entrance again. The spinner is outside it — it never stops.
               */
             }
             <For each={[run()]}>
               {() => (
-                <div class="stack-sm">
-                  <div class="animate-slide-up rounded-md border border-border bg-surface-raised p-3 text-sm">
-                    A card that slides in — {base() ?? "base"} by{" "}
-                    {decelerate() ?? "decelerate"}.
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <For each={[0, 1, 2]}>
-                      {(index) => (
-                        <span
-                          class="animate-fade-in rounded-md bg-surface-sunken px-2 py-1 text-xs text-text"
-                          style={{ "animation-delay": `${index * step()}ms` }}
-                        >
-                          {index + 1}
-                        </span>
-                      )}
-                    </For>
-                    <span class="text-xs text-text-muted">
-                      A row that arrives one after another, {step()}ms apart.
-                    </span>
-                  </div>
+                <div class="animate-slide-up rounded-md border border-border bg-surface p-3 text-sm">
+                  A card that arrives — {base() ?? "base"} by{" "}
+                  {decelerate() ?? "decelerate"}.
                 </div>
               )}
             </For>
-            <div class="row-sm">
-              <span
-                class="inline-block shrink-0 animate-spin icon-md i-lucide-loader-circle"
-                aria-hidden="true"
-              />
-              <span class="text-xs text-text-muted">
-                A spinner at the theme's cadence — {slow() ?? "slow"} by{" "}
-                {linear() ?? "linear"}.
-              </span>
-            </div>
+            <Show when={loop()}>
+              {(row) => (
+                <div class="row-sm">
+                  <span
+                    class="inline-block shrink-0 animate-spin icon-md i-lucide-loader-circle"
+                    // The period is the theme's own token, spent by name: the
+                    // spinner turns at the loop, never at a time the studio
+                    // chose.
+                    style={{ "animation-duration": `var(${row().variable})` }}
+                    aria-hidden="true"
+                  />
+                  <span class="text-xs text-text-muted">
+                    {hasLoop()
+                      ? `A spinner at the theme's loop — ${row().value} by ${
+                        linear() ?? "linear"
+                      }.`
+                      : `No loop declared, so the spinner turns at the slowest step — ${row().value} by ${
+                        linear() ?? "linear"
+                      }.`}
+                  </span>
+                </div>
+              )}
+            </Show>
           </div>
         </div>
       </Show>

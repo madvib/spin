@@ -28,7 +28,7 @@ export const PANGRAM =
 export const HEADING = "A heading states the claim beneath it";
 
 /** What a display-face specimen says. */
-export const DISPLAY = "Type is the difference between a page and a document";
+export const DISPLAY = "A page opens with one claim";
 
 /** What a paragraph specimen says. */
 export const PARAGRAPH =

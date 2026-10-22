@@ -190,6 +190,24 @@ function legibilityIssues(text: string): readonly ValidationIssue[] {
   }
 }
 
+/**
+ * The floors an edit would break: the ones the proposed document fails that
+ * the current one holds.
+ *
+ * The comparison is by the token each floor is about, so an edit that
+ * leaves a failing floor alone — or that clears one — is allowed through,
+ * and an edit that breaks a floor the document used to hold is refused with
+ * the module's own words. A document that cannot be parsed is refused as
+ * before: the parse error is at no token, so nothing holds it.
+ */
+function brokenFloors(
+  before: string,
+  after: string,
+): readonly ValidationIssue[] {
+  const held = new Set(legibilityIssues(before).map((issue) => issue.path));
+  return legibilityIssues(after).filter((issue) => !held.has(issue.path));
+}
+
 const [activeName, setActiveName] = createSignal("silk");
 const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
   typeof localStorage !== "undefined" &&
@@ -425,6 +443,12 @@ function historyFor(name: string): History {
  * that fails a floor has no build to fall back to — the preset throws — so
  * letting it in would leave the author with a broken theme and no idea which
  * edit did it.
+ *
+ * What the gate refuses is an edit that BREAKS a floor. A document that
+ * already fails one stays editable, because the studio is where an author
+ * repairs one: a gate that refused every edit to a broken theme would make
+ * the repair impossible, and the finding that names the fix would be an
+ * offer the studio cannot honour.
  */
 const [refusal, setRefusal] = createSignal<string | undefined>();
 
@@ -460,10 +484,12 @@ export function note(message: string): void {
 export function setThemeText(next: string): boolean {
   const name = activeName();
   // The rule is the theme's, not the studio's: the same one `spinPreset`
-  // applies when it generates, so the two cannot disagree.
-  const issues = legibilityIssues(next);
-  if (issues.length > 0) {
-    setRefusal(issues[0]!.message);
+  // applies when it generates, so the two cannot disagree. What is refused is
+  // the edit that BREAKS a floor — a floor the document already failed is
+  // the author's to repair, and the studio is where they repair it.
+  const broken = brokenFloors(themeText(), next);
+  if (broken.length > 0) {
+    setRefusal(broken[0]!.message);
     return false;
   }
   setRefusal(undefined);
