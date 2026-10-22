@@ -268,7 +268,7 @@ Deno.test("thumb percents feed the geometry channel", () => {
   assertEquals(api.getThumbPercent(0), 25);
   const bag = thumb(api, 0);
   const style = bag["style"] as Record<string, unknown>;
-  assertEquals(style["left"], "25%");
+  assertEquals(style["insetInlineStart"], "25%");
 });
 
 Deno.test("shift+arrow moves by the parsed large step, not the raw prop", () => {

@@ -66,15 +66,11 @@ export interface SliderApi {
   getTrackProps(): Record<string, unknown>;
   getRangeProps(): Record<string, unknown>;
   getThumbProps(slot: { readonly index: number }): Record<string, unknown>;
-  getHiddenInputProps(slot: { readonly index: number }): Record<string, unknown>;
+  getHiddenInputProps(slot: { readonly index: number; readonly name?: string }): Record<string, unknown>;
 }
 
 type Ctx = SliderContext;
 
-const orientationOf = (props: Record<string, unknown>): string =>
-  typeof props["orientation"] === "string" ? props["orientation"] : "horizontal";
-const dirOf = (props: Record<string, unknown>): string =>
-  typeof props["dir"] === "string" ? props["dir"] : "ltr";
 
 interface ScopeLike extends PartScope<unknown, SliderContext> {}
 interface SlotLike<R> extends SlotScope<R, SliderContext> {}
@@ -178,7 +174,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     root: {
       attrs: (scope: ScopeLike) => ({
         id: scope.id(""),
-        dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "root",
         ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
@@ -187,7 +182,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     label: {
       attrs: (scope: ScopeLike) => ({
         id: scope.id("label"),
-        dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "label",
         ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
@@ -204,7 +198,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
       id: "value-text",
       attrs: (scope: ScopeLike) => ({
         id: scope.id("valueText"),
-        dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "value-text",
         ...factAttrs(scope, facts, "disabled", "orientation", "invalid", "focus"),
@@ -215,7 +208,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const trackId = scope.id("track");
         return {
           id: scope.id("control"),
-          dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "control",
           ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
@@ -256,7 +248,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     track: {
       attrs: (scope: ScopeLike) => ({
         id: scope.id("track"),
-        dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "track",
         ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
@@ -276,7 +267,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const vertical = context.orientation === "vertical";
         return {
           id: scope.id("range"),
-          dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "range",
           ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
@@ -289,7 +279,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     markerGroup: {
       id: "marker-group",
       attrs: (scope: ScopeLike) => ({
-        dir: scope.props["dir"],
         "data-scope": "slider",
         "data-part": "marker-group",
       }),
@@ -309,7 +298,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const orientation = context.orientation;
         return {
           id: scope.id("thumb", slotIndex(scope.slot)),
-          dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "thumb",
           "data-index": String(slotIndex(scope.slot)),
@@ -333,7 +321,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
           tabindex: context.disabled ? undefined : "0",
           style: vertical
             ? { bottom: `${percent}%` }
-            : { [(scope.props["dir"] === "rtl") ? "right" : "left"]: `${percent}%` },
+            : { insetInlineStart: `${percent}%` },
           // The thumb's own gesture: its press stops there, so the
           // control's gesture never arms behind it.
           "use:drag": {
@@ -395,6 +383,10 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
               return true;
             };
             const horizontal = scope.context.orientation === "horizontal";
+            // Direction is platform truth, read at event time from the
+            // element that received the key — never stored, never a prop.
+            const rtl = (event.target instanceof Element) &&
+              event.target.ownerDocument?.defaultView?.getComputedStyle(event.target).direction === "rtl";
             switch (event.key) {
               case "ArrowUp":
                 if (!horizontal) keyed("ARROW_INC");
@@ -403,10 +395,10 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
                 if (!horizontal) keyed("ARROW_DEC");
                 break;
               case "ArrowLeft":
-                if (horizontal) keyed((scope.props["dir"] === "rtl") ? "ARROW_INC" : "ARROW_DEC");
+                if (horizontal) keyed(rtl ? "ARROW_INC" : "ARROW_DEC");
                 break;
               case "ArrowRight":
-                if (horizontal) keyed((scope.props["dir"] === "rtl") ? "ARROW_DEC" : "ARROW_INC");
+                if (horizontal) keyed(rtl ? "ARROW_DEC" : "ARROW_INC");
                 break;
               case "PageUp":
                 keyed("ARROW_INC");
@@ -438,7 +430,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const vertical = context.orientation === "vertical";
         return {
           id: scope.id("marker", slot.value),
-          dir: scope.props["dir"],
           "data-scope": "slider",
           "data-part": "marker",
           "data-value": String(slot.value),
@@ -453,10 +444,10 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     hiddenInput: {
       id: "input",
       indexes: (context: SliderContext) => context.value.map((_, index) => ({ index })),
-      attrs: (scope: ScopeLike) => {
+      attrs: (scope: SlotLike<{ readonly index: number; readonly name?: string }>) => {
         const context = scope.context;
         const value = context.value[slotIndex(scope.slot)] ?? context.min;
-        const name = typeof scope.props["name"] === "string" ? scope.props["name"] : "";
+        const name = typeof scope.slot.name === "string" ? scope.slot.name : "";
         return {
           id: scope.id("input", slotIndex(scope.slot)),
           name: name.length > 0 ? (context.value.length > 1 ? `${name}[]` : name) : undefined,
