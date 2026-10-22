@@ -348,15 +348,14 @@ right answer, and steps 2–4 all lean on it.
 6. **the merge** — off the table. Components and runtime only; neither
    conflicts.
 
-## 9. Slider: completed precedent (`61bff33`)
+## 9. Slider: completed precedent (tuned)
 
 Full writeup: `slider-complete.md`. Summary:
 
-- **Five files, firewall holds, script-typed, e2e green on clean worktree.**
-- Chars: package −16%, machine file −79%. Lines neutral (split spreads content).
-- Deleted: coercion helpers, facts vocabulary surface, `as` casts, hand-written `SliderApi`, specimen duplicate markup, `slotIndex` leniency, `dir:` echoes.
-- Runtime gained ~490 lines (math, script-block, script-check, plugin path, `ApiOf`); net goes negative at fan-out + flag day.
-- Type safety: B+. Inputs fully typed, api derived, math real-typed. Gaps: state names are `string`, command call shapes are `unknown[]`, slot bag args are `object`.
-- Open: commands-report-to-host (needs ruling), typed states, per-command signatures, flag day, `.presentation.ts` name, `ScopeOf` helper, specimen race.
+- **Five files, firewall holds, zero `as` casts, script + template expressions typechecked, e2e green.**
+- Size vs base (`0034eae`): package **−27% chars** (−32% excl. `apiof.test.ts`, **−210 lines**), `slider.machine.ts` **490 → 104 lines (−79% lines / −83% chars)**, `slider.bindings.ts` **514 → 375 lines (−27% lines / −32% chars)**, `slider.transitions.ts` **181 → 101 lines (−44%)**.
+- Deleted: coercion helpers, facts vocabulary surface, all `as` casts, hand-written `SliderApi`, duplicate `round10`/`closestIndex`, 5 dead `SET_*` events/transitions, write-only `dragOffset`/`dragStartValue`, `markerRowsCache`, manual `id`/`data-scope`/`data-part` boilerplate, runtime `typeof` guards in commands/methods.
+- Runtime upgrades: distributive `EventOf`, `AssignFor`/`GuardFor`, `ScopeFor`/`SlotScopeFor`, `TState` union threading (`StateOf<D>`), tuple arg inference in `CommandFn`/`MethodValue`, slot param inference in `SlotPropsFn`, callable `defineComponent`, auto-stamped part/slot `id`/`data-scope`/`data-part`, structural slot memoization for inline `{ index: row }` literals, multi-line `stripScript`, full template AST typechecking in `script-check.ts`.
+- Type safety: **A** (proven by `AssertExact` checks in `slider.apiof.test.ts` and template typechecking in `script-check.ts`).
 
-**Fan-out order per component:** events/state split → transitions + per-event signatures → `ApiOf` proof + interface deletion → firewall → class objects → `<script>` + specimen embedding → full gates. Subagents take the mechanical steps (max 2, named files, exact gates); judgment stays here.
+**Fan-out order per component:** events/state split (`<Name>State` union, drop dead `SET_*`) → transitions with `AssignFor`/`GuardFor` → `ApiOf` + typed command/method tuples + auto-stamped parts + interface deletion → firewall (zero `scope.props`, zero casts, logical RTL) → class objects + `<script>` examples + specimen embedding → full gates.

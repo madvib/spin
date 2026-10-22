@@ -41,9 +41,9 @@ export interface EditableContext {
 
 export interface EditableEvents {
   "VALUE.SET": { value: string };
-  "EDIT": {};
-  "SUBMIT": { focusable?: boolean };
-  "CANCEL": { focusable?: boolean };
+  "EDIT": { src?: string };
+  "SUBMIT": { focusable?: boolean; src?: string };
+  "CANCEL": { focusable?: boolean; src?: string };
   "CONTROLLED.EDIT": {};
   "CONTROLLED.PREVIEW": { previousEvent: string };
 }

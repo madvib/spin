@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { memo, slotFieldKey, valueKey, type BagReads } from "./bags.ts";
+import { keyed, memo, slotFieldKey, valueKey, type BagMemo, type BagReads } from "./bags.ts";
 
 Deno.test("Given a bag / When the key holds / Then the same bag comes back", () => {
   const bag = memo();
@@ -84,4 +84,31 @@ Deno.test("Given a slot read whole / When a field changes / Then the key moves",
     false,
     "a changed field moves the key",
   );
+});
+
+Deno.test("Given an inline slot wrapper / When passed as fresh literals with the same index / Then keyed returns the cached bag", () => {
+  const store = new WeakMap<object, BagMemo>();
+  let builds = 0;
+  const first = keyed(
+    store,
+    { index: 0 },
+    (reads) => reads.slot.map((f) => slotFieldKey({ index: 0 }, f)).join(","),
+    (record) => {
+      builds += 1;
+      record("slot", "index");
+      return { "data-index": "0" };
+    },
+  );
+  const second = keyed(
+    store,
+    { index: 0 },
+    (reads) => reads.slot.map((f) => slotFieldKey({ index: 0 }, f)).join(","),
+    (record) => {
+      builds += 1;
+      record("slot", "index");
+      return { "data-index": "0" };
+    },
+  );
+  assertEquals(first === second, true, "fresh { index: 0 } literals hit the structural cache");
+  assertEquals(builds, 1, "the bag built once");
 });

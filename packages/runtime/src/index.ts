@@ -47,8 +47,11 @@ export {
   type EventDef,
   type PartDef,
   type PartScope,
-  type SlotScope,
   type PropParser,
+  type ScopeFor,
+  type SlotDef,
+  type SlotScope,
+  type SlotScopeFor,
 } from "./component/define.ts";
 export {
   authoredProps,
@@ -238,6 +241,7 @@ export {
   createMachine,
   interpret,
   type Assign,
+  type AssignFor,
   type Config,
   type EventMap,
   type EventName,
@@ -245,6 +249,7 @@ export {
   type EventObject,
   type EventOf,
   type EventUnion,
+  type GuardFor,
   type Machine,
   type MachineSpec,
   type Service,

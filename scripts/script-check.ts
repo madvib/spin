@@ -15,9 +15,39 @@
  */
 
 import { walk } from "@std/fs/walk";
-import { extractScript, stripScript } from "../packages/syntax/src/index.ts";
+import { extractScript, parse, stripScript, type Node } from "../packages/syntax/src/index.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname;
+
+function emitTemplateChecks(nodes: readonly Node[], out: string[]): void {
+  for (const node of nodes) {
+    if (node.kind === "text") {
+      for (const part of node.parts) {
+        if (part.kind === "expr") out.push(`void (${part.expr});`);
+      }
+      continue;
+    }
+    if (node.kind === "for") {
+      out.push(`for (const ${node.binding} of (${node.source})) {`);
+      if (node.key !== undefined) out.push(`void (${node.key});`);
+      emitTemplateChecks(node.body, out);
+      out.push(`}`);
+      continue;
+    }
+    if (node.show !== undefined) out.push(`void Boolean(${node.show});`);
+    for (const attr of node.attrs) {
+      if (attr.value.kind === "expr") out.push(`void (${attr.value.expr});`);
+    }
+    for (const ev of node.events) out.push(`void (${ev.handler});`);
+    for (const use of node.actions) {
+      if (use.param !== undefined) out.push(`void (${use.param});`);
+    }
+    for (const spread of node.spreads) {
+      out.push(`{ const __bag: Record<string, unknown> = (${spread.expr}); void __bag; }`);
+    }
+    emitTemplateChecks(node.children, out);
+  }
+}
 
 async function main(): Promise<void> {
   const modules: string[] = [];
@@ -34,9 +64,42 @@ async function main(): Promise<void> {
           `${entry.path}: script has stripped statements (effects?):\n    ${stripped.stripped.join("\n    ")}`,
         );
       }
+      const componentImports: string[] = [];
+      const templateAliases: string[] = [];
+      for (const call of stripped.calls) {
+        for (const m of stripped.module.matchAll(
+          new RegExp(`import\\s*\\{[\\s\\S]*?\\b${call.factory}\\b[\\s\\S]*?\\}\\s*from\\s*["']([^"']+)["']`, "g"),
+        )) {
+          const importedPath = m[1] ?? "";
+          const bindingsPath = importedPath.replace(/\.machine\.ts$/, ".bindings.ts");
+          if (bindingsPath !== importedPath) {
+            componentImports.push(
+              `import { ${call.factory} as __${call.factory}Component } from ${JSON.stringify(bindingsPath)};`,
+            );
+            templateAliases.push(
+              `const ${call.name} = __${call.factory}Component(${call.args}); void ${call.name};`,
+            );
+          }
+        }
+      }
+      const markup = source
+        .replace(/<!--[\s\S]*?-->/g, "")
+        .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "");
+      const ir = parse(markup);
+      const templateChecks: string[] = [];
+      emitTemplateChecks(ir.nodes, templateChecks);
+      const virtualModule = [
+        ...componentImports,
+        stripped.module,
+        ...stripped.bindings.map((b) => `void ${b};`),
+        `{`,
+        ...templateAliases,
+        ...templateChecks,
+        `}`,
+      ].join("\n");
       // Beside the example, so `../slider.bindings.ts` resolves.
       const tmp = `${entry.path}.script-check.ts`;
-      await Deno.writeTextFile(tmp, stripped.module);
+      await Deno.writeTextFile(tmp, virtualModule);
       modules.push(tmp);
     }
     if (modules.length === 0) {

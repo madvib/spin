@@ -430,7 +430,7 @@ const def: ComponentDef<SplitterContext, SplitterEvents> = {
       indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
       // The label span needs its own data-type, because data variants
       // match the element's own attributes, never ancestors.
-      attrs: (scope) => {
+      attrs: (scope: SlotLike<{ readonly type: string }>) => {
         const item = scope.slot;
         if (typeof item !== "object" || item === null || !("type" in item)) return {};
         return item.type === "handle" ? { "data-type": "handle" } : {};

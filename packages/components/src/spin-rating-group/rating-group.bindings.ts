@@ -218,7 +218,7 @@ const def: ComponentDef<RatingGroupContext, RatingGroupEvents> = {
             const dir = typeof scope.props["dir"] === "string"
               ? scope.props["dir"]
               : "ltr";
-            const move = (type: string): boolean => {
+            const move = (type: "ARROW_LEFT" | "ARROW_RIGHT" | "HOME" | "END"): boolean => {
               event.preventDefault();
               scope.send({ type });
               return true;

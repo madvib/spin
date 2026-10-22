@@ -22,13 +22,14 @@ export interface BagReads {
   readonly props: readonly string[];
   /** The state name, when the build read it. */
   readonly state: boolean;
+  /** Whether the build synchronously read the live DOM root element. */
+  readonly root?: boolean;
   /** The slot's fields. "*" stands for the slot read as a whole. */
   readonly slot: readonly string[];
 }
 
 /** What a read touched. The state carries no name of its own. */
-export type ReadKind = "context" | "props" | "state" | "slot";
-
+export type ReadKind = "context" | "props" | "state" | "slot" | "root";
 /** Records one read, so the build's dependencies are known without being
  * written by hand. */
 export type ReadRecorder = (kind: ReadKind, key: string) => void;
@@ -94,6 +95,7 @@ function createRecorder(): Recorder {
   const props: string[] = [];
   const slot: string[] = [];
   let state = false;
+  let root = false;
   const record: ReadRecorder = (kind, key) => {
     if (kind === "context") {
       if (!context.includes(key)) context.push(key);
@@ -107,6 +109,10 @@ function createRecorder(): Recorder {
       if (!slot.includes(key)) slot.push(key);
       return;
     }
+    if (kind === "root") {
+      root = true;
+      return;
+    }
     state = true;
   };
   return {
@@ -115,13 +121,13 @@ function createRecorder(): Recorder {
       context: [...context],
       props: [...props],
       state,
+      root,
       slot: [...slot],
     }),
   };
 }
 
-const NO_READS: BagReads = { context: [], props: [], state: false, slot: [] };
-
+const NO_READS: BagReads = { context: [], props: [], state: false, root: false, slot: [] };
 /** A bag cached until the signature of the fields it reads moves. One memo
  * holds the single bag of one part (there is one root, one image, one
  * fallback per element), so a single slot is the whole cache.
@@ -152,14 +158,48 @@ export function memo(): {
   };
 }
 
-/** Thumbs are stable slots, so the memo dies with the slot it came from. */
+const structuralStores = new WeakMap<WeakMap<object, BagMemo>, Map<string, BagMemo>>();
+
+function structuralKey(owner: unknown): string | undefined {
+  if (typeof owner !== "object" || owner === null) return valueKey(owner);
+  if (Object.getPrototypeOf(owner) !== Object.prototype) return undefined;
+  const keys = Object.keys(owner);
+  if (keys.length === 0 || keys.length > 2) return undefined;
+  for (const k of keys) {
+    const v = Reflect.get(owner, k);
+    if (typeof v === "object" && v !== null) return undefined;
+    if (typeof v === "function") return undefined;
+  }
+  return slotFieldKey(owner, WHOLE);
+}
+
+/** Thumbs and rows are slots: stable object identities memoize in the
+ * WeakMap; primitives and inline value-wrappers (`{ index }`, `{ value }`)
+ * memoize by their structural key so fresh inline literals hit the cache. */
 export function keyed<K extends object>(
   store: WeakMap<K, BagMemo>,
   owner: K,
   keyOf: (reads: BagReads) => string,
   build: (record: ReadRecorder) => Record<string, unknown>,
 ): Record<string, unknown> {
-  // The key function is the caller's: it sees THIS call's arguments.
+  const sKey = typeof owner === "object" && owner !== null && store.has(owner)
+    ? undefined
+    : structuralKey(owner);
+  if (sKey !== undefined) {
+    let byValue = structuralStores.get(store);
+    if (byValue === undefined) {
+      byValue = new Map<string, BagMemo>();
+      structuralStores.set(store, byValue);
+    }
+    const hit = byValue.get(sKey);
+    const next = keyOf(hit?.reads ?? NO_READS);
+    if (hit !== undefined && hit.key === next) return hit.bag;
+    const recorder = createRecorder();
+    const bag = build(recorder.record);
+    const reads = recorder.reads();
+    byValue.set(sKey, { key: keyOf(reads), bag, reads });
+    return bag;
+  }
   const hit = store.get(owner);
   const next = keyOf(hit?.reads ?? NO_READS);
   if (hit !== undefined && hit.key === next) return hit.bag;

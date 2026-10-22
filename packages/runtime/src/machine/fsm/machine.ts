@@ -67,9 +67,10 @@ export type EventNames<TMap extends EventMap> = Extract<keyof TMap, string>;
  * The event a name names: its discriminant, plus the payload the map
  * gives under that name.
  */
-export type EventOf<TMap extends EventMap, TName extends EventNames<TMap>> = {
-  readonly type: TName;
-} & TMap[TName & keyof TMap];
+export type EventOf<TMap extends EventMap, TName extends EventNames<TMap>> =
+  TName extends EventNames<TMap>
+    ? { readonly type: TName } & TMap[TName & keyof TMap]
+    : never;
 
 /** Every event of a map, as the union a service sends. */
 export type EventUnion<TMap extends EventMap> = {
@@ -80,17 +81,17 @@ export type EventUnion<TMap extends EventMap> = {
 export type EventName<TMap extends EventMap> = EventNames<TMap>;
 
 /** The state a service holds: a value, the context, and what it matches. */
-export interface State<TContext extends object> {
-  readonly value: string;
+export interface State<TContext extends object, TState extends string = string> {
+  readonly value: TState;
   readonly context: TContext;
   readonly matches: (value: string) => boolean;
 }
 
 /** A transition target: a state name, or a record with an optional target. */
-export type Transition<TContext extends object, TEvent> =
-  | string
+export type Transition<TContext extends object, TEvent, TState extends string = string> =
+  | TState
   | {
-      readonly target?: string;
+      readonly target?: TState;
       readonly cond?: (context: TContext, event: TEvent) => boolean;
       readonly assign?: Assign<TContext, TEvent> | readonly Assign<TContext, TEvent>[];
     };
@@ -101,16 +102,34 @@ export type Assign<TContext extends object, TEvent> = (
   event: TEvent,
 ) => Partial<TContext>;
 
+/** A context write narrowed to one or more event names of a map. */
+export type AssignFor<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TName extends EventNames<TEventMap> = EventNames<TEventMap>,
+> = (context: TContext, event: EventOf<TEventMap, TName>) => Partial<TContext>;
+
+/** A transition guard narrowed to one or more event names of a map. */
+export type GuardFor<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TName extends EventNames<TEventMap> = EventNames<TEventMap>,
+> = (context: TContext, event: EventOf<TEventMap, TName>) => boolean;
+
 /**
  * The transitions of a map: each KEY narrows its own event.
  *
  * The author writes the event map once, and every transition reads its
  * event through the narrowing its key gives.
  */
-export type Transitions<TContext extends object, TEventMap extends EventMap> = {
+export type Transitions<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+> = {
   readonly [TName in EventNames<TEventMap>]?:
-    | Transition<TContext, EventOf<TEventMap, TName>>
-    | readonly Transition<TContext, EventOf<TEventMap, TName>>[];
+    | Transition<TContext, EventOf<TEventMap, TName>, TState>
+    | readonly Transition<TContext, EventOf<TEventMap, TName>, TState>[];
 };
 
 /**
@@ -121,40 +140,56 @@ export type Entry<TContext extends object, TEvent extends object> =
   | Assign<TContext, TEvent>
   | { readonly assign: Assign<TContext, TEvent> };
 
-export interface Config<TContext extends object, TEventMap extends EventMap> {
+export interface Config<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+> {
   readonly id?: string;
-  readonly initial: string;
+  readonly initial: TState;
   readonly context?: TContext;
   /** Root-level handlers: candidates in every state. State-level handlers
    * for the same event shadow these; everything else falls through here,
    * which states "this event works everywhere" once instead of duplicating
    * it across states. */
-  readonly on?: Transitions<TContext, TEventMap>;
+  readonly on?: Transitions<TContext, TEventMap, TState>;
   readonly states: Readonly<
     Record<
       string,
       {
         readonly entry?: readonly Entry<TContext, EventUnion<TEventMap>>[];
         readonly exit?: readonly Entry<TContext, EventUnion<TEventMap>>[];
-        readonly on?: Transitions<TContext, TEventMap>;
+        readonly on?: Transitions<TContext, TEventMap, TState>;
       }
     >
   >;
 }
 
-export interface Machine<TContext extends object, TEventMap extends EventMap> {
-  readonly config: Config<TContext, TEventMap>;
+export type FieldsContract<TContext extends object, TEventMap extends EventMap> = {
+  readonly [K in Extract<keyof TContext, string>]?: FieldContract<TEventMap>;
+} & Readonly<Record<string, FieldContract<TEventMap>>>;
+
+export interface Machine<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+> {
+  readonly config: Config<TContext, TEventMap, TState>;
   /** The machine's contract with its hosts: the fields a host may write,
    * and the event each write carries. */
-  readonly fields: Readonly<Record<string, FieldContract<TEventMap>>>;
-  readonly initialState: State<TContext>;
+  readonly fields: FieldsContract<TContext, TEventMap>;
+  readonly initialState: State<TContext, TState>;
   transition(
-    state: string | State<TContext>,
+    state: TState | State<TContext, TState>,
     event: EventUnion<TEventMap>,
-  ): State<TContext>;
+  ): State<TContext, TState>;
 }
 
-export interface Service<TContext extends object, TEventMap extends EventMap> {
+export interface Service<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+> {
   send(event: EventUnion<TEventMap>): void;
   /**
    * Replace part of the context, the way a transition's assigns do: the
@@ -166,18 +201,13 @@ export interface Service<TContext extends object, TEventMap extends EventMap> {
   /** Start (or restart) at an optional state, running that state's entry
    * actions. This is how `defaultOpen`-style seeds work: the service's
    * first state is not always the config's `initial`. */
-  start(state?: string | State<TContext>): Service<TContext, TEventMap>;
-  stop(): Service<TContext, TEventMap>;
-  readonly state: State<TContext>;
+  start(state?: TState | State<TContext, TState>): Service<TContext, TEventMap, TState>;
+  stop(): Service<TContext, TEventMap, TState>;
+  readonly state: State<TContext, TState>;
   readonly stopped: boolean;
 }
 
 const INIT = { type: "xstate.init" } as const;
-
-function toArray<T>(value: readonly T[] | T | undefined): T[] {
-  if (value === undefined) return [];
-  return Array.isArray(value) ? [...value] : [value as T];
-}
 
 function toEvent<TEventMap extends EventMap>(
   event: EventUnion<TEventMap>,
@@ -185,7 +215,10 @@ function toEvent<TEventMap extends EventMap>(
   return event;
 }
 
-function stateOf<TContext extends object>(value: string, context: TContext): State<TContext> {
+function stateOf<TContext extends object, TState extends string = string>(
+  value: TState,
+  context: TContext,
+): State<TContext, TState> {
   return { value, context, matches: (v) => v === value };
 }
 
@@ -195,6 +228,10 @@ function stateOf<TContext extends object>(value: string, context: TContext): Sta
  */
 function isList<T>(value: T | readonly T[]): value is readonly T[] {
   return Array.isArray(value);
+}
+
+function toList<T>(value: T | readonly T[]): readonly T[] {
+  return isList(value) ? value : [value];
 }
 
 /**
@@ -221,15 +258,20 @@ function isEvent<TEventMap extends EventMap, TName extends EventNames<TEventMap>
  * the event. After the guard, `event.type` is the one name, and the lookup
  * returns that name's transitions.
  */
-function candidatesFor<TContext extends object, TEventMap extends EventMap, TName extends EventNames<TEventMap>>(
-  on: Transitions<TContext, TEventMap> | undefined,
+function candidatesFor<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TName extends EventNames<TEventMap>,
+  TState extends string = string,
+>(
+  on: Transitions<TContext, TEventMap, TState> | undefined,
   event: EventUnion<TEventMap>,
   name: TName,
-): readonly Transition<TContext, EventOf<TEventMap, TName>>[] {
+): readonly Transition<TContext, EventOf<TEventMap, TName>, TState>[] {
   if (!isEvent(event, name)) return [];
   const found = on?.[event.type];
   if (found === undefined) return [];
-  return isList(found) ? found : [found];
+  return toList(found);
 }
 
 /**
@@ -257,20 +299,24 @@ function fold<TContext extends object, TEvent extends object>(
  * transitions) and what it DOES (its context writes, its guards) — each
  * bound to the event it answers, by the transition's KEY.
  */
-export interface MachineSpec<TContext extends object, TEventMap extends EventMap> {
+export interface MachineSpec<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+> {
   readonly id?: string;
   /** The machine's own defaults. No prop reaches this: a machine does
    * not know what a host is. */
   readonly context: TContext;
-  readonly initial: string;
-  readonly on?: Transitions<TContext, TEventMap>;
+  readonly initial: NoInfer<TState>;
+  readonly on?: Transitions<TContext, TEventMap, NoInfer<TState>>;
   readonly states: Readonly<
     Record<
-      string,
+      TState,
       {
         readonly entry?: readonly Entry<TContext, EventUnion<TEventMap>>[];
         readonly exit?: readonly Entry<TContext, EventUnion<TEventMap>>[];
-        readonly on?: Transitions<TContext, TEventMap>;
+        readonly on?: Transitions<TContext, TEventMap, NoInfer<TState>>;
       }
     >
   >;
@@ -285,7 +331,7 @@ export interface MachineSpec<TContext extends object, TEventMap extends EventMap
    * The machine owns this map. The element does not restate it, and a
    * host cannot write a field the contract does not name.
    */
-  readonly fields?: Readonly<Record<string, FieldContract<TEventMap>>>;
+  readonly fields?: FieldsContract<TContext, TEventMap>;
 }
 
 /**
@@ -305,10 +351,14 @@ export interface FieldContract<TEventMap extends EventMap> {
   readonly parse?: (raw: unknown) => unknown;
 }
 
-export function createMachine<TContext extends object, TEventMap extends EventMap>(
-  spec: MachineSpec<TContext, TEventMap>,
-): Machine<TContext, TEventMap> {
-  const config: Config<TContext, TEventMap> = {
+export function createMachine<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+>(
+  spec: MachineSpec<TContext, TEventMap, TState>,
+): Machine<TContext, TEventMap, TState> {
+  const config: Config<TContext, TEventMap, TState> = {
     ...(spec.id === undefined ? {} : { id: spec.id }),
     initial: spec.initial,
     context: spec.context,
@@ -329,7 +379,7 @@ export function createMachine<TContext extends object, TEventMap extends EventMa
       context: initial,
       matches: (v) => v === config.initial,
     },
-    transition(stateOrValue, eventOrType): State<TContext> {
+    transition(stateOrValue, eventOrType): State<TContext, TState> {
       const event = toEvent(eventOrType);
       const from =
         typeof stateOrValue === "string"
@@ -390,13 +440,17 @@ export function createMachine<TContext extends object, TEventMap extends EventMa
   };
 }
 
-export function interpret<TContext extends object, TEventMap extends EventMap>(
-  machine: Machine<TContext, TEventMap>,
-): Service<TContext, TEventMap> {
+export function interpret<
+  TContext extends object,
+  TEventMap extends EventMap,
+  TState extends string = string,
+>(
+  machine: Machine<TContext, TEventMap, TState>,
+): Service<TContext, TEventMap, TState> {
   let current = machine.initialState;
   let stopped = false;
 
-  const service: Service<TContext, TEventMap> = {
+  const service: Service<TContext, TEventMap, TState> = {
     setContext(patch) {
       current = { ...current, context: { ...current.context, ...patch } };
       machineTick(machineTick() + 1);

@@ -24,28 +24,41 @@ export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
 
 /** What a part bag reads. All live — the framework calls this per tick
  * and memoizes on the returned signature. */
+export type AnyEvent = { readonly type: string } & Record<string, unknown>;
+
 export interface PartScope<
   R = unknown,
   C extends object = Record<string, unknown>,
   P = Record<string, unknown>,
+  Ev = AnyEvent,
+  S extends string = string,
 > {
   /** The component's props, typed. The host sets them; the machine never
    * sees them. */
   readonly props: P;
   readonly context: C;
-  readonly state: string;
+  readonly state: S;
   readonly root: () => Element;
   readonly id: (part: string, slot?: unknown) => string;
   readonly measure: (part: string, slot?: unknown) => DOMRect | null;
-  readonly send: (event: { type: string } & Record<string, unknown>) => void;
+  send(event: Ev): void;
   readonly attr: (value: boolean) => string | undefined;
   readonly slot: R;
 }
+
+export type ScopeFor<
+  C extends object,
+  E extends EventMap = Record<string, Record<string, unknown>>,
+  S extends string = string,
+  P = Record<string, unknown>,
+> = PartScope<unknown, C, P, EventUnion<E>, S>;
 
 export interface PartDef<
   R = unknown,
   C extends object = Record<string, unknown>,
   P = Record<string, unknown>,
+  Ev = AnyEvent,
+  S extends string = string,
 > {
   /** The id segment when it differs from the part key (`value-text` for
    * the `valueText` method family). Default: the key. */
@@ -55,54 +68,68 @@ export interface PartDef<
    * argument when the part takes one (`getTriggerProps({ focusable })`).
    *
    * The bag rebuilds when the scope's fields it read move: the reads are
-   * recorded, so a dependency is never named by hand. */
-  attrs(scope: PartScope<R, C, P>, arg?: unknown): Record<string, unknown>;
+   * recorded, so a dependency is never named by hand. Optional when the
+   * part carries only its auto-stamped `id`, `data-scope`, and `data-part`. */
+  attrs?(scope: PartScope<R, C, P, Ev, S>, arg?: unknown): Record<string, unknown>;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
- * stable identities (a thumb index, a row key) — the memo dies with the
- * slot it came from, so a slot object must be identity-stable per index. */
+ * stable identities (a thumb index, a row key). */
 export interface SlotScope<
   R = unknown,
   C extends object = Record<string, unknown>,
   P = Record<string, unknown>,
-> extends PartScope<R, C, P> {}
+  Ev = AnyEvent,
+  S extends string = string,
+> extends PartScope<R, C, P, Ev, S> {}
+
+export type SlotScopeFor<
+  R,
+  C extends object,
+  E extends EventMap = Record<string, Record<string, unknown>>,
+  S extends string = string,
+  P = Record<string, unknown>,
+> = SlotScope<R, C, P, EventUnion<E>, S>;
 
 export interface SlotDef<
   R = unknown,
   C extends object = Record<string, unknown>,
   P = Record<string, unknown>,
+  Ev = AnyEvent,
+  S extends string = string,
 > {
   /** The id segment when it differs from the slot key. Default: the key. */
   readonly id?: string;
+  /** Whether the framework stamps `id`, `data-scope`, and `data-part` onto
+   * the slot's bag before `attrs(scope)`. Default `true`; set `false` for
+   * form controls like hidden inputs that omit scope/part attributes. */
+  readonly stamp?: boolean;
   /** The slot identities, for the recipe's iteration: rows, blocks, thumb
-   * indexes. Must return stable identities — a fresh identity per read
-   * re-stamps rows. Receives parsed props: the collection lives there. */
+   * indexes. Receives parsed props: the collection lives there. */
   readonly indexes: (
     context: C,
     props: Record<string, unknown>,
   ) => readonly unknown[];
-  attrs(scope: SlotScope<R, C, P>, arg?: unknown): Record<string, unknown>;
+  attrs(scope: SlotScope<R, C, P, Ev, S>, arg?: unknown): Record<string, unknown>;
 }
 
-export interface ReaderDef<C extends object = Record<string, unknown>, R = unknown> {
+export interface ReaderDef<
+  C extends object = Record<string, unknown>,
+  R = unknown,
+  S extends string = string,
+> {
   /** A state projection: live context + state + parsed props (the
    * collection lives in props, rows never enter the machine) + the root
    * (a fieldset's disabled state disables the control, and only the root
    * knows its ancestors). */
   read(
     context: C,
-    state: string,
+    state: S,
     props: Record<string, unknown>,
     root?: () => Element,
   ): R;
 }
 
-/**
- * How one prop reaches the machine: the event the consumer sends, the
- * context field the event fills, and the prop whose value seeds that
- * field (the live prop seeds it when the host authored it).
- */
 /**
  * How a consumer initializes the machine it consumes.
  *
@@ -110,36 +137,39 @@ export interface ReaderDef<C extends object = Record<string, unknown>, R = unkno
  * - a context patch — a literal the consumer chose.
  * - a function — the consumer reads the host's props and decides.
  */
-export type InitSpec<C extends object, E extends EventMap> =
+export type InitSpec<C extends object, _E extends EventMap> =
   | Partial<C>
   | ((props: Readonly<Record<string, unknown>>, authored: (name: string) => boolean) => Partial<C>);
 
 /**
  * The machine a component consumes: a factory over the machine's OWN
  * arguments.
- *
- * The arguments are the machine's, not the component's: the machine knows
- * nothing about props, markup, or the DOM. The bindings — the DOM
- * contract, which knows both — map the component's props onto them, and
- * the map is typed on both sides, so neither can drift from the other.
  */
-export type MachineFactory<C extends object, E extends EventMap, A = unknown> = (
+export type MachineFactory<
+  C extends object,
+  E extends EventMap,
+  A = unknown,
+  S extends string = string,
+> = (
   args: A,
   authored: (name: string) => boolean,
-) => Machine<C, E>;
+) => Machine<C, E, S>;
 
-export interface MethodDef<C extends object = Record<string, unknown>, R = unknown> {
+export interface MethodDef<
+  C extends object = Record<string, unknown>,
+  R = unknown,
+  A extends readonly unknown[] = readonly unknown[],
+  S extends string = string,
+> {
   /** An indexed read (`getThumbValue(index)`): live context + state + args
-   * + parsed props + part ids. For per-slot numbers the recipe could compute
-   * from context, but hosts and tests call these directly — they stay on
-   * the api. */
-  readonly call: (
+   * + parsed props + part ids. */
+  call(
     context: C,
-    state: string,
-    args: readonly unknown[],
+    state: S,
+    args: A,
     props: Record<string, unknown>,
     id: (part: string, slot?: unknown) => string,
-  ) => R;
+  ): R;
 }
 
 export type CommandDef<
@@ -149,12 +179,7 @@ export type CommandDef<
 > =
   | {
     /** A sending command: name + event from args, live context, and part
-     * ids. The context read keeps `setThumbValue`-style splices in the def
-     * without a hand-written api method; the ids resolve id-keyed commands
-     * (`clearValue(tagId)`) without one.
-     *
-     * The event is the machine's own event: a command that sends a
-     * payload the machine does not read is a typo the types catch. */
+     * ids. */
     event(
       args: A,
       context: C,
@@ -166,24 +191,25 @@ export type CommandDef<
     /** A view-only command (node focus with no machine move): the api
      * method runs this with the part ids instead of sending. */
     readonly event?: undefined;
-    readonly view: (args: {
-      readonly args: readonly unknown[];
+    view(args: {
+      readonly args: A;
       readonly id: (part: string, slot?: unknown) => string;
       readonly focus: (part: string, slot?: unknown) => void;
       readonly measure: (part: string, slot?: unknown) => DOMRect | null;
-      /** The element that owns the component: the DOM reads a view
-       * makes stay inside it, never on the global document. */
       readonly root: () => Element;
-    }) => void;
+    }): void;
   };
 
-export interface EventDef<W extends readonly unknown[] = readonly unknown[], C extends object = Record<string, unknown>> {
+export interface EventDef<
+  W extends readonly unknown[] = readonly unknown[],
+  C extends object = Record<string, unknown>,
+  S extends string = string,
+> {
   /** The callback prop name on the props surface (the def maps it to a CustomEvent). */
   readonly prop: string;
   /** Values the framework snapshots per notify; a change fires the event. */
-  watch(context: C, state: string): readonly unknown[];
+  watch(context: C, state: S): readonly unknown[];
   /** Maps the changed values to the event detail. Receives the triggering
-   * event (undefined from the sync effect), the parsed props (the collection
    * lives in props, so row-resolving details read it here), and the live
    * context — the watch carries ONLY the fire condition; current values for
    * the payload come from here, so an unrelated move never reports. */
@@ -212,51 +238,40 @@ export interface ComponentDef<
   E extends EventMap,
   P = Record<string, unknown>,
   A = unknown,
-  Methods = Record<string, MethodDef<C, unknown>>,
-  Readers = Record<string, ReaderDef<C, unknown>>,
+  S extends string = string,
+  Methods = Record<string, MethodDef<C, unknown, readonly unknown[], S>>,
+  Readers = Record<string, ReaderDef<C, unknown, S>>,
 > {
   readonly name: string;
-  /** The start state, or its computation from parsed props (an authored
-   * `open` starts the panel up). Absent, the machine's own initial. */
-  readonly start?: string | ((
+  /** The start state, or its computation from parsed props. */
+  readonly start?: S | ((
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
-  ) => string);
-  /** Events sent once after start (seeded through the machine, not a
-   * write: validation and sanitization run through the assigns). */
+  ) => S);
+  /** Events sent once after start. */
   readonly establish?: (
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => readonly ({ type: string } & Record<string, unknown>)[];
-  /** Seed the machine context from parsed props before start. A coerced
-   * default is never a write: `closeOnSelect` defaults from the mode unless
-   * the host authored it. */
-  /** The machine's starting context, from the props. With a prop map the
-   * runtime seeds it: the map names the field each prop fills. */
+  /** The machine's starting context, from the props. */
   readonly seed?: (
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
-  /** Derived context sync inside the owned effect (collection order/labels
-   * re-homed over a changed item tree). Reads parsed props, may assign
-   * derived caches directly and send re-homing events. Returns true when
-   * the machine must notify. */
+  /** Derived context sync inside the owned effect. */
   readonly reconcile?: (args: {
     readonly context: C;
-    readonly state: string;
+    readonly state: S;
     readonly parsed: Record<string, unknown>;
     readonly authored: (name: string) => boolean;
     readonly send: (event: { type: string } & Record<string, unknown>) => void;
   }) => boolean;
-  /** Event enrichment pre-send (host validators ride navigation events:
-   * functions cannot cross the scope channel, so the machine's guards read
-   * them off the event). Applied to every gesture and command send. */
+  /** Event enrichment pre-send. */
   readonly dispatch?: (
     event: { type: string } & Record<string, unknown>,
     props: Record<string, unknown>,
   ) => { type: string } & Record<string, unknown>;
-  /** Once, after the first connect build (cells exist in markup): entry
-   * focus and other mount-time view reflexes. */
+  /** Once, after the first connect build: entry focus and mount reflexes. */
   readonly mounted?: (args: {
     readonly props: Record<string, unknown>;
     readonly root: () => Element;
@@ -264,102 +279,81 @@ export interface ComponentDef<
     readonly focus: (part: string, slot?: unknown) => void;
     readonly measure: (part: string, slot?: unknown) => DOMRect | null;
   }) => void;
-  /** Post-send view reflexes (the panel's opening owes the field its
-   * focus). View-side only: focus management, never state. */
+  /** Post-send view reflexes. */
   readonly settled?: (args: {
-    readonly event: { readonly type: string } & Record<string, unknown>;
-    readonly before: { readonly context: C; readonly state: string };
-    readonly after: { readonly context: C; readonly state: string };
+    readonly event: AnyEvent;
+    readonly before: { readonly context: C; readonly state: S };
+    readonly after: { readonly context: C; readonly state: S };
     readonly props: Record<string, unknown>;
     readonly root: () => Element;
     readonly id: (part: string, slot?: unknown) => string;
     readonly focus: (part: string, slot?: unknown) => void;
     readonly measure: (part: string, slot?: unknown) => DOMRect | null;
-    /** The view's send: a settled reflex that kicks a DOM poll (a target
-     * lookup, a scroll settle) reports its findings back through this. */
-    readonly send: (event: { readonly type: string } & Record<string, unknown>) => void;
+    readonly send: (event: AnyEvent) => void;
   }) => void;
-  /** Channel names merged into machine context before every send, so an
-   * assign or a cond never reads a stale scalar. Default: none. */
   readonly scalars?: readonly string[];
-  /** Scalar computation with authored access (a coerced default is never a
-   * write: `closeOnSelect` defaults from the mode unless the host authored
-   * it). Absent, the `scalars` names merge verbatim. */
   readonly scalarsOf?: (
     parsed: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
-  /** Event types that end the gesture: notify runs as a commit for these,
-   * a move otherwise. Default: every send notifies as a move. */
-  readonly commitEvents?: readonly string[];
-  /**
-   * The props this consumer feeds the machine, and the events that carry
-   * them. The consumer sends; the machine decides. A prop write is an
-   * event, never a context write: the machine owns its state, and one
-   * machine can drive any number of consumers.
-   */
-  /**
-   * How the machine starts, when the scope's declared parameters are not
-   * enough. The consumer owns initialization: the scope's declared
-   * props and their defaults seed the machine, and this overrides that
-   * only when the consumer must derive the start (a value out of a JSON
-   * text, say). Absent, the machine's own defaults stand.
-   */
+  readonly commitEvents?: readonly (EventUnion<E>["type"] | (string & {}))[];
   readonly init?: InitSpec<C, E>;
-  /**
-   * The machine: a factory over the machine's OWN arguments.
-   *
-   * The arguments are the machine's, not the component's: the machine
-   * knows nothing about props, markup, or the DOM. The bindings — the DOM
-   * contract, which knows both — map the component's props onto them, and
-   * the map is typed on both sides, so neither can drift from the other.
-   */
-  readonly machine?: MachineFactory<C, E, A>;
-  /**
-   * The props, mapped onto the machine's arguments.
-   *
-   * Absent, the props ARE the arguments (a machine whose arguments are
-   * the component's props — the old shape, and the one that made the
-   * machine know the props' names).
-   */
+  readonly machine?: MachineFactory<C, E, A, S>;
   readonly args?: (props: P) => A;
-  readonly parts: Record<string, PartDef<unknown, C, P>>;
-  readonly slots?: Record<string, SlotDef<unknown, C, P>>;
+  readonly parts: Record<string, PartDef<unknown, C, P, EventUnion<E>, S>>;
+  readonly slots?: Record<string, SlotDef<never, C, P, EventUnion<E>, S>>;
   readonly commands: Record<string, CommandDef<readonly unknown[], C, E>>;
   readonly methods?: Methods;
   readonly readers?: Readers;
-  readonly events: Record<string, EventDef<readonly unknown[], C>>;
+  readonly events: Record<string, EventDef<readonly unknown[], C, S>>;
 }
 
 /** A reader entry's value type, or never when the entry is not a reader. */
 export type ReaderValue<T> = T extends { read(...args: never[]): infer R } ? R : never;
 
-/** A method entry's api surface: what the bridge exposes. The raw
- * args list in, the value out — the typed per-index wrappers authors call
- * exist only in hand-written interfaces, which this derivation replaces.
- * The return type is preserved; the params are honest. */
-export type MethodValue<T> = T extends { call(...args: never[]): infer R } ? (...args: readonly unknown[]) => R : never;
+/** A method entry's api surface: infers tuple parameters from `call`'s
+ * `args` parameter when declared, or `() => R` for 0-arg methods. */
+export type MethodValue<T> =
+  T extends { call: (context: never, state?: never) => infer R }
+    ? () => R
+    : T extends {
+        call: (
+          context: never,
+          state: never,
+          args: infer A extends readonly unknown[],
+          ...rest: never[]
+        ) => infer R;
+      }
+      ? (...args: A) => R
+      : never;
 
-/** A command entry's callable surface: what the bridge exposes.
- * Always the raw args list — the event factory's params are the factory's
- * business (checked where the factory is defined), not the api's. A
- * command with a typed public call shape declares it where authors see
- * it; the derived type does not invent one. */
-export type CommandFn<T> = T extends { event(...args: never[]): unknown } | { view(...args: never[]): unknown } ? (...args: readonly unknown[]) => void
-  : never;
+/** A command entry's callable surface: infers tuple parameters from
+ * `event(args: A, ...)` when declared, or `() => void` for 0-arg commands. */
+export type CommandFn<T> =
+  T extends { event: () => unknown } | { view: () => unknown }
+    ? () => void
+    : T extends { event: (args: infer A extends readonly unknown[], ...rest: never[]) => unknown }
+      ? (...args: A) => void
+      : T extends { view: (args: { readonly args: infer A extends readonly unknown[] }) => unknown }
+        ? (...args: A) => void
+        : never;
 
-/** The api a component's def implies.
- *
- * Every reader with the type it reads, every method with the type it
- * returns, every command as a callable, and the bag getter for each part
- * and slot — all of it read off the def, so a component does not
- * hand-write its api and the api cannot disagree with the component.
- *
- * The def's sections are records keyed by name (`readers`, `methods`,
- * `commands`, `parts`, `slots`), each with its own entry shape — the
- * mapped types read each section, never the def's top level (which also
- * holds the machine, the map, and the chart — none of which are api).
- */
+/** A slot entry's `getXProps` surface: infers the slot parameter type `R`
+ * from `attrs(scope: SlotScope<R, ...>)`. */
+export type SlotPropsFn<T> = T extends {
+  attrs: (scope: SlotScope<infer R, never, never, never, never>, ...args: never[]) => unknown;
+}
+  ? (slot: R) => Record<string, unknown>
+  : (slot: object) => Record<string, unknown>;
+
+/** The state union a component's machine declares, or `string` when untyped. */
+export type StateOf<D> = D extends {
+  readonly machine?: (...args: never[]) => { readonly initialState: { readonly value: infer S extends string } };
+}
+  ? S
+  : string;
+
+/** The api a component's def implies. */
 export type ApiOf<D extends {
   readonly readers?: Record<string, unknown>;
   readonly methods?: Record<string, unknown>;
@@ -378,14 +372,10 @@ export type ApiOf<D extends {
 } & {
   readonly [K in keyof NonNullable<D["parts"]> & string as `get${Capitalize<K>}Props`]: () => Record<string, unknown>;
 } & {
-  // Slots synthesize two members: getXProps(slot) reads the slot's bag,
-  // getXIndexes() reads the slot's identities. The indexes return the
-  // slot's identity array (whatever the slot yields); the props take the
-  // slot identity and return the bag.
   readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Indexes`]: NonNullable<D["slots"]> extends Record<K, infer T> ? T extends { indexes(...args: never[]): readonly (infer E)[] } ? () => readonly E[] : () => readonly unknown[] : () => readonly unknown[];
 } & {
-  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`]: (slot: object) => Record<string, unknown>;
+  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`]: NonNullable<D["slots"]> extends Record<K, infer T> ? SlotPropsFn<T> : (slot: object) => Record<string, unknown>;
 } & {
   /** The machine's mode, live: the framework's own reader. */
-  readonly state: string;
+  readonly state: StateOf<D>;
 };

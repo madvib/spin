@@ -25,6 +25,7 @@ Deno.test("SliderApi promises the component's surface", () => {
     "getThumbMin",
     "getThumbMax",
     "getThumbIndexes",
+    "getMarkerIndexes",
     "getMarkers",
     "getRootProps",
     "getLabelProps",
@@ -37,5 +38,31 @@ Deno.test("SliderApi promises the component's surface", () => {
     "getThumbProps",
     "getHiddenInputProps",
   ];
-  assertEquals(keys.length, 29);
+  assertEquals(keys.length, 30);
+  // Derived member signatures: state union, typed command tuples, typed
+  // methods, and typed slot parameter records.
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  const stateTyped: AssertExact<SliderApi["state"], "idle" | "focus" | "dragging"> = true;
+  const setValueTyped: AssertExact<SliderApi["setValue"], (value: readonly number[]) => void> = true;
+  const setThumbValueTyped: AssertExact<SliderApi["setThumbValue"], (index: number, value: number) => void> = true;
+  const incrementTyped: AssertExact<SliderApi["increment"], (index?: number) => void> = true;
+  const focusTyped: AssertExact<SliderApi["focus"], () => void> = true;
+  const getThumbValueTyped: AssertExact<SliderApi["getThumbValue"], (index: number) => number> = true;
+  const getMarkersTyped: AssertExact<SliderApi["getMarkers"], () => number[]> = true;
+  const getThumbPropsTyped: AssertExact<SliderApi["getThumbProps"], (slot: { readonly index: number }) => Record<string, unknown>> = true;
+  const getMarkerPropsTyped: AssertExact<SliderApi["getMarkerProps"], (slot: { readonly value: number }) => Record<string, unknown>> = true;
+  assertEquals(
+    [
+      stateTyped,
+      setValueTyped,
+      setThumbValueTyped,
+      incrementTyped,
+      focusTyped,
+      getThumbValueTyped,
+      getMarkersTyped,
+      getThumbPropsTyped,
+      getMarkerPropsTyped,
+    ].every(Boolean),
+    true,
+  );
 });

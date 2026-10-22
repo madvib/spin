@@ -1,39 +1,29 @@
 /** Slider machine: idle/focus/dragging over three states. */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { SliderArgs, SliderContext } from "./slider.state.ts";
+import type { SliderArgs, SliderContext, SliderState } from "./slider.state.ts";
 import { initial } from "./slider.state.ts";
 import { isInteractive } from "@spin/runtime";
 import type { SliderEvents } from "./slider.events.ts";
 import {
-  clearDragRefs,
   clearFocusedIndex,
   decrementThumb,
   hasIndex,
   incrementThumb,
   setAllValues,
   setClosestThumb,
-  setDisabled,
-  setDragOffset,
   setEndValue,
   setFocusedIndex,
   setHomeValue,
   setIndexedValue,
-  setMax,
-  setMin,
   setPointerValue,
-  setReadOnly,
-  setStep,
-  snapshotDragStart,
 } from "./slider.transitions.ts";
+
 export function slider(
   args: SliderArgs = {},
-  // A script-constructed machine has no host-authored props; the authored
-  // channel exists only for element property/attribute writes.
   authored: (name: string) => boolean = () => false,
-): Machine<SliderContext, SliderEvents> {
-  return createMachine<SliderContext, SliderEvents>({
-    id: "slider",
+): Machine<SliderContext, SliderEvents, SliderState> {
+  return createMachine<SliderContext, SliderEvents, SliderState>({
     initial: "idle",
     context: initial(args, authored),
     /**
@@ -63,18 +53,13 @@ export function slider(
       ],
       INCREMENT: { assign: incrementThumb },
       DECREMENT: { assign: decrementThumb },
-      SET_MIN: { assign: setMin },
-      SET_MAX: { assign: setMax },
-      SET_STEP: { assign: setStep },
-      SET_DISABLED: { assign: setDisabled },
-      SET_READ_ONLY: { assign: setReadOnly },
     },
     states: {
       idle: {
         on: {
           POINTER_DOWN: {
             target: "dragging",
-            assign: [setClosestThumb, snapshotDragStart, setPointerValue],
+            assign: [setClosestThumb, setPointerValue],
           },
           FOCUS: {
             target: "focus",
@@ -83,7 +68,7 @@ export function slider(
           },
           THUMB_POINTER_DOWN: {
             target: "dragging",
-            assign: [setFocusedIndex, setDragOffset, snapshotDragStart],
+            assign: setFocusedIndex,
           },
         },
       },
@@ -91,11 +76,11 @@ export function slider(
         on: {
           POINTER_DOWN: {
             target: "dragging",
-            assign: [setClosestThumb, snapshotDragStart, setPointerValue],
+            assign: [setClosestThumb, setPointerValue],
           },
           THUMB_POINTER_DOWN: {
             target: "dragging",
-            assign: [setFocusedIndex, setDragOffset, snapshotDragStart],
+            assign: setFocusedIndex,
           },
           ARROW_DEC: { assign: decrementThumb },
           ARROW_INC: { assign: incrementThumb },
@@ -106,16 +91,14 @@ export function slider(
       },
       dragging: {
         on: {
-          POINTER_UP: {
-            target: "focus",
-            assign: clearDragRefs,
-          },
+          POINTER_UP: "focus",
           POINTER_MOVE: { assign: setPointerValue },
           POINTER_CANCEL: {
             target: "idle",
-            assign: [clearFocusedIndex, clearDragRefs],
+            assign: clearFocusedIndex,
           },
         },
       },
-    },});
+    },
+  });
 }

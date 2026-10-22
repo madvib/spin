@@ -3,9 +3,11 @@ import {
   getPercentValue,
   getValuePercent,
   getValueRanges,
+  round10,
   snapValueToStep,
 } from "@spin/runtime";
 
+export type SliderState = "idle" | "focus" | "dragging";
 export type ThumbCollisionBehavior = "none" | "push" | "swap";
 
 export interface SliderContext {
@@ -22,12 +24,7 @@ export interface SliderContext {
   disabled: boolean;
   readOnly: boolean;
   invalid: boolean;
-  /** The pointer grab offset from the thumb center. */
-  dragOffset: number | null;
-  /** The values when the drag started: swap compares against the grab. */
-  dragStartValue: number[] | null;
-  /** Marker stops for the ticks/marks usages: view data, seeded from the
-   * `markers` prop. */
+  /** Marker stops for the ticks/marks usages. */
   markers: number[];
 }
 
@@ -68,8 +65,8 @@ export function initial(args: SliderArgs = {}, authored: (name: string) => boole
   // Presence is the evidence: the map drops absent fields, so a field
   // present in the args was provided — by the host directly, or resolved
   // from its twin upstream. The machine's own default owns absence.
-  const written = (field: string): boolean =>
-    (args as Record<string, unknown>)[field] !== undefined || authored(field);
+  const written = (field: keyof SliderArgs): boolean =>
+    args[field] !== undefined || authored(field);
   const min = args.min ?? 0;
   const max = args.max ?? 100;
   const step = args.step ?? 1;
@@ -93,8 +90,6 @@ export function initial(args: SliderArgs = {}, authored: (name: string) => boole
     value: written("value") ? valueOf(args.value, [min]) : [min],
     markers: valueOf(args.markers, []),
     focusedIndex: -1,
-    dragOffset: null,
-    dragStartValue: null,
   };
 }
 
@@ -131,16 +126,12 @@ function resolveNone(
   values: number[],
   min: number,
   max: number,
-): { values: number[]; index: number; swapped: boolean } {
-  if (values.length === 1) {
-    return { values: [clampValue(value, min, max)], index: 0, swapped: false };
-  }
+): number[] {
+  if (values.length === 1) return [clampValue(value, min, max)];
   const next = [...values];
   next[index] = clampValue(value, min, max);
-  return { values: next, index, swapped: false };
+  return next;
 }
-
-const round10 = (value: number): number => Math.round(value * 1e10) / 1e10;
 
 function handlePush(
   index: number,
@@ -149,10 +140,9 @@ function handlePush(
   min: number,
   max: number,
   gap: number,
-): { values: number[]; index: number; swapped: boolean } {
+): number[] {
   const next = [...values];
-  const clamped = clampValue(value, min, max);
-  next[index] = clamped;
+  next[index] = clampValue(value, min, max);
   // Push neighbors apart so the gap holds: walk outward from the moved
   // thumb, shoving each neighbor that intrudes.
   for (let i = index; i > 0; i -= 1) {
@@ -163,21 +153,7 @@ function handlePush(
     const lower = next[i] ?? min;
     if ((next[i + 1] ?? max) < lower + gap) next[i + 1] = round10(lower + gap);
   }
-  return { values: next.map((v) => clampValue(v, min, max)), index, swapped: false };
-}
-
-/** Later thumbs win ties. */
-export function closestIndex(values: readonly number[], pointValue: number): number {
-  let closest = 0;
-  let distance = Math.abs((values[0] ?? 0) - pointValue);
-  for (let i = 1; i < values.length; i += 1) {
-    const next = Math.abs((values[i] ?? 0) - pointValue);
-    if (next <= distance) {
-      closest = i;
-      distance = next;
-    }
-  }
-  return closest;
+  return next.map((v) => clampValue(v, min, max));
 }
 
 /** Stacked thumbs at max move the first one. */

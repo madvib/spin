@@ -15,7 +15,7 @@ export {
 } from "./display.ts";
 export { expandVariantGroups } from "./expand-groups.ts";
 export { classAttrOf, classTokens, classTokensOf } from "./classes.ts";
-export { extractScript, stripScript, type StrippedScript } from "./script-block.ts";
+export { extractScript, stripScript, type ScriptCall, type StrippedScript } from "./script-block.ts";
 export type {
   ActionUse,
   Attr,

@@ -5,7 +5,7 @@ export interface SliderEvents {
   "INCREMENT": { index?: number; step?: number };
   "DECREMENT": { index?: number; step?: number };
   "POINTER_DOWN": { pointValue: number };
-  "THUMB_POINTER_DOWN": { index: number; offset?: number };
+  "THUMB_POINTER_DOWN": { index: number };
   "POINTER_MOVE": { pointValue: number };
   "POINTER_UP": {};
   "POINTER_CANCEL": {};
@@ -15,11 +15,7 @@ export interface SliderEvents {
   "ARROW_DEC": { step?: number };
   "HOME": {};
   "END": {};
-  "SET_MIN": { min: number };
-  "SET_MAX": { max: number };
-  "SET_STEP": { step: number };
-  "SET_DISABLED": { disabled: boolean };
-  "SET_READ_ONLY": { readOnly: boolean };
+  // Scalar host fields (min, max, step, disabled, readOnly) sync silently via `fields`.
 }
 
 export type SliderEvent = EventUnion<SliderEvents>;

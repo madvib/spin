@@ -86,12 +86,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // a function, call it. Each binding becomes a bridge under its own
       // name, with the call's args object as the props seed. No coercion:
       // the checker guarantees the args.
-      const scriptBindings: { readonly name: string; readonly factory: string; readonly args: string }[] = [];
-      if (script !== undefined) {
-        for (const m of script.module.matchAll(/const\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*)\s*\(([\s\S]*?)\)\s*;?\s*(?:\n|$)/g)) {
-          scriptBindings.push({ name: m[1] ?? "", factory: m[2] ?? "", args: (m[3] ?? "").trim() });
-        }
-      }
+      const scriptBindings = script?.calls ?? [];
       if (script !== undefined && scopeDecls.props.length > 0) {
         throw new Error(`spin-elements: ${id} has both <script> and <scope> props — the script replaces the scope`);
       }
@@ -292,17 +287,19 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // runtime source.
       const scriptImports: string[] = [];
       if (script !== undefined) {
-        for (const m of script.module.matchAll(/^\s*import\s[^;]+;?$/gm)) {
+        for (const m of script.module.matchAll(/^\s*import(?:\s|\{|\*)[\s\S]*?from\s*["'][^"']+["']\s*;?/gm)) {
           scriptImports.push(m[0].trim());
         }
         for (const binding of scriptBindings) {
           for (const m of script.module.matchAll(
-            new RegExp(`import\\s*\\{[^}]*\\b${binding.factory}\\b[^}]*\\}\\s*from\\s*["\']([^"\']+)["\']`, "g"),
+            new RegExp(`import\\s*\\{[\\s\\S]*?\\b${binding.factory}\\b[\\s\\S]*?\\}\\s*from\\s*["']([^"']+)["']`, "g"),
           )) {
             const machinePath = m[1] ?? "";
             const componentPath = machinePath.replace(/\.machine\.ts$/, ".bindings.ts");
             if (componentPath !== machinePath) {
               scriptImports.push(`import { ${binding.factory} as ${binding.factory}Component } from ${JSON.stringify(componentPath)};`);
+            } else {
+              scriptImports.push(`const ${binding.factory}Component = ${binding.factory};`);
             }
           }
         }

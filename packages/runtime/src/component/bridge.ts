@@ -28,13 +28,18 @@ import {
   type Machine,
 } from "@spin/runtime/fsm";
 
-export interface BridgeService<C, E extends EventMap> {
+export interface BridgeService<C, E extends EventMap, S extends string = string> {
   readonly context: C;
-  readonly state: string;
+  readonly state: S;
   send(event: EventUnion<E>): void;
 }
 
-export interface BridgeShared<C extends object, E extends EventMap, A = unknown> {
+export interface BridgeShared<
+  C extends object,
+  E extends EventMap,
+  A = unknown,
+  S extends string = string,
+> {
   /**
    * The machine: a factory over the machine's own arguments. The
    * factory builds the machine with its context already seeded from them,
@@ -44,22 +49,22 @@ export interface BridgeShared<C extends object, E extends EventMap, A = unknown>
   readonly machine?: (
     args: A,
     authored: (name: string) => boolean,
-  ) => Machine<C, E>;
+  ) => Machine<C, E, S>;
   /**
    * The props, mapped onto the machine's arguments. Absent, the props
    * ARE the arguments.
    */
   readonly args?: (props: Record<string, unknown>) => A;
   /** The start state. Undefined starts at the machine's own initial. */
-  readonly startState?: string;
+  readonly startState?: S;
 }
 
 /** The machine's live state, field by field, as signals. */
-export interface BridgeLive {
+export interface BridgeLive<S extends string = string> {
   /** The value of a context field, read through its signal. */
   field(name: string): unknown;
   /** The machine's state name. */
-  state(): string;
+  state(): S;
   /** Keeps a field's signal in step with the context. */
   sync(name: string, value: unknown): void;
 }
@@ -70,6 +75,7 @@ export interface BridgeHooks<
   Api extends object,
   ConnectProps,
   Callbacks,
+  S extends string = string,
 > {
   /** Seed the machine context from props before start. */
   seed(
@@ -80,23 +86,20 @@ export interface BridgeHooks<
    * the assigns). Once per service; the bridge transmits each (reflexes
    * run) and primes the cursors after (nothing reports). */
   establish?(
-    svc: Service<C, E>,
+    svc: Service<C, E, S>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
   ): readonly EventUnion<E>[];
-  /** The machine's contract decides what a host write means: a field
-   * with an event is REPORTED, a field without one is SILENT. The
-   * bridge applies the contract; there is no per-component sync. */
   /** Report what moved. `defineBridge` threads the kind, the triggering
    * event (undefined from the sync effect) and the send's source
    * (`"reconcile"` for effect-driven sends, undefined for gestures).
    * Cursors live in the hooks closure. */
   notify(
-    svc: Service<C, E>,
+    svc: Service<C, E, S>,
     callbacks: Callbacks,
     kind: "move" | "commit",
     event?: EventUnion<E>,
-    before?: { readonly context: C; readonly state: string },
+    before?: { readonly context: C; readonly state: S },
     parsed?: Record<string, unknown>,
     source?: string,
   ): void;
@@ -110,8 +113,8 @@ export interface BridgeHooks<
    * re-homed over a changed item tree). Absent, the effect only alternates
    * controlled channels. */
   reconcile?(
-    svc: Service<C, E>,
-    state: string,
+    svc: Service<C, E, S>,
+    state: S,
     parsed: Record<string, unknown>,
     authored: (name: string) => boolean,
     send: (event: EventUnion<E>) => void,
@@ -125,8 +128,8 @@ export interface BridgeHooks<
    * View-side only: focus management, never state. */
   settled?(args: {
     readonly event: EventUnion<E>;
-    readonly before: { readonly context: C; readonly state: string };
-    readonly after: { readonly context: C; readonly state: string };
+    readonly before: { readonly context: C; readonly state: S };
+    readonly after: { readonly context: C; readonly state: S };
     readonly props: () => Record<string, unknown>;
     /** The full funnel: a settled reflex that kicks a DOM poll reports
      * its findings back through this, with reporting and ticks. */
@@ -136,13 +139,13 @@ export interface BridgeHooks<
    * effect, so a host scalar write lands without waiting for a gesture).
    * Returns true when a field moved. Absent, sends go direct. */
   refresh?(
-    svc: Service<C, E>,
+    svc: Service<C, E, S>,
     props: () => Record<string, unknown>,
     authored: (name: string) => boolean,
   ): boolean;
   readCallbacks(props: () => Record<string, unknown>): Callbacks;
   readConnectProps(props: () => Record<string, unknown>): ConnectProps;
-  connect(service: BridgeService<C, E>, readProps: () => ConnectProps, id: string): Api;
+  connect(service: BridgeService<C, E, S>, readProps: () => ConnectProps, id: string): Api;
 }
 
 export interface BridgeSpec<
@@ -152,15 +155,16 @@ export interface BridgeSpec<
   ConnectProps,
   Callbacks,
   A = unknown,
-> extends BridgeShared<C, E, A> {
+  S extends string = string,
+> extends BridgeShared<C, E, A, S> {
   /** Fresh per-bridge hooks: notify cursors live in this closure, so two
    * elements on one page never share them. Receives the element id for
    * post-send view reflexes. */
   hooks(
     id: string,
     root: () => Element,
-    live: BridgeLive,
-  ): BridgeHooks<C, E, Api, ConnectProps, Callbacks>;
+    live: BridgeLive<S>,
+  ): BridgeHooks<C, E, Api, ConnectProps, Callbacks, S>;
 }
 
 export function authoredProps(props: () => Record<string, unknown>): (name: string) => boolean {
@@ -235,8 +239,9 @@ export function defineBridge<
   ConnectProps,
   Callbacks,
   A = unknown,
+  S extends string = string,
 >(
-  spec: BridgeSpec<C, E, Api, ConnectProps, Callbacks, A>,
+  spec: BridgeSpec<C, E, Api, ConnectProps, Callbacks, A, S>,
   props: () => Record<string, unknown>,
   id: string,
   root: () => Element = () => {
@@ -257,7 +262,7 @@ export function defineBridge<
   // replaces it on every move), so the mirror is what makes the reads
   // trackable.
   const contextSignals = new Map<string, Signal<unknown>>();
-  const stateSignal = signal("");
+  const stateSignal = signal<S | undefined>(undefined);
   /** The live context, field by field, as signals. The mirror is the
    * single writer; everything else reads. A read of a signal inside a
    * computed subscribes to that field, and nothing else. */
@@ -274,7 +279,7 @@ export function defineBridge<
       contextSignals.set(name, signal<unknown>(value));
       return value;
     },
-    state: (): string => stateSignal(),
+    state: (): S => stateSignal() ?? ensureService().state.value,
     /** Keeps a field's signal in step with the machine. The mirror
      * calls it; a read never does, so a read cannot loop. */
     sync: (name: string, value: unknown): void => {
@@ -286,12 +291,12 @@ export function defineBridge<
       if (existing() !== value) existing(value);
     },
     /** The machine's state, as a signal-backed read. */
-    setState: (value: string): void => {
+    setState: (value: S): void => {
       if (stateSignal() !== value) stateSignal(value);
     },
   };
   /** The machine's whole context, mirrored into the signals. */
-  const mirror = (context: unknown, state: string): void => {
+  const mirror = (context: unknown, state: S): void => {
     const rec = (context ?? {}) as Record<string, unknown>;
     for (const [field, value] of Object.entries(rec)) live.sync(field, value);
     live.setState(state);
@@ -306,8 +311,8 @@ export function defineBridge<
   // It is built LAZILY, with the service: a host that writes a prop
   // before the machine's first use (a function the machine calls, say)
   // is heard by the machine that starts.
-  let machine: Machine<C, E> | undefined;
-  const machineOf = (): Machine<C, E> => {
+  let machine: Machine<C, E, S> | undefined;
+  const machineOf = (): Machine<C, E, S> => {
     if (machine !== undefined) return machine;
     if (spec.machine === undefined) {
       throw new Error("[spin] the bridge has no machine");
@@ -322,9 +327,9 @@ export function defineBridge<
     return machine;
   };
 
-  let service: Service<C, E> | undefined;
+  let service: Service<C, E, S> | undefined;
 
-  const ensureService = (): Service<C, E> => {
+  const ensureService = (): Service<C, E, S> => {
     if (service) return service;
     service = owner.run(() => {
       const svc = interpret(machineOf()).start(spec.startState);
@@ -372,8 +377,8 @@ export function defineBridge<
   // manual: the effect's trailing notify covers reconcile moves, and
   // watch-cursors suppress its echo of these sends.
   const transmit = (event: EventUnion<E>): {
-    readonly svc: Service<C, E>;
-    readonly before: { readonly context: C; readonly state: string };
+    readonly svc: Service<C, E, S>;
+    readonly before: { readonly context: C; readonly state: S };
   } => {
     const svc = ensureService();
     hooks.noteSent?.(event.type);
@@ -389,10 +394,7 @@ export function defineBridge<
       props,
       send: (report: EventUnion<E>): void => send(report),
     });
-    // The send mirrored the context into the signals; the tick is the
-    // invalidation bus every binding watches.
     tick(tick() + 1);
-    machineTick(machineTick() + 1);
     return { svc, before };
   };
 
@@ -411,7 +413,7 @@ export function defineBridge<
   /** The service surface the connect reads. Built once: the connect lives
    * as long as the bridge does, so this is the stable accessor it caches
    * against. */
-  const serviceApi: BridgeService<C, E> = {
+  const serviceApi: BridgeService<C, E, S> = {
     send,
     get context() {
       return ensureService().state.context;

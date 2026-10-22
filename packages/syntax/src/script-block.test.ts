@@ -29,3 +29,24 @@ el.addEventListener("x", f);`;
   assertEquals(out.bindings, ["ctl"]);
   assertEquals(out.stripped.length, 2);
 });
+
+Deno.test("stripScript keeps multi-line imports, types, and machine calls with nested parens", () => {
+  const body = `import {
+  slider,
+} from "../slider.machine.ts";
+type Item = {
+  readonly id: string;
+  readonly label: string;
+};
+const ctl = slider({
+  value: [20, 80],
+  markers: [0, 50, 100],
+});`;
+  const out = stripScript(body);
+  assertEquals(out.bindings, ["ctl"]);
+  assertEquals(out.calls.length, 1);
+  assertEquals(out.calls[0]?.name, "ctl");
+  assertEquals(out.calls[0]?.factory, "slider");
+  assertEquals(out.calls[0]?.args, "{\n  value: [20, 80],\n  markers: [0, 50, 100],\n}");
+  assertEquals(out.stripped, []);
+});

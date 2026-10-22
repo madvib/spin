@@ -24,8 +24,8 @@ import {
 } from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
 import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
-import type { ComponentDef, PartScope, SlotDef, SlotScope } from "./define.ts";
-import type { EventMap, EventUnion, Machine } from "@spin/runtime/fsm";
+import type { ComponentDef, SlotScope } from "./define.ts";
+import type { EventMap, EventUnion } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
 
@@ -34,7 +34,8 @@ export function defineComponent<
   E extends EventMap,
   Api extends object = Record<string, unknown>,
   A = unknown,
->(def: ComponentDef<C, E, Record<string, unknown>, A>): Omit<MachineDef, "createBridge"> & {
+  S extends string = string,
+>(def: ComponentDef<C, E, Record<string, unknown>, A, S>): ((args?: A) => Api) & Omit<MachineDef, "createBridge"> & {
   readonly createBridge: (
     props: () => Record<string, unknown>,
     root: () => Element,
@@ -53,15 +54,9 @@ export function defineComponent<
   const hooks = (
     id: string,
     root: () => Element,
-    machineLive: BridgeLive,
-  ): BridgeHooks<C, E, Api, Record<string, unknown>, Record<string, unknown>> => {
-    // The last event sent, which is what a controlled close reads to tell
-    // a commit from a cancel — the `previousEvent` value. Per bridge, advanced
-    // on every transmitted send (sync writes included).
-    let lastEventType = "";
-    const noteSent = (type: string): void => {
-      lastEventType = type;
-    };
+    machineLive: BridgeLive<S>,
+  ): BridgeHooks<C, E, Api, Record<string, unknown>, Record<string, unknown>, S> => {
+    const noteSent = (_type: string): void => {};
     const names = ids(def.name, id);
     const segments = new Map<string, string>();
     for (const [key, partDef] of Object.entries(def.parts)) {
@@ -72,7 +67,6 @@ export function defineComponent<
     }
     const resolveId = (part: string, slot?: unknown): string =>
       names(segments.get(part) ?? part, slot);
-    const host = { root };
     // The single trust point: the machine core is untyped, the def
     // declared C. Every context read below flows through here instead
     // of scattering double-casts at each call site.
@@ -363,14 +357,13 @@ export function defineComponent<
           for (const field of reads.context) parts.push(`c:${field}=${valueKey(ctx[field])}`);
           for (const prop of reads.props) parts.push(`p:${prop}=${valueKey(props[prop])}`);
           if (reads.state) parts.push(`s=${valueKey(service.state)}`);
+          if (reads.root) parts.push(`r=${slotFieldKey(root(), WHOLE)}`);
           for (const field of reads.slot) {
             parts.push(`l:${field}=${slotFieldKey(slot, field)}`);
           }
           return parts.join("\u0000");
         };
-        function liveScope(extra: { readonly slot: unknown }): SlotScope<unknown, C>;
-        function liveScope(): PartScope<unknown, C>;
-        function liveScope(extra?: { readonly slot: unknown }): PartScope<unknown, C> | SlotScope<unknown, C> {
+        function liveScope(extra?: { readonly slot: unknown }): SlotScope<never, C, Record<string, unknown>, EventUnion<E>, S> {
           // Live views, not snapshots: a closure cached by row (or by part)
           // keeps reading through these, so it never goes stale — while the
           // bag memo still bounds rebuilds by signature. Proxies cost a
@@ -395,9 +388,7 @@ export function defineComponent<
           const context = new Proxy({} as Record<string, unknown>, {
             get: (_target, key: string) => {
               record("context", key);
-              const value = live()[key];
-              machineLive.sync(key, value);
-              return value;
+              return live()[key];
             },
             has: (_target, key: string) => key in live(),
           });
@@ -405,7 +396,10 @@ export function defineComponent<
           const scope: Record<string, unknown> = {
             props,
             context,
-            root,
+            root: () => {
+              record("root", "");
+              return root();
+            },
             id: resolveId,
             measure: measurePart,
             send: dispatch,
@@ -419,22 +413,28 @@ export function defineComponent<
             },
             enumerable: true,
           });
-          return scope as unknown as PartScope<unknown, C> | SlotScope<unknown, C>;
+          return scope as unknown as SlotScope<never, C, Record<string, unknown>, EventUnion<E>, S>;
         }
         for (const [part, partDef] of Object.entries(def.parts)) {
           const method = `get${part[0]?.toUpperCase() ?? ""}${part.slice(1)}Props`;
+          const segment = partDef.id ?? part;
           api[method] = (...callArgs: readonly unknown[]) => {
             const raw = callArgs[0];
             const scope = liveScope({ slot: raw });
-            // The key comes from the reads: a part that forgot to name a
-            // field it depends on can no longer go stale.
             const bag = bagFor(part);
             return bag(
               (reads) => readsKey(reads, raw),
               (rec) => {
                 recorders.push(rec);
                 try {
-                  return partDef.attrs(scope, argument(rec, raw));
+                  const stamped = {
+                    id: resolveId(part === "root" ? "" : part),
+                    "data-scope": def.name,
+                    "data-part": segment,
+                  };
+                  return partDef.attrs === undefined
+                    ? stamped
+                    : { ...stamped, ...partDef.attrs(scope, argument(rec, raw)) };
                 } finally {
                   recorders.pop();
                 }
@@ -442,8 +442,9 @@ export function defineComponent<
             );
           };
         }
-        for (const [slotName, slotDef] of Object.entries(def.slots ?? {}) as [string, SlotDef<unknown, C>][]) {
+        for (const [slotName, slotDef] of Object.entries(def.slots ?? {})) {
           const cap = `${slotName[0]?.toUpperCase() ?? ""}${slotName.slice(1)}`;
+          const segment = slotDef.id ?? slotName;
           const slotMemos = new WeakMap<object, BagMemo>();
           api[`get${cap}Props`] = (slot: object, ...callArgs: readonly unknown[]) => {
             const scope = liveScope({ slot });
@@ -454,7 +455,13 @@ export function defineComponent<
               (rec) => {
                 recorders.push(rec);
                 try {
-                  return slotDef.attrs(scope, argument(rec, callArgs[0]));
+                  const built = slotDef.attrs(scope, argument(rec, callArgs[0]));
+                  if (slotDef.stamp === false) return built;
+                  return {
+                    "data-scope": def.name,
+                    "data-part": segment,
+                    ...built,
+                  };
                 } finally {
                   recorders.pop();
                 }
@@ -492,7 +499,7 @@ export function defineComponent<
     const startState = typeof def.start === "function"
       ? def.start(props(), authoredProps(props))
       : def.start;
-    const bridged = defineBridge<C, E, Api, Record<string, unknown>, Record<string, unknown>, A>(
+    const bridged = defineBridge<C, E, Api, Record<string, unknown>, Record<string, unknown>, A, S>(
       {
         machine: def.machine,
         ...(def.args === undefined ? {} : { args: def.args }),
@@ -503,7 +510,7 @@ export function defineComponent<
       id,
       root,
     );
-    return bridged as unknown as { readonly api: Api; dispose(): void };
+    return bridged;
   };
 
   // The bridge callback already receives the payload `def.events[name].detail`
@@ -527,10 +534,14 @@ export function defineComponent<
     readers: [...Object.keys(def.readers ?? {}), "state"],
     methods: Object.keys(def.methods ?? {}),
   };
-  return {
+  const component = (args?: A): Api => {
+    void args;
+    throw new Error(`[spin] ${def.name}() is a <script> binding compiled by spin-elements; use ${def.name}.createBridge() for imperative bridges`);
+  };
+  return Object.assign(component, {
     createBridge,
     commands: Object.keys(def.commands),
     events,
     manifest,
-  };
+  });
 }

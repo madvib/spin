@@ -41,8 +41,6 @@ function trackNode(): Element {
   } as unknown as Element;
 }
 
-/** The thumb's own box: the drag action reports the handle's box, and the
- * grab offset is measured against the thumb's midpoint. */
 const thumbBox = (): DOMRect =>
   ({ left: 100, right: 120, width: 20, top: 0, bottom: 20, height: 20 }) as DOMRect;
 
@@ -156,7 +154,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function thumb(api: SliderApi, index: number): Record<string, unknown> {
-  return api.getThumbProps({ index }) as Record<string, unknown>;
+  return api.getThumbProps({ index });
 }
 
 Deno.test("a track press jumps the thumb and the release commits", () => {

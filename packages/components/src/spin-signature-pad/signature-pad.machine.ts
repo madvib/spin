@@ -38,8 +38,8 @@ export interface SignaturePadContext {
 }
 
 export interface SignaturePadEvents {
-  "POINTER_DOWN": { point: SignaturePoint };
-  "POINTER_MOVE": { point: SignaturePoint };
+  "POINTER_DOWN": { point: SignaturePoint; pressure?: number };
+  "POINTER_MOVE": { point: SignaturePoint; pressure?: number };
   "POINTER_UP": {};
   "CLEAR": {};
   "SET_PATHS": { paths: string[] };
