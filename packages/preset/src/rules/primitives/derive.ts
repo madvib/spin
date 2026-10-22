@@ -81,6 +81,15 @@ function themePathToCssVar(path: string): string {
  *
  * The proxy records every property access path. A path is a leaf if no other
  * recorded path starts with it (i.e., it's not a prefix of another path).
+ *
+ * The proxy answers as the BASELINE answers: a token the baseline declares
+ * reads as a plausible literal, and a token it does not declare reads as
+ * absent. That matters because a rule which paints only when a token is
+ * declared must be DERIVED as it paints in the baseline — a decision the
+ * theme has not made is not a decision the primitive makes. The per-element
+ * typography is the case: it is optional, and a rule that sets a paragraph's
+ * size only when the theme says so paints no size at all in a theme that
+ * says nothing.
  */
 function createProbeTheme(): { theme: unknown; paths: Set<string> } {
   const paths = new Set<string>();
@@ -109,6 +118,10 @@ function createProbeTheme(): { theme: unknown; paths: Set<string> } {
           if (typeof prop === "symbol") return target[prop as never];
           const newPath = [...path, String(prop)];
           paths.add(newPath.join("."));
+          // The baseline's answer: a token the baseline does not declare is
+          // absent, and the rule that reads it takes the other branch.
+          const name = `--${newPath.join("-").toLowerCase()}`;
+          if (!declaredVars.has(name)) return undefined;
           return makeProxy(newPath);
         },
       },

@@ -1,5 +1,11 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens, spacing } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  spacing,
+  statedType,
+} from "./shared.ts";
 import { painted } from "./scope.ts";
 
 /**
@@ -10,6 +16,10 @@ import { painted } from "./scope.ts";
  * separates it from the paragraph. Separate from `prose.ts` because none of
  * them shares a state with a heading or a list; what they share is typography,
  * and that is what `proseTokens` is for.
+ *
+ * The theme may set the run of code's type for itself — the face, the size and
+ * the weight are the theme's to say — and what it leaves out is the ladder's
+ * and the mono's.
  */
 
 /** Inline code: a chip that reads as code without leaving the line box. */
@@ -18,10 +28,14 @@ function codeRule(mode: Mode): Rule {
     /^code$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "code");
+      const family = own.family ?? t.mono;
+      const size = own.size ?? t.sizeSm;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "code"),
-        ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),

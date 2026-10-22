@@ -33,7 +33,7 @@ Deno.test("a theme renders its own face, and its dark restatement when it has on
     const both = serves.includes("light") && serves.includes("dark");
     const renderings = renderingsFor(name);
     assertEquals(renderings.length, both ? 2 : 1, `${name} rendering count`);
-    assertEquals(renderings[0]?.mode, "base", `${name} own rendering`);
+    assertEquals(renderings[0]?.mode, "light", `${name} light rendering`);
     if (both) {
       assertEquals(renderings[1]?.mode, "dark", `${name} dark rendering`);
     }

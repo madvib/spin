@@ -78,6 +78,22 @@ export {
   elementRole,
 } from "./contract/elements.ts";
 export type { ElementDeclaration } from "./contract/elements.ts";
+export {
+  ELEMENT_TYPE_ROLES,
+  elementTypeElements,
+  elementTypeFallback,
+  elementTypeFields,
+  elementTypePaths,
+  elementTypeRole,
+  FACE_CHAINS,
+} from "./contract/typography.ts";
+export type {
+  ElementTypeDeclaration,
+  ElementTypeField,
+  ElementTypeFields,
+  ElementTypePath,
+  GlobalTypePath,
+} from "./contract/typography.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export {
   LOOP_DURATION,

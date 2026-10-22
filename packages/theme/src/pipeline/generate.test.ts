@@ -282,6 +282,50 @@ Deno.test("generateCss gives the dark block the same property names as the base 
   }
 });
 
+Deno.test("a token's light value lands in the light block, and the base keeps its own", () => {
+  // The light mode is the other side of the same axis as the dark one: a
+  // theme whose own face is its dark face restates its light mode the same
+  // way, and the restatement lands in its own block rather than over the
+  // base.
+  const doc = {
+    color: {
+      $type: "color",
+      brand: { $value: "#101820", $modes: { light: "#f8f8ff" } },
+      accent: { $value: "#00a0ff" },
+    },
+  };
+  const css = generateCss(treeOf(parseTokens(JSON.stringify(doc))));
+
+  assertEquals(
+    blockWithSelector(css, ":root").declarations["--color-brand"],
+    "#101820",
+  );
+  assertEquals(
+    blockWithSelector(css, ':root[data-mode="light"]').declarations[
+      "--color-brand"
+    ],
+    "#f8f8ff",
+  );
+  // A token the light mode does not restate is not restated: the block
+  // carries only what the mode says, and the base answers the rest.
+  assertEquals(
+    blockWithSelector(css, ':root[data-mode="light"]').declarations[
+      "--color-accent"
+    ],
+    undefined,
+  );
+});
+
+Deno.test("a document with no light restatement ships no light block", () => {
+  // A block nobody asked for is a block that can disagree with the base.
+  const css = generateCss(LIGHT);
+
+  assertEquals(
+    blocks(css).some((block) => block.selector.includes('data-mode="light"')),
+    false,
+  );
+});
+
 Deno.test("generateCss emits an alias token as a reference to its target variable", () => {
   const aliased: TokenTree = [{
     kind: "group",

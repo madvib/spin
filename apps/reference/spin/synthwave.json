@@ -3,300 +3,309 @@
     "spin": {
       "fonts": [
         {
-          "family": "Saira",
-          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/saira:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
-          "weight": "100 900",
+          "family": "Chakra Petch",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/chakra-petch@latest/latin-600-normal.woff2) format(\"woff2\")",
+          "weight": "600",
           "style": "normal",
           "display": "swap"
         },
         {
-          "family": "Azeret Mono",
-          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/azeret-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
-          "weight": "100 900",
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
           "style": "normal",
           "display": "swap"
         }
       ]
     }
   },
-  "$description": "A monitoring console that works two shifts — the day shift on a bleached panel, the night shift on black glass — where the numbers are the loud part, the labels stay quiet, and the whole instrument is held together by hairlines and one slow pulse instead of by shadow.",
+  "$description": "A machine you read at three in the morning: the whole instrument is dark glass and lit figures, the values are the loud part, the labels stay quiet, and the panel's own light is the only illumination in the room. The day shift is the same machine under a lavender lamp — the same shapes, the same space, a different light.",
   "color": {
     "$type": "color",
-    "$description": "One hue family and one accent. The ramp is a cold violet-grey in both shifts — never a warm charcoal, because a warm dark stops reading as a screen — and the accent is the only saturated thing on the panel.",
-    "primary": {
-      "$value": "{color.accent}",
-      "$description": "The accent, as a fill. An ordinary action wears the accent and nothing else does, so the one loud thing on a page is the one thing the reader can act on.",
-      "$modes": {
-        "dark": "{color.accent}"
-      }
-    },
-    "secondary": {
-      "$value": "{color.neutral.100}",
-      "$description": "The quiet fill: the panel a step off the page, for a control that is present but not asking for attention.",
-      "$modes": {
-        "dark": "{color.neutral.100}"
-      }
-    },
-    "accent": {
-      "$value": "oklch(49% 0.235 355)",
-      "$description": "The one saturated colour in the theme: a raspberry ink in the day shift, a hot pink at night. It is the primary action, the link, and the focus ring, and it is spent on nothing else — a second saturated colour would mean the first one means nothing.",
-      "$modes": {
-        "dark": "oklch(70% 0.235 355)"
-      }
-    },
+    "$description": "One hue family for the surfaces and one signal for everything that speaks. The ramp is an indigo ink — never a warm charcoal, because a warm dark stops reading as a screen — and the lit colours are the only saturated things on the panel. Every step below is restated for the daylit face; a step means the same thing in both lights.",
     "neutral": {
+      "$description": "Ten steps of the same indigo ink, restated for the other light. The meaning of each step does not change — 50 is always the page, 900 is always the ink — so a mode is a change of light, not a change of system.",
       "50": {
-        "$value": "oklch(95.5% 0.013 285)",
-        "$description": "The page: the panel itself. In the night shift the same step is the black glass of the console.",
+        "$value": "oklch(15% 0.035 285)",
+        "$description": "The page: the panel itself. The ink the console is built out of, and the floor every other surface is measured against.",
         "$modes": {
-          "dark": "oklch(13% 0.026 285)"
+          "light": "oklch(97.2% 0.018 320)"
         }
       },
       "100": {
-        "$value": "oklch(99% 0.006 285)",
-        "$description": "One step towards the light: a card, a menu, anything that sits on the page rather than in it.",
+        "$value": "oklch(20.2% 0.042 285)",
+        "$description": "One step towards the light: a card, a popover, a menu — anything that sits on the page rather than in it.",
         "$modes": {
-          "dark": "oklch(17% 0.028 285)"
+          "light": "oklch(99.5% 0.008 320)"
         }
       },
       "200": {
-        "$value": "oklch(89% 0.016 285)",
+        "$value": "oklch(11.5% 0.032 285)",
         "$description": "One step away from the light: the trough a field is cut into, the stripe under a table row. A field is cut out of the panel, never laid on top of it.",
         "$modes": {
-          "dark": "oklch(8% 0.026 285)"
+          "light": "oklch(94.5% 0.026 320)"
         }
       },
       "300": {
-        "$value": "oklch(85% 0.022 285)",
-        "$description": "The fill a dead control wears: the panel switched off, still a surface, no longer asking to be pressed.",
+        "$value": "oklch(22% 0.04 285)",
+        "$description": "The fill a dead control wears: the panel switched off. Still a surface, no longer asking to be pressed.",
         "$modes": {
-          "dark": "oklch(24% 0.032 285)"
+          "light": "oklch(93% 0.022 320)"
         }
       },
       "400": {
-        "$value": "oklch(73% 0.03 285)",
-        "$description": "A soft rule: a divider that is a shade stronger than the hairline, for the place where a panel is divided in two.",
+        "$value": "oklch(28% 0.046 285)",
+        "$description": "A soft rule: a divider a shade stronger than the hairline, for the place where a panel is divided in two.",
         "$modes": {
-          "dark": "oklch(36% 0.038 285)"
+          "light": "oklch(88% 0.03 320)"
         }
       },
       "500": {
-        "$value": "oklch(58% 0.038 285)",
-        "$description": "The strong edge: the line a finger has to find. A control drawn at the hairline is a hole in the page, and this is the step that stops it being one.",
+        "$value": "oklch(38% 0.05 285)",
+        "$description": "The strong edge in the panel's own ink: a frame that has to be seen against the surface it is drawn on.",
         "$modes": {
-          "dark": "oklch(52% 0.045 285)"
+          "light": "oklch(70% 0.04 320)"
         }
       },
       "600": {
-        "$value": "oklch(46% 0.04 285)",
+        "$value": "oklch(72% 0.045 300)",
         "$description": "The second voice: captions, helper copy, the small print that still has to be read.",
         "$modes": {
-          "dark": "oklch(66% 0.035 285)"
+          "light": "oklch(44% 0.045 300)"
         }
       },
       "700": {
-        "$value": "oklch(35% 0.034 285)",
+        "$value": "oklch(76% 0.035 300)",
         "$description": "A faint ink: a placeholder, a value that has not arrived yet, a column that is empty on purpose.",
         "$modes": {
-          "dark": "oklch(76% 0.028 285)"
+          "light": "oklch(55% 0.04 300)"
         }
       },
       "800": {
-        "$value": "oklch(27% 0.03 285)",
+        "$value": "oklch(86% 0.025 300)",
         "$description": "A second ink, one step under the body: a sub-heading, a figure's caption, a label that has to sit under something louder.",
         "$modes": {
-          "dark": "oklch(86% 0.02 285)"
+          "light": "oklch(35% 0.05 300)"
         }
       },
       "900": {
-        "$value": "oklch(19% 0.03 285)",
-        "$description": "The ink: body text. Ninety-five percent of a white in the night shift, never pure white, so a page of values does not flare.",
+        "$value": "oklch(95.5% 0.02 300)",
+        "$description": "The ink: body text. Ninety-five percent of a white, never pure white, so a page of values does not flare.",
         "$modes": {
-          "dark": "oklch(95% 0.012 285)"
-        }
-      },
-      "$description": "Ten steps of the same violet-grey, restated for the other shift. The meaning of each step does not change — 50 is always the page, 900 is always the ink — so a mode is a change of light, not a change of system."
-    },
-    "semantic": {
-      "$description": "The console's other four lamps. Each is a quieter neighbour of the accent rather than a colour from another theme, and each is answered with an ink of its own so a filled badge is never a label on a colour nobody chose.",
-      "success": {
-        "$value": "oklch(50% 0.11 195)",
-        "$description": "The teal lamp: a thing that worked. It is the accent's partner on the same console, kept at half the accent's chroma so it never argues with the one saturated colour, and deep enough to read as a word on the day panel.",
-        "$modes": {
-          "dark": "oklch(76% 0.13 190)"
-        }
-      },
-      "warning": {
-        "$value": "oklch(53% 0.13 75)",
-        "$description": "The amber lamp: a mark that wants to be read before it is acted on. It is the warmest thing in the theme and still well under the accent.",
-        "$modes": {
-          "dark": "oklch(80% 0.14 80)"
-        }
-      },
-      "error": {
-        "$value": "oklch(52% 0.19 28)",
-        "$description": "The fault lamp: a vermilion, warmer and more orange than the accent so a danger and a mark are never the same word on a panel.",
-        "$modes": {
-          "dark": "oklch(61% 0.19 30)"
-        }
-      },
-      "info": {
-        "$value": "oklch(50% 0.16 275)",
-        "$description": "The violet lamp: the accent's neighbour on the cool side, and the only other colour that carries a hue on this console.",
-        "$modes": {
-          "dark": "oklch(76% 0.12 275)"
+          "light": "oklch(22% 0.05 300)"
         }
       }
     },
-    "surface": {
-      "$value": "{color.neutral.50}",
-      "$description": "The page. The bleached panel in the day shift; the black glass of the console at night. Same step, same meaning, different light.",
+    "primary": {
+      "$value": "oklch(81% 0.15 195)",
+      "$description": "The electric cyan: the one colour that acts. It is the primary button, the link in running text and the focus ring, and it is spent on nothing else — a second loud colour would mean the first one means nothing.",
       "$modes": {
-        "dark": "{color.neutral.50}"
-      }
-    },
-    "surface-sunken": {
-      "$value": "{color.neutral.200}",
-      "$description": "A surface that sits below the page: table stripes, inset wells, the trough a field is carved into.",
-      "$modes": {
-        "dark": "{color.neutral.200}"
-      }
-    },
-    "surface-raised": {
-      "$value": "{color.neutral.100}",
-      "$description": "A surface that sits above the page: cards, popovers, menus, the secondary button. It is one step towards the light and carries no shadow of its own.",
-      "$modes": {
-        "dark": "{color.neutral.100}"
-      }
-    },
-    "text": {
-      "$value": "{color.neutral.900}",
-      "$description": "Body text: ink on panel, panel on ink.",
-      "$modes": {
-        "dark": "{color.neutral.900}"
-      }
-    },
-    "text-muted": {
-      "$value": "{color.neutral.600}",
-      "$description": "The second voice: captions, helper copy, the small print that still has to be read.",
-      "$modes": {
-        "dark": "{color.neutral.600}"
-      }
-    },
-    "border": {
-      "$value": "oklch(19% 0.03 285 / 0.16)",
-      "$description": "The hairline. A rule here is the theme's own ink laid down at a sixth of its strength, so a divider reads as a pencil line on the panel rather than a drawn box. The night shift lays down a little more of the same white, because a light rule on black glass reads fainter than a dark rule on paper.",
-      "$modes": {
-        "dark": "oklch(95% 0.012 285 / 0.18)"
-      }
-    },
-    "scrim": {
-      "$value": "oklch(19% 0.03 285 / 0.45)",
-      "$description": "What dims the page behind a modal: the theme's own ink, laid over the panel.",
-      "$modes": {
-        "dark": "oklch(6% 0.02 285 / 0.72)"
+        "light": "oklch(55% 0.235 350)"
       }
     },
     "on-primary": {
-      "$value": "oklch(99% 0.005 355)",
-      "$description": "The ink on the accent: paper in the day shift, and the console's own black in the night shift, because the accent turns from a pigment into a light.",
+      "$value": "oklch(15% 0.04 200)",
+      "$description": "The ink on the acting colour: the console's own black, because at night the cyan is a light rather than a pigment. In daylight the same slot takes a near-white, because the deep magenta is a pigment there.",
       "$modes": {
-        "dark": "oklch(15% 0.03 285)"
+        "light": "oklch(98.5% 0.02 350)"
       }
     },
-    "focus-ring": {
-      "$value": "{color.accent}",
-      "$description": "The accent, and only the accent: the ring never wears a colour that means something else, and never the vermilion of a fault.",
+    "secondary": {
+      "$value": "oklch(26.2% 0.06 320)",
+      "$description": "The quiet fill: a violet panel a step off the page, for a control that is present but not asking for attention.",
       "$modes": {
-        "dark": "{color.accent}"
-      }
-    },
-    "link": {
-      "$value": "{color.accent}",
-      "$description": "The accent, as a word in running text. A link is never the body ink — a link you cannot pick out of the prose is a link nobody clicks — and it is never the vermilion, so a link and a danger are never the same word.",
-      "$modes": {
-        "dark": "{color.accent}"
+        "light": "oklch(91% 0.03 320)"
       }
     },
     "on-secondary": {
-      "$value": "{color.neutral.900}",
-      "$description": "The ink on the quiet fill: the deepest ink in the ramp in the day shift, the brightest in the night shift.",
+      "$value": "oklch(92% 0.04 320)",
+      "$description": "The ink on the quiet fill: a pale violet in the night, a deep violet under the day lamp.",
       "$modes": {
-        "dark": "{color.neutral.900}"
+        "light": "oklch(32% 0.1 330)"
+      }
+    },
+    "accent": {
+      "$value": "oklch(68% 0.255 350)",
+      "$description": "The signal: hot magenta, the colour the console uses when it has something to say. It is the accent badge, the alert's leading edge and the little marks on a panel — never the button.",
+      "$modes": {
+        "light": "oklch(50% 0.15 205)"
       }
     },
     "on-accent": {
-      "$value": "{color.on-primary}",
-      "$description": "The ink on the accent. The same ink as the primary fill, because they are the same accent.",
+      "$value": "oklch(15% 0.04 350)",
+      "$description": "The ink on the signal: the console's own black. A lit plate is cut, not painted, so its label is the dark that was behind it — and in the day shift the teal is a deep plate instead of a lamp, so it takes paper.",
       "$modes": {
-        "dark": "{color.on-primary}"
+        "light": "oklch(98.5% 0.01 205)"
+      }
+    },
+    "semantic": {
+      "$description": "The console's other four lamps. Each is a brighter neighbour of the signal rather than a colour imported from another theme, and each is answered with an ink of its own so a filled badge is never a label on a colour nobody chose.",
+      "success": {
+        "$value": "oklch(82% 0.2 155)",
+        "$description": "The green lamp: a thing that worked. Bright at night, like the cyan it sits beside; a deep plate by day, so it can still be read as a word on pale paper.",
+        "$modes": {
+          "light": "oklch(50% 0.16 155)"
+        }
+      },
+      "warning": {
+        "$value": "oklch(85% 0.16 95)",
+        "$description": "The amber lamp: a mark that wants to be read before it is acted on. The warmest thing on the panel, and still well under the signal.",
+        "$modes": {
+          "light": "oklch(52% 0.15 78)"
+        }
+      },
+      "error": {
+        "$value": "oklch(66% 0.27 15)",
+        "$description": "The fault lamp: a vermilion, warmer and more orange than the signal, so a danger and a mark are never the same word on a panel.",
+        "$modes": {
+          "light": "oklch(56% 0.24 18)"
+        }
+      },
+      "info": {
+        "$value": "oklch(80% 0.16 200)",
+        "$description": "The blue lamp: the cyan's own cousin, and the only other colour on the panel that carries a hue of its own.",
+        "$modes": {
+          "light": "oklch(52% 0.17 235)"
+        }
       }
     },
     "on-semantic-success": {
-      "$value": "oklch(99% 0.005 195)",
-      "$description": "The ink on the teal fill: paper in the day shift, the console's black at night.",
+      "$value": "oklch(15% 0.04 155)",
+      "$description": "The ink on the green lamp: the console's own black at night, because a lamp that reads as a word on a night panel is a lit lamp and takes the dark ink.",
       "$modes": {
-        "dark": "oklch(16% 0.03 195)"
+        "light": "oklch(98.5% 0.01 155)"
       }
     },
     "on-semantic-warning": {
-      "$value": "oklch(99% 0.005 75)",
-      "$description": "The ink on the amber fill. Amber is a light colour in both shifts, so it always takes the light ink — a dark label on a lit lamp is a label nobody can read.",
+      "$value": "oklch(18% 0.05 95)",
+      "$description": "The ink on the amber lamp. Amber is a light colour in both shifts, so it always takes the dark ink — a white label on a lit lamp is a label nobody can read.",
       "$modes": {
-        "dark": "oklch(16% 0.03 80)"
-      }
-    },
-    "field": {
-      "$value": "{color.neutral.200}",
-      "$description": "A field's own surface: the trough cut into the panel, one step away from the light. A field is an object you can put a cursor in, and it is cut into the page rather than laid on it.",
-      "$modes": {
-        "dark": "{color.neutral.200}"
-      }
-    },
-    "border-strong": {
-      "$value": "{color.neutral.500}",
-      "$description": "A control's own edge: the line a finger has to find, a step stronger than the dividers around it. It carries three to one against the page, or the control is not a control.",
-      "$modes": {
-        "dark": "{color.neutral.500}"
+        "light": "oklch(98.5% 0.01 95)"
       }
     },
     "on-semantic-error": {
-      "$value": "oklch(99% 0.005 28)",
-      "$description": "The ink on the fault lamp: paper in the day shift, and the console's own black at night, because a vermilion that reads as a word on a night panel is a lit lamp and takes the dark ink like the others.",
+      "$value": "oklch(15% 0.04 15)",
+      "$description": "The ink on the fault lamp: the console's own black at night, because a vermilion that bright is a lit lamp and takes the dark ink like the other three. The day shift's vermilion is a deep plate instead, so it takes paper.",
       "$modes": {
-        "dark": "oklch(16% 0.03 28)"
+        "light": "oklch(98.5% 0.01 18)"
+      }
+    },
+    "on-semantic-info": {
+      "$value": "oklch(15% 0.04 200)",
+      "$description": "The ink on the blue lamp: the console's own black at night, the paper of the day shift by day.",
+      "$modes": {
+        "light": "oklch(98.5% 0.01 235)"
       }
     },
     "on-danger": {
       "$value": "{color.on-semantic-error}",
       "$description": "The legacy name for the ink on the fault fill. It points at `color.on-semantic-error` — the role the contract requires and the floor is measured on — so the two names can never disagree.",
       "$modes": {
-        "dark": "{color.on-semantic-error}"
+        "light": "{color.on-semantic-error}"
       }
     },
-    "on-semantic-info": {
-      "$value": "oklch(99% 0.005 275)",
-      "$description": "The ink on the violet fill: paper in the day shift, the console's black at night.",
+    "surface": {
+      "$value": "{color.neutral.50}",
+      "$description": "The page. The ink the console is built out of at night; pale lavender paper in the day shift. Same step, same meaning, different light.",
       "$modes": {
-        "dark": "oklch(16% 0.03 275)"
+        "light": "{color.neutral.50}"
+      }
+    },
+    "surface-raised": {
+      "$value": "{color.neutral.100}",
+      "$description": "A surface that sits above the page: cards, popovers, menus, the secondary button. It is one step towards the light and carries no shadow of its own.",
+      "$modes": {
+        "light": "{color.neutral.100}"
+      }
+    },
+    "surface-sunken": {
+      "$value": "{color.neutral.200}",
+      "$description": "A surface that sits below the page: the stripe under a table row, the trough a field is carved into.",
+      "$modes": {
+        "light": "{color.neutral.200}"
+      }
+    },
+    "field": {
+      "$value": "{color.neutral.200}",
+      "$description": "A field's own surface: the trough cut into the panel. A field is an object you can put a cursor in, and it is cut into the page rather than laid on it.",
+      "$modes": {
+        "light": "{color.neutral.200}"
+      }
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Body text: ink on panel, panel on ink.",
+      "$modes": {
+        "light": "{color.neutral.900}"
+      }
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "The second voice: captions, helper copy, the small print that still has to be read.",
+      "$modes": {
+        "light": "{color.neutral.600}"
+      }
+    },
+    "border": {
+      "$value": "oklch(78% 0.12 300 / 16%)",
+      "$description": "The hairline. A rule here is a cool white laid down at a sixth of its strength, so a divider reads as a pencil line on the glass rather than a drawn box.",
+      "$modes": {
+        "light": "oklch(30% 0.08 310 / 15%)"
+      }
+    },
+    "border-strong": {
+      "$value": "oklch(81% 0.15 195 / 42%)",
+      "$description": "A control's own edge: the acting colour at four tenths, the line a finger has to find. It carries three to one against the page, or the control is not a control.",
+      "$modes": {
+        "light": "oklch(30% 0.08 310 / 30%)"
+      }
+    },
+    "scrim": {
+      "$value": "oklch(8% 0.03 285 / 62%)",
+      "$description": "What dims the page behind a modal: the console's own black, laid over the panel.",
+      "$modes": {
+        "light": "oklch(30% 0.08 310 / 28%)"
       }
     },
     "disabled": {
       "$value": "{color.neutral.300}",
       "$description": "The fill a dead control wears: the panel switched off. A control that cannot be pressed is still printed — it is simply printed in the quiet ink.",
       "$modes": {
-        "dark": "{color.neutral.300}"
+        "light": "{color.neutral.300}"
       }
     },
     "on-disabled": {
       "$value": "{color.neutral.600}",
       "$description": "The ink on that fill: the second voice, the one the small print is set in. Dimming the control would dim this with it, and the label is the one thing a dead control still has to say.",
       "$modes": {
-        "dark": "{color.neutral.600}"
+        "light": "{color.neutral.600}"
+      }
+    },
+    "focus-ring": {
+      "$value": "{color.primary}",
+      "$description": "The acting colour, and only the acting colour: the ring never wears a colour that means something else, and never the vermilion of a fault.",
+      "$modes": {
+        "light": "{color.primary}"
+      }
+    },
+    "link": {
+      "$value": "{color.primary}",
+      "$description": "The acting colour, as a word in running text. A link is never the body ink — a link you cannot pick out of the prose is a link nobody clicks — and it is never the vermilion, so a link and a danger are never the same word.",
+      "$modes": {
+        "light": "{color.primary}"
       }
     }
   },
   "spacing": {
+    "$type": "dimension",
+    "$description": "A tight scale for a dense instrument: the small steps are the inside of a control, the middle steps carry a card, and one roomy step is reserved for the gap between two sections of a page.",
     "0": {
       "$value": "0"
     },
@@ -355,29 +364,27 @@
     "32": {
       "$value": "10rem",
       "$description": "The empty space a poster would need. A control room never gets there."
-    },
-    "$type": "dimension",
-    "$description": "A tight scale for a dense instrument: the small steps are the inside of a control, the middle steps carry a card, and one roomy step is reserved for the gap between two sections of a page."
+    }
   },
   "font": {
-    "$description": "Two voices on the panel, and one for the reader. A squarish technical sans carries the labels and a geometric mono carries the values, so a reader can tell a measurement from a description without reading either; the platform's serif is there for the one place a person is quoted rather than reported.",
+    "$description": "Three voices, each with a job: a geometric sans carries the prose, an angular technical display speaks only where a heading may speak, and a mono carries every value that is measured rather than read.",
     "family": {
       "$type": "fontFamily",
       "sans": {
-        "$value": "Saira, ui-sans-serif, system-ui, sans-serif",
-        "$description": "The label voice: a squarish technical sans, cut with flat terminals so a caption at eleven pixels still reads as a word. It is the face every control wears."
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The body voice: a geometric sans with a squared-off skeleton, so a caption at eleven pixels still reads as a word and a paragraph at fourteen still reads as prose."
       },
       "heading": {
-        "$value": "{font.family.sans}",
-        "$description": "The display voice is the label voice. A console has no marketing surface, so a second typeface would only be decoration."
+        "$value": "Chakra Petch, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The display voice: an angular technical face, cut with flat terminals and open apertures. It speaks in headings and nowhere else — a panel's title is a heading, a page of values is not."
       },
       "body": {
         "$value": "{font.family.sans}",
-        "$description": "The body face: the sans under another name, so the surface reads whole."
+        "$description": "The prose face: the sans under another name, so a page reads whole."
       },
       "mono": {
-        "$value": "Azeret Mono, ui-monospace, SFMono-Regular, Menlo, monospace",
-        "$description": "The value voice: a geometric mono with figures that line up in a column. Numbers, identifiers, timings, log lines — everything a reader measures rather than reads."
+        "$value": "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace",
+        "$description": "The value voice: a developer mono whose figures line up in a column. Numbers, identifiers, timings, log lines — everything a reader measures rather than reads."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
@@ -390,6 +397,7 @@
     },
     "size": {
       "$type": "dimension",
+      "$description": "Eight steps, dense at the bottom and wide at the top, with the jump at the top a scale rather than an increment.",
       "2xs": {
         "$value": "0.625rem",
         "$description": "The printed caption: the smallest step on the console, for the label that sits under a value."
@@ -421,22 +429,26 @@
       "3xl": {
         "$value": "2.5rem",
         "$description": "A page's own head. Two and a half times the body, and the one step where the jump is a scale rather than a font size."
-      },
-      "$description": "Eight steps, dense at the bottom and wide at the top, with the jump at the top a scale rather than an increment."
+      }
     },
     "weight": {
       "$type": "fontWeight",
+      "$description": "Four weights, and the middle two do the work: an instrument is read, not admired.",
       "regular": {
-        "$value": 400
+        "$value": 400,
+        "$description": "The body: prose at its own weight."
       },
       "medium": {
-        "$value": 500
+        "$value": 500,
+        "$description": "A label that has to hold its own against the value under it."
       },
       "semibold": {
-        "$value": 600
+        "$value": 600,
+        "$description": "The weight of a label: the weight helm's tracked captions wear, and the weight a control carries over the prose around it."
       },
       "bold": {
-        "$value": 700
+        "$value": 700,
+        "$description": "A heading that has to win a page."
       }
     },
     "letter-spacing": {
@@ -444,7 +456,7 @@
       "$description": "How far the letters sit from each other. The panel's own captions are tracked open so a label sits on the page like a rule; the prose is left alone.",
       "tighter": {
         "$value": "-0.02em",
-        "$description": "A figure at the top of the scale only."
+        "$description": "The display tracking: a heading closes up by a hair so its edges stay sharp."
       },
       "tight": {
         "$value": "-0.01em",
@@ -460,7 +472,7 @@
       },
       "wider": {
         "$value": "0.12em",
-        "$description": "A word set in capitals that still has to read as a word."
+        "$description": "A word set as a label on a machine: tracked open enough that the letters read as separate marks, the way helm's terminal captions do."
       },
       "widest": {
         "$value": "0.2em",
@@ -470,29 +482,31 @@
   },
   "radius": {
     "$type": "dimension",
-    "$description": "A cut panel and a moulded key. The panel is cut square, the key is rounded, and the gap between those two says which is which without anyone having to say it.",
+    "$description": "Sharp instrument radii: a console is cut, not moulded. The ladder is two, four and seven pixels, and the pill is there for the one control that really is a switch.",
     "none": {
       "$value": "0",
       "$description": "The faceplate: a card, a table, a frame. A console panel is cut square, and the edge of one is a line rather than a curve."
     },
     "sm": {
       "$value": "0.125rem",
-      "$description": "A hair off square: the plate a message is printed on."
+      "$description": "A hair off square: the plate a message is printed on, the tag a status is stamped in."
     },
     "md": {
-      "$value": "0.375rem",
-      "$description": "The working radius: a button, a field, a switch — the moulded objects a finger meets."
+      "$value": "0.25rem",
+      "$description": "The working radius: a button, a field, a card — the cut objects a finger meets."
     },
     "lg": {
-      "$value": "0.75rem",
+      "$value": "0.4375rem",
       "$description": "The overlay's corner: the one surface that is clearly a different object from the page under it."
     },
     "full": {
       "$value": "9999px",
-      "$description": "The pill: a tag that says something soft, and a switch's knob."
+      "$description": "The pill: a switch's knob, and the one tag that says something soft."
     }
   },
   "opacity": {
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A short ladder, because the same fraction reads differently over glass than over paper.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -516,26 +530,30 @@
     "100": {
       "$value": 1,
       "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
-    },
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. A short ladder, because the same fraction reads differently over a light surface than over a dark one."
+    }
   },
   "shadow": {
     "$type": "shadow",
-    "$description": "Flat on the page. The panel is held together by its hairlines and by the light coming off the accent, so nothing that lives on the page carries a shadow; the only two are the overlay's and the key's own.",
+    "$description": "Neon on ink: every shadow is a coloured halo with a crisp core under it, because the light in this room comes from the screen. Nothing is drawn with a diffuse cloud, and nothing casts one on a card that does not float.",
     "sm": {
-      "$value": "none",
-      "$description": "Nothing at rest. A panel is a panel, and a shadow would make it a photograph of one."
+      "$value": "0 1px 2px 0 oklch(6% 0.03 285 / 55%), 0 0 0 1px oklch(80% 0.16 200 / 10%)",
+      "$description": "The card's own rest: a hair of shadow and a cyan hairline around the edge. A panel is separated by its outline, not by a cloud under it.",
+      "$modes": {
+        "light": "0 1px 3px 0 oklch(45% 0.15 340 / 9%), 0 0 0 1px oklch(45% 0.15 340 / 5%)"
+      }
     },
     "md": {
-      "$value": "none",
-      "$description": "Nothing, for the same reason: a raised surface is separated by its edge and by air, never by a cloud under it."
+      "$value": "0 6px 18px -4px oklch(5% 0.03 285 / 65%), 0 0 12px -2px oklch(68% 0.22 340 / 18%)",
+      "$description": "The raised panel: the console's own black under the edge, and the signal's halo around it. A magenta glow under a surface is this theme's whole idea of depth.",
+      "$modes": {
+        "light": "0 6px 18px -4px oklch(45% 0.15 340 / 13%), 0 0 10px -2px oklch(55% 0.16 205 / 10%)"
+      }
     },
     "lg": {
-      "$value": "0 1.5rem 3rem -0.75rem oklch(19% 0.03 285 / 0.22)",
-      "$description": "The overlay: a diffuse shadow, because the only thing that floats above a control room is a dialog, and a dialog is lit from the front. At night the shadow is the room's own black, deeper and wider.",
+      "$value": "0 28px 64px -12px oklch(3% 0.03 285 / 74%), 0 0 32px -6px oklch(68% 0.22 340 / 16%)",
+      "$description": "The overlay: a dialog floating over the console, with the signal's halo around it. It is the only thing in the theme allowed to be this loud.",
       "$modes": {
-        "dark": "0 1.5rem 3rem -0.5rem oklch(4% 0.02 285 / 0.8)"
+        "light": "0 28px 64px -12px oklch(45% 0.15 340 / 20%)"
       }
     }
   },
@@ -584,11 +602,11 @@
         "$description": "A state change the reader has already decided to expect: a hover, a press, a focus, a spinner."
       },
       "base": {
-        "$value": "220ms",
+        "$value": "200ms",
         "$description": "The default: a colour or a rule moving to its next position, and the longest a panel may take to settle."
       },
       "slow": {
-        "$value": "400ms",
+        "$value": "320ms",
         "$description": "The longest a transition may take: a panel arriving, a rule settling."
       },
       "loop": {
@@ -617,21 +635,21 @@
     }
   },
   "button": {
-    "$description": "The voice of the primary control: a moulded key, set in the label face, with the accent under it and nothing over it.",
+    "$description": "The voice of the primary control: a lit key set in the panel's own label voice, with the acting colour under it and nothing over it.",
     "weight": {
       "$type": "fontWeight",
       "$value": "600",
       "$description": "The button's own weight. A control carries more weight than the prose around it, and 600 is the last step before it starts shouting."
     },
     "case": {
-      "$value": "none",
       "$type": "textTransform",
+      "$value": "none",
       "$description": "A key says what it does, in the case it is written. A theme that set every button in capitals would have a page of capitals, which is a shout and not a voice — and the buttons are not the only thing on the page."
     },
     "tracking": {
       "$type": "dimension",
-      "$value": "0.01em",
-      "$description": "Label tracking: a hair open, because a 600-weight label in a small control needs a little air between its letters."
+      "$value": "0.12em",
+      "$description": "The label's own tracking: a machine's caption is tracked open, so a control reads as a stamped plate rather than as a sentence. It is the one place the tracking scale's widest ordinary step is spent."
     },
     "shadow": {
       "$type": "shadow",
@@ -640,10 +658,10 @@
     },
     "shadow-hover": {
       "$type": "shadow",
-      "$value": "0 1px 0 0 oklch(19% 0.03 285 / 0.24)",
-      "$description": "A hard one-pixel offset under the key: the day shift's only shadow, and the shadow of a printed panel rather than of a lit one.",
+      "$value": "0 0 12px -2px oklch(81% 0.15 195 / 55%)",
+      "$description": "The lit halo the key wears when it is touched: the acting colour, blooming once around the edge. The only shadow a control casts, and it is light rather than matter.",
       "$modes": {
-        "dark": "0 0 0.875rem -0.25rem var(--color-accent)"
+        "light": "0 0 12px -2px oklch(55% 0.235 350 / 35%)"
       }
     }
   },
@@ -669,19 +687,19 @@
   },
   "focus": {
     "$type": "dimension",
-    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs. Its colour is the accent, so the ring never argues with the ink around it.",
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs. Its colour is the acting colour, so the ring never argues with the ink around it.",
     "width": {
       "$value": "2px",
-      "$description": "The ring's stroke. Two pixels in both shifts: a one-pixel ring reads as a rendering artifact rather than a decision.",
+      "$description": "The ring's stroke. Two pixels in both lights: a one-pixel ring reads as a rendering artifact rather than a decision.",
       "$modes": {
-        "dark": "2px"
+        "light": "2px"
       }
     },
     "offset": {
       "$value": "2px",
-      "$description": "The gap between the ring and the control it is on — far enough that the ring is drawn on the panel and never on the accent it is meant to be reading against.",
+      "$description": "The gap between the ring and the control it is on — far enough that the ring is drawn on the panel and never on the fill it is meant to be reading against.",
       "$modes": {
-        "dark": "2px"
+        "light": "2px"
       }
     }
   },
@@ -689,7 +707,7 @@
     "$description": "Glyph sizes, in `em`, so a glyph tracks the control it sits in.",
     "sm": {
       "$type": "dimension",
-      "$value": "0.75em",
+      "$value": "0.875em",
       "$description": "The smallest glyph step: a mark beside a caption."
     },
     "md": {
@@ -699,12 +717,12 @@
     },
     "lg": {
       "$type": "dimension",
-      "$value": "1.5em",
+      "$value": "1.25em",
       "$description": "The largest glyph step: a mark on its own, or the face of a switch."
     }
   },
   "badge": {
-    "$description": "The small tag, and what shape it is: a pill, because a status on a console is a lamp rather than a label.",
+    "$description": "The small tag, and what shape it is: a square plate, because a status on this console is a stamp on a panel rather than a soft word on a pill.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
@@ -712,12 +730,12 @@
     },
     "pill": {
       "$type": "boolean",
-      "$value": true,
-      "$description": "A pill says a soft word, and a badge on this console says a state — healthy, degraded, passing — not a label."
+      "$value": false,
+      "$description": "Not a pill. A tag on a machine is a rectangular plate with a hairline around it; the round one is for words that are soft, and nothing on this console is soft."
     }
   },
   "checkbox": {
-    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn, and in this theme it is zero because the light in this room comes from the accent, not from the controls.",
+    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn, and in this theme it is zero because the light in this room comes from the screen, not from the controls.",
     "depth": {
       "$type": "number",
       "$value": 0
@@ -734,26 +752,26 @@
     "$description": "How big an avatar is, as the edge of the square it fills.",
     "sm": {
       "$type": "dimension",
-      "$value": "1.25rem",
+      "$value": "1.5rem",
       "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
     },
     "md": {
       "$type": "dimension",
-      "$value": "2rem",
+      "$value": "2.5rem",
       "$description": "The default: a face beside a name, or a profile header at rest."
     },
     "lg": {
       "$type": "dimension",
-      "$value": "3.5rem",
+      "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
     }
   },
   "card": {
-    "$description": "The card's own decisions: its corner, its air, its edge, its elevation. A card is a panel, and a panel is cut square.",
+    "$description": "The card's own decisions: its corner, its air, its edge, its elevation. A card is a panel on the panel, and it is held off the page by a hairline of light rather than by a cloud.",
     "radius": {
       "$type": "dimension",
-      "$value": "{radius.none}",
-      "$description": "Square: a card is a faceplate cut out of the sheet, and its edge is a line rather than a curve."
+      "$value": "{radius.md}",
+      "$description": "Four pixels: a card is a faceplate cut out of the sheet, and it is cut with a small chamfer rather than a curve."
     },
     "padding": {
       "$type": "dimension",
@@ -767,25 +785,28 @@
     },
     "elevation": {
       "$type": "shadow",
-      "$value": "none",
-      "$description": "No elevation at all. A card is a panel on a panel, separated by a hairline and by air, and a shadow would make it a photograph of a sheet."
+      "$value": "0 6px 18px -4px oklch(5% 0.03 285 / 65%), 0 0 12px -2px oklch(68% 0.22 340 / 18%), 0 0 0 1px oklch(80% 0.16 200 / 10%)",
+      "$description": "The card's rest: the console's own black under the edge, the signal's halo around it, and a cyan hairline on top. The card floats by its outline and its halo, not by a cloud under it.",
+      "$modes": {
+        "light": "0 1px 3px 0 oklch(45% 0.15 340 / 9%), 0 0 0 1px oklch(45% 0.15 340 / 5%)"
+      }
     }
   },
   "alert": {
-    "$description": "The alert's own decisions: its corner, its air, and the ink of the hairline it wears.",
+    "$description": "The alert's own decisions: its corner, its air, and the ink of the hairline it wears. The tone recolours one edge of the same frame, so a fault and a notice are the same object in two colours.",
     "radius": {
       "$type": "dimension",
       "$value": "{radius.sm}",
-      "$description": "A hair off square: a message is a plate printed on the panel, and it is not the panel itself."
+      "$description": "Two pixels: a message is a plate printed on the panel, and it is not the panel itself."
     },
     "padding": {
       "$type": "dimension",
-      "$value": "{spacing.2}",
+      "$value": "{spacing.4}",
       "$description": "The air above and below the message — more of it than beside it, because the text is read in a line."
     },
     "padding-inline": {
       "$type": "dimension",
-      "$value": "{spacing.4}",
+      "$value": "{spacing.3}",
       "$description": "The air beside the message, where it is read."
     },
     "edge": {
@@ -799,12 +820,12 @@
     "radius": {
       "$type": "dimension",
       "$value": "{radius.md}",
-      "$description": "The moulded corner: a field is an object a finger finds, so it is rounded like a key and cut into the panel like a trough."
+      "$description": "The cut corner: a field is an object a finger finds, so it is cut like a key and sunk into the panel like a trough."
     },
     "border": {
       "$type": "color",
       "$value": "{color.border-strong}",
-      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
+      "$description": "The line a finger has to find: the acting colour at four tenths, one step stronger than the dividers around it, or the control is not a control."
     }
   },
   "stat": {

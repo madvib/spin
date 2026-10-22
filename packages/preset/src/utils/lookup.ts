@@ -1,6 +1,7 @@
 import type { ThemeRef } from "@spin/theme";
 import { themeKey } from "@spin/theme";
 import type { ThemeTokenPath } from "@spin/theme/theme-types";
+import type { ElementTypePath } from "@spin/theme";
 
 export interface ThemeContext {
   theme?: unknown;
@@ -31,10 +32,15 @@ export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
  *
  * A theme names its tokens under the canonical paths and nowhere else: there
  * is no second spelling a reader has to know about.
+ *
+ * The per-element typography paths are read here too, and they are part of
+ * the union because the CONTRACT declares them: a theme may state what a
+ * heading reads, and a rule that spends that decision asks for it by the same
+ * path it is written under.
  */
 export function token(
   ctx: ThemeContext | undefined,
-  path: ThemeTokenPath,
+  path: ThemeTokenPath | ElementTypePath,
 ): string | undefined {
   return themeOf(ctx)?.[themeKey(path)];
 }

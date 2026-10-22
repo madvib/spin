@@ -90,33 +90,34 @@ export interface Rendering {
 /**
  * The renderings a theme serves.
  *
- * A theme's own rendering is `base`, and the dark restatement — the tokens a
- * theme names again for the dark mode — is `dark`. A theme that declares no
- * dark mode has ONE rendering, and that is not a missing half: neobrut has no
- * dark tokens to restate, and console's base IS its dark rendering.
+ * A theme serves the modes it declares, and each mode is a rendering: the
+ * tokens it names again for that mode. A theme that declares no mode has ONE
+ * rendering, and that is not a missing half: neobrut has no dark tokens to
+ * restate, and console's base IS its dark rendering.
  *
  * So the LABEL says what the reader sees and the MODE says which block the
- * page reads. A theme that serves both renders light first — its base IS the
- * light rendering, and the dark one is the restatement of it — and a theme
- * that serves one renders that one, labelled by what it is.
+ * page reads. A mode a theme does not restate falls back to the base, so the
+ * rendering is the same picture either way — but the MODE is the mode's own
+ * name, because that is the block the page has to read to wear it. The order
+ * is the reader's: light first, because a machine that asks for light arrives
+ * at the light rendering.
  */
 export function renderingsFor(name: string): readonly Rendering[] {
   const doc = themeDocument(name);
   if (doc === undefined) return [];
   const modes = themeModes(doc);
-  // A theme that serves BOTH modes has two renderings: its base is the light
-  // one, and the dark restatement is the second. A theme that serves ONE mode
-  // has one rendering — and that rendering IS the mode it serves, which for
-  // console is dark: console's base is dark, so it has no light rendering to
-  // show, and showing its base twice would be a theme pretending to have a
-  // second face.
-  if (modes.includes("light") && modes.includes("dark")) {
-    return [
-      { mode: "base", label: "light" },
-      { mode: "dark", label: "dark" },
-    ];
-  }
-  return [{ mode: "base", label: modes[0] ?? "base" }];
+  // A theme that serves BOTH modes has two renderings, and a theme that
+  // serves ONE has one: the rendering IS the mode it serves, which for
+  // console is dark (console's base is dark, so it has no light rendering to
+  // show) and for neobrut is light.
+  //
+  // Light first, because the light rendering is the one a reader arrives at
+  // on a machine that asks for light.
+  const served = modes.filter((mode): mode is "light" | "dark" =>
+    mode === "light" || mode === "dark"
+  );
+  if (served.length === 0) return [{ mode: "base", label: "base" }];
+  return served.map((mode) => ({ mode, label: mode }));
 }
 
 /**

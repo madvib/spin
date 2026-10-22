@@ -14,6 +14,8 @@ import type { TSchema } from "@sinclair/typebox";
 import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
+import { ELEMENT_TYPE_ROLES } from "./typography.ts";
+import type { ElementTypeDeclaration } from "./typography.ts";
 
 /** A contrast requirement between two roles, in WCAG terms. */
 export interface LegibilityFloor {
@@ -409,16 +411,35 @@ function leafSchema(doc: string) {
  */
 export function themeSchema(): Record<string, unknown> {
   const properties: Record<string, TSchema> = {};
-  for (const [group, paths] of Object.entries(groupedPaths())) {
-    properties[group] = groupSchema(paths, false);
+  // The groups, each carrying the paths it holds and which of them a theme
+  // must declare. The three lists are gathered together because a group can
+  // hold more than one kind of token: `font` carries the base face AND the
+  // per-element typography, and a group written twice would leave the second
+  // writing over the first.
+  const groups = new Map<string, { paths: string[]; required: Set<string> }>();
+  const gather = (group: string, path: string, required: boolean): void => {
+    const entry = groups.get(group) ??
+      { paths: [], required: new Set<string>() };
+    entry.paths.push(path);
+    if (required) entry.required.add(path);
+    groups.set(group, entry);
+  };
+  for (const role of BASE_ROLES) {
+    gather(role.path.split(".")[0] as string, role.path, true);
   }
   // The per-element groups are known to the contract, so the schema says what
   // they hold — but they are OPTIONAL: a theme that declares none of them is
   // complete, and the rules fall back to the shared scales. What the schema
   // must not do is require a group nothing demands, or make a theme that
   // omits one invalid for the sake of a decision it never made.
-  for (const [group, paths] of Object.entries(elementGroupPaths())) {
-    properties[group] = groupSchema(paths, true);
+  for (const role of ELEMENT_ROLES) gather(role.group, role.path, false);
+  // The per-element typography is optional for the same reason: a theme that
+  // says nothing about a heading gets the system's answer.
+  for (const role of ELEMENT_TYPE_ROLES) {
+    gather(role.path.split(".")[0] as string, role.path, false);
+  }
+  for (const [group, entry] of groups) {
+    properties[group] = groupSchema(entry.paths, entry.required);
   }
   // `modes` is document metadata, not a token: it sits at the root beside
   // the groups and no emitter reads it. `additionalProperties` would already
@@ -438,25 +459,6 @@ export function themeSchema(): Record<string, unknown> {
   };
 }
 
-/** Role paths grouped by their top-level token group. */
-function groupedPaths(): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  for (const role of BASE_ROLES) {
-    const group = role.path.split(".")[0] as string;
-    (out[group] ??= []).push(role.path);
-  }
-  return out;
-}
-
-/** The per-element paths, grouped by the group they live in. */
-function elementGroupPaths(): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  for (const role of ELEMENT_ROLES) {
-    (out[role.group] ??= []).push(role.path);
-  }
-  return out;
-}
-
 /**
  * A group before conversion: either a nested group or a finished leaf.
  *
@@ -467,9 +469,15 @@ function elementGroupPaths(): Record<string, string[]> {
 type GroupShape = { [segment: string]: TSchema | GroupShape };
 
 /** The nested schema for one token group, built from its role paths. */
-function groupSchema(paths: string[], optional: boolean): TSchema {
+function groupSchema(
+  paths: string[],
+  required: ReadonlySet<string>,
+): TSchema {
   const byRole = new Map(BASE_ROLES.map((role) => [role.path, role]));
   const byElement = new Map(ELEMENT_ROLES.map((role) => [role.path, role]));
+  const byType = new Map<string, ElementTypeDeclaration>(
+    ELEMENT_TYPE_ROLES.map((role) => [role.path, role]),
+  );
   const shape: GroupShape = {};
   for (const path of paths) {
     const segments = path.split(".");
@@ -483,14 +491,13 @@ function groupSchema(paths: string[], optional: boolean): TSchema {
     }
     const role = byRole.get(path);
     const element = byElement.get(path);
-    if (role !== undefined) {
-      level[segments[segments.length - 1] as string] = leafSchema(role.doc);
-    } else if (element !== undefined) {
-      const leaf = leafSchema(element.doc);
-      level[segments[segments.length - 1] as string] = optional
-        ? Type.Optional(leaf)
-        : leaf;
-    }
+    const type = byType.get(path);
+    const doc = role?.doc ?? element?.doc ?? type?.doc;
+    if (doc === undefined) continue;
+    const leaf = leafSchema(doc);
+    level[segments[segments.length - 1] as string] = required.has(path)
+      ? leaf
+      : Type.Optional(leaf);
   }
   return toSchema(shape);
 }

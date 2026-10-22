@@ -108,10 +108,15 @@ export const config: CheckConfig = {
   defaultUrl: "http://localhost:5173",
   routes,
   themes: Object.keys(SERVED),
-  modesFor: (theme) => [
-    "base",
-    ...themeModes(SERVED[theme]!).filter((mode) => mode === "dark"),
-  ],
+  modesFor: (theme) => {
+    // The modes the theme serves are the renderings it has: a light face and
+    // a dark one, or the one it has. A theme that declares none is measured
+    // in its base, which is the only rendering it has.
+    const served = themeModes(SERVED[theme]!).filter((mode) =>
+      mode === "light" || mode === "dark"
+    );
+    return served.length > 0 ? served : ["base"];
+  },
   hoverSelector: "nav button, nav a",
   // The specimen, not the chrome: the rail is the app's navigation, and its
   // rows are the app's business. The state-contrast pass drives the controls

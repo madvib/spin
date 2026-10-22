@@ -16,7 +16,13 @@
  * neither wins by source order.
  */
 
-import { claim, type Mode, proseTokens, spacing } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  spacing,
+  statedType,
+} from "./shared.ts";
 import { painted } from "./scope.ts";
 import type { Rule } from "@unocss/core";
 
@@ -39,7 +45,7 @@ function bodyRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => painted(mode, "body", "global", "body"),
-        ...(t.sans !== undefined ? { "font-family": t.sans } : {}),
+        ...(t.body !== undefined ? { "font-family": t.body } : {}),
         ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
         "line-height": "1.5",
         ...(t.text !== undefined ? { color: t.text } : {}),
@@ -57,14 +63,24 @@ function bodyRule(mode: Mode): Rule {
  * The paragraph's TYPE is the body's — it inherits the floor — and the
  * paragraph's own decision is the gap it leaves under itself. Both are the
  * theme's, and both are spent wherever a paragraph is written.
+ *
+ * The theme may set the paragraph's type for itself: `font.element.p.family`,
+ * `font.element.p.size` and `font.element.p.weight` are the paragraph's own
+ * answer, and where the theme gives one it replaces what the paragraph would
+ * otherwise read. What it leaves out, the paragraph reads as it always has.
  */
 function paragraphRule(mode: Mode): Rule {
   return [
     /^p$/,
     function* (_m, ctx) {
+      const t = proseTokens(ctx);
+      const own = statedType(ctx, "p");
       yield {
         [ctx.symbols.selector]: () => claim(mode, "p"),
-        ...spacing(proseTokens(ctx)),
+        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...spacing(t),
       };
     },
     { layer: "primitives", autocomplete: "p" },
@@ -183,9 +199,13 @@ function blockquoteRule(mode: Mode): Rule {
     /^blockquote$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "blockquote");
+      const family = own.family ?? t.serif;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "blockquote"),
-        ...(t.serif !== undefined ? { "font-family": t.serif } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         ...spacing(t),
       };
       yield {

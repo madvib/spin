@@ -12,6 +12,7 @@ import {
   type Mode,
   proseTokens,
   spacing,
+  statedType,
   type Tokens,
 } from "./shared.ts";
 import type { Rule } from "@unocss/core";
@@ -28,6 +29,11 @@ import type { Rule } from "@unocss/core";
  * heading is a heading, and the six differ in scale, not in character. A
  * theme that names no display voice falls back to its body face, so a heading
  * never reads in a face the page does not read in.
+ *
+ * The theme may say otherwise for ONE level: `font.element.h2.family` moves
+ * the second heading and leaves the other five where they are. What the
+ * theme does not say, the ladder says — the step the level takes, the weight
+ * it takes it at, and the face the six share.
  */
 function headingRule(
   mode: Mode,
@@ -38,14 +44,20 @@ function headingRule(
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, tag);
+      const family = own.family ?? t.heading;
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
-        ...(t.heading !== undefined ? { "font-family": t.heading } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
         ...spacing(t),
         ...(t.spacing4 !== undefined
           ? { "margin-block-start": t.spacing4 }
           : {}),
         ...type(t),
+        // The theme's own decision, where it has one: the level's step and
+        // weight are the ladder's until the theme says otherwise.
+        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },

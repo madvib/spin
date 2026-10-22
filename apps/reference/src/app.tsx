@@ -59,14 +59,21 @@ function useTheme() {
   // The mode the theme actually serves, in preference order: a theme with no
   // dark group has one rendering, so it never reads "dark"; a theme whose
   // base is light never reads "system" as dark-first.
+  //
+  // The two axes are the theme's own: a theme serves the modes it declares,
+  // and a mode it does not serve falls back to the base. "system" asks the
+  // machine, so a machine that wants light gets the theme's light face when
+  // it has one — which is how a theme whose own face is its DARK face wears
+  // its daylit restatement without being asked for it by name.
   const resolved = (requested: string): string => {
     if (requested === "system") {
-      return modes().includes("dark")
-        ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "base")
-        : "base";
+      const wanted = matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+      return modes().includes(wanted) ? wanted : "base";
     }
     if (requested === "dark" && !modes().includes("dark")) return "base";
-    if (requested === "light") return "base";
+    if (requested === "light" && !modes().includes("light")) return "base";
     return requested === "base" ? "base" : requested;
   };
   const [want, setWant] = createSignal(

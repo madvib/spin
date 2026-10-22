@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens } from "./shared.ts";
+import { claim, type Mode, proseTokens, statedType } from "./shared.ts";
 import { painted } from "./scope.ts";
 import { token } from "../../utils/lookup.ts";
 
@@ -32,9 +32,17 @@ function linkRule(mode: Mode): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const underline = token(ctx, "link.underline");
+      const own = statedType(ctx, "a");
       yield {
         [ctx.symbols.selector]: () => a,
         ...(t.link !== undefined ? { color: t.link } : {}),
+        // A link is a run of text in the body, and the theme may say
+        // otherwise: the face, the size and the weight of a link are the
+        // theme's to set, and a link that reads at the body's weight is a
+        // theme's answer rather than the browser's.
+        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         "text-decoration": "underline",
         "text-underline-offset": "0.2em",
         // The theme's own weight for the rule, or the browser's own
@@ -72,9 +80,13 @@ function weightRule(mode: Mode, tag: string): Rule {
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, tag);
+      const weight = own.weight ?? t.weightBold;
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
-        ...(t.weightBold !== undefined ? { "font-weight": t.weightBold } : {}),
+        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -86,9 +98,13 @@ function smallRule(mode: Mode): Rule {
     /^small$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "small");
+      const size = own.size ?? t.sizeXs;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "small"),
-        ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
+        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
     },

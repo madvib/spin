@@ -1860,7 +1860,8 @@
       "additionalProperties": true,
       "type": "object",
       "required": [
-        "family"
+        "family",
+        "element"
       ],
       "properties": {
         "family": {
@@ -1945,6 +1946,3147 @@
                 },
                 "$description": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "element": {
+          "additionalProperties": true,
+          "type": "object",
+          "required": [
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "p",
+            "blockquote",
+            "code",
+            "small",
+            "strong",
+            "a",
+            "figcaption"
+          ],
+          "properties": {
+            "h1": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a level-one heading reads in. The display face, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a level-one heading reads at. The top of the ladder, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a level-one heading reads at. The ladder's bold, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "h2": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a level-two heading reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a level-two heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a level-two heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "h3": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a level-three heading reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a level-three heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a level-three heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "h4": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a level-four heading reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a level-four heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a level-four heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "h5": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a level-five heading reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a level-five heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a level-five heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "h6": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a level-six heading reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a level-six heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a level-six heading reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "p": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a paragraph reads in. The body face, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a paragraph reads at. The body's size, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a paragraph reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "blockquote": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a quotation reads in. The editorial face, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a quotation reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a quotation reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "code": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a run of code reads in. The mono face, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a run of code reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a run of code reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "small": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a small label reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a small label reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a small label reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "strong": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a strong run reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a strong run reads at. The size of the text it sits in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a strong run reads at. The ladder's bold, unless the theme says otherwise.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "a": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a link reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a link reads at. The size of the text it sits in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a link reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "figcaption": {
+              "additionalProperties": true,
+              "type": "object",
+              "properties": {
+                "family": {
+                  "additionalProperties": true,
+                  "description": "The face a caption reads in.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "additionalProperties": true,
+                  "description": "The size a caption reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "additionalProperties": true,
+                  "description": "The weight a caption reads at.",
+                  "type": "object",
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "anyOf": [
+                        {
+                          "const": "color",
+                          "type": "string"
+                        },
+                        {
+                          "const": "boolean",
+                          "type": "string"
+                        },
+                        {
+                          "const": "dimension",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontFamily",
+                          "type": "string"
+                        },
+                        {
+                          "const": "fontWeight",
+                          "type": "string"
+                        },
+                        {
+                          "const": "duration",
+                          "type": "string"
+                        },
+                        {
+                          "const": "cubicBezier",
+                          "type": "string"
+                        },
+                        {
+                          "const": "number",
+                          "type": "string"
+                        },
+                        {
+                          "const": "strokeStyle",
+                          "type": "string"
+                        },
+                        {
+                          "const": "border",
+                          "type": "string"
+                        },
+                        {
+                          "const": "transition",
+                          "type": "string"
+                        },
+                        {
+                          "const": "shadow",
+                          "type": "string"
+                        },
+                        {
+                          "const": "gradient",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typography",
+                          "type": "string"
+                        },
+                        {
+                          "const": "textTransform",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }

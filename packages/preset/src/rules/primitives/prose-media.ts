@@ -1,5 +1,11 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens, spacing } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  spacing,
+  statedType,
+} from "./shared.ts";
 import { painted } from "./scope.ts";
 
 /**
@@ -55,6 +61,8 @@ function figcaptionRule(mode: Mode): Rule {
     /^figcaption$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "figcaption");
+      const size = own.size ?? t.sizeSm;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "figcaption"),
         // The gap the caption leaves under the figure it belongs to: the
@@ -62,7 +70,9 @@ function figcaptionRule(mode: Mode): Rule {
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
+        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
       yield {

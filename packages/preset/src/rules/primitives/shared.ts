@@ -1,4 +1,15 @@
-import { named, type ThemeContext, token } from "../../utils/lookup.ts";
+import {
+  named,
+  type ThemeContext,
+  themeOf,
+  token,
+} from "../../utils/lookup.ts";
+import { themeKey } from "@spin/theme";
+import {
+  elementTypeFields,
+  FACE_CHAINS,
+  type GlobalTypePath,
+} from "@spin/theme";
 import type { ThemeTokenPath } from "@spin/theme/theme-types";
 
 /**
@@ -74,6 +85,77 @@ export function withFallback(
   const value = token(ctx, path);
   const shared = token(ctx, fallback);
   return value ?? shared;
+}
+
+/* ------------------------------------------------------------- the faces -- */
+
+/**
+ * The face a role reads, following the contract's chain.
+ *
+ * The display face falls back to the heading family, the heading family to
+ * the body, and the body to the sans: a theme that names no display voice
+ * still has a face for its headings, and a theme that names no body face
+ * still has the sans. The chain is the contract's, so the answer is one
+ * lookup rather than three, and a rule cannot spell the steps differently
+ * from another rule.
+ */
+export function face(
+  ctx: ThemeContext | undefined,
+  path: GlobalTypePath,
+): string | undefined {
+  const chain = [path, ...(FACE_CHAINS[path] ?? [])];
+  // Every candidate is read, not only the one that answers: a token the rule
+  // reaches when the theme is silent is still a token the rule spends, and a
+  // manifest that leaves it out understates the contract.
+  let found: string | undefined;
+  for (const candidate of chain) {
+    const value = token(ctx, candidate);
+    if (value !== undefined && found === undefined) found = value;
+  }
+  return found;
+}
+
+/* ------------------------------------------------ the per-element decisions -- */
+
+/**
+ * What one element's type is, as the theme states it.
+ *
+ * Only what the theme STATES. A token the theme does not declare is absent
+ * here, and the rule's own answer stands in its place — the ladder's step,
+ * the role's face, the weight the level implies. That is what makes the
+ * group safe to leave out, and what makes it worth having: a theme that
+ * moves one heading's size moves that heading and nothing else.
+ */
+export interface StatedType {
+  readonly family: string | undefined;
+  readonly size: string | undefined;
+  readonly weight: string | undefined;
+}
+
+/**
+ * The type one element reads, as the theme states it.
+ *
+ * The three decisions are read together because a theme states them together:
+ * `font.element.h1.family`, `font.element.h1.size` and
+ * `font.element.h1.weight` are one element's answer, and the answer a theme
+ * gives is the whole of it or none of it.
+ */
+export function statedType(
+  ctx: ThemeContext | undefined,
+  element: string,
+): StatedType {
+  const theme = themeOf(ctx);
+  const fields = elementTypeFields(element);
+  if (theme === undefined) {
+    return { family: undefined, size: undefined, weight: undefined };
+  }
+  const read = (path: string | undefined): string | undefined =>
+    path === undefined ? undefined : theme[themeKey(path)];
+  return {
+    family: read(fields.family?.path),
+    size: read(fields.size?.path),
+    weight: read(fields.weight?.path),
+  };
 }
 
 /**
@@ -241,7 +323,6 @@ export interface Tokens {
   readonly weightSemibold: string | undefined;
   readonly weightBold: string | undefined;
   readonly mono: string | undefined;
-  readonly sans: string | undefined;
   /** The body face: what `font.family.body` says, or the sans it falls to. */
   readonly body: string | undefined;
   /** The editorial face: `font.family.serif`. */
@@ -280,15 +361,14 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
     weightSemibold: token(ctx, "font.weight.semibold"),
     weightBold: token(ctx, "font.weight.bold"),
     mono: token(ctx, "font.family.mono"),
-    sans: token(ctx, "font.family.body") ?? token(ctx, "font.family.sans"),
-    body: token(ctx, "font.family.body") ?? token(ctx, "font.family.sans"),
+    // The body face: what `font.family.body` says, or the sans it falls to.
+    body: face(ctx, "font.family.body"), // The editorial face: `font.family.serif`.
     serif: token(ctx, "font.family.serif"),
     // The heading face is a fallback chain, not a step: a theme may name a
     // heading face, then a body face, and fall through to the sans face. The
-    // chain is resolved here rather than spelled as a nested `var()` because a
-    // rule reads values, not variable names.
-    heading: token(ctx, "font.family.heading") ??
-      token(ctx, "font.family.body") ?? token(ctx, "font.family.sans"),
+    // chain is the contract's, and it is resolved here rather than spelled as
+    // a nested `var()` because a rule reads values, not variable names.
+    heading: face(ctx, "font.family.heading"),
   };
 }
 
