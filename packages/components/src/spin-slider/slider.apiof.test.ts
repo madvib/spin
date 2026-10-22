@@ -1,21 +1,41 @@
-import { assert } from "@std/assert";
-import { def, type SliderApi } from "./slider.bindings.ts";
-import type { ApiOf } from "@spin/runtime";
+import { assertEquals } from "@std/assert";
+import type { SliderApi } from "./slider.bindings.ts";
 
-type Derived = ApiOf<typeof def>;
-
-// The derived api must COVER the hand-written one: every member the
-// interface declares, the def provides with a compatible type. This
-// direction is the migration gate — it fails while the def is missing
-// members, and passes when the def is complete.
-//
-// The reverse (Derived assignable to SliderApi) is NOT asserted: the def
-// legitimately carries more than the hand-written interface declares
-// (focusedIndex, disabled were added to the def and never to the
-// interface — exactly the drift this derivation exists to kill). When
-// this direction passes, SliderApi deletes.
-Deno.test("ApiOf<typeof def> covers SliderApi", () => {
-  const _check: SliderApi = null as unknown as Derived;
-  void _check;
-  assert(true);
+// The derived api's public surface, pinned: removing a reader, method,
+// command, part, or slot from the def removes it here, and this test
+// names what the component promises. The def is the single source —
+// this list is the contract readers check against, not a second copy.
+Deno.test("SliderApi promises the component's surface", () => {
+  const keys: (keyof SliderApi)[] = [
+    "state",
+    "value",
+    "markers",
+    "valueText",
+    "dragging",
+    "focused",
+    "focusedIndex",
+    "disabled",
+    "setValue",
+    "setThumbValue",
+    "increment",
+    "decrement",
+    "focus",
+    "getThumbValue",
+    "getThumbPercent",
+    "getThumbMin",
+    "getThumbMax",
+    "getThumbIndexes",
+    "getMarkers",
+    "getRootProps",
+    "getLabelProps",
+    "getValueTextProps",
+    "getControlProps",
+    "getMarkerGroupProps",
+    "getMarkerProps",
+    "getTrackProps",
+    "getRangeProps",
+    "getThumbProps",
+    "getHiddenInputProps",
+  ];
+  assertEquals(keys.length, 29);
 });

@@ -1,4 +1,4 @@
-import { ariaDisabled, ariaOrientation, defineComponent, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaOrientation, defineComponent, sliderThumb, type ApiOf, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { slider as sliderMachine } from "./slider.machine.ts";
@@ -21,38 +21,6 @@ import type {
 export type { SliderArgs };
 
 /** Slider definition: the DOM contract as data. */
-
-export interface SliderApi {
-  setValue(value: readonly number[]): void;
-  setThumbValue(index: number, value: number): void;
-  increment(index?: number): void;
-  decrement(index?: number): void;
-  focus(): void;
-  /** The machine's mode, live: a read of it subscribes, so the markup can
-   * bind an attribute or a class to it. */
-  readonly state: string;
-  readonly value: readonly number[];
-  readonly markers: readonly number[];
-  readonly valueText: string;
-  readonly dragging: boolean;
-  readonly focused: boolean;
-  getThumbValue(index: number): number;
-  getThumbPercent(index: number): number;
-  getThumbMin(index: number): number;
-  getThumbMax(index: number): number;
-  getThumbIndexes(): readonly number[];
-  getMarkers(): readonly number[];
-  getRootProps(): Record<string, unknown>;
-  getLabelProps(): Record<string, unknown>;
-  getValueTextProps(): Record<string, unknown>;
-  getControlProps(): Record<string, unknown>;
-  getMarkerGroupProps(): Record<string, unknown>;
-  getMarkerProps(slot: { readonly value: number }): Record<string, unknown>;
-  getTrackProps(): Record<string, unknown>;
-  getRangeProps(): Record<string, unknown>;
-  getThumbProps(slot: { readonly index: number }): Record<string, unknown>;
-  getHiddenInputProps(slot: { readonly index: number; readonly name?: string }): Record<string, unknown>;
-}
 
 type Ctx = SliderContext;
 
@@ -476,4 +444,5 @@ export const def = {
   },
 } satisfies ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, SliderArgs>;
 
+export type SliderApi = ApiOf<typeof def>;
 export const slider = defineComponent<SliderContext, SliderEvents, SliderApi, SliderArgs>(def);
