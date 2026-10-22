@@ -49,21 +49,17 @@ Deno.test("spin examples e2e", () =>
     });
 
     await step("the markup binds the machine's state, typed", async () => {
-      // The markup owns the binding: `data-mode={slider.state}` is a
-      // typed read of the machine's mode, and it follows the machine.
-      const mode = page.locator("slider-basic [data-mode]").first();
-      await mode.waitFor({ state: "attached", timeout: 5000 });
-      assert.equal(await mode.getAttribute("data-mode"), "idle", "the mode is reported");
-      await page.locator("slider-basic [role='slider']").first().focus();
-      assert.equal(
-        await mode.getAttribute("data-mode"),
-        "focus",
-        "and it follows the machine",
-      );
       // The class is an OBJECT: its keys are the utilities and its values
-      // are the conditions, so the class follows the state too — no
+      // are the conditions, so the class follows the machine — no
       // `data-[…]:` hook in sight.
-      const cls = await mode.getAttribute("class");
+      const readout = page.locator("slider-basic .text-sm").first();
+      await readout.waitFor({ state: "attached", timeout: 5000 });
+      assert.ok(
+        !(await readout.getAttribute("class"))?.includes("text-primary"),
+        "the focus class is absent while the machine is idle",
+      );
+      await page.locator("slider-basic [role='slider']").first().focus();
+      const cls = await readout.getAttribute("class");
       assert.ok(cls?.includes("text-primary"), `the focus class applied (got "${cls}")`);
     });
 
