@@ -140,6 +140,16 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
   );
   const table: readonly Specifier[] = [
     {
+      find: "@spin/api/client",
+      replacement: pkg("../../api/src/client.ts"),
+      targets: [pkg("../../api/src/client.ts")],
+    },
+    {
+      find: "@spin/project/sync",
+      replacement: pkg("../../project/src/sync.ts"),
+      targets: [pkg("../../project/src/sync.ts")],
+    },
+    {
       find: "@spin/theme/base",
       replacement: pkg("../../theme/src/base/index.ts"),
       targets: [source.themeIndex],

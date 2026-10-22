@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
@@ -34,11 +34,20 @@
       "@spin/kit": [
         "../../packages/kit/src/index.ts"
       ],
+      "@spin/api/client": [
+        "../../packages/api/src/client.ts"
+      ],
       "@spin/api": [
         "../../packages/api/src/index.ts"
       ],
       "@spin/project": [
         "../../packages/project/src/index.ts"
+      ],
+      "@spin/project/sync": [
+        "../../packages/project/src/sync.ts"
+      ],
+      "@spin/diagnostics": [
+        "../../packages/diagnostics/src/index.ts"
       ],
       "@spin/preset": [
         "../../packages/preset/src/index.ts"

@@ -67,6 +67,8 @@ export interface GateContext {
     data?: Record<string, string>;
     /** The edit that settles the finding, when it has one. */
     fix?: GateFix;
+    /** What to do about the finding, in the rule's own words. */
+    remedy?: string;
   }): void;
 }
 
@@ -268,6 +270,26 @@ function carriesClasses(node: GateNode): boolean {
   return isClassAttribute(node) && attributeValue(node) !== undefined;
 }
 
+/**
+ * The class list an attribute carries, and where its own text sits.
+ *
+ * The range is what a formatter needs: to write the classes in another
+ * order, it has to say WHICH text it replaces. A class list the author
+ * computed is not one — the text is theirs, and rewriting it would rewrite
+ * their arithmetic.
+ */
+export function classListOf(
+  node: GateNode,
+): { classes: string[]; range: [number, number] } | undefined {
+  if (!carriesClasses(node)) return undefined;
+  const literal = literalOf(node);
+  if (literal === undefined) return undefined;
+  return {
+    classes: classTokens(literal.text),
+    range: [literal.start, literal.start + literal.text.length],
+  };
+}
+
 /* ------------------------------------------------------------ the markup -- */
 
 /**
@@ -422,6 +444,7 @@ function report(
       node,
       messageId: finding.messageId,
       data: finding.data,
+      ...(finding.remedy === undefined ? {} : { remedy: finding.remedy }),
       ...(edit === undefined ? {} : {
         fix: () => ({ range: edit.range, text: edit.text }),
       }),

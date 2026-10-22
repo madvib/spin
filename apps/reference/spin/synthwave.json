@@ -478,6 +478,18 @@
         "$value": "0.2em",
         "$description": "A single word carrying a whole section. Poster spacing."
       }
+    },
+    "typography": {
+      "$type": "typography",
+      "$description": "The type the theme sets in one token: a face, a size, a weight and a tracking.",
+      "body": {
+        "$value": "400 1rem Space Grotesk, ui-sans-serif, system-ui, sans-serif 0em",
+        "$description": "The body voice, in one value."
+      },
+      "display": {
+        "$value": "700 2rem Space Grotesk, ui-sans-serif, system-ui, sans-serif -0.02em",
+        "$description": "The display voice, in one value."
+      }
     }
   },
   "radius": {
@@ -632,6 +644,14 @@
         "$value": "cubic-bezier(0.4, 0, 1, 1)",
         "$description": "An exit: the element leaves, and the curve carries it out of the frame."
       }
+    },
+    "transition": {
+      "$type": "transition",
+      "$description": "The movements the theme makes, each a duration and a curve.",
+      "base": {
+        "$value": "180ms cubic-bezier(0.2, 0, 0, 1)",
+        "$description": "The ordinary movement, in one value."
+      }
     }
   },
   "button": {
@@ -683,6 +703,16 @@
     "width-8": {
       "$value": "8px",
       "$description": "The frame. A block drawn rather than outlined."
+    },
+    "default": {
+      "$type": "border",
+      "$value": "1px solid #22d3ee",
+      "$description": "The edge a control draws with, in one value."
+    },
+    "focus-ring": {
+      "$type": "border",
+      "$value": "2px solid #22d3ee",
+      "$description": "The focus ring, in one value."
     }
   },
   "focus": {
@@ -875,5 +905,17 @@
   "modes": [
     "light",
     "dark"
-  ]
+  ],
+  "gradient": {
+    "$type": "gradient",
+    "$description": "The fills the theme paints with, each a direction and a list of stops.",
+    "brand": {
+      "$value": "linear-gradient(90deg, #22d3ee 0%, #a855f7 100%)",
+      "$description": "The brand fill: the accent into the secondary."
+    },
+    "surface": {
+      "$value": "linear-gradient(180deg, #0b1120 0%, #111827 100%)",
+      "$description": "The page, from the deepest ground up."
+    }
+  }
 }

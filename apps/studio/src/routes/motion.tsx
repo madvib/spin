@@ -608,6 +608,21 @@ export default function MotionPage() {
       ? groupTokens(current, [["motion", "easing"]], activeMode())
       : [];
   });
+  /**
+   * The transitions the theme spells in one token.
+   *
+   * A transition token carries a duration and an easing at once, so it is
+   * neither a duration nor a curve on the stages above: it is the pair,
+   * written as one value, and it gets a row of its own.
+   */
+  const transitions = createMemo(() => {
+    const current = tree();
+    return current
+      ? groupTokens(current, [["motion"]], activeMode()).filter((row) =>
+        row.type === "transition"
+      )
+      : [];
+  });
   const edit = (path: string, value: string) =>
     editToken(path.split("."), value);
   /**
@@ -745,6 +760,39 @@ export default function MotionPage() {
               />
             </Frame>
           </div>
+        </Show>
+      </Section>
+      <Section
+        title="Transitions"
+        fact={`${transitions().length} pairs`}
+        note="A transition in one token: a duration and an easing, written together. Both are steps of the scales above, so the editor offers the theme's own."
+      >
+        <Show
+          when={transitions().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no transitions yet.
+            </p>
+          }
+        >
+          <ul class="flow-list">
+            <For each={transitions()}>
+              {(row) => (
+                <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
+                  <code class="w-[10rem] shrink-0 truncate">{row.path}</code>
+                  <div class="min-w-0">
+                    <ValueInput
+                      value={row.value}
+                      type={row.type}
+                      onCommit={(value) => edit(row.path, value)}
+                      variable={row.variable}
+                      label={row.path}
+                    />
+                  </div>
+                </li>
+              )}
+            </For>
+          </ul>
         </Show>
       </Section>
     </ConcernPage>

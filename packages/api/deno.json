@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "exports": {
     ".": "./src/index.ts",
+    "./client": "./src/client.ts",
     "./daemon": "./src/daemon.ts",
     "./serve": "./src/serve.ts",
     "./project": "./src/project-procedures.ts"
   },
   "imports": {
     "@spin/api": "./src/index.ts",
+    "@spin/api/client": "./src/client.ts",
     "@spin/project": "../project/src/index.ts",
+    "@spin/diagnostics": "../diagnostics/src/index.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "hono": "npm:hono@^4.13.13",

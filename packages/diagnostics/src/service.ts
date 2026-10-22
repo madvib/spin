@@ -182,6 +182,29 @@ export async function lint(
   view: LintView = DISK,
   options: LintOptions = {},
 ): Promise<LintReport> {
+  const files = await filesUnder(path);
+  const missing: string[] = [];
+  if (files.length === 0) {
+    // Nothing was read: either the path is not there, or it holds no
+    // source at all. The two are told apart by the path itself.
+    if (!await exists(path)) missing.push(path);
+  }
+  const report = await lintFiles(files, view, options);
+  return { ...report, missing: [...report.missing, ...missing] };
+}
+
+/**
+ * The rules over a set of files.
+ *
+ * The files are given rather than walked: a caller that knows which files
+ * the project holds — the source, and not the documents beside it — asks
+ * about those files.
+ */
+export async function lintFiles(
+  files: readonly string[],
+  view: LintView = DISK,
+  options: LintOptions = {},
+): Promise<LintReport> {
   const run: RuleRun = {
     rules: options.rules ?? RULE_NAMES,
     semantic: options.semantic ?? DEFAULT_SEMANTIC_OPTIONS,
@@ -189,13 +212,6 @@ export async function lint(
   const findings: Diagnostic[] = [];
   const unreadable: string[] = [];
   const missing: string[] = [];
-
-  const files = await filesUnder(path);
-  if (files.length === 0) {
-    // Nothing was read: either the path is not there, or it holds no
-    // source at all. The two are told apart by the path itself.
-    if (!await exists(path)) missing.push(path);
-  }
 
   for (const file of files) {
     const code = stagedText(view, file) ?? await readText(file);

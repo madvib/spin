@@ -82,23 +82,46 @@ function declaredClasses(root: string): Set<string> {
         continue;
       }
       if (!SOURCE.test(entry.name)) continue;
-      let text: string;
-      try {
-        text = readFileSync(path, "utf8") as string;
-      } catch {
-        continue;
-      }
-      for (const match of text.matchAll(CLASS_ATTRIBUTE)) {
-        const quoted = match[1] ?? match[2];
-        if (quoted !== undefined) {
-          for (const cls of quoted.split(/\s+/)) {
-            if (cls.length > 0) out.add(cls);
-          }
-          continue;
-        }
-        for (const cls of staticClasses(match[3] ?? "")) out.add(cls);
-      }
+      for (const cls of classesIn(path)) out.add(cls);
     }
+  }
+  return out;
+}
+
+/**
+ * Every class a set of files declares.
+ *
+ * The files are the project's own source, so the vocabulary is the
+ * project's: a class the project writes is a class the generator is asked
+ * about, and a class nothing else writes is a class this project does not
+ * produce.
+ */
+export function declaredClassesIn(files: readonly string[]): Set<string> {
+  const out = new Set<string>();
+  for (const file of files) {
+    for (const cls of classesIn(file)) out.add(cls);
+  }
+  return out;
+}
+
+/** The classes one file declares. */
+function classesIn(path: string): string[] {
+  let text: string;
+  try {
+    text = readFileSync(path, "utf8") as string;
+  } catch {
+    return [];
+  }
+  const out: string[] = [];
+  for (const match of text.matchAll(CLASS_ATTRIBUTE)) {
+    const quoted = match[1] ?? match[2];
+    if (quoted !== undefined) {
+      for (const cls of quoted.split(/\s+/)) {
+        if (cls.length > 0) out.push(cls);
+      }
+      continue;
+    }
+    for (const cls of staticClasses(match[3] ?? "")) out.push(cls);
   }
   return out;
 }
@@ -127,9 +150,10 @@ function namedIn(css: string): Set<string> {
 }
 
 /** The classes the preset generates, asked of the generator. */
-async function resolve(): Promise<ReadonlySet<string>> {
+async function resolve(
+  candidates: ReadonlySet<string>,
+): Promise<ReadonlySet<string>> {
   try {
-    const candidates = declaredClasses(process.cwd());
     if (candidates.size === 0) return new Set<string>();
     const { createGenerator } = await import("@unocss/core");
     const { spinPreset } = await import("@spin/preset");
@@ -138,7 +162,7 @@ async function resolve(): Promise<ReadonlySet<string>> {
         spinPreset({ themes: { ...starterThemes } }),
       ],
     });
-    const { matched, css } = await generator.generate(candidates);
+    const { matched, css } = await generator.generate(new Set(candidates));
     return new Set([...matched, ...namedIn(css)]);
   } catch {
     // The vocabulary is the catalog's alone; the rules abstain rather than
@@ -147,5 +171,51 @@ async function resolve(): Promise<ReadonlySet<string>> {
   }
 }
 
-/** The classes the preset produces beyond the catalog. */
-export const generatedClasses: ReadonlySet<string> = await resolve();
+/**
+ * The classes the preset produces beyond the catalog, for the tool's own
+ * tree.
+ *
+ * The linter's plugin asks this once, from the root it was run in: the whole
+ * tree is the corpus, so every class the tree declares is a class the
+ * generator is asked about.
+ */
+export const generatedClasses: ReadonlySet<string> = await resolve(
+  declaredClasses(process.cwd()),
+);
+
+/**
+ * The vocabulary a project is judged by, kept per project root.
+ *
+ * The classes the preset produces beyond the catalog are wind4's, and
+ * wind4 answers for the classes a project writes: `truncate` is a class the
+ * project produces if the project writes it. So the vocabulary belongs to
+ * the project, and a project is judged by the classes its own source
+ * declares — not by the classes some other tree happens to declare.
+ */
+const byRoot = new Map<string, ReadonlySet<string>>();
+
+/**
+ * The classes the preset produces for a project's own source.
+ *
+ * Asked of the generator, once per project: the generator is the only one
+ * that knows what a class the catalog does not name resolves to.
+ */
+export async function warmVocabulary(
+  root: string,
+  candidates: Iterable<string>,
+): Promise<void> {
+  if (byRoot.has(root)) return;
+  byRoot.set(root, await resolve(new Set(candidates)));
+}
+
+/**
+ * The vocabulary a project is judged by, when it has been warmed.
+ *
+ * Absent means the project has not been asked yet, and the caller falls
+ * back to the tree's own vocabulary.
+ */
+export function vocabularyOf(
+  root: string,
+): ReadonlySet<string> | undefined {
+  return byRoot.get(root);
+}

@@ -1,7 +1,16 @@
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import { indexTree, parseTokens, type TokenTree } from "@spin/theme";
 import { silkTheme } from "@spin/theme/themes";
-import { borderUtilityOf, editorRouteFor, tokenRowAt, toPx } from "./tokens.ts";
+import {
+  borderUtilityOf,
+  compositeLadders,
+  editorRouteFor,
+  formatComposite,
+  isCompositeType,
+  parseComposite,
+  tokenRowAt,
+  toPx,
+} from "./tokens.ts";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
 
 /**
@@ -124,4 +133,131 @@ Deno.test("borderUtilityOf names the utility the vocabulary spells", () => {
   assertEquals(borderUtilityOf("border.width"), "border");
   assertEquals(borderUtilityOf("border.width-2"), "border-2");
   assertEquals(borderUtilityOf("border.width-8"), "border-8");
+});
+
+/**
+ * The composites, and a value each one is written in.
+ *
+ * The values are the theme's own spelling: the CSS a browser takes, which
+ * is how the theme writes every value it holds.
+ */
+const COMPOSITES: readonly { type: string; value: string }[] = [
+  { type: "typography", value: "600 1rem Inter, sans-serif 0.01em" },
+  { type: "border", value: "2px solid #c8102e" },
+  { type: "transition", value: "200ms cubic-bezier(0.4, 0, 0.2, 1)" },
+  {
+    type: "gradient",
+    value: "linear-gradient(90deg, #c8102e 0%, #0f766e 100%)",
+  },
+];
+
+Deno.test("the composite types are the four the studio gives a control", () => {
+  assertEquals(isCompositeType("typography"), true);
+  assertEquals(isCompositeType("border"), true);
+  assertEquals(isCompositeType("transition"), true);
+  assertEquals(isCompositeType("gradient"), true);
+  // A shadow is a composite in CSS and is not one of these: the studio
+  // already has an editor for it, and a value with no parts is not one.
+  assertEquals(isCompositeType("shadow"), false);
+  assertEquals(isCompositeType("color"), false);
+});
+
+Deno.test("a composite is read as the parts it is made of", () => {
+  assertEquals(parseComposite("border", "2px solid #c8102e"), {
+    type: "border",
+    width: "2px",
+    style: "solid",
+    color: "#c8102e",
+  });
+  assertEquals(
+    parseComposite("typography", "600 1rem Inter, sans-serif 0.01em"),
+    {
+      type: "typography",
+      family: "Inter, sans-serif",
+      size: "1rem",
+      weight: "600",
+      tracking: "0.01em",
+      leading: "",
+    },
+  );
+  assertEquals(
+    parseComposite("transition", "200ms cubic-bezier(0.4, 0, 0.2, 1)"),
+    {
+      type: "transition",
+      property: "",
+      duration: "200ms",
+      easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+      delay: "",
+    },
+  );
+  assertEquals(
+    parseComposite(
+      "gradient",
+      "linear-gradient(90deg, #c8102e 0%, #0f766e 100%)",
+    ),
+    {
+      type: "gradient",
+      direction: "90deg",
+      stops: [
+        { color: "#c8102e", position: "0%" },
+        { color: "#0f766e", position: "100%" },
+      ],
+    },
+  );
+});
+
+Deno.test("a composite that is written back says the same thing", () => {
+  // The round trip the editor depends on: a value that is read into its
+  // parts and written again is the value that was there.
+  for (const composite of COMPOSITES) {
+    const parts = parseComposite(composite.type, composite.value);
+    assert(parts !== undefined, `${composite.type} did not parse`);
+    assertEquals(formatComposite(parts), composite.value, composite.type);
+  }
+});
+
+Deno.test("changing one part of a composite leaves the others as they were", () => {
+  const parts = parseComposite("border", "2px solid #c8102e");
+  assert(parts !== undefined, "the border did not parse");
+  assert(parts.type === "border", "the border did not parse as a border");
+  assertEquals(
+    formatComposite({ ...parts, color: "#0f766e" }),
+    "2px solid #0f766e",
+  );
+  assertEquals(
+    formatComposite({ ...parts, style: "dashed" }),
+    "2px dashed #c8102e",
+  );
+});
+
+Deno.test("a type the studio has no parts for is not a composite", () => {
+  assertEquals(parseComposite("color", "#c8102e"), undefined);
+  assertEquals(parseComposite("dimension", "1rem"), undefined);
+});
+
+Deno.test("the ladders a composite offers are the theme's own steps", () => {
+  const parsed = parseTokens(silkTheme);
+  if (!parsed.ok) {
+    throw new Error(`the shipped theme does not parse: ${parsed.error}`);
+  }
+  const ladders = compositeLadders(parsed.tree, "light");
+  // Every ladder is a group the theme declares, and every step is a token
+  // in it — the control offers the theme's steps or nothing.
+  for (const [group, steps] of Object.entries(ladders)) {
+    assert(steps.length > 0, `the theme declares no ${group}`);
+    for (const step of steps) {
+      assert(
+        indexTree(parsed.tree).leaves[step.path] !== undefined,
+        `${step.path} is not a token of the theme`,
+      );
+    }
+  }
+  assertEquals(
+    ladders.widths.map((step) => step.name),
+    ["width", "width-2", "width-4", "width-8"],
+  );
+  assertEquals(
+    ladders.sizes.map((step) => step.name),
+    ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
+  );
 });

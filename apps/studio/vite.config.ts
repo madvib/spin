@@ -82,6 +82,21 @@ export default defineConfig(({ command }) => ({
   // would escape the mount and 404 behind the middleware. Dev serves at
   // `/` so routes resolve without the prefix.
   base: command === "build" ? "/__spin/studio/" : "/",
+  resolve: {
+    // The browser cannot read a disk, and the diagnostics package reads the
+    // project's files. The studio's bundle reaches it through the API, so
+    // the studio stands a stand-in in its place: the browser never calls
+    // the rules — it asks the daemon over RPC, and the daemon runs them.
+    //
+    // The alias is the studio's own, not the preset's: a consumer of the
+    // preset must never be handed this file.
+    alias: {
+      "@spin/diagnostics": resolve(
+        import.meta.dirname,
+        "src/lib/diagnostics-stub.ts",
+      ),
+    },
+  },
   plugins: [
     spin.vite({
       // The chrome is themed by the studio's own static theme. Project

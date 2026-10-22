@@ -11,9 +11,6 @@
  */
 
 import { RPCHandler } from "@orpc/server/fetch";
-import type { RouterClient } from "@orpc/server";
-import { RPCLink } from "@orpc/client/fetch";
-import { createORPCClient } from "@orpc/client";
 import { Hono } from "hono";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
@@ -24,6 +21,7 @@ import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
 import { iconsRouter } from "./icons-procedures.ts";
+import { findingsRouter } from "./findings-procedures.ts";
 import { overlayRouter } from "@spin/preset";
 
 export { themeRouter } from "@spin/theme";
@@ -38,6 +36,9 @@ export { presetRouter } from "@spin/preset";
 export { presetContract } from "@spin/preset";
 export { iconsContract } from "./icons-procedures.ts";
 export { iconsRouter } from "./icons-procedures.ts";
+export { findingsContract } from "./findings-procedures.ts";
+export { findingsRouter } from "./findings-procedures.ts";
+export { createSpinClient, type SpinClient } from "./client.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */
 export const router = {
@@ -49,17 +50,10 @@ export const router = {
   ...overlayRouter,
   ...fontsRouter,
   ...iconsRouter,
+  ...findingsRouter,
 };
 
 export const rpcHandler = new RPCHandler(router);
-
-/** Typed client over a fetch link. The studio and CLI use this, never raw fetch. */
-export type SpinClient = RouterClient<typeof router>;
-
-export function createSpinClient(url: string): SpinClient {
-  const link = new RPCLink({ url });
-  return createORPCClient(link);
-}
 
 /**
  * Mount the router on a Fetch-API host (Deno.serve, vent, Hono via the fetch

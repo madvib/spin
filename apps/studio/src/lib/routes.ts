@@ -104,6 +104,15 @@ export const ROUTES = [
     children: ["", "/:name"],
   },
   {
+    path: "/findings",
+    label: "Findings",
+    // A checklist, not a warning: the page is where the lints are read, and
+    // what they say is the subject — a finding that cannot be fixed is as
+    // much a finding as one that can.
+    icon: "i-lucide-list-checks",
+    place: "concern",
+  },
+  {
     path: "/preferences",
     label: "Preferences",
     icon: "i-lucide-settings",

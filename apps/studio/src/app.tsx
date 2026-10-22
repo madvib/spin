@@ -35,6 +35,7 @@ import ComponentsIndex from "./routes/components/index.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
+import FindingsPage from "./routes/findings.tsx";
 import { For, Show, Suspense } from "solid-js";
 import type { Component } from "solid-js";
 import "uno.css";
@@ -84,6 +85,7 @@ const PAGES = {
   "/spacing": SpacingPage,
   "/motion": MotionPage,
   "/components": ComponentsLayout,
+  "/findings": FindingsPage,
 } satisfies Record<RoutePath, Component>;
 
 type RouteEntry = (typeof ROUTES)[number];

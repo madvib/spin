@@ -48,6 +48,36 @@ function withValue(text: string, path: string, value: string): string {
   return JSON.stringify(doc, null, 2);
 }
 
+/**
+ * A document with a composite token at a path.
+ *
+ * The groups are made as the token is written, so a fixture can say
+ * `border.focus-ring` without the theme having to declare a border group
+ * first.
+ */
+function withComposite(
+  text: string,
+  path: string,
+  type: string,
+  value: string,
+): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  const segments = path.split(".");
+  let node = doc;
+  for (const segment of segments.slice(0, -1)) {
+    const next = node[segment];
+    if (next === undefined || typeof next !== "object" || Array.isArray(next)) {
+      node[segment] = {};
+    }
+    node = node[segment] as Record<string, unknown>;
+  }
+  node[segments[segments.length - 1] as string] = {
+    $type: type,
+    $value: value,
+  };
+  return JSON.stringify(doc, null, 2);
+}
+
 Deno.test("the fill paints the share of the travel the value has covered", () => {
   assertEquals(rangeProgress(0, 0, 3), "0%");
   assertEquals(rangeProgress(1.5, 0, 3), "50%");
@@ -213,4 +243,86 @@ Deno.test("a document that does not build says why, in the module's words", () =
 
 Deno.test("a document that builds has nothing to say", () => {
   assertEquals(documentFailure(complete()), undefined);
+});
+
+Deno.test("a composite's colour that fails the floor it owes is refused", () => {
+  // The composite is the theme's `border.focus-ring`: the edge the focus
+  // ring is drawn with, so its colour owes the floor `color.focus-ring`
+  // owes — three to one on the page. A white edge on a white page does
+  // not clear it, and the refusal says so in the module's own words.
+  const before = withComposite(
+    complete(),
+    "border.focus-ring",
+    "border",
+    "2px solid #333333",
+  );
+  const after = withComposite(
+    before,
+    "border.focus-ring",
+    "border",
+    "2px solid #ffffff",
+  );
+  const refusal = editRefusal(before, after, ["border.focus-ring"]);
+  assert(refusal !== undefined, "the floor was broken and the edit allowed");
+  assertEquals(refusal.path, "border.focus-ring");
+  assert(
+    refusal.message.includes("below the 3:1 floor"),
+    `the refusal does not say what is wrong: ${refusal.message}`,
+  );
+});
+
+Deno.test("a composite's colour that clears the floor it owes is allowed", () => {
+  const before = withComposite(
+    complete(),
+    "border.focus-ring",
+    "border",
+    "2px solid #333333",
+  );
+  const after = withComposite(
+    before,
+    "border.focus-ring",
+    "border",
+    "2px solid #666666",
+  );
+  assertEquals(editRefusal(before, after, ["border.focus-ring"]), undefined);
+});
+
+Deno.test("a composite's part that is not a value the theme accepts is refused", () => {
+  // The theme's own rule for a dimension: a width that lost its unit is
+  // not a width, and the module is the one that says so.
+  const before = withComposite(
+    complete(),
+    "border.default",
+    "border",
+    "2px solid #333333",
+  );
+  const after = withComposite(
+    before,
+    "border.default",
+    "border",
+    "2 solid #333333",
+  );
+  const refusal = editRefusal(before, after, ["border.default"]);
+  assert(refusal !== undefined, "the value that would not build was allowed");
+  assertEquals(refusal.path, "border.default");
+  assert(
+    refusal.message.includes("dimension needs a CSS unit"),
+    `the refusal does not say what is wrong: ${refusal.message}`,
+  );
+});
+
+Deno.test("a composite the theme can build is allowed through", () => {
+  const before = withComposite(
+    complete(),
+    "border.default",
+    "border",
+    "2px solid #333333",
+  );
+  const after = withComposite(
+    before,
+    "border.default",
+    "border",
+    "1px dashed #333333",
+  );
+  assertEquals(editRefusal(before, after, ["border.default"]), undefined);
 });

@@ -44,6 +44,14 @@ export interface Diagnostic {
   readonly messageId: string;
   /** The sentence the message id stands for. */
   readonly message: string;
+  /**
+   * What to do about the finding, in the rule's own words.
+   *
+   * A finding that says only what is wrong leaves the reader to work out the
+   * repair; the remedy is the way out, and it belongs to the rule that found
+   * the thing — so the wording lives where the decision lives.
+   */
+  readonly remedy?: string;
   /** How bad it is: the rule's own stance. */
   readonly severity: "error" | "warning";
   /** The edit that settles the finding, when the finding has one. */
@@ -102,6 +110,10 @@ export function lintTree(
           line: descriptor.node.loc?.start.line ?? 0,
           column: descriptor.node.loc?.start.column ?? 0,
         };
+        // The remedy is the rule's own sentence about what to do: a rule
+        // that says what is wrong and what to do about it says both in the
+        // same vocabulary.
+        const remedy = descriptor.remedy;
         findings.push({
           file: filename,
           line: position.line,
@@ -113,6 +125,7 @@ export function lintTree(
             data: descriptor.data ?? {},
             position,
           }),
+          ...(remedy === undefined ? {} : { remedy }),
           severity: rule.meta.type === "problem" ? "error" : "warning",
           ...(fix === undefined ? {} : { fix }),
         });

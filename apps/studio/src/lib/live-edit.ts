@@ -19,8 +19,20 @@
  * whether or not a browser is watching it.
  */
 
-import { parseTokens, validateTheme, valuesInMode } from "@spin/theme";
+import {
+  aliasTarget,
+  contrastRatio,
+  indexTree,
+  legibilityFloors,
+  parseTokens,
+  resolveAliases,
+  validateTheme,
+  validateTokens,
+  valuesInMode,
+} from "@spin/theme";
 import type { ValidationIssue } from "@spin/theme";
+import { isCompositeType, parseComposite } from "./tokens.ts";
+import type { Composite } from "./tokens.ts";
 
 /**
  * The share of a track's travel a value has covered, as a percentage.
@@ -119,6 +131,171 @@ export interface Refusal {
   readonly message: string;
 }
 
+/**
+ * The theme module's own judgement of a value, as the token of its type.
+ *
+ * A composite's parts are values of the theme's own types — a border's
+ * width is a dimension, its colour a colour, a typography's size a
+ * dimension — and the theme module owns the rule for each. So a part is
+ * judged by asking the module to judge a document that holds it, and the
+ * answer is the module's words rather than a rule written here.
+ *
+ * A reference is not a value to judge: it is a pointer at another token,
+ * and the theme resolves those where it resolves them.
+ */
+function partIssue(type: string, value: string): string | undefined {
+  if (value === "") return undefined;
+  if (aliasTarget(value) !== null) return undefined;
+  const parsed = parseTokens(JSON.stringify({
+    probe: { $type: type, $value: value },
+  }));
+  if (!parsed.ok) return parsed.error;
+  const report = validateTokens(parsed.tree);
+  return report.issues[0]?.message;
+}
+
+/**
+ * The role a composite's colour wears.
+ *
+ * The theme's floors are declared on roles — a role is read on a surface
+ * and owes a ratio — and a composite is not a role. So a composite's
+ * colour says which role it wears by its own name: a composite at
+ * `border.focus-ring` wears the floor `color.focus-ring` owes, because it
+ * is that edge the theme drew. A composite whose name names no role owes
+ * none, and the studio says so rather than inventing a floor.
+ */
+function roleOf(path: string): string {
+  return `color.${path.split(".").pop() ?? ""}`;
+}
+
+/**
+ * The colours a composite carries, one per part that holds one.
+ */
+function colorsOf(composite: Composite): readonly string[] {
+  if (composite.type === "border") return [composite.color];
+  if (composite.type === "gradient") {
+    return composite.stops.map((stop) => stop.color);
+  }
+  return [];
+}
+
+/**
+ * Why a composite's part may not land.
+ *
+ * Two questions, and both are the theme module's:
+ *
+ * - **Is the part a value the type accepts?** A width that lost its unit
+ *   and a colour the browser cannot read are the theme's rules, so the
+ *   module is asked about each part as a token of its own type.
+ * - **Does the part's colour clear the floor it owes?** The floors are
+ *   declared on roles and measured by the module, so the measurement is
+ *   the module's too.
+ *
+ * The answer is a sentence in the module's words, because the module is
+ * what the build will say.
+ */
+function compositeIssue(
+  text: string,
+  path: string,
+  composite: Composite,
+): string | undefined {
+  const parts: readonly { type: string; value: string }[] =
+    composite.type === "typography"
+      ? [
+        { type: "fontFamily", value: composite.family },
+        { type: "dimension", value: composite.size },
+        { type: "fontWeight", value: composite.weight },
+        { type: "dimension", value: composite.tracking },
+      ]
+      : composite.type === "border"
+      ? [
+        { type: "dimension", value: composite.width },
+        { type: "strokeStyle", value: composite.style },
+        { type: "color", value: composite.color },
+      ]
+      : composite.type === "transition"
+      ? [
+        { type: "duration", value: composite.duration },
+        { type: "cubicBezier", value: composite.easing },
+        { type: "duration", value: composite.delay },
+      ]
+      : [
+        { type: "color", value: composite.stops[0]?.color ?? "" },
+        { type: "color", value: composite.stops[1]?.color ?? "" },
+      ];
+  for (const part of parts) {
+    const issue = partIssue(part.type, part.value);
+    if (issue !== undefined) return issue;
+  }
+  return floorIssue(text, path, composite);
+}
+
+/**
+ * The floor a composite's colour owes, measured by the theme module.
+ */
+function floorIssue(
+  text: string,
+  path: string,
+  composite: Composite,
+): string | undefined {
+  const role = roleOf(path);
+  const floors = legibilityFloors().filter((floor) => floor.fg === role);
+  if (floors.length === 0) return undefined;
+  const parsed = parseTokens(text);
+  if (!parsed.ok) return undefined;
+  const index = indexTree(resolveAliases(parsed.tree).tree);
+  const colors = colorsOf(composite).filter((color) => color !== "");
+  if (colors.length === 0) return undefined;
+  for (const floor of floors) {
+    const surface = index.leaves[floor.bg]?.value;
+    if (typeof surface !== "string") continue;
+    for (const color of colors) {
+      let ratio: number;
+      try {
+        ratio = contrastRatio(color, surface);
+      } catch {
+        // A colour the module cannot read is the completeness gate's
+        // business, and the part rule has already said so.
+        continue;
+      }
+      if (ratio < floor.min) {
+        return `${role} on ${floor.bg} is ${
+          ratio.toFixed(2)
+        }:1, below the ${floor.min}:1 floor`;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Why a composite the author is holding may not land.
+ *
+ * The document's own problems are the build's business; this is the other
+ * half — a composite is more than one value, and each of its values is
+ * judged by the theme module's own rule, so a composite that would not
+ * build is refused in the module's words.
+ */
+function compositeRefusal(
+  text: string,
+  touched: readonly string[],
+): Refusal | undefined {
+  const parsed = parseTokens(text);
+  if (!parsed.ok) return undefined;
+  const index = indexTree(parsed.tree);
+  for (const path of touched) {
+    const leaf = index.leaves[path];
+    if (leaf === undefined) continue;
+    if (!isCompositeType(leaf.type)) continue;
+    if (typeof leaf.value !== "string") continue;
+    const composite = parseComposite(leaf.type, leaf.value);
+    if (composite === undefined) continue;
+    const message = compositeIssue(text, path, composite);
+    if (message !== undefined) return { path, message };
+  }
+  return undefined;
+}
+
 /** A problem, read as a sentence: the token first, then what is wrong. */
 function said(issue: ValidationIssue): string {
   return issue.path === "" ? issue.message : `${issue.path}: ${issue.message}`;
@@ -148,6 +325,11 @@ export function editRefusal(
   after: string,
   touched: readonly string[] = [],
 ): Refusal | undefined {
+  // The composite under the pointer comes first: it is the value the
+  // author is holding, and each of its parts is judged by the theme
+  // module's own rule.
+  const composite = compositeRefusal(after, touched);
+  if (composite !== undefined) return composite;
   const held = new Set(problemsOf(before).map((issue) => issue.path));
   const paths = new Set(touched);
   const introduced = problemsOf(after).filter((issue) =>

@@ -59,6 +59,15 @@ export interface Finding {
   readonly position: Position;
   /** The edit that settles the finding, when the finding has one. */
   readonly fix?: TextEdit;
+  /**
+   * What to do about the finding, in the rule's own words.
+   *
+   * A rule that says only what is wrong leaves the author to work out the
+   * repair; the remedy is the way out, and it belongs to the rule that
+   * found the thing. It is not one of the message's values: the message is
+   * the complaint, and the remedy is the offer beside it.
+   */
+  readonly remedy?: string;
 }
 
 /**
@@ -318,6 +327,7 @@ export function checkClosedVocabulary(
           messageId: "shortcut",
           data: { shortcut: cls, cls: part },
           position: node.position,
+          remedy: "Change what `" + cls + "` expands to, or drop it.",
         });
       }
       continue;
@@ -327,6 +337,7 @@ export function checkClosedVocabulary(
       data: { cls },
       position: node.position,
       fix: removalOf(node, index),
+      remedy: "Drop `" + cls + "`",
     });
   }
   return out;
@@ -458,6 +469,7 @@ export function checkNoRedundantClass(
       },
       position: node.position,
       fix: removalOf(node, index),
+      remedy: "Drop `" + reading.cls + "`",
     });
   }
   return out;
@@ -511,6 +523,12 @@ export function checkPreferThemeValue(
     const spacing = reading.tier === "spacing";
     if (holder === undefined && !spacing) continue;
     const family = familyOf(reading, decision);
+    const remedy = remedyOf(
+      family,
+      family === "spacing"
+        ? sizeVariants(facts, owners, node)
+        : variantsOf(facts, holder, tag, node, decision),
+    );
     out.push({
       messageId: "override",
       data: {
@@ -518,14 +536,10 @@ export function checkPreferThemeValue(
         cls: reading.cls,
         family,
         claim: claimOf(family, tag, decision),
-        remedy: remedyOf(
-          family,
-          family === "spacing"
-            ? sizeVariants(facts, owners, node)
-            : variantsOf(facts, holder, tag, node, decision),
-        ),
+        remedy,
       },
       position: node.position,
+      remedy,
     });
   }
   return out;
@@ -781,6 +795,7 @@ export function checkPreferElement(
         decision: nounOf(decision),
       },
       position: node.position,
+      remedy: "Put the class on `<" + element + ">`.",
     });
   }
   return out;
@@ -926,12 +941,14 @@ export function checkNoUnpairedInk(
             messageId: "undeclared",
             data: { ink: `text-${ink}`, fill },
             position: node.position,
+            remedy: "Paint a paired fill, or declare the pairing in the theme.",
           });
         } else if (ink !== expected) {
           out.push({
             messageId: "mismatch",
             data: { ink: `text-${ink}`, fill, expected: `text-${expected}` },
             position: node.position,
+            remedy: `Use \`${expected}\` on that fill`,
           });
         }
       }
@@ -968,6 +985,8 @@ export function checkNoHandwrittenTokens(
         path: facts.paths.get(`--${token}`) ?? token,
       },
       position: node.position,
+      remedy: "Read the theme's token `" +
+        (facts.paths.get(`--${token}`) ?? token) + "`.",
     });
   }
   return out;

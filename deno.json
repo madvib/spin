@@ -27,6 +27,7 @@
     "@spin/project/sync": "./packages/project/src/sync.ts",
     "@spin/diagnostics": "./packages/diagnostics/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
+    "@spin/api/client": "./packages/api/src/client.ts",
     "@unocss/core": "npm:@unocss/core@^66.10.5",
     "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",

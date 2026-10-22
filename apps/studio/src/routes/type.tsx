@@ -152,6 +152,18 @@ function elementRows(): readonly TokenRow[] {
   return rowsUnder("font.element");
 }
 
+/**
+ * The type the theme states in one token.
+ *
+ * A typography token is a family, a size, a weight and a tracking in one
+ * value — the four decisions the scales above hold separately — so it gets
+ * a row of its own and an editor that takes the four apart. A theme that
+ * declares none has no such row, and the section says so.
+ */
+function compositeRows(): readonly TokenRow[] {
+  return fontRows().filter((row) => row.type === "typography");
+}
+
 /** The letter-spacing tokens the theme declares, for the tracking family. */
 function trackingRows(): readonly TokenRow[] {
   return rowsUnder("font.letter-spacing");
@@ -371,6 +383,44 @@ export default function TypePage() {
           <p class="text-sm text-text-muted">
             This theme declares no tracking yet.
           </p>
+        </Show>
+      </section>
+
+      <section class="stack mt-8" aria-label="Type in one token">
+        <h2>Type in one token</h2>
+        <p class="max-w-screen-md text-text-muted">
+          A typography token is a family, a size, a weight and a tracking in one
+          value. Each part is a step of a scale the theme already keeps above,
+          so the editor offers those steps rather than free numbers, and the
+          specimen is set in the result.
+        </p>
+        <Show
+          when={compositeRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme states no type in one token yet.
+            </p>
+          }
+        >
+          <ul class="flow-list stack-sm">
+            <For each={compositeRows()}>
+              {(row) => (
+                <li class="panel stack-sm">
+                  <div class="row-sm flex-wrap items-center gap-2">
+                    <code>{row.path}</code>
+                    <code>{row.value}</code>
+                  </div>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => editToken(row.path.split("."), value)}
+                    variable={row.variable}
+                    label={row.path}
+                  />
+                </li>
+              )}
+            </For>
+          </ul>
         </Show>
       </section>
 

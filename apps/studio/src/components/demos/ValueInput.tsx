@@ -1,4 +1,4 @@
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { formatHex, indexTree, parseColor } from "@spin/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
@@ -14,8 +14,10 @@ import {
   rangeProgress,
   tokenPath,
 } from "../../lib/live-edit.ts";
+import { compositeLadders, isCompositeType } from "../../lib/tokens.ts";
 import ShadowEditor from "./ShadowEditor.tsx";
 import BezierEditor from "./BezierEditor.tsx";
+import CompositeEditor from "./CompositeEditor.tsx";
 
 function isBezierValue(value: string): boolean {
   return /^cubic-bezier\s*\(/.test(value.trim());
@@ -93,9 +95,28 @@ export default function ValueInput(props: {
   /** Reports a drag abandoned before it committed. */
   onCancel?: () => void;
 }) {
+  // The theme's own ladders, for a composite whose parts are steps the
+  // theme declared elsewhere. Read from the document being edited, in the
+  // mode being edited, so the steps offered are the ones in force.
+  const ladders = createMemo(() => {
+    const tree = analyzeTheme(themeText()).tree;
+    return tree === undefined
+      ? undefined
+      : compositeLadders(tree, activeMode());
+  });
   return (
     <div class="row-sm gap-2">
       <Switch fallback={<TextControl {...props} />}>
+        <Match when={isCompositeType(props.type) && ladders() !== undefined}>
+          <CompositeEditor
+            type={props.type}
+            value={props.value}
+            ladders={ladders()!}
+            onCommit={props.onCommit}
+            id={props.id}
+            label={props.label}
+          />
+        </Match>
         <Match when={isBezierValue(props.value)}>
           <BezierEditor value={props.value} onCommit={props.onCommit} />
         </Match>

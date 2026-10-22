@@ -13,7 +13,7 @@
 import { dirname } from "node:path";
 import type { Facts } from "./core.ts";
 import { projectFacts } from "./facts.ts";
-import { generatedClasses } from "./generated.ts";
+import { generatedClasses, vocabularyOf } from "./generated.ts";
 import {
   findProjectRoot,
   findProjectRootIn,
@@ -85,9 +85,25 @@ export function factsForFile(filename: string): Facts {
   if (cached !== undefined) return cached;
   const facts = projectFacts(
     readProjectThemes(root),
-    generatedClasses,
+    // The project's own vocabulary when it has been asked for one: the
+    // classes the preset produces beyond the catalog are the classes THIS
+    // project writes, and a project is judged by its own source.
+    vocabularyOf(root) ?? generatedClasses,
     readProjectShortcuts(build),
   );
   factsByRoot.set(key, facts);
   return facts;
+}
+
+/**
+ * Forgets a project's facts, so the next read takes a new vocabulary.
+ *
+ * A project asked about twice — once before its own classes were known and
+ * once after — must not keep the first answer: the rules would judge the
+ * second reading by the first one's vocabulary.
+ */
+export function forgetFacts(root: string): void {
+  for (const key of factsByRoot.keys()) {
+    if (key.split("\u0000")[0] === root) factsByRoot.delete(key);
+  }
 }

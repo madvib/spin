@@ -3,6 +3,8 @@ import { parseTokens, setToken, treeToJson } from "@spin/theme";
 import { scaffold } from "@spin/preset";
 import {
   createSpinClient,
+  findingsContract,
+  findingsRouter,
   iconsContract,
   iconsRouter,
   presetContract,
@@ -109,6 +111,18 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     ],
     iconsContract,
     iconsRouter,
+  ],
+  [
+    "findings",
+    [
+      "findings.list",
+      "findings.fix",
+      "findings.corpus",
+      "findings.order",
+      "findings.shortcut",
+    ],
+    findingsContract,
+    findingsRouter,
   ],
 ];
 

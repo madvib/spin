@@ -67,6 +67,21 @@ export default function StylePage() {
   const layers = createMemo(() => group([["z-index"]]));
   const opacities = createMemo(() => group([["opacity"]]));
   const borders = createMemo(() => group([["border"]]));
+  /**
+   * The edges the theme spells in one token.
+   *
+   * A border token carries a width, a style and a colour at once, so it is
+   * not a width on its own: the widths below are the ladder, and these are
+   * the edges a theme draws with them.
+   */
+  const borderComposites = createMemo(() =>
+    borders().filter((row) => row.type === "border")
+  );
+  const borderWidths = createMemo(() =>
+    borders().filter((row) => row.type !== "border")
+  );
+  /** The fills the theme spells in one token. */
+  const gradients = createMemo(() => group([["gradient"]]));
   const focuses = createMemo(() => group([["focus"]]));
   /**
    * The theme's own value for a colour, in the mode being shown.
@@ -140,20 +155,88 @@ export default function StylePage() {
 
       <Family
         title="Border"
-        fact={`${borders().length} widths`}
+        fact={`${borderWidths().length} widths`}
         note="The edge a control and surface draw with, as a width. The specimen is the edge, and the page spends the token's own thickness on it."
-        rows={borders()}
+        rows={borderWidths()}
         prefix="border"
         utilityOf={(row) => borderUtilityOf(row.path)}
         onEdit={edit}
         figure={
           <BorderFigure
-            rows={borders()}
+            rows={borderWidths()}
             fill={acting()}
             edge={colour("color.text")}
           />
         }
       />
+
+      <Section
+        title="Composite borders"
+        fact={`${borderComposites().length} edges`}
+        note="An edge in one token: a width, a style and a colour. The width is a step of the ladder above and the colour is a role of the palette, so the editor offers the theme's own."
+      >
+        <Show
+          when={borderComposites().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no composite borders yet.
+            </p>
+          }
+        >
+          <ul class="flow-list">
+            <For each={borderComposites()}>
+              {(row) => (
+                <TokenLine
+                  path={row.path}
+                  editor={
+                    <ValueInput
+                      value={row.value}
+                      type={row.type}
+                      onCommit={(value) => edit(row, value)}
+                      variable={row.variable}
+                      label={row.path}
+                    />
+                  }
+                />
+              )}
+            </For>
+          </ul>
+        </Show>
+      </Section>
+
+      <Section
+        title="Gradient"
+        fact={`${gradients().length} fills`}
+        note="A fill in one token: a direction and a list of stops. The stops are the theme's own colours, so a palette change moves the fill with it."
+      >
+        <Show
+          when={gradients().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no gradients yet.
+            </p>
+          }
+        >
+          <ul class="flow-list">
+            <For each={gradients()}>
+              {(row) => (
+                <TokenLine
+                  path={row.path}
+                  editor={
+                    <ValueInput
+                      value={row.value}
+                      type={row.type}
+                      onCommit={(value) => edit(row, value)}
+                      variable={row.variable}
+                      label={row.path}
+                    />
+                  }
+                />
+              )}
+            </For>
+          </ul>
+        </Show>
+      </Section>
 
       <Family
         title="Focus"
