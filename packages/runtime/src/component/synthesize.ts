@@ -520,7 +520,9 @@ export function defineComponent<
   const manifest = {
     parts: Object.keys(def.parts),
     slots: Object.keys(def.slots ?? {}),
-    readers: Object.keys(def.readers ?? {}),
+    // `state` is the framework's own reader: the machine's mode, live. A
+    // component that declares its own keeps it, and the name is the same.
+    readers: [...Object.keys(def.readers ?? {}), "state"],
     methods: Object.keys(def.methods ?? {}),
   };
   return {
