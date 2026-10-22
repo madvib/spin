@@ -10,12 +10,12 @@
  *
  * The chrome is three places now, and each of them says something different
  * about the route it carries. The rail is navigation and nothing else: the
- * mark that goes home, and the concerns the project is filed by. The bar
- * along the bottom is the studio's own: the verbs that edit the document and
- * the report on it. A route the chrome does not offer is served but not
- * offered, which is a fact the table states rather than the app guessing.
+ * mark that goes home, and the concerns the project is filed by. The rail's
+ * FOOT is the studio's own: the verbs that are not about the document at all.
+ * A route the chrome does not offer is served but not offered, which is a fact
+ * the table states rather than the app guessing.
  */
-export type ChromePlace = "mark" | "concern" | "bar";
+export type ChromePlace = "mark" | "concern" | "foot";
 
 /** One route, and what the studio knows about it. */
 export interface StudioRoute {
@@ -101,7 +101,7 @@ export const ROUTES = [
     path: "/preferences",
     label: "Preferences",
     icon: "i-lucide-settings",
-    place: "bar",
+    place: "foot",
   },
 ] as const satisfies readonly StudioRoute[];
 
@@ -123,7 +123,7 @@ function placed(place: ChromePlace): readonly StudioRoute[] {
   return ROUTES.filter((route) => route.place === place);
 }
 
-/** The single route placed at a mark or a bar. Two claiming it is an error. */
+/** The single route placed at a mark. Two claiming it is an error. */
 function chromeAt(place: ChromePlace): StudioRoute {
   const claimed = ROUTES.filter((route) => route.place === place);
   if (claimed.length === 0) {
@@ -144,15 +144,18 @@ function chromeAt(place: ChromePlace): StudioRoute {
 /** The rail's mark: the link back to the overview. */
 export const MARK: StudioRoute = chromeAt("mark");
 
-/** The rail's concerns, in the order the rail offers them. */
+/**
+ * The rail's concerns, in the order the rail offers them.
+ */
 export const CONCERNS: readonly StudioRoute[] = placed("concern");
 
 /**
- * The bar's own routes.
+ * The rail's foot: the studio's own routes.
  *
- * The rail is navigation to the PROJECT's concerns, so the studio's own
- * settings do not live in it: the bar along the bottom carries them beside
- * the verbs that edit the document. A list rather than one route, because a
- * bar can carry more than one thing and the table should say so.
+ * The rail is navigation to the PROJECT's concerns, and the studio's own
+ * settings are not one of them — they are chrome verbs, and the chrome verbs
+ * live at the foot of the rail, in the same visual language as the concerns
+ * above them. A list rather than one route, because a foot can carry more
+ * than one thing and the table should say so.
  */
-export const BAR: readonly StudioRoute[] = placed("bar");
+export const FOOT: readonly StudioRoute[] = placed("foot");

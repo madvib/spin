@@ -8,10 +8,11 @@
  * what makes a broken theme recoverable.
  *
  * The chrome is three pieces and each of them has one job. The rail on the
- * edge is navigation: the mark that goes home, and the concerns the project
- * is filed by. The column is the work: the preview of the document being
- * edited. The bar along the bottom is the state: what is being edited, what
- * is true about the file, and the verbs that change it.
+ * edge is navigation: the mark that goes home, the concerns the project
+ * is filed by, and the studio's own verbs at its foot. The column is the
+ * work: the preview of the document being edited. The bar along the bottom
+ * is the state: what is being edited, what is true about the file, and the
+ * verbs that change it.
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
@@ -33,7 +34,7 @@ import type { Component } from "solid-js";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 import StatusBar from "./components/StatusBar.tsx";
-import { CONCERNS, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
+import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 
 import {
   activeMode,
@@ -42,7 +43,7 @@ import {
   lastNotice,
   lastRefusal,
 } from "./lib/store.ts";
-import { inDrawer } from "./lib/host.ts";
+import { closeStudio, embedded, inDrawer, toggleHostMode } from "./lib/host.ts";
 import { hostPath } from "./lib/client.ts";
 
 /**
@@ -196,11 +197,13 @@ export default function App() {
             >
               {
                 /*
-                The rail is navigation and nothing else: the mark at the top
-                and the concerns below it. The verbs that change the
-                document — undo, redo, save — and the studio's own settings
-                are not navigation, and they live in the bar along the
-                bottom where the state they answer is written down.
+                The rail is navigation and nothing else: the mark at the top,
+                the concerns below it, and the studio's own verbs at its foot.
+                The verbs that change the document — undo, redo, save — live
+                in the bar along the bottom, where the state they answer is
+                written down; the gear, the way out and the edge the studio is
+                shown at are chrome verbs, and chrome verbs belong to the
+                chrome, not to the document.
 
                 It wears the studio's own theme, so editing a theme cannot
                 restyle the tool you are editing it with.
@@ -211,18 +214,21 @@ export default function App() {
                 the reader and for the keyboard, where the row takes focus
                 and has to announce itself.
 
-                The rows are BOXES, not glyphs. A row that is only as wide as
-                its icon gives the pointer a target the size of a stamp and
-                paints its resting state as a chip the width of a letter — so
-                the rail reads as a column of marks pressed against its
-                edge. A row with room around it reads as a control, and the
-                air it carries is what the theme's own spacing step says a
-                control is worth.
+                The strip is TIGHT: the column is the glyph and a small inset
+                around it. The rows are BOXES rather than glyphs: a row that
+                is only as wide as its icon gives the pointer a target the
+                size of a stamp and paints its resting state as a chip the
+                width of a letter — so the rail reads as a column of marks
+                pressed against its edge. A row with room around it reads as
+                a control, and the air it carries is what the theme's own
+                spacing step says a control is worth. The box is as wide as
+                the column and taller than the glyph, so the hit area is
+                generous without the column growing to carry it.
                 */
               }
               <nav
                 aria-label="Studio"
-                class="sticky top-0 flex w-16 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-2"
+                class="sticky top-0 flex w-10 shrink-0 flex-col items-center gap-1 border-border bg-surface-raised py-2"
                 classList={{
                   "border-r": !inDrawer() || dockSide() === "left",
                   "border-l": inDrawer() && dockSide() === "right",
@@ -237,10 +243,14 @@ export default function App() {
                   /*
                   The mark: the web, in the studio's own ink. The kit draws it
                   in strokes on `currentColor`, so it wears whatever surface it
-                  lands on, and the slot around it is roomier than a row's —
-                  the mark breathes, and the space under it is what separates it
-                  from the concerns. A rule would say "this ends"; space says
-                  "this is a different thing", which is what a mark is.
+                  lands on.
+
+                  It is the BIGGEST thing in the rail: a mark reads at a glance
+                  and an icon does not, so the mark is drawn larger than any
+                  glyph beside it and takes the width of the strip rather than
+                  a padded box inside it. The space under it is what separates
+                  it from the concerns — a rule would say "this ends"; space
+                  says "this is a different thing", which is what a mark is.
                   */
                 }
                 <A
@@ -249,14 +259,14 @@ export default function App() {
                   // the root path matches every path, and the mark would read as
                   // current on every page.
                   end
-                  class="peer mb-2 flex h-12 w-10 shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
+                  class="peer mb-2 flex h-10 w-full shrink-0 items-center justify-center rounded-md text-text hover:bg-surface"
                   title={MARK.label}
                   aria-label={MARK.label}
                 >
-                  <Web size={24} class="h-6 w-6 shrink-0" />
+                  <Web size={40} class="h-10 w-10 shrink-0" />
                 </A>
-                <RailTip label={MARK.label} top="top-6" />
-                <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-2">
+                <RailTip label={MARK.label} top="top-4" />
+                <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-1">
                   <For each={CONCERNS}>
                     {(route) => (
                       <li class="m-0 w-full">
@@ -264,7 +274,7 @@ export default function App() {
                           href={hostPath(route.path)}
                           activeClass="bg-surface-sunken text-text font-semibold"
                           inactiveClass="text-text"
-                          class="peer flex h-10 w-10 items-center justify-center rounded-md hover:bg-surface"
+                          class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
                           title={route.label}
                           aria-label={route.label}
                         >
@@ -277,6 +287,79 @@ export default function App() {
                       </li>
                     )}
                   </For>
+                </ul>
+                {
+                  /*
+                  The foot: the studio's own verbs, in the same language as
+                  the concerns above them — the same box, the same glyph size,
+                  the same hover. The rule above them says "these are the
+                  studio's, not the project's", and the space the rule leaves
+                  keeps the foot apart from the concerns when the window is
+                  short and the two would otherwise touch.
+
+                  `mt-auto` puts the foot at the bottom of the strip: the
+                  studio's own verbs belong at the edge of the tool, away from
+                  the document's navigation.
+
+                  The two host verbs are BUTTONS, and a button is the one
+                  control the theme paints: bare is the opt-out, and the
+                  hover chip it cannot carry is on the row around it, so the
+                  foot's three rows read as one family.
+                  */
+                }
+                <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2">
+                  <For each={FOOT}>
+                    {(route) => (
+                      <li class="m-0 w-full">
+                        <A
+                          href={hostPath(route.path)}
+                          activeClass="bg-surface-sunken text-text font-semibold"
+                          inactiveClass="text-text"
+                          class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
+                          title={route.label}
+                          aria-label={route.label}
+                        >
+                          <span
+                            class={`inline-block shrink-0 text-xl ${route.icon}`}
+                            aria-hidden="true"
+                          />
+                        </A>
+                        <RailTip label={route.label} />
+                      </li>
+                    )}
+                  </For>
+                  <Show when={embedded()}>
+                    <li class="m-0 w-full rounded-md hover:bg-surface">
+                      <button
+                        type="button"
+                        class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
+                        aria-label={inDrawer() ? "Modal" : "Drawer"}
+                        title={inDrawer() ? "Modal" : "Drawer"}
+                        onClick={toggleHostMode}
+                      >
+                        <span
+                          class="inline-block shrink-0 text-xl i-lucide-panel-right"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <RailTip label={inDrawer() ? "Modal" : "Drawer"} />
+                    </li>
+                    <li class="m-0 w-full rounded-md hover:bg-surface">
+                      <button
+                        type="button"
+                        class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
+                        aria-label="Close"
+                        title="Close"
+                        onClick={closeStudio}
+                      >
+                        <span
+                          class="inline-block shrink-0 text-xl i-lucide-x"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <RailTip label="Close" />
+                    </li>
+                  </Show>
                 </ul>
               </nav>
               {

@@ -13,6 +13,17 @@
  * being edited and what is true about it, which theme, which mode, the three
  * verbs that change the file, and the checks on it.
  *
+ * The editing state is in the MIDDLE of the bar, because it is the bar's
+ * subject and the controls flank it: the theme and the mode on one side,
+ * the verbs and the checks on the other. A bar whose state sits at one end
+ * with everything else crowded at the other reads as a toolbar with a
+ * caption, and the caption is the part the reader came for.
+ *
+ * The verbs are not clustered either. Undo, redo and save are three
+ * different actions, and a row of three identical icon buttons reads as one
+ * control with three states; the air between them is what lets each one read
+ * on its own.
+ *
  * In the DRAWER the bar is two lines: the state on one, the controls on the
  * other, centred and evenly spaced. The drawer is narrow because the host
  * made it narrow, and a strip of controls that wraps is a strip whose
@@ -21,8 +32,8 @@
  * Two lines with the controls gathered in the middle of the second one says
  * the same thing at any width.
  *
- * It is CHROME, and it wears the studio's own theme: the control that saves
- * a theme must not be restyled by the theme it is saving.
+ * It is CHROME, and it wears the studio's own theme: the control that saves a
+ * theme must not be restyled by the theme it is saving.
  */
 
 import { A } from "@solidjs/router";
@@ -44,17 +55,14 @@ import {
   themeText,
   undo,
 } from "../lib/store.ts";
-import { analyzeTheme, stateLabel } from "../lib/theme.ts";
+import { stateLabel } from "../lib/theme.ts";
 import { problemText } from "../lib/themes.ts";
 import { editorRouteFor } from "../lib/tokens.ts";
 import { hostPath } from "../lib/client.ts";
-import { BAR } from "../lib/routes.ts";
-import {
-  closeStudio,
-  embedded,
-  inDrawer,
-  toggleHostMode,
-} from "../lib/host.ts";
+import { checks, remedyText } from "../lib/floors.ts";
+import type { Remedy } from "../lib/floors.ts";
+import { editToken } from "../lib/editing.ts";
+import { inDrawer } from "../lib/host.ts";
 import { ModePicker, ThemePicker } from "./Settings.tsx";
 
 /**
@@ -114,16 +122,12 @@ export default function StatusBar() {
    * The same analysis the daemon judges the document with, read here so the
    * bar can say whether there is anything to say. A document that does not
    * parse is one finding, not a page: the reason is the finding.
+   *
+   * Each finding carries what would put it right — the value the token would
+   * have to take and which way it has to move — so a finding is an offer
+   * rather than a complaint.
    */
-  const issues = createMemo(() => {
-    const report = analyzeTheme(themeText());
-    return [
-      ...(report.error === undefined
-        ? []
-        : [{ path: "", message: report.error }]),
-      ...report.issues,
-    ];
-  });
+  const findings = createMemo(() => checks(themeText()));
 
   /** Whether the checks panel is open. */
   const [checksOpen, setChecksOpen] = createSignal(false);
@@ -156,34 +160,70 @@ export default function StatusBar() {
     note(`${name} — the unsaved edits were dropped.`);
   }
 
+  /**
+   * Writes a remedy into the token it belongs to.
+   *
+   * The finding names the token, so the studio can offer the edit rather
+   * than only describe it. The value goes into the token's own slot — the
+   * base, which is the slot the finding was measured on — and the studio's
+   * own gate has the last word: an edit that breaks a floor the document
+   * used to keep is refused and says why.
+   */
+  function apply(remedy: Remedy): void {
+    editToken(remedy.path.split("."), remedy.value, "base");
+  }
+
   return (
     <footer
       aria-label="Editing"
       class={BAR_CLASS}
       classList={{
-        // Modal: one line, the state on the left and the controls on the
-        // right. Drawer: two lines, the state above and the controls
-        // gathered in the middle of the second.
-        "flex-row items-center gap-x-4": !inDrawer(),
-        "flex-col items-stretch gap-1": inDrawer(),
+        // Modal: one line, the state in the middle and the controls flanking
+        // it. Drawer: the state on a line of its own, the controls gathered
+        // in the middle of the next.
+        "flex-row items-center": !inDrawer(),
+        "flex-wrap justify-center gap-x-2 gap-y-1": inDrawer(),
       }}
     >
       {
         /*
-          The state of the document, first and leftmost: what is being
+          The theme under edit and the mode it is shown in: what the reader
+          is looking at. They sit on one side of the state because they ARE
+          the state, said in the studio's controls rather than in its words.
+        */
+      }
+      <div
+        class="flex items-center gap-2"
+        classList={{
+          "flex-1 justify-start": !inDrawer(),
+          "order-2": inDrawer(),
+        }}
+      >
+        <ThemePicker compact />
+        <ModePicker />
+      </div>
+
+      {
+        /*
+          The state of the document, in the middle of the bar: what is being
           edited, in which mode, how big it is, and whether the file agrees.
 
           Each fact is its own nowrap run, so the line can break BETWEEN
           them and never inside one — "Editing" and the theme's name are one
           run, because a line that broke between them would leave the
-          studio saying it was editing nothing.
+          studio saying it was editing nothing. The line is truncated rather
+          than wrapped: a bar is one line, and a state that wrapped would
+          push the controls off the end of the row.
         */
       }
       <div
         class="flex min-w-0 items-center gap-2"
-        classList={{ "justify-between": inDrawer() }}
+        classList={{
+          "flex-1 justify-center": !inDrawer(),
+          "order-1 w-full": inDrawer(),
+        }}
       >
-        <p class="min-w-0 text-text-muted">
+        <p class="min-w-0 flex-1 truncate text-center text-text-muted">
           <span class="whitespace-nowrap">
             Editing <strong class="text-text">{theme()}</strong>
           </span>
@@ -234,26 +274,24 @@ export default function StatusBar() {
 
       {
         /*
-          The controls: the theme under edit, the mode it is shown in, the
-          three verbs that change the document, the checks on it, the
-          studio's own routes, and the host's own verbs.
+          The controls: the three verbs that change the document and the
+          checks on it. They are gathered on the other side of the state, so
+          the bar reads as a sentence rather than a toolbar: here is what you
+          are editing, and here is what you can do about it.
 
-          In the drawer they are gathered in the middle of their own line —
-          centred, evenly spaced, and all the same kind of control. A strip
-          that wraps is a strip whose spacing is whatever the width left
-          over.
+          The verbs are spaced rather than packed. Three identical glyph
+          buttons shoulder to shoulder read as ONE control with three
+          states, and the air between them is what tells the reader that
+          undo, redo and save are three different things.
         */
       }
       <div
-        class="flex items-center gap-1"
+        class="flex items-center gap-2"
         classList={{
-          "ml-auto": !inDrawer(),
-          "justify-center": inDrawer(),
+          "flex-1 justify-end": !inDrawer(),
+          "order-3": inDrawer(),
         }}
       >
-        <ThemePicker compact />
-        <ModePicker />
-
         {
           /* The three verbs that change the document, as the icons they have
             always been: undo, redo, and the write. */
@@ -311,100 +349,46 @@ export default function StatusBar() {
             The findings are the document's, and they are the same on every
             route — so a section on one page would be a section that is
             missing from the other eight. The bar carries the count, and the
-            count opens the panel that lists them.
+            count opens the panel that lists them. The tip says what the
+            first finding is and what would clear it, so the pointer learns
+            the answer without opening anything.
           */
         }
         <button
           type="button"
-          class={ICON_BUTTON}
+          class={`${ICON_BUTTON} ml-2`}
           classList={{
-            "text-semantic-error": issues().length > 0,
-            "text-text-muted": issues().length === 0,
+            "text-semantic-error": findings().length > 0,
+            "text-text-muted": findings().length === 0,
           }}
           aria-expanded={checksOpen()}
           aria-haspopup="dialog"
-          aria-label={issues().length === 0
+          aria-label={findings().length === 0
             ? "No issues"
-            : `${issues().length} ${
-              issues().length === 1 ? "issue" : "issues"
+            : `${findings().length} ${
+              findings().length === 1 ? "issue" : "issues"
             }`}
-          title="What the checks say about this document"
+          title={findings().length === 0
+            ? "What the checks say about this document"
+            : `${findings()[0]!.message}${
+              findings()[0]!.remedy === undefined
+                ? ""
+                : ` — ${remedyText(findings()[0]!.remedy!)}`
+            }`}
           onClick={() => setChecksOpen(true)}
         >
           <span
             class={`inline-block shrink-0 icon-md ${
-              issues().length > 0
+              findings().length > 0
                 ? "i-lucide-shield-alert"
                 : "i-lucide-shield-check"
             }`}
             aria-hidden="true"
           />
-          <Show when={issues().length > 0}>
-            <span class="text-xs">{issues().length}</span>
+          <Show when={findings().length > 0}>
+            <span class="text-xs">{findings().length}</span>
           </Show>
         </button>
-
-        {
-          /* The studio's own routes, which the rail does not carry: the rail
-            is navigation to the PROJECT, and the settings are the tool's. A
-            LINK, so it is not a button wearing a link's clothes — and the
-            underline is taken off, because an underlined glyph is a glyph
-            with a line through the page. */
-        }
-        <For each={BAR}>
-          {(route) => (
-            <A
-              href={hostPath(route.path)}
-              class={`${ICON_BUTTON} no-underline`}
-              title={route.label}
-              aria-label={route.label}
-            >
-              <span
-                class={`inline-block shrink-0 text-xl ${route.icon}`}
-                aria-hidden="true"
-              />
-            </A>
-          )}
-        </For>
-
-        {
-          /*
-            The host's own verbs: the edge the studio is shown at, and the
-            way out of it.
-
-            They were a strip of their own above the work — a band of
-            nothing that pushed the page down — and they are the HOST's
-            controls, so they belong with the rest of the chrome rather than
-            inside the project's own theme. The bar is where the studio's
-            own furniture lives, so that is where they are.
-          */
-        }
-        <Show when={embedded()}>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            aria-label={inDrawer() ? "Modal" : "Drawer"}
-            title={inDrawer() ? "Modal" : "Drawer"}
-            onClick={toggleHostMode}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-panel-right"
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            aria-label="Close"
-            title="Close"
-            onClick={closeStudio}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-x"
-              aria-hidden="true"
-            />
-          </button>
-        </Show>
       </div>
 
       {
@@ -422,7 +406,7 @@ export default function StatusBar() {
           // in a document: the theme's heading face belongs to the document
           // the studio previews, and the studio's chrome has one face — the
           // body face it reads in everywhere else.
-          class="stack panel w-96 max-w-[90vw] font-sans"
+          class="stack panel max-w-[90vw] font-sans"
           ref={(el: HTMLDialogElement) => {
             requestAnimationFrame(() => {
               if (el.isConnected && !el.open) el.showModal();
@@ -432,7 +416,7 @@ export default function StatusBar() {
         >
           <h2 class="text-lg font-sans">Checks</h2>
           <Show
-            when={issues().length > 0}
+            when={findings().length > 0}
             fallback={
               <p class="text-sm text-text-muted">
                 Nothing to report: the document parses, and every value it
@@ -441,20 +425,47 @@ export default function StatusBar() {
             }
           >
             <ul class="stack-sm">
-              <For each={issues()}>
-                {(issue) => (
-                  <li class="flex flex-wrap items-baseline gap-2 text-sm">
+              <For each={findings()}>
+                {(finding) => (
+                  <li class="stack-sm text-sm">
                     <A
-                      href={editorRouteFor(issue.path)}
+                      href={hostPath(editorRouteFor(finding.path))}
                       class="hover:underline"
                     >
                       <code>
-                        {issue.path === "" ? "(document)" : issue.path}
+                        {finding.path === "" ? "(document)" : finding.path}
                       </code>
                     </A>
-                    <span class="min-w-0 flex-1 text-text-muted">
-                      {issue.message}
-                    </span>
+                    <p class="text-text-muted">{finding.message}</p>
+                    {
+                      /*
+                        What would put it right.
+
+                        A finding that names a ratio and a floor and stops
+                        there is a complaint; one that also names the value
+                        the token would have to take is an offer. The value
+                        is written into the token when the author takes it,
+                        and the studio's own gate has the last word on
+                        whether the document may hold it.
+                      */
+                    }
+                    <Show when={finding.remedy}>
+                      {(remedy) => (
+                        <div class="row-sm flex-wrap">
+                          <span class="text-text-muted">
+                            {remedyText(remedy())}
+                          </span>
+                          <button
+                            type="button"
+                            class="flex min-h-0 shrink-0 items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-normal text-text hover:bg-surface-sunken"
+                            title={`Write ${remedy().value} into ${remedy().path}`}
+                            onClick={() => apply(remedy())}
+                          >
+                            Use {remedy().value}
+                          </button>
+                        </div>
+                      )}
+                    </Show>
                   </li>
                 )}
               </For>
