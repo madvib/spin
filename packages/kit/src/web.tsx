@@ -42,7 +42,25 @@ function WebMark(
       viewBox="0 0 512 512"
       width={props.size}
       height={props.size}
-      class={props.class}
+      /*
+        The ink is a DECLARATION, not a presentation attribute.
+
+        `fill="currentColor"` looks like the same thing and is not: an
+        attribute is resolved into the presentation hints when the element
+        is painted, and a colour inherited from an ancestor that changes
+        afterwards does not invalidate that paint. A mark whose ink is the
+        page's — a rail row that is the current route, a link that is
+        hovered — then keeps the colour it was born with until something
+        else forces a repaint, which is a mark that lies about where you
+        are. The class is the same declaration the rest of the sheet uses,
+        so the cascade invalidates it the way it invalidates any other
+        colour.
+
+        The attribute stays as the fallback: a consumer that does not run
+        UnoCSS still gets a mark in the ink, because `currentColor` is the
+        SVG default's nearest answer even without the class.
+      */
+      class={["fill-current", props.class].filter(Boolean).join(" ")}
       fill="currentColor"
       role={props.title ? "img" : "presentation"}
       aria-hidden={props.title ? undefined : "true"}
