@@ -1,4 +1,4 @@
-import { ariaDisabled, ariaOrientation, defineComponent, factAttrs, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import { ariaDisabled, ariaOrientation, defineComponent, sliderThumb, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
 import { isComposing } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { slider as sliderMachine } from "./slider.machine.ts";
@@ -129,14 +129,6 @@ const thumbIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-/** The component's public state: the names the markup may key on. */
-export const facts = {
-  disabled: (scope: ScopeLike) => scope.props["disabled"] === true,
-  orientation: (scope: ScopeLike) => scope.props["orientation"],
-  dragging: (scope: ScopeLike) => scope.state === "dragging",
-  invalid: (scope: ScopeLike) => scope.props["invalid"] === true,
-  focus: (scope: ScopeLike) => scope.state === "focus",
-};
 
 const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, SliderArgs> = {
   name: "slider",
@@ -176,7 +168,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         id: scope.id(""),
         "data-scope": "slider",
         "data-part": "root",
-        ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
       }),
     },
     label: {
@@ -184,7 +175,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         id: scope.id("label"),
         "data-scope": "slider",
         "data-part": "label",
-        ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
         for: scope.id("input", 0),
         style: { userSelect: "none" },
         onClick: (event: MouseEvent) => {
@@ -200,7 +190,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         id: scope.id("valueText"),
         "data-scope": "slider",
         "data-part": "value-text",
-        ...factAttrs(scope, facts, "disabled", "orientation", "invalid", "focus"),
       }),
     },
     control: {
@@ -210,7 +199,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
           id: scope.id("control"),
           "data-scope": "slider",
           "data-part": "control",
-          ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
           style: { position: "relative", touchAction: "none" },
           // The track's gesture: the runtime's drag action owns the press,
           // the capture and the moves. A release off the track still ends
@@ -250,7 +238,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         id: scope.id("track"),
         "data-scope": "slider",
         "data-part": "track",
-        ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
         style: { position: "relative" },
       }),
     },
@@ -269,7 +256,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
           id: scope.id("range"),
           "data-scope": "slider",
           "data-part": "range",
-          ...factAttrs(scope, facts, "disabled", "orientation", "dragging", "invalid", "focus"),
           style: vertical
             ? { bottom: `${low}%`, height: `calc(${high}% - ${low}%)` }
             : { left: `${low}%`, width: `calc(${high}% - ${low}%)` },
@@ -292,8 +278,6 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const value = context.value[slotIndex(scope.slot)] ?? context.min;
         const range = thumbRange(context, slotIndex(scope.slot));
         const percent = percentOf(context, value);
-        const focused = scope.state === "focus" && context.focusedIndex === slotIndex(scope.slot);
-        const dragging = scope.state === "dragging" && context.focusedIndex === slotIndex(scope.slot);
         const vertical = context.orientation === "vertical";
         const orientation = context.orientation;
         return {
@@ -301,11 +285,7 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
           "data-scope": "slider",
           "data-part": "thumb",
           "data-index": String(slotIndex(scope.slot)),
-          "data-disabled": scope.attr(context.disabled),
-          "data-orientation": context.orientation,
-          "data-focus": scope.attr(focused),
-          "data-dragging": scope.attr(dragging),
-          draggable: "false",
+                                                  draggable: "false",
           ...ariaDisabled(context.disabled ? "true" : undefined),
           ...ariaOrientation(
             orientation === "horizontal" || orientation === "vertical"
@@ -425,16 +405,12 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
         const slot = scope.slot;
         const context = scope.context;
         const percent = percentOf(context, slot.value);
-        const first = context.value[0] ?? context.min;
-        const state = slot.value < first ? "under-value" : slot.value > first ? "over-value" : "at-value";
         const vertical = context.orientation === "vertical";
         return {
           id: scope.id("marker", slot.value),
           "data-scope": "slider",
           "data-part": "marker",
           "data-value": String(slot.value),
-          "data-state": state,
-          "data-orientation": context.orientation,
           style: vertical
             ? { bottom: `${percent}%` }
             : { left: `${percent}%` },
@@ -481,6 +457,8 @@ const def: ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, Sl
     valueText: { read: (context) => context.value.join(", ") },
     dragging: { read: (_context, state) => state === "dragging" },
     focused: { read: (_context, state) => state === "focus" },
+    focusedIndex: { read: (context) => context.focusedIndex },
+    disabled: { read: (context) => context.disabled },
   },
   methods: {
     getThumbValue: {

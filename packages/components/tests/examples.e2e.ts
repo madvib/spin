@@ -63,6 +63,19 @@ Deno.test("spin examples e2e", () =>
       assert.ok(cls?.includes("text-primary"), `the focus class applied (got "${cls}")`);
     });
 
+    await step("the focus ring follows the focused thumb only", async () => {
+      // Per-thumb conditions: focusing thumb 0 must not light up thumb 1.
+      // This is what the bag-computed data-[focus] did; the class object
+      // must preserve it.
+      const thumbs = page.locator("slider-range [role='slider']");
+      await thumbs.first().waitFor({ state: "attached", timeout: 5000 });
+      await thumbs.nth(0).focus();
+      const cls0 = await thumbs.nth(0).getAttribute("class") ?? "";
+      const cls1 = await thumbs.nth(1).getAttribute("class") ?? "";
+      assert.ok(cls0.includes("ring-2"), `the focused thumb rings (got "${cls0}")`);
+      assert.ok(!cls1.includes("ring-2"), `the other thumb does not (got "${cls1}")`);
+    });
+
     await step("every example's machine has a state", async () => {
       // A machine that never started has no value: the thumb's aria is
       // the observable.
