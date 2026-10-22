@@ -28,3 +28,6 @@ apps/reference/visual/out/
 
 # Vite dependency-optimizer caches (build junk; vanity-sized).
 .vite/
+
+# The e2e suite writes a copied theme into the reference project
+apps/reference/spin/e2e-copy.json
