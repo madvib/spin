@@ -16,6 +16,7 @@ import type { GeometryClaim } from "../../../internal/check/harness.ts";
 
 /** The claims each route of the reference is held to. */
 const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
+  "/themes": ["no-horizontal-overflow"],
   "/components/table": ["striped-rows", "no-horizontal-overflow"],
   "/components/avatar": ["avatar-square", "no-horizontal-overflow"],
   "/components/avatar-group": [
@@ -24,11 +25,17 @@ const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
     "no-horizontal-overflow",
   ],
   "/components/join": ["join-seam", "no-horizontal-overflow"],
+  "/components/card": ["card-parts", "no-horizontal-overflow"],
+  "/components/checkbox": ["checkbox-square", "no-horizontal-overflow"],
+  "/components/switch": ["switch-track", "no-horizontal-overflow"],
 };
 
-/** The claims a route is held to; routes with no geometry carry none. */
+/** The claims a route is held to; every component route must fit horizontally. */
 export function geometryClaimsFor(hash: string): readonly string[] {
-  return CLAIMS_BY_ROUTE[hash] ?? [];
+  const explicit = CLAIMS_BY_ROUTE[hash];
+  if (explicit !== undefined) return explicit;
+  if (hash.startsWith("/components/")) return ["no-horizontal-overflow"];
+  return [];
 }
 
 export function geometryAudit(options: {
@@ -263,6 +270,111 @@ export function geometryAudit(options: {
             `odd rows paint ${oddBg}, even rows paint ${evenBg} (sunken ${sunken})`,
         });
       }
+    }
+  }
+
+  /** Every card keeps its parts inside its box and in top-to-bottom order. */
+  if (options.claims.includes("card-parts")) {
+    const cards = [...document.querySelectorAll("card")].filter(painted);
+    if (cards.length === 0) {
+      claims.push({
+        id: "card-parts",
+        ok: false,
+        detail: "no cards on the page",
+      });
+    } else {
+      const bad: string[] = [];
+      for (const card of cards) {
+        const cardRect = box(card);
+        const header = card.querySelector("card-header");
+        const content = card.querySelector("card-content");
+        const footer = card.querySelector("card-footer");
+        if (header && content && painted(header) && painted(content)) {
+          if (box(header).bottom > box(content).top + EPSILON) {
+            bad.push("card-header overlaps card-content");
+          }
+        }
+        if (content && footer && painted(content) && painted(footer)) {
+          if (box(content).bottom > box(footer).top + EPSILON) {
+            bad.push("card-content overlaps card-footer");
+          }
+        }
+        for (const child of [...card.children].filter(painted)) {
+          const childRect = box(child);
+          if (childRect.right > cardRect.right + EPSILON) {
+            bad.push(
+              `${child.tagName.toLowerCase()} overflows card by ${
+                round(childRect.right - cardRect.right)
+              }px`,
+            );
+          }
+        }
+      }
+      claims.push({
+        id: "card-parts",
+        ok: bad.length === 0,
+        detail: bad.length === 0
+          ? `${cards.length} cards keep header/content/footer inside their bounds`
+          : bad.join(", "),
+      });
+    }
+  }
+
+  /** Every checkbox is a square. */
+  if (options.claims.includes("checkbox-square")) {
+    const boxes = [
+      ...document.querySelectorAll('input[type="checkbox"]:not([role])'),
+    ].filter(painted);
+    if (boxes.length === 0) {
+      claims.push({
+        id: "checkbox-square",
+        ok: false,
+        detail: "no checkboxes on the page",
+      });
+    } else {
+      const bad: string[] = [];
+      for (const cb of boxes) {
+        const rect = box(cb);
+        if (Math.abs(rect.width - rect.height) > EPSILON) {
+          bad.push(`${round(rect.width)}x${round(rect.height)}`);
+        }
+      }
+      claims.push({
+        id: "checkbox-square",
+        ok: bad.length === 0,
+        detail: bad.length === 0
+          ? `${boxes.length} checkboxes square`
+          : `not square: ${bad.join(", ")}`,
+      });
+    }
+  }
+
+  /** Every switch track is wider than it is tall. */
+  if (options.claims.includes("switch-track")) {
+    const switches = [
+      ...document.querySelectorAll('input[type="checkbox"][role="switch"]'),
+    ].filter(painted);
+    if (switches.length === 0) {
+      claims.push({
+        id: "switch-track",
+        ok: false,
+        detail: "no switches on the page",
+      });
+    } else {
+      const bad: string[] = [];
+      for (const sw of switches) {
+        const rect = box(sw);
+        if (rect.width <= rect.height + EPSILON) {
+          bad.push(`${round(rect.width)}x${round(rect.height)}`);
+        }
+      }
+      claims.push({
+        id: "switch-track",
+        ok: bad.length === 0,
+        detail: bad.length === 0
+          ? `${switches.length} switch tracks proportional`
+          : `not pill-proportioned: ${bad.join(", ")}`,
+      });
     }
   }
 

@@ -62,8 +62,11 @@ const SCREEN_MARKUP = `<div class="flex flex-col gap-4">
 </card>
 <form class="flex flex-col items-start gap-2">
   <label><input type="text" value="checkout-api"><span>Service name</span></label>
+  <label><input type="checkbox" checked><span>Auto-drain traffic</span></label>
+  <label><input type="checkbox" role="switch" checked><span>Canary gate</span></label>
   <button>Deploy</button>
 </form>
+<progress value="68" max="100">68%</progress>
 <div class="stat-row">
   <div class="stat">
     <div class="stat-title">Errors</div>

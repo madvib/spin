@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+import { claim, type Mode, withFallback } from "./shared.ts";
 
 /**
  * Badge — a small status label.
@@ -41,7 +41,8 @@ function badgeBase(mode: Mode): Rule {
       const borderColor = token(ctx, "color.border");
       const sizeXs = token(ctx, "font.size.xs");
       const weightMedium = token(ctx, "font.weight.medium");
-      const edge = named(ctx, "badge", "edge") ?? borderWidth;
+      const edge = withFallback(ctx, "badge.edge", "border.width") ??
+        borderWidth;
       // `badge.pill` is a boolean token. The rule context carries references,
       // not values — every deck builds one shared rule — so the decision
       // cannot be structural here; the fan reads the variable the theme's own

@@ -429,6 +429,10 @@ a sticker on it.
 **Lazy.** The browser's default underline, which is thicker than the theme's
 rules and in a colour the theme never chose.
 
+### gradient
+
+**For.** The contract knows this group; nothing here says what it is for yet.
+
 ## Filling the document
 
 The shape of a token:

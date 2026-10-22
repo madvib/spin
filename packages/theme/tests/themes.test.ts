@@ -327,6 +327,7 @@ const DECLARED_MODES = {
   neobrut: ["light"],
   console: ["dark"],
   spin: ["light", "dark"],
+  synthwave: ["light", "dark"],
 } satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
 
 Deno.test("a theme states its modes at the root", async () => {

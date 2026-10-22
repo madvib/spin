@@ -240,6 +240,18 @@ Deno.test("a token colour still paints, and reads the token", async () => {
     valueFor(border, "border-primary", "border-color"),
     "var(--color-primary)",
   );
+  const fill = await sheetFor("fill-primary");
+  assert(
+    (valueFor(fill, "fill-primary", "fill") ?? "").includes(
+      "var(--color-primary)",
+    ),
+  );
+  const stroke = await sheetFor("stroke-primary");
+  assert(
+    (valueFor(stroke, "stroke-primary", "stroke") ?? "").includes(
+      "var(--color-primary)",
+    ),
+  );
 });
 
 /**

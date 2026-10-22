@@ -176,6 +176,9 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--color-semantic-success",
       "--radius-full",
       "--radius-md",
+      "--spacing-10",
+      "--spacing-16",
+      "--spacing-6",
     ],
     scope: {
       self: "avatar",
@@ -198,7 +201,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   "avatar-group": {
     tags: [],
     variants: ["avatar-group"],
-    reads: ["--avatar-md", "--border-width", "--color-surface"],
+    reads: ["--avatar-md", "--border-width", "--color-surface", "--spacing-10"],
     scope: {
       self: "avatar-group",
       paints: [],
@@ -734,7 +737,14 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   icon: {
     tags: [],
     variants: ["icon-lg", "icon-md", "icon-sm"],
-    reads: ["--icon-lg", "--icon-md", "--icon-sm"],
+    reads: [
+      "--font-size-md",
+      "--font-size-sm",
+      "--font-size-xl",
+      "--icon-lg",
+      "--icon-md",
+      "--icon-sm",
+    ],
     scope: {
       self: "icon",
       paints: [],

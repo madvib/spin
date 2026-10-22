@@ -155,6 +155,43 @@ Deno.test("a theme that omits an element's token gets the shared scale's answer"
   );
 });
 
+Deno.test("a theme that omits avatar, icon and badge tokens still dresses them from the shared scales", async () => {
+  const without = structuredClone(theme);
+  delete without["avatar"];
+  delete without["icon"];
+  delete without["badge"];
+
+  const avatar = yieldsFor(
+    await generate('<div class="avatar"></div>', without),
+    "avatar",
+  );
+  assertEquals(
+    avatar.find((y) => "width" in y.body)?.body["width"],
+    "var(--spacing-10)",
+    "an avatar with no avatar.md token falls back to spacing.10",
+  );
+
+  const icon = yieldsFor(
+    await generate('<span class="icon-md"></span>', without),
+    "icon-md",
+  );
+  assertEquals(
+    icon.find((y) => "font-size" in y.body)?.body["font-size"],
+    "var(--font-size-md)",
+    "an icon with no icon.md token falls back to font.size.md",
+  );
+
+  const badge = yieldsFor(
+    await generate("<badge>Tag</badge>", without),
+    "badge",
+  );
+  assertEquals(
+    badge.find((y) => "border" in y.body)?.body["border"],
+    "var(--border-width) solid var(--color-border)",
+    "a badge with no badge.edge token falls back to border.width",
+  );
+});
+
 Deno.test("the danger button and the danger badge wear the required ink", async () => {
   // The ink on the error fill is a REQUIRED role with a floor, so the
   // surfaces that paint that fill must wear it. A surface that spent a

@@ -1,6 +1,7 @@
 import type { Rule } from "@unocss/core";
-import { named, token } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
+import type { ThemeTokenPath } from "@spin/theme/theme-types";
+import { token } from "../../utils/lookup.ts";
+import { type Mode, withFallback } from "./shared.ts";
 
 /**
  * Avatar — a face in a fixed square, sized by the theme's ladder.
@@ -41,12 +42,18 @@ export function avatarRules(
   ];
 }
 
+const AVATAR_FALLBACK: Readonly<Record<"sm" | "md" | "lg", ThemeTokenPath>> = {
+  sm: "spacing.6",
+  md: "spacing.10",
+  lg: "spacing.16",
+};
+
 /** The base: a fixed inline square that crops its image to fill. */
 function avatarBase(avatar: string): Rule {
   return [
     /^avatar$/,
     function* (_m, ctx) {
-      const size = named(ctx, "avatar", "md");
+      const size = withFallback(ctx, "avatar.md", "spacing.10");
       const radius = token(ctx, "radius.md");
       yield {
         [ctx.symbols.selector]: () => avatar,
@@ -80,7 +87,7 @@ function avatarSizes(avatar: string): Rule[] {
   return (["sm", "md", "lg"] as const).map((step): Rule => [
     new RegExp(`^avatar-${step}$`),
     function* (_m, ctx) {
-      const size = named(ctx, "avatar", step);
+      const size = withFallback(ctx, `avatar.${step}`, AVATAR_FALLBACK[step]);
       yield {
         [ctx.symbols.selector]: () => `${avatar}.avatar-${step}`,
         ...(size !== undefined ? { width: size, height: size } : {}),

@@ -22,6 +22,7 @@ import console_ from "./console.json" with { type: "json" };
 import neobrut from "./neobrut.json" with { type: "json" };
 import silk from "./silk.json" with { type: "json" };
 import spin from "./spin.json" with { type: "json" };
+import synthwave from "./synthwave.json" with { type: "json" };
 import { themeGroups } from "../contract/groups.ts";
 import type { ThemeDocument } from "../index.ts";
 
@@ -41,6 +42,9 @@ export const consoleTheme = console_ as ThemeDocument;
 /** The brand: monochrome with one red thread; a didone speaks. */
 export const spinTheme = spin as ThemeDocument;
 
+/** Dark glass and lit figures by night; lavender lamp by day. */
+export const synthwaveTheme = synthwave as ThemeDocument;
+
 /**
  * The themes a consumer can start from, by name.
  *
@@ -55,6 +59,7 @@ export const starterThemes = {
   neobrut: neobrutTheme,
   console: consoleTheme,
   spin: spinTheme,
+  synthwave: synthwaveTheme,
 } as const;
 
 export type StarterThemeName = keyof typeof starterThemes;

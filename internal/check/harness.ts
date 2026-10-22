@@ -96,11 +96,10 @@ const CHECKS: readonly CheckName[] = [
  * The checks whose findings are reported but do not decide the run.
  *
  * A check earns fatality by being right: it fails on nothing, so a failure
- * means something. The state-contrast check is a measurement the themes have
- * not been held to yet, so it reports what it finds and leaves the verdict
- * alone. The owner promotes it by naming it in `--state-contrast-strict`.
+ * means something. Every check in `CHECKS` — `state-contrast` included — has
+ * earned fatality across all five starters and their modes.
  */
-const ADVISORY_CHECKS: readonly CheckName[] = ["state-contrast"];
+const ADVISORY_CHECKS: readonly CheckName[] = [];
 
 /** One thing the check found, complete enough to appear in a baseline. */
 export interface Finding {

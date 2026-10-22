@@ -26,8 +26,23 @@ import type { UserShortcuts } from "@unocss/core";
 export const spinShortcuts: UserShortcuts = {
   /** A row of items with a consistent gap, wrapping when it runs out. */
   cluster: "flex flex-wrap items-center gap-2",
+  "cluster-sm": "flex flex-wrap items-center gap-1",
+  "cluster-lg": "flex flex-wrap items-center gap-4",
   /** A column of items with a consistent gap. */
-  stack: "flex flex-col gap-2",
+  "stack-xs": "flex flex-col gap-1",
+  "stack-sm": "flex flex-col gap-2",
+  stack: "flex flex-col gap-4",
+  "stack-lg": "flex flex-col gap-8",
+  /** A horizontal row of items. */
+  "row-sm": "flex items-center gap-2",
+  row: "flex items-center gap-4",
+  "row-lg": "flex items-center gap-8",
+  /** A row that gives its ends to their owners. */
+  split: "flex items-center justify-between gap-4",
   /** A cluster that centres its items and its own content. */
   inline: "inline-flex items-center gap-1",
+  /** A raised surface: the theme's fill, edge, corners and air. */
+  panel: "bg-surface-raised border border-border rounded-md p-4",
+  /** Overline label: small, tracked, uppercase muted caption. */
+  overline: "text-xs font-semibold uppercase tracking-wider text-text-muted",
 };

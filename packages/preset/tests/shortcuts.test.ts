@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { spinPreset } from "../src/index.ts";
+import { spinPreset, spinShortcuts } from "../src/index.ts";
 
 /**
  * The project's own shortcuts.
@@ -89,4 +89,21 @@ Deno.test("a project without shortcuts composes nothing of its own", async () =>
     false,
     "a class the project did not declare generated a rule",
   );
+});
+
+Deno.test("spinShortcuts provides the standard layout and surface compositions", async () => {
+  const css = await sheet(
+    { themes: { light: theme }, shortcuts: spinShortcuts },
+    '<div class="stack-sm split panel overline"></div>',
+  );
+  assert(declarationsOf(css, ".stack-sm").includes("gap:var(--spacing-2)"));
+  assert(
+    declarationsOf(css, ".split").includes("justify-content:space-between"),
+  );
+  assert(
+    declarationsOf(css, ".panel").includes(
+      "background-color:var(--color-surface-raised)",
+    ),
+  );
+  assert(declarationsOf(css, ".overline").includes("text-transform:uppercase"));
 });

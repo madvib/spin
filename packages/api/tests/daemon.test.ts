@@ -96,6 +96,7 @@ describe("daemon project.themes over HTTP", () => {
         ["silk", null],
         ["spin", null],
         ["starter", "spin/starter.json"],
+        ["synthwave", null],
       ],
       "a file carries its path; an unforked starter carries none",
     );
@@ -202,7 +203,7 @@ describe("daemon project.themes over HTTP", () => {
     const theirs = await client.project.themes.list({ root: other });
     assertEquals(
       theirs.map((t) => t.name),
-      ["console", "neobrut", "silk", "solo", "spin"],
+      ["console", "neobrut", "silk", "solo", "spin", "synthwave"],
       "the named root's own file plus the shipped starters",
     );
     // The daemon's own project is unchanged, which is the point.
@@ -214,6 +215,7 @@ describe("daemon project.themes over HTTP", () => {
       "silk",
       "spin",
       "starter",
+      "synthwave",
     ]);
     rmSync(other, { recursive: true, force: true });
   });
@@ -251,7 +253,7 @@ describe("daemon project.themes over HTTP", () => {
     const listed = await client.project.themes.list({ root: fresh });
     assertEquals(
       listed.map((t) => t.name),
-      ["console", "first", "neobrut", "silk", "spin"],
+      ["console", "first", "neobrut", "silk", "spin", "synthwave"],
       "the seeded theme joins the shipped starters",
     );
     const seeded = await client.project.themes.read({

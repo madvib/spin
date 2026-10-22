@@ -258,7 +258,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     );
     assertEquals(
       listed.filter((t) => t.file === null).map((t) => t.name).sort(),
-      ["console", "neobrut", "silk", "spin"],
+      ["console", "neobrut", "silk", "spin", "synthwave"],
       "the unforked starters carry no path at all",
     );
   });

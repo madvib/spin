@@ -111,6 +111,7 @@ describe("the spin MCP server", () => {
       { name: "sample", file: "spin/sample.json" },
       { name: "silk", file: null },
       { name: "spin", file: null },
+      { name: "synthwave", file: null },
       { name: "unlighted", file: "spin/unlighted.json" },
     ]);
   });
