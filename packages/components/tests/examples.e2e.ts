@@ -48,6 +48,20 @@ Deno.test("spin examples e2e", () =>
       );
     });
 
+    await step("the markup binds the machine's state, typed", async () => {
+      // The markup owns the binding: `data-mode={slider.state}` is a
+      // typed read of the machine's mode, and it follows the machine.
+      const mode = page.locator("slider-basic [data-mode]").first();
+      await mode.waitFor({ state: "attached", timeout: 5000 });
+      assert.equal(await mode.getAttribute("data-mode"), "idle", "the mode is reported");
+      await page.locator("slider-basic [role='slider']").first().focus();
+      assert.equal(
+        await mode.getAttribute("data-mode"),
+        "focus",
+        "and it follows the machine",
+      );
+    });
+
     await step("every example's machine has a state", async () => {
       // A machine that never started has no value: the thumb's aria is
       // the observable.

@@ -26,6 +26,9 @@ export interface SliderApi {
   increment(index?: number): void;
   decrement(index?: number): void;
   focus(): void;
+  /** The machine's mode, live: a read of it subscribes, so the markup can
+   * bind an attribute or a class to it. */
+  readonly state: string;
   readonly value: readonly number[];
   readonly markers: readonly number[];
   readonly valueText: string;

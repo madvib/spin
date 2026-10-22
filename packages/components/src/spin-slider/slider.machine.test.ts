@@ -192,6 +192,13 @@ Deno.test("a thumb press drags that thumb by its own box", () => {
   assertEquals(events.valueChangeEnd[0]?.value, [75]);
 });
 
+Deno.test("the api's state names the machine's mode", () => {
+  const { api } = mount();
+  assertEquals(api.state, "idle", "the slider starts idle");
+  handler<() => void>(thumb(api, 0), "onFocus")();
+  assertEquals(api.state, "focus", "the focus moves the mode");
+});
+
 Deno.test("arrows step the focused thumb and Home/End jump", () => {
   const { api } = mount();
   handler<() => void>(thumb(api, 0), "onFocus")();

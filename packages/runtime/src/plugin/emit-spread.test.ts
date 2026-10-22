@@ -42,3 +42,19 @@ Deno.test("object-literal keys survive scopeExpr (carousel index)", () => {
   assertStringIncludes(js, "getItemProps({ index: i })");
   assertEquals(js.includes("values.index"), false);
 });
+
+Deno.test("emit binds an attribute to a typed state read", () => {
+  const ir = parse(`<div data-mode={slider.state}></div>`);
+  const { js } = emit(ir);
+  assertStringIncludes(js, `bindAttr(`);
+  assertStringIncludes(js, `"data-mode"`);
+  // The consume name reads through values, exactly like a scope prop.
+  assertStringIncludes(js, "values.slider.state");
+});
+
+Deno.test("emit binds a class to a state read", () => {
+  const ir = parse(`<div class={"bg-surface" + (slider.dragging ? " scale-110" : "")}></div>`);
+  const { js } = emit(ir);
+  assertStringIncludes(js, `"class"`);
+  assertStringIncludes(js, "values.slider.dragging");
+});
