@@ -158,7 +158,7 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
         </A>
 
         <div class="grid gap-1">
-          <p class="m-0 text-xs font-semibold text-text-muted">pages</p>
+          <p class="text-xs font-semibold text-text-muted">pages</p>
           <For each={NAV}>
             {(entry) => (
               <>
@@ -192,7 +192,7 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
         </div>
 
         <div class="grid gap-2">
-          <p class="m-0 text-xs font-semibold text-text-muted">theme</p>
+          <p class="text-xs font-semibold text-text-muted">theme</p>
           <ThemePicker />
         </div>
 
@@ -205,13 +205,13 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
         */
         }
         <div class="mt-auto grid gap-1">
-          <p class="m-0 text-xs text-text-muted">v0.1</p>
-          <p class="m-0 text-xs text-text-muted">
+          <p class="text-xs text-text-muted">v0.1</p>
+          <p class="text-xs text-text-muted">
             <a
               href="https://game-icons.net/1x1/lorc/spider-web.html"
               target="_blank"
               rel="noreferrer"
-              class="no-underline hover:text-text"
+              class="hover:text-text"
             >
               Icons made by Lorc (CC BY 3.0)
             </a>

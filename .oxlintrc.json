@@ -14,6 +14,30 @@
   "overrides": [
     {
       "files": [
+        "apps/studio/src/**/*.ts",
+        "apps/studio/src/**/*.tsx",
+        "apps/docs/src/**/*.ts",
+        "apps/docs/src/**/*.tsx",
+        "apps/reference/src/**/*.ts",
+        "apps/reference/src/**/*.tsx",
+        "packages/kit/src/**/*.ts",
+        "packages/kit/src/**/*.tsx"
+      ],
+      "rules": {
+        "no-unassigned-vars": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/studio/src/spin-elements.d.ts",
+        "apps/reference/src/spin-elements.d.ts"
+      ],
+      "rules": {
+        "typescript/triple-slash-reference": "off"
+      }
+    },
+    {
+      "files": [
         "packages/theme/src/**/*.ts"
       ],
       "rules": {

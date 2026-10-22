@@ -62,7 +62,7 @@ export default function ComponentsIndex() {
   return (
     <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-8">
       <header class="stack-sm">
-        <h1 class="text-3xl">Components</h1>
+        <h1>Components</h1>
         <p class="max-w-screen-md text-sm text-text-muted">
           Every primitive the preset ships, in the groups the library files them
           by. Pick one to see its variants, what it reads, and where to change
@@ -75,7 +75,7 @@ export default function ComponentsIndex() {
             <For each={groups()}>
               {(group) => (
                 <section class="stack-sm" aria-label={group.label}>
-                  <h2 class="row-sm text-xl">
+                  <h2 class="row-sm">
                     <Marker />
                     <span>{group.label}</span>
                   </h2>
@@ -115,10 +115,10 @@ export default function ComponentsIndex() {
         }
       >
         <Match when={library() === undefined}>
-          <p class="mt-6 text-sm text-text-muted">loading…</p>
+          <p class="text-sm text-text-muted">loading…</p>
         </Match>
         <Match when={(library() ?? []).length === 0}>
-          <p class="mt-6 text-sm text-text-muted">
+          <p class="text-sm text-text-muted">
             No components. Is the API running?
           </p>
         </Match>

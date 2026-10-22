@@ -103,6 +103,16 @@ export default function OverviewPage() {
 
   const palette = createMemo(() => paletteChips(themeText(), activeMode()));
   const ladder = createMemo(() => surfaceSteps(themeText(), activeMode()));
+  /**
+   * The theme's own acting colour, as a value.
+   *
+   * The specimens are painted with the value rather than with a utility: a
+   * specimen shows the theme's colour, and a utility paints whatever the
+   * studio's own sheet happens to say.
+   */
+  const acting = createMemo(
+    () => palette().find((chip) => chip.path === "color.primary")?.value,
+  );
   const faces = createMemo(() => faceSpecimens(themeText(), activeMode()));
   const space = createMemo(() => spaceSteps(themeText(), activeMode()));
   const radius = createMemo(() => rows([["radius"]]));
@@ -299,10 +309,10 @@ export default function OverviewPage() {
         ? "drawer-flow bg-surface p-4 sm:p-6"
         : "drawer-scroll overflow-y-auto bg-surface p-4 sm:p-6"}
     >
-      <div class="mx-auto stack-lg max-w-6xl">
+      <div class="mx-auto stack-lg max-w-[72rem]">
         <header class="stack-sm">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <h1 class="text-3xl">Themes</h1>
+            <h1>Themes</h1>
             <span class="flex-1" />
             <button type="button" onClick={() => setOpen(true)}>
               New theme
@@ -331,7 +341,7 @@ export default function OverviewPage() {
         <Show when={projectFailure()}>
           {(failure) => (
             <section class="stack-sm panel" aria-label="No project">
-              <h2 class="text-xl">There is no project here</h2>
+              <h2>There is no project here</h2>
               <p class="text-sm text-text-muted">
                 The studio edits a project on disk, and the daemon it is talking
                 to is not serving one: {problemText(failure())}
@@ -342,7 +352,7 @@ export default function OverviewPage() {
         <Show when={firstRun()}>
           {(report) => (
             <section class="stack-sm panel" aria-label="First run">
-              <h2 class="text-xl">This folder is not a spin project yet</h2>
+              <h2>This folder is not a spin project yet</h2>
               <p class="text-sm text-text-muted">
                 A project is a folder with a <code>spin/</code>{" "}
                 directory in it. The daemon is serving{" "}
@@ -377,7 +387,7 @@ export default function OverviewPage() {
 
         <section class="stack-sm" aria-label="Themes">
           <div class="split">
-            <h2 class="text-xl">Themes</h2>
+            <h2>Themes</h2>
             <span class="text-sm text-text-muted">
               {summaries().length} themes
             </span>
@@ -439,7 +449,7 @@ export default function OverviewPage() {
                     >
                       <button
                         type="button"
-                        class="bare shrink-0 text-sm text-text-muted"
+                        class="bare shrink-0 text-text-muted"
                         title="Delete this theme"
                         onClick={() => remove(summary.name)}
                       >
@@ -469,7 +479,7 @@ export default function OverviewPage() {
                   <div class="row-sm">
                     <button
                       type="button"
-                      class="bare text-xs text-text-muted"
+                      class="bare text-text-muted"
                       title="Re-read this theme from disk"
                       onClick={() => reload(summary.name)}
                     >
@@ -478,7 +488,7 @@ export default function OverviewPage() {
                     <Show when={summary.dirty}>
                       <button
                         type="button"
-                        class="bare text-xs text-text-muted"
+                        class="bare text-text-muted"
                         title="Drop the edits that have not been saved"
                         onClick={() => {
                           revertToSaved(summary.name);
@@ -566,14 +576,24 @@ export default function OverviewPage() {
             <PaletteCard chips={palette()} wide />
             <SurfaceCard steps={ladder()} />
             <ShapeCard radius={radius()} shadow={shadow()} />
-            <SpaceCard steps={space()} />
+            <SpaceCard steps={space()} fill={acting()} />
             <TypeCard faces={faces()} />
-            <MotionCard durations={durations()} easings={easings()} />
+            <MotionCard
+              durations={durations()}
+              easings={easings()}
+              fill={acting()}
+            />
             <ElementsCard samples={samples()} />
           </div>
         </section>
 
-        <footer class="stack-sm border-t border-border pt-4 text-xs text-text-muted">
+        {
+          /* The rule above the last line is the theme's own: an `<hr>` is
+            the element the theme draws a rule with, and the space it keeps
+            above and below it is the theme's rhythm. */
+        }
+        <hr class="w-full" />
+        <footer class="stack-sm text-xs text-text-muted">
           <div class="flex flex-wrap gap-x-4 gap-y-1">
             <span>{active()?.file ?? "@spin/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
@@ -589,7 +609,7 @@ export default function OverviewPage() {
       <Show when={open()}>
         <dialog
           aria-label="New theme"
-          class="stack panel w-72"
+          class="stack panel w-[18rem]"
           ref={(el: HTMLDialogElement) => {
             requestAnimationFrame(() => {
               if (el.isConnected && !el.open) el.showModal();
@@ -597,15 +617,15 @@ export default function OverviewPage() {
           }}
           onClose={() => setOpen(false)}
         >
-          <h2 class="text-lg">New theme</h2>
+          <h2>New theme</h2>
           <input
             type="text"
             placeholder="Name"
             value={name()}
             onInput={(event) => setName(event.currentTarget.value)}
           />
-          <fieldset class="stack-sm border-0 p-0">
-            <legend class="text-sm text-text-muted">Start from</legend>
+          <fieldset class="stack-sm">
+            <legend class="text-text-muted">Start from</legend>
             <label class="row-sm text-sm">
               <input
                 type="radio"
@@ -686,7 +706,7 @@ function ConcernCard(props: {
         "xl:col-span-3": props.wide === true && !inDrawer(),
       }}
     >
-      <h3 class="text-lg">
+      <h3>
         <A href={props.path} class="row-sm no-underline hover:underline">
           <span class="min-w-0">{props.title}</span>
           <span
@@ -772,10 +792,10 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
                 class={`flex flex-1 flex-col justify-center gap-1 rounded-md border border-border px-3 ${step.paint}`}
               >
                 <div class="split">
-                  <span class="text-sm font-medium text-text">
+                  <span class="text-sm text-text">
                     {step.label}
                   </span>
-                  <code class="shrink-0 font-mono text-xs text-text">
+                  <code class="shrink-0">
                     {step.value}
                   </code>
                 </div>
@@ -815,7 +835,7 @@ function TypeCard(props: { faces: readonly Face[] }) {
             {(face) => (
               <div class="stack-sm border-b border-border pb-2 last:border-b-0">
                 <div class="split">
-                  <code class="text-xs text-text-muted">
+                  <code>
                     {`font.family.${face.slot}`}
                   </code>
                   <span class="truncate text-xs text-text-muted">
@@ -905,10 +925,10 @@ function ShapeCard(props: {
                 <For each={props.radius}>
                   {(row) => (
                     <li class="split">
-                      <code class="text-xs text-text">
+                      <code>
                         {row.path.split(".").pop()}
                       </code>
-                      <code class="text-xs text-text-muted">{row.value}</code>
+                      <code>{row.value}</code>
                     </li>
                   )}
                 </For>
@@ -928,7 +948,7 @@ function ShapeCard(props: {
                         class="h-10 w-full rounded-md bg-surface-raised"
                         style={{ "box-shadow": `var(${row.variable})` }}
                       />
-                      <figcaption class="truncate text-xs text-text-muted">
+                      <figcaption class="truncate">
                         {row.path.split(".").pop()}
                       </figcaption>
                     </figure>
@@ -961,7 +981,10 @@ function ShapeCard(props: {
  * value, measured against the scale's longest, and the number under it is
  * that value as the theme wrote it.
  */
-function SpaceCard(props: { steps: readonly TokenRow[] }) {
+function SpaceCard(props: {
+  steps: readonly TokenRow[];
+  fill: string | undefined;
+}) {
   /** The scale's longest step: the column that fills the track is this one. */
   const longest = () =>
     Math.max(1, ...props.steps.map((row) => toPx(row.value) ?? 0));
@@ -986,8 +1009,9 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
               {(row) => (
                 <div class="flex flex-1 items-end rounded-sm bg-surface-sunken">
                   <div
-                    class="w-full rounded-sm bg-primary"
+                    class="w-full rounded-sm"
                     style={{
+                      background: props.fill,
                       height: `${((toPx(row.value) ?? 0) / longest()) * 100}%`,
                     }}
                   />
@@ -999,10 +1023,10 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
             <For each={props.steps}>
               {(row) => (
                 <div class="flex-1 stack-sm text-center">
-                  <code class="text-xs font-semibold text-text">
+                  <code class="font-semibold">
                     {row.path.split(".").pop()}
                   </code>
-                  <code class="text-xs text-text-muted">{row.value}</code>
+                  <code>{row.value}</code>
                 </div>
               )}
             </For>
@@ -1038,6 +1062,7 @@ function SpaceCard(props: { steps: readonly TokenRow[] }) {
 function MotionCard(props: {
   durations: readonly TokenRow[];
   easings: readonly TokenRow[];
+  fill: string | undefined;
 }) {
   /** The counter that makes the specimen arrive again. */
   const [run, setRun] = createSignal(0);
@@ -1098,20 +1123,21 @@ function MotionCard(props: {
                 {(row) => (
                   <li class="stack-sm">
                     <div class="split">
-                      <code class="truncate text-xs text-text">
+                      <code class="truncate">
                         {row.path.split(".").pop()}
                       </code>
-                      <code class="shrink-0 text-xs text-text-muted">
+                      <code class="shrink-0">
                         {row.value}
                       </code>
                     </div>
                     <div class="h-2 w-full overflow-hidden rounded-sm bg-surface-sunken">
                       <div
-                        class="h-full rounded-sm bg-primary"
+                        class="h-full rounded-sm"
                         // The share is arithmetic over the theme's own
                         // numbers — not a length the studio chose — so it is
                         // written here rather than named by a token.
                         style={{
+                          background: props.fill,
                           width: `${
                             ((durationMs(row.value) ?? 0) / longest()) * 100
                           }%`,
@@ -1133,7 +1159,7 @@ function MotionCard(props: {
                 <For each={props.easings}>
                   {(row) => (
                     <li class="split">
-                      <code class="truncate text-xs text-text">
+                      <code class="truncate">
                         {row.path.split(".").pop()}
                       </code>
                       <span
@@ -1156,7 +1182,7 @@ function MotionCard(props: {
               </span>
               <button
                 type="button"
-                class="bare shrink-0 text-xs text-text-muted hover:text-text"
+                class="bare shrink-0 text-text-muted hover:text-text"
                 title="Run the specimen again"
                 onClick={() => setRun(run() + 1)}
               >
@@ -1225,7 +1251,7 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
           <For each={props.samples}>
             {(sample) => (
               <div class="stack-sm">
-                <code class="text-xs text-text-muted">
+                <code>
                   {`<${sample.component}> · ${sample.row.name}`}
                 </code>
                 <div

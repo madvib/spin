@@ -86,7 +86,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
     panel: (
       <div class="grid gap-6 md:grid-cols-2">
         <div>
-          <p class="m-0">
+          <p>
             One JSON file per theme: your colors, spacing, type, radii, shadows,
             and durations — light and dark side by side. The build emits it as
             CSS custom properties (the swatches here are four of them), and
@@ -102,7 +102,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
                 <span
                   class={`h-8 w-16 shrink-0 border border-border-strong ${paint}`}
                 />
-                <code class="text-xs">{name}</code>
+                <code>{name}</code>
               </span>
             )}
           </For>
@@ -115,10 +115,10 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
     panel: (
       <div class="grid gap-6 md:grid-cols-2">
         <div>
-          <p class="m-0">
+          <p>
             Utility classes replace CSS files. Every name is generated from the
-            theme: <code class="text-xs">bg-primary</code> is your primary,{" "}
-            <code class="text-xs">p-4</code>{" "}
+            theme: <code>bg-primary</code> is your primary, <code>p-4</code>
+            {" "}
             is a step on your spacing scale, and hover and focus states come
             from the same scale. The default theme alone generates every utility
             it can, across color, spacing, type, layout, borders, shadows, and
@@ -127,12 +127,12 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
           <Code class="mt-4 text-xs" code={CARD_CODE} />
         </div>
         <div class="flex items-center justify-center">
-          <article class="flex w-full max-w-xs flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
+          <article class="flex w-full max-w-[20rem] flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
             <div class="flex items-baseline justify-between gap-3">
-              <h3 class="m-0 text-lg font-semibold">Ethiopia Guji</h3>
+              <h3>Ethiopia Guji</h3>
               <span class="text-sm text-text-muted">$19</span>
             </div>
-            <p class="m-0 text-sm text-text-muted">
+            <p class="text-sm text-text-muted">
               Apricot, jasmine, black tea
             </p>
             <div class="flex flex-wrap items-center gap-2">
@@ -155,15 +155,15 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
     panel: (
       <div class="grid gap-6 md:grid-cols-2">
         <div>
-          <p class="m-0">
+          <p>
             The element library, for the parts of an interface that have
             behavior: dialog, switch, checkbox, radio, select, range, rating,
             popover, table, progress, meter, disclosure, avatar, alert, badge,
             card, breadcrumbs, kbd — styled HTML, not widgets built from divs. A
             switch is a checkbox wearing{" "}
-            <code class="text-xs">role="switch"</code>; a dialog is a{" "}
-            <code class="text-xs">&lt;dialog&gt;</code>, so focus trapping,
-            Escape, and the backdrop come from the browser.
+            <code>role="switch"</code>; a dialog is a{" "}
+            <code>&lt;dialog&gt;</code>, so focus trapping, Escape, and the
+            backdrop come from the browser.
           </p>
           <Code class="mt-4 text-xs" code={DIALOG_CODE} />
         </div>
@@ -194,9 +194,9 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
                 el.addEventListener("close", () =>
                   el.close());
               }}
-              class="w-80 rounded-md border border-border bg-surface-raised p-4 text-text shadow-lg"
+              class="w-[20rem]"
             >
-              <p class="m-0">
+              <p>
                 Next roast lands Tuesday. Focus is trapped until you close this
                 — the browser does it.
               </p>
@@ -204,8 +204,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
                 <button
                   type="button"
                   class="secondary"
-                  onClick={(e) =>
-                    e.currentTarget.closest("dialog")?.close()}
+                  onClick={(e) => e.currentTarget.closest("dialog")?.close()}
                 >
                   Close
                 </button>
@@ -221,10 +220,9 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
     panel: (
       <div class="grid gap-6 md:grid-cols-2">
         <div>
-          <p class="m-0">
+          <p>
             The runtime turns these elements into custom elements —
-            <code class="text-xs">&lt;ui-button&gt;</code>,{" "}
-            <code class="text-xs">&lt;ui-dialog&gt;</code>{" "}
+            <code>&lt;ui-button&gt;</code>, <code>&lt;ui-dialog&gt;</code>{" "}
             — branded components that carry the theme with them. The theme is
             CSS custom properties, and custom elements are native platform: drop
             the same component into React, Svelte, Vue, or a page with no
@@ -232,7 +230,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             component, every framework, no runtime to ship for it — which is
             also where the speed comes from.
           </p>
-          <p class="mt-3 mb-0 text-sm text-text-muted">
+          <p class="text-sm text-text-muted">
             Building it now. The primitives above are the same components, and
             the theme document you write today is the one they will wear.
           </p>
@@ -324,10 +322,10 @@ export default function Home(): JSX.Element {
 
         <div class="flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
           <div class="max-w-screen-md py-12">
-            <h1 class="m-0 text-3xl tracking-tighter">
+            <h1>
               Spin your own web.
             </h1>
-            <p class="mt-5 text-md text-text-muted">
+            <p class="text-md text-text-muted">
               Spin is a design system and portable UI framework. Built on
               familiar concepts like design tokens, utility classes, and web
               components, Spin can be adopted incrementally and works with any
@@ -343,7 +341,13 @@ export default function Home(): JSX.Element {
           </div>
         </div>
 
-        <div class="flex items-center justify-center overflow-hidden border-t border-border md:border-t-0 md:border-l">
+        {
+          /* The rule between the pitch and the mark: the theme's own element
+          * for a rule, and the vertical edge is the cell's own on a wide
+          * screen, where the columns sit side by side. */
+        }
+        <hr class="md:hidden" />
+        <div class="flex items-center justify-center overflow-hidden md:border-l">
           <Mark class="w-full max-w-screen-md text-text" />
         </div>
       </section>
@@ -353,15 +357,13 @@ export default function Home(): JSX.Element {
         <Reveal>
           <div class="mt-16">
             <Section title="The console">
-              <p class="m-0 mb-6 max-w-prose text-text-muted">
+              <p class="max-w-[65ch] text-text-muted">
                 A back-office screen — sidebar, stats, orders table — built from
                 the elements and classes this page documents:{" "}
-                <code class="text-xs">&lt;card&gt;</code>,{" "}
-                <code class="text-xs">&lt;alert&gt;</code>,{" "}
-                <code class="text-xs">&lt;badge&gt;</code>,{" "}
-                <code class="text-xs">&lt;table&gt;</code>, and the utility
-                classes the section below teaches. The status chips and the
-                search filter the rows.
+                <code>&lt;card&gt;</code>, <code>&lt;alert&gt;</code>,{" "}
+                <code>&lt;badge&gt;</code>,{" "}
+                <code>&lt;table&gt;</code>, and the utility classes the section
+                below teaches. The status chips and the search filter the rows.
               </p>
               <Console />
             </Section>
@@ -371,7 +373,7 @@ export default function Home(): JSX.Element {
         <Reveal>
           <div class="mt-16">
             <Section title="The layers">
-              <p class="m-0 mb-6 max-w-prose text-text-muted">
+              <p class="max-w-[65ch] text-text-muted">
                 Nothing here is all-or-nothing. Bring tokens to an app you
                 already have, add utility classes where you want to stop writing
                 CSS, pull in an element when you want its behavior, and take the
@@ -395,7 +397,7 @@ export default function Home(): JSX.Element {
           <div class="mt-16">
             <Section title="The studio">
               <div class="grid gap-6 md:grid-cols-2">
-                <p class="m-0 max-w-prose">
+                <p class="max-w-[65ch]">
                   The studio is the theme editor, mounted into the app it is
                   editing — this site included. It docks to either side of that
                   app or takes the whole screen, and every change repaints the
@@ -403,7 +405,7 @@ export default function Home(): JSX.Element {
                   components. The <strong>Theme</strong>{" "}
                   button in the corner of this page opens it on this page.
                 </p>
-                <div class="flex flex-col justify-center gap-2 md:max-w-xs">
+                <div class="flex flex-col justify-center gap-2 md:max-w-[20rem]">
                   <For each={STUDIO_FEATURES}>
                     {(line) => (
                       <span class="flex gap-2 text-sm">
@@ -417,19 +419,21 @@ export default function Home(): JSX.Element {
                 </div>
               </div>
               <div class="mt-6 grid gap-6 md:grid-cols-2">
-                <p class="m-0">Update your theme live in the studio.</p>
+                <p>Update your theme live in the studio.</p>
                 <div class="border border-border bg-surface-raised rounded-md p-4">
                   <div class="flex items-center justify-between gap-3">
                     <span class="font-mono text-sm">color.primary</span>
-                    <code class="text-xs text-text-muted">{brand()}</code>
+                    <code>{brand()}</code>
                   </div>
                   <div class="mt-3 flex items-center gap-3">
                     <input
-                      ref={colorInput}
+                      ref={(node) => {
+                        colorInput = node;
+                      }}
                       type="color"
                       aria-label="color.primary"
                       onInput={(e) => paintBrand(e.currentTarget.value)}
-                      class="h-9 w-12 cursor-pointer rounded-sm border border-border-strong bg-transparent p-0"
+                      class="h-[2.25rem] w-12 cursor-pointer bg-transparent"
                     />
                     <button type="button" class="ghost" onClick={unpaintBrand}>
                       reset
@@ -438,7 +442,11 @@ export default function Home(): JSX.Element {
                   <div class="mt-4 flex flex-wrap items-center gap-3">
                     <button type="button">Add to box</button>
                     <badge variant="success">shipped</badge>
-                    <span class="h-7 w-16 rounded-sm border border-border-strong bg-primary" />
+                    {
+                      /* The brand colour, worn by the element the theme
+                      * gives that fill: the badge's primary tone. */
+                    }
+                    <badge variant="primary">primary</badge>
                   </div>
                 </div>
               </div>
@@ -451,10 +459,10 @@ export default function Home(): JSX.Element {
             <Section title="Tooling for agents">
               <div class="grid gap-4 md:grid-cols-3">
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                  <p class="m-0 font-semibold text-text">
+                  <p class="font-semibold text-text">
                     An MCP client reads the project.
                   </p>
-                  <p class="m-0 mt-2 text-sm">
+                  <p class="text-sm">
                     Claude, Cursor, or any MCP client connects to the running
                     dev server and reads what is actually there: the token
                     document, the utilities the preset generates, the elements
@@ -463,13 +471,13 @@ export default function Home(): JSX.Element {
                   </p>
                 </div>
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                  <p class="m-0 font-semibold text-text">
+                  <p class="font-semibold text-text">
                     Lint errors name the fix.
                   </p>
-                  <p class="m-0 mt-2 text-sm">
-                    <code class="text-xs">@spin/diagnostics</code>{" "}
-                    runs in oxlint: a hardcoded{" "}
-                    <code class="text-xs">#c8102e</code>{" "}
+                  <p class="text-sm">
+                    <code>@spin/diagnostics</code> runs in oxlint: a hardcoded
+                    {" "}
+                    <code>#c8102e</code>{" "}
                     fails with the token to use instead; a class the preset will
                     not generate fails as one that does not exist; a utility
                     parked on an element that styles itself fails with where it
@@ -477,10 +485,10 @@ export default function Home(): JSX.Element {
                   </p>
                 </div>
                 <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                  <p class="m-0 font-semibold text-text">
+                  <p class="font-semibold text-text">
                     Every theme opens in a browser.
                   </p>
-                  <p class="m-0 mt-2 text-sm">
+                  <p class="text-sm">
                     The gates render each starter in both modes and check
                     contrast, layout, overflow, and stacking — failures that
                     never show up in a code review, only on the page.
@@ -499,10 +507,10 @@ export default function Home(): JSX.Element {
                   href={page.href}
                   class="block border border-border bg-surface-raised rounded-md p-4 no-underline hover:border-border-strong transition-colors duration-fast"
                 >
-                  <p class="m-0 font-heading text-lg tracking-tight">
+                  <p class="font-heading text-lg">
                     {page.title}
                   </p>
-                  <p class="m-0 mt-2 text-sm text-text-muted">{page.body}</p>
+                  <p class="text-sm text-text-muted">{page.body}</p>
                 </A>
               )}
             </For>

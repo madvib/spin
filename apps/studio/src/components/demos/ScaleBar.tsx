@@ -20,6 +20,14 @@ function toRem(px: number): string {
  * used to produce when it carried its own.
  */
 export default function ScaleBar(props: {
+  /**
+   * The colour the bar wears: the theme's acting colour, as a value.
+   *
+   * The bar is a specimen of the theme's own step, so it is painted with
+   * the theme's own value — a utility would paint whatever the studio's
+   * sheet happens to say.
+   */
+  fill: string | undefined;
   /** The custom property the bar's width reads when it is not being dragged. */
   variable: string;
   /** The step resolved in px, where a drag starts. */
@@ -53,8 +61,9 @@ export default function ScaleBar(props: {
   return (
     <div class="h-6 overflow-hidden rounded-md bg-surface-sunken">
       <div
-        class="h-full rounded-md bg-primary cursor-col-resize"
+        class="h-full rounded-md cursor-col-resize"
         style={{
+          background: props.fill,
           width: dragPx() === undefined
             ? `var(${props.variable})`
             : `${Math.min(dragPx() ?? 0, max())}px`,

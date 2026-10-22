@@ -42,7 +42,9 @@ export function Reveal(props: { children: JSX.Element }): JSX.Element {
   });
   return (
     <div
-      ref={el}
+      ref={(node) => {
+        el = node;
+      }}
       class={`transition-opacity duration-slow ${
         shown() ? "opacity-100" : "opacity-0"
       }`}
@@ -64,8 +66,13 @@ export function Section(props: {
 }): JSX.Element {
   return (
     <section class="mb-10 scroll-mt-20" id={props.id}>
-      <h2 class="mb-2 flex items-center gap-2">
-        <span class="block h-1 w-4 rounded-full bg-primary" />
+      <h2 class="flex items-center gap-2">
+        {
+          /* The mark before the title: a rule in the brand ink, drawn the way
+          * the theme draws its rules — a hairline of the accent rather than a
+          * fill the theme gave another element. */
+        }
+        <span class="block h-1 w-4 border-t-4 border-solid border-primary" />
         {props.title}
       </h2>
       <div class="text-text-muted">

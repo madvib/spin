@@ -176,9 +176,9 @@ export default function Install(): JSX.Element {
         <For each={BUNDLERS}>
           {(bundler) => (
             <div class="mt-4">
-              <h3 class="mb-2 font-mono text-sm text-text">{bundler.name}</h3>
+              <h3 class="text-text">{bundler.name}</h3>
               <Code code={bundler.code} />
-              <p class="mt-2 text-sm">{bundler.note}</p>
+              <p class="text-sm">{bundler.note}</p>
             </div>
           )}
         </For>
@@ -198,7 +198,7 @@ export default function Install(): JSX.Element {
 function Line(props: { pkg: string; what: string }): JSX.Element {
   return (
     <div class="flex flex-col gap-1 border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4 mt-2 md:flex-row md:items-baseline md:gap-4">
-      <code class="shrink-0 font-mono text-sm">{props.pkg}</code>
+      <code class="shrink-0">{props.pkg}</code>
       <span class="text-sm">{props.what}</span>
     </div>
   );

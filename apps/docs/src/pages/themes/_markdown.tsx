@@ -92,12 +92,12 @@ function inline(text: string): JSX.Element[] {
     if (start > at) out.push(text.slice(at, start));
     const [whole, code, strong, label, href] = match;
     if (code !== undefined) {
-      out.push(<code class="font-mono text-xs">{code}</code>);
+      out.push(<code>{code}</code>);
     } else if (strong !== undefined) {
-      out.push(<strong class="font-semibold text-text">{strong}</strong>);
+      out.push(<strong class="text-text">{strong}</strong>);
     } else if (label !== undefined && href !== undefined) {
       out.push(
-        <a href={href} class="text-link hover:underline">{label}</a>,
+        <a href={href} class="hover:underline">{label}</a>,
       );
     } else {
       out.push(whole);
@@ -111,9 +111,9 @@ function inline(text: string): JSX.Element[] {
 /** The heading a level of the source becomes. */
 function heading(level: number, text: string): JSX.Element {
   const children = inline(text);
-  if (level <= 2) return <h3 class="mt-5 mb-1 text-text">{children}</h3>;
-  if (level === 3) return <h4 class="mt-4 mb-1 text-text">{children}</h4>;
-  return <h5 class="mt-3 mb-1 text-text">{children}</h5>;
+  if (level <= 2) return <h3 class="text-text">{children}</h3>;
+  if (level === 3) return <h4 class="text-text">{children}</h4>;
+  return <h5 class="text-text">{children}</h5>;
 }
 
 /** A markdown document, rendered. */
@@ -125,7 +125,7 @@ export function Markdown(props: { text: string }): JSX.Element {
           return heading(block.level, block.text);
         }
         if (block.kind === "paragraph") {
-          return <p class="m-0 mt-2 text-sm">{inline(block.text)}</p>;
+          return <p class="text-sm">{inline(block.text)}</p>;
         }
         const items = (
           <For each={block.items}>
@@ -134,12 +134,12 @@ export function Markdown(props: { text: string }): JSX.Element {
         );
         return block.ordered
           ? (
-            <ol class="mt-2 grid gap-1 list-decimal pl-5">
+            <ol class="grid gap-1 list-decimal">
               {items}
             </ol>
           )
           : (
-            <ul class="mt-2 grid gap-1 list-disc pl-5">
+            <ul class="grid gap-1 list-disc">
               {items}
             </ul>
           );

@@ -31,18 +31,20 @@ export default function Themes(): JSX.Element {
       </p>
       <div class="mt-4 border border-border rounded-md bg-surface-raised p-4">
         <Probe>
+          {
+            /* Each chip is the element the theme types for that role: the
+            * badge wears the primary and the accent fills, the link wears
+            * the link ink, and the heading wears the display face. The same
+            * markup, the other mode. */
+          }
           <div class="flex flex-wrap items-center gap-2">
-            <span class="bg-primary text-on-primary rounded-sm px-3 py-2 text-sm">
-              primary
-            </span>
-            <span class="bg-accent text-on-accent rounded-sm px-3 py-2 text-sm">
-              accent
-            </span>
+            <badge variant="primary">primary</badge>
+            <badge variant="accent">accent</badge>
             <span class="bg-surface text-text rounded-sm px-3 py-2 text-sm border border-border">
               surface
             </span>
-            <span class="text-link rounded-sm px-3 py-2 text-sm">link</span>
-            <span class="font-heading text-lg tracking-tight">Aa</span>
+            <a href="/tokens" class="px-3 py-2 text-sm">link</a>
+            <span class="font-heading text-lg">Aa</span>
             <span class="text-xs text-text-muted">
               this block re-declares the theme as{" "}
               {mode() === "dark" ? "light" : "dark"} — same CSS, other rendering

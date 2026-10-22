@@ -27,8 +27,8 @@ export default function Guide(props: RouteSectionProps): JSX.Element {
   const location = useLocation();
   return (
     <main class="mx-auto max-w-screen-md px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Guide</h1>
-      <p class="mt-1 text-text-muted">
+      <h1>Guide</h1>
+      <p class="text-text-muted">
         What you bring: a design, as a theme — colors, type, spacing, motion,
         the character of your components. What spin gives back: utilities that
         spend those decisions, finished elements your agent can't get wrong, and

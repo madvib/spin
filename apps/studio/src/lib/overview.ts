@@ -113,6 +113,22 @@ export function tokenValue(
   }
 }
 
+/**
+ * The theme's acting colour, in the mode being shown.
+ *
+ * A specimen wears it, and it wears it as a VALUE: the studio's own sheet
+ * wears the theme under edit, so a utility paints the right colour by
+ * accident — but a specimen is the theme's value, shown, and a value is
+ * data. The studio's own rule, and the reason the palette paints its swatches
+ * the same way.
+ */
+export function actingColour(
+  tree: TokenTree,
+  mode: string,
+): string | undefined {
+  return tokenValue(tree, mode, "color.primary");
+}
+
 /** The specs this theme declares, each with the value it is worth now. */
 function resolve(
   text: string,

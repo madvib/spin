@@ -84,7 +84,7 @@ export default function FontPicker(props: {
                         font.family,
                       ),
                     }}
-                    class="rounded-md border bg-surface-raised px-3 py-2 text-left hover:border-primary"
+                    class="secondary s-sm text-left hover:border-primary"
                     onClick={() =>
                       props.onPick(
                         `"${font.family}", ${

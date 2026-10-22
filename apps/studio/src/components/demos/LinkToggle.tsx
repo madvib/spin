@@ -12,8 +12,8 @@ export default function LinkToggle(props: { group: string }) {
   return (
     <button
       type="button"
-      class="row-sm shrink-0 rounded-md border border-border px-2 py-1 text-xs text-text-muted"
-      classList={{ "bg-surface-raised": linked() }}
+      class="secondary s-sm row-sm shrink-0 text-xs text-text-muted"
+      classList={{ "bg-transparent": !linked() }}
       aria-pressed={linked()}
       title={linked()
         ? "Linked: one step's track moves every step by the same ratio"

@@ -148,7 +148,7 @@ export default function StatusBar() {
         <button
           type="button"
           data-testid="checks"
-          class="bare flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-text"
+          class="bare flex h-8 w-8 shrink-0 items-center justify-center text-text-muted hover:text-text"
           classList={{
             "text-semantic-error": findings().length > 0,
             "text-text-muted": findings().length === 0,
@@ -252,7 +252,7 @@ export default function StatusBar() {
           }}
           onClose={() => setChecksOpen(false)}
         >
-          <h2 class="text-lg font-sans">Checks</h2>
+          <h2>Checks</h2>
           <Show
             when={findings().length > 0}
             fallback={
@@ -295,7 +295,7 @@ export default function StatusBar() {
                           </span>
                           <button
                             type="button"
-                            class="flex min-h-0 shrink-0 items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-normal text-text hover:bg-surface-sunken"
+                            class="bare s-sm flex min-h-0 shrink-0 items-center justify-start gap-2 text-left text-text hover:bg-surface-sunken"
                             title={`Write ${remedy().value} into ${remedy().path}`}
                             onClick={() => apply(remedy())}
                           >

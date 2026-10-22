@@ -471,7 +471,7 @@ spinOverlay("${studioBase}/rpc"${
               ? ""
               : `, ${JSON.stringify(options.studioUrl)}`
           });
-<\/script>
+</script>
 </body>`,
         );
       },

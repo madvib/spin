@@ -129,13 +129,12 @@ export default function Schema(): JSX.Element {
   const elements = elementGroups();
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Theme schema</h1>
-      <p class="mt-1 max-w-screen-md text-text-muted">
+      <h1>Theme schema</h1>
+      <p class="max-w-screen-md text-text-muted">
         A theme is a JSON object of groups. The groups the starters declare are
         the groups a theme owns; the roles the schema requires are the floor
         under them; and the types are the closed vocabulary a token may declare.
-        The package writes the schema to{" "}
-        <code class="font-mono">schema.json</code>{" "}
+        The package writes the schema to <code>schema.json</code>{" "}
         and derives it from the same declaration the validator uses, so the
         three cannot drift.
       </p>
@@ -144,29 +143,25 @@ export default function Schema(): JSX.Element {
         <p>
           The root of a document holds groups, and a group holds tokens and
           further groups. A token is an object with a{" "}
-          <code class="font-mono">$value</code>, and it may carry a{" "}
-          <code class="font-mono">$type</code>, a{" "}
-          <code class="font-mono">$description</code> and a{" "}
-          <code class="font-mono">$modes</code>. The keys DTCG reserves are
-          these five, plus{" "}
-          <code class="font-mono">$deprecated</code>; every other key at a level
-          is a child.
+          <code>$value</code>, and it may carry a <code>$type</code>, a{" "}
+          <code>$description</code> and a{" "}
+          <code>$modes</code>. The keys DTCG reserves are these five, plus{" "}
+          <code>$deprecated</code>; every other key at a level is a child.
         </p>
         <Code code={DOCUMENT} />
-        <p class="mt-3">
-          A group may declare a <code class="font-mono">$type</code>{" "}
+        <p>
+          A group may declare a <code>$type</code>{" "}
           of its own, and that type is the default for everything under it. A
           token that declares no type takes the one from the closest parent
           group that declares one. A token that carries a value may not also
           carry children, and a group with no children is an error rather than
           an empty branch.
         </p>
-        <p class="mt-3">
+        <p>
           An alias is a value written as the path of another token in braces:
           {" "}
-          <code class="font-mono">{"{color.neutral.50}"}</code>. It is resolved
-          before the stylesheet is written and emitted as a{" "}
-          <code class="font-mono">var()</code>{" "}
+          <code>{"{color.neutral.50}"}</code>. It is resolved before the
+          stylesheet is written and emitted as a <code>var()</code>{" "}
           reference, so the reference stays live and the palette can change
           under it.
         </p>
@@ -178,8 +173,8 @@ export default function Schema(): JSX.Element {
           tokens use and the roles the schema requires inside them. The schema
           names three groups and requires them; the rest are admitted by the
           schema's own{" "}
-          <code class="font-mono">additionalProperties</code>, because they are
-          the theme's to declare and nobody else's to require.
+          <code>additionalProperties</code>, because they are the theme's to
+          declare and nobody else's to require.
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={facts.requiredGroups}>
@@ -187,13 +182,13 @@ export default function Schema(): JSX.Element {
           </For>
         </div>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">group</th>
-                <th class="py-2 pr-4 font-semibold text-text">types</th>
-                <th class="py-2 pr-4 font-semibold text-text">what it is</th>
-                <th class="py-2 pr-4 font-semibold text-text">
+                <th class="py-2 pr-4">group</th>
+                <th class="py-2 pr-4">types</th>
+                <th class="py-2 pr-4">what it is</th>
+                <th class="py-2 pr-4">
                   required in it
                 </th>
               </tr>
@@ -202,17 +197,17 @@ export default function Schema(): JSX.Element {
               <For each={groups}>
                 {(group) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="font-mono text-xs text-text">
                       {group}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs">
+                    <td class="font-mono text-xs">
                       {groupTypes(group).join(", ")}
                     </td>
-                    <td class="py-2 pr-4 text-text-muted">
+                    <td class="text-text-muted">
                       {GROUP_ABOUT[group] ??
                         "A group the starters declare. Nothing in the contract speaks about it."}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs">
+                    <td class="font-mono text-xs">
                       {(facts.requiredRoles.get(group) ?? []).join(", ") ||
                         "nothing"}
                     </td>
@@ -234,8 +229,8 @@ export default function Schema(): JSX.Element {
           <For each={elements}>
             {(group) => (
               <div class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-mono text-sm text-text">{group}</p>
-                <ul class="m-0 mt-2 grid gap-1">
+                <p class="font-mono text-sm text-text">{group}</p>
+                <ul class="grid gap-1">
                   <For each={elementTokens(group)}>
                     {(token) => (
                       <li class="flex items-baseline justify-between gap-3 text-sm">
@@ -251,39 +246,38 @@ export default function Schema(): JSX.Element {
             )}
           </For>
         </div>
-        <p class="mt-3 text-sm">
+        <p class="text-sm">
           A theme that leaves one of these out does not get the default: the
           rule omits the declaration, and the element falls back to whatever the
           platform does. The scaffold does not write them, because they are an
-          opt-in: a theme that declares no <code class="font-mono">button</code>
-          {" "}
+          opt-in: a theme that declares no <code>button</code>{" "}
           group is complete and valid, and a theme that wants to restyle a
           button's own tokens says so in its own document. The manifest carries
           a placeholder beside every one of them, and that is the value the
           studio writes when it creates one.
         </p>
-        <p class="mt-3 text-sm">
+        <p class="text-sm">
           Each of them is also spendable as a utility:{" "}
-          <code class="font-mono">button.weight</code> is spent as{" "}
-          <code class="font-mono">button-weight</code>, reading the same
-          property the preflight emitted.
+          <code>button.weight</code> is spent as{" "}
+          <code>button-weight</code>, reading the same property the preflight
+          emitted.
         </p>
       </Section>
 
       <Section id="types" title="The types">
         <p>
           A token may declare a{" "}
-          <code class="font-mono">$type</code>, and the vocabulary is closed. An
-          unknown type is a parse error, so a typo can never reach the
-          stylesheet, and the list below is every type there is.
+          <code>$type</code>, and the vocabulary is closed. An unknown type is a
+          parse error, so a typo can never reach the stylesheet, and the list
+          below is every type there is.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">type</th>
-                <th class="py-2 pr-4 font-semibold text-text">what it is</th>
-                <th class="py-2 pr-4 font-semibold text-text">
+                <th class="py-2 pr-4">type</th>
+                <th class="py-2 pr-4">what it is</th>
+                <th class="py-2 pr-4">
                   what it accepts
                 </th>
               </tr>
@@ -292,13 +286,13 @@ export default function Schema(): JSX.Element {
               <For each={TYPES}>
                 {(type) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="font-mono text-xs text-text">
                       {type}
                     </td>
-                    <td class="py-2 pr-4 text-text-muted">
+                    <td class="text-text-muted">
                       {TYPE_ABOUT[type]?.[0] ?? "A type in the vocabulary."}
                     </td>
-                    <td class="py-2 pr-4 text-text-muted">
+                    <td class="text-text-muted">
                       {TYPE_ABOUT[type]?.[1] ??
                         "Any non-empty value."}
                     </td>
@@ -308,8 +302,8 @@ export default function Schema(): JSX.Element {
             </tbody>
           </table>
         </div>
-        <p class="mt-3 text-sm">
-          A group that declares no <code class="font-mono">$type</code>{" "}
+        <p class="text-sm">
+          A group that declares no <code>$type</code>{" "}
           and a token that declares none of its own is a parse error: a value
           with no type is a value nobody can check. The types the validator
           cannot judge are checked where the CSS consumes them instead, which is
@@ -320,30 +314,30 @@ export default function Schema(): JSX.Element {
       <Section id="roles" title="The required roles">
         <p>
           These are the roles every theme must declare, whatever components it
-          enables. The schema's <code class="font-mono">required</code>{" "}
+          enables. The schema's <code>required</code>{" "}
           list is derived from this declaration, and the validator holds a
           document to it.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">role</th>
-                <th class="py-2 pr-4 font-semibold text-text">type</th>
-                <th class="py-2 pr-4 font-semibold text-text">what it is</th>
-                <th class="py-2 pr-4 font-semibold text-text">the floor</th>
+                <th class="py-2 pr-4">role</th>
+                <th class="py-2 pr-4">type</th>
+                <th class="py-2 pr-4">what it is</th>
+                <th class="py-2 pr-4">the floor</th>
               </tr>
             </thead>
             <tbody>
               <For each={ROLES}>
                 {(role) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="font-mono text-xs text-text">
                       {role.path}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs">{role.type}</td>
-                    <td class="py-2 pr-4 text-text-muted">{role.doc}</td>
-                    <td class="py-2 pr-4 font-mono text-xs">
+                    <td class="font-mono text-xs">{role.type}</td>
+                    <td class="text-text-muted">{role.doc}</td>
+                    <td class="font-mono text-xs">
                       {role.floor === undefined
                         ? "none"
                         : `${role.floor.fg} on ${role.floor.bg}, ${role.floor.min}:1`}
@@ -354,7 +348,7 @@ export default function Schema(): JSX.Element {
             </tbody>
           </table>
         </div>
-        <p class="mt-3 text-sm">
+        <p class="text-sm">
           The scaffold writes every one of them, with a neutral placeholder that
           is valid and legible and obviously unfinished. A theme that looks
           finished was not scaffolded.
@@ -364,11 +358,9 @@ export default function Schema(): JSX.Element {
       <Section id="modes" title="Modes">
         <p>
           A mode is a variant of a token, not a second theme. Two spellings say
-          the same thing. The first is the root{" "}
-          <code class="font-mono">modes</code>{" "}
+          the same thing. The first is the root <code>modes</code>{" "}
           field, which says which modes the document serves, and it is metadata:
-          no emitter reads it. The second is{" "}
-          <code class="font-mono">$modes</code>{" "}
+          no emitter reads it. The second is <code>$modes</code>{" "}
           on a token, which says how that one token varies.
         </p>
         <Code
@@ -378,15 +370,14 @@ export default function Schema(): JSX.Element {
   "$modes": { "dark": "#ff5a63" }
 }`}
         />
-        <p class="mt-3">
+        <p>
           A document may also spell the dark side as a top-level{" "}
-          <code class="font-mono">dark</code> group, where{" "}
-          <code class="font-mono">dark.color.primary</code> overrides{" "}
-          <code class="font-mono">--color-primary</code>{" "}
+          <code>dark</code> group, where <code>dark.color.primary</code>{" "}
+          overrides <code>--color-primary</code>{" "}
           rather than defining a second, dead variable. Both spellings emit
           identical CSS.
         </p>
-        <p class="mt-3">
+        <p>
           Only color and focus vary by mode, and that is a design fact rather
           than a convention: dark mode changes ink and surface, not space or
           type. A document's root <code>modes</code>{" "}
@@ -398,11 +389,11 @@ export default function Schema(): JSX.Element {
 
       <Section id="extensions" title="What lives under $extensions">
         <p>
-          <code class="font-mono">$extensions</code>{" "}
+          <code>$extensions</code>{" "}
           is where everything that is neither a token nor DTCG metadata goes.
           The build reads one key of it:{" "}
-          <code class="font-mono">$extensions.spin.fonts</code>, the list of
-          faces the theme loads.
+          <code>$extensions.spin.fonts</code>, the list of faces the theme
+          loads.
         </p>
         <Code
           class="mt-2"
@@ -420,22 +411,21 @@ export default function Schema(): JSX.Element {
   }
 }`}
         />
-        <p class="mt-3">
+        <p>
           A font is an extension rather than a token because a source is a URL
           and not a design value: a theme names a family with{" "}
-          <code class="font-mono">font.family.sans</code>, and the source lives
-          beside it so the two cannot drift. The sheet emits one{" "}
-          <code class="font-mono">@font-face</code>{" "}
+          <code>font.family.sans</code>, and the source lives beside it so the
+          two cannot drift. The sheet emits one <code>@font-face</code>{" "}
           per declaration and fetches nothing else.
         </p>
-        <p class="mt-3">
+        <p>
           A theme may also carry{" "}
-          <code class="font-mono">$extensions.spin.components</code>, a list of
-          the elements it opts into; the studio reads it and shows it in the
-          overview. A starter opts into everything, so it declares nothing — the
-          extension is for a theme that wants a narrower set.
+          <code>$extensions.spin.components</code>, a list of the elements it
+          opts into; the studio reads it and shows it in the overview. A starter
+          opts into everything, so it declares nothing — the extension is for a
+          theme that wants a narrower set.
         </p>
-        <p class="mt-3 text-sm">
+        <p class="text-sm">
           <A href="/themes/authoring" class="text-link hover:underline">
             Authoring a theme
           </A>{" "}

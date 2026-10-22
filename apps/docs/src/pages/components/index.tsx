@@ -75,7 +75,7 @@ function GroupNav(): JSX.Element {
         {(group) => (
           <a
             href={`#${group.id}`}
-            class="text-text-muted no-underline hover:text-text"
+            class="hover:text-text"
           >
             {group.label}
           </a>
@@ -88,8 +88,8 @@ function GroupNav(): JSX.Element {
 export default function ComponentsIndex(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-xl px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Components</h1>
-      <p class="text-text-muted max-w-screen-md mt-1">
+      <h1>Components</h1>
+      <p class="text-text-muted max-w-screen-md">
         Every element spin paints — live, in the theme the rail has set. Open
         one to copy the markup, see the classes it answers to, and check what it
         reads from the theme.
@@ -99,7 +99,7 @@ export default function ComponentsIndex(): JSX.Element {
       <For each={GROUPS}>
         {(group) => (
           <section class="mt-10 scroll-mt-20" id={group.id}>
-            <h2 class="font-heading text-lg tracking-tight text-text">
+            <h2 class="text-text">
               {group.label}
             </h2>
             <div class="mt-4 grid gap-4 md:grid-cols-3">
@@ -126,7 +126,7 @@ export default function ComponentsIndex(): JSX.Element {
                         </div>
                       </Show>
                       <div class="flex items-center justify-between gap-2 px-4 py-3">
-                        <span class="flex min-w-0 items-center gap-2 font-heading text-lg tracking-tight text-text">
+                        <span class="flex min-w-0 items-center gap-2 font-heading text-lg text-text">
                           <i
                             class={`${row.icon} icon-md shrink-0 text-text-muted`}
                             aria-hidden="true"

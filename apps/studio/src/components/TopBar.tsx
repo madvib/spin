@@ -173,7 +173,7 @@ export default function TopBar() {
             }}
           >
             <span
-              class="inline-block shrink-0 text-xl i-lucide-refresh-cw"
+              class="inline-block shrink-0 icon-md i-lucide-refresh-cw"
               aria-hidden="true"
             />
           </button>
@@ -187,7 +187,7 @@ export default function TopBar() {
             onClick={discard}
           >
             <span
-              class="inline-block shrink-0 text-xl i-lucide-eraser"
+              class="inline-block shrink-0 icon-md i-lucide-eraser"
               aria-hidden="true"
             />
           </button>
@@ -203,7 +203,7 @@ export default function TopBar() {
             onClick={() => undo()}
           >
             <span
-              class="inline-block shrink-0 text-xl i-lucide-undo-2"
+              class="inline-block shrink-0 icon-md i-lucide-undo-2"
               aria-hidden="true"
             />
           </button>
@@ -216,7 +216,7 @@ export default function TopBar() {
             onClick={() => redo()}
           >
             <span
-              class="inline-block shrink-0 text-xl i-lucide-redo-2"
+              class="inline-block shrink-0 icon-md i-lucide-redo-2"
               aria-hidden="true"
             />
           </button>
@@ -244,7 +244,7 @@ export default function TopBar() {
             }}
           >
             <span
-              class="inline-block shrink-0 text-xl i-lucide-save"
+              class="inline-block shrink-0 icon-md i-lucide-save"
               aria-hidden="true"
             />
           </button>

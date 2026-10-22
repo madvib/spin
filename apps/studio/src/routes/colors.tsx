@@ -88,14 +88,14 @@ export default function ColorsPage() {
       title="Colors"
       note="A theme's colours: the roles the interface paints with, what each role is for, and which of them you set."
     >
-      <p class="mb-6 text-sm text-text-muted">
+      <p class="text-sm text-text-muted">
         A role is a job the interface has: the page, the ink on it, the hairline
         between things, the danger.
       </p>
 
       <section class="stack-sm mb-6" aria-label="Palette">
         <div class="split">
-          <h2 class="text-xl">Palette</h2>
+          <h2>Palette</h2>
           <span class="text-sm text-text-muted">{mode()}</span>
         </div>
         <p class="text-sm text-text-muted">
@@ -125,7 +125,7 @@ export default function ColorsPage() {
       <For each={FAMILIES}>
         {(family) => (
           <section class="stack-sm mb-6" aria-label={FAMILY_TITLES[family]}>
-            <h2 class="text-xl">{FAMILY_TITLES[family]}</h2>
+            <h2>{FAMILY_TITLES[family]}</h2>
             <p class="text-sm text-text-muted">{FAMILY_NOTES[family]}</p>
             <For each={rolesOf(roles(), family)}>
               {(role) => (
@@ -186,7 +186,7 @@ function RolePicker(props: {
       {(role) => (
         <div class="stack rounded-md border border-border bg-surface-raised p-4">
           <div class="split">
-            <h3 class="text-lg">Editing {role().name}</h3>
+            <h3>Editing {role().name}</h3>
             <Hex value={current()?.value ?? ""} />
           </div>
           <Show when={role().doc}>
@@ -215,7 +215,7 @@ function RolePicker(props: {
             </Show>
           </div>
           <div class="stack-sm">
-            <h4 class="text-sm font-medium">Floors</h4>
+            <h4>Floors</h4>
             <Show when={owed().length > 0}>
               <For each={owed()}>
                 {(floor) => (
@@ -306,7 +306,7 @@ function SlotEditor(props: {
       </p>
       <input
         type="text"
-        class="w-full font-mono text-xs"
+        class="w-full"
         value={props.value.raw}
         aria-label={`${props.role.path} value in ${props.slot}`}
         onChange={(event) => commit(event.currentTarget.value)}
@@ -326,7 +326,7 @@ function SlotEditor(props: {
                 onClick={() => commit(`{${target.path}}`)}
               >
                 <span
-                  class="row-sm rounded-sm border border-border px-1 py-0.5 text-xs"
+                  class="row-sm rounded-sm border border-border px-1 text-xs"
                   classList={{
                     "border-primary": target.path === props.value.reference,
                   }}
@@ -418,7 +418,7 @@ function RoleRow(props: {
         </button>
         <div class="stack-sm min-w-0 flex-1">
           <div class="split">
-            <span class="truncate font-medium">{props.role.name}</span>
+            <span class="truncate">{props.role.name}</span>
             <Hex value={current().value ?? ""} />
           </div>
           <Show when={props.role.doc}>
@@ -525,7 +525,7 @@ function FloorReadout(props: {
       <Show when={!holds() && props.floor.remedy !== null}>
         <button
           type="button"
-          class="bare shrink-0 font-mono text-xs text-link underline"
+          class="bare shrink-0 text-link"
           title={`Set ${fails()} to ${props.floor.remedy}`}
           onClick={() =>
             editToken(
@@ -565,7 +565,7 @@ function Ramp() {
   return (
     <section class="stack-sm mb-6" aria-label="The ramp">
       <div class="split">
-        <h2 class="text-xl">The ramp</h2>
+        <h2>The ramp</h2>
         <button
           type="button"
           aria-expanded={open()}
@@ -672,7 +672,7 @@ function Ramp() {
 function InUse() {
   return (
     <section class="stack-sm mb-6" aria-label="Palette in use">
-      <h2 class="text-xl">Palette in use</h2>
+      <h2>Palette in use</h2>
       <p class="text-sm text-text-muted">
         The roles on the elements they paint, wearing the theme being edited.
       </p>
@@ -681,7 +681,7 @@ function InUse() {
         <button type="button" class="danger">Danger</button>
         <badge variant="success">Success</badge>
         <badge variant="warning">Warning</badge>
-        <span class="text-link underline">Link</span>
+        <a href="#link">Link</a>
       </div>
     </section>
   );

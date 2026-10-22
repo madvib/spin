@@ -84,7 +84,6 @@ export function Mark(props: { class?: string }) {
     "(prefers-reduced-motion: reduce)",
   ).matches ?? false;
 
-  let body: SVGSVGElement | undefined;
   let pendulum: SVGGElement | undefined;
   let silk: SVGLineElement | undefined;
   let climber: SVGGElement | undefined;
@@ -110,7 +109,6 @@ export function Mark(props: { class?: string }) {
 
   return (
     <svg
-      ref={body}
       viewBox="0 0 120 120"
       fill="none"
       class={props.class}
@@ -150,9 +148,15 @@ export function Mark(props: { class?: string }) {
       ))}
 
       {/* The whole hanging assembly — silk and spider — swings here. */}
-      <g ref={pendulum}>
+      <g
+        ref={(el) => {
+          pendulum = el;
+        }}
+      >
         <line
-          ref={silk}
+          ref={(el) => {
+            silk = el;
+          }}
           x1={HUB.x}
           y1={HUB.y}
           x2={HUB.x}
@@ -167,7 +171,11 @@ export function Mark(props: { class?: string }) {
         </line>
 
         {/* The climber: crawl offset × descent, composed. */}
-        <g ref={climber}>
+        <g
+          ref={(el) => {
+            climber = el;
+          }}
+        >
           <g opacity={reduced ? 1 : 0}>
             {!reduced && (
               <>
@@ -193,7 +201,9 @@ export function Mark(props: { class?: string }) {
             )}
             {/* Legs in two gaits — they alternate only while climbing. */}
             <g
-              ref={legsA}
+              ref={(el) => {
+                legsA = el;
+              }}
               stroke="currentColor"
               stroke-width="1.6"
               stroke-linecap="round"
@@ -204,7 +214,9 @@ export function Mark(props: { class?: string }) {
               <path d="M57.5 95.5 C55.5 99 55.5 102 57 105.5" />
             </g>
             <g
-              ref={legsB}
+              ref={(el) => {
+                legsB = el;
+              }}
               stroke="currentColor"
               stroke-width="1.6"
               stroke-linecap="round"

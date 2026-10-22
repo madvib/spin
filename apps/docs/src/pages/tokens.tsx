@@ -56,26 +56,25 @@ export default function Tokens(): JSX.Element {
   const active = theme;
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Tokens</h1>
+      <h1>Tokens</h1>
 
       <Section id="pipeline" title="Document → sheet">
         <p>
           A document parses, validates against the legibility floor — no fill
           without a readable foreground — and emits custom properties scoped by
           {" "}
-          <code class="font-mono">data-theme</code>, restated per{" "}
-          <code class="font-mono">data-mode</code>.{" "}
-          <code class="font-mono">color.semantic.error</code> and{" "}
-          <code class="font-mono">color-semantic-error</code>{" "}
-          are the same token; the property is{" "}
-          <code class="font-mono">--color-semantic-error</code>.
+          <code>data-theme</code>, restated per <code>data-mode</code>.{" "}
+          <code>color.semantic.error</code> and{" "}
+          <code>color-semantic-error</code> are the same token; the property is
+          {" "}
+          <code>--color-semantic-error</code>.
         </p>
       </Section>
 
       <Section id="palette" title="The palette, live">
         <div class="mt-5 grid gap-x-10 gap-y-7 md:grid-cols-2">
           <div>
-            <p class="m-0 mb-3 text-sm font-semibold text-text">
+            <p class="text-sm font-semibold text-text">
               {mode()}
             </p>
             <div class="grid gap-2 sm:grid-cols-2">
@@ -85,7 +84,7 @@ export default function Tokens(): JSX.Element {
             </div>
           </div>
           <div>
-            <p class="m-0 mb-3 text-sm font-semibold text-text">
+            <p class="text-sm font-semibold text-text">
               {otherMode()}
             </p>
             <Probe>
@@ -113,13 +112,13 @@ export default function Tokens(): JSX.Element {
 
       <Section id="character" title="Where the starters disagree">
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">decision</th>
+                <th class="py-2 pr-4">decision</th>
                 <For each={starterList}>
                   {(name) => (
-                    <th class="py-2 pr-4 font-mono text-xs">
+                    <th class="py-2 pr-4 font-mono">
                       {name}
                     </th>
                   )}
@@ -130,7 +129,7 @@ export default function Tokens(): JSX.Element {
               <For each={CHARACTER_ROWS}>
                 {(row) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 text-text-muted">{row.label}</td>
+                    <td class="text-text-muted">{row.label}</td>
                     <For each={starterList}>
                       {(name) => (
                         <td
@@ -157,8 +156,8 @@ export default function Tokens(): JSX.Element {
       <Section id="fonts" title="Faces">
         <p>
           The document declares the faces it loads — the sheet emits{" "}
-          <code class="font-mono">@font-face</code>{" "}
-          for them and fetches nothing else. <strong>{active()}</strong> loads:
+          <code>@font-face</code> for them and fetches nothing else.{" "}
+          <strong>{active()}</strong> loads:
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={faces(doc())}>

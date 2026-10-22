@@ -24,12 +24,12 @@ export default function Verify(): JSX.Element {
         Two kinds of check, both from the same package: the lints, which read
         your source, and the rendered checks, which open your app in a real
         browser and measure what a person would see. Both ship as{" "}
-        <code class="font-mono">npx spin</code>.
+        <code>npx spin</code>.
       </p>
       <div class="mt-4">
         {ORACLES.map(([name, what]) => (
           <div class="flex flex-col gap-1 border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4 mt-2 md:flex-row md:items-baseline md:gap-4">
-            <code class="shrink-0 font-mono text-sm">{name}</code>
+            <code class="shrink-0">{name}</code>
             <span class="text-sm">{what}</span>
           </div>
         ))}

@@ -169,8 +169,8 @@ function ExampleSection(props: {
   return (
     <section class="mb-4">
       <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h3 class="flex items-center gap-2 text-sm font-semibold">
-          <span class="block h-1 w-4 rounded-full bg-primary" />
+        <h3 class="flex items-center gap-2">
+          <Marker />
           {props.row.name}
         </h3>
         <ViewSwitch view={view()} onChange={setView} />
@@ -416,7 +416,7 @@ export default function ComponentPage() {
             when={library() !== undefined}
             fallback={
               <div>
-                <h1 class="text-2xl capitalize">{params.name}</h1>
+                <h1 class="capitalize">{params.name}</h1>
                 <p class="text-sm text-text-muted">Loading…</p>
               </div>
             }
@@ -431,7 +431,7 @@ export default function ComponentPage() {
           <div>
             <header class="mb-4 flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <h1 class="text-2xl font-bold capitalize tracking-tight">
+                <h1 class="capitalize">
                   {component.name.replace(/-/g, " ")}
                 </h1>
                 <p class="truncate font-mono text-xs text-text-muted">
@@ -466,13 +466,13 @@ export default function ComponentPage() {
                     ({componentTokens().length})
                   </button>
                 </Show>
-                <span class="shrink-0 rounded-full border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+                <badge class="shrink-0">
                   {rows().length} examples
-                </span>
+                </badge>
               </div>
             </header>
 
-            <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+            <p class="max-w-screen-md text-sm text-text-muted">
               {component.examples?.note ?? ""}
             </p>
 
@@ -486,7 +486,7 @@ export default function ComponentPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div class="mb-2 flex items-center justify-between">
-                    <h2 class="text-sm font-semibold">Component tokens</h2>
+                    <h2>Component tokens</h2>
                     <button
                       type="button"
                       // `bare` takes the theme's button tokens back: the
@@ -494,13 +494,13 @@ export default function ComponentPage() {
                       // loudest action in it. Without it the theme's own
                       // primary fill and hard shadow reach a control that
                       // meant to read as a link.
-                      class="bare text-xs text-text-muted hover:text-text"
+                      class="bare text-text-muted hover:text-text"
                       onClick={() => setShowTokens(false)}
                     >
                       close
                     </button>
                   </div>
-                  <p class="mb-2 text-xs text-text-muted">
+                  <p class="text-xs text-text-muted">
                     The tokens this component declares as its own — edited here,
                     created here when the theme has never had to spell it.
                   </p>
@@ -539,7 +539,7 @@ export default function ComponentPage() {
                                 <Badge tone="warning">not declared</Badge>
                                 <button
                                   type="button"
-                                  class="min-h-0 cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-regular normal-case tracking-normal text-text shadow-none hover:border-primary"
+                                  class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
                                   onClick={() =>
                                     createToken(
                                       entry.entry.path.split("."),
@@ -566,7 +566,7 @@ export default function ComponentPage() {
 
             <Show when={tokenEntries().length > 0}>
               <section class="mt-6 stack-sm" aria-label="Tokens this reads">
-                <h2 class="row-sm text-xl">
+                <h2 class="row-sm">
                   <Marker />
                   <span>Tokens this reads</span>
                 </h2>

@@ -121,10 +121,10 @@ const SCREEN_MARKUP = `<div class="flex flex-col gap-4">
  * ────────────────────────────────────────────────────────────────────────── */
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
-const TITLE = "m-0 text-2xl font-bold tracking-tight";
+const TITLE = "tracking-normal";
 const KIND = "font-mono text-xs text-text-muted";
 const BADGE =
-  "shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
+  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
 const LEAD = "mb-8 max-w-screen-md text-md text-text-muted";
 
 /**

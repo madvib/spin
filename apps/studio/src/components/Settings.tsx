@@ -143,7 +143,7 @@ function Swatch(props: { color: string | undefined }) {
  * the surface for the eye.
  */
 const ROW =
-  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-normal text-text-muted hover:bg-surface-sunken hover:text-text aria-selected:bg-surface-sunken aria-selected:text-text aria-current:bg-surface-sunken aria-current:text-text";
+  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken hover:text-text aria-selected:bg-surface-sunken aria-selected:text-text aria-current:bg-surface-sunken aria-current:text-text";
 
 /**
  * The affordance of a popover: a glyph in a box, in the bar's own language.

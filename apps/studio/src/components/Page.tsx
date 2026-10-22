@@ -37,7 +37,7 @@ export default function Page(props: {
         }}
       >
         <header class="stack-sm">
-          <h1 class="text-3xl font-semibold">{props.title}</h1>
+          <h1>{props.title}</h1>
           <p class="text-sm text-text-muted">{props.note}</p>
         </header>
         {props.children}

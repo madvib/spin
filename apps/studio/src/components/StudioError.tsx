@@ -29,13 +29,13 @@ function Failure(props: { error: unknown; reset: () => void }) {
   const message = () =>
     props.error instanceof Error ? props.error.message : String(props.error);
   return (
-    <div role="alert" class="stack panel m-4 max-w-2xl">
-      <h1 class="text-xl">The studio hit an error</h1>
+    <div role="alert" class="stack panel m-4 max-w-[42rem]">
+      <h1>The studio hit an error</h1>
       <p class="text-sm text-text-muted">
         The page could not be drawn. The theme being edited is untouched —
         nothing it holds was lost, and the file on disk is as it was.
       </p>
-      <pre class="overflow-auto rounded-md bg-surface-sunken p-3 text-xs whitespace-pre-wrap">
+      <pre class="overflow-auto rounded-md bg-surface-sunken text-xs whitespace-pre-wrap">
         {message()}
       </pre>
       <div class="row-sm">

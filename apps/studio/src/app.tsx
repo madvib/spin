@@ -282,7 +282,7 @@ export default function App() {
                     <Web size={40} class="h-10 w-10 shrink-0" />
                   </A>
                   <RailTip label={MARK.label} top="top-4" />
-                  <ul class="flow-list m-0 flex w-full shrink-0 flex-col items-center gap-1">
+                  <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
                     <For each={CONCERNS}>
                       {(route) => (
                         <li class="m-0 w-full">
@@ -295,7 +295,7 @@ export default function App() {
                             aria-label={route.label}
                           >
                             <span
-                              class={`inline-block shrink-0 text-xl ${route.icon}`}
+                              class={`inline-block shrink-0 icon-md ${route.icon}`}
                               aria-hidden="true"
                             />
                           </A>
@@ -323,60 +323,63 @@ export default function App() {
                   foot's three rows read as one family.
                   */
                   }
-                  <ul class="flow-list m-0 mt-auto flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2">
-                    <For each={FOOT}>
-                      {(route) => (
-                        <li class="m-0 w-full">
-                          <A
-                            href={hostPath(route.path)}
-                            activeClass="bg-surface-sunken text-text font-semibold"
-                            inactiveClass="text-text"
-                            class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
-                            title={route.label}
-                            aria-label={route.label}
+                  <div class="mt-auto w-full">
+                    <hr class="w-full" />
+                    <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
+                      <For each={FOOT}>
+                        {(route) => (
+                          <li class="m-0 w-full">
+                            <A
+                              href={hostPath(route.path)}
+                              activeClass="bg-surface-sunken text-text font-semibold"
+                              inactiveClass="text-text"
+                              class="peer flex h-10 w-full items-center justify-center rounded-md hover:bg-surface"
+                              title={route.label}
+                              aria-label={route.label}
+                            >
+                              <span
+                                class={`inline-block shrink-0 icon-md ${route.icon}`}
+                                aria-hidden="true"
+                              />
+                            </A>
+                            <RailTip label={route.label} />
+                          </li>
+                        )}
+                      </For>
+                      <Show when={embedded()}>
+                        <li class="m-0 w-full rounded-md hover:bg-surface">
+                          <button
+                            type="button"
+                            class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-text"
+                            aria-label={inDrawer() ? "Modal" : "Drawer"}
+                            title={inDrawer() ? "Modal" : "Drawer"}
+                            onClick={toggleHostMode}
                           >
                             <span
-                              class={`inline-block shrink-0 text-xl ${route.icon}`}
+                              class="inline-block shrink-0 icon-md i-lucide-panel-right"
                               aria-hidden="true"
                             />
-                          </A>
-                          <RailTip label={route.label} />
+                          </button>
+                          <RailTip label={inDrawer() ? "Modal" : "Drawer"} />
                         </li>
-                      )}
-                    </For>
-                    <Show when={embedded()}>
-                      <li class="m-0 w-full rounded-md hover:bg-surface">
-                        <button
-                          type="button"
-                          class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
-                          aria-label={inDrawer() ? "Modal" : "Drawer"}
-                          title={inDrawer() ? "Modal" : "Drawer"}
-                          onClick={toggleHostMode}
-                        >
-                          <span
-                            class="inline-block shrink-0 text-xl i-lucide-panel-right"
-                            aria-hidden="true"
-                          />
-                        </button>
-                        <RailTip label={inDrawer() ? "Modal" : "Drawer"} />
-                      </li>
-                      <li class="m-0 w-full rounded-md hover:bg-surface">
-                        <button
-                          type="button"
-                          class="bare peer flex h-10 w-full items-center justify-center rounded-md text-text hover:text-text"
-                          aria-label="Close"
-                          title="Close"
-                          onClick={closeStudio}
-                        >
-                          <span
-                            class="inline-block shrink-0 text-xl i-lucide-x"
-                            aria-hidden="true"
-                          />
-                        </button>
-                        <RailTip label="Close" />
-                      </li>
-                    </Show>
-                  </ul>
+                        <li class="m-0 w-full rounded-md hover:bg-surface">
+                          <button
+                            type="button"
+                            class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-text"
+                            aria-label="Close"
+                            title="Close"
+                            onClick={closeStudio}
+                          >
+                            <span
+                              class="inline-block shrink-0 icon-md i-lucide-x"
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <RailTip label="Close" />
+                        </li>
+                      </Show>
+                    </ul>
+                  </div>
                 </nav>
                 {
                   /*

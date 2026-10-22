@@ -184,7 +184,7 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
         >
           Components
         </h2>
-        <label class="flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1">
+        <label class="flex min-w-0 items-center gap-2">
           <i
             class="i-lucide-search icon-sm shrink-0 text-text-muted"
             aria-hidden="true"
@@ -195,7 +195,7 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
             onInput={(event) => setQuery(event.currentTarget.value)}
             aria-label="Filter the components"
             placeholder="filter…"
-            class="min-w-0 flex-1 border-none bg-transparent p-0 text-sm text-text placeholder:text-text-muted"
+            class="min-w-0 flex-1"
           />
         </label>
         <div class="flex items-center justify-between gap-2 text-xs text-text-muted">

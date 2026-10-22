@@ -77,7 +77,6 @@ function Swatches(props: { name: string }): JSX.Element {
 export function ThemePicker(): JSX.Element {
   const [open, setOpen] = createSignal(false);
   let panel: HTMLDivElement | undefined;
-
   const onDocClick = (event: MouseEvent) => {
     if (!panel?.contains(event.target as Node)) setOpen(false);
   };
@@ -100,21 +99,31 @@ export function ThemePicker(): JSX.Element {
         aria-haspopup="dialog"
         aria-expanded={open()}
         onClick={() => setOpen(!open())}
-        class="flex items-center gap-2 border border-border bg-surface-raised text-text text-sm rounded-sm px-2 py-1 hover:border-border-strong transition-colors duration-fast"
+        class="secondary s-sm flex items-center gap-2 hover:border-border-strong transition-colors duration-fast"
       >
         <span>{theme()}</span>
         {mode() === "dark" ? <Moon class="h-4 w-4" /> : <Sun class="h-4 w-4" />}
       </button>
       <Show when={open()}>
         <div
-          ref={panel}
+          ref={(el) => {
+            panel = el;
+          }}
           role="dialog"
           aria-label="theme and appearance"
           class="absolute right-0 z-50 mt-2 border border-border bg-surface rounded-md shadow-lg p-2"
         >
-          <p class="m-0 px-2 py-1 text-xs font-semibold text-text-muted">
+          {
+            /*
+            The label is a SPAN, not a paragraph: the theme owns the space
+            between blocks, so a paragraph here would carry the theme's
+            margin, and the rows below it are inset by the control's own
+            padding. A span keeps the label on the rows' edge.
+          */
+          }
+          <span class="block px-2 py-1 text-xs font-semibold text-text-muted">
             theme
-          </p>
+          </span>
           <For each={starterList}>
             {(name) => (
               <button
@@ -133,9 +142,9 @@ export function ThemePicker(): JSX.Element {
             )}
           </For>
           <Show when={modesFor(theme()).length > 1}>
-            <p class="m-0 mt-2 px-2 py-1 text-xs font-semibold text-text-muted">
+            <span class="block mt-2 px-2 py-1 text-xs font-semibold text-text-muted">
               appearance
-            </p>
+            </span>
             <div class="flex gap-2 px-2 py-1">
               <For each={["light", "dark"] as const}>
                 {(name) => (

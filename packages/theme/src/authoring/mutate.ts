@@ -186,7 +186,7 @@ export function setToken(
       );
     }
     if (mode !== undefined) {
-      const modes = { ...(existing.modes ?? {}) };
+      const modes = { ...existing.modes };
       if (JSON.stringify(value) === JSON.stringify(existing.value)) {
         delete modes[mode];
       } else {

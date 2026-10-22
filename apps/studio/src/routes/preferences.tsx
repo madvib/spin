@@ -86,10 +86,10 @@ export default function PreferencesPage() {
                     style={{ background: chip.value }}
                     aria-hidden="true"
                   />
-                  <figcaption class="truncate text-xs text-text">
+                  <figcaption class="truncate">
                     {chip.label}
                   </figcaption>
-                  <code class="truncate font-mono text-xs text-text-muted">
+                  <code class="truncate">
                     {chip.value}
                   </code>
                 </figure>
@@ -121,7 +121,7 @@ function EdgeFigure(props: { edge: "left" | "right"; chosen: boolean }) {
         <div class="flex-1 rounded-sm bg-surface-sunken" />
         {props.edge === "right" && <div class={strip()} />}
       </div>
-      <figcaption class="text-center text-xs text-text-muted">
+      <figcaption class="text-center">
         {props.edge}
       </figcaption>
     </figure>

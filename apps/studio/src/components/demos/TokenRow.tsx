@@ -56,7 +56,7 @@ export default function TokenRow_({
             class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
           />
         </Show>
-        <label for={id} class="truncate font-mono text-sm">
+        <label for={id} class="truncate">
           {row.path}
         </label>
       </div>

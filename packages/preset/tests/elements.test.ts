@@ -27,7 +27,6 @@ const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
   unknown
 >;
 
-type Options = Parameters<typeof spinPreset>[0];
 type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
 
 /** Generate a document against a theme, keeping the per-token rule data. */

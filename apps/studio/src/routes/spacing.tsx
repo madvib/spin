@@ -9,6 +9,7 @@ import {
   TokenLine,
 } from "../components/Concern.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
+import { actingColour, tokenValue } from "../lib/overview.ts";
 import { groupTokens, toPx } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
 import { activeMode, themeText } from "../lib/store.ts";
@@ -64,6 +65,25 @@ export default function SpacingPage() {
       1,
       ...breakpoints.rows().map((row) => toPx(row.value) ?? 0),
     );
+  /**
+   * The theme's own value for a colour, in the mode being shown.
+   *
+   * The specimens are painted with the value rather than with a utility: a
+   * specimen shows the theme's colour, and a utility paints whatever the
+   * studio's own sheet happens to say.
+   */
+  const colour = (path: string): string | undefined => {
+    const current = tree();
+    return current === undefined
+      ? undefined
+      : tokenValue(current, activeMode(), path);
+  };
+  const acting = createMemo(() => {
+    const current = tree();
+    return current === undefined
+      ? undefined
+      : actingColour(current, activeMode());
+  });
 
   // The ramp, shortest bar first: the order is the comparison, and a step
   // the length parser cannot read still has to appear — at the end, where
@@ -145,11 +165,12 @@ export default function SpacingPage() {
                           entry.row.path,
                       }}
                     >
-                      <code class="w-24 shrink-0 truncate text-xs text-text-muted">
+                      <code class="w-24 shrink-0 truncate">
                         {entry.row.path}
                       </code>
                       <span class="min-w-0 flex-1">
                         <ScaleBar
+                          fill={acting()}
                           variable={entry.row.variable}
                           px={entry.px}
                           maxPx={rampMax()}
@@ -159,10 +180,10 @@ export default function SpacingPage() {
                           onCancel={steps.abandon}
                         />
                       </span>
-                      <code class="w-16 shrink-0 text-right text-xs">
+                      <code class="w-16 shrink-0 text-right">
                         {entry.row.value}
                       </code>
-                      <code class="w-10 shrink-0 text-right text-xs text-text-muted">
+                      <code class="w-10 shrink-0 text-right">
                         {ratioAt(index())}
                       </code>
                     </span>
@@ -176,7 +197,7 @@ export default function SpacingPage() {
             {(entry) => (
               <Frame>
                 <div class="row-sm flex-wrap justify-between gap-3">
-                  <code class="text-xs text-text-muted">
+                  <code>
                     {entry().row.path}
                   </code>
                   <ValueInput
@@ -191,7 +212,11 @@ export default function SpacingPage() {
                     onCancel={steps.abandon}
                   />
                 </div>
-                <StepFigures row={entry().row} />
+                <StepFigures
+                  row={entry().row}
+                  fill={acting()}
+                  edge={colour("color.border-strong")}
+                />
               </Frame>
             )}
           </Show>
@@ -220,15 +245,16 @@ export default function SpacingPage() {
                   <figure class="stack-sm w-24">
                     <div class="h-4 overflow-hidden rounded-sm bg-surface-sunken">
                       <div
-                        class="h-full rounded-sm bg-accent"
+                        class="h-full rounded-sm"
                         style={{
+                          background: colour("color.accent"),
                           width: `${
                             ((toPx(row.value) ?? 0) / widest()) * 100
                           }%`,
                         }}
                       />
                     </div>
-                    <figcaption class="truncate text-center text-xs text-text-muted">
+                    <figcaption class="truncate text-center">
                       {row.path.split(".").pop()}
                     </figcaption>
                   </figure>
@@ -274,30 +300,40 @@ export default function SpacingPage() {
  * spelling that is right for every one of them. The caption still says what
  * an author writes.
  */
-function StepFigures(props: { row: TokenRow }) {
+function StepFigures(props: {
+  row: TokenRow;
+  fill: string | undefined;
+  edge: string | undefined;
+}) {
   const step = () => stepOf(props.row.path);
   return (
     <div class="row-sm flex-wrap items-start gap-4">
       <figure class="stack-sm">
         <div class="spin-preview">
           <div
-            class="border border-dashed border-border-strong"
-            style={{ padding: `var(${props.row.variable})` }}
+            class="border border-dashed"
+            style={{
+              "border-color": props.edge,
+              padding: `var(${props.row.variable})`,
+            }}
           >
-            <div class="bg-primary h-3 w-10 rounded-sm" />
+            <div
+              class="h-3 w-10 rounded-sm"
+              style={{ background: props.fill }}
+            />
           </div>
         </div>
-        <figcaption class="text-xs text-text-muted">{`p-${step()}`}</figcaption>
+        <figcaption>{`p-${step()}`}</figcaption>
       </figure>
       <figure class="stack-sm">
         <div
           class="spin-preview flex"
           style={{ gap: `var(${props.row.variable})` }}
         >
-          <div class="bg-primary h-3 w-3 rounded-sm" />
-          <div class="bg-primary h-3 w-3 rounded-sm" />
+          <div class="h-3 w-3 rounded-sm" style={{ background: props.fill }} />
+          <div class="h-3 w-3 rounded-sm" style={{ background: props.fill }} />
         </div>
-        <figcaption class="text-xs text-text-muted">
+        <figcaption>
           {`gap-${step()}`}
         </figcaption>
       </figure>

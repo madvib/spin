@@ -37,8 +37,7 @@ const LAYERS: readonly {
     name: "The utilities spend the theme",
     body: (
       <>
-        <code class="font-mono text-xs">bg-primary</code> is your primary.{" "}
-        <code class="font-mono text-xs">p-4</code>{" "}
+        <code>bg-primary</code> is your primary. <code>p-4</code>{" "}
         is a step on your spacing scale. A class the theme does not name
         produces no CSS at all, so the vocabulary is not a suggestion.
       </>
@@ -48,12 +47,12 @@ const LAYERS: readonly {
     name: "The elements are finished",
     body: (
       <>
-        <code class="font-mono text-xs">&lt;button&gt;</code> is a button,{" "}
-        <code class="font-mono text-xs">&lt;dialog&gt;</code>{" "}
+        <code>&lt;button&gt;</code> is a button, <code>&lt;dialog&gt;</code>
+        {" "}
         is a dialog, a switch is a checkbox wearing{" "}
-        <code class="font-mono text-xs">role="switch"</code>. They are styled
-        HTML, so the behaviour a control needs is the browser's: the focus trap,
-        Escape, the backdrop. Nothing to import, nothing to hydrate.
+        <code>role="switch"</code>. They are styled HTML, so the behaviour a
+        control needs is the browser's: the focus trap, Escape, the backdrop.
+        Nothing to import, nothing to hydrate.
       </>
     ),
   },
@@ -84,8 +83,8 @@ const LAYERS: readonly {
 export default function Why(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-md px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Why spin</h1>
-      <p class="mt-1 text-text-muted">
+      <h1>Why spin</h1>
+      <p class="text-text-muted">
         An agent writes the markup, and the markup is wrong in ways a review
         does not catch. Spin exists for that case: the decisions are written
         down once, and the output is checked against them mechanically.
@@ -95,23 +94,22 @@ export default function Why(): JSX.Element {
         <p>
           An agent writes a page. The layout is right, the copy reads, the
           elements are the ones a person would have chosen. Then, in one line,
-          it writes <code class="font-mono">bg-[#c8102e]</code>{" "}
-          where the theme has a primary. Or{" "}
-          <code class="font-mono">p-13</code>, a spacing step nobody declared.
-          Or <code class="font-mono">text-text</code> on a{" "}
-          <code class="font-mono">bg-primary</code>{" "}
+          it writes <code>bg-[#c8102e]</code> where the theme has a primary. Or
+          {" "}
+          <code>p-13</code>, a spacing step nobody declared. Or{" "}
+          <code>text-text</code> on a <code>bg-primary</code>{" "}
           fill, where the palette says the ink should be{" "}
-          <code class="font-mono">text-on-primary</code>. Or it picks a colour
-          that reads in light and disappears in dark.
+          <code>text-on-primary</code>. Or it picks a colour that reads in light
+          and disappears in dark.
         </p>
-        <p class="mt-3">
+        <p>
           None of that is visible in a diff. Each one is a word long, and a
           reviewer reads a page of them without noticing. The same bug arrives
           in a new shape each time, so it never adds up to a pattern somebody
           can catch. Review removes instances of a bug. It does not remove the
           class of bug.
         </p>
-        <p class="mt-3">
+        <p>
           The class of bug is not carelessness. It is that the decision was
           never written down anywhere the agent could be held to, and nothing
           measured the result.
@@ -126,11 +124,11 @@ export default function Why(): JSX.Element {
           against those properties.
         </p>
         <Code class="mt-3" code={THEME} />
-        <p class="mt-3">
+        <p>
           The markup names the decision. The theme holds the value.
         </p>
         <Code class="mt-3" code={MARKUP} />
-        <p class="mt-3">
+        <p>
           Replace the document and the product's look changes. The markup does
           not.
         </p>
@@ -139,14 +137,14 @@ export default function Why(): JSX.Element {
           <For each={LAYERS}>
             {(layer) => (
               <div class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{layer.name}</p>
-                <p class="m-0 mt-2 text-sm">{layer.body}</p>
+                <p class="font-semibold text-text">{layer.name}</p>
+                <p class="text-sm">{layer.body}</p>
               </div>
             )}
           </For>
         </div>
 
-        <p class="mt-5">
+        <p>
           An agent can also read the project before it writes to it. The MCP
           server answers with the theme on disk, the utilities the preset
           generates and the elements the library ships, so the names it writes
@@ -156,7 +154,7 @@ export default function Why(): JSX.Element {
       </Section>
 
       <Section id="trade-offs" title="The trade-offs">
-        <p class="m-0">
+        <p>
           <strong class="text-text">Not a runtime component library.</strong>
           {" "}
           Spin ships a stylesheet. The elements are HTML the browser already
@@ -165,7 +163,7 @@ export default function Why(): JSX.Element {
           runtime, and spin is not one. A runtime that turns these elements into
           custom elements is being built beside spin, not inside it.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">Not a design tool.</strong>{" "}
           It does not draw. The studio is a theme editor: it edits the JSON
           document, it repaints the app beside it as you type, and it writes the
@@ -174,19 +172,19 @@ export default function Why(): JSX.Element {
           a JSON document, so if the decisions live somewhere else, something
           has to carry them across.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">Not Tailwind.</strong>{" "}
           The generator underneath is UnoCSS, and the preset layers wind4's
           rules beneath its own. What spin adds is that the vocabulary belongs
           to the theme. The values are the theme's. The palette is the theme's,
-          so there is no <code class="font-mono">bg-red-500</code>{" "}
+          so there is no <code>bg-red-500</code>{" "}
           in a spin sheet: the theme never declared red-500, and a class it
           cannot produce generates nothing. And the lints are about the theme
           rather than about utility classes. "Is this a valid utility" is a
           different question from "can this project's theme produce this class",
           and only the second one catches the bug that matters.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">
             The vocabulary is closed.
           </strong>{" "}
@@ -197,7 +195,7 @@ export default function Why(): JSX.Element {
           be written down until the contract changes, and a project with a house
           style spin does not model has to wait for it or fork the theme.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">
             It is opinionated about what a theme must declare.
           </strong>{" "}
@@ -210,21 +208,21 @@ export default function Why(): JSX.Element {
           system. There is no setting where you declare a theme in your own
           shape.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">
             The primitives claim your markup.
           </strong>{" "}
-          By default <code class="font-mono">&lt;button&gt;</code>{" "}
-          is a button and <code class="font-mono">&lt;table&gt;</code>{" "}
+          By default <code>&lt;button&gt;</code> is a button and{" "}
+          <code>&lt;table&gt;</code>{" "}
           is a table, everywhere in your app, including the markup you do not
-          control. <code class="font-mono">classless: false</code>{" "}
+          control. <code>classless: false</code>{" "}
           is the escape hatch: each primitive then claims only its own class,
           and the same components ask to be named.
         </p>
       </Section>
 
       <Section id="not" title="What it is not">
-        <p class="m-0">
+        <p>
           <strong class="text-text">Not a substitute for taste.</strong>{" "}
           The machine checks the floor: the roles the document owes, the
           contrast it owes, the ladders that must descend, the modes it must
@@ -232,37 +230,36 @@ export default function Why(): JSX.Element {
           restraint with effects, and a dark mode designed rather than inverted
           are judgement, and a person makes it.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">Not a way to skip design.</strong>{" "}
           You still bring the decisions. A scaffold gives you the required roles
           with deliberately ugly placeholder values: they validate, and they are
           obviously unfinished. A theme that looks finished was not scaffolded,
           it was authored.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">
             Not a framework you adopt to get one component.
           </strong>{" "}
           The elements are not a catalogue you shop from. They are the theme's
-          decisions, expressed as HTML.{" "}
-          <code class="font-mono">&lt;button&gt;</code>{" "}
+          decisions, expressed as HTML. <code>&lt;button&gt;</code>{" "}
           is a button because the theme says what a button looks like, and take
           the theme away and the elements stop being anything in particular.
         </p>
       </Section>
 
       <Section id="cost" title="The cost">
-        <p class="m-0">
+        <p>
           There is a bill, and it is worth stating.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">The theme is work.</strong>{" "}
           A document that has to declare the base roles, pass the legibility
           floors in every mode it serves, hold the spacing and radius ladders in
           order, and decide every token it leaves in. The scaffold takes an hour
           off that. It does not take the day.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">
             Your palette is the theme's palette.
           </strong>{" "}
@@ -270,22 +267,22 @@ export default function Why(): JSX.Element {
           means every value you add is a decision somebody has to make, hold and
           maintain.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">The lints are a wall by default.</strong>
           {" "}
-          <code class="font-mono">prefer-theme-value</code>{" "}
+          <code>prefer-theme-value</code>{" "}
           treats a one-off override as an error, and the message says why: the
           theme is where decisions recur. There is a dial, strict, balanced or
           lenient, and a switch for which elements the rules apply to. The
           default stance is that a second opinion in the markup is a mistake.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">Nothing is published yet.</strong>{" "}
           v0.1 is source-first. The packages are built and the npm manifests
           exist, and until publishing is somebody's decision you take the code
           from source.
         </p>
-        <p class="mt-3">
+        <p>
           <strong class="text-text">
             The checks are only as good as the theme.
           </strong>{" "}
@@ -296,16 +293,16 @@ export default function Why(): JSX.Element {
       </Section>
 
       <Section id="start" title="Start here">
-        <p class="m-0">Two pages, in this order.</p>
-        <ul class="mt-3 grid gap-2 list-disc pl-5">
+        <p>Two pages, in this order.</p>
+        <ul class="grid gap-2 list-disc">
           <li>
             <A href="/guide/install" class="text-link hover:underline">
               Install
             </A>{" "}
             says what to put in your{" "}
-            <code class="font-mono">deno.json</code>, how to wire the plugin,
-            and which recipe belongs to your bundler. v0.1 is source-first, so
-            the page is explicit about where the packages come from.
+            <code>deno.json</code>, how to wire the plugin, and which recipe
+            belongs to your bundler. v0.1 is source-first, so the page is
+            explicit about where the packages come from.
           </li>
           <li>
             <A href="/themes" class="text-link hover:underline">Themes</A>{" "}
@@ -314,7 +311,7 @@ export default function Why(): JSX.Element {
             you write one: the contract is the whole thing.
           </li>
         </ul>
-        <p class="mt-3">
+        <p>
           The elements are in{" "}
           <A href="/components" class="text-link hover:underline">
             components

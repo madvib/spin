@@ -131,8 +131,8 @@ curl -fsSL "${base}${SKILL_PATH}" \\
 done`;
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Authoring a theme</h1>
-      <p class="mt-1 max-w-screen-md text-text-muted">
+      <h1>Authoring a theme</h1>
+      <p class="max-w-screen-md text-text-muted">
         A theme is written, not generated. The scaffold gives you the roles and
         the studio gives you the editors, and neither of them can decide what
         the product should look like. This page is the method: the shape of the
@@ -149,12 +149,12 @@ done`;
           structure decides the type, and the type decides how much air the
           spacing can carry.
         </p>
-        <ol class="mt-4 grid gap-3 md:grid-cols-2">
+        <ol class="grid gap-3 md:grid-cols-2">
           <For each={BRIEF}>
             {([name, what]) => (
               <li class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{name}</p>
-                <p class="m-0 mt-2 text-sm">{what}</p>
+                <p class="font-semibold text-text">{name}</p>
+                <p class="text-sm">{what}</p>
               </li>
             )}
           </For>
@@ -169,31 +169,31 @@ done`;
           followed rather than read.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">step</th>
-                <th class="py-2 pr-4 font-semibold text-text">what it takes</th>
+                <th class="py-2 pr-4">step</th>
+                <th class="py-2 pr-4">what it takes</th>
               </tr>
             </thead>
             <tbody>
               <For each={FAST_PATH}>
                 {([step, cost]) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 text-text">{step}</td>
-                    <td class="py-2 pr-4 text-text-muted">{cost}</td>
+                    <td class="text-text">{step}</td>
+                    <td class="text-text-muted">{cost}</td>
                   </tr>
                 )}
               </For>
             </tbody>
           </table>
         </div>
-        <p class="mt-3">
+        <p>
           The document can be written in an editor or in the studio, and the two
           are the same file. The studio edits the text and shows the result on
           the page beside it; saving writes{" "}
-          <code class="font-mono">spin/&lt;name&gt;.json</code>, which is the
-          file the build reads.
+          <code>spin/&lt;name&gt;.json</code>, which is the file the build
+          reads.
         </p>
         <Code
           class="mt-3"
@@ -209,7 +209,7 @@ export default {
   ],
 };`}
         />
-        <p class="mt-3">
+        <p>
           In development the plugin mounts the studio beside the app and injects
           a launcher into every page, so the thing you are editing and the thing
           doing the editing are the same screen. The studio edits a copy in
@@ -226,22 +226,22 @@ export default {
           groups, the gates and what each failure means, and the judgement at
           the end. The agent is handed the file, a product, and half an hour.
         </p>
-        <p class="mt-3">
+        <p>
           The file belongs to the theme module, which is the language it
           describes, and the site serves it from there. Its checklist is that
           module's own group list, emitted rather than written down: a group
           added to the contract is in the file without anyone editing prose, and
           the page below reads the same bytes the file carries.
         </p>
-        <p class="mt-3">
+        <p>
           It is served from this site as a file, and installing it is a copy
           into the directory your agent reads skills from. The path below is the
-          one Claude Code reads; any agent that reads a{" "}
-          <code class="font-mono">SKILL.md</code>{" "}
+          one Claude Code reads; any agent that reads a <code>SKILL.md</code>
+          {" "}
           takes the same file in its own directory.
         </p>
         <Code class="mt-3" code={install} />
-        <p class="mt-3">
+        <p>
           The style references travel with it, in the skill's own directory, so
           one install brings the method and the directions together. They are
           the directions, and the skill names them, so an agent asked for a
@@ -249,28 +249,28 @@ export default {
           the skill carries a line about each, which is enough to start.
         </p>
         <Code class="mt-3" code={installStyles} />
-        <p class="mt-3">
+        <p>
           What the file carries, read from the file rather than listed here:
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">section</th>
+                <th class="py-2 pr-4">section</th>
               </tr>
             </thead>
             <tbody>
               <For each={sections}>
                 {(section) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 text-text">{section.title}</td>
+                    <td class="text-text">{section.title}</td>
                   </tr>
                 )}
               </For>
             </tbody>
           </table>
         </div>
-        <p class="mt-5">
+        <p>
           The checklist inside it is the theme's own groups, and for each one
           the skill says what the group is for, what a good answer looks like,
           and what a lazy one looks like. The groups it walks are these, in the
@@ -295,16 +295,16 @@ export default {
           <For each={styles}>
             {(style) => (
               <div class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{style.name}</p>
-                <p class="m-0 mt-2 text-sm">{style.mood}</p>
-                <p class="m-0 mt-2 text-xs text-text-muted">
+                <p class="font-semibold text-text">{style.name}</p>
+                <p class="text-sm">{style.mood}</p>
+                <p class="text-xs text-text-muted">
                   {style.audience}
                 </p>
               </div>
             )}
           </For>
         </div>
-        <p class="mt-4">
+        <p>
           Each one is a file of its own, and the page that presents them renders
           those files rather than describing them:{" "}
           <A href="/themes/styles" class="text-link hover:underline">
@@ -324,53 +324,52 @@ export default {
           <For each={CHECKS}>
             {([name, what]) => (
               <div class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{name}</p>
-                <p class="m-0 mt-2 text-sm">{what}</p>
+                <p class="font-semibold text-text">{name}</p>
+                <p class="text-sm">{what}</p>
               </div>
             )}
           </For>
         </div>
 
-        <p class="mt-5">
+        <p>
           The floors are the contract's own list, and this is all of it:
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">the ink</th>
-                <th class="py-2 pr-4 font-semibold text-text">the fill</th>
-                <th class="py-2 pr-4 font-semibold text-text">at least</th>
+                <th class="py-2 pr-4">the ink</th>
+                <th class="py-2 pr-4">the fill</th>
+                <th class="py-2 pr-4">at least</th>
               </tr>
             </thead>
             <tbody>
               <For each={FLOORS}>
                 {(floor) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="font-mono text-xs text-text">
                       {floor.fg}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="font-mono text-xs text-text">
                       {floor.bg}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs">{floor.min}:1</td>
+                    <td class="font-mono text-xs">{floor.min}:1</td>
                   </tr>
                 )}
               </For>
             </tbody>
           </table>
         </div>
-        <p class="mt-3">
+        <p>
           The state contrast check is the one that is not yet fatal. It drives
           every control through the states it can be in, resting, hovered,
           focused, pressed and disabled, and measures the contrast of each. It
           reports what it finds and leaves the verdict alone, because the themes
           have not been held to it yet. Promoting it is a decision, and the
-          harness makes it explicit:{" "}
-          <code class="font-mono">--state-contrast-strict</code>{" "}
+          harness makes it explicit: <code>--state-contrast-strict</code>{" "}
           lets its findings decide the run.
         </p>
-        <p class="mt-3">
+        <p>
           The commands, in this repository. The harness drives a browser over a
           running app, so the app comes first:
         </p>
@@ -381,7 +380,7 @@ deno task visual -- --url http://localhost:5173 # the check harness, over every 
 deno task visual -- --route components/button
 deno task visual -- --state-contrast-strict`}
         />
-        <p class="mt-3">
+        <p>
           The mechanical gates are one call, and it runs against any document —
           a starter, or the theme a project just wrote:
         </p>
@@ -408,13 +407,13 @@ for (const gate of report.gates) {
           afternoon. No script decides that, and any script that claimed to
           would be measuring its own author.
         </p>
-        <p class="mt-3">
+        <p>
           So the last step is the one that cannot be automated: render the
           thing, put it in front of a reader, and look at it. The harness will
           tell you that the text is legible and the controls are reachable. It
           cannot tell you that the theme says what the product is.
         </p>
-        <p class="mt-3">
+        <p>
           <A href="/themes" class="text-link hover:underline">
             The principles
           </A>{" "}
@@ -430,15 +429,15 @@ for (const gate of report.gates) {
         </p>
 
         <div class="mt-4">
-          <p class="m-0 font-semibold text-text">The thesis</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">The thesis</p>
+          <p class="text-sm">
             {thesisOf(spin) ?? "The document states no description of its own."}
           </p>
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">The color structure</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">The color structure</p>
+          <p class="text-sm">
             A ramp of warm neutrals carries the whole page, and the brand's red
             is the only other color with any weight. The primary and the accent
             are the same red, and the destructive action wears a hotter
@@ -455,8 +454,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">Typography</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">Typography</p>
+          <p class="text-sm">
             One working face and one display face. The sans is everywhere a tool
             has to be read, and the didone is allowed to speak only where a
             poster is allowed to speak. Hierarchy is weight and size, so the
@@ -470,8 +469,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">Spacing and density</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">Spacing and density</p>
+          <p class="text-sm">
             The scale runs from a quarter of a rem to a very large step, and the
             roomiest step is the air between two sections of a page. That is
             where this theme puts its emphasis, instead of putting a box around
@@ -489,8 +488,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">Shape</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">Shape</p>
+          <p class="text-sm">
             Square geometry. A thread ends blunt, so the poster has no round
             corners except where a control is a pill.
           </p>
@@ -502,8 +501,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">Depth</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">Depth</p>
+          <p class="text-sm">
             Flat, and then one hard cut. A card is paper on paper, separated by
             a hairline and by air. Only an overlay is cut out of the sheet, and
             it is cut with a hard unblurred offset. There is no blur anywhere in
@@ -516,8 +515,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">Motion</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">Motion</p>
+          <p class="text-sm">
             Precise, and quick. A hover, a press and a focus move fast; the
             default is longer; a panel may take its time; and the endless ones —
             the skeleton's pulse, the spinner — have a step of their own, so a
@@ -533,8 +532,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">The per-element tokens</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">The per-element tokens</p>
+          <p class="text-sm">
             The button is a block of ink with a label of its own: a weight
             heavier than the prose around it, the case it is written in, no
             shadow at rest and a hard two-pixel offset when it is touched, so it
@@ -556,8 +555,8 @@ for (const gate of report.gates) {
         </div>
 
         <div class="mt-5">
-          <p class="m-0 font-semibold text-text">The modes</p>
-          <p class="m-0 mt-1 text-sm">
+          <p class="font-semibold text-text">The modes</p>
+          <p class="text-sm">
             Light and dark, and the dark one is not the light one inverted. The
             same steps of the ramp are restated for the night press, so a mode
             is a change of ink rather than a change of system.
@@ -569,7 +568,7 @@ for (const gate of report.gates) {
           </div>
         </div>
 
-        <p class="mt-5 text-sm">
+        <p class="text-sm">
           That is the whole of the character. Everything else in the document is
           the machinery that carries those decisions: the ramp, the spacing
           steps, the type sizes, the one set of status colors.

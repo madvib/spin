@@ -36,8 +36,8 @@ export default function Styles(): JSX.Element {
   const styles = styleReferences();
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Style references</h1>
-      <p class="mt-1 max-w-screen-md text-text-muted">
+      <h1>Style references</h1>
+      <p class="max-w-screen-md text-text-muted">
         A style reference is a direction, not a theme. It names a look, says
         what makes that look recognisable, and says what would pull it back
         towards the house style. Pick one, read it, and spend the axes
@@ -60,17 +60,17 @@ export default function Styles(): JSX.Element {
           there is one per style. A theme is the house, one style, and the
           decisions only the product's owner can make.
         </p>
-        <ol class="mt-4 grid gap-3 md:grid-cols-3">
+        <ol class="grid gap-3 md:grid-cols-3">
           <For each={LAYERS}>
             {([name, what]) => (
               <li class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{name}</p>
-                <p class="m-0 mt-2 text-sm">{what}</p>
+                <p class="font-semibold text-text">{name}</p>
+                <p class="text-sm">{what}</p>
               </li>
             )}
           </For>
         </ol>
-        <p class="mt-4">
+        <p>
           The references are written for an agent to follow, so they are
           installed beside the skill rather than read here and remembered. The
           file each card names is the whole reference, and it is the file the
@@ -107,17 +107,17 @@ function StyleCard(props: { style: StyleReference }): JSX.Element {
     <article class="mb-8 overflow-hidden rounded-md border border-border bg-surface text-text">
       <header class="border-b border-border bg-surface-raised p-4">
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 class="m-0 font-heading text-xl tracking-tight">{style.name}</h2>
+          <h2>{style.name}</h2>
           <a
             href={style.href}
-            class="font-mono text-xs text-link hover:underline break-all"
+            class="font-mono text-xs hover:underline break-all"
           >
             {style.href}
           </a>
         </div>
-        <p class="m-0 mt-2 text-sm">{style.mood}</p>
-        <p class="m-0 mt-1 text-sm text-text-muted">{style.audience}</p>
-        <p class="m-0 mt-1 text-xs text-text-muted">
+        <p class="text-sm">{style.mood}</p>
+        <p class="text-sm text-text-muted">{style.audience}</p>
+        <p class="text-xs text-text-muted">
           anchor: {style.anchor}
         </p>
       </header>

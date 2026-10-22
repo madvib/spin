@@ -211,7 +211,7 @@ Deno.test("no utility sets only custom properties nothing consumes", async () =>
       continue;
     }
     const { css } = await uno.generate(name);
-    const rule = [...css.split("}")]
+    const rule = css.split("}")
       .map((r) => r.slice(0, r.indexOf("{")).trim())
       .filter((head) => head.includes(`.${name.replace(/([:/])/g, "\\$1")}`))
       .pop();

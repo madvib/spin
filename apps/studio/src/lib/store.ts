@@ -483,7 +483,7 @@ function refuse(message: string, path: string): void {
   const theme = activeName();
   setRefusals((prev) => ({
     ...prev,
-    [theme]: { ...(prev[theme] ?? {}), [path]: message },
+    [theme]: { ...prev[theme], [path]: message },
   }));
   setLastRefused(path);
 }

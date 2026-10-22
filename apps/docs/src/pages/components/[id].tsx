@@ -25,16 +25,14 @@ export default function ComponentPage(): JSX.Element {
             ← components
           </A>
         </p>
-        <h1 class="mt-1 text-2xl tracking-tight">{params.id}</h1>
+        <h1>{params.id}</h1>
         <Show when={examples()}>
-          {(ex) => (
-            <p class="text-text-muted max-w-screen-md mt-1">{ex().note}</p>
-          )}
+          {(ex) => <p class="text-text-muted max-w-screen-md">{ex().note}</p>}
         </Show>
 
         <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
           <div>
-            <p class="m-0 text-xs font-semibold uppercase tracking-widest text-text-muted">
+            <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
               tags
             </p>
             <div class="mt-2 flex flex-wrap gap-2">
@@ -49,7 +47,7 @@ export default function ComponentPage(): JSX.Element {
             </div>
           </div>
           <div>
-            <p class="m-0 text-xs font-semibold uppercase tracking-widest text-text-muted">
+            <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
               variants
             </p>
             <div class="mt-2 flex flex-wrap gap-2">
@@ -86,12 +84,12 @@ export default function ComponentPage(): JSX.Element {
         <Show when={contract()!.component.length > 0}>
           <Section title="Component tokens — what the theme decides">
             <div class="mt-4 overflow-x-auto">
-              <table class="w-full border-collapse text-sm">
+              <table class="w-full border-collapse">
                 <thead>
                   <tr class="border-b border-border text-left">
-                    <th class="py-2 pr-4 font-semibold text-text">token</th>
-                    <th class="py-2 pr-4 font-mono text-xs">type</th>
-                    <th class="py-2 pr-4 font-mono text-xs">
+                    <th class="py-2 pr-4">token</th>
+                    <th class="py-2 pr-4 font-mono">type</th>
+                    <th class="py-2 pr-4 font-mono">
                       scaffold placeholder
                     </th>
                   </tr>
@@ -100,13 +98,13 @@ export default function ComponentPage(): JSX.Element {
                   <For each={contract()!.component}>
                     {(token) => (
                       <tr class="border-b border-border">
-                        <td class="py-2 pr-4 font-mono text-xs">
+                        <td class="font-mono text-xs">
                           {token.path}
                         </td>
-                        <td class="py-2 pr-4 font-mono text-xs text-text-muted">
+                        <td class="font-mono text-xs text-text-muted">
                           {token.type}
                         </td>
-                        <td class="py-2 pr-4 font-mono text-xs">
+                        <td class="font-mono text-xs">
                           {token.value}
                         </td>
                       </tr>
@@ -126,7 +124,7 @@ function NotFound(props: { id: string }): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-md px-4 py-24 text-center">
       <p class="text-text-muted">
-        No primitive is named <code class="font-mono">{props.id}</code>.{" "}
+        No primitive is named <code>{props.id}</code>.{" "}
         <A href="/components" class="text-primary underline">
           See the index.
         </A>

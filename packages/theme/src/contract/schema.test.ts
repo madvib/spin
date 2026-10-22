@@ -153,7 +153,7 @@ function varsInMode(
   }
   const base = blocks.get(":root") ?? {};
   if (mode === "light") return { ...base };
-  return { ...base, ...(blocks.get(':root[data-mode="dark"]') ?? {}) };
+  return { ...base, ...blocks.get(':root[data-mode="dark"]') };
 }
 
 /** Follows a `var(--x)` chain to a literal, the way a browser resolves it. */

@@ -22,13 +22,12 @@ export default function Starters(): JSX.Element {
   const themes = themeSummaries();
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Starters</h1>
-      <p class="mt-1 max-w-screen-md text-text-muted">
+      <h1>Starters</h1>
+      <p class="max-w-screen-md text-text-muted">
         The themes the package ships. Each one is a document in{" "}
-        <code class="font-mono">@spin/theme/themes</code>, and this page is a
-        rendering of those documents, so it cannot drift from them. A project
-        forks one by writing a file of the same name into its own{" "}
-        <code class="font-mono">spin/</code> directory.
+        <code>@spin/theme/themes</code>, and this page is a rendering of those
+        documents, so it cannot drift from them. A project forks one by writing
+        a file of the same name into its own <code>spin/</code> directory.
       </p>
 
       <div class="mt-8">
@@ -50,21 +49,21 @@ function ThemeCard(props: { theme: ThemeSummary }): JSX.Element {
     >
       <header class="border-b border-border bg-surface-raised p-4">
         <div class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-          <h2 class="m-0 font-heading text-xl tracking-tight">{theme.name}</h2>
+          <h2>{theme.name}</h2>
           <div class="flex flex-wrap gap-2">
             <For each={theme.modes}>
               {(mode) => <Chip>{mode}</Chip>}
             </For>
           </div>
         </div>
-        <p class="m-0 mt-2 text-sm">
+        <p class="text-sm">
           {theme.thesis ??
             "The thesis is unwritten. This document states no description of its own, so the palette and the axes below are all it has to say."}
         </p>
       </header>
 
       <div class="p-4">
-        <p class="m-0 text-xs font-semibold uppercase tracking-widest text-text-muted">
+        <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
           palette
         </p>
         <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,14 +73,16 @@ function ThemeCard(props: { theme: ThemeSummary }): JSX.Element {
         </div>
       </div>
 
+      <hr />
+
       {theme.carriesDark
         ? (
           <div
-            class="border-t border-border bg-surface p-4"
+            class="bg-surface p-4"
             data-theme={theme.name}
             data-mode="dark"
           >
-            <p class="m-0 text-xs font-semibold uppercase tracking-widest text-text-muted">
+            <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
               the same palette, in the dark
             </p>
             <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -92,36 +93,38 @@ function ThemeCard(props: { theme: ThemeSummary }): JSX.Element {
           </div>
         )
         : (
-          <div class="border-t border-border p-4">
-            <p class="m-0 text-sm text-text-muted">
+          <div class="p-4">
+            <p class="text-sm text-text-muted">
               This theme states one rendering. It has no second set of values,
               so the panel above is the whole of it.
             </p>
           </div>
         )}
 
-      <div class="border-t border-border p-4">
-        <p class="m-0 text-xs font-semibold uppercase tracking-widest text-text-muted">
+      <hr />
+
+      <div class="p-4">
+        <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
           signature
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">axis</th>
-                <th class="py-2 pr-4 font-semibold text-text">token</th>
-                <th class="py-2 pr-4 font-semibold text-text">value</th>
+                <th class="py-2 pr-4">axis</th>
+                <th class="py-2 pr-4">token</th>
+                <th class="py-2 pr-4">value</th>
               </tr>
             </thead>
             <tbody>
               <For each={theme.signature}>
                 {(entry) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 text-text-muted">{entry.axis}</td>
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="text-text-muted">{entry.axis}</td>
+                    <td class="font-mono text-xs text-text">
                       {entry.path}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs break-all">
+                    <td class="font-mono text-xs break-all">
                       {entry.value}
                     </td>
                   </tr>

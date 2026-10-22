@@ -17,7 +17,7 @@ import {
   easingUtility,
   easingValue,
 } from "../lib/motion.ts";
-import { durationUtility } from "../lib/overview.ts";
+import { durationUtility, tokenValue } from "../lib/overview.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
@@ -191,9 +191,9 @@ function RaceStage(props: {
         {(lane) => (
           <li class="stack-sm">
             <div class="row-sm flex-wrap justify-between gap-3">
-              <code class="text-xs text-text-muted">{lane.path}</code>
+              <code>{lane.path}</code>
               <div class="row-sm flex-wrap gap-2">
-                <code class="text-xs whitespace-nowrap">{lane.utility}</code>
+                <code class="whitespace-nowrap">{lane.utility}</code>
                 <ValueInput
                   value={lane.value}
                   type={lane.type}
@@ -251,6 +251,14 @@ function EasingChart(props: {
   lanes: Lane[];
   /** The colour the picked curve wears, and the playhead wears. */
   ink: string;
+  /** The chart's own axes: the theme's hairline. */
+  axis: string | undefined;
+  /** The guide that carries the picked curve's handles. */
+  guide: string | undefined;
+  /** The ink the curves that are not picked wear. */
+  curve: string | undefined;
+  /** The page the handles are drawn on. */
+  surface: string | undefined;
   onEdit: (path: string, value: string) => boolean;
   /** Playheads run the shared duration while the section loops. */
   running: boolean;
@@ -382,7 +390,7 @@ function EasingChart(props: {
             y1={CHART}
             x2={CHART}
             y2={CHART}
-            style={{ stroke: "var(--color-border)" }}
+            style={{ stroke: props.axis }}
             stroke-width="1"
           />
           <line
@@ -390,7 +398,7 @@ function EasingChart(props: {
             y1="0"
             x2="0"
             y2={CHART}
-            style={{ stroke: "var(--color-border)" }}
+            style={{ stroke: props.axis }}
             stroke-width="1"
           />
           <For each={props.lanes}>
@@ -408,7 +416,7 @@ function EasingChart(props: {
                     style={{
                       stroke: active()?.path === lane.path
                         ? props.ink
-                        : "var(--color-text)",
+                        : props.curve,
                     }}
                     stroke-dasharray={DASH[index() % DASH.length]}
                     stroke-width={active()?.path === lane.path ? 3 : 2}
@@ -426,7 +434,7 @@ function EasingChart(props: {
                   y1={CHART}
                   x2={handleAt(points()[0], points()[1]).cx}
                   y2={handleAt(points()[0], points()[1]).cy}
-                  style={{ stroke: "var(--color-border-strong)" }}
+                  style={{ stroke: props.guide }}
                   stroke-dasharray="3 3"
                   stroke-width="1"
                 />
@@ -435,7 +443,7 @@ function EasingChart(props: {
                   y1="0"
                   x2={handleAt(points()[2], points()[3]).cx}
                   y2={handleAt(points()[2], points()[3]).cy}
-                  style={{ stroke: "var(--color-border-strong)" }}
+                  style={{ stroke: props.guide }}
                   stroke-dasharray="3 3"
                   stroke-width="1"
                 />
@@ -444,7 +452,7 @@ function EasingChart(props: {
                   r="6"
                   class="cursor-grab"
                   style={{
-                    fill: "var(--color-surface)",
+                    fill: props.surface,
                     stroke: props.ink,
                   }}
                   stroke-width="2"
@@ -464,7 +472,7 @@ function EasingChart(props: {
                   r="6"
                   class="cursor-grab"
                   style={{
-                    fill: "var(--color-surface)",
+                    fill: props.surface,
                     stroke: props.ink,
                   }}
                   stroke-width="2"
@@ -523,7 +531,7 @@ function EasingChart(props: {
                         style={{
                           stroke: active()?.path === lane.path
                             ? props.ink
-                            : "var(--color-text)",
+                            : props.curve,
                         }}
                         stroke-dasharray={DASH[index() % DASH.length]}
                         stroke-width="2"
@@ -602,6 +610,19 @@ export default function MotionPage() {
   });
   const edit = (path: string, value: string) =>
     editToken(path.split("."), value);
+  /**
+   * The theme's own value for a colour, in the mode being shown.
+   *
+   * The chart is drawn with the theme's colours, read as values: a custom
+   * property is generated output, and a chart that names one is a chart that
+   * has to be re-read every time the theme is edited.
+   */
+  const colour = (path: string): string | undefined => {
+    const current = tree();
+    return current === undefined
+      ? undefined
+      : tokenValue(current, activeMode(), path);
+  };
 
   const [durationLoop, setDurationLoop] = createSignal(false);
   const [easingLoop, setEasingLoop] = createSignal(false);
@@ -702,7 +723,11 @@ export default function MotionPage() {
           <Frame>
             <EasingChart
               lanes={lanesFor(easings(), easingUtility, true)}
-              ink="var(--color-accent)"
+              ink={colour("color.accent") ?? "currentColor"}
+              axis={colour("color.border")}
+              guide={colour("color.border-strong")}
+              curve={colour("color.text")}
+              surface={colour("color.surface")}
               onEdit={edit}
               running={easingLoop()}
               periodMs={anchorMs()}

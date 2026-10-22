@@ -246,37 +246,48 @@ export function Console(): JSX.Element {
           </For>
         </nav>
 
-        <div class="mt-auto flex items-center gap-2 border-t border-border px-2 pt-3">
-          <img
-            class="avatar avatar-sm avatar-circle"
-            src={face("mara-vidal")}
-            alt=""
-            width="24"
-            height="24"
-            loading="lazy"
-          />
-          <div class="min-w-0">
-            <div class="truncate text-sm">Mara Vidal</div>
-            <div class="truncate text-xs text-text-muted">Store manager</div>
+        <div class="mt-auto flex flex-col px-2">
+          {
+            /* The rule above the account row is the theme's own element for a
+            * rule, so it carries the theme's air around it. */
+          }
+          <hr />
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex min-w-0 items-center gap-2">
+              <img
+                class="avatar avatar-sm avatar-circle"
+                src={face("mara-vidal")}
+                alt=""
+                width="24"
+                height="24"
+                loading="lazy"
+              />
+              <div class="min-w-0">
+                <div class="truncate text-sm">Mara Vidal</div>
+                <div class="truncate text-xs text-text-muted">
+                  Store manager
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="icon ghost"
+              aria-label="Account menu"
+            >
+              <i
+                class="i-lucide-ellipsis button-icon icon-sm"
+                aria-hidden="true"
+              />
+            </button>
           </div>
-          <button
-            type="button"
-            class="icon ghost ml-auto"
-            aria-label="Account menu"
-          >
-            <i
-              class="i-lucide-ellipsis button-icon icon-sm"
-              aria-hidden="true"
-            />
-          </button>
         </div>
       </aside>
 
       <div class="min-w-0 md:col-span-3">
         <header class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
           <div>
-            <h2 class="m-0 text-lg">Orders</h2>
-            <p class="m-0 text-xs text-text-muted">
+            <h2>Orders</h2>
+            <p class="text-xs text-text-muted">
               42 total · updated 2 min ago
             </p>
           </div>
@@ -428,7 +439,8 @@ export function Console(): JSX.Element {
             </table>
           </div>
 
-          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3 text-sm text-text-muted">
+          <hr />
+          <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-text-muted">
             <span>{rows().length} of {ORDERS.length} rows · 42 total</span>
             <div class="flex items-center gap-1">
               <button

@@ -184,7 +184,7 @@ export default function IconsPage() {
   return (
     <div class="flex min-h-0 min-w-0 flex-1 flex-col">
       <div class="shrink-0 p-4 stack-sm">
-        <h1 class="text-3xl">Icons</h1>
+        <h1>Icons</h1>
         <p class="max-w-screen-md text-text-muted">
           Every glyph in the five installed collections. Click one to copy its
           utility; the grid draws at the selected step of the theme's icon
@@ -194,7 +194,7 @@ export default function IconsPage() {
         <div class="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            class="rounded-md border bg-surface-raised px-3 py-1 text-sm"
+            class="secondary s-sm"
             aria-pressed={picked() === ""}
             classList={{
               "border-primary font-semibold text-text": picked() === "",
@@ -208,7 +208,7 @@ export default function IconsPage() {
             {(collection) => (
               <button
                 type="button"
-                class="rounded-md border bg-surface-raised px-3 py-1 text-sm"
+                class="secondary s-sm"
                 aria-pressed={picked() === collection}
                 classList={{
                   "border-primary font-semibold text-text": picked() ===
@@ -233,7 +233,7 @@ export default function IconsPage() {
               {(step) => (
                 <button
                   type="button"
-                  class="rounded-md border bg-surface-raised px-3 py-1 text-sm"
+                  class="secondary s-sm"
                   aria-pressed={size() === step.step}
                   title={step.value}
                   classList={{
@@ -266,7 +266,7 @@ export default function IconsPage() {
                 <p class="truncate text-sm font-semibold text-text">
                   {entry().collection} · {entry().name}
                 </p>
-                <code class="truncate font-mono text-xs text-text-muted">
+                <code class="truncate">
                   {iconUtility(entry())}
                 </code>
               </div>
@@ -291,7 +291,7 @@ export default function IconsPage() {
         <Show when={copied() !== null}>
           <p class="text-xs text-text-muted" role="status">
             copied{" "}
-            <code class="font-mono text-text">
+            <code>
               {copied()}
             </code>
           </p>
@@ -319,7 +319,7 @@ export default function IconsPage() {
                   {(entry) => (
                     <button
                       type="button"
-                      class="stack-sm items-center rounded-lg border border-border bg-surface-raised p-2 w-24 text-text-muted hover:border-primary hover:text-text"
+                      class="secondary s-sm stack-sm items-center w-24 text-text-muted hover:border-primary hover:text-text"
                       classList={{
                         "border-primary text-text": copied() ===
                             iconUtility(entry) ||
@@ -384,7 +384,7 @@ export default function IconsPage() {
           }
           <section class="stack-sm">
             <div class="row-sm justify-between gap-2">
-              <h2 class="text-sm font-semibold">Saved icons</h2>
+              <h2>Saved icons</h2>
               <span class="text-xs text-text-muted">
                 {saved()?.length ?? 0}
               </span>
@@ -421,7 +421,7 @@ export default function IconsPage() {
                         </span>
                         <button
                           type="button"
-                          class="bare shrink-0 text-xs text-text-muted hover:text-text"
+                          class="bare shrink-0 text-text-muted hover:text-text"
                           title={`Remove ${icon.name} from the library`}
                           aria-label={`Remove ${icon.name} from the library`}
                           onClick={() => unkeep(icon.name)}
@@ -447,7 +447,7 @@ export default function IconsPage() {
 
           <section class="stack-sm">
             <div class="row-sm justify-between gap-2">
-              <h2 class="text-sm font-semibold">Glyph sizes</h2>
+              <h2>Glyph sizes</h2>
               <LinkToggle group="icon" />
             </div>
             <p class="text-sm text-text-muted">

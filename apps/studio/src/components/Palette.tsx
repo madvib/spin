@@ -116,8 +116,8 @@ function Swatch(props: {
           {swatch}
         </button>
       </Show>
-      <figcaption class="flex items-baseline gap-2">
-        <span class="shrink-0 text-sm font-medium text-text">
+      <figcaption class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span class="shrink-0 text-sm text-text">
           {props.chip.label}
         </span>
         <Hex value={props.chip.value} />
@@ -162,7 +162,7 @@ export function Hex(props: { value: string }) {
   return (
     <button
       type="button"
-      class="bare min-w-0 shrink cursor-pointer justify-start text-left font-mono text-xs text-text-muted hover:text-text"
+      class="bare s-sm min-w-0 shrink cursor-pointer justify-start text-left text-xs text-text-muted hover:text-text"
       title={props.value}
       aria-label={`Copy ${hex()}`}
       onClick={() => void copy()}

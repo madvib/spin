@@ -9,6 +9,7 @@ import {
   TokenLine,
 } from "../components/Concern.tsx";
 import { analyzeTheme } from "../lib/theme.ts";
+import { actingColour, tokenValue } from "../lib/overview.ts";
 import { borderUtilityOf, groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
 import { activeMode, themeText } from "../lib/store.ts";
@@ -67,6 +68,25 @@ export default function StylePage() {
   const opacities = createMemo(() => group([["opacity"]]));
   const borders = createMemo(() => group([["border"]]));
   const focuses = createMemo(() => group([["focus"]]));
+  /**
+   * The theme's own value for a colour, in the mode being shown.
+   *
+   * The specimens are painted with the value rather than with a utility: a
+   * specimen shows the theme's colour, and a utility paints whatever the
+   * studio's own sheet happens to say.
+   */
+  const colour = (path: string): string | undefined => {
+    const current = tree();
+    return current === undefined
+      ? undefined
+      : tokenValue(current, activeMode(), path);
+  };
+  const acting = createMemo(() => {
+    const current = tree();
+    return current === undefined
+      ? undefined
+      : actingColour(current, activeMode());
+  });
   const edit = (row: TokenRow, value: string) =>
     editToken(row.path.split("."), value);
 
@@ -83,7 +103,7 @@ export default function StylePage() {
         prefix="rounded"
         onEdit={(row, value) => radii.commit(row.path, value)}
         family={radii}
-        figure={<RadiusFigure rows={radii.rows()} />}
+        figure={<RadiusFigure rows={radii.rows()} fill={acting()} />}
       />
 
       <Family
@@ -93,7 +113,7 @@ export default function StylePage() {
         rows={shadows()}
         prefix="shadow"
         onEdit={edit}
-        figure={<LiftFigure rows={shadows()} />}
+        figure={<LiftFigure rows={shadows()} fill={acting()} />}
       />
 
       <Family
@@ -115,7 +135,7 @@ export default function StylePage() {
         prefix="opacity"
         utilityOf={(row) => `opacity-${suffixOf(row.path)}`}
         onEdit={edit}
-        figure={<OpacityFigure rows={opacities()} />}
+        figure={<OpacityFigure rows={opacities()} fill={acting()} />}
       />
 
       <Family
@@ -126,7 +146,13 @@ export default function StylePage() {
         prefix="border"
         utilityOf={(row) => borderUtilityOf(row.path)}
         onEdit={edit}
-        figure={<BorderFigure rows={borders()} />}
+        figure={
+          <BorderFigure
+            rows={borders()}
+            fill={acting()}
+            edge={colour("color.text")}
+          />
+        }
       />
 
       <Family
@@ -136,7 +162,9 @@ export default function StylePage() {
         rows={focuses()}
         prefix="focus"
         onEdit={edit}
-        figure={<FocusFigure rows={focuses()} />}
+        figure={
+          <FocusFigure rows={focuses()} ring={colour("color.focus-ring")} />
+        }
       />
     </ConcernPage>
   );
@@ -242,17 +270,22 @@ function Family(props: {
  * theme may name its corners anything at all — the property is the value,
  * and it moves while the author drags.
  */
-function RadiusFigure(props: { rows: readonly TokenRow[] }) {
+function RadiusFigure(
+  props: { rows: readonly TokenRow[]; fill: string | undefined },
+) {
   return (
     <div class="flex flex-wrap items-end gap-2">
       <For each={props.rows}>
         {(row) => (
           <figure class="stack-sm w-12">
             <div
-              class="h-12 w-12 bg-primary"
-              style={{ "border-radius": `var(${row.variable})` }}
+              class="h-12 w-12"
+              style={{
+                background: props.fill,
+                "border-radius": `var(${row.variable})`,
+              }}
             />
-            <figcaption class="truncate text-center text-xs text-text-muted">
+            <figcaption class="truncate text-center">
               {stepOf(row.path)}
             </figcaption>
           </figure>
@@ -270,17 +303,22 @@ function RadiusFigure(props: { rows: readonly TokenRow[] }) {
  * family asks. The card is painted, because a shadow is invisible on a
  * white card in a white room.
  */
-function LiftFigure(props: { rows: readonly TokenRow[] }) {
+function LiftFigure(
+  props: { rows: readonly TokenRow[]; fill: string | undefined },
+) {
   return (
     <div class="flex flex-wrap items-end gap-4 rounded-md bg-surface-sunken p-4">
       <For each={props.rows}>
         {(row) => (
           <figure class="stack-sm w-16">
             <div
-              class="h-12 w-full rounded-md bg-primary"
-              style={{ "box-shadow": `var(${row.variable})` }}
+              class="h-12 w-full rounded-md"
+              style={{
+                background: props.fill,
+                "box-shadow": `var(${row.variable})`,
+              }}
             />
-            <figcaption class="truncate text-center text-xs text-text-muted">
+            <figcaption class="truncate text-center">
               {stepOf(row.path)}
             </figcaption>
           </figure>
@@ -316,7 +354,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
   };
 
   return (
-    <div class="spin-preview relative h-28">
+    <div class="spin-preview relative h-[7rem]">
       <For each={props.rows}>
         {(row, index) => (
           <div
@@ -358,14 +396,19 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
  * invisible step to the whole one, and the table beside it names them in
  * the same order.
  */
-function OpacityFigure(props: { rows: readonly TokenRow[] }) {
+function OpacityFigure(
+  props: { rows: readonly TokenRow[]; fill: string | undefined },
+) {
   return (
     <div class="flex items-end gap-1 rounded-md bg-surface-sunken p-3">
       <For each={props.rows}>
         {(row) => (
           <div
-            class="h-12 min-w-0 flex-1 rounded-sm bg-primary"
-            style={{ opacity: `var(${row.variable})` }}
+            class="h-12 min-w-0 flex-1 rounded-sm"
+            style={{
+              background: props.fill,
+              opacity: `var(${row.variable})`,
+            }}
             title={`${stepOf(row.path)} · ${row.value}`}
           />
         )}
@@ -381,21 +424,28 @@ function OpacityFigure(props: { rows: readonly TokenRow[] }) {
  * read — a hairline drawn around a white box on a white card is a hairline
  * nobody can see.
  */
-function BorderFigure(props: { rows: readonly TokenRow[] }) {
+function BorderFigure(
+  props: {
+    rows: readonly TokenRow[];
+    fill: string | undefined;
+    edge: string | undefined;
+  },
+) {
   return (
     <div class="flex flex-wrap items-end gap-4 rounded-md bg-surface-sunken p-4">
       <For each={props.rows}>
         {(row) => (
           <figure class="stack-sm w-16">
             <div
-              class="h-12 w-full rounded-md bg-primary"
+              class="h-12 w-full rounded-md"
               style={{
+                background: props.fill,
                 "border-width": `var(${row.variable})`,
                 "border-style": "solid",
-                "border-color": "var(--color-text)",
+                "border-color": props.edge,
               }}
             />
-            <figcaption class="truncate text-center text-xs text-text-muted">
+            <figcaption class="truncate text-center">
               {stepOf(row.path)}
             </figcaption>
           </figure>
@@ -413,7 +463,9 @@ function BorderFigure(props: { rows: readonly TokenRow[] }) {
  * The step under edit is the one the specimen isolates: the width's ring
  * sits on the control itself, and the offset's ring stands off it.
  */
-function FocusFigure(props: { rows: readonly TokenRow[] }) {
+function FocusFigure(
+  props: { rows: readonly TokenRow[]; ring: string | undefined },
+) {
   return (
     <div class="flex flex-wrap items-end gap-4 rounded-md bg-surface-sunken p-4">
       <For each={props.rows}>
@@ -422,10 +474,11 @@ function FocusFigure(props: { rows: readonly TokenRow[] }) {
             <div class="flex h-12 items-center justify-center">
               <button
                 type="button"
-                class="rounded-md border border-border bg-primary px-2 py-1 text-xs text-on-primary"
+                class="secondary s-sm"
                 style={{
-                  outline:
-                    "var(--focus-width, 1px) solid var(--color-focus-ring)",
+                  outline: `var(--focus-width, 1px) solid ${
+                    props.ring ?? "transparent"
+                  }`,
                   "outline-offset": row.path.endsWith("offset")
                     ? `var(${row.variable}, 2px)`
                     : "0px",
@@ -434,7 +487,7 @@ function FocusFigure(props: { rows: readonly TokenRow[] }) {
                 focus
               </button>
             </div>
-            <figcaption class="truncate text-center text-xs text-text-muted">
+            <figcaption class="truncate text-center">
               {stepOf(row.path)}
             </figcaption>
           </figure>

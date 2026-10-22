@@ -44,8 +44,8 @@ export function ExampleRow(props: {
   return (
     <section class="mb-7">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-text">
-          <span class="block h-1 w-4 rounded-full bg-primary" />
+        <h3 class="flex items-center gap-2 text-text">
+          <span class="block h-1 w-4 border-t-4 border-solid border-primary" />
           {props.name}
         </h3>
         <div class="flex overflow-hidden border border-border rounded-sm">
@@ -94,7 +94,7 @@ export function ExampleRow(props: {
         <button
           type="button"
           onClick={copy}
-          class="absolute right-2 bottom-2 font-mono text-xs border border-border bg-surface text-text-muted rounded-sm px-2 py-1 hover:text-text hover:border-border-strong transition-colors duration-fast"
+          class="secondary s-sm absolute right-2 bottom-2 hover:border-border-strong transition-colors duration-fast"
         >
           {copied() ? "copied" : "copy"}
         </button>

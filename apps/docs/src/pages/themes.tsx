@@ -57,8 +57,8 @@ const TASTE: readonly (readonly [string, string])[] = [
 export default function Themes(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <h1 class="text-2xl tracking-tight">Themes</h1>
-      <p class="mt-1 max-w-screen-md text-text-muted">
+      <h1>Themes</h1>
+      <p class="max-w-screen-md text-text-muted">
         A theme is one document. The build reads it and turns it into CSS custom
         properties, and every utility and every element in the library resolves
         against those properties. Replacing the document replaces the product's
@@ -85,79 +85,76 @@ export default function Themes(): JSX.Element {
           A theme lives on disk as a JSON document in the DTCG shape: groups of
           tokens, each token a value and, when the group does not already say
           it, a type. In a spin project it is{" "}
-          <code class="font-mono">spin/&lt;name&gt;.json</code>, and the name is
-          the file stem.
+          <code>spin/&lt;name&gt;.json</code>, and the name is the file stem.
         </p>
         <Code code={DOCUMENT} />
         <p>
           The document goes through {PIPELINE.length}{" "}
           stages, and each of them can be entered on its own:
         </p>
-        <ol class="mt-2 list-decimal pl-5">
+        <ol class="list-decimal">
           <For each={PIPELINE}>
             {([stage, what]) => (
               <li>
-                <code class="font-mono text-text">{stage}</code>
+                <code>{stage}</code>
                 {": "}
                 {what}
               </li>
             )}
           </For>
         </ol>
-        <p class="mt-3">
+        <p>
           The output is a flat namespace of custom properties. A token's path
-          becomes its name: <code class="font-mono">color.primary</code> is{" "}
-          <code class="font-mono">--color-primary</code>,{" "}
-          <code class="font-mono">font.family.sans</code> is{" "}
-          <code class="font-mono">--font-family-sans</code>. A rule that paints
-          a primary does not carry a color, it carries the name, so a theme swap
-          is a selector swap and not a rebuild.
+          becomes its name: <code>color.primary</code> is{" "}
+          <code>--color-primary</code>, <code>font.family.sans</code> is{" "}
+          <code>--font-family-sans</code>. A rule that paints a primary does not
+          carry a color, it carries the name, so a theme swap is a selector swap
+          and not a rebuild.
         </p>
       </Section>
 
       <Section id="language" title="The token language">
         <p>
           A token may declare a{" "}
-          <code class="font-mono">$type</code>, and the vocabulary of types is
-          closed. An unknown type is a parse error rather than a silent
-          pass-through, so a typo in an author file can never reach the
-          stylesheet. These are the types:
+          <code>$type</code>, and the vocabulary of types is closed. An unknown
+          type is a parse error rather than a silent pass-through, so a typo in
+          an author file can never reach the stylesheet. These are the types:
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={TYPES}>
             {(type) => <Chip>{type}</Chip>}
           </For>
         </div>
-        <p class="mt-5">
+        <p>
           On top of the types, a theme must declare the base roles: the palette,
           the inks that go on the palette, the focus ring every interactive
           element shares, and the two dimensions of the ring. The contract is
           one declaration, and the JSON Schema the package writes derives its
           {" "}
-          <code class="font-mono">required</code>{" "}
+          <code>required</code>{" "}
           list from it, so a role added to the contract is required by the
           schema in the same change.
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4 font-semibold text-text">role</th>
-                <th class="py-2 pr-4 font-semibold text-text">type</th>
-                <th class="py-2 pr-4 font-semibold text-text">what it is</th>
-                <th class="py-2 pr-4 font-semibold text-text">the floor</th>
+                <th class="py-2 pr-4">role</th>
+                <th class="py-2 pr-4">type</th>
+                <th class="py-2 pr-4">what it is</th>
+                <th class="py-2 pr-4">the floor</th>
               </tr>
             </thead>
             <tbody>
               <For each={ROLES}>
                 {(role) => (
                   <tr class="border-b border-border">
-                    <td class="py-2 pr-4 font-mono text-xs text-text">
+                    <td class="font-mono text-xs text-text">
                       {role.path}
                     </td>
-                    <td class="py-2 pr-4 font-mono text-xs">{role.type}</td>
-                    <td class="py-2 pr-4 text-text-muted">{role.doc}</td>
-                    <td class="py-2 pr-4 font-mono text-xs">
+                    <td class="font-mono text-xs">{role.type}</td>
+                    <td class="text-text-muted">{role.doc}</td>
+                    <td class="font-mono text-xs">
                       {role.floor === undefined
                         ? "none"
                         : `${role.floor.fg} on ${role.floor.bg}, ${role.floor.min}:1`}
@@ -169,13 +166,12 @@ export default function Themes(): JSX.Element {
           </table>
         </div>
 
-        <p class="mt-5">
-          A mode is a variant of a token, not a second theme.{" "}
-          <code class="font-mono">modes</code>{" "}
+        <p>
+          A mode is a variant of a token, not a second theme. <code>modes</code>
+          {" "}
           at the root of the document says which modes the document serves, and
           {" "}
-          <code class="font-mono">$modes</code>{" "}
-          on a token says how that one token varies:
+          <code>$modes</code> on a token says how that one token varies:
         </p>
         <Code
           class="mt-2"
@@ -184,7 +180,7 @@ export default function Themes(): JSX.Element {
   "$modes": { "dark": "#ff5a63" }
 }`}
         />
-        <p class="mt-3">
+        <p>
           Only color and focus vary by mode, and that is a design fact rather
           than a convention: dark mode changes ink and surface, not space or
           type. A document's root <code>modes</code>{" "}
@@ -192,7 +188,7 @@ export default function Themes(): JSX.Element {
           falls back to the base values, and a value written for a mode it does
           not serve is reported, because it would never be seen.
         </p>
-        <p class="mt-3">
+        <p>
           Some decisions belong to one element rather than to the system. The
           button's weight, case and tracking, whether a badge is a pill, how
           physical a checkbox or a switch is, the size ladder of an avatar, the
@@ -208,16 +204,14 @@ export default function Themes(): JSX.Element {
       <Section id="fork" title="Forking a starter">
         <p>
           The starters ship with the package. A project forks one by writing a
-          file of the same name into its own{" "}
-          <code class="font-mono">spin/</code> directory:{" "}
-          <code class="font-mono">spin/silk.json</code>{" "}
+          file of the same name into its own <code>spin/</code> directory:{" "}
+          <code>spin/silk.json</code>{" "}
           is that project's silk, and it replaces the shipped one for that
-          project alone. The build reads{" "}
-          <code class="font-mono">spin/*.json</code>{" "}
+          project alone. The build reads <code>spin/*.json</code>{" "}
           every time it generates the stylesheet, so a theme edited while the
           dev server is running is live on the next change, with no restart.
         </p>
-        <p class="mt-3">
+        <p>
           The studio does the same thing through a dialog.{" "}
           <strong>
             New theme
@@ -236,7 +230,7 @@ export default function Themes(): JSX.Element {
           ugly: they validate, and they are obviously unfinished. A theme that
           looks finished was not scaffolded, it was authored.
         </p>
-        <p class="mt-3">
+        <p>
           Starting from a scaffold is the right move when the product's
           character is not yet decided, because the required roles are the floor
           and nothing else is. Starting from a starter is the right move when
@@ -259,8 +253,8 @@ export default function Themes(): JSX.Element {
           <For each={TASTE}>
             {([name, why]) => (
               <div class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="m-0 font-semibold text-text">{name}</p>
-                <p class="m-0 mt-2 text-sm">{why}</p>
+                <p class="font-semibold text-text">{name}</p>
+                <p class="text-sm">{why}</p>
               </div>
             )}
           </For>

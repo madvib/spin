@@ -256,7 +256,7 @@ export default function TypePage() {
       wide
     >
       <section class="stack mt-8" aria-label="Faces">
-        <h2 class="text-xl">Faces</h2>
+        <h2>Faces</h2>
         <p class="max-w-screen-md text-text-muted">
           The families the theme declares. Each card names the slot, the face it
           resolves to, the stack behind it, and whether the theme loads that
@@ -280,7 +280,7 @@ export default function TypePage() {
 
       <section class="stack mt-8" aria-label="Scale">
         <div class="row-sm justify-between gap-3">
-          <h2 class="text-xl">Scale</h2>
+          <h2>Scale</h2>
           <LinkToggle group="font.size" />
         </div>
         <p class="max-w-screen-md text-text-muted">
@@ -295,7 +295,7 @@ export default function TypePage() {
       </section>
 
       <section class="stack mt-8" aria-label="Weight">
-        <h2 class="text-xl">Weight</h2>
+        <h2>Weight</h2>
         <p class="max-w-screen-md text-text-muted">
           The weights a face can take, edited at their named step, so an element
           can claim any of them and the specimens read the value.
@@ -308,10 +308,10 @@ export default function TypePage() {
                   <span class={`text-2xl ${`font-${suffixOf(row.path)}`}`}>
                     {HEADING}
                   </span>
-                  <code class="text-xs text-text-muted">{row.path}</code>
+                  <code>{row.path}</code>
                 </div>
                 <div class="row-sm flex-wrap shrink-0">
-                  <code class="text-xs whitespace-nowrap">
+                  <code class="whitespace-nowrap">
                     {`font-${suffixOf(row.path)}`}
                   </code>
                   <ValueInput
@@ -335,7 +335,7 @@ export default function TypePage() {
       </section>
 
       <section class="stack mt-8" aria-label="Tracking">
-        <h2 class="text-xl">Tracking</h2>
+        <h2>Tracking</h2>
         <p class="max-w-screen-md text-text-muted">
           The letter spacing at each named step, on a line of text read at
           display size, where the spacing is the judgement.
@@ -345,16 +345,13 @@ export default function TypePage() {
             {(row) => (
               <li class="panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="row-sm flex-wrap">
-                  <span
-                    class="text-2xl"
-                    style={{ "letter-spacing": `var(${row.variable})` }}
-                  >
+                  <h2 style={{ "letter-spacing": `var(${row.variable})` }}>
                     {HEADING}
-                  </span>
-                  <code class="text-xs text-text-muted">{row.path}</code>
+                  </h2>
+                  <code>{row.path}</code>
                 </div>
                 <div class="row-sm flex-wrap shrink-0">
-                  <code class="text-xs whitespace-nowrap">
+                  <code class="whitespace-nowrap">
                     {`tracking-${suffixOf(row.path)}`}
                   </code>
                   <ValueInput
@@ -378,7 +375,7 @@ export default function TypePage() {
       </section>
 
       <section class="stack mt-8" aria-label="Element map">
-        <h2 class="text-xl">Element map</h2>
+        <h2>Element map</h2>
         <p class="max-w-screen-md text-text-muted">
           Which element reads which face, size and weight. A row the theme says
           nothing about reads the ladder; setting one writes a token under
@@ -439,7 +436,7 @@ function FaceCard(props: { slot: string }) {
       */
       }
       <div classList={{ split: !inDrawer(), "stack-sm": inDrawer() }}>
-        <code class="text-text-muted text-sm">
+        <code>
           {`font.family.${props.slot}`}
         </code>
         <span class="rounded-md bg-surface-sunken px-2 py-1 text-xs text-text-muted">
@@ -450,12 +447,9 @@ function FaceCard(props: { slot: string }) {
         /* The face, drawn in itself. A name in a stack is a reference; this
            is the thing the reference points at. */
       }
-      <p
-        class="text-2xl leading-tight"
-        style={{ "font-family": row()?.value ?? "inherit" }}
-      >
+      <h2 style={{ "font-family": row()?.value ?? "inherit" }}>
         {family() || "—"}
-      </p>
+      </h2>
       {
         /* The specimen is the face doing the job the slot exists for, and the
            stack is the value the theme holds. */
@@ -466,7 +460,8 @@ function FaceCard(props: { slot: string }) {
       >
         {SPECIMENS[role()] ?? SENTENCE}
       </p>
-      <div class="border-border stack-sm border-t pt-4">
+      <hr class="w-full" />
+      <div class="stack-sm">
         <FamilyField
           value={row()?.value ?? ""}
           label={`font.family.${props.slot}`}
@@ -494,7 +489,7 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
         {HEADING}
       </p>
       <div class="stack-sm shrink-0 items-end text-right">
-        <code class="text-text-muted text-xs">{`font.size.${props.step}`}</code>
+        <code>{`font.size.${props.step}`}</code>
         <Show when={row()}>
           {(current) => (
             <ValueInput
@@ -653,7 +648,7 @@ function StepChoice(props: {
         select = element;
       }}
       aria-label={props.label}
-      class="border-border rounded-md border bg-surface px-2 py-1 text-sm"
+      class="w-full"
       onChange={(event) => {
         const step = props.steps.find((entry) =>
           entry.value === event.currentTarget.value
@@ -726,7 +721,7 @@ function FamilyField(props: {
         <input
           type="text"
           aria-label={props.label}
-          class="w-64 max-w-full rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs"
+          class="w-[16rem] max-w-full"
           placeholder="Inter, ui-sans-serif, system-ui, sans-serif"
           value={draft()}
           onFocus={() => setOpen(true)}
@@ -750,13 +745,13 @@ function FamilyField(props: {
         />
       </div>
       <Show when={open() && matches().length > 0}>
-        <ul class="stack-sm m-0 w-64 max-w-full list-none p-0">
+        <ul class="flow-list stack-sm max-w-full">
           <For each={matches()}>
             {(font) => (
               <li class="m-0">
                 <button
                   type="button"
-                  class="bare w-full rounded-md border border-border bg-surface-raised px-2 py-1 text-left text-sm hover:border-primary"
+                  class="secondary s-sm w-full text-left hover:border-primary"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => {
                     const stack = stackFor(font);

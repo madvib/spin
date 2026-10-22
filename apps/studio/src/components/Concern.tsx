@@ -51,7 +51,7 @@ export function ConcernPage(props: {
     >
       <div class="mx-auto stack-lg max-w-screen-lg">
         <header class="stack-sm">
-          <h1 class="text-3xl">{props.title}</h1>
+          <h1>{props.title}</h1>
           <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p>
         </header>
         {props.children}
@@ -91,7 +91,7 @@ export function Section(props: {
   return (
     <section class="stack-sm" aria-label={props.title}>
       <div class="split">
-        <h2 class="row-sm text-xl">
+        <h2 class="row-sm">
           <Marker tone={props.tone} />
           <span class="min-w-0">{props.title}</span>
         </h2>
@@ -179,11 +179,11 @@ export function TokenLine(props: {
 }) {
   return (
     <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
-      <code class="w-[10rem] shrink-0 truncate font-mono text-xs text-text-muted">
+      <code class="w-[10rem] shrink-0 truncate">
         {props.path}
       </code>
       <Show when={props.utility}>
-        <code class="w-[7rem] shrink-0 truncate font-mono text-xs text-text-muted">
+        <code class="w-[7rem] shrink-0 truncate">
           {props.utility}
         </code>
       </Show>
@@ -242,10 +242,16 @@ export function Badge(props: {
  * The two halves are spans and not `code` elements: the theme draws inline
  * code on a surface of its own, and a chip that carried one would have two
  * fills inside it and read as two things.
+ *
+ * The chip's own air is the theme's nearest named step. `py-0.5` and
+ * `px-1.5` are half steps the scale does not declare, so they generate no
+ * CSS at all and the chip would have had no padding whatsoever; the named
+ * steps stand in, and the chip is a little more open than the half steps
+ * would have made it.
  */
 export function TokenChip(props: { path: string; value: string }) {
   return (
-    <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm border border-border bg-surface-raised px-1.5 py-0.5">
+    <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm border border-border bg-surface-raised px-1 py-1">
       <span class="truncate font-mono text-xs text-text-muted">
         {props.path}
       </span>

@@ -26,7 +26,7 @@ export default function BezierEditor(props: {
       fallback={
         <input
           type="text"
-          class="w-40 p-2 border-border rounded-md border font-mono text-sm"
+          class="w-[10rem]"
           value={props.value}
           onChange={(e) => props.onCommit(e.currentTarget.value)}
         />
@@ -42,7 +42,7 @@ export default function BezierEditor(props: {
                 step="0.01"
                 min="0"
                 max="1"
-                class="w-14 p-1 border-border rounded-md border font-mono text-xs"
+                class="w-[3.5rem]"
                 value={draft()[key]}
                 onChange={(e) =>
                   commit({ ...draft(), [key]: e.currentTarget.value })}

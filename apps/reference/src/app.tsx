@@ -199,8 +199,7 @@ const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
  * never smaller than the items under it, so the size matches the prose it
  * captains and the hierarchy is carried by weight and ink alone.
  */
-const SUBHEAD =
-  "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
+const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal text-text first:mt-0";
 
 /**
  * The spin mark: a spinnaker in full hoist.
@@ -761,7 +760,7 @@ function ExampleSection(props: {
   html: string;
   onLoad?: string;
 }) {
-  let pre!: HTMLPreElement;
+  let pre: HTMLPreElement | undefined;
   const [tab, setTab] = createSignal<"component" | "code">("component");
   const [copied, setCopied] = createSignal(false);
   createEffect(() => {
@@ -769,7 +768,7 @@ function ExampleSection(props: {
   });
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(pre.textContent ?? "");
+      await navigator.clipboard.writeText(pre?.textContent ?? "");
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -787,8 +786,8 @@ function ExampleSection(props: {
   return (
     <section class="mb-8">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-text">
-          <span class="block h-1 w-4 rounded-full bg-primary" />
+        <h3 class="flex items-center gap-2 text-text">
+          <span class="block h-1 w-4 rounded-md bg-accent" />
           {props.name}
         </h3>
         <div class={SEGMENT_GROUP}>
@@ -824,7 +823,9 @@ function ExampleSection(props: {
             token that cannot break is a token that widens the page. */
         }
         <pre
-          ref={pre}
+          ref={(el) => {
+            pre = el;
+          }}
           class={`${CODE_PRE} col-start-1 row-start-1 ${
             tab() === "code" ? "" : "invisible"
           }`}
@@ -871,7 +872,7 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
             <div class="flex items-start gap-2">
               <i class={`${ICONS[f().id]} ${TITLE_ICON}`} />
               <div>
-                <h2 class="m-0 text-2xl font-bold tracking-tight">
+                <h2>
                   {f().title}
                 </h2>
                 <div class="font-mono text-xs text-text-muted">
@@ -879,11 +880,11 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
                 </div>
               </div>
             </div>
-            <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+            <span class="shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
               {f().examples.length} examples
             </span>
           </header>
-          <p class="mb-8 max-w-screen-md text-md text-text-muted">
+          <p class="max-w-screen-md text-md text-text-muted">
             {f().note}
           </p>
           <For each={[...f().examples]}>
@@ -912,7 +913,7 @@ function FeaturedSpecimen(props: { id: string }) {
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
         <i class={`${ICONS[props.id]} icon-md text-text-muted`} />
-        <h4 class="m-0 text-sm font-semibold text-text">{page.title}</h4>
+        <h4 class="text-text">{page.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
         <div class={SPECIMEN_MEASURE} innerHTML={page.examples[0].html} />
@@ -942,7 +943,7 @@ function IndexRow(props: { id: string }) {
     <button
       type="button"
       onClick={() => (location.hash = `#/components/${props.id}`)}
-      class="flex w-full items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2 text-left shadow-sm hover:border-border-strong"
+      class="secondary s-sm flex w-full items-center gap-2 text-left hover:border-border-strong"
     >
       <i
         class={`${ICONS[props.id]} icon-md shrink-0 text-text-muted`}
@@ -974,12 +975,12 @@ function LandingPage() {
       <header class="mb-8">
         <div class="flex items-center gap-3">
           <BrandMark />
-          <h2 class="m-0 text-2xl font-bold tracking-tight">Primitives</h2>
+          <h2>Primitives</h2>
         </div>
         <div class="font-mono text-xs text-text-muted">
           spin reference · {PRIMITIVES.length} components
         </div>
-        <p class="mt-4 max-w-screen-md text-md text-text-muted">
+        <p class="max-w-screen-md text-md text-text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
           the component and the theme is the only value source: nothing in this
           app carries a color, a space or a radius that is not a token.
@@ -988,7 +989,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-sm text-text-muted">
           Three of the{" "}
           {PRIMITIVES.length}, rendered from the markup a consumer writes — no
           wrapper, no adapter, the rules beside the rule they came from.
@@ -1002,7 +1003,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Index</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-sm text-text-muted">
           Every component, alphabetical, with the number of examples each one
           carries.
         </p>
@@ -1073,7 +1074,7 @@ function AppHeader(props: {
     <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b border-solid border-border bg-surface px-4 pt-2 pb-2">
       <div class="flex items-center gap-2 py-4">
         <BrandMark />
-        <span class="text-lg font-bold tracking-tight text-text">spin</span>
+        <span class="text-lg font-bold text-text">spin</span>
       </div>
       <div class="flex items-center gap-2">
         <label class="flex min-w-0 flex-1 items-center gap-1">

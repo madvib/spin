@@ -30,7 +30,7 @@ export default function ShadowEditor(props: {
           x
           <input
             type="text"
-            class="w-12 p-1 border-border rounded-md border font-mono text-xs"
+            class="w-12"
             value={draft().x}
             onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
           />
@@ -39,7 +39,7 @@ export default function ShadowEditor(props: {
           y
           <input
             type="text"
-            class="w-12 p-1 border-border rounded-md border font-mono text-xs"
+            class="w-12"
             value={draft().y}
             onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
           />
@@ -48,7 +48,7 @@ export default function ShadowEditor(props: {
           blur
           <input
             type="text"
-            class="w-12 p-1 border-border rounded-md border font-mono text-xs"
+            class="w-12"
             value={draft().blur}
             onChange={(e) =>
               commit({ ...draft(), blur: e.currentTarget.value })}
@@ -58,7 +58,7 @@ export default function ShadowEditor(props: {
           spread
           <input
             type="text"
-            class="w-12 p-1 border-border rounded-md border font-mono text-xs"
+            class="w-12"
             value={draft().spread}
             onChange={(e) =>
               commit({ ...draft(), spread: e.currentTarget.value })}
@@ -68,7 +68,7 @@ export default function ShadowEditor(props: {
           colour
           <input
             type="text"
-            class="w-28 p-1 border-border rounded-md border font-mono text-xs"
+            class="w-[7rem]"
             value={draft().color}
             onChange={(e) =>
               commit({ ...draft(), color: e.currentTarget.value })}

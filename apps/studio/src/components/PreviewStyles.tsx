@@ -68,9 +68,9 @@ export default function PreviewStyles() {
   return (
     <Show when={failure()}>
       {(message) => (
-        <p class="bg-semantic-error border-semantic-error text-on-semantic-error m-4 rounded-md border p-3 text-sm">
+        <alert role="alert" class="alert-danger">
           This theme does not build: {message()}
-        </p>
+        </alert>
       )}
     </Show>
   );

@@ -161,7 +161,7 @@ function ResetButton(props: {
   return (
     <button
       type="button"
-      class="shrink-0 rounded-md border border-border px-2 py-1 text-sm text-text-muted hover:border-primary hover:text-text disabled:opacity-50"
+      class="secondary s-sm shrink-0 text-text-muted hover:border-primary hover:text-text disabled:opacity-50"
       title={title()}
       aria-label={title()}
       disabled={inert()}
@@ -193,7 +193,7 @@ function ColorControl(props: {
       fallback={
         <input
           type="text"
-          class="p-2 border-border rounded-md border text-sm"
+          class="w-full"
           value={draft()}
           placeholder="oklch(…) or #hex"
           onChange={(event) => {
@@ -213,7 +213,7 @@ function ColorControl(props: {
             type="color"
             // A sized swatch, not a stretched field: inside a flex row the
             // picker would otherwise claim the space the hex readout needs.
-            class="h-8 w-12 shrink-0 rounded-sm"
+            class="h-8 w-12 shrink-0"
             value={String(current())}
             onChange={(event) => {
               // A refused commit reports it, and the control goes back to
@@ -223,7 +223,7 @@ function ColorControl(props: {
               }
             }}
           />
-          <code class="text-sm">{props.value}</code>
+          <code>{props.value}</code>
         </>
       )}
     </Show>
@@ -257,7 +257,7 @@ function CheckControl(props: {
           }
         }}
       />
-      <code class="text-sm">{props.value}</code>
+      <code>{props.value}</code>
     </div>
   );
 }
@@ -375,7 +375,7 @@ function RangeControl(props: {
           }}
         />
         <code
-          class="w-[6rem] shrink-0 truncate text-right text-sm tabular-nums"
+          class="w-[6rem] shrink-0 truncate text-right tabular-nums"
           title={shown()}
         >
           {shown()}
@@ -411,7 +411,7 @@ function TextControl(props: {
             id={props.id}
             type="text"
             list="spin-token-paths"
-            class="w-40 p-2 border-border rounded-md border font-mono text-sm"
+            class="w-[10rem]"
             value={draft()}
             onChange={(event) => {
               const next = event.currentTarget.value;
@@ -430,7 +430,7 @@ function TextControl(props: {
           id={props.id}
           spellcheck={false}
           rows={2}
-          class="w-48 min-h-10 resize-y p-2 border-border rounded-md border font-mono text-sm"
+          class="w-[12rem] min-h-10 resize-y"
           value={draft()}
           onChange={(event) => {
             const next = event.currentTarget.value;
