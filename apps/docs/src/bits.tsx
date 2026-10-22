@@ -42,9 +42,7 @@ export function Reveal(props: { children: JSX.Element }): JSX.Element {
   });
   return (
     <div
-      ref={(node) => {
-        el = node;
-      }}
+      ref={el}
       class={`transition-opacity duration-slow ${
         shown() ? "opacity-100" : "opacity-0"
       }`}

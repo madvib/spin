@@ -427,9 +427,7 @@ export default function Home(): JSX.Element {
                   </div>
                   <div class="mt-3 flex items-center gap-3">
                     <input
-                      ref={(node) => {
-                        colorInput = node;
-                      }}
+                      ref={colorInput}
                       type="color"
                       aria-label="color.primary"
                       onInput={(e) => paintBrand(e.currentTarget.value)}
