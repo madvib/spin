@@ -90,16 +90,20 @@ export type NumberInputScalarKey =
 
 export function numberInputScalars(
   args: NumberInputArgs,
+  authored: (name: string) => boolean = () => false,
 ): Pick<NumberInputContext, NumberInputScalarKey> {
   const step = asNumber(args.step, DEFAULT_STEP);
+  const allowOverflow = args.allowOverflow === true;
   return {
     min: asNumber(args.min, MIN_SAFE),
     max: asNumber(args.max, MAX_SAFE),
     step,
     largeStep: asNumber(args.largeStep, 10 * step),
     smallStep: asNumber(args.smallStep, step / 10),
-    allowOverflow: args.allowOverflow === true,
-    clampValueOnBlur: args.clampValueOnBlur !== false,
+    allowOverflow,
+    // A coerced default is not a write: an unauthored clamp falls back to
+    // the opposite of overflow, the way the legacy bridge seeded it.
+    clampValueOnBlur: authored("clampValueOnBlur") ? args.clampValueOnBlur === true : !allowOverflow,
     spinOnPress: args.spinOnPress !== false,
   };
 }
@@ -121,7 +125,7 @@ export function initial(
     readOnly: args.readOnly === true,
     required: args.required === true,
     invalid: authored("invalid") ? args.invalid === true : undefined,
-    ...numberInputScalars(args),
+    ...numberInputScalars(args, authored),
     allowMouseWheel: args.allowMouseWheel === true,
     focusInputOnChange: authored("focusInputOnChange") ? args.focusInputOnChange === true : true,
     dir: args.dir === "rtl" ? "rtl" : "ltr",
