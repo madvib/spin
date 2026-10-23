@@ -1,0 +1,31 @@
+<script lang="ts">
+  import { fileUpload } from "../file-upload.presentation.ts";
+
+  const machine = fileUpload({ multiple: true, maxFiles: 10 });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <div
+    class={["flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-surface-raised px-6 py-8 text-center transition-colors duration-fast ease-decelerate", { "border-primary": machine.dragging, "bg-surface": machine.dragging, "ring-2": machine.focused, "ring-border-strong": machine.focused, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+    {...machine.getDropzoneProps()}
+  >
+    <span class="i-lucide-folder-up text-2xl text-primary" aria-hidden="true"></span>
+    <span class="text-sm font-semibold text-text" {...machine.getLabelProps()}>Drag and drop project archives</span>
+    <span class="text-xs text-muted">ZIP, TAR, or source bundles up to 10 files</span>
+  </div>
+
+  <input {...machine.getHiddenInputProps()} />
+
+  <div class="mt-3 flex flex-col gap-1.5" {...machine.getItemGroupProps()}>
+    <template for={machine.getAcceptedRows()} as={row} key={row.value}>
+      <div class="flex items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface px-3 py-2" {...machine.getItemProps(row)}>
+        <span class="i-lucide-file-archive shrink-0 text-sm text-muted" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1 truncate text-xs font-medium text-text" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="shrink-0 text-xs text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        <button class="shrink-0 rounded-sm p-0.5 text-muted hover:text-text" {...machine.getItemDeleteTriggerProps(row)}>
+          <span class="i-lucide-x text-xs" aria-hidden="true"></span>
+        </button>
+      </div>
+    </template>
+  </div>
+</div>

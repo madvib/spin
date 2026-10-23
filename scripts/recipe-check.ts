@@ -202,7 +202,7 @@ for await (const entry of walk(ROOT, { exts: [".html"] })) {
 // nothing since the split. They name the bindings now.
 for await (const entry of walk(ROOT, { exts: [".ts"] })) {
   if (!entry.isFile) continue;
-  if (!/\/spin-[^/]+\/.*\.presentation\.ts$/.test(entry.path)) continue;
+  if (!/\.presentation\.ts$/.test(entry.path)) continue;
   const source = await Deno.readTextFile(entry.path);
   // The scan is over CODE: a comment that says "never the global
   // document" is not a document access. The block comments are stripped

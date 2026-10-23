@@ -5,7 +5,7 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import type { ToastStatusChange } from "../../../src/spin-toast/toast.presentation.ts";
+import type { ToastStatusChange } from "../../../src/toast/toast.presentation.ts";
 
 import "./spin-toast.html";
 interface ToastCommands {

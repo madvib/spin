@@ -4,8 +4,8 @@ import type {
   ColorPickerFormatChange,
   ColorPickerOpenChange,
   ColorPickerValueChange,
-} from "../../../src/spin-color-picker/color-picker.presentation.ts";
-import type { ColorFormat } from "../../../src/spin-color-picker/color-picker.machine.ts";
+} from "../../../src/color-picker/color-picker.presentation.ts";
+import type { ColorFormat } from "../../../src/color-picker/color-picker.machine.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

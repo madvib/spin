@@ -82,7 +82,7 @@ function declaredProps(name: string): PropDecl[] {
   } catch {
     // the component has no canonical element
   }
-  const examples = join(here, `spin-${name}`, "examples");
+  const examples = join(here, name, "examples");
   try {
     for (const file of readdirSync(examples)) {
       if (!file.endsWith(".html")) continue;
@@ -119,31 +119,31 @@ function mount(
 
 /** The components under test, with the bridge each ships. */
 const COMPONENTS: Readonly<Record<string, Bridge>> = {
-  "angle-slider": (await import("./spin-angle-slider/angle-slider.presentation.ts")).angleSlider,
-  "cascade-select": (await import("./spin-cascade-select/cascade.presentation.ts")).cascade,
-  "color-picker": (await import("./spin-color-picker/color-picker.presentation.ts")).colorPicker,
-  "date-input": (await import("./spin-date-input/date-input.presentation.ts")).dateInput,
-  "date-picker": (await import("./spin-date-picker/date-picker.presentation.ts")).datePicker,
-  "editable": (await import("./spin-editable/editable.presentation.ts")).editable,
-  "file-upload": (await import("./spin-file-upload/file-upload.presentation.ts")).fileUpload,
-  "floating-panel": (await import("./spin-floating-panel/floating-panel.presentation.ts")).floatingPanel,
-  "listbox": (await import("./spin-listbox/listbox.presentation.ts")).listbox,
-  menu: (await import("./spin-menu/menu.presentation.ts")).menu,
-  "navigation-menu": (await import("./spin-navigation-menu/navigation-menu.presentation.ts"))
+  "angle-slider": (await import("./angle-slider/angle-slider.presentation.ts")).angleSlider,
+  "cascade-select": (await import("./cascade-select/cascade.presentation.ts")).cascade,
+  "color-picker": (await import("./color-picker/color-picker.presentation.ts")).colorPicker,
+  "date-input": (await import("./date-input/date-input.presentation.ts")).dateInput,
+  "date-picker": (await import("./date-picker/date-picker.presentation.ts")).datePicker,
+  "editable": (await import("./editable/editable.presentation.ts")).editable,
+  "file-upload": (await import("./file-upload/file-upload.presentation.ts")).fileUpload,
+  "floating-panel": (await import("./floating-panel/floating-panel.presentation.ts")).floatingPanel,
+  "listbox": (await import("./listbox/listbox.presentation.ts")).listbox,
+  menu: (await import("./menu/menu.presentation.ts")).menu,
+  "navigation-menu": (await import("./navigation-menu/navigation-menu.presentation.ts"))
     .navigationMenu,
-  "number-input": (await import("./spin-number-input/number-input.presentation.ts")).numberInput,
-  pagination: (await import("./spin-pagination/pagination.presentation.ts")).pagination,
-  "pin-input": (await import("./spin-pin-input/pin-input.presentation.ts")).pinInput,
-  "rating-group": (await import("./spin-rating-group/rating-group.presentation.ts")).ratingGroup,
-  select: (await import("./spin-select/select.presentation.ts")).select,
-  "signature-pad": (await import("./spin-signature-pad/signature-pad.presentation.ts")).signaturePad,
-  slider: (await import("./spin-slider/slider.presentation.ts")).slider,
-  splitter: (await import("./spin-splitter/splitter.presentation.ts")).splitter,
-  steps: (await import("./spin-steps/steps.presentation.ts")).steps,
-  tabs: (await import("./spin-tabs/tabs.presentation.ts")).tabs,
-  "tags-input": (await import("./spin-tags-input/tags.presentation.ts")).tags,
-  "toggle-group": (await import("./spin-toggle-group/toggle-group.presentation.ts")).toggleGroup,
-  "tree-view": (await import("./spin-tree-view/tree-view.presentation.ts")).treeView,
+  "number-input": (await import("./number-input/number-input.presentation.ts")).numberInput,
+  pagination: (await import("./pagination/pagination.presentation.ts")).pagination,
+  "pin-input": (await import("./pin-input/pin-input.presentation.ts")).pinInput,
+  "rating-group": (await import("./rating-group/rating-group.presentation.ts")).ratingGroup,
+  select: (await import("./select/select.presentation.ts")).select,
+  "signature-pad": (await import("./signature-pad/signature-pad.presentation.ts")).signaturePad,
+  slider: (await import("./slider/slider.presentation.ts")).slider,
+  splitter: (await import("./splitter/splitter.presentation.ts")).splitter,
+  steps: (await import("./steps/steps.presentation.ts")).steps,
+  tabs: (await import("./tabs/tabs.presentation.ts")).tabs,
+  "tags-input": (await import("./tags-input/tags.presentation.ts")).tags,
+  "toggle-group": (await import("./toggle-group/toggle-group.presentation.ts")).toggleGroup,
+  "tree-view": (await import("./tree-view/tree-view.presentation.ts")).treeView,
 } as unknown as Readonly<Record<string, Bridge>>;
 
 for (const [name, component] of Object.entries(COMPONENTS)) {

@@ -70,8 +70,11 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // Recipes (`spin-*.html`) already carry their tag in the filename.
       // The machine dir is the grandparent: examples nest one level
       // (`spin-tree-view/examples/basic.html` → `tree-view-basic`).
+      const parentDir = file.split("/").slice(-2, -1)[0] ?? "";
       const grandparent = file.split("/").slice(-3, -2)[0] ?? "";
-      const machine = grandparent.startsWith("spin-") ? grandparent.slice("spin-".length) : "";
+      const machine = parentDir === "examples"
+        ? (grandparent.startsWith("spin-") ? grandparent.slice("spin-".length) : grandparent)
+        : "";
       // Examples always qualify (`basic` → `tree-view-basic`): the mount
       // tag derives the same way, so the two can never disagree the way a
       // "valid names pass through" rule lets dashed stems disagree.
@@ -198,7 +201,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const path = await import("node:path");
           let dirs: string[] = [];
           try {
-            dirs = (await fs.readdir(machinesRoot)).filter((n) => n.startsWith("spin-"));
+            dirs = (await fs.readdir(machinesRoot)).filter((n) => !n.includes(".") && n !== "shared");
           } catch {
             // No machines root: the consume name is inert.
           }
@@ -218,35 +221,29 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         }
         if (defMod === undefined) {
           // Cross-machine consume: a name the walk-up misses may live in
-          // a sibling machine dir (`spin-tags-input` consuming
-          // `combobox`). Climb to the machine root (a dir holding
-          // `spin-*`) and scan it before giving up.
+          // a sibling component dir (`tags-input` consuming `combobox`).
+          // Climb up and scan sibling component directories before giving up.
           try {
-            // Machine dirs have no dots; the machine's own recipe file
-            // (`spin-tags-input.html`) matches the prefix and would stop
-            // the climb one level short.
-            const isMachineDir = (n: string): boolean => n.startsWith("spin-") && !n.includes(".");
+            const isCandidateDir = (n: string): boolean =>
+              !n.includes(".") && n !== "examples" && n !== "actions" && n !== "shared";
             let root = dir;
-            for (let depth = 0; depth < 6; depth++) {
+            outer: for (let depth = 0; depth < 6; depth++) {
               const names = await fs.readdir(root);
-              if (names.some(isMachineDir)) break;
+              for (const name of names) {
+                if (!isCandidateDir(name)) continue;
+                for (const stem of stems) {
+                  try {
+                    await fs.access(path.join(root, name, stem));
+                    defMod = `./${path.relative(dir, path.join(root, name))}/${stem}`.replace("././", "./");
+                    break outer;
+                  } catch {
+                    // Next stem.
+                  }
+                }
+              }
               const parent = path.dirname(root);
               if (parent === root) break;
               root = parent;
-            }
-            const names = await fs.readdir(root);
-            if (!names.some(isMachineDir)) break;
-            outer: for (const name of names) {
-              if (!isMachineDir(name)) continue;
-              for (const stem of stems) {
-                try {
-                  await fs.access(path.join(root, name, stem));
-                  defMod = `./${path.relative(dir, path.join(root, name))}/${stem}`.replace("././", "./");
-                  break outer;
-                } catch {
-                  // Next stem.
-                }
-              }
             }
           } catch {
             // No machine root: consume name is inert.

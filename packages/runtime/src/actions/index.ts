@@ -22,12 +22,12 @@ import { drag } from "./drag.ts";
 import { hoverDelay } from "./hover-delay.ts";
 import { observe } from "./observe.ts";
 import { scrollIntoView } from "./scroll-into-view.ts";
-import { interactOutside } from "../../../components/src/spin-editable/actions/interact-outside.action.ts";
-import { selectOptions } from "../../../components/src/spin-select/actions/select-options.action.ts";
-import { selectFocus } from "../../../components/src/spin-select/actions/select-focus.action.ts";
-import { datePickerFocus } from "../../../components/src/spin-date-picker/actions/date-picker-focus.action.ts";
+import { interactOutside } from "../../../components/src/editable/actions/interact-outside.action.ts";
+import { selectOptions } from "../../../components/src/select/actions/select-options.action.ts";
+import { selectFocus } from "../../../components/src/select/actions/select-focus.action.ts";
+import { datePickerFocus } from "../../../components/src/date-picker/actions/date-picker-focus.action.ts";
 import { infiniteScroll } from "./infinite-scroll.ts";
-import { toastRegion, toastRow, toastTimer } from "../../../components/src/spin-toast/actions/toast-actions.ts";
+import { toastRegion, toastRow, toastTimer } from "../../../components/src/toast/actions/toast-actions.ts";
 
 export { runAction, createAction } from "./action.ts";
 export type { DragDelta, DragParam, DragPress } from "./drag.ts";

@@ -1,0 +1,39 @@
+<script lang="ts">
+  import { fileUpload } from "../file-upload.presentation.ts";
+
+  const machine = fileUpload({
+    multiple: true,
+    value: [
+      { name: "architecture-spec.pdf", size: 245760, type: "application/pdf" },
+      { name: "tokens.json", size: 18432, type: "application/json" },
+    ],
+  });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <div
+    class={["flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-surface px-4 py-3 transition-colors duration-fast ease-decelerate", { "border-primary": machine.dragging, "bg-surface-raised": machine.dragging }]}
+    {...machine.getDropzoneProps()}
+  >
+    <div class="flex items-center gap-2">
+      <span class="i-lucide-paperclip text-sm text-muted" aria-hidden="true"></span>
+      <span class="text-sm font-medium text-text" {...machine.getLabelProps()}>Attached Documents</span>
+    </div>
+    <span class="text-xs text-primary">Add files</span>
+  </div>
+
+  <input {...machine.getHiddenInputProps()} />
+
+  <div class="mt-2 flex flex-col gap-1.5" {...machine.getItemGroupProps()}>
+    <template for={machine.getAcceptedRows()} as={row} key={row.value}>
+      <div class="flex items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-2" {...machine.getItemProps(row)}>
+        <span class="i-lucide-file-text shrink-0 text-sm text-primary" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1 truncate text-xs font-medium text-text" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="shrink-0 text-xs text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        <button class="shrink-0 rounded-sm p-0.5 text-muted hover:text-text" {...machine.getItemDeleteTriggerProps(row)}>
+          <span class="i-lucide-trash-2 text-xs" aria-hidden="true"></span>
+        </button>
+      </div>
+    </template>
+  </div>
+</div>

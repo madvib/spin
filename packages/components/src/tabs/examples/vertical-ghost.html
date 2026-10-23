@@ -1,0 +1,28 @@
+<script lang="ts">
+  import { tabs } from "../tabs.presentation.ts";
+
+  const machine = tabs({
+    items: [
+      { value: "general", label: "General", content: "Workspace name, region, and default visibility." },
+      { value: "members", label: "Members", content: "Manage team roles, invitations, and access." },
+      { value: "security", label: "Security", content: "Two-factor authentication and audit logs." },
+    ],
+    defaultValue: "general",
+  });
+</script>
+
+<div class="mx-auto flex w-full max-w-md items-start gap-4" {...machine.getRootProps()}>
+  <div class="flex shrink-0 flex-col gap-1" {...machine.getListProps()}>
+    <template for={machine.items} as={row} key={row.value}>
+      <button
+        class={["rounded-md px-3.5 py-2 text-left text-sm font-medium text-muted transition-colors hover:bg-surface-raised hover:text-text", { "bg-surface-raised text-text": machine.value === row.value }]}
+        {...machine.getTriggerProps(row)}
+      >{row.label}</button>
+    </template>
+  </div>
+  <div class="flex-1 rounded-lg border border-solid border-border bg-surface p-4">
+    <template for={machine.items} as={row} key={row.value}>
+      <p class="m-0 text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
+    </template>
+  </div>
+</div>

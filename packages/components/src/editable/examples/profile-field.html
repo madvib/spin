@@ -1,0 +1,20 @@
+<script lang="ts">
+  import { editable } from "../editable.presentation.ts";
+
+  const machine = editable({ value: "Principal Systems Architect" });
+</script>
+
+<div class="w-full max-w-md rounded-xl border border-solid border-border bg-surface-raised p-4" {...machine.getRootProps()}>
+  <div class="flex items-center justify-between gap-2">
+    <label class="text-xs font-semibold uppercase tracking-wide text-muted" {...machine.getLabelProps()}>Role Title</label>
+    <div class="flex items-center gap-1" {...machine.getControlProps()}>
+      <button class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface text-xs text-muted hover:text-text", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}><span class="i-lucide-pencil text-xs" aria-hidden="true"></span></button>
+      <button class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface text-xs text-text", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getSubmitTriggerProps()}><span class="i-lucide-check text-xs" aria-hidden="true"></span></button>
+      <button class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface text-xs text-muted", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getCancelTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+    </div>
+  </div>
+  <div class="mt-1.5 rounded-md border border-solid border-transparent" {...machine.getAreaProps()}>
+    <span class="block cursor-text py-1 text-base font-medium text-text" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <input class="w-full rounded-md border border-solid border-border bg-surface px-2 py-1 text-base font-medium text-text outline-none" {...machine.getInputProps()} />
+  </div>
+</div>

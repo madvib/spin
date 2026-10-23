@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { PaginationPageChange } from "../../../src/spin-pagination/pagination.machine.ts";
+import type { PaginationPageChange } from "../../../src/pagination/pagination.machine.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

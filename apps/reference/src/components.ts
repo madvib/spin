@@ -7,14 +7,14 @@ import type { PrimitivePage } from "./primitives.ts";
  * A machine with no examples yet renders its recipe as the single example.
  */
 const exampleSources = import.meta.glob(
-  "../../../packages/components/src/spin-*/examples/*.html",
+  "../../../packages/components/src/*/examples/*.html",
   { query: "?raw", import: "default", eager: true },
 ) as Record<string, string>;
 
 // Compiled: each example is its own element, registered by the element
 // transform as a side effect. Same glob, no ?raw.
 import.meta.glob(
-  "../../../packages/components/src/spin-*/examples/*.html",
+  "../../../packages/components/src/*/examples/*.html",
   { eager: true },
 );
 

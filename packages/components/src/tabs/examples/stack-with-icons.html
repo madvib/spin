@@ -1,0 +1,33 @@
+<script lang="ts">
+  import { tabs } from "../tabs.presentation.ts";
+
+  const machine = tabs({
+    items: [
+      { value: "profile", label: "Profile", content: "Update your personal details and avatar." },
+      { value: "billing", label: "Billing", content: "Manage payment methods and invoices." },
+      { value: "notifications", label: "Notifications", content: "Configure email and push alert rules." },
+    ],
+    defaultValue: "profile",
+  });
+</script>
+
+<div class="mx-auto w-full max-w-md" {...machine.getRootProps()}>
+  <div class=" flex gap-1 border-b border-solid border-border px-2" {...machine.getListProps()}>
+    <template for={machine.items} as={row} key={row.value}>
+      <button
+        class={["relative flex items-center gap-2 rounded-t-md border border-b-0 border-solid border-transparent px-3.5 py-2 text-sm font-medium text-muted transition-colors", { "border-border bg-surface text-text": machine.value === row.value }]}
+        {...machine.getTriggerProps(row)}
+      >
+        <span class="i-lucide-user text-sm" aria-hidden="true" show={row.value === "profile"}></span>
+        <span class="i-lucide-credit-card text-sm" aria-hidden="true" show={row.value === "billing"}></span>
+        <span class="i-lucide-bell text-sm" aria-hidden="true" show={row.value === "notifications"}></span>
+        <span>{row.label}</span>
+      </button>
+    </template>
+  </div>
+  <div class="rounded-b-lg border border-t-0 border-solid border-border bg-surface p-4">
+    <template for={machine.items} as={row} key={row.value}>
+      <p class="m-0 text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
+    </template>
+  </div>
+</div>

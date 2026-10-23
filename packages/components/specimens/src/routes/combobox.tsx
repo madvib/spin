@@ -6,7 +6,7 @@ import type {
   ComboboxOpenChange,
   ComboboxSelect,
   ComboboxValueChange,
-} from "../../../src/spin-combobox/combobox.presentation.ts";
+} from "../../../src/combobox/combobox.presentation.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

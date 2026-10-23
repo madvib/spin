@@ -1,0 +1,39 @@
+<script lang="ts">
+  import { fileUpload } from "../file-upload.presentation.ts";
+
+  const machine = fileUpload({
+    multiple: true,
+    value: [
+      { name: "release-notes.md", size: 4200, type: "text/markdown" },
+      { name: "bundle-stats.json", size: 128400, type: "application/json" },
+      { name: "schema.sql", size: 15800, type: "application/sql" },
+    ],
+  });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <div class="mb-2 flex items-center justify-between">
+    <div
+      class={["inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text hover:bg-surface", { "border-primary": machine.dragging }]}
+      {...machine.getDropzoneProps()}
+    >
+      <span class="i-lucide-plus text-xs" aria-hidden="true"></span>
+      <span {...machine.getLabelProps()}>Upload Artifacts</span>
+    </div>
+    <button class="rounded-md border border-solid border-border bg-surface px-2.5 py-1 text-xs text-muted hover:text-text" {...machine.getClearTriggerProps()}>Clear all</button>
+  </div>
+
+  <input {...machine.getHiddenInputProps()} />
+
+  <div class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised" {...machine.getItemGroupProps()}>
+    <template for={machine.getAcceptedRows()} as={row} key={row.value}>
+      <div class="flex items-center justify-between gap-3 border-b border-solid border-border px-3 py-2 text-xs last:border-b-0" {...machine.getItemProps(row)}>
+        <span class="min-w-0 flex-1 truncate font-medium text-text" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="shrink-0 font-mono text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        <button class="shrink-0 rounded-sm p-1 text-muted hover:text-text" {...machine.getItemDeleteTriggerProps(row)}>
+          <span class="i-lucide-x text-xs" aria-hidden="true"></span>
+        </button>
+      </div>
+    </template>
+  </div>
+</div>

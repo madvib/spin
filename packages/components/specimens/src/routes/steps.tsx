@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { StepsStepChange } from "../../../src/spin-steps/steps.machine.ts";
+import type { StepsStepChange } from "../../../src/steps/steps.machine.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

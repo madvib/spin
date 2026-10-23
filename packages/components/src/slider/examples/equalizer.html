@@ -1,0 +1,83 @@
+<script lang="ts">
+  import { slider } from "../slider.presentation.ts";
+
+  const sub = slider({ value: [70], orientation: "vertical" });
+  const low = slider({ value: [55], orientation: "vertical" });
+  const mid = slider({ value: [45], orientation: "vertical" });
+  const high = slider({ value: [65], orientation: "vertical" });
+  const air = slider({ value: [80], orientation: "vertical" });
+</script>
+
+<div class="mx-auto w-full max-w-md rounded-xl border border-solid border-border bg-surface-raised p-4">
+  <div class="mb-3 flex items-center justify-between">
+    <span class="text-sm font-semibold text-text">5-Band Equalizer</span>
+    <span class="text-xs text-muted">Studio Preset</span>
+  </div>
+  <div class="grid grid-cols-5 gap-4">
+    <div class="flex flex-col items-center gap-2" {...sub.getRootProps()}>
+      <span class="font-mono text-xs text-muted">{sub.getThumbValue(0)}</span>
+      <div class="relative flex h-36 w-4 touch-none flex-col items-center select-none" {...sub.getControlProps()}>
+        <div class="relative w-2 flex-1 overflow-hidden rounded-full bg-surface-sunken" {...sub.getTrackProps()}>
+          <div class="absolute inset-x-0 rounded-full bg-primary" {...sub.getRangeProps()}></div>
+        </div>
+        <template for={sub.getThumbIndexes()} as={row} key={row}>
+          <span class="absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface" {...sub.getThumbProps(row)}></span>
+          <input {...sub.getHiddenInputProps(row)} />
+        </template>
+      </div>
+      <span class="text-xs text-muted" {...sub.getLabelProps()}>60Hz</span>
+    </div>
+    <div class="flex flex-col items-center gap-2" {...low.getRootProps()}>
+      <span class="font-mono text-xs text-muted">{low.getThumbValue(0)}</span>
+      <div class="relative flex h-36 w-4 touch-none flex-col items-center select-none" {...low.getControlProps()}>
+        <div class="relative w-2 flex-1 overflow-hidden rounded-full bg-surface-sunken" {...low.getTrackProps()}>
+          <div class="absolute inset-x-0 rounded-full bg-primary" {...low.getRangeProps()}></div>
+        </div>
+        <template for={low.getThumbIndexes()} as={row} key={row}>
+          <span class="absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface" {...low.getThumbProps(row)}></span>
+          <input {...low.getHiddenInputProps(row)} />
+        </template>
+      </div>
+      <span class="text-xs text-muted" {...low.getLabelProps()}>250Hz</span>
+    </div>
+    <div class="flex flex-col items-center gap-2" {...mid.getRootProps()}>
+      <span class="font-mono text-xs text-muted">{mid.getThumbValue(0)}</span>
+      <div class="relative flex h-36 w-4 touch-none flex-col items-center select-none" {...mid.getControlProps()}>
+        <div class="relative w-2 flex-1 overflow-hidden rounded-full bg-surface-sunken" {...mid.getTrackProps()}>
+          <div class="absolute inset-x-0 rounded-full bg-primary" {...mid.getRangeProps()}></div>
+        </div>
+        <template for={mid.getThumbIndexes()} as={row} key={row}>
+          <span class="absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface" {...mid.getThumbProps(row)}></span>
+          <input {...mid.getHiddenInputProps(row)} />
+        </template>
+      </div>
+      <span class="text-xs text-muted" {...mid.getLabelProps()}>1kHz</span>
+    </div>
+    <div class="flex flex-col items-center gap-2" {...high.getRootProps()}>
+      <span class="font-mono text-xs text-muted">{high.getThumbValue(0)}</span>
+      <div class="relative flex h-36 w-4 touch-none flex-col items-center select-none" {...high.getControlProps()}>
+        <div class="relative w-2 flex-1 overflow-hidden rounded-full bg-surface-sunken" {...high.getTrackProps()}>
+          <div class="absolute inset-x-0 rounded-full bg-primary" {...high.getRangeProps()}></div>
+        </div>
+        <template for={high.getThumbIndexes()} as={row} key={row}>
+          <span class="absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface" {...high.getThumbProps(row)}></span>
+          <input {...high.getHiddenInputProps(row)} />
+        </template>
+      </div>
+      <span class="text-xs text-muted" {...high.getLabelProps()}>4kHz</span>
+    </div>
+    <div class="flex flex-col items-center gap-2" {...air.getRootProps()}>
+      <span class="font-mono text-xs text-muted">{air.getThumbValue(0)}</span>
+      <div class="relative flex h-36 w-4 touch-none flex-col items-center select-none" {...air.getControlProps()}>
+        <div class="relative w-2 flex-1 overflow-hidden rounded-full bg-surface-sunken" {...air.getTrackProps()}>
+          <div class="absolute inset-x-0 rounded-full bg-primary" {...air.getRangeProps()}></div>
+        </div>
+        <template for={air.getThumbIndexes()} as={row} key={row}>
+          <span class="absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface" {...air.getThumbProps(row)}></span>
+          <input {...air.getHiddenInputProps(row)} />
+        </template>
+      </div>
+      <span class="text-xs text-muted" {...air.getLabelProps()}>16kHz</span>
+    </div>
+  </div>
+</div>

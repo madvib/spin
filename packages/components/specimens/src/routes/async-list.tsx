@@ -8,10 +8,10 @@ import { DemoReadout } from "../demo-readout.tsx";
 import type {
   LoadDetails,
   LoadResult,
-} from "../../../src/spin-async-list/async-list.presentation.ts";
-import type { AsyncListSuccess } from "../../../src/spin-async-list/async-list.presentation.ts";
-import type { SortDetails } from "../../../src/spin-async-list/async-list.presentation.ts";
-import type { SortDescriptor } from "../../../src/spin-async-list/async-list.machine.ts";
+} from "../../../src/async-list/async-list.presentation.ts";
+import type { AsyncListSuccess } from "../../../src/async-list/async-list.presentation.ts";
+import type { SortDetails } from "../../../src/async-list/async-list.presentation.ts";
+import type { SortDescriptor } from "../../../src/async-list/async-list.machine.ts";
 
 import "./spin-async-list.html";
 /** The element as a host writes it. */

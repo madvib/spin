@@ -48,7 +48,7 @@
               {...select.getItemTextProps(row)}>{row.label}</span>
             <span
               aria-hidden="true"
-              class={["shrink-0 text-xs text-primary opacity-0 transition-opacity duration-fast ease-decelerate opacity-100"]}
+              class={["shrink-0 text-xs text-primary opacity-0 transition-opacity duration-fast ease-decelerate", { "opacity-100": select.getItemState(row).selected }]}
               {...select.getItemIndicatorProps(row)}
             ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
           </div>

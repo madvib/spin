@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { SplitterResizeDetails } from "../../../src/spin-splitter/splitter.machine.ts";
+import type { SplitterResizeDetails } from "../../../src/splitter/splitter.machine.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

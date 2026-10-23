@@ -1,0 +1,40 @@
+<script lang="ts">
+  import { fileUpload } from "../file-upload.presentation.ts";
+
+  const machine = fileUpload({
+    multiple: true,
+    accept: "image/*",
+    value: [
+      { name: "hero-banner.png", size: 512000, type: "image/png" },
+      { name: "avatar-preview.webp", size: 84200, type: "image/webp" },
+    ],
+  });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <div
+    class={["flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-surface px-4 py-5 text-center transition-colors duration-fast ease-decelerate", { "border-primary": machine.dragging, "bg-surface-raised": machine.dragging }]}
+    {...machine.getDropzoneProps()}
+  >
+    <span class="i-lucide-image-plus text-xl text-primary" aria-hidden="true"></span>
+    <span class="text-sm font-medium text-text" {...machine.getLabelProps()}>Upload gallery images</span>
+    <span class="text-xs text-muted">PNG, JPG, WEBP, or SVG</span>
+  </div>
+
+  <input {...machine.getHiddenInputProps()} />
+
+  <div class="mt-2 grid grid-cols-2 gap-2" {...machine.getItemGroupProps()}>
+    <template for={machine.getAcceptedRows()} as={row} key={row.value}>
+      <div class="flex items-center justify-between gap-2 rounded-lg border border-solid border-border bg-surface-raised p-2" {...machine.getItemProps(row)}>
+        <span class="i-lucide-image shrink-0 text-sm text-primary" aria-hidden="true"></span>
+        <div class="min-w-0 flex-1">
+          <span class="block truncate text-xs font-medium text-text" {...machine.getItemNameProps(row)}>{row.value}</span>
+          <span class="block text-xs text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        </div>
+        <button class="shrink-0 rounded-sm p-0.5 text-muted hover:text-text" {...machine.getItemDeleteTriggerProps(row)}>
+          <span class="i-lucide-x text-xs" aria-hidden="true"></span>
+        </button>
+      </div>
+    </template>
+  </div>
+</div>

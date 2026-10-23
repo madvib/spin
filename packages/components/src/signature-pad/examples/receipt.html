@@ -1,0 +1,31 @@
+<script lang="ts">
+  import { signaturePad } from "../signature-pad.presentation.ts";
+
+  const machine = signaturePad({});
+</script>
+<div class="mx-auto w-full max-w-sm rounded-xl border border-solid border-border bg-surface-raised p-4 shadow-sm" {...machine.getRootProps()}>
+  <div class="mb-3 flex items-center justify-between border-b border-solid border-border pb-3">
+    <div>
+      <span class="block text-xs text-muted">Merchant Receipt #4821</span>
+      <span class="text-sm font-semibold text-text">Cloud Compute — Annual</span>
+    </div>
+    <span class="font-mono text-base font-semibold text-text">$1,240.00</span>
+  </div>
+  <label class="mb-1.5 block text-xs font-medium text-text" {...machine.getLabelProps()}>Cardholder Signature</label>
+  <div
+    class={["relative h-36 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    {...machine.getControlProps()}
+  >
+    <svg {...machine.getSegmentProps()}>
+      <template for={machine.paths} as={row} key={row}>
+        <path {...machine.getSegmentPathProps({ path: row })}></path>
+      </template>
+    </svg>
+    <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted" {...machine.getGuideProps()}>Sign to authorize payment</span>
+    <button
+      class="absolute right-2 top-2 rounded-md border border-solid border-border bg-surface px-2 py-1 text-xs text-text transition-colors duration-fast ease-decelerate"
+      {...machine.getClearTriggerProps("Clear signature")}
+    >Clear</button>
+  </div>
+  <input {...machine.getHiddenInputProps()} />
+</div>

@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { AvatarStatusChange } from "../../../src/spin-avatar/avatar.events.ts";
+import type { AvatarStatusChange } from "../../../src/avatar/avatar.events.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

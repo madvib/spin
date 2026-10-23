@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { SliderValueChange } from "../../../src/spin-slider/slider.events.ts";
+import type { SliderValueChange } from "../../../src/slider/slider.events.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
@@ -11,8 +11,8 @@ import { DemoReadout } from "../demo-readout.tsx";
 // verbatim with the demo's commands and readouts wired around them.
 // There is no specimen-local copy of the slider markup — a demo that
 // needs different content changes the example, and every user benefits.
-import "../../../src/spin-slider/examples/basic.html";
-import "../../../src/spin-slider/examples/range.html";
+import "../../../src/slider/examples/basic.html";
+import "../../../src/slider/examples/range.html";
 
 interface SliderCommands {
   setValue: (value: number[]) => void;

@@ -8,7 +8,7 @@ import { DemoReadout } from "../demo-readout.tsx";
 import type {
   MenuEntry,
   MenuRow,
-} from "../../../src/spin-menu/menu.presentation.ts";
+} from "../../../src/menu/menu.presentation.ts";
 
 import "./spin-menu.html";
 /** The element as a host writes it: seeds are plain property writes. */

@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { AngleSliderValueChange } from "../../../src/spin-angle-slider/angle-slider.machine.ts";
+import type { AngleSliderValueChange } from "../../../src/angle-slider/angle-slider.machine.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

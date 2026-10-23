@@ -47,7 +47,7 @@ const discover = async (): Promise<Map<string, string[]>> => {
     return found;
   }
   for (const dir of dirs) {
-    if (!dir.startsWith("spin-")) continue;
+    if (dir.includes(".") || dir === "shared") continue;
     const stems = await readDir(new URL(`./${dir}/examples/`, HERE));
     if (stems.length === 0) continue;
     found.set(machineOf(dir), stems.map((file) => file.slice(0, -".html".length)));
@@ -60,7 +60,7 @@ const readExample = async (machine: string, example: string): Promise<ExampleRow
   try {
     const { readFile } = await import("node:fs/promises");
     const html = await readFile(
-      new URL(`./spin-${machine}/examples/${example}.html`, HERE),
+      new URL(`./${machine}/examples/${example}.html`, HERE),
       "utf8",
     );
     return { name: example, title: titleOf(example), html };

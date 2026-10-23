@@ -5,7 +5,7 @@ import type {
   NumberInputValueChange,
   NumberInputValueCommit,
   NumberInputValueInvalid,
-} from "../../../src/spin-number-input/number-input.bridge.ts";
+} from "../../../src/number-input/number-input.presentation.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

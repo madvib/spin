@@ -1,0 +1,43 @@
+<script lang="ts">
+  import { editable } from "../editable.presentation.ts";
+
+  const machine = editable({ value: "Ada Lovelace" });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <div class="mb-1 flex items-center justify-between gap-2">
+    <label
+      class="text-sm font-medium text-text transition-colors duration-fast ease-decelerate"
+      {...machine.getLabelProps()}
+    >Display name</label>
+  </div>
+
+  <div
+    class="relative rounded-md border border-solid border-border bg-surface-raised transition-shadow duration-fast ease-decelerate"
+    {...machine.getAreaProps()}
+  >
+    <span
+      class="col-start-1 row-start-1 block min-w-0 cursor-text px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate hover:text-primary"
+      {...machine.getPreviewProps()}
+    >{machine.valueText}</span>
+    <input
+      class="col-start-1 row-start-1 min-w-0 bg-transparent px-2 py-1.5 text-sm text-text outline-none transition-colors duration-fast ease-decelerate placeholder:text-muted"
+      {...machine.getInputProps()}
+    />
+  </div>
+
+  <div class="mt-2 flex items-center gap-1" {...machine.getControlProps()}>
+    <button
+      class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95", { "inline-flex": !machine.editing, "hidden": machine.editing }]}
+      {...machine.getEditTriggerProps()}
+    ><span class="i-lucide-pencil text-xs" aria-hidden="true"></span></button>
+    <button
+      class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95", { "inline-flex": machine.editing, "hidden": !machine.editing }]}
+      {...machine.getSubmitTriggerProps()}
+    ><span class="i-lucide-check text-xs" aria-hidden="true"></span></button>
+    <button
+      class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95", { "inline-flex": machine.editing, "hidden": !machine.editing }]}
+      {...machine.getCancelTriggerProps()}
+    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<script lang="ts">
+  import { tabs } from "../tabs.presentation.ts";
+
+  const machine = tabs({
+    items: [
+      { value: "inbox", label: "Inbox", content: "Unread messages and incoming threads." },
+      { value: "drafts", label: "Drafts", content: "Saved drafts awaiting completion." },
+      { value: "sent", label: "Sent", content: "Delivered messages and activity log." },
+    ],
+    defaultValue: "inbox",
+  });
+</script>
+
+<div class="mx-auto flex w-full max-w-md flex-col items-center" {...machine.getRootProps()}>
+  <div class="mb-4 flex w-fit rounded-lg border border-solid border-border p-0.5" {...machine.getListProps()}>
+    <template for={machine.items} as={row} key={row.value}>
+      <button
+        class={["flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-medium text-muted transition-colors", { "bg-surface text-text shadow-sm": machine.value === row.value }]}
+        {...machine.getTriggerProps(row)}
+      >
+        <span class="i-lucide-inbox text-sm" aria-hidden="true" show={row.value === "inbox"}></span>
+        <span class="i-lucide-file-text text-sm" aria-hidden="true" show={row.value === "drafts"}></span>
+        <span class="i-lucide-send text-sm" aria-hidden="true" show={row.value === "sent"}></span>
+        <span>{row.label}</span>
+      </button>
+    </template>
+  </div>
+  <template for={machine.items} as={row} key={row.value}>
+    <p class="m-0 text-center text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
+  </template>
+</div>

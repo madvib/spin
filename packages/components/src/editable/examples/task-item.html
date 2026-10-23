@@ -1,0 +1,19 @@
+<script lang="ts">
+  import { editable } from "../editable.presentation.ts";
+
+  const machine = editable({ value: "Finalize statechart transition audit" });
+</script>
+
+<div class="flex w-full max-w-md items-center gap-3 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2" {...machine.getRootProps()}>
+  <span class="i-lucide-check-circle-2 shrink-0 text-sm text-primary" aria-hidden="true"></span>
+  <span class="sr-only" {...machine.getLabelProps()}>Task</span>
+  <div class="min-w-0 flex-1" {...machine.getAreaProps()}>
+    <span class="block truncate cursor-text text-sm text-text" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <input class="w-full bg-transparent text-sm text-text outline-none" {...machine.getInputProps()} />
+  </div>
+  <div class="flex shrink-0 items-center gap-1" {...machine.getControlProps()}>
+    <button class={["size-6 items-center justify-center rounded-md border border-solid border-transparent bg-transparent text-xs text-muted hover:text-text", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}><span class="i-lucide-pencil text-xs" aria-hidden="true"></span></button>
+    <button class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface text-xs text-text", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getSubmitTriggerProps()}><span class="i-lucide-check text-xs" aria-hidden="true"></span></button>
+    <button class={["size-6 items-center justify-center rounded-md border border-solid border-border bg-surface text-xs text-muted", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getCancelTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+  </div>
+</div>

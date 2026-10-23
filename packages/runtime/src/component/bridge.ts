@@ -17,7 +17,7 @@
  * - The fork's send is synchronous: notify cursors advance only after
  *   the callbacks fire. */
 
-import { computed, effect, machineTick, scope, signal, untrack, type Signal } from "@spin/runtime";
+import { batch, computed, effect, machineTick, scope, signal, untrack, type Signal } from "@spin/runtime";
 import { resolveTwins } from "../props.ts";
 import {
   interpret,
@@ -339,9 +339,10 @@ export function defineBridge<
       // machine's old state.
       const rawSend = svc.send.bind(svc);
       svc.send = (event: EventUnion<E>) => {
-        rawSend(event);
-        mirror(svc.state.context, svc.state.value);
-        machineTick(machineTick() + 1);
+        batch(() => {
+          rawSend(event);
+          mirror(svc.state.context, svc.state.value);
+        });
       };
       if (spec.machine === undefined) {
         // The legacy path: the seed is the service's STARTING context,
@@ -355,10 +356,12 @@ export function defineBridge<
       hooks.refresh?.(svc, props, authored);
       // The machine's context is mirrored into the signals: the mirror
       // is the single writer, and the start is a write like any other.
-      mirror(svc.state.context, svc.state.value);
-      // The seed replaced the context, so the bags must re-read it: the
-      // machine tick is the invalidation bus every binding watches.
-      machineTick(machineTick() + 1);
+      batch(() => {
+        mirror(svc.state.context, svc.state.value);
+        // The seed replaced the context, so the bags must re-read it: the
+        // machine tick is the invalidation bus every binding watches.
+        machineTick(machineTick() + 1);
+      });
       return svc;
     });
     // Establish events travel the transmit pipeline (view reflexes run,

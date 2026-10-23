@@ -1,0 +1,22 @@
+<script lang="ts">
+  import { splitter } from "../splitter.presentation.ts";
+
+  const machine = splitter({
+    panels: '[{"id":"explorer","minSize":15},{"id":"editor","minSize":30},{"id":"inspector","minSize":15}]',
+    size: '[25, 50, 25]',
+  });
+</script>
+
+<div class="h-60 w-full">
+  <div class="gap-2" {...machine.getRootProps()}>
+    <template for={machine.getItems()} as={row} key={row.id}>
+      <div
+        class={["min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken": row.type === "handle", "w-2 cursor-col-resize": machine.orientation === "horizontal" && row.type === "handle", "h-2 cursor-row-resize": machine.orientation === "vertical" && row.type === "handle" }]}
+        {...machine.getItemProps(row)}
+      ><span class={["block p-3 text-xs font-medium text-muted", { "hidden": row.type === "handle" }]} {...machine.getItemLabelProps(row)}>{row.id}</span><span
+        class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": row.type === "handle", "h-8 w-1": machine.orientation === "horizontal" && row.type === "handle", "h-1 w-8": machine.orientation === "vertical" && row.type === "handle" }]}
+        {...machine.getItemIndicatorProps(row)}
+      ></span></div>
+    </template>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<script lang="ts">
+  import { editable } from "../editable.presentation.ts";
+
+  const machine = editable({ value: "Click to edit inline note" });
+</script>
+
+<div class="w-full max-w-md" {...machine.getRootProps()}>
+  <label class="mb-1 block text-xs font-medium text-muted" {...machine.getLabelProps()}>Inline Note</label>
+  <div class="relative rounded-md border border-solid border-border bg-surface-raised" {...machine.getAreaProps()}>
+    <span class="block min-w-0 cursor-text px-2.5 py-1.5 text-sm text-text hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <input class="w-full bg-transparent px-2.5 py-1.5 text-sm text-text outline-none" {...machine.getInputProps()} />
+  </div>
+</div>

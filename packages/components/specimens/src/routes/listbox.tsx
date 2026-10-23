@@ -4,7 +4,7 @@ import type {
   ListboxHighlightChange,
   ListboxSelect,
   ListboxValueChange,
-} from "../../../src/spin-listbox/listbox.presentation.ts";
+} from "../../../src/listbox/listbox.presentation.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
