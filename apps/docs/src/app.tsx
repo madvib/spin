@@ -5,13 +5,19 @@
  * `_`-prefixed file is shared code without being a route, and a folder
  * nests: its `index.tsx` is the parent page, its siblings the sections.
  * Adding a page is adding a file — there is no list to maintain.
+ *
+ * The shell around the routes is the top bar plus a contextual rail: the
+ * landing owns the viewport, the components world gets the 32-element
+ * taxonomy, and every docs page gets the guide rail.
  */
-import { A, Navigate, Router, useLocation } from "@solidjs/router";
+import { A, Navigate, Router, useLocation, useNavigate } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { For, lazy, Show } from "solid-js";
-import { ThemePicker } from "@spin/kit";
-import { Logo } from "@spin/kit";
+import { createMemo, createSignal, For, lazy, Show } from "solid-js";
+import { BrandFavicon, Logo, ModeToggle, theme, ThemePicker } from "@spin/kit";
+import { starterThemes } from "@spin/theme/themes";
+import { COMPONENT_GROUPS, DOCS_GROUPS, TOP_SECTIONS } from "./nav.ts";
+import { SearchDialog } from "./search.tsx";
 
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
  * param, `[...all]` is the catch-all, and a folder joins the segments. */
@@ -97,153 +103,233 @@ function buildRoutes(): RouteDefinition[] {
 
 const ROUTES: RouteDefinition[] = buildRoutes();
 
-/** One entry in the rail: a path, and the pages nested under it. */
-interface NavEntry {
-  readonly path: string;
-  /** The word the rail shows: the last segment of the path. */
-  readonly label: string;
-  readonly children: NavEntry[];
+/** The primary color of the active starter, for the tab icon. */
+function activePrimary(): string {
+  const doc = (starterThemes as Readonly<Record<string, unknown>>)[
+    theme() as string
+  ] as { color?: { primary?: { $value?: unknown } } } | undefined;
+  const value = doc?.color?.primary?.$value;
+  return typeof value === "string" ? value : "#c8102e";
 }
 
 /**
- * The rail's tree, derived from the routes.
- *
- * A path's segments are its nesting, so a section and the pages under it
- * read as one group whether the router nested them (a folder with an index
- * page) or routed them flat (a folder without one). The routes are the only
- * list; the rail is a reading of it.
+ * The sticky top bar: the brand and the world switch on the left, the
+ * search trigger, mode, and theme on the right.
  */
-function navTree(paths: readonly string[]): NavEntry[] {
-  const roots: NavEntry[] = [];
-  const index = new Map<string, NavEntry>();
-  for (const path of paths) {
-    const segments = path.split("/").filter((segment) => segment !== "");
-    let parent: NavEntry | undefined;
-    let walked = "";
-    for (const segment of segments) {
-      walked += "/" + segment;
-      let entry = index.get(walked);
-      if (entry === undefined) {
-        entry = { path: walked, label: segment, children: [] };
-        index.set(walked, entry);
-        if (parent === undefined) roots.push(entry);
-        else (parent.children as NavEntry[]).push(entry);
-      }
-      parent = entry;
-    }
-  }
-  return roots;
+function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
+  const location = useLocation();
+  const current = (prefixes: readonly string[]): boolean =>
+    prefixes.some((prefix) =>
+      location.pathname === prefix ||
+      location.pathname.startsWith(`${prefix}/`)
+    );
+  return (
+    <header class="sticky top-0 flex h-[3.5rem] items-center justify-between gap-4 border-b border-border bg-surface px-4 md:px-6">
+      <div class="flex min-w-0 items-center gap-4">
+        <A href="/" end class="no-underline" aria-label="spin home">
+          <Logo size="sm" class="text-primary" />
+        </A>
+        <nav class="flex items-center gap-1" aria-label="sections">
+          <For each={TOP_SECTIONS}>
+            {(section) => (
+              <A
+                href={section.href}
+                class={`block rounded-sm px-3 py-1.5 text-sm no-underline transition-colors duration-fast ${
+                  current(section.active)
+                    ? "bg-surface-raised text-text font-semibold"
+                    : "text-text-muted hover:text-text"
+                }`}
+              >
+                {section.title}
+              </A>
+            )}
+          </For>
+        </nav>
+      </div>
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={props.onOpenSearch}
+          class="secondary s-sm hidden items-center gap-3 text-xs text-text-muted sm:flex"
+        >
+          <span>Search...</span>
+          <kbd>
+            ⌘K
+          </kbd>
+        </button>
+        <ModeToggle />
+        <ThemePicker />
+      </div>
+    </header>
+  );
 }
 
-/** The rail's links are the real routes, nested the way their paths nest. */
-const NAV: readonly NavEntry[] = navTree(
-  ROUTES
-    .map((route) => route.path)
-    .filter((path): path is string =>
-      path !== undefined && path !== "/" && path !== "*" &&
-      !path.includes(":")
-    )
-    .sort(),
-);
-
-function RailLayout(props: { children: JSX.Element }): JSX.Element {
+/** The Docs world's rail: the guide groups, with the current page raised. */
+function DocsRail(): JSX.Element {
   return (
-    <div class="flex min-h-dvh bg-surface text-text font-sans text-md">
-      <nav
-        class="sticky top-0 flex h-screen shrink-0 flex-col gap-6 border-e border-border px-4 py-6"
-        aria-label="site"
-      >
-        <A href="/" end class="flex items-center gap-3 text-text no-underline">
-          <Logo size="md" />
-        </A>
-
-        <div class="grid gap-1">
-          <p class="text-xs font-semibold text-text-muted">pages</p>
-          <For each={NAV}>
-            {(entry) => (
-              <>
+    <nav
+      class="sticky top-0 flex h-screen w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
+      aria-label="docs"
+    >
+      <For each={DOCS_GROUPS}>
+        {(group) => (
+          <div class="grid gap-1">
+            <p class="text-xs font-semibold text-text-muted">{group.label}</p>
+            <For each={group.items}>
+              {(item) => (
                 <A
-                  href={entry.path}
-                  class="block py-1 px-2 text-sm rounded-sm no-underline transition-colors duration-fast"
+                  href={item.href}
+                  class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
                   activeClass="bg-surface-raised text-text font-semibold"
                   inactiveClass="text-text-muted hover:text-text"
                 >
-                  {entry.label}
+                  {item.title}
                 </A>
-                <Show when={entry.children.length > 0}>
-                  <div class="grid gap-1 pl-4">
-                    <For each={entry.children}>
-                      {(child) => (
-                        <A
-                          href={child.path}
-                          class="block py-1 px-2 text-xs rounded-sm no-underline transition-colors duration-fast"
-                          activeClass="bg-surface-raised text-text font-semibold"
-                          inactiveClass="text-text-muted hover:text-text"
-                        >
-                          {child.label}
-                        </A>
-                      )}
-                    </For>
-                  </div>
-                </Show>
-              </>
-            )}
-          </For>
-        </div>
+              )}
+            </For>
+          </div>
+        )}
+      </For>
+    </nav>
+  );
+}
 
-        <div class="grid gap-2">
-          <p class="text-xs font-semibold text-text-muted">theme</p>
-          <ThemePicker />
-        </div>
+/**
+ * The Components world's rail: the taxonomy, filterable, with the
+ * current element raised. The groups come from the preset, so the rail
+ * cannot file an element where another surface files it elsewhere.
+ */
+function ComponentsRail(props: { filter: string }): JSX.Element {
+  const groups = createMemo(() => {
+    const query = props.filter.trim().toLowerCase();
+    if (query === "") return COMPONENT_GROUPS;
+    return COMPONENT_GROUPS
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          item.name.toLowerCase().includes(query)
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  });
+  return (
+    <div class="grid gap-1">
+      <A
+        href="/components"
+        end
+        class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+        activeClass="bg-surface-raised text-text font-semibold"
+        inactiveClass="text-text-muted hover:text-text"
+      >
+        Overview
+      </A>
+      <For each={groups()}>
+        {(group) => (
+          <>
+            <p class="text-xs font-semibold text-text-muted">
+              {group.label}
+            </p>
+            <For each={group.items}>
+              {(item) => (
+                <A
+                  href={item.href}
+                  class="flex items-center gap-2 rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+                  activeClass="bg-surface-raised text-text font-semibold"
+                  inactiveClass="text-text-muted hover:text-text"
+                >
+                  <span
+                    class={`${item.icon} icon-sm shrink-0`}
+                    aria-hidden="true"
+                  />
+                  <span class="min-w-0 truncate">{item.name}</span>
+                </A>
+              )}
+            </For>
+          </>
+        )}
+      </For>
+    </div>
+  );
+}
 
-        {
-          /*
-          The credit the mark's licence asks for: the web is Lorc's, from the
-          Game Icons set, under CC BY 3.0. It is a link, because the licence
-          is a promise about where the drawing came from, and the answer is
-          one click away.
-        */
-        }
-        <div class="mt-auto grid gap-1">
-          <p class="text-xs text-text-muted">v0.1</p>
-          <p class="text-xs text-text-muted">
-            <a
-              href="https://game-icons.net/1x1/lorc/spider-web.html"
-              target="_blank"
-              rel="noreferrer"
-              class="hover:text-text"
-            >
-              Icons made by Lorc (CC BY 3.0)
-            </a>
-          </p>
-        </div>
+/** Every docs page: the rail on the left, the page on the right. */
+function DocsShell(props: { children: JSX.Element }): JSX.Element {
+  return (
+    <div class="flex min-h-[calc(100dvh-3.5rem)] items-start bg-surface text-text font-sans text-md">
+      <DocsRail />
+      <div class="min-w-0 flex-1">{props.children}</div>
+    </div>
+  );
+}
+
+/** The components world: the taxonomy rail with a filter, the page beside it. */
+function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
+  const [query, setQuery] = createSignal("");
+  return (
+    <div class="flex min-h-[calc(100dvh-3.5rem)] items-start bg-surface text-text font-sans text-md">
+      <nav
+        class="sticky top-0 flex h-screen w-[16rem] shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
+        aria-label="components"
+      >
+        <label class="flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs">
+          <span
+            class="i-lucide-search icon-sm shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            placeholder="Filter components..."
+            value={query()}
+            onInput={(event) => setQuery(event.currentTarget.value)}
+            aria-label="filter components"
+            class="w-full border-transparent bg-transparent"
+          />
+        </label>
+        <ComponentsRail filter={query()} />
       </nav>
-
-      {
-        /* `min-w-0`: a flex item's width is its content's minimum unless it
-          is told otherwise, so the column beside the rail could not shrink
-          and every page scrolled sideways on a narrow screen. */
-      }
       <div class="min-w-0 flex-1">{props.children}</div>
     </div>
   );
 }
 
 /**
- * The landing owns the whole viewport; every other page is the rail's.
- * Reactive on the pathname — navigating back to `/` swaps the shell.
+ * The landing owns the viewport; the components world gets the taxonomy
+ * rail; every other page gets the guide rail. Reactive on the pathname —
+ * navigating back to `/` swaps the shell.
  */
 function Layout(props: RouteSectionProps): JSX.Element {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = createSignal(false);
+  const onNavigate = (href: string) => {
+    setSearchOpen(false);
+    navigate(href);
+  };
   return (
-    <Show
-      when={location.pathname === "/"}
-      fallback={<RailLayout>{props.children}</RailLayout>}
-    >
-      <div class="min-h-dvh bg-surface text-text font-sans text-md">
+    <div class="min-h-dvh bg-surface text-text font-sans text-md">
+      <BrandFavicon getPrimary={activePrimary} />
+      <SearchDialog
+        open={searchOpen()}
+        onClose={() => setSearchOpen(false)}
+        onNavigate={onNavigate}
+      />
+      <Show
+        when={location.pathname === "/"}
+        fallback={
+          <>
+            <TopNav onOpenSearch={() => setSearchOpen(true)} />
+            <Show
+              when={location.pathname.startsWith("/components")}
+              fallback={<DocsShell>{props.children}</DocsShell>}
+            >
+              <ComponentsShell>{props.children}</ComponentsShell>
+            </Show>
+          </>
+        }
+      >
         {props.children}
-      </div>
-    </Show>
+      </Show>
+    </div>
   );
 }
 
