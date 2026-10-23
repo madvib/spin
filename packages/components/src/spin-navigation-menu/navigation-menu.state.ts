@@ -32,12 +32,15 @@ export interface NavigationMenuArgs {
 export const asText = (raw: unknown): string | null =>
   typeof raw === "string" ? raw : null;
 
-const parseItems = (raw: unknown): readonly NavItemRecord[] => {
+/** Shape raw items into rows, dropping entries without a usable value or
+ * label. Shared by `initial` and the field contract, so a host write
+ * parses exactly like the seed. */
+export function parseItems(raw: unknown): NavItemRecord[] {
   const list: readonly unknown[] = Array.isArray(raw)
     ? raw
     : (typeof raw === "string" && raw.length > 0 ? ((): unknown[] => {
-        try { const v = JSON.parse(raw); return Array.isArray(v) ? v : []; } catch { return []; }
-      })() : []);
+      try { const v = JSON.parse(raw); return Array.isArray(v) ? v : []; } catch { return []; }
+    })() : []);
   const items: NavItemRecord[] = [];
   for (const entry of list) {
     if (typeof entry !== "object" || entry === null || Array.isArray(entry)) continue;
@@ -48,7 +51,7 @@ const parseItems = (raw: unknown): readonly NavItemRecord[] => {
     items.push({ value, label });
   }
   return items;
-};
+}
 
 export function initial(args: NavigationMenuArgs = {}, authored: (name: string) => boolean): NavigationMenuContext {
   const written = (field: string): boolean =>

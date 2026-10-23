@@ -16,6 +16,7 @@ import {
 } from "@spin/runtime";
 import { cascade as cascadeMachine } from "./cascade.machine.ts";
 import {
+  parseCollection as parseCollectionState,
   parsePath,
   parsePaths,
   startOpen,
@@ -114,46 +115,11 @@ const SEP = ",";
 
 export const pathKey = (path: readonly string[]): string => path.join(SEP);
 
-/** Validate the host's tree: a row without a non-empty string value is
- *  dropped rather than poisoning the level stack. */
-const parseNode = (raw: unknown): CascadeNode | undefined => {
-  if (!isRecord(raw)) return undefined;
-  const bag: Record<string, unknown> = isRecord(raw) ? raw : {};
-  const value: unknown = bag["value"];
-  const label: unknown = bag["label"];
-  if (typeof value !== "string" || value.length === 0) return undefined;
-  const node: {
-    value: string;
-    label: string;
-    disabled?: boolean;
-    children?: readonly CascadeNode[];
-  } = { value, label: typeof label === "string" ? label : value };
-  const disabled: unknown = isRecord(raw) ? raw["disabled"] : undefined;
-  if (typeof disabled === "boolean") node.disabled = disabled;
-  const children: unknown = isRecord(raw) ? raw["children"] : undefined;
-  if (Array.isArray(children)) {
-    node.children = children.flatMap((child) => {
-      const parsed = parseNode(child);
-      return parsed === undefined ? [] : [parsed];
-    });
-  }
-  return node;
-};
-
-const parseNodes = (list: readonly unknown[]): readonly CascadeNode[] =>
-  list.flatMap((raw) => {
-    const node = parseNode(raw);
-    return node === undefined ? [] : [node];
-  });
 
 /** The collection crosses the prop channel as JSON text (the grammar has no
  *  recursive type), so it is parsed and validated here rather than trusted
  *  at every read. */
-export const parseCollection = (raw: unknown): readonly CascadeNode[] => {
-  if (Array.isArray(raw)) return parseNodes(raw);
-  if (typeof raw !== "string" || raw.length === 0) return [];
-  return parseNodes(coerceJsonArray(raw, []));
-};
+export const parseCollection = parseCollectionState;
 
 const isString = (segment: unknown): segment is string => typeof segment === "string";
 
@@ -209,35 +175,12 @@ const isNode = (value: unknown): value is CascadeNode => {
   return children === undefined || Array.isArray(children);
 };
 
-/** The collection off the transport: the grammar coerces `= []` to
- * `["[]"]`, and a host array passes through. Well-shaped only. */
-
-const collectionCache = new WeakMap<object, readonly CascadeNode[]>();
-/** The JSON-transported collection, keyed by its text: two instances with
- * different trees must not evict each other's parse — a single slot made
- * every read of the other instance re-parse, and the levels cache (keyed
- * on the array) then missed, churning row identities. */
-const jsonCollections = new Map<string, readonly CascadeNode[]>();
 
 /** The collection, memoized on the transport's identity: the levels cache
  * keys on the array, so an unmemoized parse would defeat both the level
  * and the handler identity. */
-const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] => {
-  const raw: unknown = parsed["collection"];
-  if (typeof raw === "object" && raw !== null) {
-    const hit = collectionCache.get(raw);
-    if (hit !== undefined) return hit;
-    const shaped = Array.isArray(raw) ? parseNodes(raw) : [];
-    collectionCache.set(raw, shaped);
-    return shaped;
-  }
-  if (typeof raw !== "string") return [];
-  const hit = jsonCollections.get(raw);
-  if (hit !== undefined) return hit;
-  const shaped = parseNodes(coerceJsonArray(raw, []));
-  jsonCollections.set(raw, shaped);
-  return shaped;
-};
+const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] =>
+  parseCollectionState(parsed["collection"]);
 
 /** Derive the visible levels: every node along the highlighted path
  *  contributes its children as the next level. Memoized on the collection

@@ -1,7 +1,7 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 import { initial, type ComboboxArgs, type ComboboxContext, type ComboboxState } from "./combobox.state.ts";
 import type { ComboboxEvents } from "./combobox.events.ts";
-import { parseKeys as coerceKeys } from "./combobox.state.ts";
+import { parseItems, parseKeys as coerceKeys } from "./combobox.state.ts";
 import {
   setHighlightedValue,
   clearHighlightedValue,
@@ -38,8 +38,7 @@ export function combobox(
     context: initial(args, authored),
     fields: {
       value: { event: "VALUE.SET" },
-      items: {},
-      multiple: {},
+      items: { parse: parseItems },
       closeOnSelect: {},
       allowCustomValue: {},
       inputBehavior: {},

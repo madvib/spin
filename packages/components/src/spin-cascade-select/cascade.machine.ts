@@ -1,6 +1,7 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 import {
   initial,
+  parseCollection,
   type CascadeArgs,
   type CascadeContext,
   type CascadeState,
@@ -47,7 +48,7 @@ export function cascade(
       multiple: {},
       loopFocus: {},
       highlightTrigger: {},
-      collection: { parse: (raw) => raw },
+      collection: { parse: parseCollection },
       disabled: {},
       readOnly: {},
       dir: {},

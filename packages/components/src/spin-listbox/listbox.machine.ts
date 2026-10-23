@@ -1,5 +1,5 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import { initial, rowsOf as rowsOfState, type ListboxArgs, type ListboxContext, type ListboxState } from "./listbox.state.ts";
+import { initial, parseItems, rowsOf as rowsOfState, type ListboxArgs, type ListboxContext, type ListboxState } from "./listbox.state.ts";
 import type { ListboxEvents } from "./listbox.events.ts";
 import {
   clearHighlightedValue,
@@ -28,8 +28,7 @@ export function listbox(
     fields: {
       value: { event: "VALUE.SET" },
       highlightedValue: { event: "HIGHLIGHTED_VALUE.SET" },
-      items: {},
-      disabled: {},
+      items: { parse: parseItems },
       readOnly: {},
       multiple: {},
       selectOnHighlight: {},

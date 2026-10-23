@@ -72,6 +72,12 @@ export interface ComboboxArgs {
   dir?: "ltr" | "rtl";
 }
 
+/** Shape raw items the way `initial` does: arrays pass through, anything
+ * else becomes empty. Shared by `initial` and the field contract, so a
+ * host write parses exactly like the seed. */
+export function parseItems(raw: unknown): readonly ComboboxRow[] {
+  return Array.isArray(raw) ? raw : [];
+}
 const parseKeys = (raw: unknown): string[] => {
   if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
   if (typeof raw !== "string") return [];
@@ -100,7 +106,7 @@ export function initial(args: ComboboxArgs, authored: (name: string) => boolean)
       ? behaviorRaw
       : "none")
     : "none";
-  const rows = Array.isArray(args.items) ? args.items : [];
+  const rows = parseItems(args.items);
   const order = rows.map((r) => (typeof r.value === "string" ? r.value : "")).filter(Boolean);
   const labels = Object.fromEntries(rows.map((r) => [String(r.value), typeof r.label === "string" ? r.label : String(r.value)] as const));
   const value = parseKeys(args.value as unknown);

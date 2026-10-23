@@ -69,7 +69,14 @@ const rowsOf = (items: unknown): ListboxRowData[] => {
   return rows;
 };
 
-export { rowsOf as listboxRowsOf };
+/** Shape raw items the way `initial` does: arrays pass through, anything
+ * else becomes empty. Shared by `initial` and the field contract, so a
+ * host write parses exactly like the seed. */
+export function parseItems(raw: unknown): readonly ListboxArgsItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((entry): entry is ListboxArgsItem =>
+    typeof entry === "object" && entry !== null && typeof (entry as Record<string, unknown>)["value"] === "string");
+}
 
 export const parseKeys = (value: unknown): string[] => {
   if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
@@ -93,7 +100,7 @@ export function initial(args: ListboxArgs = {}, authored: (name: string) => bool
         : "replace";
   return {
     value: parseKeys(args.value),
-    items: args.items ?? [],
+    items: parseItems(args.items),
     disabled: args.disabled === true,
     readOnly: args.readOnly === true,
     highlightedValue: written("highlightedValue") &&

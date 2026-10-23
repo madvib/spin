@@ -1,7 +1,7 @@
 /** Navigation-menu machine: the closed and open modes. */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import { initial, type NavigationMenuArgs, type NavigationMenuContext, type NavigationMenuState } from "./navigation-menu.state.ts";
+import { initial, parseItems, type NavigationMenuArgs, type NavigationMenuContext, type NavigationMenuState } from "./navigation-menu.state.ts";
 import type { NavigationMenuEvents } from "./navigation-menu.events.ts";
 import { closeAll, openItem, setValue, swapItem, toggleOpen } from "./navigation-menu.transitions.ts";
 
@@ -24,7 +24,7 @@ export function navigationMenu(
       closeDelay: {},
       orientation: {},
       disabled: {},
-      items: {},
+      items: { parse: parseItems },
     },
     on: {
       "VALUE.SET": [{ assign: setValue }],

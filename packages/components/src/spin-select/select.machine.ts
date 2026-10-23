@@ -1,6 +1,6 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 import type { SelectArgs, SelectContext, SelectState } from "./select.state.ts";
-import { initial } from "./select.state.ts";
+import { initial, rowsOf } from "./select.state.ts";
 import type { SelectEvents } from "./select.events.ts";
 import {
   clearHighlighted,
@@ -25,6 +25,7 @@ export function select(
     id: "select",
     initial: "idle",
     fields: {
+      items: { parse: rowsOf },
       highlightedValue: { event: "HIGHLIGHTED_VALUE.SET" },
       closeOnSelect: {},
       disabled: {},

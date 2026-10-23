@@ -50,7 +50,29 @@ export interface TabsArgs {
   deselectable?: boolean;
   composite?: boolean;
 }
-
+/** Shape raw items into rows: label-from-value, content-to-empty, and a row
+ * without a usable value drops out. Shared by `initial` and the field
+ * contract, so a host write parses exactly like the seed. */
+export function parseItems(raw: unknown): TabsItem[] {
+  const items: TabsItem[] = [];
+  const list: readonly unknown[] = Array.isArray(raw) ? raw : [];
+  for (const entry of list) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const row = entry as Record<string, unknown>;
+    const value = row["value"];
+    if (typeof value !== "string" || value.length === 0) continue;
+    const label = row["label"];
+    const content = row["content"];
+    const badge = row["badge"];
+    items.push({
+      value,
+      label: typeof label === "string" ? label : value,
+      content: typeof content === "string" ? content : "",
+      ...(typeof badge === "string" ? { badge } : {}),
+    });
+  }
+  return items;
+}
 /**
  * Shape the arguments into the machine's initial context.
  * Pure shaping only: the rows (label-from-value, content-to-empty, and a
@@ -66,16 +88,7 @@ export function initial(args: TabsArgs = {}, authored: (name: string) => boolean
     authored(field) ||
     authored(defaultTwin(field)) ||
     args.defaultValue !== undefined;
-  const items: TabsItem[] = [];
-  for (const row of args.items ?? []) {
-    const value = row.value;
-    if (value === undefined || value.length === 0) continue;
-    items.push({
-      value,
-      label: row.label ?? value,
-      content: row.content ?? "",
-    });
-  }
+  const items = parseItems(args.items ?? []);
   const hostValue = args.value ?? "";
   const defaultValue = args.defaultValue ?? "";
   return {

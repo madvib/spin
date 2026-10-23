@@ -240,8 +240,18 @@ export const def = {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";
   },
-  reconcile: ({ context, parsed, send }) => {
+  reconcile: ({ context, parsed, send }: { readonly context: SelectContext; readonly parsed: Record<string, unknown>; readonly send: (event: { type: string } & Record<string, unknown>) => void }) => {
     const ctx = context;
+    const nextItems = rowsOf(parsed);
+    const itemsChanged = nextItems.length !== ctx.items.length ||
+      nextItems.some((row, index) => {
+        const current = ctx.items[index];
+        return current === undefined || current.value !== row.value || current.label !== row.label || (current.disabled ?? false) !== (row.disabled ?? false);
+      });
+    let moved = itemsChanged;
+    if (itemsChanged) {
+      (ctx as { items: readonly SelectRow[] }).items = nextItems;
+    }
     const order = orderOf(parsed);
     const orderChanged = !sameKeys(ctx.order, order);
     if (orderChanged) {
@@ -249,7 +259,7 @@ export const def = {
       ctx.labels = labelsOf(parsed);
       send({ type: "SELECTED_ITEMS.SYNC" });
     }
-    return orderChanged;
+    return moved || orderChanged;
   },
 
   parts: {

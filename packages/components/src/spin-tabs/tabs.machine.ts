@@ -1,7 +1,7 @@
 /** Tabs machine: selection is component state, not platform state. */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import { initial, type TabsArgs, type TabsContext, type TabsState } from "./tabs.state.ts";
+import { initial, parseItems, type TabsArgs, type TabsContext, type TabsState } from "./tabs.state.ts";
 import type { TabsEvents } from "./tabs.events.ts";
 import { selectTab, setValue } from "./tabs.transitions.ts";
 
@@ -24,8 +24,7 @@ export function tabs(
      */
     fields: {
       value: { event: "VALUE.SET" },
-      items: {},
-      orientation: {},
+      items: { parse: parseItems },
       activationMode: {},
       loopFocus: {},
       deselectable: {},

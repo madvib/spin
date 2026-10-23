@@ -174,8 +174,9 @@ function structuralKey(owner: unknown): string | undefined {
 }
 
 /** Thumbs and rows are slots: stable object identities memoize in the
- * WeakMap; primitives memoize by their structural key so fresh inline
- * values hit the cache. */
+ * WeakMap *and* by structural key, so the first read of a stable object
+ * hits the value cache instead of rebuilding on every transclusion.
+ * Values without a stable structural shape always rebuild. */
 export function keyed(
   store: WeakMap<object, BagMemo>,
   owner: unknown,
