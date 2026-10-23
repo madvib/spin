@@ -266,7 +266,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const bridge = `${name}Bridge`;
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge}Props = () => { const p = { ...values, ...defined(props), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
             `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
             `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
             `    : { api: ${name}.attach(el), dispose() {} });\n` +
@@ -302,7 +302,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const component = `${binding.factory}`;
           scriptCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${component}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...values, ...props, ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...defined(values), ...defined(props), ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
             `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
             `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
             `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
@@ -400,6 +400,11 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           `  const initial = coerceProps(${JSON.stringify(scopeDecls.props)}, attrs);`,
           `  const values = { ...initial };`,
           ...seedProps,
+          // Unset props read undefined through the store's live getters;
+          // spreading them would clobber a script arg default with nothing.
+          // Strip them here so a host write is the only thing that wins
+          // over the element's own markup.
+          ...(hasConsume ? [`  const defined = (bag: Record<string, unknown>): Record<string, unknown> => { const out: Record<string, unknown> = {}; for (const [k, v] of Object.entries(bag)) if (v !== undefined) out[k] = v; return out; };`] : []),
           ...scriptCalls,
           ...consumeCalls,
           // Light-DOM children are projected BEFORE create(): the markup's
