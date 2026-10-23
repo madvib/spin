@@ -302,7 +302,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const component = `${binding.factory}`;
           scriptCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${component}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...values, ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
+            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...values, ...props, ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
             `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
             `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
             `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
@@ -313,7 +313,10 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       }
       const hasConsume = consumeCalls.length > 0 || scriptCalls.length > 0;
       const propNames = scopeDecls.props.map((p) => p.name);
-      const hasProps = propNames.length > 0;
+      // A script's own args seed the bridge, but a host that binds props
+      // (the specimens routes) writes them as element properties — the
+      // live `props` proxy carries those, so the bridge reads them too.
+      const hasProps = propNames.length > 0 || scriptCalls.length > 0;
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)
         .join(", ");
