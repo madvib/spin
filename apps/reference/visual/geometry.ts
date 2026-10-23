@@ -24,8 +24,18 @@ const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
     "avatar-square",
     "no-horizontal-overflow",
   ],
-  "/components/join": ["join-seam", "no-horizontal-overflow"],
-  "/components/card": ["card-parts", "no-horizontal-overflow"],
+  "/components/join": [
+    "join-seam",
+    "join-heights",
+    "no-horizontal-overflow",
+  ],
+  "/components/card": [
+    "card-parts",
+    "card-header",
+    "card-actions",
+    "no-horizontal-overflow",
+  ],
+  "/components/details": ["details-stable", "no-horizontal-overflow"],
   "/components/checkbox": ["checkbox-square", "no-horizontal-overflow"],
   "/components/switch": ["switch-track", "no-horizontal-overflow"],
 };
@@ -271,6 +281,152 @@ export function geometryAudit(options: {
         });
       }
     }
+  }
+
+  /**
+   * A card's action holds the title's line, and a description sits under the
+   * title — never beside the action, never under it.
+   */
+  if (options.claims.includes("card-header")) {
+    const headers = [...document.querySelectorAll("card-header")].filter(
+      painted,
+    );
+    const bad: string[] = [];
+    for (const header of headers) {
+      const headerRect = box(header);
+      const title = header.querySelector("card-title");
+      const description = header.querySelector("card-description");
+      const action = header.querySelector("card-action");
+      if (title && action) {
+        const t = box(title);
+        const a = box(action);
+        if (Math.abs(t.top - a.top) > EPSILON) {
+          bad.push("the action is not on the title's line");
+        }
+        if (a.right > headerRect.right + EPSILON) {
+          bad.push("the action leaves the header");
+        }
+      }
+      if (title && description) {
+        if (box(description).top < box(title).top + EPSILON) {
+          bad.push("the description is not under the title");
+        }
+      }
+    }
+    claims.push({
+      id: "card-header",
+      ok: bad.length === 0,
+      detail: bad.length === 0
+        ? `${headers.length} card headers hold their action on the title's line`
+        : bad.join(", "),
+    });
+  }
+
+  /** Every action in a card's footer stays inside it, and none overlap. */
+  if (options.claims.includes("card-actions")) {
+    const footers = [...document.querySelectorAll("card-footer")].filter(
+      painted,
+    );
+    const bad: string[] = [];
+    for (const footer of footers) {
+      const f = box(footer);
+      const actions = [...footer.children].filter(painted);
+      for (let i = 0; i < actions.length; i++) {
+        const a = box(actions[i]!);
+        if (
+          a.left < f.left - EPSILON || a.right > f.right + EPSILON ||
+          a.top < f.top - EPSILON || a.bottom > f.bottom + EPSILON
+        ) {
+          bad.push("an action leaves the footer");
+        }
+        for (let j = i + 1; j < actions.length; j++) {
+          const b = box(actions[j]!);
+          if (
+            a.left < b.right - EPSILON && b.left < a.right - EPSILON &&
+            a.top < b.bottom - EPSILON && b.top < a.bottom - EPSILON
+          ) {
+            bad.push("two actions overlap");
+          }
+        }
+      }
+    }
+    claims.push({
+      id: "card-actions",
+      ok: bad.length === 0,
+      detail: bad.length === 0
+        ? `${footers.length} card footers hold their actions`
+        : bad.join(", "),
+    });
+  }
+
+  /**
+   * A disclosure reveals without moving its own width or its label. Opening
+   * one is a vertical reveal: the surface is the line's width before and
+   * after, and the summary is where the reader left it.
+   */
+  if (options.claims.includes("details-stable")) {
+    const details = [...document.querySelectorAll("details")].filter(painted);
+    const bad: string[] = [];
+    for (const element of details) {
+      const summary = element.querySelector("summary");
+      const before = box(element);
+      const labelBefore = summary ? box(summary) : null;
+      const wasOpen = (element as HTMLDetailsElement).open;
+      (element as HTMLDetailsElement).open = true;
+      const after = box(element);
+      const labelAfter = summary ? box(summary) : null;
+      if (Math.abs(after.width - before.width) > EPSILON) {
+        bad.push(
+          `width ${round(before.width)}px → ${round(after.width)}px`,
+        );
+      }
+      if (
+        labelBefore && labelAfter &&
+        (Math.abs(labelAfter.left - labelBefore.left) > EPSILON ||
+          Math.abs(labelAfter.top - labelBefore.top) > EPSILON)
+      ) {
+        bad.push("the summary moves when the disclosure opens");
+      }
+      (element as HTMLDetailsElement).open = wasOpen;
+    }
+    claims.push({
+      id: "details-stable",
+      ok: bad.length === 0,
+      detail: bad.length === 0
+        ? `${details.length} disclosures open without changing width`
+        : bad.join(", "),
+    });
+  }
+
+  /** Every control in a join shares one height, so the object reads as one. */
+  if (options.claims.includes("join-heights")) {
+    const joins = [...document.querySelectorAll(".join")].filter(painted);
+    const bad: string[] = [];
+    for (const join of joins) {
+      const items = [...join.children].filter(painted);
+      if (items.length < 2) continue;
+      const first = box(items[0]!);
+      for (const item of items.slice(1)) {
+        const r = box(item);
+        if (
+          Math.abs(r.top - first.top) > EPSILON ||
+          Math.abs(r.bottom - first.bottom) > EPSILON
+        ) {
+          bad.push(
+            `${item.tagName.toLowerCase()} ${round(r.height)}px beside ${
+              round(first.height)
+            }px`,
+          );
+        }
+      }
+    }
+    claims.push({
+      id: "join-heights",
+      ok: bad.length === 0,
+      detail: bad.length === 0
+        ? `${joins.length} joins share one height`
+        : bad.join(", "),
+    });
   }
 
   /** Every card keeps its parts inside its box and in top-to-bottom order. */

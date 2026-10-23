@@ -1138,9 +1138,9 @@ function usage(config: CheckConfig): string {
     config.hoverSelector ?? "none"
   })
   --no-hover             measure the resting page only
-  --state-contrast       measure every control in the states it can be in
-                         (advisory: reported, but the run still passes)
-  --state-contrast-strict  the same, and let its findings decide the run
+  --no-state-contrast    skip driving every control through its states
+  --state-contrast       accepted for compatibility; the pass is on by default
+  --state-contrast-strict  accepted for compatibility; the pass is strict
   --out DIR              where screenshots go (default ${config.outDir})
   --baseline PATH        compare against this baseline (default ${config.baseline})
   --no-baseline          run without a baseline comparison
@@ -1260,13 +1260,12 @@ export async function runCheck(
       : null,
     allowBaseline: args.present.has("allow-baseline"),
     chrome: last(args.values.get("chrome")),
-    // The state-contrast pass is opt-in: it drives every control in every
-    // state, which costs a pointer press per control, and the themes have
-    // not been held to it yet. The strict form lets its findings decide the
-    // run, which is where it goes once they do.
-    stateContrast: args.present.has("state-contrast") ||
-      args.present.has("state-contrast-strict"),
-    stateStrict: args.present.has("state-contrast-strict"),
+    // The state-contrast pass drives every control in every state it can be
+    // in. It used to be opt-in while the starters were being held to it; they
+    // now pass it across every theme and mode, so it is part of the default
+    // run. `--no-state-contrast` is the escape hatch for a quick measurement.
+    stateContrast: !args.present.has("no-state-contrast"),
+    stateStrict: !args.present.has("no-state-contrast"),
   };
   if (options.routes.length === 0) {
     console.error("no routes match the filters given");
