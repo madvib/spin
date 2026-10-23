@@ -77,10 +77,7 @@ export function ratingGroup(
           FOCUS: { target: "focus" },
           GROUP_POINTER_LEAVE: [
             {
-              cond: (_ctx, event) => {
-                if (event.type !== "GROUP_POINTER_LEAVE") return false;
-                return event.radioFocused;
-              },
+              cond: (_ctx, event) => event.radioFocused,
               target: "focus",
               assign: clearHoveredValue,
             },

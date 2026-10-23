@@ -843,6 +843,8 @@ export const def = {
     highlightedIndex: { read: (context) => context.highlightedIndex },
     editing: { read: (_context, state) => state === "editing:tag" },
     editedIndex: { read: (context) => context.editedIndex },
+    focused: { read: (_context, state: TagsState) => state !== "idle" },
+    disabled: { read: (context) => context.disabled === true },
   },
   methods: {
     getTags: {

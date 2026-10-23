@@ -12,8 +12,7 @@ export const setCount: StepsAssign<"SET_COUNT"> = (_ctx, event) => ({
   count: Math.max(1, Math.floor(event.count)),
 });
 
-export const canSetStep: GuardFor<StepsContext, StepsEvents> = (ctx, event) => {
-  if (event.type !== "STEP.SET") return false;
+export const canSetStep: GuardFor<StepsContext, StepsEvents, "STEP.SET"> = (ctx, event) => {
   const current = ctx.step;
   if (event.value <= current) return true;
   if (ctx.isStepSkippable?.(current) === true) return true;
@@ -34,8 +33,7 @@ export const recordInvalidSet: StepsAssign<"STEP.SET"> = (ctx, event) => ({
   },
 });
 
-export const canNextStep: GuardFor<StepsContext, StepsEvents> = (ctx, event) => {
-  if (event.type !== "STEP.NEXT") return false;
+export const canNextStep: GuardFor<StepsContext, StepsEvents, "STEP.NEXT"> = (ctx, _event) => {
   const current = ctx.step;
   if (ctx.isStepSkippable?.(current) === true) return true;
   const valid = ctx.isStepValid;

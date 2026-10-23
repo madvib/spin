@@ -7,8 +7,8 @@
   });
 </script>
 <div class="w-full" {...machine.getRootProps()}>
-  <label class="mb-1 block text-xs font-medium text-text transition-opacity duration-fast ease-decelerate" {...machine.getLabelProps()}>Skills</label>
-  <div class={["flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1 transition-shadow duration-fast ease-decelerate", ]} {...machine.getControlProps()}>
+  <label class={["mb-1 block text-xs font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]} {...machine.getLabelProps()}>Skills</label>
+  <div class={["flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1 transition-shadow duration-fast ease-decelerate", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]} {...machine.getControlProps()}>
     <template for={machine.getTags()} as={row} key={row.value + ":" + row.occurrence}>
       <span class={["group inline-flex items-center gap-0.5 rounded-sm border border-solid border-border bg-surface py-0.5 pl-1.5 pr-0.5 text-xs text-text transition-colors duration-fast ease-decelerate", { "border-primary": machine.getItemState(row).highlighted, "text-primary": machine.getItemState(row).highlighted }]} {...machine.getItemProps(row)}>
         <span class="inline-flex items-center gap-1" {...machine.getItemPreviewProps(row)}>

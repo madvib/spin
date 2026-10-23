@@ -43,12 +43,12 @@ export function splitter(
       disabled: {},
     },
     on: {
-      SET_SIZE: { assign: (ctx, e) => setSize(ctx, e as never) },
+      SET_SIZE: { assign: (ctx, e) => setSize(ctx, e) },
       RESET_SIZE: { assign: resetSize },
-      COLLAPSE_PANEL: { assign: (ctx, e) => collapsePanel(ctx, e as never) },
-      EXPAND_PANEL: { assign: (ctx, e) => expandPanel(ctx, e as never) },
-      RESIZE_PANEL: { assign: (ctx, e) => resizePanel(ctx, e as never) },
-      SET_PANELS: { assign: (ctx, e) => setPanels(ctx, e as never) },
+      COLLAPSE_PANEL: { assign: (ctx, e) => collapsePanel(ctx, e) },
+      EXPAND_PANEL: { assign: (ctx, e) => expandPanel(ctx, e) },
+      RESIZE_PANEL: { assign: (ctx, e) => resizePanel(ctx, e) },
+      SET_PANELS: { assign: (ctx, e) => setPanels(ctx, e) },
     },
     states: {
       idle: {
@@ -69,14 +69,14 @@ export function splitter(
       focused: {
         on: {
           BLUR: { target: "idle" },
-          ENTER: { assign: (ctx, e) => toggleCollapseOnEnter(ctx, e as never) },
+          ENTER: { assign: (ctx, e) => toggleCollapseOnEnter(ctx, e) },
           POINTER_DOWN: { target: "dragging", assign: startDrag },
-          KEYBOARD_MOVE: { assign: (ctx, e) => keyboardMove(ctx, e as never) },
+          KEYBOARD_MOVE: { assign: (ctx, e) => keyboardMove(ctx, e) },
         },
       },
       dragging: {
         on: {
-          POINTER_MOVE: { assign: (ctx, e) => pointerMove(ctx, e as never) },
+          POINTER_MOVE: { assign: (ctx, e) => pointerMove(ctx, e) },
           POINTER_UP: [
             { cond: isHandleFocused, target: "focused", assign: clearDrag },
             { target: "idle", assign: clearDrag },

@@ -215,6 +215,7 @@ export const def = {
     drawing: { read: (_context, state) => state === "drawing" },
     currentPath: { read: (context: SignaturePadContext) => context.currentPath },
     paths: { read: (context: SignaturePadContext) => [...context.paths] },
+    disabled: { read: (context) => context.disabled === true },
   },
   methods: {
     getDataUrl: {

@@ -69,10 +69,7 @@ export function toggleGroup(
           "TOGGLE.FOCUS_LAST": { assign: (_ctx, event) => ({ focusedId: event.id }) },
           "TOGGLE.SHIFT_TAB": [
             {
-              cond: (ctx, event) => {
-                if (event.type !== "TOGGLE.SHIFT_TAB") return false;
-                return ctx.focusedId !== event.firstId;
-              },
+              cond: (ctx, event) => ctx.focusedId !== event.firstId,
               target: "idle",
               assign: setTabbingBackward,
             },

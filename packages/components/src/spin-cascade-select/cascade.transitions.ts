@@ -4,7 +4,7 @@ import type { CascadeContext } from "./cascade.state.ts";
 import { parsePath, parsePaths } from "./cascade.state.ts";
 
 type CascadeAssign<K extends keyof CascadeEvents = keyof CascadeEvents> = AssignFor<CascadeContext, CascadeEvents, K>;
-type CascadeGuard = GuardFor<CascadeContext, CascadeEvents>;
+type CascadeGuard<K extends keyof CascadeEvents = keyof CascadeEvents> = GuardFor<CascadeContext, CascadeEvents, K>;
 
 const samePath = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((v, i) => v === b[i]);
@@ -27,7 +27,6 @@ export const restoresFocus: CascadeGuard = (_ctx, event) => {
 };
 
 export const setValue: CascadeAssign<"VALUE_SET"> = (ctx, event) => {
-  if (event.type !== "VALUE_SET") return {};
   const paths = parsePaths(event.value);
   return samePaths(ctx.value, paths) ? {} : { value: clonePaths(paths) };
 };
@@ -35,7 +34,6 @@ export const setValue: CascadeAssign<"VALUE_SET"> = (ctx, event) => {
 export const clearValue: CascadeAssign<"VALUE_CLEAR"> = () => ({ value: [] });
 
 export const setHighlightedValue: CascadeAssign<"HIGHLIGHTED_VALUE_SET"> = (ctx, event) => {
-  if (event.type !== "HIGHLIGHTED_VALUE_SET") return {};
   const raw = event.highlightedValue !== undefined ? event.highlightedValue : event.value;
   const path = parsePath(raw);
   return samePath(ctx.highlightedValue, path) ? {} : { highlightedValue: clonePath(path) };
@@ -44,16 +42,14 @@ export const setHighlightedValue: CascadeAssign<"HIGHLIGHTED_VALUE_SET"> = (ctx,
 export const clearHighlightedValue: CascadeAssign = (ctx) =>
   ctx.highlightedValue.length === 0 ? {} : { highlightedValue: [] };
 
-export const selectItem: CascadeAssign<"ITEM_SELECT" | "ITEM_CLICK"> = (ctx, event) => {
-  if (event.type !== "ITEM_SELECT" && event.type !== "ITEM_CLICK") return {};
-  const path = event.value;
+const selectPath = (ctx: CascadeContext, path: readonly string[], hasChildren: boolean): Partial<CascadeContext> => {
   if (ctx.allowParentSelection) {
     return {
       value: [...withoutRelated(ctx.value, path), clonePath(path)],
-      ...(event.hasChildren ? { highlightedValue: clonePath(path) } : {}),
+      ...(hasChildren ? { highlightedValue: clonePath(path) } : {}),
     };
   }
-  if (event.hasChildren) {
+  if (hasChildren) {
     return {
       value: ctx.multiple && ctx.value.length > 0
         ? [...ctx.value.slice(0, -1).map((p) => [...p]), clonePath(path)]
@@ -71,10 +67,12 @@ export const selectItem: CascadeAssign<"ITEM_SELECT" | "ITEM_CLICK"> = (ctx, eve
   return { value: [clonePath(path)] };
 };
 
-export const openWithHighlight: CascadeAssign<"TRIGGER_OPEN"> = (_ctx, event) => {
-  if (event.type !== "TRIGGER_OPEN") return {};
-  return { highlightedValue: clonePath(event.highlight) };
-};
+export const selectItem: CascadeAssign<"ITEM_SELECT" | "ITEM_CLICK"> = (ctx, event) =>
+  selectPath(ctx, event.value, event.hasChildren);
+
+export const openWithHighlight: CascadeAssign<"TRIGGER_OPEN"> = (_ctx, event) => ({
+  highlightedValue: clonePath(event.highlight),
+});
 
 export const highlightSelected: CascadeAssign<"TRIGGER_CLICK"> = (ctx) => {
   const last = ctx.value[ctx.value.length - 1];
@@ -82,28 +80,21 @@ export const highlightSelected: CascadeAssign<"TRIGGER_CLICK"> = (ctx) => {
   return { highlightedValue: clonePath(last) };
 };
 
-export const itemClickCloseGuard: CascadeGuard = (ctx, event) => {
-  if (event.type !== "ITEM_CLICK") return false;
-  return ctx.closeOnSelect && !event.hasChildren && !ctx.multiple;
-};
+export const itemClickCloseGuard: CascadeGuard<"ITEM_CLICK"> = (ctx, event) =>
+  ctx.closeOnSelect && !event.hasChildren && !ctx.multiple;
 
-export const itemClickSelectableGuard: CascadeGuard = (ctx, event) => {
-  if (event.type !== "ITEM_CLICK") return false;
-  return ctx.allowParentSelection || !event.hasChildren;
-};
+export const itemClickSelectableGuard: CascadeGuard<"ITEM_CLICK"> = (ctx, event) =>
+  ctx.allowParentSelection || !event.hasChildren;
 
 export const hoverHighlightGuard: CascadeGuard = (ctx) => ctx.highlightTrigger === "hover";
 
-export const hoverHighlightAssign: CascadeAssign<"ITEM_POINTER_ENTER"> = (_ctx, event) => {
-  if (event.type !== "ITEM_POINTER_ENTER") return {};
-  return { highlightedValue: event.hasChildren ? clonePath(event.value) : event.value.slice(0, -1) };
-};
+export const hoverHighlightAssign: CascadeAssign<"ITEM_POINTER_ENTER"> = (_ctx, event) => ({
+  highlightedValue: event.hasChildren ? clonePath(event.value) : event.value.slice(0, -1),
+});
 
-export const itemClearAssign: CascadeAssign<"ITEM_CLEAR"> = (ctx, event) => {
-  if (event.type !== "ITEM_CLEAR") return {};
-  return ctx.value.some((path) => samePath(path, event.value))
+export const itemClearAssign: CascadeAssign<"ITEM_CLEAR"> = (ctx, event) =>
+  ctx.value.some((path) => samePath(path, event.value))
     ? { value: ctx.value.filter((path) => !samePath(path, event.value)).map((path) => [...path]) }
     : {};
-};
 
 export const clearTriggerAssign: CascadeAssign<"CLEAR_TRIGGER_CLICK"> = () => ({ value: [] });

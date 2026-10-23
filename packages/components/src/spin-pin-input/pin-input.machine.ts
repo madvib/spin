@@ -47,15 +47,15 @@ export function pinInput(
     on: {
       "VALUE.SET": [
         { cond: (_ctx, event) => event.type === "VALUE.SET" && event.index !== undefined, assign: (ctx, event) => {
-          if (event.type !== "VALUE.SET" || event.index === undefined) return {};
+          if (event.index === undefined) return {};
           const chars = viewOf(ctx).chars;
-          const write = getNextValue(chars[ctx.focusedIndex] ?? "", event.value as string);
+          const write = getNextValue(chars[ctx.focusedIndex] ?? "", event.value);
           if (chars[event.index] === write) return {};
           const value = [...chars];
           value[event.index] = write;
           return { value };
         } },
-        { assign: (ctx, event) => event.type === "VALUE.SET" && event.index === undefined
+        { assign: (ctx, event) => event.index === undefined
           ? { value: fill(parseChars(event.value), ctx.count) }
           : {} },
       ],
@@ -70,7 +70,7 @@ export function pinInput(
       focused: {
         on: {
           "INPUT.CHANGE": { assign: [(ctx, event) => {
-            if (event.type !== "INPUT.CHANGE" || ctx.focusedIndex === -1) return {};
+            if (ctx.focusedIndex === -1) return {};
             const chars = viewOf(ctx).chars;
             const write = getNextValue(chars[ctx.focusedIndex] ?? "", event.value);
             const value = [...chars];

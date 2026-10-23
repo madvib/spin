@@ -25,7 +25,6 @@ const clearHighlighted = (): Partial<SelectContext> => ({
 const clearValue = (): Partial<SelectContext> => ({ value: [] });
 
 const selectClicked: SelectAssign<"ITEM.CLICK"> = (ctx, event) => {
-  if (event.type !== "ITEM.CLICK") return {};
   if (ctx.multiple) {
     return {
       value: ctx.value.includes(event.value)

@@ -18,8 +18,8 @@ export const resetTime: TimerAssign<"RESTART" | "RESET"> = (ctx, event) => {
   return { currentMs: ctx.startMs };
 };
 
-export const restartChanged: GuardFor<TimerContext, TimerEvents> = (ctx, event) => {
-  if (event.type !== "RESTART" || event.startMs === undefined) return true;
+export const restartChanged: GuardFor<TimerContext, TimerEvents, "RESTART"> = (ctx, event) => {
+  if (event.startMs === undefined) return true;
   return (parseMs(event.startMs) ?? 0) !== ctx.startMs;
 };
 

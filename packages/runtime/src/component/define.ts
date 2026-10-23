@@ -258,7 +258,7 @@ export interface ComponentDef<
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
-  /** Derived context sync inside the owned effect. */
+  /** Derived context sync inside the owned effect. Runs as `refresh` → `applyContract` → `reconcile` → `settled`: live functions that must stay fresh sync through `scalarsOf`, and post-mount unauthored prop writes never reach context (author config at mount). */
   readonly reconcile?: (args: {
     readonly context: C;
     readonly state: S;
@@ -271,7 +271,7 @@ export interface ComponentDef<
     event: { type: string } & Record<string, unknown>,
     props: Record<string, unknown>,
   ) => { type: string } & Record<string, unknown>;
-  /** Once, after the first connect build: entry focus and mount reflexes. */
+  /** Once, after the first connect build: entry focus and mount reflexes. Receives props only, so mount-time gates like pin-input autoFocus stay props reads intentionally. */
   readonly mounted?: (args: {
     readonly props: Record<string, unknown>;
     readonly root: () => Element;
@@ -279,7 +279,7 @@ export interface ComponentDef<
     readonly focus: (part: string, slot?: unknown) => void;
     readonly measure: (part: string, slot?: unknown) => DOMRect | null;
   }) => void;
-  /** Post-send view reflexes. */
+  /** Post-send view reflexes: the `settled` step of the refresh → applyContract → reconcile → settled pipeline. */
   readonly settled?: (args: {
     readonly event: AnyEvent;
     readonly before: { readonly context: C; readonly state: S };
@@ -291,11 +291,14 @@ export interface ComponentDef<
     readonly measure: (part: string, slot?: unknown) => DOMRect | null;
     readonly send: (event: AnyEvent) => void;
   }) => void;
+  /** Static scalar field names: host writes to these merge into context without an event. */
   readonly scalars?: readonly string[];
+  /** Live scalar values: functions that must stay fresh (async-list load/sortFn) sync through here every effect run. */
   readonly scalarsOf?: (
     parsed: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => Record<string, unknown>;
+  /** Names the commit-kind sends: those report `commit` events, all others report `move`. */
   readonly commitEvents?: readonly (EventUnion<E>["type"] | (string & {}))[];
   readonly init?: InitSpec<C, E>;
   readonly machine?: MachineFactory<C, E, A, S>;

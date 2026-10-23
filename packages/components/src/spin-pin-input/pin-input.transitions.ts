@@ -15,8 +15,7 @@ export const clearFocusedValue = (ctx: PinInputContext): Partial<PinInputContext
   return { value };
 };
 
-export const setFocusedIndex = (ctx: PinInputContext, event: PinInputEvent): Partial<PinInputContext> => {
-  if (event.type !== "INPUT.FOCUS") return {};
+export const setFocusedIndex = (ctx: PinInputContext, event: { index: number }): Partial<PinInputContext> => {
   const view = viewOf(ctx);
   const maxIndex = Math.min(view.filled, view.length - 1);
   return { focusedIndex: Math.min(event.index, maxIndex) };

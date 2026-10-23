@@ -25,7 +25,6 @@ export const setActiveChannel: ColorPickerAssign<"CHANNEL_INPUT.FOCUS"> = (_ctx,
     };
 
 export const setChannelFromInput: ColorPickerAssign<"CHANNEL_INPUT.BLUR" | "CHANNEL_INPUT.CHANGE"> = (ctx, event) => {
-      if (event.type !== "CHANNEL_INPUT.BLUR" && event.type !== "CHANNEL_INPUT.CHANGE") return {};
       const { color } = parse(ctx.value, "#000000");
       if (event.channel === "alpha") {
         const n = parseFloat(event.value);
@@ -44,7 +43,6 @@ export const setChannelFromInput: ColorPickerAssign<"CHANNEL_INPUT.BLUR" | "CHAN
     };
 
 export const setAreaFromPoint: ColorPickerAssign<"AREA.POINTER_DOWN" | "AREA.POINTER_MOVE"> = (ctx, event) => {
-      if (event.type !== "AREA.POINTER_DOWN" && event.type !== "AREA.POINTER_MOVE") return {};
       const { color } = parse(ctx.value, "#000000");
       const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
       const v = color.toFormat(areaFormat);
@@ -55,10 +53,6 @@ export const setAreaFromPoint: ColorPickerAssign<"AREA.POINTER_DOWN" | "AREA.POI
     };
 
 export const setChannelFromPoint: ColorPickerAssign<"CHANNEL_SLIDER.POINTER_DOWN" | "CHANNEL_SLIDER.POINTER_MOVE"> = (ctx, event) => {
-      if (
-        event.type !== "CHANNEL_SLIDER.POINTER_DOWN" &&
-        event.type !== "CHANNEL_SLIDER.POINTER_MOVE"
-      ) return {};
       const { color } = parse(ctx.value, "#000000");
       const next = color.withChannelValue(
         event.channel,
