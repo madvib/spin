@@ -1,16 +1,12 @@
-<script lang="ts">
-  import { navigationMenu } from "../../../src/spin-navigation-menu/navigation-menu.presentation.ts";
+<scope>props={ items: string = "[]", value: string = "", defaultValue: string = "", openDelay: int = 200, closeDelay: int = 300, orientation: string = "horizontal", disabled: bool = false } consume={ navigationMenu }</scope>
 
-  const machine = navigationMenu({items: "[{\"value\": \"docs\", \"label\": \"Docs\"}]"});
-</script>
+<nav class="relative inline-flex" {...navigationMenu.getRootProps()}>
+  <ul class="m-0 flex list-none items-center gap-1 p-0" {...navigationMenu.getListProps()}>
+    <template for={navigationMenu.getItems()} as={row} key={row.value}>
+      <li class="relative" {...navigationMenu.getItemProps(row)}>
+        <a class={["flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": navigationMenu.value === row.value }]} {...navigationMenu.getLinkProps(row)}>{row.label}</a>
 
-<nav class="relative inline-flex" {...machine.getRootProps()}>
-  <ul class="m-0 flex list-none items-center gap-1 p-0" {...machine.getListProps()}>
-    <template for={machine.getItems()} as={row} key={row.value}>
-      <li class="relative" {...machine.getItemProps(row)}>
-        <a class={["flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.value === row.value }]} {...machine.getLinkProps(row)}>{row.label}</a>
-
-        <div class={["absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)]", { "pointer-events-none": machine.value !== row.value, "invisible": machine.value !== row.value, "scale-95": machine.value !== row.value, "opacity-0": machine.value !== row.value }]} {...machine.getItemContentProps(row)}>
+        <div class={["absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate [left:var(--anchor-x,0px)] [top:var(--anchor-y,100%)]", { "pointer-events-none": navigationMenu.value !== row.value, "invisible": navigationMenu.value !== row.value, "scale-95": navigationMenu.value !== row.value, "opacity-0": navigationMenu.value !== row.value }]} {...navigationMenu.getItemContentProps(row)}>
           <p class="m-0 text-xs text-muted">{row.label} panel</p>
         </div>
       </li>

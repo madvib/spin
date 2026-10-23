@@ -1,44 +1,40 @@
-<script lang="ts">
-  import { steps } from "../../../src/spin-steps/steps.presentation.ts";
+<scope>props={ label: string = "Steps", count: int = 0, titles: string = "[]", linear: bool = false, orientation: string = "", defaultStep: string = "", step: string = "" } consume={ steps }</scope>
 
-  const machine = steps({count: 4});
-</script>
-
-<div class="w-full" {...machine.getRootProps()}>
+<div class="w-full" {...steps.getRootProps()}>
   <div class="mb-3 flex items-center justify-between gap-2">
     <span class="text-sm font-medium text-text">Steps</span>
-    <span class="text-xs text-muted">Step {machine.value} of {machine.count}</span>
+    <span class="text-xs text-muted">Step {steps.value} of {steps.count}</span>
   </div>
 
-  <ol class="flex items-start gap-1" {...machine.getListProps()}>
-    <template for={machine.getItems()} as={row} key={row}>
-      <li class="flex min-w-0 flex-1 items-center gap-1 last:flex-none" {...machine.getItemProps(row)}>
+  <ol class="flex items-start gap-1" {...steps.getListProps()}>
+    <template for={steps.getItems()} as={row} key={row}>
+      <li class="flex min-w-0 flex-1 items-center gap-1 last:flex-none" {...steps.getItemProps(row)}>
         <button
-          class={["grid h-7 w-7 shrink-0 place-items-center rounded-full border border-solid border-border bg-surface-raised text-xs font-medium text-muted transition-all duration-fast ease-decelerate hover:border-primary", { "border-primary": machine.getItemState(row).current, "bg-primary": machine.getItemState(row).current, "text-on-primary": machine.getItemState(row).current, "border-primary": machine.getItemState(row).completed, "bg-primary": machine.getItemState(row).completed, "text-on-primary": machine.getItemState(row).completed }]}
-          {...machine.getTriggerProps(row)}
-        ><span aria-hidden="true" {...machine.getIndicatorProps(row)}>{row}</span></button>
-        <span class={["hidden truncate text-xs text-muted sm:block", { "text-text": machine.getItemState(row).current }]} {...machine.getSeparatorProps(row)}>{machine.getItemTitle(row)}</span>
+          class={["grid h-7 w-7 shrink-0 place-items-center rounded-full border border-solid border-border bg-surface-raised text-xs font-medium text-muted transition-all duration-fast ease-decelerate hover:border-primary", { "border-primary": steps.getItemState(row).current, "bg-primary": steps.getItemState(row).current, "text-on-primary": steps.getItemState(row).current, "border-primary": steps.getItemState(row).completed, "bg-primary": steps.getItemState(row).completed, "text-on-primary": steps.getItemState(row).completed }]}
+          {...steps.getTriggerProps(row)}
+        ><span aria-hidden="true" {...steps.getIndicatorProps(row)}>{row}</span></button>
+        <span class={["hidden truncate text-xs text-muted sm:block", { "text-text": steps.getItemState(row).current }]} {...steps.getSeparatorProps(row)}>{steps.getItemTitle(row)}</span>
       </li>
     </template>
   </ol>
 
   <div
     class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-sunken"
-    {...machine.getProgressProps()}
-  ><div class="h-full rounded-full bg-primary transition-all duration-fast ease-decelerate" {...machine.getProgressFillProps()}></div></div>
+    {...steps.getProgressProps()}
+  ><div class="h-full rounded-full bg-primary transition-all duration-fast ease-decelerate" {...steps.getProgressFillProps()}></div></div>
 
-  <div class="mt-3 hidden" {...machine.getContentProps(machine.value)}>
-    <p class="rounded-md border border-solid border-border bg-surface-raised p-3 text-sm text-text">{machine.getItemTitle(machine.value)}</p>
+  <div class="mt-3 hidden" {...steps.getContentProps(steps.value)}>
+    <p class="rounded-md border border-solid border-border bg-surface-raised p-3 text-sm text-text">{steps.getItemTitle(steps.value)}</p>
   </div>
 
   <div class="mt-3 flex items-center gap-2">
     <button
       class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50"
-      {...machine.getPrevTriggerProps()}
+      {...steps.getPrevTriggerProps()}
     >Back</button>
     <button
       class="rounded-md border border-solid border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-on-primary transition-colors duration-fast ease-decelerate hover:opacity-90 disabled:opacity-50"
-      {...machine.getNextTriggerProps()}
+      {...steps.getNextTriggerProps()}
     >Next</button>
   </div>
 </div>

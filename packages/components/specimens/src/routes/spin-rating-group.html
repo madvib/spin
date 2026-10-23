@@ -1,24 +1,20 @@
-<script lang="ts">
-  import { ratingGroup } from "../../../src/spin-rating-group/rating-group.presentation.ts";
+<scope>props={ label: string = "Rating", name: string = "", form: string = "", count: int = 5, allowHalf: bool = false, disabled: bool = false, readOnly: bool = false, required: bool = false, defaultValue: string = "", value: string = "" } consume={ ratingGroup }</scope>
 
-  const machine = ratingGroup({label: "Rating", count: 5});
-</script>
-
-<div class="w-full" {...machine.getRootProps()}>
+<div class="w-full" {...ratingGroup.getRootProps()}>
   <label
-    class={["mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
-    {...machine.getLabelProps()}>Rating</label>
+    class={["mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": ratingGroup.disabled }]}
+    {...ratingGroup.getLabelProps()}>{label}</label>
 
   <div
     class="flex items-center gap-1"
-    {...machine.getControlProps()}
+    {...ratingGroup.getControlProps()}
   >
-    <template for={machine.getItems()} as={row} key={row}>
+    <template for={ratingGroup.getItems()} as={row} key={row}>
       <span
-        class={["grid h-7 w-7 cursor-pointer place-items-center rounded-md text-xl text-muted transition-all duration-fast ease-decelerate hover:scale-110", { "text-semantic-warning": machine.getItemState(row).highlighted, "text-semantic-warning": machine.getItemState(row).checked, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled, "cursor-default": machine.readOnly }]}
-        {...machine.getItemProps(row)}
+        class={["grid h-7 w-7 cursor-pointer place-items-center rounded-md text-xl text-muted transition-all duration-fast ease-decelerate hover:scale-110", { "text-semantic-warning": ratingGroup.getItemState(row).highlighted, "text-semantic-warning": ratingGroup.getItemState(row).checked, "cursor-not-allowed": ratingGroup.disabled, "opacity-50": ratingGroup.disabled, "cursor-default": ratingGroup.readOnly }]}
+        {...ratingGroup.getItemProps(row)}
       ><span aria-hidden="true">★</span></span>
     </template>
   </div>
-  <input {...machine.getHiddenInputProps()} />
+  <input {...ratingGroup.getHiddenInputProps()} />
 </div>
