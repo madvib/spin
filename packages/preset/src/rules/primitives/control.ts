@@ -79,12 +79,12 @@ function checkboxRule(): Rule {
         appearance: "none",
         display: "inline-block",
         position: "relative",
-        // A drawn control opts out of the field box's full width and padding
-        // by declaring them itself, rather than by being listed in a selector
-        // more specific than its own rule — which would win and delete the
-        // size declared just above.
+        // The field box pads every text-like input, and it states the control
+        // height floor. A checkbox is a drawn box of its own size: it takes
+        // both back, or the floor would stretch a 16px square to 34px.
         padding: "0",
         width: "auto",
+        "min-height": "0",
         // `vertical-align: middle` aligns to the baseline plus half an
         // x-height, which lands a box half a pixel off the line's centre
         // against a fractional font size. These are controls, not inline
@@ -278,10 +278,12 @@ function switchRule(): Rule {
       const shell: Record<string, string | undefined> = {
         appearance: "none",
         display: "inline-grid",
-        // As with the checkbox: the field box's width and padding are undone
-        // here, on this rule, because this rule is what knows the size.
+        // As with the checkbox: the field box's width, padding and height
+        // floor are undone here, on this rule, because this rule is what
+        // knows the track's size.
         padding: "0",
         width: "auto",
+        "min-height": "0",
         "grid-template-columns": "0fr 1fr 1fr",
         position: "relative",
         cursor: "pointer",

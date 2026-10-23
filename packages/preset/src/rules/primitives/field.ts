@@ -64,6 +64,18 @@ export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
 export const FIELDS = ":is(input, select, textarea)";
 
 /**
+ * The fields that are one line of text and therefore one control height.
+ *
+ * A textarea is a box of prose and grows with its lines; a checkbox, radio
+ * and range are drawn controls with sizes of their own; a submit, reset,
+ * button, file, image or hidden input is not a text field at all. What is
+ * left is the set whose height is the button's: one line, one padding step,
+ * one border.
+ */
+export const CONTROL_FIELDS =
+  ':is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="file"]):not([type="image"]):not([type="hidden"]), select)';
+
+/**
  * The types that need opting out of the field box entirely.
  *
  * Only the ones with no box of their own: a submit button is a button, an
@@ -122,6 +134,16 @@ export function fieldBox(): Rule {
         "background-color": field,
         "border-radius": radius,
         width: "100%",
+        // The control-height floor, from the same three theme values the
+        // button derives it from: a field beside a button is the same object
+        // at the same height, in every starter, whatever the theme's leading.
+        ...(fontSize !== undefined && spacing2 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            "min-height":
+              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+          }
+          : {}),
       };
       // The border shorthand is stated only when both halves resolve, so a
       // theme missing either states no border rather than an incomplete one.
@@ -160,6 +182,24 @@ export function fieldBox(): Rule {
       yield {
         [context.symbols.selector]: () => FIELDS,
         ...box,
+      };
+
+      // The single-line fields set their own leading and their own height. A
+      // control's line box is the control's, not the document's: inherited
+      // leading made an input taller than every button beside it. `height`
+      // rather than `min-height`, because a text input's inner editor keeps a
+      // floor of its own font metrics even when the line box is smaller — the
+      // one declaration that makes the box the height the theme asked for.
+      yield {
+        [context.symbols.selector]: () => CONTROL_FIELDS,
+        "line-height": "1",
+        ...(fontSize !== undefined && spacing2 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            height:
+              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+          }
+          : {}),
       };
 
       // The box types lay out their own contents and must not be padded or

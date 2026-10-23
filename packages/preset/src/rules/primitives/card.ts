@@ -155,8 +155,16 @@ function cardSurface(card: string): Rule {
 }
 
 /**
- * The header: a wrapping row so a long title and a trailing action share a
- * line without either forcing the other to wrap.
+ * The header: a two-column grid, so the text and the trailing action have
+ * one job each.
+ *
+ * The row used to be a wrapping flex row, which put the action wherever the
+ * title and description happened to end: a long description pushed a badge
+ * onto a second line under the text, and a short one left the badge floating
+ * mid-header. A grid states the relationship instead — the title and its
+ * description share one column, and the action holds the trailing column on
+ * the title's line. A header with no action leaves the second column empty;
+ * a header with no description leaves the second row empty.
  */
 function cardHeader(mode: Mode): Rule {
   return [
@@ -165,9 +173,9 @@ function cardHeader(mode: Mode): Rule {
       const { spacing } = cardTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-header"),
-        display: "flex",
-        "flex-wrap": "wrap",
-        "align-items": "center",
+        display: "grid",
+        "grid-template-columns": "minmax(0, 1fr) auto",
+        "align-items": "start",
         ...(spacing !== undefined ? { gap: spacing } : {}),
         ...(spacing !== undefined
           ? {
@@ -189,6 +197,8 @@ function cardTitle(mode: Mode): Rule {
       const { sizeLg, weightSemibold, text } = cardTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-title"),
+        "grid-column": "1",
+        "min-width": "0",
         ...(sizeLg !== undefined ? { "font-size": sizeLg } : {}),
         ...(weightSemibold !== undefined
           ? { "font-weight": weightSemibold }
@@ -207,6 +217,8 @@ function cardDescription(mode: Mode): Rule {
       const { sizeSm, muted } = cardTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-description"),
+        "grid-column": "1",
+        "min-width": "0",
         ...(sizeSm !== undefined ? { "font-size": sizeSm } : {}),
         ...(muted !== undefined ? { color: muted } : {}),
       };
@@ -216,9 +228,8 @@ function cardDescription(mode: Mode): Rule {
 }
 
 /**
- * The trailing slot. The auto inline-start margin is what pushes it to the
- * end of the header's row — the one value in card that is a keyword rather
- * than a token, because no theme states how far a header's action sits.
+ * The trailing slot. The grid's second column is what puts it on the title's
+ * line — no auto margin, no dependence on the heading's width.
  *
  * It WRAPS, like the header it sits in: the slot holds controls, and a slot
  * of controls that is wider than the card pushes them out of it. A card that
@@ -231,10 +242,11 @@ function cardAction(mode: Mode): Rule {
       const { spacing } = cardTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-action"),
+        "grid-column": "2",
+        "grid-row": "1",
         display: "flex",
         "flex-wrap": "wrap",
         "align-items": "center",
-        "margin-inline-start": "auto",
         ...(spacing !== undefined ? { gap: spacing } : {}),
       };
     },

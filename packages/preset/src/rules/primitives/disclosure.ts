@@ -44,9 +44,11 @@ export function disclosureRules(
 interface Tokens {
   readonly spacing2: string | undefined;
   readonly radius: string | undefined;
+  readonly radiusSm: string | undefined;
   readonly text: string | undefined;
   readonly muted: string | undefined;
   readonly raised: string | undefined;
+  readonly sunken: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
   readonly weightSemibold: string | undefined;
@@ -65,9 +67,11 @@ function tokens(ctx: ThemeContext | undefined): Tokens {
   return {
     spacing2: token(ctx, "spacing.2"),
     radius: token(ctx, "radius.md"),
+    radiusSm: token(ctx, "radius.sm"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
     raised: token(ctx, "color.surface-raised"),
+    sunken: token(ctx, "color.surface-sunken"),
     border: token(ctx, "color.border"),
     borderWidth: token(ctx, "border.width"),
     weightSemibold: token(ctx, "font.weight.semibold"),
@@ -94,6 +98,12 @@ function detailsRule(details: string, summary: string): Rule {
         // property is inherited, so stating it here lets the content box
         // below spend `auto` as a length rather than as a jump.
         "interpolate-size": "allow-keywords",
+        // A disclosure is a block-width surface, not a box sized by its
+        // summary. Left to its content it is narrow while closed and wide
+        // while open, so opening one pulled the line sideways; the width is
+        // the line's, and the reveal moves only vertically.
+        "inline-size": "100%",
+        "min-inline-size": "0",
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { border: `${t.borderWidth} solid ${t.border}` }
           : {}),
@@ -190,6 +200,7 @@ function summaryRule(summary: string, details: string): Rule {
         "flex-wrap": "wrap",
         "align-items": "center",
         ...(t.spacing2 !== undefined ? { gap: t.spacing2 } : {}),
+        ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
         cursor: "pointer",
         // Firefox. The webkit marker is a pseudo-element and needs its own
         // declaration below; there is no spelling that reaches both at once,
@@ -206,6 +217,18 @@ function summaryRule(summary: string, details: string): Rule {
         ...(t.easing !== undefined
           ? { "transition-timing-function": t.easing }
           : {}),
+        ...(t.duration !== undefined
+          ? { "transition-property": "background-color, color" }
+          : {}),
+      };
+
+      // The row is the control, so pointing at it says so before the press.
+      // The fill is the sunken surface — the page's own step below the card —
+      // and it stops at the summary's own corners rather than bleeding to the
+      // surface edge, so the row reads as a row inside the disclosure.
+      yield {
+        [ctx.symbols.selector]: () => `${summary}:hover`,
+        ...(t.sunken !== undefined ? { "background-color": t.sunken } : {}),
       };
 
       yield {
@@ -236,22 +259,24 @@ function summaryRule(summary: string, details: string): Rule {
       // Which angle points which way was measured rather than reasoned about.
       // A square showing its right and bottom borders has one corner at the
       // lower right: 45° points it straight DOWN, and a quarter further
-      // (-45°) points it RIGHT — not up. Rotating from a downward chevron
-      // cannot reach an upward one, because the shape is symmetric about the
-      // diagonal it sits on. So the two states use the two angles that do
-      // exist and differ by ninety degrees, and the whole indicator turns
-      // between them, which is what reads as "opened" regardless of which
-      // direction it lands on.
+      // (-45°) points it RIGHT. A collapsed disclosure points at its label's
+      // continuation — right — and an open one points down at the content it
+      // has revealed, which is the direction every disclosure in every
+      // library reads.
       const chevron: Record<string, string | undefined> = {
         content: '""',
         display: "block",
         flex: "none",
+        // The indicator is the row's trailing edge, not a glyph that follows
+        // the label: at the end it reads as the control's state, and it stays
+        // there whether the label is one word or twenty.
+        "margin-inline-start": "auto",
         width: "0.375em",
         height: "0.375em",
         "border-inline-end": "1.5px solid",
         "border-block-end": "1.5px solid",
         ...(t.muted !== undefined ? { "border-color": t.muted } : {}),
-        rotate: "45deg",
+        rotate: "-45deg",
       };
       if (t.duration !== undefined) {
         Object.assign(chevron, {
@@ -275,7 +300,7 @@ function summaryRule(summary: string, details: string): Rule {
       // overridden entirely.
       yield {
         [ctx.symbols.selector]: () => `${details}[open] > ${summary}::after`,
-        rotate: "-45deg",
+        rotate: "45deg",
       };
     },
     { layer: "primitives", autocomplete: "summary" },

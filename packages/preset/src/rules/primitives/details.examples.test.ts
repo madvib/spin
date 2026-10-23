@@ -15,7 +15,7 @@ import { DETAILS_EXAMPLES } from "./details.examples.ts";
 const STRUCTURAL = new Set([
   "flex",
   "flex-wrap",
-  "items-center",
+  "items-start",
   "gap-2",
 ]);
 

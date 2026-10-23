@@ -6,6 +6,7 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { cssVarName, ELEMENT_ROLES } from "@spin/theme";
+import { starterThemes } from "@spin/theme/themes";
 import { spinPreset } from "../src/index.ts";
 import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
 
@@ -156,39 +157,62 @@ Deno.test("a theme that omits an element's token gets the shared scale's answer"
 });
 
 Deno.test("a theme that omits avatar, icon and badge tokens still dresses them from the shared scales", async () => {
-  const without = structuredClone(theme);
-  delete without["avatar"];
-  delete without["icon"];
-  delete without["badge"];
+  // The fallbacks are a contract with the SHARED scales, and the shared scales
+  // are every starter's. A fallback that worked in silk and fell through in
+  // synthwave would be a component that changes shape with the theme.
+  for (const [name, document] of Object.entries(starterThemes)) {
+    const without = structuredClone(
+      document as Record<string, unknown>,
+    );
+    delete without["avatar"];
+    delete without["icon"];
+    delete without["badge"];
 
-  const avatar = yieldsFor(
-    await generate('<div class="avatar"></div>', without),
-    "avatar",
-  );
-  assertEquals(
-    avatar.find((y) => "width" in y.body)?.body["width"],
-    "var(--spacing-10)",
-    "an avatar with no avatar.md token falls back to spacing.10",
-  );
+    const avatar = yieldsFor(
+      await generate('<div class="avatar"></div>', without),
+      "avatar",
+    );
+    assertEquals(
+      avatar.find((y) => "width" in y.body)?.body["width"],
+      "var(--spacing-10)",
+      `${name}: an avatar with no avatar.md token falls back to spacing.10`,
+    );
 
-  const icon = yieldsFor(
-    await generate('<span class="icon-md"></span>', without),
-    "icon-md",
-  );
-  assertEquals(
-    icon.find((y) => "font-size" in y.body)?.body["font-size"],
-    "var(--font-size-md)",
-    "an icon with no icon.md token falls back to font.size.md",
-  );
+    const icon = yieldsFor(
+      await generate('<span class="icon-md"></span>', without),
+      "icon-md",
+    );
+    assertEquals(
+      icon.find((y) => "font-size" in y.body)?.body["font-size"],
+      "var(--font-size-md)",
+      `${name}: an icon with no icon.md token falls back to font.size.md`,
+    );
 
+    const badge = yieldsFor(
+      await generate("<badge>Tag</badge>", without),
+      "badge",
+    );
+    assertEquals(
+      badge.find((y) => "border" in y.body)?.body["border"],
+      "var(--border-width) solid var(--color-border)",
+      `${name}: a badge with no badge.edge token falls back to border.width`,
+    );
+  }
+});
+
+Deno.test("the info badge wears the ink on the info fill", async () => {
+  // Info is the fourth status a product actually uses, and it is a required
+  // role with its own ink. A badge that reached for the primary fill for an
+  // informational status would be saying "this is the action" instead.
   const badge = yieldsFor(
-    await generate("<badge>Tag</badge>", without),
-    "badge",
+    await generate('<badge class="badge-info">Heads up</badge>', theme),
+    "badge-info",
   );
-  assertEquals(
-    badge.find((y) => "border" in y.body)?.body["border"],
-    "var(--border-width) solid var(--color-border)",
-    "a badge with no badge.edge token falls back to border.width",
+  assert(
+    badge.some((yield_) =>
+      yield_.body["color"] === "var(--color-on-semantic-info)"
+    ),
+    "the info badge wears the ink on the info fill",
   );
 });
 

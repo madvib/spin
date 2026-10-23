@@ -199,6 +199,42 @@ export function dialogRules(
             }
             : {}),
         };
+
+        // The entrance and the exit. A top-layer element has no previous
+        // style to transition from on its first open, so `@starting-style`
+        // supplies the "before"; `allow-discrete` on `overlay` and `display`
+        // is what lets the panel leave the top layer over the duration rather
+        // than vanish at the moment `close()` runs. Both are progressive:
+        // an engine that knows neither still opens and closes the dialog.
+        if (t.duration !== undefined) {
+          yield {
+            [ctx.symbols.selector]: () => `${dialog}[open]`,
+            opacity: "1",
+            transform: "translateY(0) scale(1)",
+            "transition-property": "opacity, transform, overlay, display",
+            "transition-behavior": "allow-discrete",
+            "transition-duration": t.duration,
+            "transition-timing-function": t.easing ?? "linear",
+          };
+          yield {
+            [ctx.symbols.parent]: "@starting-style",
+            [ctx.symbols.selector]: () => `${dialog}[open]`,
+            opacity: "0",
+            transform: "translateY(-0.5rem) scale(0.98)",
+          };
+          yield {
+            [ctx.symbols.selector]: () => `${dialog}[open]::backdrop`,
+            "transition-property": "opacity, overlay, display",
+            "transition-behavior": "allow-discrete",
+            "transition-duration": t.duration,
+            "transition-timing-function": t.easing ?? "linear",
+          };
+          yield {
+            [ctx.symbols.parent]: "@starting-style",
+            [ctx.symbols.selector]: () => `${dialog}[open]::backdrop`,
+            opacity: "0",
+          };
+        }
       },
       { layer: "primitives", autocomplete: "dialog" },
     ],

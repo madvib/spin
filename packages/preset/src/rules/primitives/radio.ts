@@ -43,6 +43,9 @@ export function radioRules(roots: readonly string[]): Rule[] {
           "vertical-align": "middle",
           cursor: "pointer",
           flex: "none",
+          // The field box's control-height floor is for text: a radio is a
+          // circle of its own size, and the floor would stretch it.
+          "min-height": "0",
           // A circle, from its own box: half the size. `radius.md` on a 20px
           // control is a squircle.
           ...(size !== undefined

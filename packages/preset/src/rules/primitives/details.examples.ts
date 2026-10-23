@@ -17,7 +17,7 @@ export interface DetailsExample {
 }
 
 const row = (inner: string): string =>
-  `<div class="flex flex-wrap items-center gap-2">
+  `<div class="flex flex-wrap items-start gap-2">
 ${inner}
         </div>`;
 
@@ -70,7 +70,7 @@ export const DETAILS_EXAMPLES: readonly DetailsExample[] = [
   },
   {
     name: "In a group",
-    html: `        <span class="flex flex-wrap items-center gap-2" role="group">
+    html: `        <span class="flex flex-wrap items-start gap-2" role="group">
           <details>
             <summary>Succeeded</summary>
             <p>Finished in 4m 12s.</p>

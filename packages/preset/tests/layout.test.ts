@@ -2,6 +2,7 @@ import { assert, assertEquals } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
+import { CONTROL_FIELDS } from "../src/rules/primitives/field.ts";
 import { starterThemes } from "@spin/theme/themes";
 
 /**
@@ -164,6 +165,145 @@ Deno.test("a summary's row wraps the label it cannot fit", async () => {
   );
 });
 
+Deno.test("a disclosure takes the line it is given, so opening it does not reflow the page", async () => {
+  // A disclosure is a block-width surface. Left to its own content it is as
+  // wide as its summary while closed and as wide as its body while open, so
+  // opening one pulled the whole line sideways — the X half of the layout
+  // shift. The width is the line's, and the reveal moves only vertically.
+  const css = await sheetFor(
+    "<details><summary>Deploy</summary><p>Body</p></details>",
+  );
+  assertEquals(
+    declarationsFor(css, "details")["inline-size"],
+    "100%",
+    "the disclosure owns the width of the line it sits in",
+  );
+});
+
+Deno.test("a disclosure's indicator sits at the end of its row", async () => {
+  // The chevron is the state of the whole row, not a glyph after the label:
+  // at the end it reads as the row's control, and it stays there when the
+  // label is short or long.
+  const css = await sheetFor("<details><summary>Deploy</summary></details>");
+  assertEquals(
+    declarationsFor(css, "summary::after")["margin-inline-start"],
+    "auto",
+    "the indicator is the row's trailing edge",
+  );
+});
+
+Deno.test("a disclosure's indicator points at the content when it opens", async () => {
+  // Collapsed, the chevron points right — at the label's continuation.
+  // Open, it points down — at the content it has revealed. The two are a
+  // quarter turn apart, and the turn is the state a reader sees.
+  const css = await sheetFor("<details><summary>Deploy</summary></details>");
+  assertEquals(
+    declarationsFor(css, "summary::after")["rotate"],
+    "-45deg",
+    "collapsed points right",
+  );
+  assertEquals(
+    declarationsFor(css, "details[open] > summary::after")["rotate"],
+    "45deg",
+    "open points down",
+  );
+});
+
+Deno.test("a card's header stacks its text beside a trailing action", async () => {
+  // The header is a grid, not a wrapping flex row: a title and its
+  // description share one column, and the action holds the trailing column
+  // on the title's line. The flex row put the action wherever the text
+  // happened to end, which is how a badge ended up under the description.
+  const css = await sheetFor(
+    "<card><card-header><card-title>Deploy</card-title><card-description>Running</card-description><card-action><button>Go</button></card-action></card-header></card>",
+  );
+  assertEquals(declarationsFor(css, "card-header")["display"], "grid");
+  assertEquals(
+    declarationsFor(css, "card-header")["grid-template-columns"],
+    "minmax(0, 1fr) auto",
+    "the text takes the room and the action takes what it needs",
+  );
+  assertEquals(
+    declarationsFor(css, "card-title")["grid-column"],
+    "1",
+    "the title leads the text column",
+  );
+  assertEquals(
+    declarationsFor(css, "card-description")["grid-column"],
+    "1",
+    "the description sits under the title, not beside the action",
+  );
+  assertEquals(
+    declarationsFor(css, "card-action")["grid-column"],
+    "2",
+    "the action is the trailing column",
+  );
+  assertEquals(
+    declarationsFor(css, "card-action")["grid-row"],
+    "1",
+    "and it holds the title's line",
+  );
+});
+
+Deno.test("a field and a button share one control height", async () => {
+  // The two controls sit in the same rows — a search field beside its submit,
+  // a form's input above its button — and they used to be two different
+  // heights: the button's line box is the type size, the field's was the
+  // browser's normal leading. A row of controls that do not line up reads as
+  // assembled rather than designed. Both now state the same floor, from the
+  // same three theme values.
+  const css = await sheetFor("<input><button>Deploy</button>");
+  const field = declarationsFor(css, ":is(input, select, textarea)");
+  const button = declarationsFor(
+    css,
+    ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])',
+  );
+  assert(
+    field["min-height"] !== undefined,
+    "the field states a control-height floor",
+  );
+  assertEquals(
+    field["min-height"],
+    button["min-height"],
+    "the field and the button derive the same floor",
+  );
+  assertEquals(
+    declarationsFor(css, CONTROL_FIELDS)["height"],
+    button["min-height"],
+    "the single-line field lands on that same height",
+  );
+});
+
+Deno.test("a single-line field sets its own leading", async () => {
+  // A text field's line box is the control's, not the document's: inherited
+  // leading made an input taller than every button beside it. A textarea
+  // keeps the prose leading, because its lines are prose.
+  const css = await sheetFor("<input><select></select><textarea></textarea>");
+  assertEquals(
+    declarationsFor(css, CONTROL_FIELDS)["line-height"],
+    "1",
+    "input and select set a control line box",
+  );
+});
+
+Deno.test("a dialog arrives over its backdrop instead of appearing", async () => {
+  // The panel is in the top layer and has no previous style on its first
+  // open, so the entrance needs an explicit "before". The exit needs the two
+  // discrete properties in the transition, or `close()` removes the panel at
+  // the moment it starts leaving.
+  const css = await sheetFor("<dialog><p>Hi</p></dialog>");
+  const open = declarationsFor(css, "dialog[open]");
+  assertEquals(
+    open["transition-property"],
+    "opacity, transform, overlay, display",
+  );
+  assertEquals(open["transition-behavior"], "allow-discrete");
+  assert(
+    css.includes("@starting-style"),
+    "the panel needs a before-state to arrive from",
+  );
+});
+
 Deno.test("a row of stats wraps when the type scale outgrows it", async () => {
   // The width a row of stats needs is the theme's type scale, and nothing
   // else absorbs the difference: a row that did not wrap shrank the stats
@@ -231,7 +371,7 @@ Deno.test("the layout contract holds in every theme", async () => {
       Record<string, unknown>
     >)[name];
     const css = await sheetFor(
-      "<card><card-footer><button>Deploy</button></card-footer></card>" +
+      "<card><card-header><card-title>Deploy</card-title></card-header><card-footer><button>Deploy</button></card-footer></card>" +
         '<div class="stat-row"><div class="stat"></div></div>' +
         "<table><tbody><tr><td>checkout-api</td></tr></tbody></table>" +
         "<dialog><footer><button>Deploy</button></footer></dialog>" +
@@ -262,6 +402,16 @@ Deno.test("the layout contract holds in every theme", async () => {
       declarationsFor(css, "summary")["flex-wrap"],
       "wrap",
       `${name}: the summary's row wraps`,
+    );
+    assertEquals(
+      declarationsFor(css, "details")["inline-size"],
+      "100%",
+      `${name}: the disclosure owns the line's width`,
+    );
+    assertEquals(
+      declarationsFor(css, "card-header")["display"],
+      "grid",
+      `${name}: the card's header is a grid`,
     );
   }
 });

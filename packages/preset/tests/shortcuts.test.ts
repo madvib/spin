@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { spinPreset, spinShortcuts } from "../src/index.ts";
+import { spinPreset } from "../src/index.ts";
 
 /**
  * The project's own shortcuts.
@@ -69,11 +69,14 @@ Deno.test("a shortcut spends the theme's spacing, not a number", async () => {
 
 Deno.test("a shortcut the markup never uses ships nothing", async () => {
   const css = await sheet(
-    { themes: { light: theme }, shortcuts: { stack: "flex flex-col gap-4" } },
+    {
+      themes: { light: theme },
+      shortcuts: { "my-stack": "flex flex-col gap-4" },
+    },
     '<div class="p-4"></div>',
   );
   assertEquals(
-    css.includes(".stack{"),
+    css.includes(".my-stack{"),
     false,
     "an unused shortcut is still in the sheet",
   );
@@ -82,18 +85,18 @@ Deno.test("a shortcut the markup never uses ships nothing", async () => {
 Deno.test("a project without shortcuts composes nothing of its own", async () => {
   const css = await sheet(
     { themes: { light: theme } },
-    '<div class="stack"></div>',
+    '<div class="my-stack"></div>',
   );
   assertEquals(
-    css.includes(".stack{"),
+    css.includes(".my-stack{"),
     false,
     "a class the project did not declare generated a rule",
   );
 });
 
-Deno.test("spinShortcuts provides the standard layout and surface compositions", async () => {
+Deno.test("the standard compositions ship with the preset", async () => {
   const css = await sheet(
-    { themes: { light: theme }, shortcuts: spinShortcuts },
+    { themes: { light: theme } },
     '<div class="stack-sm split panel overline"></div>',
   );
   assert(declarationsOf(css, ".stack-sm").includes("gap:var(--spacing-2)"));

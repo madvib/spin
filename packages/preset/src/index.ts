@@ -42,6 +42,7 @@ import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { transitionDurations } from "./rules/transitions.ts";
+import { spinShortcuts } from "./shortcuts.ts";
 import {
   elementExtractor,
   typeExtractor,
@@ -180,9 +181,10 @@ export interface SpinPresetOptions {
    * spends `gap-4` spends the theme's spacing step, so a theme that prefers
    * roomier sections sets it once and every shortcut follows.
    *
-   * The name is what a shortcut buys, and it is worth what it costs: a page
-   * that says `stack` says what it means, and the composition behind the word
-   * is declared once.
+   * The product's own compositions — `stack`, `row`, `split`, `panel`,
+   * `overline` and their steps — ship with the preset. A project's shortcuts
+   * are layered on top, so a name can be specialised but never has to be
+   * restated.
    */
   readonly shortcuts?: UserShortcuts;
 }
@@ -261,11 +263,12 @@ const factory = definePreset(
       name: "spin",
       theme,
       variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
-      // The project's own compositions. They ride the preset rather than the
-      // generator's own config so that everything that wires spin — the
-      // plugin, a consumer calling `spinPreset()` directly — carries the
-      // project's vocabulary with it.
-      shortcuts: options.shortcuts,
+      // The product's own compositions, and the project's on top. The
+      // standard ones — `stack`, `row`, `split`, `panel`, `overline` — are
+      // the preset's vocabulary, so every app that draws a page reads the
+      // same set whether or not its config names them. A project's own ride
+      // the preset too, so everything that wires spin carries them.
+      shortcuts: { ...spinShortcuts, ...options.shortcuts },
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.

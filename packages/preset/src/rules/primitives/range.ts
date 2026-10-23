@@ -114,6 +114,9 @@ function rangeRule(): Rule {
         appearance: "none",
         "-webkit-appearance": "none",
         "-moz-appearance": "none",
+        // The field box's height floor belongs to text fields; a slider is a
+        // groove of its own height.
+        "min-height": "0",
         ...(groove !== undefined ? { height: groove } : {}),
         background: "transparent",
         cursor: "pointer",
