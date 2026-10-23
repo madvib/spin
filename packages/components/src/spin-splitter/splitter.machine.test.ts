@@ -2,11 +2,11 @@ import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
-import { parsePanels } from "./splitter.machine.ts";
+import { parsePanels } from "./splitter.state.ts";
 import { splitter } from "./splitter.presentation.ts";
 const createSplitterBridge = splitter.createBridge;
 import type { SplitterApi } from "./splitter.presentation.ts";
-import type { SplitterResizeDetails } from "./splitter.machine.ts";
+import type { SplitterResizeDetails } from "./splitter.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

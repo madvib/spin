@@ -103,9 +103,9 @@ const CHANNELS: readonly string[] = ["hue", "saturation", "brightness", "lightne
 const isChannel = (raw: unknown): raw is ColorChannel =>
   typeof raw === "string" && (CHANNELS as readonly string[]).includes(raw);
 
-const areaChannels = (props: unknown): { x: ColorChannel; y: ColorChannel } => {
-  const x: unknown = isRecord(props) ? props["xChannel"] : undefined;
-  const y: unknown = isRecord(props) ? props["yChannel"] : undefined;
+const areaChannels = (slot: unknown): { x: ColorChannel; y: ColorChannel } => {
+  const x: unknown = isRecord(slot) ? slot["xChannel"] : undefined;
+  const y: unknown = isRecord(slot) ? slot["yChannel"] : undefined;
   return {
     x: isChannel(x) ? x : "saturation",
     y: isChannel(y) ? y : "brightness",
@@ -259,10 +259,10 @@ const onChannelKeydown = (scope: ScopeLike, event: KeyboardEvent, channel: Color
   }
 };
 
-const swatchState = (scope: ScopeLike, props: SwatchSlotProps): ColorPickerItemState => ({
-  value: props.value,
-  disabled: scope.context.disabled === true || props.disabled === true,
-  checked: scope.context.value.toLowerCase() === props.value.toLowerCase(),
+const swatchState = (scope: ScopeLike, slot: SwatchSlotProps): ColorPickerItemState => ({
+  value: slot.value,
+  disabled: scope.context.disabled === true || slot.disabled === true,
+  checked: scope.context.value.toLowerCase() === slot.value.toLowerCase(),
 });
 
 const channelValueOf = (
@@ -677,7 +677,7 @@ export const def = {
     hiddenInput: {
       id: "hidden-input",
       attrs: (scope: ScopeLike) => {
-        const name = propText(scope.props["name"]);
+        const name = scope.context.name ?? "";
         return {
           type: "text",
           name: name.length > 0 ? name : undefined,

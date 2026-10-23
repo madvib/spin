@@ -112,7 +112,7 @@ export const def = {
     root: {
       attrs: (scope) => ({
         id: scope.id(""),
-        "data-disabled": dataAttr(scope.props["disabled"] === true),
+        "data-disabled": dataAttr(scope.context.disabled === true),
         dir: "ltr",
       }),
     },
@@ -125,7 +125,7 @@ export const def = {
       attrs: (scope) => {
         const focused = scope.state === "focused";
         const dragging = scope.state === "dragging";
-        const disabled = scope.props["disabled"] === true;
+        const disabled = scope.context.disabled === true;
         return {
           id: scope.id("dropzone"),
           tabIndex: disabled ? undefined : 0,
@@ -165,7 +165,7 @@ export const def = {
           multiple: ctx.multiple,
           webkitdirectory: ctx.directory ? true : undefined,
           accept: ctx.accept.length > 0 ? ctx.accept : undefined,
-          disabled: scope.props["disabled"],
+          disabled: scope.context.disabled,
           hidden: true,
           onChange: (event: Event): void => {
             const node = event.target;
@@ -224,7 +224,7 @@ export const def = {
         return {
           id: scope.id("itemDeleteTrigger", row.value),
           "aria-label": `Remove ${row.value}`,
-          "data-disabled": dataAttr(scope.props["disabled"] === true),
+          "data-disabled": dataAttr(scope.context.disabled === true),
           ...deleteHandlerFor(scope, row),
         };
       },

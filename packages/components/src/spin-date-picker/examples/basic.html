@@ -1,3 +1,6 @@
-<scope>props={ label: string = "Date", value: string = "", defaultValue: string = "", placeholder: string = "Pick a date", selectionMode: string = "single", view: string = "day", focusedValue: string = "", defaultFocusedValue: string = "", open: bool = false, numOfMonths: int = 1, min: string = "", max: string = "", startOfWeek: int = 0, closeOnSelect: bool = true, locale: string = "en-US", disabled: bool = false, invalid: bool = false, readOnly: bool = false, dir: string = "ltr" } consume={ datePicker }</scope>
+<script lang="ts">
+  import { datePicker } from "../date-picker.presentation.ts";
 
+  const machine = datePicker({});
+</script>
 <include file="./appointment.html" />

@@ -16,9 +16,8 @@ export const canSetStep: GuardFor<StepsContext, StepsEvents> = (ctx, event) => {
   if (event.type !== "STEP.SET") return false;
   const current = ctx.step;
   if (event.value <= current) return true;
-  const skippable = event.skippable as ((index: number) => boolean) | undefined;
-  if (skippable?.(current) === true) return true;
-  const valid = event.valid as ((index: number) => boolean) | undefined;
+  if (ctx.isStepSkippable?.(current) === true) return true;
+  const valid = ctx.isStepValid;
   return valid === undefined ? true : valid(current);
 };
 
@@ -38,9 +37,8 @@ export const recordInvalidSet: StepsAssign<"STEP.SET"> = (ctx, event) => ({
 export const canNextStep: GuardFor<StepsContext, StepsEvents> = (ctx, event) => {
   if (event.type !== "STEP.NEXT") return false;
   const current = ctx.step;
-  const skippable = event.skippable as ((index: number) => boolean) | undefined;
-  if (skippable?.(current) === true) return true;
-  const valid = event.valid as ((index: number) => boolean) | undefined;
+  if (ctx.isStepSkippable?.(current) === true) return true;
+  const valid = ctx.isStepValid;
   return valid === undefined ? true : valid(current);
 };
 

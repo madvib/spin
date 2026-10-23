@@ -1,3 +1,8 @@
-<scope>props={ items: string = '[{"value":"new","label":"New File"},{"value":"open","label":"Open"},{"value":"preferences","label":"Preferences","children":[{"value":"account","label":"Account"},{"value":"notifications","label":"Notifications"},{"value":"privacy","label":"Privacy"}]}]', label: string = "File" } consume={ menu }</scope>
+<script lang="ts">
+  import { menu } from "../menu.presentation.ts";
 
+  const machine = menu({
+    items: '[{"value":"new","label":"New File"},{"value":"open","label":"Open"},{"value":"preferences","label":"Preferences","children":[{"value":"account","label":"Account"},{"value":"notifications","label":"Notifications"},{"value":"privacy","label":"Privacy"}]}]',
+  });
+</script>
 <include file="./basic.html" />

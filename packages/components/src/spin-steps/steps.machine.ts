@@ -40,6 +40,8 @@ export function steps(
       titles: {},
       orientation: {},
       linear: {},
+      isStepValid: {},
+      isStepSkippable: {},
     },
     on: {
       SET_COUNT: { assign: setCount },

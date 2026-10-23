@@ -915,10 +915,9 @@ Deno.test("Given a selection / When the value text is read / Then it is the labe
   h.api.setValue([["asia", "india", "haryana"]]);
   assertEquals(h.api.getValueText(), "Asia / India / Haryana", "single mode joins the path's labels");
   assertEquals(h.api.getValueTextRows(), [{ value: "Asia / India / Haryana" }], "and rides a one-row list");
-  const custom = mount();
+  const custom = mount(TREE, { formatValue: (items: readonly (readonly CascadeNode[])[]) =>
+    items.map((chain) => chain.map((node) => node.label).reverse().join("<")).join("|") });
   custom.api.setValue([["asia", "india"]]);
-  custom.write("formatValue", (items: readonly (readonly CascadeNode[])[]) =>
-    items.map((chain) => chain.map((node) => node.label).reverse().join("<")).join("|"));
   assertEquals(custom.api.getValueText(), "India<Asia", "a host's formatValue wins");
 });
 
@@ -1113,8 +1112,7 @@ Deno.test("Given a moving highlight / When the item bag is read again / Then it 
 });
 
 Deno.test("Given a host's malformed collection / When the levels are read / Then nothing renders", () => {
-  const h = mount();
-  h.write("collection", "{not json");
+  const h = mount(TREE, { collection: "{not json" });
   assertEquals(h.api.getLevels(), [], "a malformed tree yields no levels");
   assertEquals(h.api.getValueTextRows(), [{ value: "" }], "and an empty readout");
 });

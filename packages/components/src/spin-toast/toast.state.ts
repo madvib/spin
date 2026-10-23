@@ -35,12 +35,26 @@ export interface ToastContext {
   pointerWithin: boolean;
   focusWithin: boolean;
   pageIdle: boolean;
+  placement: string;
+  gap: number;
+  offsets: string;
+  hotkey: string;
+  label: string;
+  pauseOnPageIdle: boolean;
+  closable: boolean;
 }
 
 export interface ToastArgs {
   readonly overlap?: boolean;
   readonly max?: number;
   readonly removeDelay?: number;
+  readonly placement?: string;
+  readonly gap?: number;
+  readonly offsets?: string;
+  readonly hotkey?: string;
+  readonly label?: string;
+  readonly pauseOnPageIdle?: boolean;
+  readonly closable?: boolean;
 }
 
 const DURATIONS: Readonly<Record<ToastType, number>> = {
@@ -120,6 +134,8 @@ export function initial(args: ToastArgs, authored: (name: string) => boolean): T
     authored(field) ||
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
+  const text = (value: unknown, fallback: string): string =>
+    typeof value === "string" && value.length > 0 ? value : fallback;
   return {
     toasts: [],
     queued: [],
@@ -131,6 +147,13 @@ export function initial(args: ToastArgs, authored: (name: string) => boolean): T
     pointerWithin: false,
     focusWithin: false,
     pageIdle: false,
+    placement: text(args.placement, "bottom"),
+    gap: typeof args.gap === "number" && Number.isFinite(args.gap) ? Math.trunc(args.gap) : 16,
+    offsets: text(args.offsets, "1rem"),
+    hotkey: text(args.hotkey, ""),
+    label: text(args.label, "Notifications"),
+    pauseOnPageIdle: args.pauseOnPageIdle !== false,
+    closable: args.closable !== false,
   };
 }
 

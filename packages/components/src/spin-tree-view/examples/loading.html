@@ -1,5 +1,12 @@
-<scope>props={ nodes: string = '[{"value": "packages", "label": "packages"}, {"value": "packages/preset", "label": "preset", "children": []}, {"value": "readme", "label": "README.md", "children": []}]', defaultExpandedValue: string[] = [], loadChildren: string = "" } consume={ treeView }</scope>
+<script lang="ts">
+  import { treeView } from "../tree-view.presentation.ts";
 
+  const machine = treeView({
+    nodes: '[{"value": "packages", "label": "packages"}, {"value": "packages/preset", "label": "preset", "children": []}, {"value": "readme", "label": "README.md", "children": []}]',
+    expandedValue: [],
+    loadChildren: "",
+  });
+</script>
 <!-- Lazy roots declare no children: expanding one calls the host's
   `loadChildren(value)` property (a function returning nodes) and shows
   the loading marker until LOAD_DONE. In this page the loader below is
@@ -7,24 +14,24 @@
 
     tree.loadChildren = async (value) => fetchChildren(value);
 -->
-<div class="mx-auto w-full max-w-sm" {...treeView.getRootProps()}>
-  <span class="mb-4 block text-base font-semibold text-text" {...treeView.getLabelProps()}>Project Files</span>
-  <div class="space-y-1 rounded-xl border border-solid border-border bg-surface-raised p-3" {...treeView.getTreeProps()}>
-    <template for={treeView.getVisibleRows()} as={row} key={row.node.value}>
-      <div class="relative" {...treeView.getItemProps(row)}>
-        <span class="pointer-events-none absolute inset-y-0 w-px bg-border" aria-hidden="true" {...treeView.getRailProps(row)}></span>
+<div class="mx-auto w-full max-w-sm" {...machine.getRootProps()}>
+  <span class="mb-4 block text-base font-semibold text-text" {...machine.getLabelProps()}>Project Files</span>
+  <div class="space-y-1 rounded-xl border border-solid border-border bg-surface-raised p-3" {...machine.getTreeProps()}>
+    <template for={machine.getVisibleRows()} as={row} key={row.node.value}>
+      <div class="relative" {...machine.getItemProps(row)}>
+        <span class="pointer-events-none absolute inset-y-0 w-px bg-border" aria-hidden="true" {...machine.getRailProps(row)}></span>
         <button
-          class="relative flex min-h-0 items-center gap-2 rounded-lg border-0 border-solid bg-transparent px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-fast ease-standard hover:bg-surface data-[state=open]:text-text data-[selected]:bg-surface-sunken"
-          {...treeView.getBranchControlProps(row)}
+          class={["relative flex min-h-0 items-center gap-2 rounded-lg border-0 border-solid bg-transparent px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-fast ease-standard hover:bg-surface", { "bg-surface-sunken": machine.getItemState(row).selected }]}
+          {...machine.getBranchControlProps(row)}
         >
-          <span class="hidden size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard data-[branch]:inline-flex data-[state=open]:rotate-90" {...treeView.getBranchIndicatorProps(row)}>
+          <span class="hidden size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard" {...machine.getBranchIndicatorProps(row)}>
             <span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span>
           </span>
-          <span show={treeView.isBranch(row) && !treeView.getItemState(row).expanded} class="i-lucide-folder shrink-0 text-sm text-primary" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-          <span show={treeView.isBranch(row) && treeView.getItemState(row).expanded} class="i-lucide-folder-open shrink-0 text-sm text-primary" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-          <span show={!treeView.isBranch(row)} class="i-lucide-file shrink-0 text-sm text-muted" aria-hidden="true" {...treeView.getItemIconProps(row)}></span>
-          <span class="min-w-0 flex-1 truncate" {...treeView.getBranchTextProps(row)}>{row.node.label}</span>
-          <span class="ms-auto shrink-0 text-muted" {...treeView.getLoadingProps(row)}><span class="i-lucide-loader-circle animate-spin text-sm" aria-hidden="true"></span></span>
+          <span show={machine.isBranch(row) && !machine.getItemState(row).expanded} class="i-lucide-folder shrink-0 text-sm text-primary" aria-hidden="true" {...machine.getItemIconProps(row)}></span>
+          <span show={machine.isBranch(row) && machine.getItemState(row).expanded} class="i-lucide-folder-open shrink-0 text-sm text-primary" aria-hidden="true" {...machine.getItemIconProps(row)}></span>
+          <span show={!machine.isBranch(row)} class="i-lucide-file shrink-0 text-sm text-muted" aria-hidden="true" {...machine.getItemIconProps(row)}></span>
+          <span class="min-w-0 flex-1 truncate" {...machine.getBranchTextProps(row)}>{row.node.label}</span>
+          <span class="ms-auto shrink-0 text-muted" {...machine.getLoadingProps(row)}><span class="i-lucide-loader-circle animate-spin text-sm" aria-hidden="true"></span></span>
         </button>
       </div>
     </template>

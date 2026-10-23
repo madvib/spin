@@ -1,32 +1,36 @@
-<scope>props={ placement: string = "bottom" } consume={ toast }</scope>
+<script lang="ts">
+  import { toast } from "../toast.presentation.ts";
 
-
+  const machine = toast({
+    placement: "bottom",
+  });
+</script>
 <div
   class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
-  {...toast.getGroupProps()}
+  {...machine.getGroupProps()}
 >
-  <template for={toast.getToasts()} as={row} key={row.id}>
+  <template for={machine.getToasts()} as={row} key={row.id}>
     <div
-      class="pointer-events-auto absolute inset-x-0 origin-bottom data-[side=top]:origin-top data-[side=bottom]:bottom-0 transition-all duration-fast ease-decelerate data-[state=closed]:pointer-events-none"
-      {...toast.getToastProps(row)}
+      class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
+      {...machine.getToastProps(row)}
     >
-      <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate data-[paused]:bg-surface">
+      <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate">
         <span
           aria-hidden="true"
           data-type={row.type}
-          class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate data-[type=success]:text-semantic-success data-[type=warning]:text-semantic-warning data-[type=error]:text-semantic-error data-[type=info]:text-accent"
+          class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate"
         ><span class="i-lucide-circle text-[0.4rem]" aria-hidden="true"></span></span>
         <div class="min-w-0 flex-1">
-          <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>
-          <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
+          <div class="text-sm font-medium text-text" {...machine.getTitleProps(row)}>{row.title}</div>
+          <div class="mt-1 text-sm text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
           <button
             class="mt-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
-            {...toast.getActionTriggerProps(row)}
+            {...machine.getActionTriggerProps(row)}
           >{row.action}</button>
         </div>
         <button
           class="shrink-0 rounded-md p-1 text-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text focus-visible:ring-2 focus-visible:ring-border-strong"
-          {...toast.getCloseTriggerProps(row)}
+          {...machine.getCloseTriggerProps(row)}
         ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
       </div>
     </div>

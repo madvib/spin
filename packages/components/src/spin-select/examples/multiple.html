@@ -1,3 +1,9 @@
-<scope>props={ items: { value: string, label: string }[] = [{"value": "javascript", "label": "JavaScript"}, {"value": "typescript", "label": "TypeScript"}, {"value": "react", "label": "React"}, {"value": "vue", "label": "Vue"}, {"value": "nodejs", "label": "Node.js"}, {"value": "python", "label": "Python"}, {"value": "java", "label": "Java"}, {"value": "postgresql", "label": "PostgreSQL"}, {"value": "mongodb", "label": "MongoDB"}, {"value": "redis", "label": "Redis"}], label: string = "Skills", placeholder: string = "Select skills", multiple: bool = true } consume={ select }</scope>
+<script lang="ts">
+  import { select } from "../select.presentation.ts";
 
+  const machine = select({
+    items: [{"value": "javascript", "label": "JavaScript"}, {"value": "typescript", "label": "TypeScript"}, {"value": "react", "label": "React"}, {"value": "vue", "label": "Vue"}, {"value": "nodejs", "label": "Node.js"}, {"value": "python", "label": "Python"}, {"value": "java", "label": "Java"}, {"value": "postgresql", "label": "PostgreSQL"}, {"value": "mongodb", "label": "MongoDB"}, {"value": "redis", "label": "Redis"}],
+    multiple: true,
+  });
+</script>
 <include file="./basic.html" />

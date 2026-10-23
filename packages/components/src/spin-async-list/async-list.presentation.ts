@@ -230,21 +230,20 @@ const def = {
   },
   // Runs after every transmit: which event needs which async work, with the
   // state the send landed in.
-  settled: ({ event, before, after, props, root, send }) => {
+  settled: ({ event, before, after, root, send }) => {
     const view = viewOf(root());
-    const load: unknown = props["load"];
+    const load: unknown = after.context.load;
     if (!isLoadFn(load)) return;
     const beforeState = before.state;
     const afterCtx = after.context;
     const afterState = after.state;
-    // The sort fn rides the props, read live at drive time.
     if (event.type === "ABORT") {
       if (beforeState !== "idle") advanceSequence(view);
       return;
     }
     if (event.type === "SUCCESS" || event.type === "ERROR") return;
     if (afterState === "sorting") {
-      const sort = props["sortFn"];
+      const sort = after.context.sortFn;
       if (!isSortFn(sort)) return;
       startSort(view, send, sort, event, afterCtx);
       return;
@@ -259,6 +258,8 @@ const def = {
   // write takes the client-side branch; the reconcile would be too late.
   scalarsOf: (parsed) => ({
     hasSortFn: isSortFn(parsed["sortFn"]),
+    load: parsed["load"],
+    sortFn: parsed["sortFn"],
   }),
   reconcile: ({ context, parsed, send }) => {
     let moved = false;

@@ -1,13 +1,19 @@
-<scope>props={ startMs: string = "86400000", countdown: bool = true, autoStart: bool = true } consume={ timer }</scope>
+<script lang="ts">
+  import { timer } from "../timer.presentation.ts";
 
-<div class="mx-auto w-full max-w-xs" {...timer.getRootProps()}>
-  <div class="flex flex-col items-center" {...timer.getAreaProps()}>
+  const machine = timer({
+    startMs: "86400000",
+    countdown: true,
+  });
+</script>
+<div class="mx-auto w-full max-w-xs" {...machine.getRootProps()}>
+  <div class="flex flex-col items-center" {...machine.getAreaProps()}>
     <span class="mb-2 text-sm font-medium text-semantic-error">Flash Sale Ends In</span>
     <div class="flex items-start gap-2 text-3xl font-bold tabular-nums text-semantic-error">
-      <template for={timer.getUnits()} as={unit} key={unit.type}>
-        <div class="flex flex-col items-center" {...timer.getItemProps({ type: unit.type })}>
-          <span class="min-w-[2ch] text-center" {...timer.getItemValueProps({ type: unit.type })}>{timer.formattedTime[unit.type]}</span>
-          <span class="text-xs font-normal text-muted" {...timer.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
+      <template for={machine.getUnits()} as={unit} key={unit.type}>
+        <div class="flex flex-col items-center" {...machine.getItemProps({ type: unit.type })}>
+          <span class="min-w-[2ch] text-center" {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
+          <span class="text-xs font-normal text-muted" {...machine.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
         </div>
       </template>
     </div>

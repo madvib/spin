@@ -390,8 +390,6 @@ export const def = {
         return {
           type: "button",
           id: scope.id("trigger"),
-          "data-scope": "menu",
-          "data-part": "trigger",
           ...disclosureTrigger(scope, {
             expanded: open,
             hasPopup: scope.context.composite ? "menu" : "dialog",
@@ -436,8 +434,6 @@ export const def = {
     positioner: {
       attrs: (scope: ScopeLike) => ({
         id: scope.id("positioner"),
-        "data-scope": "menu",
-        "data-part": "positioner",
         "data-state": scope.state === "open" ? "open" : "closed",
         // Positioning is the anchor action's job: it measures the trigger,
         // flips on viewport veto, writes literals, and re-runs on
@@ -450,8 +446,6 @@ export const def = {
         const highlightedValue = scope.context.highlightedValue;
         return {
           id: scope.id("content"),
-          "data-scope": "menu",
-          "data-part": "content",
           role: scope.context.composite ? "menu" : "dialog",
           tabindex: 0,
           // A leaf row's instance has no rows to show: keep it out of the
@@ -485,13 +479,12 @@ export const def = {
   },
   slots: {
     itemGroup: {
+      id: "item-group",
       indexes: (context) => blocksOf(context.entries),
       attrs: (scope: SlotLike<MenuBlock>) => {
         const block = scope.slot;
         return {
           id: scope.id("itemGroup", block.id),
-          "data-scope": "menu",
-          "data-part": "item-group",
           role: "group",
           ...ariaLabelledBy(
             scope,
@@ -501,13 +494,12 @@ export const def = {
       },
     },
     itemGroupLabel: {
+      id: "item-group-label",
       indexes: (context) => blocksOf(context.entries),
       attrs: (scope: SlotLike<MenuBlock>) => {
         const block = scope.slot;
         return {
           id: scope.id("itemGroupLabel", block.id),
-          "data-scope": "menu",
-          "data-part": "item-group-label",
           hidden: block.label === null,
         };
       },
@@ -522,8 +514,6 @@ export const def = {
         const highlighted = ctx.highlightedValue === row.value;
         const bag: Record<string, unknown> = {
           id: scope.id("item", row.value),
-          "data-scope": "menu",
-          "data-part": "item",
           role: row.checked === undefined ? "menuitem" : "menuitemcheckbox",
           ...optionRow({
             ...(row.checked === undefined ? {} : { checked: row.checked }),
@@ -603,8 +593,6 @@ export const def = {
         const row = scope.slot;
         return {
           id: scope.id("submenu", row.value),
-          "data-scope": "menu",
-          "data-part": "submenu",
           open: scope.context.openSubmenu === row.value ? "true" : "false",
         // The subtree crosses as values: the child instance's transport
         // coerces what the host writes, so no JSON text crosses here.

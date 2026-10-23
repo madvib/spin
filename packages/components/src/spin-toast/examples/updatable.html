@@ -1,4 +1,8 @@
-<scope>props={ placement: string = "bottom" } consume={ toast }</scope>
+<script lang="ts">
+  import { toast } from "../toast.presentation.ts";
 
-
+  const machine = toast({
+    placement: "bottom",
+  });
+</script>
 <include file="./promise.html" />

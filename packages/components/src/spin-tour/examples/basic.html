@@ -13,11 +13,11 @@
   <button class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary" onClick={machine.start}>Start tour</button>
 </div>
 <div class="contents" {...machine.getRootProps()}>
-  <div class="pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate data-[state=closed]:opacity-0" {...machine.getBackdropProps()}></div>
+  <div class={["pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate", { "opacity-0": !machine.active }]} {...machine.getBackdropProps()}></div>
 
-  <div class="pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate data-[state=closed]:opacity-0" {...machine.getSpotlightProps()}></div>
+  <div class={["pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate", { "opacity-0": !machine.active }]} {...machine.getSpotlightProps()}></div>
 
-  <div class="fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate data-[state=closed]:pointer-events-none data-[state=closed]:invisible data-[state=closed]:opacity-0" {...machine.getPositionerProps()}>
+  <div class={["fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate", { "pointer-events-none": !machine.active, "invisible": !machine.active, "opacity-0": !machine.active }]} {...machine.getPositionerProps()}>
     <div class="flex flex-col gap-2" {...machine.getContentProps()}>
       <template for={machine.getTextRows()} as={row} key={row.key}>
         <div class="flex items-center justify-between gap-2">

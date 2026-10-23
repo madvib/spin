@@ -145,7 +145,8 @@ export const def = {
         // changes size, and the inactive one is only invisible.
         const removed = !focused && scope.context.autoResize !== true;
         const placeholderShown = ctx.value.trim() === "";
-        const placeholder = typeof scope.context.placeholder === "string" ? scope.context.placeholder : "";
+        const raw = scope.context.placeholder;
+        const placeholder = typeof raw === "string" ? raw : raw.edit ?? "";
         return {
           id: scope.id("input"),
           dir: scope.context.dir,
@@ -360,10 +361,10 @@ export const def = {
     empty: { read: (context: EditableContext) => context.value.trim() === "" },
     value: { read: (context: EditableContext) => context.value },
     valueText: {
-      read: (context: EditableContext, _state: EditableState, props: Record<string, unknown>) => {
+      read: (context: EditableContext) => {
         const value = context.value;
         if (value.trim() !== "") return value;
-        const placeholder = props["placeholder"];
+        const placeholder = context.placeholder;
         if (typeof placeholder === "object" && placeholder !== null && "preview" in placeholder && typeof placeholder.preview === "string") {
           return placeholder.preview;
         }

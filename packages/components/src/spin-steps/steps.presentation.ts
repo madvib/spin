@@ -84,15 +84,6 @@ export const def = {
   name: "steps",
   machine: (args: StepsArgs, authored: (name: string) => boolean) => stepsMachine(args, authored),
   start: "idle",
-  dispatch: (event, props) => {
-    if (event.type !== "STEP.SET" && event.type !== "STEP.NEXT") return event;
-    const result: { type: string } & Record<string, unknown> = { ...event };
-    const valid = props["isStepValid"];
-    const skippable = props["isStepSkippable"];
-    if (typeof valid === "function") result["valid"] = valid;
-    if (typeof skippable === "function") result["skippable"] = skippable;
-    return result;
-  },
   parts: {
     root: {
       attrs: (scope: ScopeLike) => ({

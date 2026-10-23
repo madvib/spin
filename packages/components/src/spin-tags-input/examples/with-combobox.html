@@ -1,33 +1,38 @@
-<scope>props={ defaultValue: string = '["React"]', items: { value: string, label: string, disabled: bool, group: string }[] = [{"value":"React","label":"React"},{"value":"Vue","label":"Vue"},{"value":"Svelte","label":"Svelte"},{"value":"Angular","label":"Angular"},{"value":"Next.js","label":"Next.js"}], placeholder: string = "Add framework…" } consume={ tags, combobox }</scope>
+<script lang="ts">
+  import { tags } from "../tags.presentation.ts";
+  import { combobox } from "../../spin-combobox/combobox.presentation.ts";
 
+  const machine_tags = tags({});
+  const machine_combobox = combobox({});
+</script>
 <div class="w-full">
-  <label class="mb-1 block text-xs font-medium text-text" {...tags.getLabelProps()}>Frameworks</label>
-  <div class="flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1" {...tags.getControlProps()}>
-    <template for={tags.getTags()} as={row} key={row.value + ":" + row.occurrence}>
-      <span class="group inline-flex items-center gap-0.5 rounded-sm border border-solid border-border bg-surface py-0.5 pl-1.5 pr-0.5 text-xs text-text data-[highlighted]:border-primary data-[highlighted]:text-primary" {...tags.getItemProps(row)}>
-        <span class="inline-flex items-center gap-1" {...tags.getItemPreviewProps(row)}>
-          <span class="truncate" {...tags.getItemTextProps(row)}>{row.value}</span>
-          <button class="inline-flex size-4 shrink-0 items-center justify-center rounded-xs text-muted hover:text-text" {...tags.getItemDeleteTriggerProps(row)}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+  <label class="mb-1 block text-xs font-medium text-text" {...machine_tags.getLabelProps()}>Frameworks</label>
+  <div class="flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1" {...machine_tags.getControlProps()}>
+    <template for={machine_tags.getTags()} as={row} key={row.value + ":" + row.occurrence}>
+      <span class={["group inline-flex items-center gap-0.5 rounded-sm border border-solid border-border bg-surface py-0.5 pl-1.5 pr-0.5 text-xs text-text", { "border-primary": machine_tags.getItemState(row).highlighted, "text-primary": machine_tags.getItemState(row).highlighted }]} {...machine_tags.getItemProps(row)}>
+        <span class="inline-flex items-center gap-1" {...machine_tags.getItemPreviewProps(row)}>
+          <span class="truncate" {...machine_tags.getItemTextProps(row)}>{row.value}</span>
+          <button class="inline-flex size-4 shrink-0 items-center justify-center rounded-xs text-muted hover:text-text" {...machine_tags.getItemDeleteTriggerProps(row)}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
         </span>
-        <input class="w-20 rounded-xs border border-solid border-border-strong bg-surface px-1 py-0.5 text-xs text-text outline-none" {...tags.getItemInputProps(row)} />
+        <input class="w-20 rounded-xs border border-solid border-border-strong bg-surface px-1 py-0.5 text-xs text-text outline-none" {...machine_tags.getItemInputProps(row)} />
       </span>
     </template>
-    <div class="relative min-w-16 flex-1" {...combobox.getRootProps()}>
-      <input class="w-full bg-transparent px-1.5 py-1 text-xs text-text outline-none placeholder:text-muted" {...combobox.getInputProps()} />
-      <button aria-hidden="true" tabindex="-1" class="hidden" {...combobox.getClearTriggerProps()}></button>
-      <div class="absolute left-0 top-full z-dropdown mt-1 w-full origin-top" {...combobox.getPositionerProps()}>
-        <div class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg" {...combobox.getContentProps()}>
-          <div class="max-h-60 overflow-y-auto p-1" {...combobox.getListProps()}>
-            <template for={combobox.getBlocks()} as={block} key={block.id}>
-              <template for={combobox.getRows(block)} as={row} key={row.value}>
-                <div class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-xs text-text data-[highlighted]:bg-surface" show={row.label.toLowerCase().indexOf(combobox.inputValue.toLowerCase()) !== -1} {...combobox.getItemProps(row)}>{row.label}</div>
+    <div class="relative min-w-16 flex-1" {...machine_combobox.getRootProps()}>
+      <input class="w-full bg-transparent px-1.5 py-1 text-xs text-text outline-none placeholder:text-muted" {...machine_combobox.getInputProps()} />
+      <button aria-hidden="true" tabindex="-1" class="hidden" {...machine_combobox.getClearTriggerProps()}></button>
+      <div class="absolute left-0 top-full z-dropdown mt-1 w-full origin-top" {...machine_combobox.getPositionerProps()}>
+        <div class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg" {...machine_combobox.getContentProps()}>
+          <div class="max-h-60 overflow-y-auto p-1" {...machine_combobox.getListProps()}>
+            <template for={machine_combobox.getBlocks()} as={block} key={block.id}>
+              <template for={machine_combobox.getRows(block)} as={brow} key={brow.value}>
+                <div class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-xs text-text", { "bg-surface": machine_combobox.getItemState(brow).highlighted }]} show={brow.label.toLowerCase().indexOf(machine_combobox.inputValue.toLowerCase()) !== -1} {...machine_combobox.getItemProps(brow)}>{brow.label}</div>
               </template>
             </template>
           </div>
         </div>
       </div>
     </div>
-    <button aria-label="Clear tags" class="inline-flex size-5 shrink-0 items-center justify-center rounded-xs text-muted hover:text-text" {...tags.getClearTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+    <button aria-label="Clear tags" class="inline-flex size-5 shrink-0 items-center justify-center rounded-xs text-muted hover:text-text" {...machine_tags.getClearTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
   </div>
-  <input {...tags.getHiddenInputProps()} />
+  <input {...machine_tags.getHiddenInputProps()} />
 </div>

@@ -1,18 +1,30 @@
-import { ariaCurrent, ariaInvalid, ariaLabelledBy, dataAttr, defineComponent, disclosureTrigger, isRecord, optionRow, type ComponentDef, type PartScope, type SlotScope } from "@spin/runtime";
+import {
+  ariaCurrent,
+  ariaInvalid,
+  ariaLabelledBy,
+  dataAttr,
+  defineComponent,
+  disclosureTrigger,
+  isRecord,
+  optionRow,
+  type ApiOf,
+  type ComponentDef,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
+import { datePicker as datePickerMachine } from "./date-picker.machine.ts";
 import {
   dayAsString,
   daysInMonth,
-  datePicker as datePickerMachine,
   parseDay,
   valueAsAllStrings,
   type DatePickerArgs,
   type DatePickerContext,
-  type DatePickerEvents,
-  type DatePickerSelectionMode,
+  type DatePickerState,
   type DatePickerValue,
-  type DatePickerValueChange,
   type DatePickerView,
-} from "./date-picker.machine.ts";
+} from "./date-picker.state.ts";
+import type { DatePickerEvents } from "./date-picker.events.ts";
 
 /**
  * Date-picker definition: the DOM contract as data. The machine holds the
@@ -33,36 +45,8 @@ import {
  * date-input's job).
  */
 
-export type {
-  DatePickerSelectionMode,
-  DatePickerView,
-  DatePickerValue,
-  DatePickerValueChange,
-};
-
-export interface DatePickerApi {
-  readonly isOpen: boolean;
-  readonly value: readonly DatePickerValue[];
-  readonly valueAsString: readonly string[];
-  readonly focusedValue: DatePickerValue;
-  readonly view: DatePickerView;
-  open(): void;
-  close(): void;
-  clear(): void;
-  setValue(value: readonly DatePickerValue[] | null): void;
-  getTriggerProps(): Record<string, unknown>;
-  getContentProps(): Record<string, unknown>;
-  getGridProps(): Record<string, unknown>;
-  getWeekdayLabels(): readonly string[];
-  getValueTextRows(): readonly { readonly value: string; readonly text: string }[];
-  getViewTextRows(): readonly { readonly value: string; readonly text: string }[];
-  getCells(): readonly DatePickerCellView[];
-  getCellProps(cell: DatePickerCellView): Record<string, unknown>;
-  getPrevTriggerProps(): Record<string, unknown>;
-  getNextTriggerProps(): Record<string, unknown>;
-  getViewControlProps(): Record<string, unknown>;
-  getClearTriggerProps(): Record<string, unknown>;
-}
+export type { DatePickerView, DatePickerValue } from "./date-picker.state.ts";
+export type { DatePickerValueChange } from "./date-picker.events.ts";
 
 /**
  * One grid cell. `value` is the day it names in every view — a month cell
@@ -104,9 +88,9 @@ const today = (): DatePickerValue => {
 const monthName = (month: number, locale: string): string =>
   new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(Date.UTC(2024, month - 1, 1));
 
-interface ScopeLike extends PartScope<unknown, DatePickerContext> {}
+type ScopeLike = ScopeFor<DatePickerContext, DatePickerEvents, DatePickerState>;
 
-interface SlotLike<R> extends SlotScope<R, DatePickerContext> {}
+type SlotLike<R> = SlotScopeFor<R, DatePickerContext, DatePickerEvents, DatePickerState>;
 
 // Scope props arrive as strings; hooks write numbers.
 const numProp = (raw: unknown): number | null => {
@@ -142,13 +126,12 @@ const shift = (
 
 const cellView = (
   context: DatePickerContext,
-  props: Record<string, unknown>,
   value: DatePickerValue,
   outside: boolean,
 ): DatePickerCellView => {
   const ctx = context;
-  const disabled = props["disabled"] === true;
-  const readOnly = props["readOnly"] === true;
+  const disabled = ctx.disabled === true;
+  const readOnly = ctx.readOnly === true;
   const time = dayTime(value);
   const floor = boundTime(ctx.min);
   const ceiling = boundTime(ctx.max);
@@ -192,17 +175,16 @@ const isDateValue = (raw: unknown): raw is DatePickerValue => {
   return ["year", "month", "day"].every((key) => typeof raw[key] === "number" && Number.isFinite(raw[key]));
 };
 
-const weekOf = (props: Record<string, unknown>): number => {
-  const raw: unknown = props["startOfWeek"];
+const weekOf = (context: DatePickerContext): number => {
+  const raw: unknown = context.startOfWeek;
   return typeof raw === "number" && raw >= 0 && raw <= 6 ? Math.trunc(raw) : 0;
 };
 
 const dayCells = (
   context: DatePickerContext,
-  props: Record<string, unknown>,
 ): readonly DatePickerCellView[] => {
   const ctx = context;
-  const startOfWeek = weekOf(props);
+  const startOfWeek = weekOf(ctx);
   const start = { year: ctx.focusedValue.year, month: ctx.focusedValue.month, day: 1 };
   const firstWeekday = new Date(dayTime(start)).getUTCDay();
   const lead = (firstWeekday - startOfWeek + 7) % 7;
@@ -215,7 +197,7 @@ const dayCells = (
       month: walking.getUTCMonth() + 1,
       day: walking.getUTCDate(),
     };
-    cells.push(cellView(context, props, value, value.month !== start.month));
+    cells.push(cellView(context, value, value.month !== start.month));
     walking = new Date(walking.getTime() + DAY_MS);
   }
   while (cells.length % 7 !== 0) {
@@ -224,7 +206,7 @@ const dayCells = (
       month: walking.getUTCMonth() + 1,
       day: walking.getUTCDate(),
     };
-    cells.push(cellView(context, props, value, value.month !== start.month));
+    cells.push(cellView(context, value, value.month !== start.month));
     walking = new Date(walking.getTime() + DAY_MS);
   }
   return cells;
@@ -232,19 +214,18 @@ const dayCells = (
 
 const cellsOf = (
   context: DatePickerContext,
-  props: Record<string, unknown>,
 ): readonly DatePickerCellView[] => {
   const ctx = context;
   if (ctx.view === "month") {
     return Array.from({ length: 12 }, (_unused, month) =>
-      cellView(context, props, { year: ctx.focusedValue.year, month: month + 1, day: 1 }, false));
+      cellView(context, { year: ctx.focusedValue.year, month: month + 1, day: 1 }, false));
   }
   if (ctx.view === "year") {
     const from = ctx.focusedValue.year - ((ctx.focusedValue.year % 12) + 12) % 12;
     return Array.from({ length: 12 }, (_unused, offset) =>
-      cellView(context, props, { year: from + offset, month: 1, day: 1 }, false));
+      cellView(context, { year: from + offset, month: 1, day: 1 }, false));
   }
-  return dayCells(context, props);
+  return dayCells(context);
 };
 
 /** A page is a month in the day view, a year in the month view, a decade in the year view. */
@@ -288,7 +269,7 @@ const handlersFor = (scope: ScopeLike, cell: DatePickerCellView): CellHandlers =
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const at = scope.context;
       const focused = at.focusedValue;
-      const rtl = scope.props["dir"] === "rtl";
+      const rtl = at.dir === "rtl";
       switch (event.key) {
         case "Enter":
         case " ":
@@ -364,9 +345,9 @@ const rowFor = (
   return hit;
 };
 
-const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
+const def = {
   name: "date-picker",
-  machine: (props, authored) => datePickerMachine(props as DatePickerArgs, authored),
+  machine: (args: DatePickerArgs, authored: (name: string) => boolean) => datePickerMachine(args, authored),
   establish: (raw, authored) => {
     // The open fact lives in the state, not the context, so it is the one
     // thing the establish carries.
@@ -393,13 +374,13 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
         const open = scope.state === "open";
         return {
           id: scope.id("trigger"),
-          "aria-label": scope.props["label"],
+          "aria-label": ctx.label,
           ...disclosureTrigger(scope, {
             expanded: open,
             hasPopup: "dialog",
           }),
           "data-state": open ? "open" : "closed",
-          ...ariaInvalid(scope.props["invalid"] === true ? true : undefined),
+          ...ariaInvalid(ctx.invalid === true ? true : undefined),
           onClick: (): void => scope.send({ type: open ? "CLOSE" : "OPEN" }),
         };
       },
@@ -418,7 +399,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
             open,
             cellId: `${scope.id("grid")}:cell:${focused}`,
           },
-          "aria-label": scope.props["label"],
+          "aria-label": scope.context.label,
           "data-state": open ? "open" : "closed",
           "use:dismissable": {
             onOutside: (event: PointerEvent): void => {
@@ -509,11 +490,11 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
   },
   slots: {
     cell: {
-      indexes: (context: DatePickerContext, props) => cellsOf(context, props),
+      indexes: (context: DatePickerContext) => cellsOf(context),
       attrs: (scope: SlotLike<DatePickerCellView>) => {
         const cell = scope.slot;
         const ctx = scope.context;
-        const locale = textOf(scope.props["locale"], "en-US");
+        const locale = ctx.locale;
         const day = iso(cell.value);
         const focused = day === iso(ctx.focusedValue);
         const text = ctx.view === "month"
@@ -551,10 +532,8 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
     close: { event: () => ({ type: "CLOSE" }) },
     clear: { event: () => ({ type: "VALUE.CLEAR" }) },
     setValue: {
-      event: (args) => {
-        const raw = args[0];
+      event: ([raw]: [value: readonly DatePickerValue[] | null]) => {
         if (raw === null) return { type: "VALUE.SET", value: [] };
-        if (!Array.isArray(raw)) return { type: "VALUE.SET", value: [] };
         const days = raw.filter(isDateValue);
         return { type: "VALUE.SET", value: [...days] };
       },
@@ -569,10 +548,10 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
   },
   methods: {
     getWeekdayLabels: {
-      call: (context: DatePickerContext, _state, _args, props) => {
+      call: (context: DatePickerContext): readonly string[] => {
         const ctx = context;
-        const locale = textOf(props["locale"], "en-US");
-        const startOfWeek = weekOf(props);
+        const locale = ctx.locale;
+        const startOfWeek = weekOf(ctx);
         const labels: string[] = [];
         // The month and year grids have no weekday rows.
         if (ctx.view !== "day") return labels;
@@ -588,11 +567,11 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       },
     },
     getValueTextRows: {
-      call: (context: DatePickerContext, _state, _args, props, id) => {
+      call: (context: DatePickerContext, _state, _args, _props, id): readonly { readonly value: string; readonly text: string }[] => {
         const ctx = context;
-        const locale = textOf(props["locale"], "en-US");
-        const placeholder = textOf(props["placeholder"], "Pick a date");
-        const format: unknown = props["format"];
+        const locale = ctx.locale;
+        const placeholder = ctx.placeholder;
+        const format: unknown = ctx.format;
         const formatDay = isFormat(format)
           ? format
           : (value: DatePickerValue, at: string): string => {
@@ -611,9 +590,9 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       },
     },
     getViewTextRows: {
-      call: (context: DatePickerContext, _state, _args, props, id: IdFn) => {
+      call: (context: DatePickerContext, _state, _args, _props, id: IdFn): readonly { readonly value: string; readonly text: string }[] => {
         const ctx = context;
-        const locale = textOf(props["locale"], "en-US");
+        const locale = ctx.locale;
         const text = ctx.view === "day"
           ? new Intl.DateTimeFormat(locale, {
             month: "long",
@@ -627,7 +606,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       },
     },
     getCells: {
-      call: (context: DatePickerContext, _state, _args, props) => cellsOf(context, props),
+      call: (context: DatePickerContext): readonly DatePickerCellView[] => cellsOf(context),
     },
   },
   events: {
@@ -662,6 +641,7 @@ const def: ComponentDef<DatePickerContext, DatePickerEvents> = {
       detail: (watched: readonly unknown[]) => ({ open: watched[0] === true }),
     },
   },
-};
+} satisfies ComponentDef<DatePickerContext, DatePickerEvents, Record<string, unknown>, DatePickerArgs, DatePickerState>;
 
-export const datePicker = defineComponent<DatePickerContext, DatePickerEvents, DatePickerApi>(def);
+export type DatePickerApi = ApiOf<typeof def>;
+export const datePicker = defineComponent<DatePickerContext, DatePickerEvents, DatePickerApi, DatePickerArgs, DatePickerState>(def);

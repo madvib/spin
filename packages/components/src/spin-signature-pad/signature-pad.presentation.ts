@@ -56,9 +56,9 @@ const segmentPathOf = (arg: unknown): string => {
 
 const textOf = (arg: unknown): string => typeof arg === "string" ? arg : "";
 
-const drawingFill = (props: Record<string, unknown>): string => {
-  if (!isRecord(props["drawing"])) return "currentColor";
-  const fill: unknown = props["drawing"]["fill"];
+const drawingFill = (drawing: unknown): string => {
+  if (!isRecord(drawing)) return "currentColor";
+  const fill: unknown = drawing["fill"];
   return typeof fill === "string" && fill.length > 0 ? fill : "currentColor";
 };
 
@@ -148,7 +148,7 @@ export const def = {
     segment: {
       attrs: (scope: ScopeLike) => {
         const drawing = scope.context.drawing;
-        const fill = drawingFill(isRecord(drawing) ? drawing : {});
+        const fill = drawingFill(drawing);
         return {
           style: {
             position: "absolute",

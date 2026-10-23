@@ -1,21 +1,27 @@
-<scope>props={ placement: string = "bottom-end" } consume={ toast }</scope>
+<script lang="ts">
+  import { toast } from "../toast.presentation.ts";
+
+  const machine = toast({
+    placement: "bottom-end",
+  });
+</script>
 <div class="mx-auto flex w-full max-w-xs flex-col items-center gap-3">
   <button data-fire="" data-title="Bottom right" data-description="Toast from bottom right." data-type="info" data-duration="5000" data-action="" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Show toast</button>
   <div
     class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
-    {...toast.getGroupProps()}
+    {...machine.getGroupProps()}
   >
-    <template for={toast.getToasts()} as={row} key={row.id}>
+    <template for={machine.getToasts()} as={row} key={row.id}>
       <div
-        class="pointer-events-auto absolute inset-x-0 origin-bottom data-[side=top]:origin-top data-[side=bottom]:bottom-0 transition-all duration-fast ease-decelerate data-[state=closed]:pointer-events-none"
-        {...toast.getToastProps(row)}
+        class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
+        {...machine.getToastProps(row)}
       >
         <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg">
           <div class="min-w-0 flex-1">
-            <div class="text-sm font-medium text-text" {...toast.getTitleProps(row)}>{row.title}</div>
-            <div class="mt-1 text-sm text-muted" {...toast.getDescriptionProps(row)}>{row.description}</div>
+            <div class="text-sm font-medium text-text" {...machine.getTitleProps(row)}>{row.title}</div>
+            <div class="mt-1 text-sm text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
           </div>
-          <button class="shrink-0 rounded-md p-1 text-sm text-muted hover:bg-surface hover:text-text" {...toast.getCloseTriggerProps(row)}>X</button>
+          <button class="shrink-0 rounded-md p-1 text-sm text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps(row)}>X</button>
         </div>
       </div>
     </template>

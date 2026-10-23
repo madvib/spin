@@ -1,25 +1,30 @@
-<scope>props={ items: string = '[{"value":"copy","label":"Copy"},{"value":"cut","label":"Cut"},{"value":"paste","label":"Paste"},{"separator":true},{"value":"delete","label":"Delete","disabled":true},{"separator":true},{"value":"properties","label":"Properties"}]', label: string = "Right-click here for context menu" } consume={ menu }</scope>
+<script lang="ts">
+  import { menu } from "../menu.presentation.ts";
 
+  const machine = menu({
+    items: '[{"value":"copy","label":"Copy"},{"value":"cut","label":"Cut"},{"value":"paste","label":"Paste"},{"separator":true},{"value":"delete","label":"Delete","disabled":true},{"separator":true},{"value":"properties","label":"Properties"}]',
+  });
+</script>
 <div class="relative inline-block">
-  <div class="flex items-center justify-center w-64 h-32 rounded-lg border border-solid border-border bg-surface-raised text-sm text-muted cursor-context-menu" {...menu.getContextTriggerProps()}>
+  <div class="flex items-center justify-center w-64 h-32 rounded-lg border border-solid border-border bg-surface-raised text-sm text-muted cursor-context-menu" {...machine.getContextTriggerProps()}>
     Right-click here for context menu
   </div>
-  <div {...menu.getPositionerProps()}>
-    <div {...menu.getContentProps()}>
-      <template for={menu.getBlocks()} as={block} key={block.id}>
-        <div class="py-1" {...menu.getItemGroupProps(block)}>
-          <span class="block px-2 pb-1 text-xs font-medium text-muted" {...menu.getItemGroupLabelProps(block)}>{block.label}</span>
-          <template for={menu.getRows(block)} as={row} key={row.value}>
-            <div class="group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast cursor-default data-[highlighted]:bg-surface data-[disabled]:opacity-50" {...menu.getItemProps(row)}>
-              <span class="min-w-0 flex-1 truncate" {...menu.getItemTextProps(row)}>{row.label}</span>
-              <span class="shrink-0 text-xs text-muted" {...menu.getItemShortcutProps(row)}>{row.shortcut}</span>
-              <span aria-hidden="true" class="shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0 data-[checked]:scale-100 data-[checked]:opacity-100" {...menu.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
-              <span aria-hidden="true" class="shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate data-[state=open]:rotate-90" {...menu.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
-              <spin-menu class="absolute left-full top-0" {...menu.getSubmenuProps(row)} submenu />
+  <div {...machine.getPositionerProps()}>
+    <div {...machine.getContentProps()}>
+      <template for={machine.getBlocks()} as={block} key={block.id}>
+        <div class="py-1" {...machine.getItemGroupProps(block)}>
+          <span class="block px-2 pb-1 text-xs font-medium text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+          <template for={machine.getRows(block)} as={row} key={row.value}>
+            <div class={["group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast cursor-default", { "bg-surface": machine.highlightedValue === row.value, "opacity-50": row.disabled }]} {...machine.getItemProps(row)}>
+              <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
+              <span class="shrink-0 text-xs text-muted" {...machine.getItemShortcutProps(row)}>{row.shortcut}</span>
+              <span aria-hidden="true" class={["shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0", { "scale-100": row.checked, "opacity-100": row.checked }]} {...machine.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+              <span aria-hidden="true" class={["shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate", { "rotate-90": machine.isOpen }]} {...machine.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
+              <spin-menu class="absolute left-full top-0" {...machine.getSubmenuProps(row)} submenu />
             </div>
           </template>
         </div>
-        <div class="my-1 border-t border-border" {...menu.getSeparatorProps(block)}></div>
+        <div class="my-1 border-t border-border" {...machine.getSeparatorProps(block)}></div>
       </template>
     </div>
   </div>

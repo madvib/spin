@@ -1,19 +1,27 @@
-<scope>props={ label: string = "Verification code", count: int = 6, otp: bool = true, autoFocus: bool = true, blurOnComplete: bool = true } consume={ pinInput }</scope>
+<script lang="ts">
+  import { pinInput } from "../pin-input.presentation.ts";
 
-<div class="w-full text-center" {...pinInput.getRootProps()}>
+  const machine = pinInput({
+    count: 6,
+    otp: true,
+    autoFocus: true,
+    blurOnComplete: true,
+  });
+</script>
+<div class="w-full text-center" {...machine.getRootProps()}>
   <div class="mb-4">
     <div class="text-lg font-semibold text-text">Verify your phone</div>
     <div class="text-sm text-muted">We sent a verification code to <br /><span class="font-medium text-text">+1 (555) 123-4567</span></div>
   </div>
-  <div class="mb-6 flex items-center justify-center gap-3" {...pinInput.getControlProps()}>
-    <template for={pinInput.getItems()} as={cell} key={cell}>
+  <div class="mb-6 flex items-center justify-center gap-3" {...machine.getControlProps()}>
+    <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class="h-7 w-7 rounded-md border border-solid border-border bg-surface p-0 text-center text-sm text-text tabular-nums transition-colors duration-fast ease-decelerate placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-border-strong data-[filled]:border-border-strong data-[complete]:border-primary data-[invalid]:ring-2 data-[invalid]:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-        {...pinInput.getInputProps({ index: cell })}
+        class={["h-7 w-7 rounded-md border border-solid border-border bg-surface p-0 text-center text-sm text-text tabular-nums transition-colors duration-fast ease-decelerate placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-border-strong", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        {...machine.getInputProps(cell)}
       />
     </template>
   </div>
-  <input {...pinInput.getHiddenInputProps()} />
+  <input {...machine.getHiddenInputProps()} />
   <div class="space-y-3">
     <div class="text-sm text-muted">Didn't receive the code?</div>
     <button type="button" class="text-sm font-medium text-primary transition-colors duration-fast ease-decelerate hover:text-primary">Resend code</button>

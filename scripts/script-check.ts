@@ -64,7 +64,25 @@ async function main(): Promise<void> {
           `${entry.path}: script has stripped statements (effects?):\n    ${stripped.stripped.join("\n    ")}`,
         );
       }
-      const markup = source
+      const dir = entry.path.split("/").slice(0, -1).join("/");
+      let resolvedSource = source;
+      for (let pass = 0; pass < 8; pass += 1) {
+        const m = /<include\s+file="([^"]+)"\s*\/?>/.exec(resolvedSource);
+        if (m === null) break;
+        const target = m[1]!;
+        const targetPath = target.startsWith("/") ? target.slice(1) : `${dir}/${target}`;
+        const normalized = targetPath.split("/").reduce((parts, part) => {
+          if (part === "..") return parts.slice(0, -1);
+          if (part === ".") return parts;
+          return [...parts, part];
+        }, [] as string[]).join("/");
+        const included = await Deno.readTextFile(normalized);
+        const includedBody = included
+          .replace(/<scope>[\s\S]*?<\/scope>\s*/, "")
+          .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/, "");
+        resolvedSource = resolvedSource.replace(m[0], includedBody);
+      }
+      const markup = resolvedSource
         .replace(/<!--[\s\S]*?-->/g, "")
         .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "");
       const ir = parse(markup);

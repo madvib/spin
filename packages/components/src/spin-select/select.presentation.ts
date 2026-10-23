@@ -435,35 +435,30 @@ export const def = {
     },
     hiddenSelect: {
       id: "hidden",
-      attrs: (scope) => {
-        const ctx = scope.context;
-        return {
-          ...ariaHidden(true),
-          tabIndex: -1,
-          name: scope.context.name || undefined,
-          form: scope.context.form || undefined,
-          disabled: scope.context.disabled,
-          required: scope.context.required,
+      attrs: (scope) => ({
+        ...ariaHidden(true),
+        tabIndex: -1,
+        name: scope.context.name || undefined,
+        form: scope.context.form || undefined,
+        disabled: scope.context.disabled,
+        required: scope.context.required,
+        multiple: scope.context.multiple === true,
+        "data-state": "hidden",
+        // The options cannot be templated inside a `<select>` (the parser
+        // drops it), so the action builds them from the collection.
+        "use:select-options": {
+          rows: scope.context.items,
+          value: [...scope.context.value],
           multiple: scope.context.multiple === true,
-          "data-state": "hidden",
-          // The options cannot be templated inside a `<select>` (the parser
-          // drops it), so the action builds them from the collection. The
-          // entry is a thunk because a plain object is evaluated once at
-          // attach and the action would never see a later selection.
-          "use:select-options": () => ({
-            rows: scope.context.items,
-            value: [...ctx.value],
-            multiple: scope.context.multiple === true,
-          }),
-          "use:form-control": {
-            onDisabledChange: (): void => {
-              // The fieldset's disabled state is reported to the host
-              // through the element; the machine's `disabled` prop is
-              // unaffected.
-            },
+        },
+        "use:form-control": {
+          onDisabledChange: (): void => {
+            // The fieldset's disabled state is reported to the host
+            // through the element; the machine's `disabled` prop is
+            // unaffected.
           },
-        };
-      },
+        },
+      }),
     },
   },
   slots: {

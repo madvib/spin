@@ -4,7 +4,7 @@ import { signal } from "@spin/runtime";
 import { datePicker } from "./date-picker.presentation.ts";
 const createDatePickerBridge = datePicker.createBridge;
 import type { DatePickerApi, DatePickerCellView } from "./date-picker.presentation.ts";
-import type { DatePickerValue } from "./date-picker.machine.ts";
+import type { DatePickerValue } from "./date-picker.state.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;

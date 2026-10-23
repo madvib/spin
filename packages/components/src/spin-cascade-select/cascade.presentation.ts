@@ -176,11 +176,6 @@ const isNode = (value: unknown): value is CascadeNode => {
 };
 
 
-/** The collection, memoized on the transport's identity: the levels cache
- * keys on the array, so an unmemoized parse would defeat both the level
- * and the handler identity. */
-const collectionOf = (parsed: Record<string, unknown>): readonly CascadeNode[] =>
-  parseCollectionState(parsed["collection"]);
 
 /** Derive the visible levels: every node along the highlighted path
  *  contributes its children as the next level. Memoized on the collection
@@ -543,9 +538,9 @@ const onContentFocusOut = (scope: ScopeLike, event: FocusEvent): void => {
 };
 
 /** The readout text: labels along each path, one selection per entry. */
-const textFor = (context: CascadeContext, live?: Record<string, unknown>): string => {
+const textFor = (context: CascadeContext): string => {
   const chains = context.value.map((path) => itemsAlongPath(context.collection, path));
-  const custom: unknown = live?.["formatValue"] ?? context.formatValue;
+  const custom: unknown = context.formatValue;
   if (typeof custom === "function") return formatWith(custom, chains);
   if (context.multiple) {
     return chains.map((chain) => chain[chain.length - 1]?.label ?? "").join(", ");
@@ -578,10 +573,8 @@ const callScroll = (custom: unknown, details: CascadeScrollDetails): void => {
   custom(details);
 };
 
-const dirOf = (props: Record<string, unknown>): "ltr" | "rtl" =>
-  props["dir"] === "rtl" ? "rtl" : "ltr";
-
 const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
+
 
 const levelOf = (arg: unknown): CascadeLevel => {
   if (!isRecord(arg)) return { depth: 0, path: [], key: "root", items: [] };
@@ -679,6 +672,11 @@ export const def = {
       }
     }
     let moved = false;
+    const nextCollection = parseCollectionState(parsed["collection"]);
+    if (nextCollection !== context.collection) {
+      context.collection = nextCollection;
+      moved = true;
+    }
     const invalid = parsed["invalid"] === true;
     if (context.invalid !== invalid) {
       context.invalid = invalid;
@@ -863,8 +861,8 @@ export const def = {
   },
   slots: {
     list: {
-      indexes: (_context, props) =>
-        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? [])),
+      indexes: (context: CascadeContext) =>
+        levelsOf(context.collection, context.highlightedValue),
       attrs: (scope: SlotLike<CascadeLevel>) => {
         const level = scope.slot;
         return {
@@ -879,8 +877,8 @@ export const def = {
       },
     },
     item: {
-      indexes: (_context, props) =>
-        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
+      indexes: (context: CascadeContext) =>
+        levelsOf(context.collection, context.highlightedValue)
           .flatMap((level) => level.items),
       attrs: (scope: SlotLike<CascadeItem>) => {
         const item = scope.slot;
@@ -915,8 +913,8 @@ export const def = {
       },
     },
     itemText: {
-      indexes: (_context, props) =>
-        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
+      indexes: (context: CascadeContext) =>
+        levelsOf(context.collection, context.highlightedValue)
           .flatMap((level) => level.items),
       attrs: (scope: SlotLike<CascadeItem>) => {
         const item = scope.slot;
@@ -931,8 +929,8 @@ export const def = {
       },
     },
     itemIndicator: {
-      indexes: (_context, props) =>
-        levelsOf(collectionOf(props), parsePath(props["highlightedValue"] ?? []))
+      indexes: (context: CascadeContext) =>
+        levelsOf(context.collection, context.highlightedValue)
           .flatMap((level) => level.items),
       attrs: (scope: SlotLike<CascadeItem>) => {
         const item = scope.slot;
@@ -993,13 +991,13 @@ export const def = {
     empty: { read: (context) => context.value.length === 0 },
     levels: {
       read: (context, _state, props) =>
-        levelsOf(collectionOf(props), context.highlightedValue),
+        levelsOf(context.collection, context.highlightedValue),
     },
   },
   methods: {
     getLevels: {
       call: (context: CascadeContext, _state, _args, props): readonly CascadeLevel[] =>
-        levelsOf(collectionOf(props ?? {}), context.highlightedValue),
+        levelsOf(context.collection, context.highlightedValue),
     },
     getItems: {
       call: (_context: CascadeContext, _state: CascadeState, [level]: [level: CascadeLevel]): readonly CascadeItem[] => levelOf(level).items,
@@ -1027,10 +1025,10 @@ export const def = {
       },
     },
     getValueText: {
-      call: (context: CascadeContext, _state, _args, props): string => textFor(context, props),
+      call: (context: CascadeContext, _state, _args, _props): string => textFor(context),
     },
     getValueTextRows: {
-      call: (context: CascadeContext, _state, _args, props): readonly { readonly value: string }[] => [{ value: textFor(context, props) }],
+      call: (context: CascadeContext, _state, _args, _props): readonly { readonly value: string }[] => [{ value: textFor(context) }],
     },
   },
   events: {
@@ -1045,9 +1043,9 @@ export const def = {
     "value-change": {
       prop: "onValueChange",
       watch: (context: CascadeContext) => context.value.map((path) => pathKey(path)),
-      detail: (watched: readonly unknown[], _event, props) => {
+      detail: (watched: readonly unknown[], _event, _props, context: CascadeContext) => {
         const keys = watched.filter((key): key is string => typeof key === "string");
-        const collection = collectionOf(props ?? {});
+        const collection = context.collection;
         return {
           value: keys.map((key) => key.split(SEP)),
           items: keys.map((key) => itemsAlongPath(collection, key.split(SEP))),
@@ -1057,10 +1055,10 @@ export const def = {
     "highlight-change": {
       prop: "onHighlightChange",
       watch: (context: CascadeContext) => [pathKey(context.highlightedValue)],
-      detail: (watched: readonly unknown[], _event, props) => {
+      detail: (watched: readonly unknown[], _event, _props, context: CascadeContext) => {
         const key = watched[0];
         const path = typeof key === "string" && key.length > 0 ? key.split(SEP) : [];
-        const collection = collectionOf(props ?? {});
+        const collection = context.collection;
         return {
           highlightedValue: [...path],
           highlightedItems: itemsAlongPath(collection, path),

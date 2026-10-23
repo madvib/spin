@@ -1,23 +1,26 @@
-<scope>props={ label: string = "Sign below", name: string = "signature" } consume={ signaturePad }</scope>
+<script lang="ts">
+  import { signaturePad } from "../signature-pad.presentation.ts";
 
-<div class="w-full" {...signaturePad.getRootProps()}>
-  <label class="mb-1 block text-sm font-medium text-text" {...signaturePad.getLabelProps(label)}>{label}</label>
+  const machine = signaturePad({});
+</script>
+<div class="w-full" {...machine.getRootProps()}>
+  <label class="mb-1 block text-sm font-medium text-text" {...machine.getLabelProps()}>Sign below</label>
   <div
-    class="relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate data-[disabled]:opacity-50"
-    {...signaturePad.getControlProps()}
+    class={["relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate", ]}
+    {...machine.getControlProps()}
   >
-    <svg {...signaturePad.getSegmentProps()}>
-      <template for={signaturePad.paths} as={row} key={row}>
-        <path {...signaturePad.getSegmentPathProps({ path: row })}></path>
+    <svg {...machine.getSegmentProps()}>
+      <template for={machine.paths} as={row} key={row}>
+        <path {...machine.getSegmentPathProps({ path: row })}></path>
       </template>
     </svg>
-    <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted" {...signaturePad.getGuideProps()}>Sign here</span>
+    <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted" {...machine.getGuideProps()}>Sign here</span>
     <button
-      class="absolute right-2 top-2 rounded-md border border-solid border-border bg-surface px-2 py-1 text-xs text-text transition-colors duration-fast ease-decelerate data-[hidden]:hidden"
-      {...signaturePad.getClearTriggerProps("Clear signature")}
+      class="absolute right-2 top-2 rounded-md border border-solid border-border bg-surface px-2 py-1 text-xs text-text transition-colors duration-fast ease-decelerate"
+      {...machine.getClearTriggerProps("Clear signature")}
     >Clear</button>
   </div>
-  <input {...signaturePad.getHiddenInputProps(name)} />
+  <input {...machine.getHiddenInputProps()} />
 </div>
 
 <div class="mt-4 space-y-2" data-preview hidden>

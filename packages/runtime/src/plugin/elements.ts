@@ -167,10 +167,6 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         const defStem = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
         const stems = [
           `${defStem}.presentation.ts`,
-          // A hand-written bridge keeps its own def: the number-input's
-          // bridge is not the framework's, so it declares its own events
-          // and commands.
-          `${defStem}.machine-def.ts`,
           `${defStem}.controller-def.ts`,
         ];
         // Examples live in `<machine>/examples/`, one level below the def:
@@ -266,7 +262,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const bridge = `${name}Bridge`;
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...values, ...defined(props), ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
             `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
             `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
             `    : { api: ${name}.attach(el), dispose() {} });\n` +
@@ -302,7 +298,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const component = `${binding.factory}`;
           scriptCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${component}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...defined(values), ...defined(props), ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
             `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
             `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
             `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
@@ -313,21 +309,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       }
       const hasConsume = consumeCalls.length > 0 || scriptCalls.length > 0;
       const propNames = scopeDecls.props.map((p) => p.name);
-      // A script's args are the element's declared props: without names the
-      // element stores nothing (no accessors, no authored tracking) and a
-      // host bind lands in an invisible own property. The args literal's
-      // top-level keys are the declaration.
-      for (const binding of scriptBindings) {
-        const args = binding.args ?? "";
-        if (!/^\{[^{}]*\}$/.test(args)) continue;
-        for (const m of args.matchAll(/(?:^|[,{])\s*([A-Za-z_$][\w$]*)\s*:/g)) {
-          if (!propNames.includes(m[1]!)) propNames.push(m[1]!);
-        }
-      }
-      // A script's own args seed the bridge, but a host that binds props
-      // (the specimens routes) writes them as element properties — the
-      // live `props` proxy carries those, so the bridge reads them too.
-      const hasProps = propNames.length > 0 || scriptCalls.length > 0;
+      const hasProps = propNames.length > 0;
       const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
         .filter((p) => p.length > 0)
         .join(", ");
@@ -400,11 +382,6 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           `  const initial = coerceProps(${JSON.stringify(scopeDecls.props)}, attrs);`,
           `  const values = { ...initial };`,
           ...seedProps,
-          // Unset props read undefined through the store's live getters;
-          // spreading them would clobber a script arg default with nothing.
-          // Strip them here so a host write is the only thing that wins
-          // over the element's own markup.
-          ...(hasConsume ? [`  const defined = (bag) => { const out = {}; for (const [k, v] of Object.entries(bag)) if (v !== undefined) out[k] = v; return out; };`] : []),
           ...scriptCalls,
           ...consumeCalls,
           // Light-DOM children are projected BEFORE create(): the markup's
@@ -465,9 +442,11 @@ async function resolveIncludes(
     } catch {
       throw new Error(`spin-elements: ${id} includes ${target}, which is not there`);
     }
-    // The included file's scope decl is the family's; the example's
-    // stands. Only the BODY is shared.
-    const body = included.replace(/<scope>[\s\S]*?<\/scope>\s*/, "");
+    // The included file's scope or script decl is the family's; the
+    // example's stands. Only the BODY is shared.
+    const body = included
+      .replace(/<scope>[\s\S]*?<\/scope>\s*/, "")
+      .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/, "");
     code = code.replace(m[0], body);
   }
   return { code };

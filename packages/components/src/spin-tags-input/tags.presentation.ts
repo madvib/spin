@@ -849,22 +849,20 @@ export const def = {
       call: (context: TagsContext) => rowsOf(context.value),
     },
     getItemState: {
-      call: (context: TagsContext, state, args, props, id) =>
+      call: (context: TagsContext, state, [row]: [row: TagsRow], _props, id) =>
         itemStateOf(
           context,
           state,
-          props["disabled"] === true,
+          context.disabled,
           id,
-          rowOf(args[0]),
+          rowOf(row),
         ),
     },
     indexOfRow: {
       call: (context: TagsContext, _state, [row]: [row: TagsRow]): number => indexOfRow(context, rowOf(row)),
     },
     indexOfId: {
-      call: (context: TagsContext, _state, args, props, id) => {
-        void props;
-        const target: unknown = args[0];
+      call: (context: TagsContext, _state, [target]: [target: string], _props, id) => {
         if (typeof target !== "string") return -1;
         for (const row of rowsOf(context.value)) {
           const tag = tagIdOf(id, row);

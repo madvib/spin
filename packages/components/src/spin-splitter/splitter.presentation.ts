@@ -14,18 +14,16 @@ import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import {
   defaultSizes,
   handleId,
-  parsePanels,
   isInteractive,
   panelCollapsed,
-  splitter as splitterMachine,
   validateSizes,
   type SplitterArgs,
   type SplitterContext,
-  type SplitterEvents,
   type SplitterPanel,
-  type SplitterResizeDetails,
   type SplitterState,
-} from "./splitter.machine.ts";
+} from "./splitter.state.ts";
+import { splitter as splitterMachine } from "./splitter.machine.ts";
+import type { SplitterEvents, SplitterResizeDetails } from "./splitter.events.ts";
 
 /** Splitter bindings: the DOM contract as data. */
 
@@ -371,7 +369,7 @@ const def = {
   },
   slots: {
     item: {
-      indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
+      indexes: (context: SplitterContext) => itemsOf(context.panels),
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
         return item.type === "panel"
@@ -380,7 +378,7 @@ const def = {
       },
     },
     itemIndicator: {
-      indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
+      indexes: (context: SplitterContext) => itemsOf(context.panels),
       attrs: (scope: SlotLike<ItemSlot>) => {
         const item = scope.slot;
         if (item.type !== "handle") return {};
@@ -388,7 +386,7 @@ const def = {
       },
     },
     itemLabel: {
-      indexes: (_context, props) => itemsOf(parsePanels(props["panels"])),
+      indexes: (context: SplitterContext) => itemsOf(context.panels),
       // The label span needs its own data-type, because data variants
       // match the element's own attributes, never ancestors.
       attrs: (scope: SlotLike<{ readonly type: string }>) => {
@@ -399,13 +397,13 @@ const def = {
     },
     panel: {
       id: "panel",
-      indexes: (_context, props) => parsePanels(props["panels"]).map((panel) => ({ id: panel.id })),
+      indexes: (context: SplitterContext) => context.panels.map((panel) => ({ id: panel.id })),
       attrs: (scope: SlotLike<{ readonly id: string }>) => panelBag(scope, scope.slot.id),
     },
     handle: {
       id: "handle",
-      indexes: (_context, props) => {
-        const panels = parsePanels(props["panels"]);
+      indexes: (context: SplitterContext) => {
+        const panels = context.panels;
         return panels.slice(0, -1).map((panel, index) => ({
           beforeId: panel.id,
           afterId: panels[index + 1]?.id ?? "",
@@ -415,8 +413,8 @@ const def = {
     },
     handleIndicator: {
       id: "handle-indicator",
-      indexes: (_context, props) => {
-        const panels = parsePanels(props["panels"]);
+      indexes: (context: SplitterContext) => {
+        const panels = context.panels;
         return panels.slice(0, -1).map((panel, index) => ({
           beforeId: panel.id,
           afterId: panels[index + 1]?.id ?? "",

@@ -12,6 +12,7 @@ export interface AsyncListArgs {
   initialFilterText?: string;
   initialSortDescriptor?: SortDescriptor;
   sortFn?: unknown;
+  load?: unknown;
 }
 
 export interface AsyncListContext {
@@ -22,6 +23,8 @@ export interface AsyncListContext {
   error: unknown;
   hasSortFn: boolean;
   dependenciesHash: string | undefined;
+  load?: unknown;
+  sortFn?: unknown;
 }
 
 export const isSortDescriptor = (value: unknown): value is SortDescriptor => {
@@ -56,5 +59,7 @@ export function initial(args: AsyncListArgs = {}, authored: (name: string) => bo
     error: undefined,
     hasSortFn: typeof sortFn === "function",
     dependenciesHash: undefined,
+    load: args.load,
+    sortFn: args.sortFn,
   };
 }

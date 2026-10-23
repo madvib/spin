@@ -12,7 +12,7 @@ export interface EditableContext {
   readOnly: boolean;
   invalid: boolean | undefined;
   required: boolean;
-  placeholder: string;
+  placeholder: string | { readonly edit?: string; readonly preview?: string };
   autoResize: boolean;
   dir: "ltr" | "rtl";
   name: string | undefined;
@@ -33,7 +33,7 @@ export interface EditableArgs {
   readOnly?: boolean;
   invalid?: boolean;
   required?: boolean;
-  placeholder?: string;
+  placeholder?: string | { readonly edit?: string; readonly preview?: string };
   autoResize?: boolean;
   dir?: "ltr" | "rtl";
   name?: string;
@@ -69,7 +69,9 @@ export function initial(args: EditableArgs = {}, authored: (name: string) => boo
     readOnly: args.readOnly === true,
     invalid: authored("invalid") ? args.invalid === true : undefined,
     required: args.required === true,
-    placeholder: typeof args.placeholder === "string" ? args.placeholder : "",
+    placeholder: typeof args.placeholder === "string" || (typeof args.placeholder === "object" && args.placeholder !== null)
+      ? args.placeholder as string | { readonly edit?: string; readonly preview?: string }
+      : "",
     autoResize: args.autoResize === true,
     dir: args.dir === "rtl" ? "rtl" : "ltr",
     name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,

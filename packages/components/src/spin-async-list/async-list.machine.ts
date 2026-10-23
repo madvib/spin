@@ -24,6 +24,8 @@ export function asyncList(
     context: initial(args, authored),
     fields: {
       hasSortFn: {},
+      load: {},
+      sortFn: {},
     },
     on: {
       RELOAD: { target: "loading", assign: clearItems },

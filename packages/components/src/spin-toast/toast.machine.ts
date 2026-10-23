@@ -69,6 +69,13 @@ export function toast(
       overlap: {},
       max: {},
       removeDelay: {},
+      placement: {},
+      gap: {},
+      offsets: {},
+      hotkey: {},
+      label: {},
+      pauseOnPageIdle: {},
+      closable: {},
     },
     states: {
       stack: {

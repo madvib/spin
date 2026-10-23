@@ -280,12 +280,11 @@ const selectOptions = (
   multiple: boolean;
 } => {
   const bag = h.api.getHiddenSelectProps();
-  const make = bag["use:select-options"] as () => {
+  return bag["use:select-options"] as {
     rows: readonly SelectRow[];
     value: readonly string[];
     multiple: boolean;
   };
-  return make();
 };
 
 // ---- the start state ------------------------------------------------------

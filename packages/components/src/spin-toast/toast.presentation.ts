@@ -184,13 +184,10 @@ const onGroupPointerLeave = (scope: ScopeLike): void => {
   }
 };
 
-const placementOf = (props: Record<string, unknown>): string => {
-  const raw: unknown = props["placement"];
-  return typeof raw === "string" && raw.length > 0 ? raw : "bottom";
-};
+const placementOf = (context: ToastContext): string => context.placement;
 
 const stackOffset = (scope: ScopeLike, index: number): number => {
-  const gap = asCount(scope.props["gap"], 16);
+  const gap = scope.context.gap;
   const list = scope.context.toasts;
   let before = index * gap;
   for (let position = 0; position < index; position += 1) before += list[position]?.height ?? 0;
@@ -204,9 +201,9 @@ const stackOffset = (scope: ScopeLike, index: number): number => {
  * beat.
  */
 const offsetY = (scope: ScopeLike, index: number): string => {
-  const placement = placementOf(scope.props);
+  const placement = placementOf(scope.context);
   const { side } = posture(placement);
-  const gap = asCount(scope.props["gap"], 16);
+  const gap = scope.context.gap;
   const distance = scope.state === "overlap" ? index * gap : stackOffset(scope, index);
   // A settled front row is at the origin, not at negative zero.
   return `${side === "top" ? distance : -distance || 0}px`;
@@ -297,16 +294,13 @@ const def = {
     group: {
       attrs: (scope: SlotLike<ToastEntry>) => {
         const ctx = scope.context;
-        const placementRaw: unknown = scope.props["placement"];
-        const placement = typeof placementRaw === "string" && placementRaw.length > 0 ? placementRaw : "bottom";
+        const placement = ctx.placement;
         const { side, align } = posture(placement);
-        const offsetRaw: unknown = scope.props["offsets"];
-        const offset = typeof offsetRaw === "string" && offsetRaw.length > 0 ? offsetRaw : "1rem";
+        const offset = ctx.offsets;
         const count = ctx.toasts.length;
         const overlapped = scope.state === "overlap";
-        const hotkey = typeof scope.props["hotkey"] === "string" ? scope.props["hotkey"] : "";
-        const labelRaw: unknown = scope.props["label"];
-        const label = typeof labelRaw === "string" && labelRaw.length > 0 ? labelRaw : "Notifications";
+        const hotkey = ctx.hotkey;
+        const label = ctx.label;
         return {
           id: scope.id("group"),
           role: "region",
@@ -326,7 +320,7 @@ const def = {
           // its placement asks for. The recipe names no var — the bag
           // carries the geometry.
           style: {
-            gap: `${asCount(scope.props["gap"], 16)}px`,
+            gap: `${ctx.gap}px`,
             ...(side === "top" ? { top: offset } : { bottom: offset }),
             ...(align === "start"
               ? { left: offset }
@@ -336,7 +330,7 @@ const def = {
           },
           "use:toast-region": {
             hotkey: hotkey.split(",").map((key) => key.trim()).filter((key) => key.length > 0),
-            pauseOnPageIdle: scope.props["pauseOnPageIdle"] !== false,
+            pauseOnPageIdle: ctx.pauseOnPageIdle,
             onIdleChange: (idle: boolean): void => {
               scope.send({ type: idle ? "PAGE.IDLE" : "PAGE.ACTIVE" });
             },
@@ -356,8 +350,7 @@ const def = {
       attrs: (scope: SlotLike<ToastEntry>) => {
         const entry = scope.slot;
         const ctx = scope.context;
-        const placementRaw: unknown = scope.props["placement"];
-        const placement = typeof placementRaw === "string" && placementRaw.length > 0 ? placementRaw : "bottom";
+        const placement = ctx.placement;
         const { side, align } = posture(placement);
         const index = ctx.toasts.findIndex((candidate) => candidate.id === entry.id);
         const at = index === -1 ? ctx.toasts.length : index;
@@ -411,7 +404,7 @@ const def = {
             remaining: current.remaining,
             paused,
             dismissing: current.status === "dismissing",
-            removeDelay: asCount(scope.props["removeDelay"], 200),
+            removeDelay: ctx.removeDelay,
             onTimeout: (): void => scope.send({ type: "TIMER.ELAPSED", id: entry.id }),
             onRemove: (): void => scope.send({ type: "TIMER.REMOVED", id: entry.id }),
             onPause: (remaining: number): void => {
@@ -479,7 +472,7 @@ const def = {
           id: scope.id("toast", `${entry.id}:close`),
           type: "button",
           "aria-label": "Dismiss notification",
-          hidden: scope.props["closable"] === false,
+          hidden: scope.context.closable === false,
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
             scope.send({ type: "TOAST.DISMISS", id: entry.id, src: "user" });
@@ -576,7 +569,7 @@ const def = {
   readers: {
     count: { read: (context) => context.toasts.length },
     layout: { read: (_context, state) => (state === "overlap" ? "overlap" : "stack") },
-    placement: { read: (_context, _state, props) => placementOf(props) },
+    placement: { read: (context) => placementOf(context) },
     overlapping: { read: (_context, state) => state === "overlap" },
     paused: {
       read: (context) => {
