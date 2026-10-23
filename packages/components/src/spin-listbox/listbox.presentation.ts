@@ -402,6 +402,7 @@ export const def = {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
+          id: scope.id("item", row.value),
           role: "option",
           dir: scope.context.dir,
           "data-value": state.value,
@@ -440,6 +441,7 @@ export const def = {
       attrs: (scope: SlotLike<ListboxBlock>) => {
         const block = scope.slot;
         return {
+          id: scope.id("itemGroup", block.id),
           role: "group",
           dir: scope.context.dir,
           "data-orientation": scope.context.orientation,
@@ -451,8 +453,8 @@ export const def = {
       id: "item-group-label",
       indexes: (context: ListboxContext) => blocksOf(rowsOf(context)),
       attrs: (scope: SlotLike<ListboxBlock>) => {
-        void scope.slot;
         return {
+          id: scope.id("itemGroupLabel", scope.slot.id),
           dir: scope.context.dir,
           role: "presentation",
         };

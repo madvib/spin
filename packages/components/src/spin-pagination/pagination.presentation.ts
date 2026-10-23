@@ -92,6 +92,7 @@ export const def = {
         if (item.type !== "page") return { "data-hidden": "", ...ariaHidden("true"), tabindex: "-1" };
         const current = item.value === scope.context.page;
         return {
+          id: scope.id("item", item.value),
           type: "button",
           "data-index": String(item.value),
           "data-selected": scope.attr(current),
@@ -110,6 +111,7 @@ export const def = {
         const item = scope.slot;
         if (item.type !== "ellipsis") return { "data-hidden": "", ...ariaHidden("true") };
         return {
+          id: scope.id("ellipsis", item.index),
           ...ariaHidden("true"),
         };
       },

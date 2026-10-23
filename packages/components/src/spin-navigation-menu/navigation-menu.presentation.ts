@@ -45,6 +45,7 @@ export const def = {
         const ctx = scope.context;
         const open = ctx.value === item.value;
         return {
+          id: scope.id("item", item.value),
           role: "menuitem",
           ...disclosureTrigger(scope, {
             expanded: open,
@@ -73,6 +74,7 @@ export const def = {
         const item = scope.slot;
         const open = scope.context.value === item.value;
         return {
+          id: scope.id("link", item.value),
           href: `#${item.value}`,
           "data-state": open ? "open" : "closed",
           "data-disabled": scope.attr(scope.context.disabled),
@@ -85,6 +87,7 @@ export const def = {
         const item = scope.slot;
         const open = scope.context.value === item.value;
         return {
+          id: scope.id("content", item.value),
           role: "menu",
           "aria-label": `${item.label} sub menu`,
           "data-state": open ? "open" : "closed",

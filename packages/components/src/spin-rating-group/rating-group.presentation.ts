@@ -113,6 +113,7 @@ export const def = {
           eventTarget instanceof Element &&
           eventTarget.ownerDocument?.defaultView?.getComputedStyle(eventTarget).direction === "rtl";
         return {
+          id: scope.id("item", index),
           role: "radio",
           "data-disabled": scope.attr(scope.context.disabled),
           "data-readonly": scope.attr(scope.context.readOnly),

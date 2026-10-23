@@ -175,6 +175,7 @@ export const def = {
         const index = scope.slot;
         const state = itemState(scope.context, index);
         return {
+          id: scope.id("trigger", index),
           role: "tab",
           type: "button",
           tabindex: scope.context.linear !== true || state.current ? "0" : "-1",
@@ -199,6 +200,7 @@ export const def = {
         const index = scope.slot;
         const state = itemState(scope.context, index);
         return {
+          id: scope.id("content", index),
           role: "tabpanel",
           tabindex: "0",
           hidden: state.current ? undefined : true,

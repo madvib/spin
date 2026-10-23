@@ -356,6 +356,7 @@ export const def = {
         const slots = handleOf(arg);
         const fixed = scope.context.fixedCropArea;
         return {
+          id: scope.id("handle", slots.position),
           role: "presentation",
           ...ariaHidden("true"),
           "data-position": slots.position,
