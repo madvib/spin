@@ -13,7 +13,11 @@
     "./apps/studio",
     "./apps/reference",
     "./apps/docs",
-    "./examples/coffee"
+    "./examples/coffee",
+    "./packages/runtime",
+    "./packages/components",
+    "./packages/hooks",
+    "./packages/syntax"
   ],
   "exports": {
     ".": "./packages/theme/src/index.ts",
@@ -41,7 +45,21 @@
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",
     "@spin/kit": "./packages/kit/src/index.ts",
-    "playwright-core": "npm:playwright-core@^1.63.0"
+    "playwright-core": "npm:playwright-core@^1.63.0",
+    "@spin/runtime": "./packages/runtime/src/index.ts",
+    "@spin/lint": "./packages/lint/src/index.ts",
+    "@spin/components": "./packages/components/src/index.ts",
+    "@std/fs/walk": "jsr:@std/fs@^1.0.0/walk",
+    "unplugin": "npm:unplugin@^3.4.0",
+    "@zag-js/color-utils": "npm:@zag-js/color-utils@^1.44.0",
+    "@zag-js/utils": "npm:@zag-js/utils@~1.44.0",
+    "@spin/runtime/props": "./packages/runtime/src/props.ts",
+    "@spin/runtime/load": "./packages/runtime/src/directives/load.ts",
+    "@spin/runtime/fsm": "./packages/runtime/src/machine/fsm/machine.ts",
+    "@spin/hooks": "./packages/hooks/src/index.ts",
+    "@spin/hooks/solid": "./packages/hooks/src/solid.ts",
+    "@spin/hooks/react": "./packages/hooks/src/react.ts",
+    "@spin/syntax": "./packages/syntax/src/index.ts"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run packages/ apps/studio/src/",
