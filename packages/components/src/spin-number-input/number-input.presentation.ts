@@ -243,6 +243,10 @@ export const def = {
     root: {
       attrs: (scope: ScopeLike) => ({
         dir: scope.context.dir,
+        "data-disabled": scope.attr(disabledOf(scope.context)),
+        "data-focus": scope.attr(scope.state === "focused"),
+        "data-invalid": scope.attr(invalidOf(scope.context)),
+        "data-scrubbing": scope.attr(scope.state === "scrubbing"),
         "use:form-control": {
           onDisabledChange: (value: boolean): void => {
             scope.send({ type: "FIELDSET.DISABLED", value });
@@ -270,6 +274,10 @@ export const def = {
         return {
           dir: context.dir,
           role: "group",
+          "data-disabled": scope.attr(disabledOf(context)),
+          "data-focus": scope.attr(scope.state === "focused"),
+          "data-invalid": scope.attr(invalidOf(context)),
+          "data-scrubbing": scope.attr(scope.state === "scrubbing"),
           "aria-disabled": disabledOf(context),
           "aria-invalid": invalidOf(context),
           "use:autoplay": {
@@ -283,7 +291,11 @@ export const def = {
       },
     },
     valueText: {
-      attrs: (scope: ScopeLike) => ({ dir: scope.context.dir }),
+      attrs: (scope: ScopeLike) => ({
+        dir: scope.context.dir,
+        "data-disabled": scope.attr(disabledOf(scope.context)),
+        "data-focus": scope.attr(scope.state === "focused"),
+      }),
     },
     input: {
       id: "input",
