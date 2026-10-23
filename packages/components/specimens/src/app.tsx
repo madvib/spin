@@ -78,7 +78,7 @@ createEffect(() => {
 function ThemePicker() {
   const [theme, setTheme] = createSignal<string>(
     (typeof localStorage !== "undefined" &&
-      localStorage.getItem("spin-theme")) || "default",
+      localStorage.getItem("spin-theme")) || "spin",
   );
   createEffect(() => {
     document.documentElement.dataset.theme = theme();
@@ -98,13 +98,12 @@ function ThemePicker() {
   );
 }
 
-/** The mode switch: one button that walks the modes the theme actually serves. */
 function ModeSwitch() {
   const modes = (): readonly string[] => [
     ...themeModes(
       starterThemes[
         (document.documentElement.dataset.theme ||
-          "default") as StarterThemeName
+          "spin") as StarterThemeName
       ],
     ),
   ];

@@ -342,6 +342,9 @@
     "12": {
       "$value": "3.0rem"
     },
+    "14": {
+      "$value": "3.5rem"
+    },
     "16": {
       "$value": "4rem"
     },
@@ -354,6 +357,21 @@
     "32": {
       "$value": "8rem",
       "$description": "The macro gap: the air between two sections of a page, which is where this theme puts its emphasis instead of putting a box around them."
+    },
+    "36": {
+      "$value": "9rem"
+    },
+    "40": {
+      "$value": "10rem"
+    },
+    "56": {
+      "$value": "14rem"
+    },
+    "60": {
+      "$value": "15rem"
+    },
+    "64": {
+      "$value": "16rem"
     },
     "$type": "dimension",
     "$description": "The spacing scale. Every gap, pad and inset is one of these steps, and the roomiest step is the one that separates sections."
