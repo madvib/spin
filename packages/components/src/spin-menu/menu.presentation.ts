@@ -61,7 +61,17 @@ const toRow = (entry: MenuEntry): MenuRow | undefined => {
   };
 };
 
+const rowsByEntries = new WeakMap<readonly MenuEntry[], readonly MenuRow[]>();
+
 const rowsOf = (entries: readonly MenuEntry[]): readonly MenuRow[] => {
+  const hit = rowsByEntries.get(entries);
+  if (hit !== undefined) return hit;
+  const rows: MenuRow[] = buildRows(entries);
+  rowsByEntries.set(entries, rows);
+  return rows;
+};
+
+const buildRows = (entries: readonly MenuEntry[]): MenuRow[] => {
   const rows: MenuRow[] = [];
   for (const entry of entries) {
     if ("value" in entry) {

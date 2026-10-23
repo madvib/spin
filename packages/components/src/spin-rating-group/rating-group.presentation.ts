@@ -54,6 +54,8 @@ export const def = {
     label: {
       attrs: (scope: ScopeLike) => ({
         "for": scope.id("hiddenInput"),
+        "data-disabled": scope.attr(scope.context.disabled),
+        "data-required": scope.attr(scope.context.required),
         onClick: (event: MouseEvent) => {
           if (event.defaultPrevented) return;
           if (!isInteractive(scope.context)) return;
@@ -64,6 +66,8 @@ export const def = {
     control: {
       attrs: (scope: ScopeLike) => ({
         role: "radiogroup",
+        "data-disabled": scope.attr(scope.context.disabled),
+        "data-readonly": scope.attr(scope.context.readOnly),
         ...ariaOrientation("horizontal"),
         ...ariaLabelledBy(scope, { part: "label" }),
         ...ariaReadOnly(scope.context.readOnly ? "true" : undefined),
@@ -110,6 +114,8 @@ export const def = {
           eventTarget.ownerDocument?.defaultView?.getComputedStyle(eventTarget).direction === "rtl";
         return {
           role: "radio",
+          "data-disabled": scope.attr(scope.context.disabled),
+          "data-readonly": scope.attr(scope.context.readOnly),
           tabindex:
             context.readOnly || context.disabled
               ? (state.checked ? "0" : undefined)

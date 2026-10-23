@@ -94,12 +94,17 @@ export const def = {
     return result;
   },
   parts: {
-    root: {},
+    root: {
+      attrs: (scope: ScopeLike) => ({
+        "data-orientation": scope.context.orientation,
+      }),
+    },
     list: {
       attrs: (scope: ScopeLike) => {
         const items = stepIndexes(scope.context.count);
         return {
           role: "tablist",
+          "data-orientation": scope.context.orientation,
           ...ariaOwns(scope, {
             parts: items.map((index) => ({ part: "trigger", slot: index })),
           }),

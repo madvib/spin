@@ -495,6 +495,7 @@ export const def = {
       attrs: (scope: ScopeLike) => ({
         dir: scope.context.dir,
         "data-disabled": scope.attr(scope.context.disabled),
+        "data-readonly": scope.attr(scope.context.readOnly),
         "data-focus": scope.attr(scope.state !== "idle"),
         "data-invalid": scope.attr(invalidOf(scope)),
         "data-empty": scope.attr(scope.context.value.length === 0),
@@ -509,7 +510,9 @@ export const def = {
         dir: scope.context.dir,
         for: scope.id("input"),
         "data-disabled": scope.attr(scope.context.disabled),
+        "data-readonly": scope.attr(scope.context.readOnly),
         "data-invalid": scope.attr(invalidOf(scope)),
+        "data-required": scope.attr(scope.context.required),
       }),
     },
     control: {
@@ -517,6 +520,7 @@ export const def = {
         dir: scope.context.dir,
         tabIndex: scope.context.readOnly ? 0 : undefined,
         "data-disabled": scope.attr(scope.context.disabled),
+        "data-readonly": scope.attr(scope.context.readOnly),
         "data-invalid": scope.attr(invalidOf(scope)),
         "data-focus": scope.attr(scope.state !== "idle"),
       }),
@@ -536,6 +540,7 @@ export const def = {
           maxLength: scope.context.maxLength,
           ...ariaInvalid(invalidOf(scope)),
           "data-invalid": scope.attr(invalidOf(scope)),
+          "data-readonly": scope.attr(scope.context.readOnly),
           "data-empty": scope.attr(empty),
           placeholder: empty ? textOf(scope.context.placeholder) : undefined,
           value: context.inputValue,
@@ -647,12 +652,13 @@ export const def = {
     },
     clearTrigger: {
       id: "clear-btn",
-      attrs: (scope) => {
+      attrs: (scope: ScopeLike) => {
         const empty = scope.context.value.length === 0;
         return {
           type: "button",
           dir: scope.context.dir,
           disabled: scope.context.disabled,
+          "data-readonly": scope.attr(scope.context.readOnly),
           "aria-label": translationsOf(scope).clearTriggerLabel,
           hidden: empty,
           onClick: () => {

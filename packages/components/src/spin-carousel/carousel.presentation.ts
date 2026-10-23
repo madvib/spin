@@ -297,6 +297,19 @@ const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   event.preventDefault();
 };
 
+/** Indexed rows, memoized on the slides' identity: the slot bag memo
+ * keys on the row object, so a fresh copy per read would strand the cache
+ * and re-attach every action on every tick. */
+const indexedRowsBySlides = new WeakMap<readonly CarouselSlide[], readonly (CarouselSlide & { readonly index: number })[]>();
+
+const indexedRows = (slides: readonly CarouselSlide[]): readonly (CarouselSlide & { readonly index: number })[] => {
+  const hit = indexedRowsBySlides.get(slides);
+  if (hit !== undefined) return hit;
+  const built = slides.map((slide, index) => ({ ...slide, index }));
+  indexedRowsBySlides.set(slides, built);
+  return built;
+};
+
 export const def = {
   name: "carousel",
   machine: (args: CarouselArgs, authored: (name: string) => boolean) => carouselMachine(args, authored),
@@ -391,6 +404,9 @@ export const def = {
         const playing = scope.state === "autoplay";
         return {
           id: scope.id("itemGroup"),
+          "data-orientation": scope.context.orientation,
+          "data-draggable": scope.attr(scope.context.allowMouseDrag),
+          "data-slides": String(scope.context.slidesPerPage),
         // The one place a state is a utility switch: with snap mandatory
           // the platform would fight the pointer, so the drag turns it off
           // and the class turns it back on. Nobody writes a style.
@@ -517,7 +533,7 @@ export const def = {
   },
   slots: {
     item: {
-      indexes: (context) => context.slides.map((slide, index) => ({ ...slide, index })),
+      indexes: (context) => indexedRows(context.slides),
       attrs: (scope: SlotLike<{ readonly index: number }>, arg?: unknown) => {
         const item = scope.slot;
         const snap = snapOf(arg);
@@ -545,7 +561,7 @@ export const def = {
       },
     },
     indicator: {
-      indexes: (context) => context.slides.map((slide, index) => ({ ...slide, index })),
+      indexes: (context) => indexedRows(context.slides),
       attrs: (scope: SlotLike<{ readonly index: number; readonly label: string }>, arg?: unknown) => {
         const item = scope.slot;
         const readOnly = isRecord(arg) && arg["readOnly"] === true;

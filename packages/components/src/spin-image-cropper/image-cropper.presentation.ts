@@ -180,7 +180,7 @@ export const def = {
   start: "idle",
   parts: {
     root: {
-      attrs: (scope) => {
+      attrs: (scope: ScopeLike) => {
         const crop = scope.context;
         const rounded = roundedCrop(crop);
         const measured = crop.viewportRect.width > 0 && crop.viewportRect.height > 0;
@@ -192,6 +192,8 @@ export const def = {
           ...ariaDescription(`Crop positioned at ${rounded.x}px from the left and ${rounded.y}px from the top with a size of ${rounded.width}px by ${rounded.height}px, ${crop.zoom.toFixed(2)}x zoom, ${Math.round(crop.rotation)} degrees rotation.`),
           ...ariaBusy(measured ? undefined : "true"),
           "data-shape": crop.cropShape,
+          "data-dragging": scope.attr(scope.state === "dragging"),
+          "data-panning": scope.attr(scope.state === "panning"),
 
         };
       },
@@ -291,7 +293,7 @@ export const def = {
       },
     },
     selection: {
-      attrs: (scope) => {
+      attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
         const crop = roundedCrop(ctx);
         const maxX = isGesturing(scope.state)
@@ -300,6 +302,7 @@ export const def = {
         return {
           role: "slider",
           tabindex: "0",
+          "data-dragging": scope.attr(scope.state === "dragging"),
           "aria-label": `Crop selection area (${ctx.cropShape === "circle" ? "circle" : "rectangle"})`,
           ...ariaRoleDescription("2d slider"),
           ...sliderThumb({
@@ -391,6 +394,7 @@ export const def = {
         return {
           ...ariaHidden("true"),
           "data-axis": slots.axis,
+          "data-dragging": scope.attr(scope.state === "dragging"),
 
         };
       },

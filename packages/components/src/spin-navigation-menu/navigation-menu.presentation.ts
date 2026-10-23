@@ -26,11 +26,14 @@ export const def = {
     root: {
       attrs: (scope: ScopeLike) => ({
         "data-state": scope.state === "open" ? "open" : "closed",
+        "data-orientation": scope.context.orientation,
+        "data-disabled": scope.attr(scope.context.disabled),
       }),
     },
     list: {
-      attrs: () => ({
+      attrs: (scope: ScopeLike) => ({
         role: "menubar",
+        "data-orientation": scope.context.orientation,
       }),
     },
   },
@@ -48,6 +51,7 @@ export const def = {
             hasPopup: "menu",
           }),
           "data-state": open ? "open" : "closed",
+          "data-disabled": scope.attr(scope.context.disabled),
           "use:hover-delay": {
             openDelay: ctx.openDelay,
             closeDelay: ctx.closeDelay,
@@ -71,6 +75,7 @@ export const def = {
         return {
           href: `#${item.value}`,
           "data-state": open ? "open" : "closed",
+          "data-disabled": scope.attr(scope.context.disabled),
         };
       },
     },

@@ -11,7 +11,7 @@ import {
   type SlotScopeFor,
 } from "@spin/runtime";
 import { listbox as listboxMachine } from "./listbox.machine.ts";
-import type { ListboxArgs, ListboxContext } from "./listbox.state.ts";
+import type { ListboxArgs, ListboxArgsItem, ListboxContext } from "./listbox.state.ts";
 import type { ListboxEvents } from "./listbox.events.ts";
 
 export type { ListboxArgs };
@@ -91,8 +91,18 @@ const parseItems = (raw: unknown): readonly ListboxRow[] => {
   return toRows(raw.filter((item): item is ListboxItem => typeof item === "object" && item !== null));
 };
 
-const rowsOf = (context: ListboxContext): readonly ListboxRow[] =>
-  parseItems(context.items);
+/** Rows memoized on the items' identity: the slot bag memo keys on the
+ * row object, so a fresh copy per read would strand the cache and
+ * re-attach every row handler on every tick. */
+const rowsByItems = new WeakMap<readonly ListboxArgsItem[], readonly ListboxRow[]>();
+
+const rowsOf = (context: ListboxContext): readonly ListboxRow[] => {
+  const hit = rowsByItems.get(context.items);
+  if (hit !== undefined) return hit;
+  const built = parseItems(context.items);
+  rowsByItems.set(context.items, built);
+  return built;
+};
 
 const orderOf = (context: ListboxContext): string[] =>
   rowsOf(context).map((row) => row.value);
@@ -341,6 +351,7 @@ export const def = {
     root: {
       attrs: (scope: ScopeLike) => ({
         dir: scope.context.dir,
+        "data-orientation": scope.context.orientation,
       }),
     },
     label: {
@@ -366,6 +377,7 @@ export const def = {
             labelledBy: { part: "label" },
           }),
           "data-activedescendant": active,
+          "data-orientation": scope.context.orientation,
           onFocus: (): void => scope.send({ type: "CONTENT.FOCUS" }),
           onBlur: (): void => scope.send({ type: "CONTENT.BLUR" }),
           onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
@@ -393,6 +405,7 @@ export const def = {
           role: "option",
           dir: scope.context.dir,
           "data-value": state.value,
+          "data-orientation": scope.context.orientation,
           ...optionRow({
             selected: state.selected ? "true" : "false",
             disabled: state.disabled ? "true" : undefined,
@@ -429,6 +442,7 @@ export const def = {
         return {
           role: "group",
           dir: scope.context.dir,
+          "data-orientation": scope.context.orientation,
           ...ariaLabelledBy(scope, { part: "itemGroupLabel", slot: block.id }),
         };
       },

@@ -134,7 +134,7 @@ const def = {
       },
     },
     positioner: {
-      attrs: (scope) => {
+      attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
         const open = scope.state !== "closed";
         return {
@@ -143,6 +143,8 @@ const def = {
           "aria-label": scope.context.label,
           "data-state": open ? "open" : "closed",
           "data-stage": ctx.stage,
+          "data-dragging": scope.attr(scope.state === "dragging"),
+          "data-resizing": scope.attr(scope.state === "resizing"),
                     "data-disabled": dataAttr(scope.context.disabled),
           // The panel is the dismissable surface itself: an outside press
           // closes it, and the escape hatch reaches the machine.

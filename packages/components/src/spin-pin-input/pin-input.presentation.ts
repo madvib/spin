@@ -302,6 +302,7 @@ export const def = {
         for: scope.id("hidden"),
         "data-complete": scope.attr(pinView(scope.context.value, scope.context.count).complete),
         "data-invalid": scope.attr(scope.context.invalid === true),
+        "data-required": scope.attr(scope.context.required),
         onClick: (event: MouseEvent) => {
           // The label's control is the hidden input, which cannot take
           // focus; the first cell can.

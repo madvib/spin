@@ -112,6 +112,7 @@ export const def = {
           // Zag renders the auto-resize stack with an inline style; ours keys
           // a static utility on the same fact.
           "data-autoresize": scope.attr(scope.context.autoResize === true),
+          "data-disabled": scope.attr(scope.context.disabled),
         };
       },
     },
@@ -124,6 +125,9 @@ export const def = {
           for: scope.id("input"),
           "data-state": focused ? "edit" : "preview",
           "data-focus": scope.attr(focused),
+          "data-disabled": scope.attr(scope.context.disabled),
+          "data-invalid": scope.attr(scope.context.invalid === true),
+          "data-required": scope.attr(scope.context.required),
           onClick: (): void => {
             if (editingOf(scope)) return;
             // Focus management recorded as a gap: label-click focus on the
@@ -162,6 +166,10 @@ export const def = {
           "data-state": focused ? "edit" : "preview",
           "data-placeholder-shown": scope.attr(placeholderShown),
           "data-hidden": scope.attr(removed),
+          "data-disabled": scope.attr(scope.context.disabled),
+          "data-autoresize": scope.attr(scope.context.autoResize === true),
+          "data-invalid": scope.attr(scope.context.invalid === true),
+          "data-readonly": scope.attr(scope.context.readOnly),
           ...ariaControls(scope, { part: "control" }),
           // A size of 1 is what makes the field content-sized in the
           // auto-resize stack.
@@ -237,6 +245,10 @@ export const def = {
           "data-state": focused ? "edit" : "preview",
           "data-placeholder-shown": scope.attr(placeholderShown),
           "data-hidden": scope.attr(removed),
+          "data-disabled": scope.attr(scope.context.disabled),
+          "data-autoresize": scope.attr(scope.context.autoResize === true),
+          "data-invalid": scope.attr(scope.context.invalid === true),
+          "data-readonly": scope.attr(scope.context.readOnly),
           ...ariaReadOnly(scope.context.readOnly === true ? true : undefined),
           ...ariaDisabled(scope.context.disabled === true ? true : undefined),
           ...ariaInvalid(scope.context.invalid === true ? true : undefined),
@@ -278,6 +290,7 @@ export const def = {
           dir: scope.context.dir,
           type: "button",
           "data-state": focused ? "edit" : "preview",
+          "data-disabled": scope.attr(scope.context.disabled),
           "aria-label": TRANSLATIONS.edit,
           ...ariaControls(scope, { part: "control" }),
           disabled: scope.context.disabled,
@@ -301,6 +314,7 @@ export const def = {
           dir: scope.context.dir,
           type: "button",
           "data-state": focused ? "edit" : "preview",
+          "data-disabled": scope.attr(scope.context.disabled),
           "aria-label": TRANSLATIONS.submit,
           ...ariaControls(scope, { part: "control" }),
           disabled: scope.context.disabled,
@@ -321,6 +335,7 @@ export const def = {
           dir: scope.context.dir,
           type: "button",
           "data-state": focused ? "edit" : "preview",
+          "data-disabled": scope.attr(scope.context.disabled),
           "aria-label": TRANSLATIONS.cancel,
           ...ariaControls(scope, { part: "control" }),
           disabled: scope.context.disabled,
